@@ -5,7 +5,7 @@ A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
-
+ 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
 pooyan@cimne.upc.edu 
@@ -66,35 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//static variables
-	/*
-	boost::numeric::ublas::bounded_matrix<double,3,6> UlfFrac2D::msB;
-	boost::numeric::ublas::bounded_matrix<double,3,3> UlfFrac2D::ms_constitutive_matrix;
-	boost::numeric::ublas::bounded_matrix<double,3,6> UlfFrac2D::ms_temp;
-	array_1d<double,6> UlfFrac2D::ms_temp_vec;
-	array_1d<double,3> UlfFrac2D::msN; //dimension = number of nodes
-	*/
-	namespace UlfFrac2D_auxiliaries
-	{
-
-	boost::numeric::ublas::bounded_matrix<double,3,6> msB;
-	boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;
-	boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;
-	array_1d<double,6> ms_temp_vec;
 	
-		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
-		boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
-		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
-		//boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
-		array_1d<double,2> ms_aux_gp = ZeroVector(2); //dimension = number of nodes
-		array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
-		array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
-		array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
-		array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
-		array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
-		array_1d<double,3> msN = ZeroVector(3);
-	} 
-	using  namespace UlfFrac2D_auxiliaries;
 
 	//************************************************************************************
 	//************************************************************************************
@@ -175,8 +147,10 @@ namespace Kratos
 	void UlfFrac2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 	KRATOS_TRY
-	//KRATOS_WATCH("Current FRACTIONAL STEP IS (CalcRightHandSide)!!!!!!!!!!!!!!!!!!")
-		
+	
+	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+	array_1d<double,3> msN;// = ZeroVector(3);
+			
 	int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
 	//KRATOS_WATCH(FractionalStepNumber)
@@ -262,6 +236,11 @@ namespace Kratos
 	void UlfFrac2D::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		boost::numeric::ublas::bounded_matrix<double,3,6> msB;// = ZeroMatrix(3,6);
+		boost::numeric::ublas::bounded_matrix<double,3,3> ms_constitutive_matrix;// = ZeroMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,6> ms_temp;// = ZeroMatrix(3,6);
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+		array_1d<double,3> msN;// = ZeroVector(3);
 		unsigned int NumberOfNodes = GetGeometry().size();
 		unsigned int dim = GetGeometry().WorkingSpaceDimension();
 		
@@ -299,7 +278,7 @@ namespace Kratos
 		ms_constitutive_matrix(2,0) = 0.0;					ms_constitutive_matrix(2,1) = 0.0;						ms_constitutive_matrix(2,2) = nu*density;
 			
 		//calculating viscous contributions
-		ms_temp = prod( ms_constitutive_matrix , msB);
+		noalias(ms_temp) = prod( ms_constitutive_matrix , msB);
 		noalias(rDampMatrix) = prod( trans(msB) , ms_temp);
 
 		rDampMatrix *= Area;
@@ -311,13 +290,17 @@ namespace Kratos
 	void UlfFrac2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	{
 		KRATOS_TRY
+		array_1d<double,2> ms_aux_gp;// = ZeroVector(2); 
 		//save original Area
 		mA0 = GeometryUtils::CalculateVolume2D(GetGeometry());
-		
+		array_1d<double,2> ms_vel_gauss;// = ZeroVector(2); 
+		array_1d<double,3> msN;// = ZeroVector(3);
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
 		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-
+		
 		array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
 		array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);				
 		array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);			
@@ -465,8 +448,11 @@ namespace Kratos
 	void UlfFrac2D::VelocityStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
+		array_1d<double,3> msN;// = ZeroVector(3);
 		//KRATOS_WATCH("Velocity step!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-		const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
+		const double& density = 0.333333333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
 							GetGeometry()[1].FastGetSolutionStepValue(DENSITY) +
 							GetGeometry()[2].FastGetSolutionStepValue(DENSITY));
 		
@@ -485,14 +471,14 @@ namespace Kratos
 
 
 		//writing the body force
-		const array_1d<double,3>& body_force = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+
+		const array_1d<double,3>& body_force = 0.333333333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+
 							GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +
 							GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
 
 		for(unsigned int i = 0; i<number_of_nodes; i++)
 		{
-			rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.3333333333333;
-			rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.3333333333333;
+			rRightHandSideVector[i*2] = body_force[0]* density * mA0 * 0.333333333333333333333;
+			rRightHandSideVector[i*2+1] = body_force[1] * density * mA0 * 0.333333333333333333333;
 		}
 
 		noalias(rLeftHandSideMatrix) = ZeroMatrix(6,6);
@@ -522,6 +508,16 @@ namespace Kratos
 	void UlfFrac2D::PressureStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 		KRATOS_TRY
+		
+		array_1d<double,6> ms_temp_vec;// = ZeroVector(6);
+	
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix;// = ZeroMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;//= ZeroMatrix(3,2);
+		array_1d<double,3> ms_temp_vec_np;// = ZeroVector(3); //dimension = number of nodes
+		array_1d<double,3> ms_aux0;// = ZeroVector(3); //dimension = number of nodes
+		array_1d<double,3> ms_aux1;// = ZeroVector(3); //dimension = number of nodes
+		array_1d<double,3> msN;// = ZeroVector(3);
+		array_1d<double,2> ms_vel_gauss;// = ZeroVector(2);
 		
 		if(rRightHandSideVector.size() != 3)
 		{
@@ -586,7 +582,7 @@ namespace Kratos
 		//calculating parameter tau (saved internally to each element)
 		double h = sqrt(2.00*Area);
 		double tau = 1.00 / ( 4.00*nu/(h*h) + 1.0/dt);
-		//tau*=10.0;
+		//tau*=100.0;
 								
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
@@ -601,8 +597,8 @@ namespace Kratos
 		double c1=0.25*(1.0-alpha_bossak);
 
 		noalias(msWorkMatrix)=prod(msDN_DX,trans(msDN_DX));
-		noalias(rLeftHandSideMatrix) = (1.0/density)*(c1*dt + tau) * Area*msWorkMatrix;
-				
+		noalias(rLeftHandSideMatrix) = msWorkMatrix;
+		rLeftHandSideMatrix *= ((1.0/density)*(c1*dt + tau) * Area);
 		//rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
 		//fv is u_tilda
 		
@@ -623,7 +619,7 @@ namespace Kratos
 		ms_temp_vec_np[1] = p1_old; 
 		ms_temp_vec_np[2] = p2_old; 
 
-		noalias(rRightHandSideVector) += (1.0/density)*Area*c1*dt* (prod(msWorkMatrix,ms_temp_vec_np)) ;
+		noalias(rRightHandSideVector) += ((1.0/density)*Area*c1*dt)* (prod(msWorkMatrix,ms_temp_vec_np)) ;
 	
 		//***************************************************************************
 		
@@ -677,7 +673,7 @@ namespace Kratos
 
 		ms_aux1=prod(msDN_DX,ms_vel_gauss);
 		
-		noalias(rRightHandSideVector) -= tau*(1.0/c1)*Area*ms_aux1; //tau*density*Area*ms_aux1;  
+		noalias(rRightHandSideVector) -= (tau*(1.0/c1)*Area)*ms_aux1; //tau*density*Area*ms_aux1;  
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// here for the FSI problems involving flexible structures only
 		// we add a Laplacian term, taking into account the mass of the structure.. this
