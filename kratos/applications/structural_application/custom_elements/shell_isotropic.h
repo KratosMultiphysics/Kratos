@@ -153,6 +153,8 @@ namespace Kratos
 		void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
 		void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+		
+		int  Check(const ProcessInfo& rCurrentProcessInfo);
 
 		///@}
 		///@name Access

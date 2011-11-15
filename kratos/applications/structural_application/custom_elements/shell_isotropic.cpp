@@ -659,7 +659,7 @@ namespace Kratos
 		
 		//adding the body force (which is already given in global coordinates)		
 		AddBodyForce(h,A,rRightHandSideVector);
-
+		
 // 		//adding pressure force
 // 		const double one_third = 1.00 / 3.00;
 // 		double element_pressure = (GetGeometry()[0].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)
@@ -760,7 +760,7 @@ namespace Kratos
 			)
 	{
 		KRATOS_TRY
-		boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+		boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
 		boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
 		//calculate local rotation matrix
 		aux33(0,0) = v1[0];  aux33(0,1) = v1[1];  aux33(0,2) = v1[2]; 
@@ -802,7 +802,7 @@ namespace Kratos
 		{
 			KRATOS_TRY
 			
-			boost::numeric::ublas::bounded_matrix<double,18,18> rot18;
+			boost::numeric::ublas::bounded_matrix<double,18,18> rot18=ZeroMatrix(18,18);
 			boost::numeric::ublas::bounded_matrix<double,3,3> aux33;
 	
 			//calculate local rotation matrix
@@ -1901,7 +1901,71 @@ namespace Kratos
 		}
 	}
 
+
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int  ShellIsotropic::Check(const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+	      
+
+        //verify that the variables are correctly initialized
+        if(VELOCITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+        if(DISPLACEMENT.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+        if(ACCELERATION.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
+        if(DENSITY.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+        if(BODY_FORCE.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+        if(THICKNESS.Key() == 0)
+                KRATOS_ERROR(std::invalid_argument,"THICKNESS has Key zero! (check if the application is correctly registered","");
+
+        //verify that the dofs exist
+        for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+        {
+            if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].SolutionStepsDataHas(ROTATION) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id());
+            if(this->GetGeometry()[i].HasDofFor(ROTATION_X) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Y) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Z) == false)
+                KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id());
+        }
+
+        //Verify that the body force is defined
+        if (this->GetProperties().Has(BODY_FORCE)==false)
+           KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
+ 
+        if (this->GetProperties().Has(THICKNESS)==false)
+            KRATOS_ERROR(std::logic_error,"THICKNESS not provided for element ",this->Id());
+ 
+        if (this->GetProperties().Has(DENSITY)==false)
+            KRATOS_ERROR(std::logic_error,"DENSITY not provided for element ",this->Id());
+
+        if (this->GetProperties().Has(YOUNG_MODULUS)==false)
+            KRATOS_ERROR(std::logic_error,"YOUNG_MODULUS not provided for element ",this->Id());
+
+        if (this->GetProperties().Has(POISSON_RATIO)==false)
+            KRATOS_ERROR(std::logic_error,"POISSON_RATIO not provided for element ",this->Id());
+
+          
+
+        return 0;
+
+        KRATOS_CATCH("");
+    }
+
 }
-
-
 

@@ -869,7 +869,7 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 		     factor = 1;
 	  	  }
 	        else
-		   factor = -1;
+		   factor = 1; //-1;
 		
 		CalculateDistrubuitedBodyForce(1, Load1);
 		CalculateDistrubuitedBodyForce(2, Load2);
@@ -881,17 +881,20 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 			/// Punto Inical
 			Output[0][0] = 0.00;  //Stress[3];
 			Output[0][1] = 0.00;  //Stress[4];
-			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
+			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1.00/4.00); //Stress[5];
+//			Output[0][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/4.00); //Stress[5];
 
 
 			Output[1][0] = 0.00;
 			Output[1][1] = 0.00;			
-			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
+			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 1./2);
+//			Output[1][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], mlength/2);
 			
 						
 			Output[2][0] = 0.00;
 			Output[2][1] = 0.00;
-			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
+			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[11], Load2[1], 3.00/4.00);
+//			Output[2][2] = factor * CalculateInternalMoment(Stress[5], Stress[1], Load2[1], 3.00*mlength/4.00);
 			
 		      }
 		      
@@ -915,7 +918,8 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 	 
 	 double BeamElement::CalculateInternalMoment(const double& Mo, const double& Vo, const double& Load, const double& X)
 	   {    
-	     return Mo - Vo*X + 0.5 * Load * X * X;
+//	     return Mo - Vo*X + 0.5 * Load * X * X;
+	     return Mo *(1-X) - Vo*X;
 	   }
 	 
         double BeamElement::CalculateInternalShear(const double& Vo, const double& Load, const double& X)
@@ -971,6 +975,7 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
 		noalias(LocalDisplacement) = prod(Matrix(trans(Rotation)), CurrentDisplacement);
 		CalculateBodyForce(Rotation, LocalBody, GlobalBody);
 		noalias(Stress) = -LocalBody + prod(LocalMatrix, LocalDisplacement);
+//		noalias(Stress) = -LocalBody + prod(Matrix(prod(Rotation,LocalMatrix)), LocalDisplacement);
 		return;
 	      
 	    }
