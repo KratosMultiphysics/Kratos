@@ -1167,10 +1167,13 @@ void AssembleRHS_parallel(
 			//KRATOS_WATCH("BUILDING AUXILIARY MATRIX D")
 			
 
+			
+			//array_1d<double,TDim+1> rhs_contribution;
+			
+			#ifndef _OPENMP
 			boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			array_1d<double,TDim+1> N;
 			array_1d<unsigned int ,TDim+1> local_indices;
-			//array_1d<double,TDim+1> rhs_contribution;
 			double Volume;
 			double temp;
 			
@@ -1179,7 +1182,6 @@ void AssembleRHS_parallel(
 			unsigned int dof_position = (r_model_part.NodesBegin())->GetDofPosition(DISPLACEMENT_X);
 
 			double aaa = 1.0/(TDim+1.0);
-			#ifndef _OPENMP
 			//if the element is not having all the nodes IS_STRUCTURE, assemble it, otherwise do nothing
 			for(ModelPart::ElementsContainerType::iterator i = r_model_part.ElementsBegin(); 
 				i!=r_model_part.ElementsEnd(); i++)
@@ -1794,7 +1796,7 @@ boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			result[i]=precond[i]*vec[i];
 			}
 			KRATOS_CATCH("");
-		}
+		} 
 
 				
 		void calc_GMinvD_prod(TSystemMatrixType& mD,
