@@ -6,36 +6,27 @@
 #
 #	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#	AUTHOR : Luis
+#	AUTHORS : Luis Calvo, Gerardo Socorro
 #
 #	CREATED AT: 20/05/10
 #
-#	LAST MODIFICATION : 
-#
-#	VERSION : 0.1
-#
 #	HISTORY:
 #
-#	 
-#
+#	 0.2- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
+#        0.1- 22/06/11-L. Calvo, create the base source code
 ##############################################################################################
 
 package require treectrl
 package require tooltip
 package provide KEGroups 1.0 
-package require snit
-package require tdom
-package require xmlstruct 1.0
-
-# Create a snit type to store the entity group properties
-#snit::type EGroup {}
 
 # Create a base namespace KEGroups
 namespace eval ::LEntities:: {
     
     # Path of the base window 
     variable WinPath ".gid.kegroups.listEntities"
-    variable TreePath   ;# The tree path
+    # The tree path
+    variable TreePath   
     variable lSort 0
 }
 
