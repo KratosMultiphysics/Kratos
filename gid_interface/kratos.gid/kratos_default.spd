@@ -47,8 +47,8 @@
     </RootData>
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="normal" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
         <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="1">
-            <Item id="StructuralType" pid="Structural type" class="strucType" dv="Generic" ivalues="Beams,Truss,Shells,Solids,Generic" values="Beams,Truss,Shells,Solids,Generic" help="Structural Type"/>
-            <Item id="SolutionType" pid="Solution type" class="soluType" dv="Dynamic" ivalues="Static,Dynamic" values="Static,Dynamic" help="Solution Type"/>
+            <Item id="StructuralType" pid="Structural type" class="strucType" dv="Generic" ivalues="Beams,Truss,Membranes,Shells,Solids,Generic" values="Beams,Truss,Membranes,Shells,Solids,Generic" help="Structural Type"/>
+            <Item id="SolutionType" pid="Solution type" class="soluType" dv="Dynamic" ivalues="Static,Dynamic,RelaxedDynamic" values="Static,Dynamic,Relaxed dynamic" help="Solution type"/>
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Non-Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" icon="solstrategy.gif">
@@ -58,7 +58,7 @@
             <Item id="Tolerance" pid="Iterative" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Maximum iteration" solverType="Iterative" dv="5000" help=""/>
             <Item id="PreconditionerType" pid="Preconditioner type" solverType="Iterative" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Container id="Dynamic" pid="Dynamic" class="Tab" soluType="Dynamic" open="1">
+            <Container id="Dynamic" pid="Dynamic" class="Tab" soluType="Dynamic,RelaxedDynamic" open="1">
                 <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
                 <Item id="EndTime" pid="End time" dv="1" help=""/>
                 <Item id="DeltaTime" pid="Delta time" dv="0.01" help=""/>
@@ -83,18 +83,20 @@
             <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
             <Container id="LinearElement3D" pid="Linear element" class="Groups" strucType="Solids" idTemplate="TLagrangian3D"  nDim="3D" GiDEntity="volume" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
             <Container id="EBST" pid="EBST (formulation)" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
+	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="1"/>
         </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="1" icon="loads.gif">
             <Container id="BodyForce" pid="Body force" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
             <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
-            <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
-            <Container id="Face" pid="Face" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="1"/>
+            <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
+            <Container id="Face" pid="Face" class="Groups" nDim="3D" strucType="Solids" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="0"/>
         </Container>
         <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1" icon="boundarycond.gif">
             <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="1" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
             <Container id="Rotations" pid="Rotations" class="Groups" strucType="Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="1"/>
         </Container>
         <Container id="Results" pid="Results" class="Tab" help="Results" open="1" icon="outputresults.gif">
+	  <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
             <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
                 <Item id="Displacements" pid="Displacements" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
                 <Item id="Forces" pid="Forces" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Forces"/>
@@ -181,6 +183,7 @@
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
             <Container id="Slip" pid="Slip" class="Groups" fluidSolvTyp="EdgeBased" idTemplate="Displacements" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
+	    <Container id="Flag-Variable" pid="Flag-Variable" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
         </Container>
         <Container id="Results" pid="Results" class="Tab" help="Results" open="1">
             <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
@@ -215,6 +218,12 @@
         <Template id="TLagrangian3D" icon="groupsTree.gif" help="Total Lagrangian">
             <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Tetrahedra,Hexahedra" values="Tetrahedra,Hexahedra" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
+        </Template>
+	<Template id="MembraneElement" icon="groupsTree.gif" help="Membrane element">
+            <Container id="Properties" pid="Properties" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
@@ -285,7 +294,7 @@
 	<Template id="ShellPressure" icon="groupsTree.gif" help="Define the positive or negative shell pressure">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="FixPressure" pid="Fix pressure" dv="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
-		<Item id="PressureType" pid="Pressure type" dv="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Pressure type"/>
+		<Item id="PressureType" pid="Face type" dv="Positive" ivalues="Positive,Negative" values="Positive,Negative" help="Defines which side of the face that matches the direction of the normal to the surface, positive or negative"/>
                 <Item id="PressureValue" pid="Pressure value" dv="0.0" help="Pressure value"/>
             </Container>
         </Template>
@@ -305,6 +314,11 @@
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="InitialPressure" pid="Pressure" dv="0.0" help=""/>
             </Container>
+        </Template>
+	<Template id="FlagVariable" icon="groupsTree.gif" help="Flag variable">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="Flag" pid="Flag" dv="1" ivalues="1,2" values="1,2" help="Select the flag value"/>
+	    </Container>
         </Template>
     </Templates>
     <GlobalProjectSettings>
