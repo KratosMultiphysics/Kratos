@@ -74,6 +74,13 @@ if( ProjectParameters.Solution_method=="Newton-Raphson"):
         else:
 	  import structural_solver_dynamic_rotation
 	  structural_solver_dynamic_rotation.AddVariables(model_part)
+   elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+        if(ProjectParameters.Rotational_Dofs == "False"):
+	  import structural_solver_relaxation
+	  structural_solver_relaxation.AddVariables(model_part)
+        else:
+	  import structural_solver_relaxation_rotation
+	  structural_solver_relaxation_rotation.AddVariables(model_part)
 
 if( ProjectParameters.Solution_method=="LineSearch"):
    if(ProjectParameters.SolverType == "DynamicSolver"):
@@ -83,6 +90,13 @@ if( ProjectParameters.Solution_method=="LineSearch"):
         else:
 	  import structural_solver_dynamic_rotation_general
 	  structural_solver_dynamic_rotation_general.AddVariables(model_part)
+   elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+        if(ProjectParameters.Rotational_Dofs == "False"):
+	  import structural_solver_relaxation
+	  structural_solver_relaxation.AddVariables(model_part)
+        else:
+	  import structural_solver_relaxation_rotation
+	  structural_solver_relaxation_rotation.AddVariables(model_part)
 
 
 #reading a model
@@ -134,6 +148,13 @@ if( ProjectParameters.Solution_method=="Newton-Raphson"):
          else:
  	     structural_solver_dynamic_rotation.AddDofs(model_part)
 	     solver = structural_solver_dynamic_rotation.DynamicStructuralSolver(model_part,domain_size)
+    if(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+         if(ProjectParameters.Rotational_Dofs == "False"):
+	     structural_solver_relaxation.AddDofs(model_part)
+	     solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
+         else:
+ 	     structural_solver_relaxation_rotation.AddDofs(model_part)
+	     solver = structural_solver_relaxation_rotation.RelaxationStructuralSolver(model_part,domain_size)
 
 if( ProjectParameters.Solution_method== "LineSearch" ):
       if(ProjectParameters.SolverType == "DynamicSolver"):
@@ -143,6 +164,14 @@ if( ProjectParameters.Solution_method== "LineSearch" ):
             else:
 	        structural_solver_dynamic_rotation_general.AddDofs(model_part)
 	        solver = structural_solver_dynamic_rotation_general.DynamicStructuralSolver(model_part,domain_size)
+      if(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+         if(ProjectParameters.Rotational_Dofs == "False"):
+	     structural_solver_relaxation.AddDofs(model_part)
+	     solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
+         else:
+ 	     structural_solver_relaxation_rotation.AddDofs(model_part)
+	     solver = structural_solver_relaxation_rotation.RelaxationStructuralSolver(model_part,domain_size)
+
 
 
 
