@@ -1,1839 +1,3987 @@
 <?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8;-*- -->
 <!DOCTYPE ramtranslator SYSTEM "ramtranslator.dtd">
 <ramtranslator version="1.10b">
-    <maxrow>229</maxrow>
+    <maxrow>459</maxrow>
     <languages>
         <langlist>Spanish es English en</langlist>
         <current>Spanish</current>
     </languages>
     <srcstrings>
+        <src id="1">
+            <base>Model validation</base>
+            <position>Copia de modelvalidation.tcl:62;modelvalidation.tcl:70</position>
+            <priority>0</priority>
+        </src>
+        <src id="2">
+            <base>Close</base>
+            <position>Copia de modelvalidation.tcl:93;modelvalidation.tcl:101;antes de auto class kmprops.tcl:152;Copia de kmprops.tcl:157;Copia de kmprops2.tcl:151;kFunctions.tcl:148;kmaterials.tcl:118;kmprops.tcl:167;kegroups.tcl:104;kegroups.tcl:156;kGroupEntities.tcl:78</position>
+            <priority>0</priority>
+        </src>
+        <src id="3">
+            <base>Close the report window</base>
+            <position>Copia de modelvalidation.tcl:93;modelvalidation.tcl:101;projectSettings.tcl:76</position>
+            <priority>0</priority>
+        </src>
+        <src id="4">
+            <base>Print</base>
+            <position>Copia de modelvalidation.tcl:99;modelvalidation.tcl:107</position>
+            <priority>0</priority>
+        </src>
+        <src id="5">
+            <base>Print the report via a temporal file using notepad</base>
+            <position>Copia de modelvalidation.tcl:99;modelvalidation.tcl:107</position>
+            <priority>0</priority>
+        </src>
+        <src id="6">
+            <base>Could not make a backup copy of Kratos interface data file (%s)</base>
+            <position>files.tcl:183</position>
+            <priority>0</priority>
+        </src>
+        <src id="7">
+            <base>Cannot write file %s. Permission denied</base>
+            <position>files.tcl:248;winutils.tcl:123</position>
+            <priority>0</priority>
+        </src>
+        <src id="8">
+            <base>Error reading file %s %s %s problem type has been not correctly installed</base>
+            <position>initptype.tcl:155</position>
+            <priority>0</priority>
+        </src>
+        <src id="9">
+            <base>Kratos</base>
+            <comments>menu</comments>
+            <position>menus.tcl:46</position>
+            <priority>0</priority>
+        </src>
         <src id="10">
-            <base>Root folder can't be edited</base>
-            <position>kegroups.tcl:937</position>
+            <base>Entities group editor</base>
+            <comments>menu</comments>
+            <position>menus.tcl:87</position>
+            <priority>0</priority>
+        </src>
+        <src id="11">
+            <base>Model properties</base>
+            <comments>menu</comments>
+            <position>menus.tcl:87</position>
             <priority>0</priority>
         </src>
         <src id="12">
-            <base>You can't use some reservate chars like:\n  :   /   $   .   \\  %  </base>
-            <position>kmprops.tcl:1619;kmprops.tcl:2330;kegroups.tcl:943</position>
+            <base>Material database</base>
+            <comments>menu</comments>
+            <position>menus.tcl:87</position>
+            <priority>0</priority>
+        </src>
+        <src id="13">
+            <base>Function editor</base>
+            <comments>menu</comments>
+            <position>menus.tcl:87</position>
+            <priority>0</priority>
+        </src>
+        <src id="14">
+            <base>Project settings</base>
+            <comments>menu</comments>
+            <position>menus.tcl:87</position>
+            <priority>0</priority>
+        </src>
+        <src id="15">
+            <base>Define the group properties using the group editor</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="16">
+            <base>Define the model properties</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="17">
+            <base>Define the material properties</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="18">
+            <base>Open the process control window</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="19">
+            <base>Run the simulation</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="20">
+            <base>View process info</base>
+            <position>menus.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="21">
+            <base>Cancel process</base>
+            <position>menus.tcl:202;kFunctions.tcl:723</position>
+            <priority>0</priority>
+        </src>
+        <src id="22">
+            <base>Model definition toolbar</base>
+            <position>menus.tcl:216;menus.tcl:219</position>
+            <priority>0</priority>
+        </src>
+        <src id="23">
+            <base>Kratos global settings</base>
+            <position>projectSettings.tcl:58</position>
+            <priority>0</priority>
+        </src>
+        <src id="24">
+            <base>Save and Close</base>
+            <position>projectSettings.tcl:75</position>
+            <priority>0</priority>
+        </src>
+        <src id="25">
+            <base>The project must be saved</base>
+            <position>utils.tcl:451</position>
             <priority>0</priority>
         </src>
         <src id="26">
-            <base>Could not make a backup copy of Kratos interface data file (%s)</base>
-            <position>files.tcl:140</position>
+            <base>Printing is only supported under Windows</base>
+            <position>winutils.tcl:110</position>
             <priority>0</priority>
         </src>
         <src id="27">
-            <base>Error reading file %s %s %s problem type has been not correctly installed</base>
-            <position>initptype.tcl:117</position>
+            <base>An error has been detected when get a temporal directory</base>
+            <position>winutils.tcl:117</position>
             <priority>0</priority>
         </src>
         <src id="28">
-            <base>Workshop</base>
-            <comments>menu</comments>
-            <position>menus.tcl:45</position>
+            <base>Model</base>
+            <position>antes de auto class kmprops.tcl:113;Copia de kmprops.tcl:115;Copia de kmprops2.tcl:112;kmprops.tcl:115</position>
             <priority>0</priority>
         </src>
         <src id="29">
-            <base>Simulation characteristics</base>
-            <comments>menu</comments>
-            <position>menus.tcl:84</position>
+            <base>Materials</base>
+            <position>antes de auto class kmprops.tcl:121;Copia de kmprops.tcl:123;Copia de kmprops2.tcl:120;kmprops.tcl:123</position>
             <priority>0</priority>
         </src>
         <src id="30">
-            <base>Group editor</base>
-            <comments>menu</comments>
-            <position>menus.tcl:84</position>
+            <base>Properties</base>
+            <position>antes de auto class kmprops.tcl:509;antes de auto class kmprops.tcl:932;antes de auto class kmprops.tcl:1200;antes de auto class kmprops.tcl:1580;Copia de kmprops.tcl:633;Copia de kmprops.tcl:1107;Copia de kmprops.tcl:1467;Copia de kmprops.tcl:1947;Copia de kmprops2.tcl:487;Copia de kmprops2.tcl:1125;Copia de kmprops2.tcl:1393;Copia de kmprops2.tcl:1773;kmaterials.tcl:1362;kmaterials.tcl:1438;kmprops.tcl:654;kmprops.tcl:1129;kmprops.tcl:1558;kmprops.tcl:2044</position>
             <priority>0</priority>
         </src>
         <src id="31">
-            <base>Project setting</base>
-            <comments>menu</comments>
-            <position>menus.tcl:84</position>
+            <base>C1</base>
+            <position>antes de auto class kmprops.tcl:509;Copia de kmprops.tcl:633;Copia de kmprops2.tcl:487;kmprops.tcl:654</position>
             <priority>0</priority>
         </src>
         <src id="32">
-            <base>Define the group properties using the group editor</base>
-            <position>menus.tcl:187</position>
+            <base></base>
+            <position>antes de auto class kmprops.tcl:515;Copia de kmprops.tcl:639;Copia de kmprops2.tcl:493;kmprops.tcl:660</position>
             <priority>0</priority>
         </src>
         <src id="33">
-            <base>Define the Model Properties</base>
-            <position>menus.tcl:187</position>
+            <base>Root</base>
+            <position>antes de auto class kmprops.tcl:548;Copia de kmprops.tcl:672;Copia de kmprops2.tcl:526;kFunctions.tcl:316;kmaterials.tcl:192;kmprops.tcl:693;kegroups.tcl:1251;kGroupEntities.tcl:203</position>
             <priority>0</priority>
         </src>
         <src id="34">
-            <base>Model definition toolbar</base>
-            <position>menus.tcl:201;menus.tcl:204</position>
+            <base>[::KMProps::getPropTemplate $idTemplate pid $idContainer</base>
+            <position>antes de auto class kmprops.tcl:924;Copia de kmprops.tcl:1099;Copia de kmprops2.tcl:1117;kmprops.tcl:1121</position>
             <priority>0</priority>
         </src>
         <src id="35">
-            <base>The project must be saved</base>
-            <position>utils.tcl:450</position>
+            <base>Entity %s</base>
+            <position>antes de auto class kmprops.tcl:1032;Copia de kmprops.tcl:1217;Copia de kmprops2.tcl:1225;kmprops.tcl:1255</position>
             <priority>0</priority>
         </src>
         <src id="36">
-            <base>Create new material</base>
-            <position>kmaterials.tcl:91</position>
+            <base>Entity $command</base>
+            <position>antes de auto class kmprops.tcl:1052;Copia de kmprops.tcl:1239;Copia de kmprops2.tcl:1245;kmprops.tcl:1277</position>
             <priority>0</priority>
         </src>
         <src id="37">
-            <base>Delete material</base>
-            <position>kmaterials.tcl:94</position>
+            <base>Create automatic new group</base>
+            <position>antes de auto class kmprops.tcl:1078;Copia de kmprops.tcl:1268;Copia de kmprops2.tcl:1271;kmprops.tcl:1306</position>
             <priority>0</priority>
         </src>
         <src id="38">
-            <base>Refresh Tree</base>
-            <position>kmaterials.tcl:97</position>
+            <base>Assign condition to the selected group</base>
+            <position>antes de auto class kmprops.tcl:1083;antes de auto class kmprops.tcl:1271;Copia de kmprops.tcl:1273;Copia de kmprops.tcl:1543;Copia de kmprops2.tcl:1276;Copia de kmprops2.tcl:1464;kmprops.tcl:1311;kmprops.tcl:1648</position>
             <priority>0</priority>
         </src>
         <src id="39">
-            <base>Close</base>
-            <position>kmaterials.tcl:103;kmprops.tcl:151;kegroups.tcl:103;kegroups.tcl:156</position>
+            <base>Cancel assignation</base>
+            <position>antes de auto class kmprops.tcl:1087;antes de auto class kmprops.tcl:1275;antes de auto class kmprops.tcl:1695;Copia de kmprops.tcl:1277;Copia de kmprops.tcl:1547;Copia de kmprops.tcl:2075;Copia de kmprops2.tcl:1280;Copia de kmprops2.tcl:1468;Copia de kmprops2.tcl:1888;kmaterials.tcl:1409;kmaterials.tcl:1469;kmprops.tcl:1315;kmprops.tcl:1652;kmprops.tcl:2209</position>
             <priority>0</priority>
         </src>
         <src id="40">
-            <base>Root</base>
-            <position>kmaterials.tcl:176;kmprops.tcl:526;kegroups.tcl:1114</position>
+            <base>The new group '%s' has not any usefull entity assigned.</base>
+            <position>antes de auto class kmprops.tcl:1100;Copia de kmprops.tcl:1292;Copia de kmprops2.tcl:1293;kmprops.tcl:1330</position>
             <priority>0</priority>
         </src>
         <src id="41">
-            <base>No material selected</base>
-            <position>kmaterials.tcl:505</position>
+            <base>Property Name:</base>
+            <position>antes de auto class kmprops.tcl:1206;antes de auto class kmprops.tcl:1597;Copia de kmprops.tcl:1474;Copia de kmprops.tcl:1964;Copia de kmprops2.tcl:1399;Copia de kmprops2.tcl:1790;kmaterials.tcl:1365;kmprops.tcl:1565;kmprops.tcl:2061</position>
             <priority>0</priority>
         </src>
         <src id="42">
-            <base>Collapse All</base>
-            <position>kmaterials.tcl:537;kmprops.tcl:2649</position>
+            <base>You can't use some reservate chars like:\n  :   /   $   .   \\  %  </base>
+            <position>antes de auto class kmprops.tcl:1317;antes de auto class kmprops.tcl:2050;Copia de kmprops.tcl:1584;Copia de kmprops.tcl:2501;Copia de kmprops2.tcl:1510;Copia de kmprops2.tcl:2221;kmprops.tcl:1689;kmprops.tcl:2672;kegroups.tcl:1016</position>
             <priority>0</priority>
         </src>
         <src id="43">
-            <base>Expand All</base>
-            <position>kmaterials.tcl:538;kmprops.tcl:2650</position>
+            <base>The property name can not be empty</base>
+            <position>antes de auto class kmprops.tcl:1324;antes de auto class kmprops.tcl:2057;Copia de kmprops.tcl:1591;Copia de kmprops.tcl:2508;Copia de kmprops2.tcl:1517;Copia de kmprops2.tcl:2228;kmprops.tcl:1696;kmprops.tcl:2679</position>
             <priority>0</priority>
         </src>
         <src id="44">
-            <base>Model</base>
-            <position>kmprops.tcl:112</position>
+            <base>This name property it is already assigned.</base>
+            <position>antes de auto class kmprops.tcl:1333;Copia de kmprops.tcl:1600;Copia de kmprops2.tcl:1526;kmprops.tcl:1705</position>
             <priority>0</priority>
         </src>
         <src id="45">
-            <base>Materials</base>
-            <position>kmprops.tcl:120</position>
+            <base>You have to choose one group\n (you can create a new one pushing the button on the right)</base>
+            <position>antes de auto class kmprops.tcl:1433;Copia de kmprops.tcl:1763;Copia de kmprops2.tcl:1626;kmprops.tcl:1867</position>
             <priority>0</priority>
         </src>
         <src id="46">
-            <base>Properties</base>
-            <position>kmprops.tcl:487;kmprops.tcl:1234;kmprops.tcl:1502;kmprops.tcl:1882</position>
+            <base>This group it is already assigned to this condition.</base>
+            <position>antes de auto class kmprops.tcl:1443;Copia de kmprops.tcl:1773;Copia de kmprops2.tcl:1636;kmprops.tcl:1875</position>
             <priority>0</priority>
         </src>
         <src id="47">
-            <base>C1</base>
-            <position>kmprops.tcl:487</position>
+            <base>$pid</base>
+            <position>antes de auto class kmprops.tcl:1580;Copia de kmprops.tcl:1947;Copia de kmprops2.tcl:1773;kmprops.tcl:2044</position>
             <priority>0</priority>
         </src>
         <src id="48">
-            <base></base>
+            <base>Group:</base>
+            <position>antes de auto class kmprops.tcl:1617;Copia de kmprops.tcl:1984;Copia de kmprops2.tcl:1810;kmprops.tcl:2081</position>
+            <priority>0</priority>
+        </src>
+        <src id="49">
+            <base>Confirm values</base>
+            <position>antes de auto class kmprops.tcl:1691;Copia de kmprops.tcl:2071;Copia de kmprops2.tcl:1884;kmaterials.tcl:1405;kmaterials.tcl:1465;kmprops.tcl:2205</position>
             <priority>0</priority>
         </src>
         <src id="50">
-            <base>Entity $command</base>
-            <position>kmprops.tcl:1354</position>
+            <base>Compressible Fluids are not still available.</base>
+            <position>antes de auto class kmprops.tcl:1945;Copia de kmprops.tcl:2422;kmprops.tcl:2582</position>
             <priority>0</priority>
         </src>
         <src id="51">
-            <base>Create automatic new group</base>
-            <position>kmprops.tcl:1380</position>
+            <base>This property name already exist.</base>
+            <position>antes de auto class kmprops.tcl:2065;Copia de kmprops.tcl:2518;Copia de kmprops2.tcl:2236;kmprops.tcl:2689</position>
             <priority>0</priority>
         </src>
         <src id="52">
-            <base>Assign condition to the selected group</base>
-            <position>kmprops.tcl:1385;kmprops.tcl:1573</position>
+            <base>Project</base>
+            <position>antes de auto class kmprops.tcl:2183;Copia de kmprops.tcl:2634;Copia de kmprops2.tcl:2354</position>
             <priority>0</priority>
         </src>
         <src id="53">
-            <base>Cancel assignation</base>
-            <position>kmprops.tcl:1389;kmprops.tcl:1577;kmprops.tcl:1997</position>
+            <base>New Group</base>
+            <comments>layer</comments>
+            <position>antes de auto class kmprops.tcl:2330;Copia de kmprops.tcl:2783;Copia de kmprops2.tcl:2501;kmprops.tcl:2955;kegroups.tcl:1509</position>
+            <priority>0</priority>
+        </src>
+        <src id="54">
+            <base>New</base>
+            <position>antes de auto class kmprops.tcl:2339;Copia de kmprops.tcl:2792;Copia de kmprops2.tcl:2510;kmprops.tcl:2964</position>
             <priority>0</priority>
         </src>
         <src id="55">
-            <base>Property Name:</base>
-            <position>kmprops.tcl:1508;kmprops.tcl:1899</position>
+            <base>Delete</base>
+            <position>antes de auto class kmprops.tcl:2345;antes de auto class kmprops.tcl:2349;antes de auto class kmprops.tcl:2352;Copia de kmprops.tcl:2798;Copia de kmprops.tcl:2802;Copia de kmprops.tcl:2805;Copia de kmprops2.tcl:2516;Copia de kmprops2.tcl:2520;Copia de kmprops2.tcl:2523;kmprops.tcl:2970;kmprops.tcl:2974;kmprops.tcl:2977;kegroups.tcl:1519;kegroups.tcl:1521</position>
             <priority>0</priority>
         </src>
         <src id="56">
-            <base>The property name can not be empty</base>
-            <position>kmprops.tcl:1626;kmprops.tcl:2337</position>
+            <base>Edit</base>
+            <position>antes de auto class kmprops.tcl:2357;antes de auto class kmprops.tcl:2359;Copia de kmprops.tcl:2810;Copia de kmprops.tcl:2812;Copia de kmprops2.tcl:2528;Copia de kmprops2.tcl:2530;kmprops.tcl:2982;kmprops.tcl:2984</position>
             <priority>0</priority>
         </src>
         <src id="57">
-            <base>This name property it is already assigned.</base>
-            <position>kmprops.tcl:1635</position>
+            <base>Collapse All</base>
+            <position>antes de auto class kmprops.tcl:2369;Copia de kmprops.tcl:2822;Copia de kmprops2.tcl:2540;kmaterials.tcl:610;kmprops.tcl:2994</position>
             <priority>0</priority>
         </src>
         <src id="58">
-            <base>You have to choose one group\n (you can create a new one pushing the button on the right)</base>
-            <position>kmprops.tcl:1735</position>
+            <base>Expand All</base>
+            <position>antes de auto class kmprops.tcl:2370;Copia de kmprops.tcl:2823;Copia de kmprops2.tcl:2541;kmaterials.tcl:611;kmprops.tcl:2995</position>
             <priority>0</priority>
         </src>
         <src id="59">
-            <base>This group it is already assigned to this condition.</base>
-            <position>kmprops.tcl:1745</position>
+            <base>You must define a valid Property for this element type.</base>
+            <position>Copia de kmprops.tcl:958;kmprops.tcl:979</position>
+            <priority>0</priority>
+        </src>
+        <src id="60">
+            <base>%s</base>
+            <position>Copia de kmprops.tcl:1147;Copia de kmprops.tcl:1167;kmprops.tcl:1177;kmprops.tcl:1199;kegroups.tcl:1547</position>
             <priority>0</priority>
         </src>
         <src id="61">
-            <base>Group:</base>
-            <position>kmprops.tcl:1919</position>
+            <base>Function manager</base>
+            <position>Copia de kmprops.tcl:1176;kFunctions.tcl:383;kmprops.tcl:1208;kmprops.tcl:2168</position>
             <priority>0</priority>
         </src>
         <src id="62">
-            <base>Confirm values</base>
-            <position>kmprops.tcl:1993</position>
+            <base>newGroup</base>
+            <position>Copia de kmprops.tcl:1267;kmprops.tcl:1305</position>
             <priority>0</priority>
         </src>
         <src id="63">
-            <base>Project</base>
-            <position>kmprops.tcl:2463</position>
+            <base>Ok</base>
+            <position>Copia de kmprops.tcl:1272;Copia de kmprops.tcl:1542;kFunctions.tcl:718;kmprops.tcl:1310;kmprops.tcl:1647</position>
             <priority>0</priority>
         </src>
         <src id="64">
-            <base>New Group</base>
-            <comments>layer</comments>
-            <position>kmprops.tcl:2610;kegroups.tcl:1392</position>
+            <base>Cancel</base>
+            <position>Copia de kmprops.tcl:1276;Copia de kmprops.tcl:1546;kFunctions.tcl:722;kmprops.tcl:1314;kmprops.tcl:1651</position>
             <priority>0</priority>
         </src>
         <src id="65">
-            <base>New</base>
-            <position>kmprops.tcl:2619</position>
+            <base>Choose a new property name. </base>
+            <position>Copia de kmprops.tcl:1477;kmprops.tcl:1568</position>
             <priority>0</priority>
         </src>
         <src id="66">
-            <base>Delete</base>
-            <position>kmprops.tcl:2625;kmprops.tcl:2629;kmprops.tcl:2632;kegroups.tcl:1402;kegroups.tcl:1404</position>
+            <base>You must define a Property before!</base>
+            <position>Copia de kmprops.tcl:1779;Copia de kmprops.tcl:1790;kmprops.tcl:1881</position>
             <priority>0</priority>
         </src>
         <src id="67">
-            <base>Edit</base>
-            <position>kmprops.tcl:2637;kmprops.tcl:2639</position>
+            <base>You must define a Property before.</base>
+            <position>Copia de kmprops.tcl:1811;kmprops.tcl:1899</position>
             <priority>0</priority>
         </src>
         <src id="68">
-            <base>Add a new group identifier</base>
-            <position>kegroups.tcl:130</position>
+            <base>This property it is assigned to %s groups.\nDo you want to delete the property and all this groups?</base>
+            <position>Copia de kmprops.tcl:3021;kmprops.tcl:3196</position>
             <priority>0</priority>
         </src>
         <src id="69">
-            <base>Delete the selected group</base>
-            <position>kegroups.tcl:133</position>
+            <base>Add a new function</base>
+            <position>kFunctions.tcl:126</position>
             <priority>0</priority>
         </src>
         <src id="70">
-            <base>Assing Entities to Groups</base>
-            <position>kegroups.tcl:144</position>
+            <base>Delete the selected function</base>
+            <position>kFunctions.tcl:130</position>
             <priority>0</priority>
         </src>
         <src id="71">
-            <base>Unassing Entities from Groups</base>
-            <position>kegroups.tcl:147</position>
+            <base>Assign the selection function and close editor</base>
+            <position>kFunctions.tcl:139</position>
             <priority>0</priority>
         </src>
         <src id="72">
-            <base>Any group selected</base>
-            <position>kegroups.tcl:252</position>
+            <base>Open the GiD editor</base>
+            <position>kFunctions.tcl:154</position>
             <priority>0</priority>
         </src>
         <src id="73">
-            <base>Press 'Finish' to stop the entities selection</base>
-            <position>kegroups.tcl:283</position>
+            <base>Please, select the function you want to assign to '%s'.</base>
+            <position>kFunctions.tcl:168</position>
             <priority>0</priority>
         </src>
         <src id="74">
-            <base>Bad group name, start or end by '//' is not allowed</base>
-            <position>kegroups.tcl:636</position>
+            <base>Function Id</base>
+            <position>kFunctions.tcl:272</position>
             <priority>0</priority>
         </src>
         <src id="75">
-            <base>No group selected</base>
-            <position>kegroups.tcl:768</position>
+            <base>Function definition</base>
+            <position>kFunctions.tcl:272</position>
             <priority>0</priority>
         </src>
         <src id="76">
-            <base>Select color</base>
-            <position>kegroups.tcl:826;kegroups.tcl:1467</position>
+            <base>Name id:</base>
+            <position>kFunctions.tcl:622</position>
             <priority>0</priority>
         </src>
         <src id="77">
-            <base>You can not choose an empty group name.</base>
-            <position>kegroups.tcl:933</position>
+            <base>Kratos Filter</base>
+            <position>kFunctions.tcl:632;kFunctions.tcl:636</position>
             <priority>0</priority>
         </src>
         <src id="78">
-            <base>The group name '%s' already exist.\nChoose another, please.</base>
-            <position>kegroups.tcl:954</position>
+            <base>$cmbPid:</base>
+            <position>kFunctions.tcl:650;kFunctions.tcl:669</position>
             <priority>0</priority>
         </src>
         <src id="79">
-            <base>Group Id</base>
-            <position>kegroups.tcl:1070</position>
+            <base>$cmbTooltip</base>
+            <position>kFunctions.tcl:654;kFunctions.tcl:673</position>
             <priority>0</priority>
         </src>
         <src id="80">
-            <base>Color</base>
-            <position>kegroups.tcl:1070;kegroups.tcl:1413</position>
+            <base>Kratos variables:</base>
+            <position>kFunctions.tcl:681;kFunctions.tcl:685</position>
             <priority>0</priority>
         </src>
         <src id="81">
-            <base>On/Off</base>
-            <position>kegroups.tcl:1070</position>
+            <base>Add variable</base>
+            <position>kFunctions.tcl:690;kFunctions.tcl:691</position>
             <priority>0</priority>
         </src>
         <src id="82">
-            <base>Type</base>
-            <position>kegroups.tcl:1070;kegroups.tcl:1421;kegroups.tcl:1423</position>
+            <base>Add this function</base>
+            <position>kFunctions.tcl:719</position>
             <priority>0</priority>
         </src>
         <src id="83">
-            <base>Entities group editor</base>
-            <position>kegroups.tcl:1240</position>
+            <base>Please, choose a non-empty ID.'</base>
+            <position>kFunctions.tcl:738</position>
             <priority>0</priority>
         </src>
         <src id="84">
-            <base>Rename</base>
-            <position>kegroups.tcl:1397;kegroups.tcl:1399</position>
+            <base>No function selected to remove.</base>
+            <position>kFunctions.tcl:885</position>
             <priority>0</priority>
         </src>
         <src id="85">
-            <base>On</base>
-            <comments>verb</comments>
-            <position>kegroups.tcl:1414</position>
+            <base>This function is assigned %s time%s in this project,\ndo you want to unassign %s and continue?</base>
+            <position>kFunctions.tcl:901</position>
             <priority>0</priority>
         </src>
         <src id="86">
-            <base>Off</base>
-            <comments>verb</comments>
-            <position>kegroups.tcl:1415</position>
+            <base>Create new material</base>
+            <position>kmaterials.tcl:103</position>
+            <priority>0</priority>
+        </src>
+        <src id="87">
+            <base>Delete material</base>
+            <position>kmaterials.tcl:106</position>
             <priority>0</priority>
         </src>
         <src id="88">
-            <base>Assign Entities</base>
-            <position>kegroups.tcl:1438;kegroups.tcl:1440</position>
+            <base>Refresh Tree</base>
+            <position>kmaterials.tcl:109</position>
             <priority>0</priority>
         </src>
         <src id="89">
-            <base>Unassign</base>
-            <position>kegroups.tcl:1446</position>
+            <base>tests</base>
+            <position>kmaterials.tcl:112</position>
             <priority>0</priority>
         </src>
         <src id="90">
-            <base>%i</base>
+            <base>No material selected</base>
+            <position>kmaterials.tcl:564</position>
             <priority>0</priority>
         </src>
         <src id="91">
-            <base>Entity %s</base>
-            <position>kmprops.tcl:1334</position>
+            <base>New Material</base>
+            <position>kmaterials.tcl:593</position>
             <priority>0</priority>
         </src>
         <src id="92">
-            <base>The new group '%s' has not any usefull entity assigned.</base>
-            <position>kmprops.tcl:1402</position>
+            <base>Delete Material</base>
+            <position>kmaterials.tcl:594</position>
             <priority>0</priority>
         </src>
         <src id="93">
-            <base></base>
+            <base>Rename material</base>
+            <position>kmaterials.tcl:601;kmaterials.tcl:604</position>
             <priority>0</priority>
         </src>
         <src id="94">
-            <base>This property name already exist.</base>
-            <position>kmprops.tcl:2345</position>
+            <base>Copy material</base>
+            <position>kmaterials.tcl:602;kmaterials.tcl:605</position>
             <priority>0</priority>
         </src>
         <src id="95">
-            <base>%s</base>
-            <position>kegroups.tcl:1430</position>
+            <base>ABD Matrix</base>
+            <position>kmaterials.tcl:1397</position>
             <priority>0</priority>
         </src>
         <src id="96">
-            <base>0 </base>
-            <position>words.tcl:1</position>
+            <base>Current matrix value (%s)</base>
+            <position>kmaterials.tcl:1505;kmaterials.tcl:1526;kmaterials.tcl:1542</position>
             <priority>0</priority>
         </src>
         <src id="97">
-            <base>1 </base>
-            <position>words.tcl:2</position>
+            <base>Unassign function</base>
+            <position>kmprops.tcl:1214;kmprops.tcl:2174</position>
             <priority>0</priority>
         </src>
         <src id="98">
-            <base>2D </base>
-            <position>words.tcl:3</position>
+            <base>Project properties</base>
+            <position>kmprops.tcl:2806</position>
             <priority>0</priority>
         </src>
         <src id="99">
-            <base>3D </base>
-            <position>words.tcl:4</position>
+            <base>Add a new group identifier</base>
+            <position>kegroups.tcl:131</position>
             <priority>0</priority>
         </src>
         <src id="100">
-            <base>Absolute tolerance </base>
-            <position>words.tcl:6</position>
+            <base>Delete the selected group</base>
+            <position>kegroups.tcl:134</position>
             <priority>0</priority>
         </src>
         <src id="101">
-            <base>Activation </base>
-            <position>words.tcl:7</position>
+            <base>Unassing Entities from Groups</base>
+            <position>kegroups.tcl:142</position>
             <priority>0</priority>
         </src>
         <src id="102">
-            <base>Add a new Property </base>
-            <position>words.tcl:8</position>
+            <base>List Entities from Groups</base>
+            <position>kegroups.tcl:145</position>
             <priority>0</priority>
         </src>
         <src id="103">
-            <base>Analysis Data </base>
-            <position>words.tcl:9</position>
+            <base>The GiD ViewMode has changed to $whatuse.\nPush the menu button again.</base>
+            <position>kegroups.tcl:180</position>
             <priority>0</priority>
         </src>
         <src id="104">
-            <base>Analysis Type </base>
-            <position>words.tcl:10</position>
+            <base>Any group selected</base>
+            <position>kegroups.tcl:278</position>
             <priority>0</priority>
         </src>
         <src id="105">
-            <base>Analysis type </base>
-            <position>words.tcl:11</position>
+            <base>Element assignation unavailable</base>
+            <position>kegroups.tcl:288</position>
             <priority>0</priority>
         </src>
         <src id="106">
-            <base>Application types </base>
-            <position>words.tcl:12</position>
+            <base>Press 'Finish' to stop the entities selection</base>
+            <position>kegroups.tcl:309</position>
             <priority>0</priority>
         </src>
         <src id="107">
-            <base>Arc length </base>
-            <position>words.tcl:13</position>
+            <base>Succesfull unassigned!\nGroups: %s</base>
+            <position>kegroups.tcl:336</position>
             <priority>0</priority>
         </src>
         <src id="108">
-            <base>BC </base>
-            <position>words.tcl:14</position>
+            <base>Bad group name, start or end by '//' is not allowed</base>
+            <position>kegroups.tcl:712</position>
             <priority>0</priority>
         </src>
         <src id="109">
-            <base>Beams </base>
-            <position>words.tcl:15</position>
+            <base>No group selected</base>
+            <position>kegroups.tcl:848</position>
             <priority>0</priority>
         </src>
         <src id="110">
-            <base>BiConjugate gradient stabilized </base>
-            <position>words.tcl:16</position>
+            <base>Select color</base>
+            <position>kegroups.tcl:906;kegroups.tcl:1583</position>
             <priority>0</priority>
         </src>
         <src id="111">
-            <base>Body force </base>
-            <position>words.tcl:17</position>
+            <base>You can not choose an empty group name.</base>
+            <position>kegroups.tcl:1006</position>
             <priority>0</priority>
         </src>
         <src id="112">
-            <base>BodyForce </base>
-            <position>words.tcl:18</position>
+            <base>Root folder can't be edited</base>
+            <position>kegroups.tcl:1010</position>
             <priority>0</priority>
         </src>
         <src id="113">
-            <base>Boundary Conditions </base>
-            <position>words.tcl:19</position>
+            <base>The group name '%s' already exist.\nChoose another, please.</base>
+            <position>kegroups.tcl:1028</position>
             <priority>0</priority>
         </src>
         <src id="114">
-            <base>Company name </base>
-            <position>words.tcl:20</position>
+            <base>Group Id</base>
+            <position>kegroups.tcl:1207;kGroupEntities.tcl:159</position>
             <priority>0</priority>
         </src>
         <src id="115">
-            <base>Concentrated </base>
-            <position>words.tcl:21</position>
+            <base>Color</base>
+            <position>kegroups.tcl:1207;kegroups.tcl:1530</position>
             <priority>0</priority>
         </src>
         <src id="116">
-            <base>Conditions </base>
-            <position>words.tcl:22</position>
+            <base>On/Off</base>
+            <position>kegroups.tcl:1207</position>
             <priority>0</priority>
         </src>
         <src id="117">
-            <base>Conjugate gradient </base>
-            <position>words.tcl:24</position>
+            <base>Type</base>
+            <position>kegroups.tcl:1207;kegroups.tcl:1538;kegroups.tcl:1540</position>
             <priority>0</priority>
         </src>
         <src id="118">
-            <base>Convection diffusion </base>
-            <position>words.tcl:25</position>
+            <base>Entities group editor</base>
+            <position>kegroups.tcl:1357</position>
             <priority>0</priority>
         </src>
         <src id="119">
-            <base>Convergence criteria </base>
-            <position>words.tcl:26</position>
+            <base>Rename</base>
+            <position>kegroups.tcl:1514;kegroups.tcl:1516</position>
             <priority>0</priority>
         </src>
         <src id="120">
-            <base>Convergence tolerance </base>
-            <position>words.tcl:27</position>
+            <base>On</base>
+            <comments>verb</comments>
+            <position>kegroups.tcl:1531</position>
             <priority>0</priority>
         </src>
         <src id="121">
-            <base>Crisfield Truss Element </base>
-            <position>words.tcl:28</position>
+            <base>Off</base>
+            <comments>verb</comments>
+            <position>kegroups.tcl:1532</position>
             <priority>0</priority>
         </src>
         <src id="122">
-            <base>Crisfield truss element </base>
-            <position>words.tcl:29</position>
+            <base>Assign Entities</base>
+            <position>kegroups.tcl:1555;kegroups.tcl:1557</position>
             <priority>0</priority>
         </src>
         <src id="123">
-            <base>Cx </base>
-            <position>words.tcl:30</position>
+            <base>Unassign</base>
+            <position>kegroups.tcl:1562</position>
             <priority>0</priority>
         </src>
         <src id="124">
-            <base>Cy </base>
-            <position>words.tcl:31</position>
+            <base>View group entities </base>
+            <position>kGroupEntities.tcl:269</position>
             <priority>0</priority>
         </src>
         <src id="125">
-            <base>Cz </base>
-            <position>words.tcl:32</position>
+            <base>0 </base>
+            <position>words.tcl:1;words2.tcl:1</position>
             <priority>0</priority>
         </src>
         <src id="126">
-            <base>Delta time </base>
-            <position>words.tcl:33</position>
+            <base>0.0 </base>
+            <position>words.tcl:2;words2.tcl:2</position>
             <priority>0</priority>
         </src>
         <src id="127">
-            <base>Developing in process </base>
-            <position>words.tcl:34</position>
+            <base>0.001 </base>
+            <position>words.tcl:3;words2.tcl:3</position>
             <priority>0</priority>
         </src>
         <src id="128">
-            <base>Diagonal </base>
-            <position>words.tcl:35</position>
+            <base>0.01 </base>
+            <position>words.tcl:4;words2.tcl:4</position>
             <priority>0</priority>
         </src>
         <src id="129">
-            <base>Direct </base>
-            <position>words.tcl:36</position>
+            <base>0.1 </base>
+            <position>words.tcl:5;words2.tcl:5</position>
             <priority>0</priority>
         </src>
         <src id="130">
-            <base>Direct solver type </base>
-            <position>words.tcl:37</position>
+            <base>1 </base>
+            <position>words.tcl:6;words2.tcl:6</position>
             <priority>0</priority>
         </src>
         <src id="131">
-            <base>Displacement </base>
-            <position>words.tcl:38</position>
+            <base>1.0 </base>
+            <position>words.tcl:7;words2.tcl:7</position>
             <priority>0</priority>
         </src>
         <src id="132">
-            <base>Displacement and residual </base>
-            <position>words.tcl:39</position>
+            <base>2 </base>
+            <position>words.tcl:8;words2.tcl:8</position>
             <priority>0</priority>
         </src>
         <src id="133">
-            <base>Displacement or residual </base>
-            <position>words.tcl:40</position>
+            <base>2D </base>
+            <position>words.tcl:9;words2.tcl:9</position>
             <priority>0</priority>
         </src>
         <src id="134">
-            <base>Displacements </base>
-            <position>words.tcl:41</position>
+            <base>2nd Piola - Kirchhoff stress tensor </base>
+            <position>words.tcl:10;words2.tcl:10</position>
             <priority>0</priority>
         </src>
         <src id="135">
-            <base>Domain </base>
-            <position>words.tcl:42</position>
+            <base>3D </base>
+            <position>words.tcl:11;words2.tcl:11</position>
             <priority>0</priority>
         </src>
         <src id="136">
-            <base>Dynamic </base>
-            <position>words.tcl:43</position>
+            <base>A11 </base>
+            <position>words.tcl:12;words2.tcl:12</position>
             <priority>0</priority>
         </src>
         <src id="137">
-            <base>EBST (formulation) </base>
-            <position>words.tcl:44</position>
+            <base>A12 </base>
+            <position>words.tcl:13;words2.tcl:13</position>
             <priority>0</priority>
         </src>
         <src id="138">
-            <base>Element Type </base>
-            <position>words.tcl:45</position>
+            <base>A13 </base>
+            <position>words.tcl:14;words2.tcl:14</position>
             <priority>0</priority>
         </src>
         <src id="139">
-            <base>Element type </base>
-            <position>words.tcl:46</position>
+            <base>A21 </base>
+            <position>words.tcl:15;words2.tcl:15</position>
             <priority>0</priority>
         </src>
         <src id="140">
-            <base>Elements </base>
-            <position>words.tcl:47</position>
+            <base>A22 </base>
+            <position>words.tcl:16;words2.tcl:16</position>
             <priority>0</priority>
         </src>
         <src id="141">
-            <base>End time </base>
-            <position>words.tcl:48</position>
+            <base>A23 </base>
+            <position>words.tcl:17;words2.tcl:17</position>
             <priority>0</priority>
         </src>
         <src id="142">
-            <base>Engineer </base>
-            <position>words.tcl:49</position>
+            <base>A31 </base>
+            <position>words.tcl:18;words2.tcl:18</position>
             <priority>0</priority>
         </src>
         <src id="143">
-            <base>Face </base>
-            <position>words.tcl:50</position>
+            <base>A32 </base>
+            <position>words.tcl:19;words2.tcl:19</position>
             <priority>0</priority>
         </src>
         <src id="144">
-            <base>Fluid </base>
-            <position>words.tcl:52</position>
+            <base>A33 </base>
+            <position>words.tcl:20;words2.tcl:20</position>
             <priority>0</priority>
         </src>
         <src id="145">
-            <base>Fluid structure interaction (FSI) </base>
-            <position>words.tcl:53</position>
+            <base>ASGS </base>
+            <position>words.tcl:21;words2.tcl:21</position>
             <priority>0</priority>
         </src>
         <src id="146">
-            <base>Fx </base>
-            <position>words.tcl:54</position>
+            <base>Absolute pressure tolerance </base>
+            <position>words.tcl:22;words2.tcl:22</position>
             <priority>0</priority>
         </src>
         <src id="147">
-            <base>Fx Vector </base>
-            <position>words.tcl:55</position>
+            <base>Absolute velocity tolerance </base>
+            <position>words.tcl:23;words2.tcl:23</position>
             <priority>0</priority>
         </src>
         <src id="148">
-            <base>Fy </base>
-            <position>words.tcl:56</position>
+            <base>Activation </base>
+            <position>words.tcl:24;words2.tcl:24</position>
             <priority>0</priority>
         </src>
         <src id="149">
-            <base>Fy Vector </base>
-            <position>words.tcl:57</position>
+            <base>Add a new Property </base>
+            <position>words.tcl:25;words2.tcl:25</position>
             <priority>0</priority>
         </src>
         <src id="150">
-            <base>Fz </base>
-            <position>words.tcl:58</position>
+            <base>Advanced </base>
+            <position>words.tcl:26;words2.tcl:26</position>
             <priority>0</priority>
         </src>
         <src id="151">
-            <base>Fz Vector </base>
-            <position>words.tcl:59</position>
+            <base>Air </base>
+            <position>words.tcl:27;words2.tcl:27</position>
             <priority>0</priority>
         </src>
         <src id="152">
-            <base>General application data </base>
-            <position>words.tcl:60</position>
+            <base>Aluminium_7021 </base>
+            <position>words.tcl:28;words2.tcl:28</position>
             <priority>0</priority>
         </src>
         <src id="153">
-            <base>Generic </base>
-            <position>words.tcl:61</position>
+            <base>Analysis Data </base>
+            <position>words.tcl:29;words2.tcl:29</position>
             <priority>0</priority>
         </src>
         <src id="154">
-            <base>Gravity value </base>
-            <position>words.tcl:62</position>
+            <base>Analysis Type </base>
+            <position>words.tcl:30;words2.tcl:30</position>
             <priority>0</priority>
         </src>
         <src id="155">
-            <base>Helptext </base>
-            <position>words.tcl:63</position>
+            <base>Analysis data </base>
+            <position>words.tcl:31;words2.tcl:31</position>
             <priority>0</priority>
         </src>
         <src id="156">
-            <base>Hexahedra </base>
-            <position>words.tcl:64</position>
+            <base>Analysis type </base>
+            <position>words.tcl:32;words2.tcl:32</position>
             <priority>0</priority>
         </src>
         <src id="157">
-            <base>ILU0 </base>
-            <position>words.tcl:65</position>
+            <base>Application types </base>
+            <position>words.tcl:33;words2.tcl:33</position>
             <priority>0</priority>
         </src>
         <src id="158">
-            <base>Iterative </base>
-            <position>words.tcl:67</position>
+            <base>Arc length methods </base>
+            <position>words.tcl:34;words2.tcl:34</position>
             <priority>0</priority>
         </src>
         <src id="159">
-            <base>Iterative solver type </base>
-            <position>words.tcl:68</position>
+            <base>Ascii </base>
+            <position>words.tcl:35;words2.tcl:35</position>
             <priority>0</priority>
         </src>
         <src id="160">
-            <base>Line search </base>
-            <position>words.tcl:69</position>
+            <base>Ascii zipped </base>
+            <position>words.tcl:36;words2.tcl:36</position>
             <priority>0</priority>
         </src>
         <src id="161">
-            <base>Linear </base>
-            <position>words.tcl:70</position>
+            <base>B11 </base>
+            <position>words.tcl:37;words2.tcl:37</position>
             <priority>0</priority>
         </src>
         <src id="162">
-            <base>Linear element </base>
-            <position>words.tcl:71</position>
+            <base>B12 </base>
+            <position>words.tcl:38;words2.tcl:38</position>
             <priority>0</priority>
         </src>
         <src id="163">
-            <base>Linear solver type </base>
-            <position>words.tcl:72</position>
+            <base>B13 </base>
+            <position>words.tcl:39;words2.tcl:39</position>
             <priority>0</priority>
         </src>
         <src id="164">
-            <base>LinearElement </base>
-            <position>words.tcl:73</position>
+            <base>B21 </base>
+            <position>words.tcl:40;words2.tcl:40</position>
             <priority>0</priority>
         </src>
         <src id="165">
-            <base>Load </base>
-            <position>words.tcl:74</position>
+            <base>B22 </base>
+            <position>words.tcl:41;words2.tcl:41</position>
             <priority>0</priority>
         </src>
         <src id="166">
-            <base>Loads </base>
-            <position>words.tcl:75</position>
+            <base>B23 </base>
+            <position>words.tcl:42;words2.tcl:42</position>
             <priority>0</priority>
         </src>
         <src id="167">
-            <base>Material </base>
-            <position>words.tcl:76</position>
+            <base>B31 </base>
+            <position>words.tcl:43;words2.tcl:43</position>
             <priority>0</priority>
         </src>
         <src id="168">
-            <base>Maximum iteration </base>
-            <position>words.tcl:77</position>
+            <base>B32 </base>
+            <position>words.tcl:44;words2.tcl:44</position>
             <priority>0</priority>
         </src>
         <src id="169">
-            <base>Maximum iterations </base>
-            <position>words.tcl:78</position>
+            <base>B33 </base>
+            <position>words.tcl:45;words2.tcl:45</position>
             <priority>0</priority>
         </src>
         <src id="170">
-            <base>Model description </base>
-            <position>words.tcl:79</position>
+            <base>BC </base>
+            <position>words.tcl:46;words2.tcl:46</position>
             <priority>0</priority>
         </src>
         <src id="171">
-            <base>Model name </base>
-            <position>words.tcl:80</position>
+            <base>Beams </base>
+            <position>words.tcl:47;words2.tcl:47</position>
             <priority>0</priority>
         </src>
         <src id="172">
-            <base>Mx </base>
-            <position>words.tcl:81</position>
+            <base>BiConjugate gradient stabilized </base>
+            <position>words.tcl:48;words2.tcl:48</position>
             <priority>0</priority>
         </src>
         <src id="173">
-            <base>Mx Vector </base>
-            <position>words.tcl:82</position>
+            <base>Binary </base>
+            <position>words.tcl:49;words2.tcl:49</position>
             <priority>0</priority>
         </src>
         <src id="174">
-            <base>My </base>
-            <position>words.tcl:83</position>
+            <base>Body force </base>
+            <position>words.tcl:50;words2.tcl:50</position>
             <priority>0</priority>
         </src>
         <src id="175">
-            <base>My Vector </base>
-            <position>words.tcl:84</position>
+            <base>BodyForce </base>
+            <position>words.tcl:51;words2.tcl:51</position>
             <priority>0</priority>
         </src>
         <src id="176">
-            <base>Mz </base>
-            <position>words.tcl:85</position>
+            <base>Boundary Conditions </base>
+            <position>words.tcl:52;words2.tcl:52</position>
             <priority>0</priority>
         </src>
         <src id="177">
-            <base>Mz Vector </base>
-            <position>words.tcl:86</position>
+            <base>Check problem type version </base>
+            <position>words.tcl:53;words2.tcl:53</position>
             <priority>0</priority>
         </src>
         <src id="178">
-            <base>New property </base>
-            <position>words.tcl:87</position>
+            <base>Company name </base>
+            <position>words.tcl:54;words2.tcl:54</position>
             <priority>0</priority>
         </src>
         <src id="179">
-            <base>Newton-Raphson </base>
-            <position>words.tcl:88</position>
+            <base>Composite </base>
+            <position>words.tcl:55;words2.tcl:55</position>
             <priority>0</priority>
         </src>
         <src id="180">
-            <base>No </base>
-            <position>words.tcl:89</position>
+            <base>Composite1 </base>
+            <position>words.tcl:56;words2.tcl:56</position>
             <priority>0</priority>
         </src>
         <src id="181">
-            <base>Non-Linear </base>
-            <position>words.tcl:91</position>
+            <base>Compressible </base>
+            <position>words.tcl:57;words2.tcl:57</position>
             <priority>0</priority>
         </src>
         <src id="182">
-            <base>None </base>
-            <position>words.tcl:92</position>
+            <base>Compressive fracture energy </base>
+            <position>words.tcl:58;words2.tcl:58</position>
             <priority>0</priority>
         </src>
         <src id="183">
-            <base>Not available </base>
-            <position>words.tcl:93</position>
+            <base>Compressive strength </base>
+            <position>words.tcl:59;words2.tcl:59</position>
             <priority>0</priority>
         </src>
         <src id="184">
-            <base>Parallel MKL Pardiso </base>
-            <position>words.tcl:96</position>
+            <base>Concentrated </base>
+            <position>words.tcl:60;words2.tcl:60</position>
             <priority>0</priority>
         </src>
         <src id="185">
-            <base>Preconditioner type </base>
-            <position>words.tcl:97</position>
+            <base>Conditions </base>
+            <position>words.tcl:61;words2.tcl:61</position>
             <priority>0</priority>
         </src>
         <src id="186">
-            <base>Pressure </base>
-            <position>words.tcl:98</position>
+            <base>Conductivity </base>
+            <position>words.tcl:62;words2.tcl:62</position>
             <priority>0</priority>
         </src>
         <src id="187">
-            <base>Project information </base>
-            <position>words.tcl:101</position>
+            <base>Conjugate gradient </base>
+            <position>words.tcl:63;words2.tcl:63</position>
             <priority>0</priority>
         </src>
         <src id="188">
-            <base>Project name </base>
-            <position>words.tcl:102</position>
+            <base>Continuous </base>
+            <position>words.tcl:64;words2.tcl:64</position>
             <priority>0</priority>
         </src>
         <src id="189">
-            <base>Project number </base>
-            <position>words.tcl:103</position>
+            <base>Convection diffusion </base>
+            <position>words.tcl:65;words2.tcl:65</position>
             <priority>0</priority>
         </src>
         <src id="190">
-            <base>Properties </base>
-            <position>words.tcl:104</position>
+            <base>Convergence criteria </base>
+            <position>words.tcl:66;words2.tcl:66</position>
             <priority>0</priority>
         </src>
         <src id="191">
-            <base>Property </base>
-            <position>words.tcl:105</position>
+            <base>Crisfield Truss Element </base>
+            <position>words.tcl:67;words2.tcl:67</position>
             <priority>0</priority>
         </src>
         <src id="192">
-            <base>Property1 </base>
+            <base>Crisfield truss element </base>
+            <position>words.tcl:68;words2.tcl:68</position>
             <priority>0</priority>
         </src>
         <src id="193">
-            <base>Puntual </base>
-            <position>words.tcl:106</position>
+            <base>Cx </base>
+            <position>words.tcl:69;words2.tcl:69</position>
             <priority>0</priority>
         </src>
         <src id="194">
-            <base>Quadrilateral </base>
-            <position>words.tcl:107</position>
+            <base>Cy </base>
+            <position>words.tcl:70;words2.tcl:70</position>
             <priority>0</priority>
         </src>
         <src id="195">
-            <base>Residual </base>
-            <position>words.tcl:108</position>
+            <base>Cz </base>
+            <position>words.tcl:71;words2.tcl:71</position>
             <priority>0</priority>
         </src>
         <src id="196">
-            <base>Results </base>
-            <position>words.tcl:109</position>
+            <base>D11 </base>
+            <position>words.tcl:72;words2.tcl:72</position>
             <priority>0</priority>
         </src>
         <src id="197">
-            <base>Revision number </base>
-            <position>words.tcl:110</position>
+            <base>D12 </base>
+            <position>words.tcl:73;words2.tcl:73</position>
             <priority>0</priority>
         </src>
         <src id="198">
-            <base>Rotations </base>
-            <position>words.tcl:111</position>
+            <base>D13 </base>
+            <position>words.tcl:74;words2.tcl:74</position>
             <priority>0</priority>
         </src>
         <src id="199">
-            <base>Shell anisotropic </base>
-            <position>words.tcl:112</position>
+            <base>D21 </base>
+            <position>words.tcl:75;words2.tcl:75</position>
             <priority>0</priority>
         </src>
         <src id="200">
-            <base>Shell isotropic </base>
-            <position>words.tcl:113</position>
+            <base>D22 </base>
+            <position>words.tcl:76;words2.tcl:76</position>
             <priority>0</priority>
         </src>
         <src id="201">
-            <base>ShellAnisotropic </base>
-            <position>words.tcl:114</position>
+            <base>D23 </base>
+            <position>words.tcl:77;words2.tcl:77</position>
             <priority>0</priority>
         </src>
         <src id="202">
-            <base>ShellIsotropic </base>
-            <position>words.tcl:115</position>
+            <base>D31 </base>
+            <position>words.tcl:78;words2.tcl:78</position>
             <priority>0</priority>
         </src>
         <src id="203">
-            <base>Shells </base>
-            <position>words.tcl:116</position>
+            <base>D32 </base>
+            <position>words.tcl:79;words2.tcl:79</position>
             <priority>0</priority>
         </src>
         <src id="204">
-            <base>Skyline LU factorization </base>
-            <position>words.tcl:117</position>
+            <base>D33 </base>
+            <position>words.tcl:80;words2.tcl:80</position>
             <priority>0</priority>
         </src>
         <src id="205">
-            <base>Solids </base>
-            <position>words.tcl:119</position>
+            <base>Delta time </base>
+            <position>words.tcl:81;words2.tcl:81</position>
             <priority>0</priority>
         </src>
         <src id="206">
-            <base>Solution Strategy </base>
-            <position>words.tcl:120</position>
+            <base>Density </base>
+            <position>words.tcl:82;words2.tcl:82</position>
             <priority>0</priority>
         </src>
         <src id="207">
-            <base>Solution Type </base>
-            <position>words.tcl:121</position>
+            <base>Description </base>
+            <position>words.tcl:83;words2.tcl:83</position>
             <priority>0</priority>
         </src>
         <src id="208">
-            <base>Solution method </base>
-            <position>words.tcl:122</position>
+            <base>Developing in process </base>
+            <position>words.tcl:84;words2.tcl:84</position>
             <priority>0</priority>
         </src>
         <src id="209">
-            <base>Solution strategy </base>
-            <position>words.tcl:123</position>
+            <base>Diagonal </base>
+            <position>words.tcl:85;words2.tcl:85</position>
             <priority>0</priority>
         </src>
         <src id="210">
-            <base>Solution type </base>
-            <position>words.tcl:124</position>
+            <base>Dilatancy angle </base>
+            <position>words.tcl:86;words2.tcl:86</position>
             <priority>0</priority>
         </src>
         <src id="211">
-            <base>Spatial Dimension </base>
-            <position>words.tcl:125</position>
+            <base>Direct </base>
+            <position>words.tcl:87;words2.tcl:87</position>
             <priority>0</priority>
         </src>
         <src id="212">
-            <base>Spatial dimension </base>
-            <position>words.tcl:126</position>
+            <base>Direct solver type </base>
+            <position>words.tcl:88;words2.tcl:88</position>
             <priority>0</priority>
         </src>
         <src id="213">
-            <base>Start time </base>
-            <position>words.tcl:127</position>
+            <base>Discrete </base>
+            <position>words.tcl:89;words2.tcl:89</position>
             <priority>0</priority>
         </src>
         <src id="214">
-            <base>Static </base>
-            <position>words.tcl:128</position>
+            <base>Discrete with dt </base>
+            <position>words.tcl:90;words2.tcl:90</position>
             <priority>0</priority>
         </src>
         <src id="215">
-            <base>Stresses </base>
-            <position>words.tcl:129</position>
+            <base>Displacement </base>
+            <position>words.tcl:91;words2.tcl:91</position>
             <priority>0</priority>
         </src>
         <src id="216">
-            <base>Structural Type </base>
-            <position>words.tcl:130</position>
+            <base>Displacement absolute tolerance </base>
+            <position>words.tcl:92;words2.tcl:92</position>
             <priority>0</priority>
         </src>
         <src id="217">
-            <base>Structural analysis </base>
-            <position>words.tcl:131</position>
+            <base>Displacement and residual </base>
+            <position>words.tcl:93;words2.tcl:93</position>
             <priority>0</priority>
         </src>
         <src id="218">
-            <base>Structural simulation </base>
-            <position>words.tcl:132</position>
+            <base>Displacement convergence tolerance </base>
+            <position>words.tcl:94;words2.tcl:94</position>
             <priority>0</priority>
         </src>
         <src id="219">
-            <base>Structural type </base>
-            <position>words.tcl:133</position>
+            <base>Displacement or residual </base>
+            <position>words.tcl:95;words2.tcl:95</position>
             <priority>0</priority>
         </src>
         <src id="220">
-            <base>Super LU </base>
-            <position>words.tcl:134</position>
+            <base>Displacements </base>
+            <position>words.tcl:96;words2.tcl:96</position>
             <priority>0</priority>
         </src>
         <src id="221">
-            <base>Supervisor </base>
-            <position>words.tcl:135</position>
+            <base>Distance </base>
+            <position>words.tcl:97;words2.tcl:97</position>
             <priority>0</priority>
         </src>
         <src id="222">
-            <base>Tetrahedra </base>
-            <position>words.tcl:136</position>
+            <base>Domain </base>
+            <position>words.tcl:98;words2.tcl:98</position>
             <priority>0</priority>
         </src>
         <src id="223">
-            <base>Thickness </base>
-            <position>words.tcl:137</position>
+            <base>Drucker-Prager </base>
+            <position>words.tcl:99;words2.tcl:99</position>
             <priority>0</priority>
         </src>
         <src id="224">
-            <base>Total Lagrangian </base>
-            <position>words.tcl:138</position>
+            <base>Dynamic </base>
+            <position>words.tcl:100;words2.tcl:100</position>
             <priority>0</priority>
         </src>
         <src id="225">
-            <base>TotalLagrangian </base>
-            <position>words.tcl:139</position>
+            <base>EBST (formulation) </base>
+            <position>words.tcl:101;words2.tcl:101</position>
             <priority>0</priority>
         </src>
         <src id="226">
-            <base>Triangle </base>
-            <position>words.tcl:140</position>
+            <base>Electrical permitivity </base>
+            <position>words.tcl:102;words2.tcl:102</position>
             <priority>0</priority>
         </src>
         <src id="227">
-            <base>Truss </base>
-            <position>words.tcl:141</position>
+            <base>Element Type </base>
+            <position>words.tcl:103;words2.tcl:103</position>
             <priority>0</priority>
         </src>
         <src id="228">
-            <base>Values </base>
-            <position>words.tcl:142</position>
+            <base>Element type </base>
+            <position>words.tcl:104;words2.tcl:104</position>
             <priority>0</priority>
         </src>
         <src id="229">
-            <base>X </base>
-            <position>words.tcl:143</position>
+            <base>Elements </base>
+            <position>words.tcl:105;words2.tcl:105</position>
             <priority>0</priority>
         </src>
         <src id="230">
-            <base>X Vector </base>
-            <position>words.tcl:144</position>
+            <base>End time </base>
+            <position>words.tcl:106;words2.tcl:106</position>
             <priority>0</priority>
         </src>
         <src id="231">
-            <base>X active </base>
-            <position>words.tcl:145</position>
+            <base>Energy </base>
+            <position>words.tcl:107;words2.tcl:107</position>
             <priority>0</priority>
         </src>
         <src id="232">
-            <base>X coordinate </base>
-            <position>words.tcl:146</position>
+            <base>Engineer </base>
+            <position>words.tcl:108;words2.tcl:108</position>
             <priority>0</priority>
         </src>
         <src id="233">
-            <base>Y </base>
-            <position>words.tcl:147</position>
+            <base>Environment temperature </base>
+            <position>words.tcl:109;words2.tcl:109</position>
             <priority>0</priority>
         </src>
         <src id="234">
-            <base>Y Vector </base>
-            <position>words.tcl:148</position>
+            <base>Expansion coeff </base>
+            <position>words.tcl:110;words2.tcl:110</position>
             <priority>0</priority>
         </src>
         <src id="235">
-            <base>Y active </base>
-            <position>words.tcl:149</position>
+            <base>Exponential </base>
+            <position>words.tcl:111;words2.tcl:111</position>
             <priority>0</priority>
         </src>
         <src id="236">
-            <base>Y coordinate </base>
-            <position>words.tcl:150</position>
+            <base>Face </base>
+            <position>words.tcl:112;words2.tcl:112</position>
             <priority>0</priority>
         </src>
         <src id="237">
-            <base>Yes </base>
-            <position>words.tcl:151</position>
+            <base>False </base>
+            <position>words.tcl:113;words2.tcl:113</position>
             <priority>0</priority>
         </src>
         <src id="238">
-            <base>Z </base>
-            <position>words.tcl:152</position>
+            <base>Fix </base>
+            <position>words.tcl:114;words2.tcl:114</position>
             <priority>0</priority>
         </src>
         <src id="239">
-            <base>Z Vector </base>
-            <position>words.tcl:153</position>
+            <base>Fix coordinates </base>
+            <position>words.tcl:115;words2.tcl:115</position>
             <priority>0</priority>
         </src>
         <src id="240">
-            <base>Z active </base>
-            <position>words.tcl:154</position>
+            <base>Fix pressure </base>
+            <position>words.tcl:116;words2.tcl:116</position>
             <priority>0</priority>
         </src>
         <src id="241">
-            <base>Z coordinate </base>
-            <position>words.tcl:155</position>
+            <base>Fluid </base>
+            <position>words.tcl:117;words2.tcl:117</position>
             <priority>0</priority>
         </src>
         <src id="242">
-            <base> </base>
-            <position>kmprops.tcl:493</position>
+            <base>Fluid structure interaction (FSI) </base>
+            <position>words.tcl:118;words2.tcl:118</position>
+            <priority>0</priority>
+        </src>
+        <src id="243">
+            <base>Fluid type </base>
+            <position>words.tcl:119;words2.tcl:119</position>
             <priority>0</priority>
         </src>
         <src id="244">
-            <base>$pid</base>
-            <position>kmprops.tcl:1882</position>
+            <base>Forces </base>
+            <position>words.tcl:120;words2.tcl:120</position>
             <priority>0</priority>
         </src>
         <src id="245">
-            <base>ASGS </base>
-            <position>words.tcl:5</position>
+            <base>Fractional step </base>
+            <position>words.tcl:121;words2.tcl:121</position>
             <priority>0</priority>
         </src>
         <src id="246">
-            <base>Conditions (kkwords?) </base>
-            <position>words.tcl:23</position>
+            <base>Fractional step edge based </base>
+            <position>words.tcl:122;words2.tcl:122</position>
             <priority>0</priority>
         </src>
         <src id="247">
-            <base>Fix pressure </base>
-            <position>words.tcl:51</position>
+            <base>Fractional step element based </base>
+            <position>words.tcl:123;words2.tcl:123</position>
             <priority>0</priority>
         </src>
         <src id="248">
-            <base>Inlet velocity </base>
-            <position>words.tcl:66</position>
+            <base>Fractional step level set </base>
+            <position>words.tcl:124;words2.tcl:124</position>
             <priority>0</priority>
         </src>
         <src id="249">
-            <base>No-Slip </base>
-            <position>words.tcl:90</position>
+            <base>Fractional step semi-explicit element based </base>
+            <position>words.tcl:125;words2.tcl:125</position>
             <priority>0</priority>
         </src>
         <src id="250">
-            <base>Others </base>
-            <position>words.tcl:94</position>
+            <base>Free surface </base>
+            <position>words.tcl:126;words2.tcl:126</position>
             <priority>0</priority>
         </src>
         <src id="251">
-            <base>Outlet pressure </base>
-            <position>words.tcl:95</position>
+            <base>Fx </base>
+            <position>words.tcl:127;words2.tcl:127</position>
             <priority>0</priority>
         </src>
         <src id="252">
-            <base>Pressure value </base>
-            <position>words.tcl:99</position>
+            <base>Fx Vector </base>
+            <position>words.tcl:128;words2.tcl:128</position>
             <priority>0</priority>
         </src>
         <src id="253">
-            <base>Proba </base>
-            <position>words.tcl:100</position>
+            <base>Fy </base>
+            <position>words.tcl:129;words2.tcl:129</position>
             <priority>0</priority>
         </src>
         <src id="254">
+            <base>Fy Vector </base>
+            <position>words.tcl:130;words2.tcl:130</position>
+            <priority>0</priority>
+        </src>
+        <src id="255">
+            <base>Fz </base>
+            <position>words.tcl:131;words2.tcl:131</position>
+            <priority>0</priority>
+        </src>
+        <src id="256">
+            <base>Fz Vector </base>
+            <position>words.tcl:132;words2.tcl:132</position>
+            <priority>0</priority>
+        </src>
+        <src id="257">
+            <base>GMRES </base>
+            <position>words.tcl:133;words2.tcl:133</position>
+            <priority>0</priority>
+        </src>
+        <src id="258">
+            <base>General application data </base>
+            <position>words.tcl:134;words2.tcl:134</position>
+            <priority>0</priority>
+        </src>
+        <src id="259">
+            <base>Generic </base>
+            <position>words.tcl:135;words2.tcl:135</position>
+            <priority>0</priority>
+        </src>
+        <src id="260">
+            <base>GiD postprocess otions </base>
+            <position>words.tcl:136;words2.tcl:136</position>
+            <priority>0</priority>
+        </src>
+        <src id="261">
+            <base>GiD result file format </base>
+            <position>words.tcl:137;words2.tcl:137</position>
+            <priority>0</priority>
+        </src>
+        <src id="262">
+            <base>Gravity value </base>
+            <position>words.tcl:138;words2.tcl:138</position>
+            <priority>0</priority>
+        </src>
+        <src id="263">
+            <base>Green Lagrange strain tensor </base>
+            <position>words.tcl:139;words2.tcl:139</position>
+            <priority>0</priority>
+        </src>
+        <src id="264">
+            <base>Hardening law </base>
+            <position>words.tcl:140;words2.tcl:140</position>
+            <priority>0</priority>
+        </src>
+        <src id="265">
+            <base>Helptext </base>
+            <position>words.tcl:141;words2.tcl:141</position>
+            <priority>0</priority>
+        </src>
+        <src id="266">
+            <base>HexPly_8551-7_IM7 </base>
+            <position>words.tcl:142;words2.tcl:142</position>
+            <priority>0</priority>
+        </src>
+        <src id="267">
+            <base>Hexahedra </base>
+            <position>words.tcl:143;words2.tcl:143</position>
+            <priority>0</priority>
+        </src>
+        <src id="268">
+            <base>ILU0 </base>
+            <position>words.tcl:144;words2.tcl:144</position>
+            <priority>0</priority>
+        </src>
+        <src id="269">
+            <base>Incompressible </base>
+            <position>words.tcl:145;words2.tcl:145</position>
+            <priority>0</priority>
+        </src>
+        <src id="270">
+            <base>Initial Conditions </base>
+            <position>words.tcl:146;words2.tcl:146</position>
+            <priority>0</priority>
+        </src>
+        <src id="271">
+            <base>Initial conditions </base>
+            <position>words.tcl:147;words2.tcl:147</position>
+            <priority>0</priority>
+        </src>
+        <src id="272">
+            <base>Initial pressure </base>
+            <position>words.tcl:148;words2.tcl:148</position>
+            <priority>0</priority>
+        </src>
+        <src id="273">
+            <base>Initial temperature </base>
+            <position>words.tcl:149;words2.tcl:149</position>
+            <priority>0</priority>
+        </src>
+        <src id="274">
+            <base>Initial velocity </base>
+            <position>words.tcl:150;words2.tcl:150</position>
+            <priority>0</priority>
+        </src>
+        <src id="275">
+            <base>Inlet velocity </base>
+            <position>words.tcl:151;words2.tcl:151</position>
+            <priority>0</priority>
+        </src>
+        <src id="276">
+            <base>Internal friction angle </base>
+            <position>words.tcl:152;words2.tcl:152</position>
+            <priority>0</priority>
+        </src>
+        <src id="277">
+            <base>Isotropic </base>
+            <position>words.tcl:153;words2.tcl:153</position>
+            <priority>0</priority>
+        </src>
+        <src id="278">
+            <base>Isotropic + Kinematic </base>
+            <position>words.tcl:154;words2.tcl:154</position>
+            <priority>0</priority>
+        </src>
+        <src id="279">
+            <base>Isotropic hardening modulus </base>
+            <position>words.tcl:155;words2.tcl:155</position>
+            <priority>0</priority>
+        </src>
+        <src id="280">
+            <base>Iterative </base>
+            <position>words.tcl:156;words2.tcl:156</position>
+            <priority>0</priority>
+        </src>
+        <src id="281">
+            <base>Iterative solver type </base>
+            <position>words.tcl:157;words2.tcl:157</position>
+            <priority>0</priority>
+        </src>
+        <src id="282">
+            <base>K11 </base>
+            <position>words.tcl:158;words2.tcl:158</position>
+            <priority>0</priority>
+        </src>
+        <src id="283">
+            <base>K22 </base>
+            <position>words.tcl:159;words2.tcl:159</position>
+            <priority>0</priority>
+        </src>
+        <src id="284">
+            <base>K33 </base>
+            <position>words.tcl:160;words2.tcl:160</position>
+            <priority>0</priority>
+        </src>
+        <src id="285">
+            <base>Kinematic </base>
+            <position>words.tcl:161;words2.tcl:161</position>
+            <priority>0</priority>
+        </src>
+        <src id="286">
+            <base>Kinematic hardening modulus </base>
+            <position>words.tcl:162;words2.tcl:162</position>
+            <priority>0</priority>
+        </src>
+        <src id="287">
+            <base>Kratos path </base>
+            <position>words.tcl:163;words2.tcl:163</position>
+            <priority>0</priority>
+        </src>
+        <src id="288">
+            <base>Linear </base>
+            <position>words.tcl:164;words2.tcl:164</position>
+            <priority>0</priority>
+        </src>
+        <src id="289">
+            <base>Linear element </base>
+            <position>words.tcl:165;words2.tcl:165</position>
+            <priority>0</priority>
+        </src>
+        <src id="290">
+            <base>Linear solver type </base>
+            <position>words.tcl:166;words2.tcl:166</position>
+            <priority>0</priority>
+        </src>
+        <src id="291">
+            <base>LinearElement </base>
+            <position>words.tcl:167;words2.tcl:167</position>
+            <priority>0</priority>
+        </src>
+        <src id="292">
+            <base>Load </base>
+            <position>words.tcl:168;words2.tcl:168</position>
+            <priority>0</priority>
+        </src>
+        <src id="293">
+            <base>Loads </base>
+            <position>words.tcl:169;words2.tcl:169</position>
+            <priority>0</priority>
+        </src>
+        <src id="294">
+            <base>Magnetic permeability </base>
+            <position>words.tcl:170;words2.tcl:170</position>
+            <priority>0</priority>
+        </src>
+        <src id="295">
+            <base>Material </base>
+            <position>words.tcl:171;words2.tcl:171</position>
+            <priority>0</priority>
+        </src>
+        <src id="296">
+            <base>Material model </base>
+            <position>words.tcl:172;words2.tcl:172</position>
+            <priority>0</priority>
+        </src>
+        <src id="297">
+            <base>Maximum iteration </base>
+            <position>words.tcl:173;words2.tcl:173</position>
+            <priority>0</priority>
+        </src>
+        <src id="298">
+            <base>Maximum iterations </base>
+            <position>words.tcl:174;words2.tcl:174</position>
+            <priority>0</priority>
+        </src>
+        <src id="299">
+            <base>Maximum pressure iterations </base>
+            <position>words.tcl:175;words2.tcl:175</position>
+            <priority>0</priority>
+        </src>
+        <src id="300">
+            <base>Maximum velocity iterations </base>
+            <position>words.tcl:176;words2.tcl:176</position>
+            <priority>0</priority>
+        </src>
+        <src id="301">
+            <base>Metal </base>
+            <position>words.tcl:177;words2.tcl:177</position>
+            <priority>0</priority>
+        </src>
+        <src id="302">
+            <base>Model description </base>
+            <position>words.tcl:178;words2.tcl:178</position>
+            <priority>0</priority>
+        </src>
+        <src id="303">
+            <base>Model name </base>
+            <position>words.tcl:179;words2.tcl:179</position>
+            <priority>0</priority>
+        </src>
+        <src id="304">
+            <base>Mohr-Coulomb </base>
+            <position>words.tcl:180;words2.tcl:180</position>
+            <priority>0</priority>
+        </src>
+        <src id="305">
+            <base>Monolithic </base>
+            <position>words.tcl:181;words2.tcl:181</position>
+            <priority>0</priority>
+        </src>
+        <src id="306">
+            <base>Multiples </base>
+            <position>words.tcl:182;words2.tcl:182</position>
+            <priority>0</priority>
+        </src>
+        <src id="307">
+            <base>Mx </base>
+            <position>words.tcl:183;words2.tcl:183</position>
+            <priority>0</priority>
+        </src>
+        <src id="308">
+            <base>Mx Vector </base>
+            <position>words.tcl:184;words2.tcl:184</position>
+            <priority>0</priority>
+        </src>
+        <src id="309">
+            <base>My </base>
+            <position>words.tcl:185;words2.tcl:185</position>
+            <priority>0</priority>
+        </src>
+        <src id="310">
+            <base>My Vector </base>
+            <position>words.tcl:186;words2.tcl:186</position>
+            <priority>0</priority>
+        </src>
+        <src id="311">
+            <base>Mz </base>
+            <position>words.tcl:187;words2.tcl:187</position>
+            <priority>0</priority>
+        </src>
+        <src id="312">
+            <base>Mz Vector </base>
+            <position>words.tcl:188;words2.tcl:188</position>
+            <priority>0</priority>
+        </src>
+        <src id="313">
+            <base>New property </base>
+            <position>words.tcl:189;words2.tcl:189</position>
+            <priority>0</priority>
+        </src>
+        <src id="314">
+            <base>Newton-Raphson methods </base>
+            <position>words.tcl:190;words2.tcl:190</position>
+            <priority>0</priority>
+        </src>
+        <src id="315">
+            <base>Newton-Raphson with line search </base>
+            <position>words.tcl:191;words2.tcl:191</position>
+            <priority>0</priority>
+        </src>
+        <src id="316">
+            <base>No </base>
+            <position>words.tcl:192;words2.tcl:192</position>
+            <priority>0</priority>
+        </src>
+        <src id="317">
+            <base>No-Slip </base>
+            <position>words.tcl:193;words2.tcl:193</position>
+            <priority>0</priority>
+        </src>
+        <src id="318">
+            <base>Non-Linear </base>
+            <position>words.tcl:194;words2.tcl:194</position>
+            <priority>0</priority>
+        </src>
+        <src id="319">
+            <base>None </base>
+            <position>words.tcl:195;words2.tcl:195</position>
+            <priority>0</priority>
+        </src>
+        <src id="320">
+            <base>Not available </base>
+            <position>words.tcl:196;words2.tcl:196</position>
+            <priority>0</priority>
+        </src>
+        <src id="321">
+            <base>On gauss points </base>
+            <position>words.tcl:197;words2.tcl:197</position>
+            <priority>0</priority>
+        </src>
+        <src id="322">
+            <base>On nodes </base>
+            <position>words.tcl:198;words2.tcl:198</position>
+            <priority>0</priority>
+        </src>
+        <src id="323">
+            <base>Options </base>
+            <position>words.tcl:199;words2.tcl:199</position>
+            <priority>0</priority>
+        </src>
+        <src id="324">
+            <base>Outlet pressure </base>
+            <position>words.tcl:200;words2.tcl:200</position>
+            <priority>0</priority>
+        </src>
+        <src id="325">
+            <base>Output delata time </base>
+            <position>words.tcl:201;words2.tcl:201</position>
+            <priority>0</priority>
+        </src>
+        <src id="326">
+            <base>Output delta time </base>
+            <position>words.tcl:202;words2.tcl:202</position>
+            <priority>0</priority>
+        </src>
+        <src id="327">
+            <base>Parallel MKL Pardiso </base>
+            <position>words.tcl:203;words2.tcl:203</position>
+            <priority>0</priority>
+        </src>
+        <src id="328">
+            <base>Plastic </base>
+            <position>words.tcl:204;words2.tcl:204</position>
+            <priority>0</priority>
+        </src>
+        <src id="329">
+            <base>Poisson ratio </base>
+            <position>words.tcl:205;words2.tcl:205</position>
+            <priority>0</priority>
+        </src>
+        <src id="330">
+            <base>Poisson ratio v12 </base>
+            <position>words.tcl:206;words2.tcl:206</position>
+            <priority>0</priority>
+        </src>
+        <src id="331">
+            <base>Poisson ratio v13 </base>
+            <position>words.tcl:207;words2.tcl:207</position>
+            <priority>0</priority>
+        </src>
+        <src id="332">
+            <base>Poisson ratio v23 </base>
+            <position>words.tcl:208;words2.tcl:208</position>
+            <priority>0</priority>
+        </src>
+        <src id="333">
+            <base>Preconditioner type </base>
+            <position>words.tcl:209;words2.tcl:209</position>
+            <priority>0</priority>
+        </src>
+        <src id="334">
+            <base>Predictor corrector </base>
+            <position>words.tcl:210;words2.tcl:210</position>
+            <priority>0</priority>
+        </src>
+        <src id="335">
+            <base>Prescribed velocity </base>
+            <position>words.tcl:211;words2.tcl:211</position>
+            <priority>0</priority>
+        </src>
+        <src id="336">
+            <base>Pressure </base>
+            <position>words.tcl:212;words2.tcl:212</position>
+            <priority>0</priority>
+        </src>
+        <src id="337">
+            <base>Pressure direct solver type </base>
+            <position>words.tcl:213;words2.tcl:213</position>
+            <priority>0</priority>
+        </src>
+        <src id="338">
+            <base>Pressure iterative solver type </base>
+            <position>words.tcl:214;words2.tcl:214</position>
+            <priority>0</priority>
+        </src>
+        <src id="339">
+            <base>Pressure linear solver type </base>
+            <position>words.tcl:215;words2.tcl:215</position>
+            <priority>0</priority>
+        </src>
+        <src id="340">
+            <base>Pressure preconditioner type </base>
+            <position>words.tcl:216;words2.tcl:216</position>
+            <priority>0</priority>
+        </src>
+        <src id="341">
+            <base>Pressure solver maximum iteration </base>
+            <position>words.tcl:217;words2.tcl:217</position>
+            <priority>0</priority>
+        </src>
+        <src id="342">
+            <base>Pressure solver tolerance </base>
+            <position>words.tcl:218;words2.tcl:218</position>
+            <priority>0</priority>
+        </src>
+        <src id="343">
+            <base>Pressure splitting </base>
+            <position>words.tcl:219;words2.tcl:219</position>
+            <priority>0</priority>
+        </src>
+        <src id="344">
+            <base>Pressure value </base>
+            <position>words.tcl:220;words2.tcl:220</position>
+            <priority>0</priority>
+        </src>
+        <src id="345">
+            <base>Print in layer </base>
+            <position>words.tcl:221;words2.tcl:221</position>
+            <priority>0</priority>
+        </src>
+        <src id="346">
+            <base>Project configuration </base>
+            <position>words.tcl:222;words2.tcl:222</position>
+            <priority>0</priority>
+        </src>
+        <src id="347">
+            <base>Project information </base>
+            <position>words.tcl:223;words2.tcl:223</position>
+            <priority>0</priority>
+        </src>
+        <src id="348">
+            <base>Project name </base>
+            <position>words.tcl:224;words2.tcl:224</position>
+            <priority>0</priority>
+        </src>
+        <src id="349">
+            <base>Project number </base>
+            <position>words.tcl:225;words2.tcl:225</position>
+            <priority>0</priority>
+        </src>
+        <src id="350">
+            <base>Properties </base>
+            <position>words.tcl:226;words2.tcl:226</position>
+            <priority>0</priority>
+        </src>
+        <src id="351">
+            <base>Property </base>
+            <position>words.tcl:227;words2.tcl:227</position>
+            <priority>0</priority>
+        </src>
+        <src id="352">
+            <base>Property type </base>
+            <position>words.tcl:228;words2.tcl:228</position>
+            <priority>0</priority>
+        </src>
+        <src id="353">
+            <base>Property1 </base>
+            <position>words.tcl:229;words2.tcl:229</position>
+            <priority>0</priority>
+        </src>
+        <src id="354">
+            <base>Puntual </base>
+            <position>words.tcl:230;words2.tcl:230</position>
+            <priority>0</priority>
+        </src>
+        <src id="355">
+            <base>Quadrilateral </base>
+            <position>words.tcl:231;words2.tcl:231</position>
+            <priority>0</priority>
+        </src>
+        <src id="356">
+            <base>Rankine </base>
+            <position>words.tcl:232;words2.tcl:232</position>
+            <priority>0</priority>
+        </src>
+        <src id="357">
+            <base>Reactions </base>
+            <position>words.tcl:233;words2.tcl:233</position>
+            <priority>0</priority>
+        </src>
+        <src id="358">
+            <base>Relative pressure tolerance </base>
+            <position>words.tcl:234;words2.tcl:234</position>
+            <priority>0</priority>
+        </src>
+        <src id="359">
+            <base>Relative velocity tolerance </base>
+            <position>words.tcl:235;words2.tcl:235</position>
+            <priority>0</priority>
+        </src>
+        <src id="360">
+            <base>Residual </base>
+            <position>words.tcl:236;words2.tcl:236</position>
+            <priority>0</priority>
+        </src>
+        <src id="361">
+            <base>Residual absolute tolerance </base>
+            <position>words.tcl:237;words2.tcl:237</position>
+            <priority>0</priority>
+        </src>
+        <src id="362">
+            <base>Residual convergence tolerance </base>
+            <position>words.tcl:238;words2.tcl:238</position>
+            <priority>0</priority>
+        </src>
+        <src id="363">
+            <base>Result file </base>
+            <position>words.tcl:239;words2.tcl:239</position>
+            <priority>0</priority>
+        </src>
+        <src id="364">
+            <base>Result format </base>
+            <position>words.tcl:240;words2.tcl:240</position>
+            <priority>0</priority>
+        </src>
+        <src id="365">
+            <base>Results </base>
+            <position>words.tcl:241;words2.tcl:241</position>
+            <priority>0</priority>
+        </src>
+        <src id="366">
+            <base>Revision number </base>
+            <position>words.tcl:242;words2.tcl:242</position>
+            <priority>0</priority>
+        </src>
+        <src id="367">
+            <base>Rotations </base>
+            <position>words.tcl:243;words2.tcl:243</position>
+            <priority>0</priority>
+        </src>
+        <src id="368">
+            <base>Shear modulus </base>
+            <position>words.tcl:244;words2.tcl:244</position>
+            <priority>0</priority>
+        </src>
+        <src id="369">
+            <base>Shear modulus G12 </base>
+            <position>words.tcl:245;words2.tcl:245</position>
+            <priority>0</priority>
+        </src>
+        <src id="370">
+            <base>Shear modulus G13 </base>
+            <position>words.tcl:246;words2.tcl:246</position>
+            <priority>0</priority>
+        </src>
+        <src id="371">
+            <base>Shear modulus G23 </base>
+            <position>words.tcl:247;words2.tcl:247</position>
+            <priority>0</priority>
+        </src>
+        <src id="372">
+            <base>Shell anisotropic </base>
+            <position>words.tcl:248;words2.tcl:248</position>
+            <priority>0</priority>
+        </src>
+        <src id="373">
+            <base>Shell isotropic </base>
+            <position>words.tcl:249;words2.tcl:249</position>
+            <priority>0</priority>
+        </src>
+        <src id="374">
+            <base>ShellAnisotropic </base>
+            <position>words.tcl:250;words2.tcl:250</position>
+            <priority>0</priority>
+        </src>
+        <src id="375">
+            <base>ShellIsotropic </base>
+            <position>words.tcl:251;words2.tcl:251</position>
+            <priority>0</priority>
+        </src>
+        <src id="376">
+            <base>Shells </base>
+            <position>words.tcl:252;words2.tcl:252</position>
+            <priority>0</priority>
+        </src>
+        <src id="377">
+            <base>Single </base>
+            <position>words.tcl:253;words2.tcl:253</position>
+            <priority>0</priority>
+        </src>
+        <src id="378">
+            <base>Skyline LU factorization </base>
+            <position>words.tcl:254;words2.tcl:254</position>
+            <priority>0</priority>
+        </src>
+        <src id="379">
             <base>Slip </base>
-            <position>words.tcl:118</position>
+            <position>words.tcl:255;words2.tcl:255</position>
+            <priority>0</priority>
+        </src>
+        <src id="380">
+            <base>Softening law </base>
+            <position>words.tcl:256;words2.tcl:256</position>
+            <priority>0</priority>
+        </src>
+        <src id="381">
+            <base>Solids </base>
+            <position>words.tcl:257;words2.tcl:257</position>
+            <priority>0</priority>
+        </src>
+        <src id="382">
+            <base>Solution Strategy </base>
+            <position>words.tcl:258;words2.tcl:258</position>
+            <priority>0</priority>
+        </src>
+        <src id="383">
+            <base>Solution Type </base>
+            <position>words.tcl:259;words2.tcl:259</position>
+            <priority>0</priority>
+        </src>
+        <src id="384">
+            <base>Solution method </base>
+            <position>words.tcl:260;words2.tcl:260</position>
+            <priority>0</priority>
+        </src>
+        <src id="385">
+            <base>Solution strategy </base>
+            <position>words.tcl:261;words2.tcl:261</position>
+            <priority>0</priority>
+        </src>
+        <src id="386">
+            <base>Solution type </base>
+            <position>words.tcl:262;words2.tcl:262</position>
+            <priority>0</priority>
+        </src>
+        <src id="387">
+            <base>Solver type </base>
+            <position>words.tcl:263;words2.tcl:263</position>
+            <priority>0</priority>
+        </src>
+        <src id="388">
+            <base>SolverType </base>
+            <position>words.tcl:264;words2.tcl:264</position>
+            <priority>0</priority>
+        </src>
+        <src id="389">
+            <base>Spatial Dimension </base>
+            <position>words.tcl:265;words2.tcl:265</position>
+            <priority>0</priority>
+        </src>
+        <src id="390">
+            <base>Spatial dimension </base>
+            <position>words.tcl:266;words2.tcl:266</position>
+            <priority>0</priority>
+        </src>
+        <src id="391">
+            <base>Specific heat </base>
+            <position>words.tcl:267;words2.tcl:267</position>
+            <priority>0</priority>
+        </src>
+        <src id="392">
+            <base>Start time </base>
+            <position>words.tcl:268;words2.tcl:268</position>
+            <priority>0</priority>
+        </src>
+        <src id="393">
+            <base>Static </base>
+            <position>words.tcl:269;words2.tcl:269</position>
+            <priority>0</priority>
+        </src>
+        <src id="394">
+            <base>Steel_AISI1059 </base>
+            <position>words.tcl:270;words2.tcl:270</position>
+            <priority>0</priority>
+        </src>
+        <src id="395">
+            <base>Stresses </base>
+            <position>words.tcl:271;words2.tcl:271</position>
+            <priority>0</priority>
+        </src>
+        <src id="396">
+            <base>Structural Type </base>
+            <position>words.tcl:272;words2.tcl:272</position>
+            <priority>0</priority>
+        </src>
+        <src id="397">
+            <base>Structural analysis </base>
+            <position>words.tcl:273;words2.tcl:273</position>
+            <priority>0</priority>
+        </src>
+        <src id="398">
+            <base>Structural simulation </base>
+            <position>words.tcl:274;words2.tcl:274</position>
+            <priority>0</priority>
+        </src>
+        <src id="399">
+            <base>Structural type </base>
+            <position>words.tcl:275;words2.tcl:275</position>
+            <priority>0</priority>
+        </src>
+        <src id="400">
+            <base>Super LU </base>
+            <position>words.tcl:276;words2.tcl:276</position>
+            <priority>0</priority>
+        </src>
+        <src id="401">
+            <base>Supervisor </base>
+            <position>words.tcl:277;words2.tcl:277</position>
+            <priority>0</priority>
+        </src>
+        <src id="402">
+            <base>Temperature </base>
+            <position>words.tcl:278;words2.tcl:278</position>
+            <priority>0</priority>
+        </src>
+        <src id="403">
+            <base>Tensile fracture energy </base>
+            <position>words.tcl:279;words2.tcl:279</position>
+            <priority>0</priority>
+        </src>
+        <src id="404">
+            <base>Tensile strength </base>
+            <position>words.tcl:280;words2.tcl:280</position>
+            <priority>0</priority>
+        </src>
+        <src id="405">
+            <base>Tetrahedra </base>
+            <position>words.tcl:281;words2.tcl:281</position>
+            <priority>0</priority>
+        </src>
+        <src id="406">
+            <base>Thickness </base>
+            <position>words.tcl:282;words2.tcl:282</position>
+            <priority>0</priority>
+        </src>
+        <src id="407">
+            <base>Time order </base>
+            <position>words.tcl:283;words2.tcl:283</position>
+            <priority>0</priority>
+        </src>
+        <src id="408">
+            <base>Total Lagrangian </base>
+            <position>words.tcl:284;words2.tcl:284</position>
+            <priority>0</priority>
+        </src>
+        <src id="409">
+            <base>Tresca </base>
+            <position>words.tcl:285;words2.tcl:285</position>
+            <priority>0</priority>
+        </src>
+        <src id="410">
+            <base>Triangle </base>
+            <position>words.tcl:286;words2.tcl:286</position>
+            <priority>0</priority>
+        </src>
+        <src id="411">
+            <base>True </base>
+            <position>words.tcl:287;words2.tcl:287</position>
+            <priority>0</priority>
+        </src>
+        <src id="412">
+            <base>Truss </base>
+            <position>words.tcl:288;words2.tcl:288</position>
+            <priority>0</priority>
+        </src>
+        <src id="413">
+            <base>Use dt in stabilization </base>
+            <position>words.tcl:289;words2.tcl:289</position>
+            <priority>0</priority>
+        </src>
+        <src id="414">
+            <base>Use orthogonal subscales </base>
+            <position>words.tcl:290;words2.tcl:290</position>
+            <priority>0</priority>
+        </src>
+        <src id="415">
+            <base>Validate model before calculate </base>
+            <position>words.tcl:291;words2.tcl:291</position>
+            <priority>0</priority>
+        </src>
+        <src id="416">
+            <base>Values </base>
+            <position>words.tcl:292;words2.tcl:292</position>
+            <priority>0</priority>
+        </src>
+        <src id="417">
+            <base>Velocity </base>
+            <position>words.tcl:293;words2.tcl:293</position>
+            <priority>0</priority>
+        </src>
+        <src id="418">
+            <base>Velocity direct solver type </base>
+            <position>words.tcl:294;words2.tcl:294</position>
+            <priority>0</priority>
+        </src>
+        <src id="419">
+            <base>Velocity iterative solver type </base>
+            <position>words.tcl:295;words2.tcl:295</position>
+            <priority>0</priority>
+        </src>
+        <src id="420">
+            <base>Velocity linear solver type </base>
+            <position>words.tcl:296;words2.tcl:296</position>
+            <priority>0</priority>
+        </src>
+        <src id="421">
+            <base>Velocity preconditioner type </base>
+            <position>words.tcl:297;words2.tcl:297</position>
+            <priority>0</priority>
+        </src>
+        <src id="422">
+            <base>Velocity solver maximum iteration </base>
+            <position>words.tcl:298;words2.tcl:298</position>
+            <priority>0</priority>
+        </src>
+        <src id="423">
+            <base>Velocity solver tolerance </base>
+            <position>words.tcl:299;words2.tcl:299</position>
+            <priority>0</priority>
+        </src>
+        <src id="424">
+            <base>Viscosity </base>
+            <position>words.tcl:300;words2.tcl:300</position>
+            <priority>0</priority>
+        </src>
+        <src id="425">
+            <base>Von-Misses </base>
+            <position>words.tcl:301;words2.tcl:301</position>
+            <priority>0</priority>
+        </src>
+        <src id="426">
+            <base>Vx </base>
+            <position>words.tcl:302;words2.tcl:302</position>
+            <priority>0</priority>
+        </src>
+        <src id="427">
+            <base>Vy </base>
+            <position>words.tcl:303;words2.tcl:303</position>
+            <priority>0</priority>
+        </src>
+        <src id="428">
+            <base>Vz </base>
+            <position>words.tcl:304;words2.tcl:304</position>
+            <priority>0</priority>
+        </src>
+        <src id="429">
+            <base>Water </base>
+            <position>words.tcl:305;words2.tcl:305</position>
+            <priority>0</priority>
+        </src>
+        <src id="430">
+            <base>Write conditions </base>
+            <position>words.tcl:306;words2.tcl:306</position>
+            <priority>0</priority>
+        </src>
+        <src id="431">
+            <base>Write deformed mesh </base>
+            <position>words.tcl:307;words2.tcl:307</position>
+            <priority>0</priority>
+        </src>
+        <src id="432">
+            <base>Write one GiD result file or multiplies files </base>
+            <position>words.tcl:308;words2.tcl:308</position>
+            <priority>0</priority>
+        </src>
+        <src id="433">
+            <base>Write the GiD deformed or undeformed mesh </base>
+            <position>words.tcl:309;words2.tcl:309</position>
+            <priority>0</priority>
+        </src>
+        <src id="434">
+            <base>Write the conditions or only element to the GiD result file </base>
+            <position>words.tcl:310;words2.tcl:310</position>
+            <priority>0</priority>
+        </src>
+        <src id="435">
+            <base>X </base>
+            <position>words.tcl:311;words2.tcl:311</position>
+            <priority>0</priority>
+        </src>
+        <src id="436">
+            <base>X Vector </base>
+            <position>words.tcl:312;words2.tcl:312</position>
+            <priority>0</priority>
+        </src>
+        <src id="437">
+            <base>X active </base>
+            <position>words.tcl:313;words2.tcl:313</position>
+            <priority>0</priority>
+        </src>
+        <src id="438">
+            <base>X coordinate </base>
+            <position>words.tcl:314;words2.tcl:314</position>
+            <priority>0</priority>
+        </src>
+        <src id="439">
+            <base>X fix </base>
+            <position>words.tcl:315;words2.tcl:315</position>
+            <priority>0</priority>
+        </src>
+        <src id="440">
+            <base>Y </base>
+            <position>words.tcl:316;words2.tcl:316</position>
+            <priority>0</priority>
+        </src>
+        <src id="441">
+            <base>Y Vector </base>
+            <position>words.tcl:317;words2.tcl:317</position>
+            <priority>0</priority>
+        </src>
+        <src id="442">
+            <base>Y active </base>
+            <position>words.tcl:318;words2.tcl:318</position>
+            <priority>0</priority>
+        </src>
+        <src id="443">
+            <base>Y coordinate </base>
+            <position>words.tcl:319;words2.tcl:319</position>
+            <priority>0</priority>
+        </src>
+        <src id="444">
+            <base>Y fix </base>
+            <position>words.tcl:320;words2.tcl:320</position>
+            <priority>0</priority>
+        </src>
+        <src id="445">
+            <base>Yes </base>
+            <position>words.tcl:321;words2.tcl:321</position>
+            <priority>0</priority>
+        </src>
+        <src id="446">
+            <base>Yield Stress </base>
+            <position>words.tcl:322;words2.tcl:322</position>
+            <priority>0</priority>
+        </src>
+        <src id="447">
+            <base>Yield criteria </base>
+            <position>words.tcl:323;words2.tcl:323</position>
+            <priority>0</priority>
+        </src>
+        <src id="448">
+            <base>Young modulus </base>
+            <position>words.tcl:324;words2.tcl:324</position>
+            <priority>0</priority>
+        </src>
+        <src id="449">
+            <base>Young modulus E11 </base>
+            <position>words.tcl:325;words2.tcl:325</position>
+            <priority>0</priority>
+        </src>
+        <src id="450">
+            <base>Young modulus E22 </base>
+            <position>words.tcl:326;words2.tcl:326</position>
+            <priority>0</priority>
+        </src>
+        <src id="451">
+            <base>Young modulus E33 </base>
+            <position>words.tcl:327;words2.tcl:327</position>
+            <priority>0</priority>
+        </src>
+        <src id="452">
+            <base>Z </base>
+            <position>words.tcl:328;words2.tcl:328</position>
+            <priority>0</priority>
+        </src>
+        <src id="453">
+            <base>Z Vector </base>
+            <position>words.tcl:329;words2.tcl:329</position>
+            <priority>0</priority>
+        </src>
+        <src id="454">
+            <base>Z active </base>
+            <position>words.tcl:330;words2.tcl:330</position>
+            <priority>0</priority>
+        </src>
+        <src id="455">
+            <base>Z coordinate </base>
+            <position>words.tcl:331;words2.tcl:331</position>
+            <priority>0</priority>
+        </src>
+        <src id="456">
+            <base>Z fix </base>
+            <position>words.tcl:332;words2.tcl:332</position>
+            <priority>0</priority>
+        </src>
+        <src id="457">
+            <base>alfa 11 </base>
+            <position>words.tcl:333;words2.tcl:333</position>
+            <priority>0</priority>
+        </src>
+        <src id="458">
+            <base>alfa 22 </base>
+            <position>words.tcl:334;words2.tcl:334</position>
+            <priority>0</priority>
+        </src>
+        <src id="459">
+            <base>alfa 33 </base>
+            <position>words.tcl:335;words2.tcl:335</position>
             <priority>0</priority>
         </src>
     </srcstrings>
     <translatestrings>
         <lan lan="es">
-            <translate id="10">
-                <base>La carpeta raíz no se puede editar</base>
+            <translate id="1">
+                <base>Validación del modelo</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-04</date>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="2">
+                <base>Cerrar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="3">
+                <base>Cerrar la ventana de informe</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="4">
+                <base>Imprimir</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="5">
+                <base>Imprimir informe vía archivo temporal en notepad</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="6">
+                <base>No se puede hacer una copia del fichero de Kratos (%s)</base>
+            </translate>
+            <translate id="7">
+                <base>No se puede escribir el fichero %s. Permiso denegado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="8">
+                <base>Error leyendo archivo %s %s %s el problem type no está correctamente instalado</base>
+            </translate>
+            <translate id="9">
+                <base>Kratos</base>
+            </translate>
+            <translate id="10">
+                <base>Editor de grupos de entidades</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="11">
+                <base>Propeiedades del modelo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="12">
-                <base>Algunos carácteres reservados no pueden ser utilizados:
-  :   /   $   .   \\  %  </base>
+                <base>Base de datos de materiales</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-04</date>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="13">
+                <base>Editor de funciones</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="14">
+                <base>Project settings</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="15">
+                <base>Defina el grupo de propiedades con el editor de grupos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="16">
+                <base>Define las propiedades del modelo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="17">
+                <base>Define las propiedades del modelo</base>
+            </translate>
+            <translate id="18">
+                <base>Abrir ventana de control de proceso</base>
+            </translate>
+            <translate id="19">
+                <base>Ejecutar la simulación</base>
+            </translate>
+            <translate id="20">
+                <base>Ver información de proyecto</base>
+            </translate>
+            <translate id="21">
+                <base>Cancelar proceso</base>
+            </translate>
+            <translate id="22">
+                <base>Toolbar de definición del modelo</base>
+            </translate>
+            <translate id="23">
+                <base>Kratos global settings</base>
+            </translate>
+            <translate id="24">
+                <base>Guardar y cerrar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="25">
+                <base>El proyecto tiene que estar guardado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="26">
-                <base>No se puede hacer un backup del archivo maestro de Kratos %s</base>
+                <base>Solo se puede imprimir en Windows</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-04</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="27">
-                <base>Error leyendo el archivo %s %s %s el problem type no está correctamente instalado</base>
+                <base>Se ha detectado un error accediendo a un directorio temporal</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="28">
-                <base>Workshop</base>
+                <base>Modelo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="29">
-                <base>Características de simulación</base>
+                <base>Materiales</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="30">
-                <base>Edición de grupos</base>
+                <base>Propiedades</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="31">
-                <base>Configuración proyecto</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
-            </translate>
-            <translate id="32">
-                <base>Defina el grupo de propiedades utilizando el editor de grupos</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
-            </translate>
-            <translate id="33">
-                <base>Define the Model Properties</base>
-            </translate>
-            <translate id="34">
-                <base>Model definition toolbar</base>
-            </translate>
-            <translate id="35">
-                <base>The project must be saved</base>
-            </translate>
-            <translate id="36">
-                <base>Create new material</base>
-            </translate>
-            <translate id="37">
-                <base>Delete material</base>
-            </translate>
-            <translate id="38">
-                <base>Refresh Tree</base>
-            </translate>
-            <translate id="39">
-                <base>Close</base>
-            </translate>
-            <translate id="40">
-                <base>Root</base>
-            </translate>
-            <translate id="41">
-                <base>No material selected</base>
-            </translate>
-            <translate id="42">
-                <base>Collapse All</base>
-            </translate>
-            <translate id="43">
-                <base>Expand All</base>
-            </translate>
-            <translate id="44">
-                <base>Model</base>
-            </translate>
-            <translate id="45">
-                <base>Materials</base>
-            </translate>
-            <translate id="46">
-                <base>Properties</base>
-            </translate>
-            <translate id="47">
                 <base>C1</base>
             </translate>
-            <translate id="50">
-                <base>Entity $command</base>
+            <translate id="33">
+                <base>Root</base>
             </translate>
-            <translate id="51">
-                <base>Create automatic new group</base>
+            <translate id="34">
+                <base>[::KMProps::getPropTemplate $idTemplate pid $idContainer</base>
             </translate>
-            <translate id="52">
+            <translate id="35">
+                <base>Entidad %s</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="36">
+                <base>Entidad $command</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="37">
+                <base>Crear grupo automáticamente</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="38">
                 <base>Assign condition to the selected group</base>
             </translate>
-            <translate id="53">
+            <translate id="39">
                 <base>Cancel assignation</base>
             </translate>
-            <translate id="55">
+            <translate id="40">
+                <base>El nuevo grupo '%s' no tiene ningun entdad asignadaº</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="41">
                 <base>Property Name:</base>
             </translate>
+            <translate id="42">
+                <base>No se pueden utilizar algunos carácteres reservados:\n
+  :   /   $   .   \\  %  </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="43">
+                <base>El nombre de propiedad no puede ser vacío</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="44">
+                <base>Este nombre de propiedad ya está asignado.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="45">
+                <base>Tiene que elegir un grupo (se puede crear uno con el botón de la izquierda)</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="46">
+                <base>Este grupo ya esta asignado a esta condición.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="47">
+                <base>$pid</base>
+            </translate>
+            <translate id="48">
+                <base>Grupo:</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="49">
+                <base>Confirmar valores</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="50">
+                <base>Los fluidos compresibles aun no están disponibles.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="51">
+                <base>El nombre de propiedad ya existe.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="52">
+                <base>Proyecto</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="53">
+                <base>Nuevo grupo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="54">
+                <base>Nuevo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="55">
+                <base>Eliminar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
             <translate id="56">
-                <base>The property name can not be empty</base>
+                <base>Editar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="57">
-                <base>This name property it is already assigned.</base>
+                <base>Colapsar todos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="58">
-                <base>You have to choose one group\n (you can create a new one pushing the button on the right)</base>
+                <base>Expandir todos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="59">
-                <base>This group it is already assigned to this condition.</base>
-            </translate>
-            <translate id="61">
-                <base>Group:</base>
-            </translate>
-            <translate id="62">
-                <base>Confirm values</base>
-            </translate>
-            <translate id="63">
-                <base>Project</base>
-            </translate>
-            <translate id="64">
-                <base>New Group</base>
-            </translate>
-            <translate id="65">
-                <base>New</base>
-            </translate>
-            <translate id="66">
-                <base>Delete</base>
-            </translate>
-            <translate id="67">
-                <base>Edit</base>
-            </translate>
-            <translate id="68">
-                <base>Add a new group identifier</base>
-            </translate>
-            <translate id="69">
-                <base>Delete the selected group</base>
-            </translate>
-            <translate id="70">
-                <base>Assing Entities to Groups</base>
-            </translate>
-            <translate id="71">
-                <base>Unassing Entities from Groups</base>
-            </translate>
-            <translate id="72">
-                <base>Any group selected</base>
-            </translate>
-            <translate id="73">
-                <base>Press 'Finish' to stop the entities selection</base>
-            </translate>
-            <translate id="74">
-                <base>Bad group name, start or end by '//' is not allowed</base>
-            </translate>
-            <translate id="75">
-                <base>No group selected</base>
-            </translate>
-            <translate id="76">
-                <base>Select color</base>
-            </translate>
-            <translate id="77">
-                <base>You can not choose an empty group name.</base>
-            </translate>
-            <translate id="78">
-                <base>El nombre de grupo '%s' already exist.
-Choose another, please.</base>
+                <base>Debe definir una propiedad válida para este tipo de elemento</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-04</date>
+                <date>2010-07-19</date>
             </translate>
-            <translate id="79">
-                <base>Group Id</base>
-            </translate>
-            <translate id="80">
-                <base>Color</base>
-            </translate>
-            <translate id="81">
-                <base>On/Off</base>
-            </translate>
-            <translate id="82">
-                <base>Type</base>
-            </translate>
-            <translate id="83">
-                <base>Entities group editor</base>
-            </translate>
-            <translate id="84">
-                <base>Rename</base>
-            </translate>
-            <translate id="85">
-                <base>On</base>
-            </translate>
-            <translate id="86">
-                <base>Off</base>
-            </translate>
-            <translate id="88">
-                <base>Assign Entities</base>
-            </translate>
-            <translate id="89">
-                <base>Unassign</base>
-            </translate>
-            <translate id="90">
-                <base>%i</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-04</date>
-            </translate>
-            <translate id="91">
-                <base>Entity %s</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-04</date>
-            </translate>
-            <translate id="92">
-                <base>El nuevo grupo '%s' no tiene ninguna entidad apropiada asociada.</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-04</date>
-            </translate>
-            <translate id="94">
-                <base>This property name already exist.</base>
-            </translate>
-            <translate id="95">
+            <translate id="60">
                 <base>%s</base>
             </translate>
+            <translate id="61">
+                <base>Administrador de funciones</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="62">
+                <base>newGroup</base>
+            </translate>
+            <translate id="63">
+                <base>Ok</base>
+            </translate>
+            <translate id="64">
+                <base>Cancel</base>
+            </translate>
+            <translate id="65">
+                <base>Elija un nombre de propiedad. </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="66">
+                <base>Antes debe definir una propiedad.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="67">
+                <base>Antes debe definir una propiedad.</base>
+            </translate>
+            <translate id="68">
+                <base>Esta propiedad esta asignada a $s.\nDEsea borrar la propiedad y todos sus grupos?</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="69">
+                <base>Añadir nueva función</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="70">
+                <base>Borrar la función seleccionada</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="71">
+                <base>Assign the selection function and close editor</base>
+            </translate>
+            <translate id="72">
+                <base>Open the GiD editor</base>
+            </translate>
+            <translate id="73">
+                <base>Please, select the function you want to assign to '%s'.</base>
+            </translate>
+            <translate id="74">
+                <base>Function Id</base>
+            </translate>
+            <translate id="75">
+                <base>Function definition</base>
+            </translate>
+            <translate id="76">
+                <base>Name id:</base>
+            </translate>
+            <translate id="77">
+                <base>Kratos Filter</base>
+            </translate>
+            <translate id="78">
+                <base>$cmbPid:</base>
+            </translate>
+            <translate id="79">
+                <base>$cmbTooltip</base>
+            </translate>
+            <translate id="80">
+                <base>Kratos variables:</base>
+            </translate>
+            <translate id="81">
+                <base>Add variable</base>
+            </translate>
+            <translate id="82">
+                <base>Add this function</base>
+            </translate>
+            <translate id="83">
+                <base>Please, choose a non-empty ID.'</base>
+            </translate>
+            <translate id="84">
+                <base>No function selected to remove.</base>
+            </translate>
+            <translate id="85">
+                <base>This function is assigned %s time%s in this project,\ndo you want to unassign %s and continue?</base>
+            </translate>
+            <translate id="86">
+                <base>Crear nuevo material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="87">
+                <base>Borrar material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="88">
+                <base>Refrescar árbol</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="89">
+                <base>tests</base>
+            </translate>
+            <translate id="90">
+                <base>Ningún material seleccionado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="91">
+                <base>Nuevo material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="92">
+                <base>Borrar material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="93">
+                <base>Renombrar material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="94">
+                <base>Copiar material</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="95">
+                <base>Matriz ABD</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
             <translate id="96">
-                <base>0 </base>
+                <base>Valor actual de la matriz (%s)</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="97">
-                <base>1 </base>
+                <base>Desasignar función</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="98">
-                <base>2D </base>
+                <base>Propiedades de proyecto</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="99">
-                <base>3D </base>
+                <base>Añadir nuevo identificador de grupo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="100">
-                <base>Absolute tolerance </base>
+                <base>Elminar el grupo seleccionado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="101">
-                <base>Activation </base>
+                <base>Desasignar entidades de grupos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="102">
-                <base>Add a new Property </base>
+                <base>Listar entidades de grupos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="103">
-                <base>Analysis Data </base>
+                <base>El modo de visualización de GiD ha cambiado a $whatuse.
+Pulse el menu otra vez.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="104">
-                <base>Analysis Type </base>
+                <base>Ningún grupo seleccionado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="105">
-                <base>Analysis type </base>
+                <base>Asignación de elemento no disponible</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="106">
-                <base>Application types </base>
+                <base>Pulse 'Finalizar' para parar la selección de entidades</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="107">
-                <base>Arc length </base>
+                <base>Desasignación correcta!
+Grupos: %s</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="108">
-                <base>BC </base>
+                <base>Nombre de grupo incorrecto, no está permitido el carácter '//'</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="109">
-                <base>Beams </base>
+                <base>Ningún grupo seleccionado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="110">
-                <base>BiConjugate gradient stabilized </base>
+                <base>Seleccionar color</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="111">
-                <base>Body force </base>
+                <base>No se puede elegir un nombre de grupo vacío</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="112">
-                <base>BodyForce </base>
+                <base>No se puede editar la carpeta root</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="113">
-                <base>Boundary Conditions </base>
+                <base>El nombre de grupo '%s' ya existe.\nElija otroa, por favor.</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="114">
-                <base>Company name </base>
+                <base>Grupo id</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="115">
-                <base>Concentrated </base>
+                <base>Color</base>
             </translate>
             <translate id="116">
-                <base>Conditions </base>
+                <base>Mostrar/Ocultar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="117">
-                <base>Conjugate gradient </base>
+                <base>Tipo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="118">
-                <base>Convection diffusion </base>
+                <base>Editor de entidades de grupo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="119">
-                <base>Convergence criteria </base>
+                <base>Renombrar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="120">
-                <base>Convergence tolerance </base>
+                <base>Visible</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="121">
-                <base>Crisfield Truss Element </base>
+                <base>Oculto</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="122">
-                <base>Crisfield truss element </base>
+                <base>Asignar entidades</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="123">
-                <base>Cx </base>
+                <base>Desasignar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="124">
-                <base>Cy </base>
+                <base>Ver entidades de grupo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="125">
-                <base>Cz </base>
+                <base>0 </base>
             </translate>
             <translate id="126">
-                <base>Delta time </base>
+                <base>0.0 </base>
             </translate>
             <translate id="127">
-                <base>Developing in process </base>
+                <base>0.001 </base>
             </translate>
             <translate id="128">
-                <base>Diagonal </base>
+                <base>0.01 </base>
             </translate>
             <translate id="129">
-                <base>Direct </base>
+                <base>0.1 </base>
             </translate>
             <translate id="130">
-                <base>Direct solver type </base>
+                <base>1 </base>
             </translate>
             <translate id="131">
-                <base>Displacement </base>
+                <base>1.0 </base>
             </translate>
             <translate id="132">
-                <base>Displacement and residual </base>
+                <base>2 </base>
             </translate>
             <translate id="133">
-                <base>Displacement or residual </base>
+                <base>2D </base>
             </translate>
             <translate id="134">
-                <base>Desplazamientos</base>
+                <base>2nda Piola - tensor de stress Kirchhoff </base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="135">
-                <base>Dominio</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>3D </base>
             </translate>
             <translate id="136">
-                <base>Dinámico</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A11 </base>
             </translate>
             <translate id="137">
-                <base>EBST (formulación) </base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A12 </base>
             </translate>
             <translate id="138">
-                <base>Tipo de elemento</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A13 </base>
             </translate>
             <translate id="139">
-                <base>Tipo de elemento</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A21 </base>
             </translate>
             <translate id="140">
-                <base>Elementos </base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A22 </base>
             </translate>
             <translate id="141">
-                <base>Tiempo final</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A23 </base>
             </translate>
             <translate id="142">
-                <base>Ingeniero</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A31 </base>
             </translate>
             <translate id="143">
-                <base>Cara</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A32 </base>
             </translate>
             <translate id="144">
-                <base>Fluido</base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>A33 </base>
             </translate>
             <translate id="145">
-                <base>Fluid structure interaction (FSI) </base>
-                <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <base>ASGS </base>
             </translate>
             <translate id="146">
-                <base>Fx </base>
+                <base>Presión de tolerancia absoluta</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="147">
-                <base>Fx Vector </base>
+                <base>Velocidad de tolerancia absoluta</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="148">
-                <base>Fy </base>
+                <base>Activación</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="149">
-                <base>Fy Vector </base>
+                <base>Añadir nueva propiedad</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="150">
-                <base>Fz </base>
+                <base>Avanzado</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="151">
-                <base>Fz Vector </base>
+                <base>Aire</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="152">
-                <base>General application data </base>
+                <base>Aluminio</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="153">
-                <base>Genérico</base>
+                <base>Analisis de datos</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="154">
-                <base>Factor gravedad</base>
+                <base>Tipo de análisis</base>
                 <tuser>Luis</tuser>
-                <date>2010-05-07</date>
+                <date>2010-07-19</date>
             </translate>
             <translate id="155">
-                <base>Helptext </base>
+                <base>Analisis de datos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="156">
-                <base>Hexahedra </base>
+                <base>Tipo de análisis</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="157">
-                <base>ILU0 </base>
+                <base>Tipos de aplicación</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="158">
-                <base>Iterative </base>
+                <base>Métodos de longitud de arco</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="159">
-                <base>Iterative solver type </base>
+                <base>Ascii </base>
             </translate>
             <translate id="160">
-                <base>Line search </base>
+                <base>Ascii comprimido</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="161">
-                <base>Linear </base>
+                <base>B11 </base>
             </translate>
             <translate id="162">
-                <base>Linear element </base>
+                <base>B12 </base>
             </translate>
             <translate id="163">
-                <base>Linear solver type </base>
+                <base>B13 </base>
             </translate>
             <translate id="164">
-                <base>LinearElement </base>
+                <base>B21 </base>
             </translate>
             <translate id="165">
-                <base>Load </base>
+                <base>B22 </base>
             </translate>
             <translate id="166">
-                <base>Loads </base>
+                <base>B23 </base>
             </translate>
             <translate id="167">
-                <base>Material </base>
+                <base>B31 </base>
             </translate>
             <translate id="168">
-                <base>Maximum iteration </base>
+                <base>B32 </base>
             </translate>
             <translate id="169">
-                <base>Maximum iterations </base>
+                <base>B33 </base>
             </translate>
             <translate id="170">
-                <base>Model description </base>
+                <base>BC </base>
             </translate>
             <translate id="171">
-                <base>Model name </base>
+                <base>Beams</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="172">
-                <base>Mx </base>
+                <base>BiConjugate gradient stabilized </base>
             </translate>
             <translate id="173">
-                <base>Mx Vector </base>
+                <base>Binario</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="174">
-                <base>My </base>
+                <base>Body force </base>
             </translate>
             <translate id="175">
-                <base>My Vector </base>
+                <base>BodyForce </base>
             </translate>
             <translate id="176">
-                <base>Mz </base>
+                <base>Boundary Conditions </base>
             </translate>
             <translate id="177">
-                <base>Mz Vector </base>
+                <base>Comprobar versión del problema tipo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="178">
-                <base>New property </base>
+                <base>Nombre de comañia</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="179">
-                <base>Newton-Raphson </base>
+                <base>Composite </base>
             </translate>
             <translate id="180">
-                <base>No </base>
+                <base>Composite1 </base>
             </translate>
             <translate id="181">
-                <base>Non-Linear </base>
+                <base>Compressible </base>
             </translate>
             <translate id="182">
-                <base>None </base>
+                <base>Compressive fracture energy </base>
             </translate>
             <translate id="183">
-                <base>Not available </base>
+                <base>Compressive strength </base>
             </translate>
             <translate id="184">
-                <base>Parallel MKL Pardiso </base>
+                <base>Concentrated </base>
             </translate>
             <translate id="185">
-                <base>Preconditioner type </base>
+                <base>Conditions </base>
             </translate>
             <translate id="186">
-                <base>Pressure </base>
+                <base>Conductivity </base>
             </translate>
             <translate id="187">
-                <base>Project information </base>
+                <base>Conjugate gradient </base>
             </translate>
             <translate id="188">
-                <base>Project name </base>
+                <base>Continuous </base>
             </translate>
             <translate id="189">
-                <base>Project number </base>
+                <base>Convection diffusion </base>
             </translate>
             <translate id="190">
-                <base>Properties </base>
+                <base>Criterio de convergencia</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="191">
-                <base>Property </base>
+                <base>Crisfield Truss Element </base>
             </translate>
             <translate id="192">
-                <base>Property1 </base>
+                <base>Crisfield truss element </base>
             </translate>
             <translate id="193">
-                <base>Puntual </base>
+                <base>Cx </base>
             </translate>
             <translate id="194">
-                <base>Quadrilateral </base>
+                <base>Cy </base>
             </translate>
             <translate id="195">
-                <base>Residual </base>
+                <base>Cz </base>
             </translate>
             <translate id="196">
-                <base>Results </base>
+                <base>D11 </base>
             </translate>
             <translate id="197">
-                <base>Revision number </base>
+                <base>D12 </base>
             </translate>
             <translate id="198">
-                <base>Rotations </base>
+                <base>D13 </base>
             </translate>
             <translate id="199">
-                <base>Shell anisotropic </base>
+                <base>D21 </base>
             </translate>
             <translate id="200">
-                <base>Shell isotropic </base>
+                <base>D22 </base>
             </translate>
             <translate id="201">
-                <base>ShellAnisotropic </base>
+                <base>D23 </base>
             </translate>
             <translate id="202">
-                <base>ShellIsotropic </base>
+                <base>D31 </base>
             </translate>
             <translate id="203">
-                <base>Shells </base>
+                <base>D32 </base>
             </translate>
             <translate id="204">
-                <base>Skyline LU factorization </base>
+                <base>D33 </base>
             </translate>
             <translate id="205">
-                <base>Solids </base>
+                <base>Tiempo delta</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="206">
-                <base>Solution Strategy </base>
+                <base>Densidad</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="207">
-                <base>Solution Type </base>
+                <base>Descripción</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="208">
-                <base>Solution method </base>
+                <base>Proceso en desarrollo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="209">
-                <base>Solution strategy </base>
+                <base>Diagonal </base>
             </translate>
             <translate id="210">
-                <base>Solution type </base>
+                <base>Ángulo de dilatación</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="211">
-                <base>Spatial Dimension </base>
+                <base>Directo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="212">
-                <base>Spatial dimension </base>
+                <base>Tipo de solver directo</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="213">
-                <base>Start time </base>
+                <base>Discreto</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="214">
-                <base>Static </base>
+                <base>Discreto con dt</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="215">
-                <base>Stresses </base>
+                <base>Desplazamiento</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="216">
-                <base>Structural Type </base>
+                <base>Desplazamiento de tolerancia absoluto</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="217">
-                <base>Structural analysis </base>
+                <base>Desplazamiento y residual</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="218">
-                <base>Structural simulation </base>
+                <base>Tolerancia de convergencia del desplazamiento</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="219">
-                <base>Structural type </base>
+                <base>Displazamiento o residual </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="220">
-                <base>Super LU </base>
+                <base>DEsplazamientos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="221">
-                <base>Supervisor </base>
+                <base>Distancia</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="222">
-                <base>Tetrahedra </base>
+                <base>Dominio</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="223">
-                <base>Thickness </base>
+                <base>Drucker-Prager </base>
             </translate>
             <translate id="224">
-                <base>Total Lagrangian </base>
+                <base>Dinámico</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="225">
-                <base>TotalLagrangian </base>
+                <base>EBST (formulación) </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="226">
-                <base>Triangle </base>
+                <base>Permitividad eléctrica</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="227">
-                <base>Truss </base>
+                <base>Tipo de elemento</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="228">
-                <base>Values </base>
+                <base>Tipo de elemento</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="229">
-                <base>X </base>
+                <base>Elementos</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="230">
-                <base>X Vector </base>
+                <base>Tiempo final</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="231">
-                <base>X active </base>
+                <base>Energía</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="232">
-                <base>X coordinate </base>
+                <base>Ingeniero</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="233">
-                <base>Y </base>
+                <base>Temperatura ambiente</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="234">
-                <base>Y Vector </base>
+                <base>Coeficiente de expansión</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="235">
-                <base>Y active </base>
+                <base>Exponencial </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="236">
-                <base>Y coordinate </base>
+                <base>Cara</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="237">
-                <base>Yes </base>
+                <base>Falso</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="238">
-                <base>Z </base>
+                <base>Fijar</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="239">
-                <base>Z Vector </base>
+                <base>Coordenadas fijas</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="240">
-                <base>Z active </base>
+                <base>Pressión fija </base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
             </translate>
             <translate id="241">
+                <base>Fluido</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="242">
+                <base>Interacción de fluido y estructura (FSI)</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="243">
+                <base>Tipo de fluido</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="244">
+                <base>Forces</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="245">
+                <base>Fractional step </base>
+            </translate>
+            <translate id="246">
+                <base>Fractional step edge based </base>
+            </translate>
+            <translate id="247">
+                <base>Fractional step element based </base>
+            </translate>
+            <translate id="248">
+                <base>Fractional step level set </base>
+            </translate>
+            <translate id="249">
+                <base>Fractional step semi-explicit element based </base>
+            </translate>
+            <translate id="250">
+                <base>Free surface </base>
+            </translate>
+            <translate id="251">
+                <base>Fx </base>
+            </translate>
+            <translate id="252">
+                <base>Vector Fx</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="253">
+                <base>Fy </base>
+            </translate>
+            <translate id="254">
+                <base>Vector Fy</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="255">
+                <base>Fz </base>
+            </translate>
+            <translate id="256">
+                <base>Vector Fz</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="257">
+                <base>GMRES </base>
+            </translate>
+            <translate id="258">
+                <base>General application data </base>
+            </translate>
+            <translate id="259">
+                <base>Generic </base>
+            </translate>
+            <translate id="260">
+                <base>GiD postprocess otions </base>
+            </translate>
+            <translate id="261">
+                <base>GiD result file format </base>
+            </translate>
+            <translate id="262">
+                <base>Gravedad</base>
+                <tuser>Luis</tuser>
+                <date>2010-07-19</date>
+            </translate>
+            <translate id="263">
+                <base>Green Lagrange strain tensor </base>
+            </translate>
+            <translate id="264">
+                <base>Hardening law </base>
+            </translate>
+            <translate id="265">
+                <base>Helptext </base>
+            </translate>
+            <translate id="266">
+                <base>HexPly_8551-7_IM7 </base>
+            </translate>
+            <translate id="267">
+                <base>Hexahedra </base>
+            </translate>
+            <translate id="268">
+                <base>ILU0 </base>
+            </translate>
+            <translate id="269">
+                <base>Incompressible </base>
+            </translate>
+            <translate id="270">
+                <base>Initial Conditions </base>
+            </translate>
+            <translate id="271">
+                <base>Initial conditions </base>
+            </translate>
+            <translate id="272">
+                <base>Initial pressure </base>
+            </translate>
+            <translate id="273">
+                <base>Initial temperature </base>
+            </translate>
+            <translate id="274">
+                <base>Initial velocity </base>
+            </translate>
+            <translate id="275">
+                <base>Inlet velocity </base>
+            </translate>
+            <translate id="276">
+                <base>Internal friction angle </base>
+            </translate>
+            <translate id="277">
+                <base>Isotropic </base>
+            </translate>
+            <translate id="278">
+                <base>Isotropic + Kinematic </base>
+            </translate>
+            <translate id="279">
+                <base>Isotropic hardening modulus </base>
+            </translate>
+            <translate id="280">
+                <base>Iterative </base>
+            </translate>
+            <translate id="281">
+                <base>Iterative solver type </base>
+            </translate>
+            <translate id="282">
+                <base>K11 </base>
+            </translate>
+            <translate id="283">
+                <base>K22 </base>
+            </translate>
+            <translate id="284">
+                <base>K33 </base>
+            </translate>
+            <translate id="285">
+                <base>Kinematic </base>
+            </translate>
+            <translate id="286">
+                <base>Kinematic hardening modulus </base>
+            </translate>
+            <translate id="287">
+                <base>Kratos path </base>
+            </translate>
+            <translate id="288">
+                <base>Linear </base>
+            </translate>
+            <translate id="289">
+                <base>Linear element </base>
+            </translate>
+            <translate id="290">
+                <base>Linear solver type </base>
+            </translate>
+            <translate id="291">
+                <base>LinearElement </base>
+            </translate>
+            <translate id="292">
+                <base>Load </base>
+            </translate>
+            <translate id="293">
+                <base>Loads </base>
+            </translate>
+            <translate id="294">
+                <base>Magnetic permeability </base>
+            </translate>
+            <translate id="295">
+                <base>Material </base>
+            </translate>
+            <translate id="296">
+                <base>Material model </base>
+            </translate>
+            <translate id="297">
+                <base>Maximum iteration </base>
+            </translate>
+            <translate id="298">
+                <base>Maximum iterations </base>
+            </translate>
+            <translate id="299">
+                <base>Maximum pressure iterations </base>
+            </translate>
+            <translate id="300">
+                <base>Maximum velocity iterations </base>
+            </translate>
+            <translate id="301">
+                <base>Metal </base>
+            </translate>
+            <translate id="302">
+                <base>Model description </base>
+            </translate>
+            <translate id="303">
+                <base>Model name </base>
+            </translate>
+            <translate id="304">
+                <base>Mohr-Coulomb </base>
+            </translate>
+            <translate id="305">
+                <base>Monolithic </base>
+            </translate>
+            <translate id="306">
+                <base>Multiples </base>
+            </translate>
+            <translate id="307">
+                <base>Mx </base>
+            </translate>
+            <translate id="308">
+                <base>Mx Vector </base>
+            </translate>
+            <translate id="309">
+                <base>My </base>
+            </translate>
+            <translate id="310">
+                <base>My Vector </base>
+            </translate>
+            <translate id="311">
+                <base>Mz </base>
+            </translate>
+            <translate id="312">
+                <base>Mz Vector </base>
+            </translate>
+            <translate id="313">
+                <base>New property </base>
+            </translate>
+            <translate id="314">
+                <base>Newton-Raphson methods </base>
+            </translate>
+            <translate id="315">
+                <base>Newton-Raphson with line search </base>
+            </translate>
+            <translate id="316">
+                <base>No </base>
+            </translate>
+            <translate id="317">
+                <base>No-Slip </base>
+            </translate>
+            <translate id="318">
+                <base>Non-Linear </base>
+            </translate>
+            <translate id="319">
+                <base>None </base>
+            </translate>
+            <translate id="320">
+                <base>Not available </base>
+            </translate>
+            <translate id="321">
+                <base>On gauss points </base>
+            </translate>
+            <translate id="322">
+                <base>On nodes </base>
+            </translate>
+            <translate id="323">
+                <base>Options </base>
+            </translate>
+            <translate id="324">
+                <base>Outlet pressure </base>
+            </translate>
+            <translate id="325">
+                <base>Output delata time </base>
+            </translate>
+            <translate id="326">
+                <base>Output delta time </base>
+            </translate>
+            <translate id="327">
+                <base>Parallel MKL Pardiso </base>
+            </translate>
+            <translate id="328">
+                <base>Plastic </base>
+            </translate>
+            <translate id="329">
+                <base>Poisson ratio </base>
+            </translate>
+            <translate id="330">
+                <base>Poisson ratio v12 </base>
+            </translate>
+            <translate id="331">
+                <base>Poisson ratio v13 </base>
+            </translate>
+            <translate id="332">
+                <base>Poisson ratio v23 </base>
+            </translate>
+            <translate id="333">
+                <base>Preconditioner type </base>
+            </translate>
+            <translate id="334">
+                <base>Predictor corrector </base>
+            </translate>
+            <translate id="335">
+                <base>Prescribed velocity </base>
+            </translate>
+            <translate id="336">
+                <base>Pressure </base>
+            </translate>
+            <translate id="337">
+                <base>Pressure direct solver type </base>
+            </translate>
+            <translate id="338">
+                <base>Pressure iterative solver type </base>
+            </translate>
+            <translate id="339">
+                <base>Pressure linear solver type </base>
+            </translate>
+            <translate id="340">
+                <base>Pressure preconditioner type </base>
+            </translate>
+            <translate id="341">
+                <base>Pressure solver maximum iteration </base>
+            </translate>
+            <translate id="342">
+                <base>Pressure solver tolerance </base>
+            </translate>
+            <translate id="343">
+                <base>Pressure splitting </base>
+            </translate>
+            <translate id="344">
+                <base>Pressure value </base>
+            </translate>
+            <translate id="345">
+                <base>Print in layer </base>
+            </translate>
+            <translate id="346">
+                <base>Project configuration </base>
+            </translate>
+            <translate id="347">
+                <base>Project information </base>
+            </translate>
+            <translate id="348">
+                <base>Project name </base>
+            </translate>
+            <translate id="349">
+                <base>Project number </base>
+            </translate>
+            <translate id="350">
+                <base>Properties </base>
+            </translate>
+            <translate id="351">
+                <base>Property </base>
+            </translate>
+            <translate id="352">
+                <base>Property type </base>
+            </translate>
+            <translate id="353">
+                <base>Property1 </base>
+            </translate>
+            <translate id="354">
+                <base>Puntual </base>
+            </translate>
+            <translate id="355">
+                <base>Quadrilateral </base>
+            </translate>
+            <translate id="356">
+                <base>Rankine </base>
+            </translate>
+            <translate id="357">
+                <base>Reactions </base>
+            </translate>
+            <translate id="358">
+                <base>Relative pressure tolerance </base>
+            </translate>
+            <translate id="359">
+                <base>Relative velocity tolerance </base>
+            </translate>
+            <translate id="360">
+                <base>Residual </base>
+            </translate>
+            <translate id="361">
+                <base>Residual absolute tolerance </base>
+            </translate>
+            <translate id="362">
+                <base>Residual convergence tolerance </base>
+            </translate>
+            <translate id="363">
+                <base>Result file </base>
+            </translate>
+            <translate id="364">
+                <base>Result format </base>
+            </translate>
+            <translate id="365">
+                <base>Results </base>
+            </translate>
+            <translate id="366">
+                <base>Revision number </base>
+            </translate>
+            <translate id="367">
+                <base>Rotations </base>
+            </translate>
+            <translate id="368">
+                <base>Shear modulus </base>
+            </translate>
+            <translate id="369">
+                <base>Shear modulus G12 </base>
+            </translate>
+            <translate id="370">
+                <base>Shear modulus G13 </base>
+            </translate>
+            <translate id="371">
+                <base>Shear modulus G23 </base>
+            </translate>
+            <translate id="372">
+                <base>Shell anisotropic </base>
+            </translate>
+            <translate id="373">
+                <base>Shell isotropic </base>
+            </translate>
+            <translate id="374">
+                <base>ShellAnisotropic </base>
+            </translate>
+            <translate id="375">
+                <base>ShellIsotropic </base>
+            </translate>
+            <translate id="376">
+                <base>Shells </base>
+            </translate>
+            <translate id="377">
+                <base>Single </base>
+            </translate>
+            <translate id="378">
+                <base>Skyline LU factorization </base>
+            </translate>
+            <translate id="379">
+                <base>Slip </base>
+            </translate>
+            <translate id="380">
+                <base>Softening law </base>
+            </translate>
+            <translate id="381">
+                <base>Solids </base>
+            </translate>
+            <translate id="382">
+                <base>Solution Strategy </base>
+            </translate>
+            <translate id="383">
+                <base>Solution Type </base>
+            </translate>
+            <translate id="384">
+                <base>Solution method </base>
+            </translate>
+            <translate id="385">
+                <base>Solution strategy </base>
+            </translate>
+            <translate id="386">
+                <base>Solution type </base>
+            </translate>
+            <translate id="387">
+                <base>Solver type </base>
+            </translate>
+            <translate id="388">
+                <base>SolverType </base>
+            </translate>
+            <translate id="389">
+                <base>Spatial Dimension </base>
+            </translate>
+            <translate id="390">
+                <base>Spatial dimension </base>
+            </translate>
+            <translate id="391">
+                <base>Specific heat </base>
+            </translate>
+            <translate id="392">
+                <base>Start time </base>
+            </translate>
+            <translate id="393">
+                <base>Static </base>
+            </translate>
+            <translate id="394">
+                <base>Steel_AISI1059 </base>
+            </translate>
+            <translate id="395">
+                <base>Stresses </base>
+            </translate>
+            <translate id="396">
+                <base>Structural Type </base>
+            </translate>
+            <translate id="397">
+                <base>Structural analysis </base>
+            </translate>
+            <translate id="398">
+                <base>Structural simulation </base>
+            </translate>
+            <translate id="399">
+                <base>Structural type </base>
+            </translate>
+            <translate id="400">
+                <base>Super LU </base>
+            </translate>
+            <translate id="401">
+                <base>Supervisor </base>
+            </translate>
+            <translate id="402">
+                <base>Temperature </base>
+            </translate>
+            <translate id="403">
+                <base>Tensile fracture energy </base>
+            </translate>
+            <translate id="404">
+                <base>Tensile strength </base>
+            </translate>
+            <translate id="405">
+                <base>Tetrahedra </base>
+            </translate>
+            <translate id="406">
+                <base>Thickness </base>
+            </translate>
+            <translate id="407">
+                <base>Time order </base>
+            </translate>
+            <translate id="408">
+                <base>Total Lagrangian </base>
+            </translate>
+            <translate id="409">
+                <base>Tresca </base>
+            </translate>
+            <translate id="410">
+                <base>Triangle </base>
+            </translate>
+            <translate id="411">
+                <base>True </base>
+            </translate>
+            <translate id="412">
+                <base>Truss </base>
+            </translate>
+            <translate id="413">
+                <base>Use dt in stabilization </base>
+            </translate>
+            <translate id="414">
+                <base>Use orthogonal subscales </base>
+            </translate>
+            <translate id="415">
+                <base>Validate model before calculate </base>
+            </translate>
+            <translate id="416">
+                <base>Values </base>
+            </translate>
+            <translate id="417">
+                <base>Velocity </base>
+            </translate>
+            <translate id="418">
+                <base>Velocity direct solver type </base>
+            </translate>
+            <translate id="419">
+                <base>Velocity iterative solver type </base>
+            </translate>
+            <translate id="420">
+                <base>Velocity linear solver type </base>
+            </translate>
+            <translate id="421">
+                <base>Velocity preconditioner type </base>
+            </translate>
+            <translate id="422">
+                <base>Velocity solver maximum iteration </base>
+            </translate>
+            <translate id="423">
+                <base>Velocity solver tolerance </base>
+            </translate>
+            <translate id="424">
+                <base>Viscosity </base>
+            </translate>
+            <translate id="425">
+                <base>Von-Misses </base>
+            </translate>
+            <translate id="426">
+                <base>Vx </base>
+            </translate>
+            <translate id="427">
+                <base>Vy </base>
+            </translate>
+            <translate id="428">
+                <base>Vz </base>
+            </translate>
+            <translate id="429">
+                <base>Water </base>
+            </translate>
+            <translate id="430">
+                <base>Write conditions </base>
+            </translate>
+            <translate id="431">
+                <base>Write deformed mesh </base>
+            </translate>
+            <translate id="432">
+                <base>Write one GiD result file or multiplies files </base>
+            </translate>
+            <translate id="433">
+                <base>Write the GiD deformed or undeformed mesh </base>
+            </translate>
+            <translate id="434">
+                <base>Write the conditions or only element to the GiD result file </base>
+            </translate>
+            <translate id="435">
+                <base>X </base>
+            </translate>
+            <translate id="436">
+                <base>X Vector </base>
+            </translate>
+            <translate id="437">
+                <base>X active </base>
+            </translate>
+            <translate id="438">
+                <base>X coordinate </base>
+            </translate>
+            <translate id="439">
+                <base>X fix </base>
+            </translate>
+            <translate id="440">
+                <base>Y </base>
+            </translate>
+            <translate id="441">
+                <base>Y Vector </base>
+            </translate>
+            <translate id="442">
+                <base>Y active </base>
+            </translate>
+            <translate id="443">
+                <base>Y coordinate </base>
+            </translate>
+            <translate id="444">
+                <base>Y fix </base>
+            </translate>
+            <translate id="445">
+                <base>Yes </base>
+            </translate>
+            <translate id="446">
+                <base>Yield Stress </base>
+            </translate>
+            <translate id="447">
+                <base>Yield criteria </base>
+            </translate>
+            <translate id="448">
+                <base>Young modulus </base>
+            </translate>
+            <translate id="449">
+                <base>Young modulus E11 </base>
+            </translate>
+            <translate id="450">
+                <base>Young modulus E22 </base>
+            </translate>
+            <translate id="451">
+                <base>Young modulus E33 </base>
+            </translate>
+            <translate id="452">
+                <base>Z </base>
+            </translate>
+            <translate id="453">
+                <base>Z Vector </base>
+            </translate>
+            <translate id="454">
+                <base>Z active </base>
+            </translate>
+            <translate id="455">
                 <base>Z coordinate </base>
+            </translate>
+            <translate id="456">
+                <base>Z fix </base>
+            </translate>
+            <translate id="457">
+                <base>alfa 11 </base>
+            </translate>
+            <translate id="458">
+                <base>alfa 22 </base>
+            </translate>
+            <translate id="459">
+                <base>alfa 33 </base>
             </translate>
         </lan>
         <lan lan="en"/>
@@ -1847,6 +3995,6 @@ Choose another, please.</base>
     </users>
     <abbrevs/>
     <options>
-        <option name="TranslationProgram" value="RamTranslator {{C:\Archivos de programa\GiD\GiD 9.2.9b\problemtypes\kratos.gid\scripts} {C:\Archivos de programa\GiD\GiD 9.2.9b\problemtypes\kratos.gid\scripts\kmprops} {C:\Archivos de programa\GiD\GiD 9.2.9b\problemtypes\kratos.gid\scripts\kegroups} {C:\Archivos de programa\GiD\GiD 9.2.9b\problemtypes\kratos.gid\msgs} {} {} {}} {.tcl } 1"/>
+        <option name="TranslationProgram" value="RamTranslator {{C:\Archivos de programa\GiD\GiD 10.0.1\problemtypes\kratos.gid\scripts} {C:\Archivos de programa\GiD\GiD 10.0.1\problemtypes\kratos.gid\scripts\kmprops} {C:\Archivos de programa\GiD\GiD 10.0.1\problemtypes\kratos.gid\scripts\kegroups} {C:\Archivos de programa\GiD\GiD 10.0.1\problemtypes\kratos.gid\msgs} {} {} {} {} {}} {.tcl .cnd .mat .prb} 1"/>
     </options>
 </ramtranslator>
