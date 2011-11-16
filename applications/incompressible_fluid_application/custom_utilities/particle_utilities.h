@@ -868,7 +868,7 @@ namespace Kratos
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-            const double small_dt = dt / subdivisions;
+            //const double small_dt = dt / subdivisions;
 
             const int nparticles = rLagrangianModelPart.Nodes().size();
 
@@ -941,7 +941,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
             //            node_locator.UpdateSearchDatabase();
 
-            double density_inverse = 1.0 / density;
+            //double density_inverse = 1.0 / density;
 
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
@@ -1126,6 +1126,12 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 Element::Pointer pelement;
 
                 bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+		KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+		KRATOS_WATCH("funciones de forma");
+		KRATOS_WATCH("funciones de forma");
+		KRATOS_WATCH("funciones de forma");
+		KRATOS_WATCH(N);
+
 
                 if (is_found == true)
                 {
@@ -1152,14 +1158,9 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 if (is_found == true)
                 {
                     /*const*/ double& counter = pelement->GetValue(YOUNG_MODULUS);
-		    //KRATOS_WATCH(counter);
-		    //KRATOS_WATCH(counter);
-		    //KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
                     if(counter  > 14){
-                    //if(counter  < min_number_of_particles){
                         pparticle->SetValue(ERASE_FLAG,true);
 			counter -=1.0;}
-			//KRATOS_WATCH(counter);
 			
                 }
 
