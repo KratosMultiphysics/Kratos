@@ -13,6 +13,14 @@
 #
 #    HISTORY:
 #
+#     3.6- 08/06/11-G. Socorro, write always the body force in the property block
+#     3.5- 07/06/11-G. Socorro, correct a bug when write material and section properties
+#     3.4- 06/06/11-G. Socorro, add "OutputDeltaTime" to the structural analysis application project parameter
+#     3.3- 26/05/11-G. Socorro, add RelaxedDynamic options
+#     3.2- 24/05/11-G. Socorro, add the FACE3D3N condition when use surface pressure load type
+#     3.1- 23/05/11-G. Socorro, modify some procedure to use the membrane element 
+#     3.0- 03/02/11-G. Socorro, comment the procedure WritePythonGroupProperties until the Python group design is finished
+#     2.9- 02/02/11-G. Socorro, add a new variable to debug the source code (written process for big models)
 #     2.8- 25/01/11-G. Socorro, correct a bug in the procedure WriteFluidBC (write duplicate node identifier and repeated the y values in the z values)
 #     2.7- 02/11/10-G. Socorro, modify the procedure WritePropertyAtNodes to use dict option => fast write option for big models
 #     2.6- 23/09/10-G. Socorro, add Start_time variable
@@ -68,6 +76,10 @@ namespace eval ::wkcf:: {
 
     # Properties array
     variable dprops
+
+    # Debug/Release variable
+    variable pflag 
+
 }
 
 proc ::wkcf::WriteCalculationFiles {filename} {
@@ -80,7 +92,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 
     # Init some namespace global variables
     ::wkcf::Preprocess
-    
+  
     # Write each block of the files *.mdpa
     # Rename the file name => Change .dat by .mdpa
     set basefilename "[string range $filename 0 end-4]"
@@ -126,7 +138,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     ::wkcf::WriteProjectParameters
    
     # Write python group properties
-    ::wkcf::WritePythonGroupProperties
+    # ::wkcf::WritePythonGroupProperties
 
     # Select python scripts
     ::wkcf::SelectPythonScript
@@ -161,7 +173,7 @@ proc ::wkcf::SelectPythonScript {} {
 	set cxpath "$rootdataid//c.AnalysisData//i.SolutionType"
 	set SolutionType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "SolutionType:$SolutionType"
-	if {$SolutionType =="Dynamic"} {
+	if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
 	    set ppfilename "KratosOpenMPStructuralDynamic.py"
 	    set mpifilename "KratosMPIStructuralDynamic.py"
 	} elseif {$SolutionType =="Static"} {
@@ -223,20 +235,22 @@ proc ::wkcf::WriteProperties {AppId} {
 	    # WarnWinText "PropertyId:$PropertyId MatId:$MatId"
 	    write_calc_data puts "// GUI material identifier: $MatId"
 	    # Write material properties
-	    foreach propid $dprops($AppId,Material,$MatId,Props) {
-		lassign $propid key value
+	    foreach cpropid $dprops($AppId,Material,$MatId,Props) {
+		# WarnWinText "material propid:$cpropid"
+		lassign $cpropid key value
 		write_calc_data puts " $key $value"
 	    } 
 	    
 	    # Write section (others) properties (thickness, etc)
-	    if {[info exists dprops($AppId,Material,$MatId,CProps)]} {
-		foreach propid $dprops($AppId,Material,$MatId,CProps) {
-		    lassign $propid key value
+	    if {[info exists dprops($AppId,Material,$PropertyId,CProps)]} {
+		foreach cpropid $dprops($AppId,Material,$PropertyId,CProps) {
+		    # WarnWinText "cpropid:$cpropid"
+		    lassign $cpropid key value
 		    # WarnWinText "key:$key value:$value"
 		    write_calc_data puts " $key $value"
 		} 
 	    }
-	    
+	   
 	    if {$dprops($AppId,GKProps,$PropertyId,AddBF)=="Yes"} {
 		# Get the body force properties
 		set cloadtid "BodyForce"
@@ -252,7 +266,12 @@ proc ::wkcf::WriteProperties {AppId} {
 			}
 		    }
 		}
+	    } else {
+		# Write the body forces with default values
+		set cprop [list [list GravityValue 9.8] [list Cx 0.0] [list Cy 0.0] [list Cz 0.0]]
+		::wkcf::WriteBodyForceValues $cprop
 	    }
+
 	    write_calc_data puts "End Properties"
 	}
 	write_calc_data puts ""
@@ -274,7 +293,10 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
     set cproplist [list "Density" "Viscosity"]
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-	# set inittime [clock seconds]
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
 	# Create a dictionary
 	set nc [dict create 0 0]
 	# For all defined kratos elements	
@@ -372,10 +394,13 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 	}
  	unset nc
 
-	# set endtime [clock seconds]
-	# set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	# WarnWinText "Property at nodes [::KUtils::Duration $ttime]"
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Property at nodes [::KUtils::Duration $ttime]"
+	}
     }
 }
 
@@ -391,7 +416,10 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
    
      # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-	# set inittime [clock seconds]
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
 	set cnodeglist [list]
 	# Create a dictionary
 	set nc [dict create 0 0]
@@ -455,11 +483,15 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
 	    }
 	}
 	unset nc
-	# set endtime [clock seconds]
-	# set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	# WarnWinText "Coordinates [::KUtils::Duration $ttime]"
 	write_calc_data puts ""
+
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Coordinates [::KUtils::Duration $ttime]"
+	}
     }
 }
 
@@ -474,10 +506,14 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
     variable useqelem; variable dprops
     global KPriv
     
-    set shellidlist [list "ShellIsotropic" "ShellAnisotropic" "EBST" "ASGS2D" "ASGS3D" "Fluid2D" "Fluid3D"]
+    set shellidlist [list "ShellIsotropic" "ShellAnisotropic" "Membrane" "EBST" "ASGS2D" "ASGS3D" "Fluid2D" "Fluid3D"]
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-	# set inittime [clock seconds]
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
+
 	# For all defined kratos elements	
 	foreach celemid $dprops($AppId,AllKElemId) {
 	    # Check for all defined group identifier for this element
@@ -497,7 +533,7 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 		    # Get all defined entities for this group identifier
 		    set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
 		    # WarnWinText "alllist:$allelist"
-		    if {[llength $allelist]>0} {
+		    if {[llength $allelist]} {
 			set kelemtype "[string trim ${KEKWord}${etbf}]"
 			set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
 			write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
@@ -522,10 +558,14 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 	    }
 	}
 	write_calc_data puts ""
-	# set endtime [clock seconds]
-	# set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	# WarnWinText "Connectivities [::KUtils::Duration $ttime]"
+	
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Connectivities [::KUtils::Duration $ttime]"
+	}
     }
 }
 
@@ -535,8 +575,12 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
   
     # Check for all defined condition type
     if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)]>0)} {
-	# set inittime [clock seconds]
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
 	set inletvelglist [list]; set noslipglist [list]
+	set flagvariablelist [list]
 	# For all defined condition identifier
 	foreach ccondid $dprops($AppId,AllBCTypeId) {
 	    # WarnWinText "ccondid:$ccondid"
@@ -578,6 +622,13 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 			    }
 			}
 		    }
+		    "Flag-Variable" {
+			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
+			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+				lappend flagvariablelist $_gid
+			    }
+			}
+		    }
 		}
 	    }
 	}
@@ -586,20 +637,23 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 	if {$AppId=="Fluid"} {
 	    set kwxpath "Applications/$AppId"
 	    set kwordlist [list [::xmlutils::getKKWord $kwxpath "Vx"] [::xmlutils::getKKWord $kwxpath "Vy"] [::xmlutils::getKKWord $kwxpath "Vz"]]
-	    ::wkcf::WriteFluidBC $AppId $inletvelglist $noslipglist $kwordlist
+	    ::wkcf::WriteFluidBC $AppId $inletvelglist $noslipglist $flagvariablelist $kwordlist
 	}
-	# set endtime [clock seconds]
-	# set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	# WarnWinText "BC [::KUtils::Duration $ttime]"
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "BC [::KUtils::Duration $ttime]"
+	}
     }
 }
 
-proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
+proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwordlist} {
     variable gidentitylist; variable ndime
     variable useqelem; variable dprops
 
-    # WarnWinText "inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nkwordlist:$kwordlist"
+    # WarnWinText "inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nflagvariablelist:$flagvariablelist\nkwordlist:$kwordlist"
     # Map Inlet-NoSlip => Use no-slip values at share nodes
     set icondid "InletVelocity"; set nscondid "No-Slip"
     set cpropid "1"
@@ -844,6 +898,127 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist kwordlist} {
 		
 		# Reset xcomp, ycomp and zcomp
 		set xcomp ""; set ycomp ""; set zcomp ""
+	    }
+	}
+    }
+    
+    # Write Flag-variable and is_boundary nodal data conditions
+    ::wkcf::WriteFluidFlagVariableBC $AppId $flagvariablelist
+
+}
+
+proc ::wkcf::WriteFluidFlagVariableBC {AppId flagvariablelist} {
+    variable gidentitylist; variable ndime
+    variable useqelem; variable dprops
+
+    WarnWinText "flagvariablelist:$flagvariablelist"
+    # For nodes with many flag variable defined flag of level two have the priority over flag of level one
+    set flagvarcondid "Flag-Variable"
+    set cpropid "0"
+    set isbcpropid "1"
+
+    if {[llength $flagvariablelist]} {
+	# Flag-Variable
+	foreach cgroupid $flagvariablelist {
+	    set allnflagvar($cgroupid,NodeList) [list]
+	    foreach GiDEntity $gidentitylist {
+		# Get all defined entities for this group identifier
+		switch $GiDEntity {
+		    "point" {
+			set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+			if {[llength $callnlist]} {
+			    lappend allnflagvar($cgroupid,NodeList) {*}$callnlist
+			}
+		    }
+		    "line" - "surface" {
+			set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+			if {[llength $callnlist]} {
+			    lappend allnflagvar($cgroupid,NodeList) {*}$callnlist
+			}
+		    }
+		    "volume" {
+			if {$ndime =="3D"} {
+			    set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+			    if {[llength $callnlist]} {
+				lappend allnflagvar($cgroupid,NodeList) {*}$callnlist
+			    }
+			}
+		    }
+		} 
+	    }
+	    # WarnWinText "groupid:$cgroupid NodeList:$allnflagvar($cgroupid,NodeList)"
+	}
+
+	# Write the flag condition
+	set flag1 0
+	set fvcomp ""; set isbcomp ""
+	set fvitem "FLAG-VARIABLE"
+	set isbitem "IS_BOUNDARY"
+	set flagvar2 [dict create]
+	# For each group in the flag-variable condition
+	# Create a dict for all nodes with flag equal to 2
+	foreach groupid $flagvariablelist {
+	    set GProps $dprops($AppId,BC,$flagvarcondid,$groupid,GProps)
+	    # WarnWinText "groupid:$groupid GProps:$GProps"
+	    if {[lindex $GProps 0]=="2"} {
+		foreach nodeid $allnflagvar($groupid,NodeList) {
+		    append fvcomp "[format "%8i%8i%8i" $nodeid $cpropid [lindex $GProps 0]]\n"
+		    append isbcomp "[format "%8i%8i%8i" $nodeid $cpropid $isbcpropid]\n"
+		    dict set flagvar2 $nodeid $groupid
+		    set flag1 1
+		}
+		# Write this group identifier
+		# Flag-Variable
+		if {[string length $fvcomp]} {
+		    write_calc_data puts "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $groupid"
+		    write_calc_data puts "[string trimright ${fvcomp}]"
+		    write_calc_data puts "End NodalData"
+		    write_calc_data puts ""
+		}
+		# is_boundary
+		if {[string length $isbcomp]} {
+		    write_calc_data puts "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $groupid"
+		    write_calc_data puts "[string trimright ${isbcomp}]"
+		    write_calc_data puts "End NodalData"
+		    write_calc_data puts ""
+		}
+		# Reset components
+		set fvcomp "";	set isbcomp ""
+	    }
+	}
+
+	# Write all group with flag-variable equal to 1
+	if {$flag1} {
+	    set fvcomp ""; set isbcomp ""
+	    # For each group in the flag-variable condition
+	    foreach groupid $flagvariablelist {
+		set GProps $dprops($AppId,BC,$flagvarcondid,$groupid,GProps)
+		# WarnWinText "groupid:$groupid GProps:$GProps"
+		if {[lindex $GProps 0]=="1"} {
+		    foreach nodeid $allnflagvar($groupid,NodeList) {
+			if {![dict exists $flagvar2 $nodeid]} {
+			    append fvcomp "[format "%8i%8i%8i" $nodeid $cpropid [lindex $GProps 0]]\n"
+			    append isbcomp "[format "%8i%8i%8i" $nodeid $cpropid $isbcpropid]\n"
+			}
+		    }
+		    # Write this group identifier
+		    # Flag-Variable
+		    if {[string length $fvcomp]} {
+			write_calc_data puts "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $groupid"
+			write_calc_data puts "[string trimright ${fvcomp}]"
+			write_calc_data puts "End NodalData"
+			write_calc_data puts ""
+		    }
+		    # is_boundary
+		    if {[string length $isbcomp]} {
+			write_calc_data puts "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $groupid"
+			write_calc_data puts "[string trimright ${isbcomp}]"
+			write_calc_data puts "End NodalData"
+			write_calc_data puts ""
+		    }
+		    # Reset components
+		    set fvcomp ""; set isbcomp ""
+		}
 	    }
 	}
     }
@@ -1108,31 +1283,75 @@ proc ::wkcf::WritePressureLoads {AppId cloadtid} {
     set GiDEntity "surface"
     # Set the GiD element type
     set GiDElemType "Triangle"
-
+    # Set the face 3d-3n condition keyword
+    set face3d3nkword "Face3D3N"
+    # Set the reference property id
+    set RefPropId "1"
     set cnodeglist [list]
-    # Create a dictionary
-    set nc [dict create 0 0]
+    # Node dictionary
+    set ndict [dict create]
+    # Create an element dictionary
+    set edict [dict create]
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
 	# Get all defined entities for this group identifier
 	set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
-	# WarnWinText "alllist:$allelist"
+	# WarnWinText "cgroupid:$cgroupid alllist:$allelist"
 	if {([llength $allelist])&&($ndime=="3D")} {
+	    # Create a node group dictionary
+	    set nc [dict create]
 	    # Non repeated nodes identifier
 	    # Get all defined nodes
 	    foreach elemid $allelist {
+		# Update the element group (delete repeated identifier)
+		dict set edict $elemid $cgroupid
 		# Get the element properties
-		foreach nodeid [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] {
-		    dict set nc $nodeid $cgroupid 
-		}
+		lassign [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] N1 N2 N3
+		# Update node group dictionary variable (delete repeated nodes)
+		dict set nc $N1 ""
+		dict set nc $N2 ""
+		dict set nc $N3 ""
 	    }
+	    # Update nodal group dictionary
+	    dict set ndict $cgroupid $nc
+	    unset nc
 	}
     }
 
 
+    # Write Face3D3N condition
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+	
+	# Init the element group list
+	set celemglist [list]
+	dict for {elemid dgroupid} $edict {
+	    if {$cgroupid ==$dgroupid} {
+		lappend celemglist $elemid
+	    }
+	}
+	set ngroupelems [llength $celemglist]
+	# WarnWinText "ngroupelems:$ngroupelems"
+	if {($ngroupelems) && ($ndime=="3D")} {
+	    write_calc_data puts "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
+	    set icondid 0
+	    # Get all defined nodes
+	    foreach elemid $celemglist {
+		incr icondid 1
+		# Get the element properties
+		lassign [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] N1 N2 N3
+		set cf "[format "%4i%4i%8i%8i%8i" $icondid $RefPropId $N1 $N2 $N3]"
+		write_calc_data puts "$cf"
+	    }
+	    write_calc_data puts "End Conditions"
+	    write_calc_data puts ""
+	}
+    }
+    unset edict
+
     # Write pressure values for all nodes inside a group identifier 
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+
 	# Get the load properties
 	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
 	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
@@ -1146,36 +1365,38 @@ proc ::wkcf::WritePressureLoads {AppId cloadtid} {
 	# WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
 
 	# Init the node group list
-	set cnodeglist [list]
-	dict for {nodeid dgroupid} $nc {
-	    if {$cgroupid ==$dgroupid} {
+	if {[llength [dict get $ndict $cgroupid]]} {
+	    set cnodeglist [list]
+	    foreach {nodeid empty} [dict get $ndict $cgroupid] {
 		lappend cnodeglist $nodeid
 	    }
-	}
-	set ngroupnodes [llength $cnodeglist]
-	if {($ngroupnodes) && ($ndime=="3D")} {
-	    # Get the current pressure keyword 
-	    set kwid "${PressureType}Pressure"
-	    set ckword [::xmlutils::getKKWord $kxpath $kwid]
-	    # WarnWinText "ckword:$ckword"
 	    
-	    if {$PressureValue !="0.0"} {
-		# set the real pressure value
-		set PressureValue [expr double($PressureValue)/$ngroupnodes]
-		# Write the pressure values
-		# Pressure properties
-		write_calc_data puts "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
-		foreach nodeid [lsort -integer $cnodeglist] {
-		    set cf "[format "%6i%4i%20.10f" $nodeid $FixPressure $PressureValue]"
-		    write_calc_data puts "$cf"
-		}
-		write_calc_data puts "End NodalData"
-		write_calc_data puts ""
+	    set ngroupnodes [llength $cnodeglist]
+	    # WarnWinText "ngroupnodes:$ngroupnodes"
+	    if {($ngroupnodes) && ($ndime=="3D")} {
+	        # Get the current pressure keyword 
+	        set kwid "${PressureType}Pressure"
+	        set ckword [::xmlutils::getKKWord $kxpath $kwid]
+	        # WarnWinText "ckword:$ckword"
+		
+	        if {$PressureValue !="0.0"} {
+		    # Set the real pressure value
+		    # set PressureValue [expr double($PressureValue)/$ngroupnodes]
+		    # Write the pressure values
+		    # Pressure properties
+		    write_calc_data puts "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
+		    foreach nodeid [lsort -integer $cnodeglist] {
+			set cf "[format "%6i%4i%20.10f" $nodeid $FixPressure $PressureValue]"
+			write_calc_data puts "$cf"
+		    }
+		    write_calc_data puts "End NodalData"
+		    write_calc_data puts ""
+	        }
+	        unset cnodeglist
 	    }
-	    unset cnodeglist
 	}
     }
-    unset nc
+    unset ndict
 }
 
 proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
@@ -1295,6 +1516,7 @@ proc ::wkcf::WriteBodyForceValues {props} {
     # props => Body force properties
     variable ndime
 
+    # WarnWinText "props:$props"
     set GravityValue [lindex $props 0 1]
     set Cx [expr [lindex $props 1 1] * $GravityValue]
     set Cy [expr [lindex $props 2 1] * $GravityValue]
@@ -1681,12 +1903,51 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
 	puts $fileid "nsteps = $nsteps"
 
+	# Output step 
+	set cxpath "$AppId//c.Results//i.OutputDeltaTime"
+	set OutputDeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "output_time = $OutputDeltaTime"
+	# WarnWinText "OutputDeltaTime:$OutputDeltaTime"
+	set output_step [expr int($OutputDeltaTime/double($DeltaTime))]
+	# WarnWinText "output_step:$output_step"
+	puts $fileid "output_step = $output_step"
+
 	puts $fileid "SolverType = \"DynamicSolver\""
+
+    } elseif {$SolutionType =="RelaxedDynamic"} {
+
+	# Start time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.StartTime"
+	set StartTime [::xmlutils::setXml $cxpath $cproperty]
+	# End time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	# Delta time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+
+	# WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
+	puts $fileid "Dt = $StartTime"
+	puts $fileid "max_time = $EndTime"
+	set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
+	puts $fileid "nsteps = $nsteps"
+
+	# Output step 
+	set cxpath "$AppId//c.Results//i.OutputDeltaTime"
+	set OutputDeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "output_time = $OutputDeltaTime"
+	# WarnWinText "OutputDeltaTime:$OutputDeltaTime"
+	set output_step [expr int($OutputDeltaTime/double($DeltaTime))]
+	# WarnWinText "output_step:$output_step"
+	puts $fileid "output_step = $output_step"
+
+	puts $fileid "SolverType = \"RelaxedDynamicSolver\""
 
     } elseif {$SolutionType =="Static"} {
 
 	puts $fileid "SolverType = \"StaticSolver\""
     }
+
 
     # Solution strategy
     set cxpath "$AppId//c.SolutionStrategy//i.LinearSolverType"
