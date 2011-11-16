@@ -126,30 +126,29 @@ proc ::kfiles::LoadSPD {filename} {
 }
 
 proc ::kfiles::SaveSPD {filename} {
-	
     global KPriv
-	
-	#Actualizamos los posibles cambios que haya habido en el ".spd"
-	if {[info exists ::KMProps::WinPath]} {
+    
+    #Actualizamos los posibles cambios que haya habido en el ".spd"
+    if {[info exists ::KMProps::WinPath]} {
     	if {[winfo exists $::KMProps::WinPath]} {
-    		::KMProps::refreshTree "" 1
+	    ::KMProps::refreshTree "" 1
     	}
     }
 	
     # Escribimos en el fichero .spd el xml almacenado en memoria
-    ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(release)
+    ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(RDConfig)
     
     # Escribimos en el fichero .spd de materiales el xml almacenado en memoria
     set materialFile "[string range $filename 0 [expr [string length $filename] - 5]].kmdb"
-    ::xmlutils::writeFile "${materialFile}" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) $KPriv(release) 0
+    ::xmlutils::writeFile "${materialFile}" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) $KPriv(RDConfig) 0
     
     if {$KPriv(xmlDocFun) != ""} {
     	set encryptFile 0
-    	::xmlutils::writeFile "$KPriv(dir)/python_functions.xml" $KPriv(dir) $KPriv(encrXmlFun) $KPriv(xmlDocFun) $KPriv(release) $encryptFile
+    	::xmlutils::writeFile "$KPriv(dir)/python_functions.xml" $KPriv(dir) $KPriv(encrXmlFun) $KPriv(xmlDocFun) $KPriv(RDConfig) $encryptFile
     }
     
-    if {$KPriv(release) == 0} {
-    	#En modo debug tenemos que encriptar los defaults para pasarlos con la versión
+    if {$KPriv(RDConfig) == 0} {
+    	# En modo debug tenemos que encriptar los defaults para pasarlos con la versión
     	::xmlutils::writeFile "${filename}_encrypt" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) 1
     	::xmlutils::writeFile "${materialFile}_encrypt" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) 1
     }
