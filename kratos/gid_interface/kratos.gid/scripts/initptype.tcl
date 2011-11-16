@@ -10,12 +10,9 @@
 #
 #    CREATED AT: 01/02/10
 #
-#    LAST MODIFICATION: create the base source code
-#
-#    VERSION : 0.1
-#
 #    HISTORY:
 #
+#     0.2-22/06/11-G. Socorro, delete KPriv(release) and create KPriv(RDConfig) in the Kratos.tcl
 #     0.1-01/02/10-G. Socorro, create the base source code
 #
 ###############################################################################
@@ -30,9 +27,8 @@ proc kipt::InitPType { dir } {
     
     global KPriv ProgramName
     
-    #Switch between RELEASE and DEBUG mode
-    set KPriv(release) 1
-    
+    # kipt::CheckLicense
+
     # Set dir to a global variable
     set KPriv(dir) $dir
     set KPriv(problemTypeDir) $dir
@@ -40,48 +36,10 @@ proc kipt::InitPType { dir } {
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
     set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
     
-    #List of node Id's
-    set KPriv(groupsId) {}
-    
-    #List of material Id´s
-    set KPriv(materialsId) {}
-    set KPriv(materialsList) {}
-
-    
-    #Xml root
-    set KPriv(xml) ""
-    set KPriv(encrXml) ""
-    set KPriv(xmlDoc) ""
-    
-    #Xml Materials root
-    set KPriv(xmlMat) ""
-    set KPriv(encrXmlMat) ""
-    set KPriv(xmlDocMat) ""
-    
-    #Xml Functions
-    set KPriv(xmlFun) ""
-    set KPriv(encrXmlFun) ""
-    set KPriv(xmlDocFun) ""
-    
-    #kratos_key_words.xml 
-    set KPriv(xmlKKW) ""
-    set KPriv(xmlDocKKW) ""
-    
-    #kratos.ini
-    set KPriv(xmlIni) ""
-    set KPriv(xmlDocIni) ""
-    
-    #No es necesario porque solo lo necesitamos para leer
-    #set KPriv(encrXmlKKW) [lindex $xmlArray 1]
-    
-    
     # Set images directory
     set imagespath "$dir/images"
     set KPriv(imagesdir) $imagespath
     
-    # Load all sources scripts
-    ::kipt::LoadSourceFiles $dir
-
     # Change system menu
     # Preprocess
     ::kmtb::ChangePreprocessMenu $dir
@@ -95,6 +53,62 @@ proc kipt::InitPType { dir } {
     GiD_Set MaintainProblemTypeInNew 1
 }
 
+proc kipt::CheckLicense { } {
+    package require verifp   
+    # get list of all sysinfos: local and usb's
+    WarnWin "all devices sysinfos: [vp_getsysinfo]"
+
+    #try for a valid password
+    set res [vp_getauthorization myprogname 1.1 * my_secret_key]
+    set status [lindex $res 0]    
+    if { $status != "VERSION_PRO" } {
+	set msg [lindex $res 1]
+	WarnWin "unregistered version. msg:$msg"
+    } else {
+	WarnWin "professional version."
+    }
+
+    #do thinks...
+
+    #release password (specially if password is floating)
+    vp_releaseauthorization myprogname 1.1 *
+}
+
+proc kipt::InitGlobalXMLVariables {} {
+    global KPriv
+    
+    # List of node Id's
+    set KPriv(groupsId) {}
+    
+    # List of material Id´s
+    set KPriv(materialsId) {}
+    set KPriv(materialsList) {}
+
+    
+    # Xml root
+    set KPriv(xml) ""
+    set KPriv(encrXml) ""
+    set KPriv(xmlDoc) ""
+    
+    # Xml materials root
+    set KPriv(xmlMat) ""
+    set KPriv(encrXmlMat) ""
+    set KPriv(xmlDocMat) ""
+    
+    # Xml functions
+    set KPriv(xmlFun) ""
+    set KPriv(encrXmlFun) ""
+    set KPriv(xmlDocFun) ""
+    
+    # kratos_key_words.xml 
+    set KPriv(xmlKKW) ""
+    set KPriv(xmlDocKKW) ""
+    
+    # kratos.ini
+    set KPriv(xmlIni) ""
+    set KPriv(xmlDocIni) ""
+}
+
 proc kipt::FreePType {} {
     
     global KPriv
@@ -104,27 +118,25 @@ proc kipt::FreePType {} {
     # For group editor
     set w ".gid.kegroups" 
     if {[winfo exists $w]} {
-    destroy $w
+	destroy $w
     }
     
     set w ".gid.kmprops" 
     if {[winfo exists $w]} {
-    destroy $w
+	destroy $w
     }
 
     # Validation window
     set w ".gid.modelvalidation" 
     if {[winfo exists $w]} {
-        ::KMValid::CreateReportWindowbClose $w 
+	::KMValid::CreateReportWindowbClose $w 
     }
     
     # Close Project Settings Window if it exists
     set w ".gid.settingWin" 
     if {[winfo exists $w]} {
-        ::kps::WindowbClose $w 
+	::kps::WindowbClose $w 
     }
-
-
 
     # ********************************
     #     End the bitmaps
@@ -172,65 +184,65 @@ proc kipt::LoadSourceFiles {dir} {
     set scriptspath "$dir/scripts"
     
     if { [catch {source $scriptspath/files.tcl}] } {
-    ::kipt::LoadSourceMessage files.tcl        
-    return ""
+	::kipt::LoadSourceMessage files.tcl        
+	return ""
     }
     if { [catch {source $scriptspath/winutils.tcl}] } {
-    ::kipt::LoadSourceMessage winutils.tcl.tcl        
-    return ""
+	::kipt::LoadSourceMessage winutils.tcl.tcl        
+	return ""
     }
     if { [catch {source $scriptspath/menus.tcl}] } {
-    ::kipt::LoadSourceMessage menus.tcl        
-    return ""
+	::kipt::LoadSourceMessage menus.tcl        
+	return ""
     } 
     if { [catch {source $scriptspath/utils.tcl}] } {
-    ::kipt::LoadSourceMessage utils.tcl        
-    return ""
+	::kipt::LoadSourceMessage utils.tcl        
+	return ""
     }
     if { [catch {source $scriptspath/stringutils.tcl}] } {
-    ::kipt::LoadSourceMessage stringutils.tcl        
-    return ""
+	::kipt::LoadSourceMessage stringutils.tcl        
+	return ""
     } 
     if { [catch {source $scriptspath/modelvalidation.tcl}] } {
-    ::kipt::LoadSourceMessage modelvalidation.tcl        
-    return ""
+	::kipt::LoadSourceMessage modelvalidation.tcl        
+	return ""
     }
     if { [catch {source $scriptspath/projectSettings.tcl}] } {
-    ::kipt::LoadSourceMessage projectSettings.tcl        
-    return ""
+	::kipt::LoadSourceMessage projectSettings.tcl        
+	return ""
     }
     
     # For xml libs
     set xmlpath "$dir/scripts/libs/xml"
     if { [catch {source $xmlpath/xmlutils.tcl}] } {
-    ::kipt::LoadSourceMessage xmlutils.tcl
-    return ""
+	::kipt::LoadSourceMessage xmlutils.tcl
+	return ""
     }
     if { [catch {source $xmlpath/xpathq.tcl}] } {
-    ::kipt::LoadSourceMessage xpathq.tcl
-    return ""
+	::kipt::LoadSourceMessage xpathq.tcl
+	return ""
     }
     
     # For write calculation file
     set wkcfpath "$dir/scripts/libs/wkcf"        
     if { [catch {source $wkcfpath/wkcf.tcl}] } {
-    ::kipt::LoadSourceMessage wkcf.tcl
-    return ""
+	::kipt::LoadSourceMessage wkcf.tcl
+	return ""
     }
     if { [catch {source $wkcfpath/wkcfutils.tcl}] } {
-    ::kipt::LoadSourceMessage wkcfutils.tcl
-    return ""
+	::kipt::LoadSourceMessage wkcfutils.tcl
+	return ""
     }
 
     # Load kegroups
     set kegrouppath "$dir/scripts/kegroups"
     if { [catch {source $kegrouppath/kegroups.tcl}] } {
-    ::kipt::LoadSourceMessage kegroups.tcl
-    return ""
+	::kipt::LoadSourceMessage kegroups.tcl
+	return ""
     }
     if { [catch {source $kegrouppath/kGroupEntities.tcl}] } {
-    ::kipt::LoadSourceMessage kGroupEntities.tcl
-    return ""
+	::kipt::LoadSourceMessage kGroupEntities.tcl
+	return ""
     }
     
     package require KEGroups
@@ -239,16 +251,17 @@ proc kipt::LoadSourceFiles {dir} {
     set kPropsPath "$dir/scripts/kmprops"
     
     if { [catch {source $kPropsPath/kmprops.tcl}] } {
-        ::kipt::LoadSourceMessage kmprops.tcl
-        return ""
+	::kipt::LoadSourceMessage kmprops.tcl
+	return ""
     }
-     if { [catch {source $kPropsPath/kmaterials.tcl} er] } {
-        ::kipt::LoadSourceMessage kmaterials.tcl
-        return ""
+    if { [catch {source $kPropsPath/kmaterials.tcl} er] } {
+	msg $er
+	::kipt::LoadSourceMessage kmaterials.tcl
+	return ""
     }
     if { [catch {source $kPropsPath/kFunctions.tcl}] } {
-        ::kipt::LoadSourceMessage kFunctions.tcl
-        return ""
+	::kipt::LoadSourceMessage kFunctions.tcl
+	return ""
     }
 }
 
