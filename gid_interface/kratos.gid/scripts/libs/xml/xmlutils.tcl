@@ -59,6 +59,8 @@ proc ::xmlutils::getKKWord {xpath id {cattr kkword}} {
 #******************************************************************************
 #
 #################################################
+
+
 proc ::xmlutils::AsXml {content {addtag No} {tag document}} {
 	# From wiki: http://wiki.tcl.tk/1740
 
@@ -70,9 +72,11 @@ proc ::xmlutils::AsXml {content {addtag No} {tag document}} {
 	}
 }
 
+#
 #-------------------------------------------------------------------------------------------------
 # Abre el fichero "inputfile" del directorio "iniDir" y extrae el código xml 
 #-------------------------------------------------------------------------------------------------
+#
 proc ::xmlutils::openFile {w fullname {encodeFile 1}} {
 	
 	#set fullname [file native [file join $iniDir $inputfile]]
@@ -88,37 +92,26 @@ proc ::xmlutils::openFile {w fullname {encodeFile 1}} {
 	
 	set xml [tDOM::xmlReadFile $fullname encriptStr]
 
-	#set xmlDoc [dom parse $xml]
-	#set fullname "faslkdfjlaskdgjkratos_default.spd"
-	#msg $fullname
-	#msg [string first "_default" $fullname]
-	
+	#Inicializamos la variable que contendrá el documento parseado
 	set xmlDoc ""
 	catch {
+		#Intentamos leer y parsear el xml encriptado
 		set xmlDoc [dom parse [::xmlutils::DecodeK [string trim $xml]]]
 	}
 	
 	catch {
+		#Si está vacío es que falló porque no estaba encriptado, lo intentamos leer normal
 		if { $xmlDoc == "" } {
 			set xmlDoc  [dom parse [string trim $xml]]
 		}
 	}
 	if { $xmlDoc == "" } {
+		#Si sigue fallando el xml tiene que ser erróneo
 		WarnWin "Format error parsing the xml document\n'$fullname'"
 	}
 	
-	#if { $encodeFile && [string first "_default" $fullname] == -1 } {
-	#	set xmlDoc  [dom parse [::xmlutils::DecodeK [string trim $xml]]]
-	#} else {
-	#	set xmlDoc  [dom parse [string trim $xml]]
-	#}
-	
-	#Controlar un posible error al hacer el dom parse
-	#msg "error?:[catch { dom parse $xml }]"
-	#if { [catch { [set xmlDoc [dom parse $xml]] }] == 0 } {
-	#		WarnWin "Format error parsing the xml document\n'$fullname'"
-	#		return -1
-	#}
+	#Devolvemos las 3 variables la primera "xml" para utilizar el documento, 
+	# y las dos siguientes "encr" y "xmlDoc" para cuando lo guardemos	
 	
 	set xmlList [$xmlDoc documentElement]
 	set xmlList [lappend xmlList $encriptStr]
@@ -932,11 +925,11 @@ proc ::xmlutils::copyNode { sourceNode baseNode } {
 
 #
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#		   #   #	 #	 #	 #
-#			# #	  # # # #	 #
-#			 #	   #  #  #	 #
-#			# #	  #	 #	 #
-#		   #   #	 #	 #	 ######
+#              #   #    #     #     #
+#               # #     # # # #     #
+#                #      #  #  #     #
+#               # #     #     #     #
+#              #   #    #     #     ######
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #
 
@@ -963,7 +956,7 @@ proc ::xmlutils::setXPath { path { type "props"} } {
 		set i 0
 		foreach itemId $splitted {
 			if { $i == 0 } {				
-			#														set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"												  
+			#set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"												  
 			set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='$itemId'\]"												  
 			
 			} else {
@@ -1174,11 +1167,11 @@ proc ::xmlutils::insertXml { path nodeName properties {xml ""} } {
 
 #
 #*************************************************************
-#*		#####	#####	#	 #	####	#####		  
-#*		#		#   #	# # # #	#   #   #   #		  
-#*		#		#   #	#  #  #	####	#   #		  
-#*		#		#   #	#	 #	#   #   #   #		  
-#*		#####	#####	#	 #	####	#####		  
+#*          #####	 #####  #	  #  ####   #####
+#*          #      #   #  # # # #  #   #  #   #
+#*          #      #   #  #  #  #  ####   #   #
+#*          #      #   #  #     #  #   #  #   #
+#*          #####	 #####  #     #  ####   #####
 #*************************************************************
 #
 # Accede al XML al nodo con path 'fullname' y coge el 
