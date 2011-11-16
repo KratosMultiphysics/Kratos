@@ -16,6 +16,7 @@
 #
 #    HISTORY:
 #
+#     0.6- 22/06/11-GS, create the proc CreateTBEFiles and DeleteTBEFiles to work with the TBE files
 #     0.5- 09/12/10-GS, modify the procedure GetDefinedMeshGiDEntities to get all nodes that defined a surface when using shell elements
 #     0.4- 14/09/10-GS, modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
 #     0.3- 08/09/10-GS, add the procedure ReadResultsFromFiles to check and read kratos result files in the GiD postprocess
@@ -28,6 +29,124 @@
 
 namespace eval ::KUtils:: {
  
+}
+
+proc ::KUtils::CreateTBEFiles {} {
+    
+    # Get the problem type subdirectory
+    set dir [::KUtils::GetPaths "PTDir"]
+    
+    # For scripts directory
+    set scriptspath [file join $dir/scripts/]
+    # WarnWinText "scriptspath:$scriptspath"
+    cd $scriptspath
+    set dirlist [glob *]
+    # WarnWinText "dirlist:$dirlist\n\n"
+    foreach cdir $dirlist {
+	# WarnWinText "cdir:$cdir"
+	if {[file isdirectory $cdir]} {
+	    cd $cdir
+	    set tcllist ""
+	    catch { set tcllist [glob *]}
+	    # WarnWinText "tcllist:$tcllist\n"
+	    if {[llength $tcllist]} {
+		foreach tcl_cl1 $tcllist {
+		    # WarnWinText "tcl_cl1:$tcl_cl1"
+		    if {[file isdirectory $tcl_cl1]} {
+			cd $tcl_cl1
+			set tcllist_cl2 ""
+			catch { set tcllist_cl2 [glob *]}
+			# WarnWinText "tcllist_cl2:$tcllist_cl2"
+			if {[llength $tcllist_cl2]} {
+			    foreach tcl_cl2 $tcllist_cl2 {
+				if {[file isdirectory $tcl_cl2]} {
+				    cd $tcl_cl2
+				    set tcllist_cl3 ""
+				    catch { set tcllist_cl3 [glob *] }
+				    # WarnWinText "tcllist_cl3:$tcllist_cl3\n"
+				    if {[llength $tcllist_cl3]} {
+					foreach tcl_cl3 $tcllist_cl3 {
+					    if {[file extension $tcl_cl3]==".tcl"} {
+						loadtbefile -create $tcl_cl3
+					    }
+					}
+				    }
+				    cd ..
+				} else {
+				    if {[file extension $tcl_cl2]==".tcl"} {
+					loadtbefile -create $tcl_cl2
+				    }
+				}
+			    }
+			}
+			cd ..
+		    } else {
+			if {[file extension $tcl_cl1]==".tcl"} {
+			    loadtbefile -create $tcl_cl1
+			}    	
+		    }
+	    	}
+	    }
+	    cd ..
+	} else {
+	    # WarnWin "cdir:$cdir"
+	    if {[file extension $cdir]==".tcl"} {
+		loadtbefile -create $cdir
+	    }
+	}
+    }
+}
+
+
+
+proc ::KUtils::DeleteTBEFiles {} {
+    
+    # Get the problem type subdirectory
+    set dir [::KUtils::GetPaths "PTDir"]
+    
+    # For scripts directory
+    set scriptspath [file join $dir/scripts/]
+    cd $scriptspath
+    set dirlist [glob *]
+    # WarnWinText "dirlist:$dirlist\n\n"
+    foreach cdir $dirlist {
+	if {[file isdirectory $cdir]} {
+	    cd $cdir
+	    set tbelist ""
+	    catch { set tbelist [glob *] }
+	    # WarnWinText "cdir:$cdir => tbelist:$tbelist\n"
+	    if {[llength $tbelist]} {
+		foreach tbe_level1 $tbelist {
+		    # WarnWinText "tbe_level1:$tbe_level1"
+		    if {[file isdirectory $tbe_level1]} {
+			cd $tbe_level1
+			set tbe_level2list ""
+			catch { set tbe_level2list [glob *]}
+			# WarnWinText "tbe_level2list:$tbe_level2list"
+			if {[llength $tbe_level2list]} {
+			    foreach tbe_level2 $tbe_level2list {
+				# WarnWinText "tbe_level2:$tbe_level2"
+				if {[file extension $tbe_level2]==".tbe"} {
+				    catch { file delete $tbe_level2}
+				}
+			    }
+			}
+			cd ..
+		    } else {
+			if {[file extension $tbe_level1]==".tbe"} {
+			    catch { file delete $tbe_level1}
+			}
+		    }
+		}
+	    }
+	    cd ..
+	} else {
+	    if {[file extension $cdir]==".tbe"} {
+		# WarnWinText "cdir:$cdir =>[file extension $cdir]\n"
+		catch { file delete $cdir}
+	    }
+	}
+    }
 }
 
 proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
