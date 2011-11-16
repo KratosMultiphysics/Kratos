@@ -2,7 +2,7 @@
 #    KRATOS: GiD interface for the Kratos problem type
 ########################################################################
 #
-#    NAME: Blade-Pre.tcl
+#    NAME: Kratos.tcl
 #
 #    PURPOSE: Init script for Kratos problem type
 #
@@ -10,12 +10,11 @@
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : add the event InitGIDPostProcess to read Kratos result files when pass from preproces to postprocess
-#
-#    VERSION : 0.5
-#
 #    HISTORY: 
 #
+#     0.8- 16/11/11- G. Socorro, add the global variable KPriv(SRCConfig) to use TCL or TBE file distribution
+#     0.7- 22/06/11- G. Socorro, add the proc KLoadTBEFiles to load the sources from TBE files
+#     0.6- 03/02/11- G. Socorro, update the procedure UnsetGlobalVars
 #     0.5- 08/09/10- G. Socorro, add the event InitGIDPostProcess to read Kratos result files when pass from preproces to postprocess
 #     0.4- 03/09/10- G. Socorro, add BeforeMeshGeneration option to modify the normal to the line and surfaces
 #     0.3- 01/02/10- G. Socorro, add a new global procedure msg to call WarnWinText
@@ -53,21 +52,21 @@ proc UnsetGlobalVars {} {
     global KData KPriv MinimumGiDVersion
     global VersionNumber ProgramName
 
-    catch { unset KData }
-    catch { unset KPriv }
-    catch { unset VersionNumber }
-    catch { unset ProgramName }
-    catch { unset MinimumGiDVersion }
-
+    foreach arrid [list KData KPriv VersionNumber ProgramName MinimumGiDVersion] {
+	if {[info exists $arrid]} {
+	    unset $arrid
+	}
+    }
 }
+
 proc LoadGIDProject {filename} {
     
     ::kfiles::LoadSPD $filename
 }
 
 proc SaveGIDProject {filename} {
-	
-	::kfiles::SaveSPD $filename
+    
+    ::kfiles::SaveSPD $filename
 }
 
 proc AfterTransformProblemType { file oldproblemtype newproblemtype } {
@@ -115,8 +114,30 @@ proc InitGIDProject { dir } {
     set VersionRequired "$MinimumGiDVersion"
     CheckRequiredGiDVersion $VersionRequired
     
-    # Load init problem type script
-    source $dir/scripts/initptype.tcl  
+    # For release/debug options [Release =>1|Debug => 0]
+    set KPriv(RDConfig) 1
+    # For distribution srctcl/srctbe options [srctbe =>1|srctcl => 0]
+    set KPriv(SRCConfig) 0
+
+    # Load the application scripts 
+    if {!$KPriv(SRCConfig)} {
+	# For scripts directory
+	set scriptspath "$dir/scripts/"
+	if { [catch {source $scriptspath/initptype.tcl}] } {
+	    return 0
+	} else {
+	    # Init some xml global variables
+	    ::kipt::InitGlobalXMLVariables
+	    
+	    ::kipt::LoadSourceFiles $dir
+	}
+    } else {
+	# Load tbe files
+	KLoadTBEFiles $dir
+
+	# Init some xml global variables
+	::kipt::InitGlobalXMLVariables
+    }
 
     # Init problem type
     ::kipt::InitPType $dir
@@ -220,8 +241,56 @@ proc InitGIDPostProcess {} {
 	}
     } 
 }
- 
- 
+
+proc KLoadTBEFiles {dir} {
+    
+    # For scripts directory
+    set scriptspath "$dir/scripts/"
+    cd $scriptspath
+      
+    set dirlist [glob *]
+    # WarnWinText "dirlist:$dirlist\n\n"
+    foreach cdir $dirlist {
+	if {[file isdirectory $cdir]} {
+	    cd $cdir
+	    set tbelist ""
+	    catch { set tbelist [glob *] }
+	    # WarnWinText "cdir:$cdir => tbelist:$tbelist\n"
+	    if {[llength $tbelist]} {
+		foreach tbe_level1 $tbelist {
+		    # WarnWinText "Current tbe_level1:$tbe_level1"
+		    if {[file isdirectory $tbe_level1]} {
+			cd $tbe_level1
+			set tbe_l2list ""
+			catch { set tbe_l2list [glob *] }
+			# WarnWinText "tbe_l2list:$tbe_l2list"
+			if {[llength $tbe_l2list]} {
+			    foreach tbe_level2 $tbe_l2list {
+				if {[file extension $tbe_level2]==".tbe"} {
+				    # WarnWinText "current l2 tbe_l2list:$tbe_level2"
+				    loadtbefile $tbe_level2		    
+				}
+			    }
+			}
+			cd ..
+		    } else {
+			if {[file extension $tbe_level1]==".tbe"} {
+			    # WarnWinText "current level1:$tbe_level1\n"
+			    loadtbefile $tbe_level1
+			}
+		    }
+		}
+	    }
+	    cd ..
+	} else {
+	    if {[file extension $cdir]==".tbe"} {
+		# WarnWinText "current cdir:$cdir\n"
+		loadtbefile $cdir
+	    }
+	}
+    }
+} 
+
  
  
  
