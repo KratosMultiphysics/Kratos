@@ -1,6 +1,6 @@
 ###############################################################################
 #
-#  NAME: kmprop.tcl
+#  NAME: kmprops.tcl
 #
 #  PURPOSE: Main window to manage model properties
 #
@@ -12,9 +12,9 @@
 #
 #  LAST MODIFICATION : 
 #
-#  VERSION : 0.1
-#
 #  HISTORY:
+# 
+#   0.6- 24/05/11-G. Socorro, correct a bug with the proc InsertCaption when the GiD layer window is open
 #   0.5- 12/08/10 Miguel Pasenau: se puede integrar la ventana dentro de la ventana 
 #                 principal de GiD;
 #                 mediante una barrita (caption) debajo del titulo de la ventana se puede
@@ -40,30 +40,29 @@ package require xmlstruct 1.0
 
 # Create a base namespace KEGroups
 namespace eval ::KMProps:: {
-	
-	# Group properties array
-	variable Props
-	# Path of the base window 
-	variable WinPath ".gid.kmprops"
-	# Window layout ["OUTSIDE"|"LEFT"|"RIGHT"] 
-	variable WinLayout 
-	# Location: OUTSIDE | INSIDE_LEFT | INSIDE_RIGHT
-	variable Location         
-	variable SystemHighlight
-	variable SystemHighlightText
-	variable TreePropsPath
-	variable ngroups
-	variable lastSelected {}
-	variable selectedEntity ""
-	
-	variable application "StrucutalAnalysis"
-	
-	#Se inicializan las clases dinámicamente leyendo del xml
-	variable visibilityVars {}
-	#variable visibilityVars {nDim strucType soluType analysType linearSolvTyp solverType fluidType freeSurf}
+    
+    # Group properties array
+    variable Props
+    # Path of the base window 
+    variable WinPath ".gid.kmprops"
+    # Window layout ["OUTSIDE"|"LEFT"|"RIGHT"] 
+    variable WinLayout 
+    # Location: OUTSIDE | INSIDE_LEFT | INSIDE_RIGHT
+    variable Location         
+    variable SystemHighlight
+    variable SystemHighlightText
+    variable TreePropsPath
+    variable ngroups
+    variable lastSelected {}
+    variable selectedEntity ""
+    
+    variable application "StructuralAnalysis"
+    
+    # Se inicializan las clases dinámicamente leyendo del xml
+    variable visibilityVars {}
 }
 
-proc ::KMProps::Pruebas { } {
+proc ::KMProps::Pruebas {} {
 	
 	#::KMValid::ValidateModel
 	#msg "f[::xmlutils::getKKWord StructuralAnalysis TotalLagrangian2]f"
@@ -72,25 +71,25 @@ proc ::KMProps::Pruebas { } {
 
 proc ::KMProps::Init {} {
 	
-	variable WinLayout
-	variable SystemHighlight
-	variable SystemHighlightText
-	variable ngroups
-	variable Props
-	
-	# Get default colors
-	set w [listbox .listbox]
-	set SystemHighlight [$w cget -selectbackground]
-	set SystemHighlightText [$w cget -selectforeground]
-	destroy $w
-	if { $::tcl_platform(platform) == "unix" } {
-		# I hate that gray selection color
-		set SystemHighlight #316ac5
-		set SystemHighlightText White
-	}
-
-	set WinnLayout "OUTSIDE"
-	set ngroups 10000
+    variable WinLayout
+    variable SystemHighlight
+    variable SystemHighlightText
+    variable ngroups
+    variable Props
+    
+    # Get default colors
+    set w [listbox .listbox]
+    set SystemHighlight [$w cget -selectbackground]
+    set SystemHighlightText [$w cget -selectforeground]
+    destroy $w
+    if { $::tcl_platform(platform) eq "unix" } {
+	# I hate that gray selection color
+	set SystemHighlight #316ac5
+	set SystemHighlightText White
+    }
+    
+    set WinLayout "OUTSIDE"
+    set ngroups 10000
 }
 
 proc ::KMProps::CreateWindow { w loc {whattab "Model"}} {
@@ -101,9 +100,8 @@ proc ::KMProps::CreateWindow { w loc {whattab "Model"}} {
     set wcap [ ::KMProps::InsertCaption $w [= "Project properties"]]
     grid $wcap -sticky ew
 
-    #TAB PROPIEDADES y MATERIALES para separar los dos árboles
+    # TAB PROPIEDADES y MATERIALES para separar los dos árboles
     set nb "$w.nb"
-    # pack [ttk::notebook $nb] -expand 1 -fill both
     grid [ttk::notebook $nb] -sticky ewns
 
     grid columnconfigure $w 0 -weight 1
@@ -125,9 +123,11 @@ proc ::KMProps::CreateWindow { w loc {whattab "Model"}} {
     
     set ::KMat::TreeMatPath [::KMat::CreateTreeAndToolbar $fMat]
     
+    # Material tree
     ::KMat::initVisibilityClass
     ::KMat::FillTreeMat
     
+    # Model tree
     ::KMProps::initVisibilityClass
     ::KMProps::FillTreeProps
     
@@ -142,115 +142,101 @@ proc ::KMProps::CreateWindow { w loc {whattab "Model"}} {
     }
     
     # Binding
-    # bind $w <Alt-c> "destroy $w"
     bind $w <Alt-c> "::KMProps::CloseWindow $w"
-    #bind $w <Escape> "destroy $w"
 }
 
 proc ::KMProps::InitBaseWindow {{whattab "Model"} {what "OUTSIDE"} } {
-	
-	#PRUEBAS - Fución para hacer pruebas. Si devuelve True se no carga la ventana
-	if {[::KMProps::Pruebas]} { return 0 }
-	
-	variable WinLayout
-
-	# Init KEGroups namaspace variables
-	::KMProps::Init
-	::KMat::Init
-	
-	set w "$::KMProps::WinPath"
-
-	# Open the window
-	::KMProps::CreateWindow $w $what $whattab
+    
+    #PRUEBAS - Fución para hacer pruebas. Si devuelve True se no carga la ventana
+    if {[::KMProps::Pruebas]} { return 0 }
+    
+    variable WinLayout
+    
+    # Init KEGroups namespace variables
+    ::KMProps::Init
+    ::KMat::Init
+    
+    set w "$::KMProps::WinPath"
+    
+    # Open the window
+    ::KMProps::CreateWindow $w $what $whattab
 }
 
 proc ::KMProps::CreateTreeAndToolbar { w } {
-	
-	# Create the treectrl properties 
-	set mdf [ttk::frame $w.middle]
-	set T [::KMProps::CreateTreeProperties $w]
+    # ABSTRACT: Create the treectrl properties 
 
-	grid $w.middle -sticky wens
-
-	#grid rowconfigure $w 2 -weight 1
-	#grid columnconfigure $w 0 -weight 1
-	
-	## For lower buttons
-	#set tf [ttk::frame $w.close] 
-	#grid $tf -sticky ews
-	#grid anchor $tf center
-	#grid [ttk::button $tf.bClose -text [= "Close"] -command [list destroy $w]]  -sticky ew -padx 5 -pady 3
-
-	focus $T
-
-	return $T
+    set mdf [ttk::frame $w.middle]
+    set T [::KMProps::CreateTreeProperties $w]
+    
+    grid $w.middle -sticky wens
+    
+    focus $T
+    
+    return $T
 }
 
-#
-# Crea el frame inferior 
-#
 proc ::KMProps::iniFrameBottom { } {
-	
-	#Destruye el frame inferior si existía
-	set f [::KMProps::cancelBottom]
-	
-	# Create the frame where set the properties
-	ttk::frame $f -borderwidth 0
-	
-	# Grid for toolbar
-	grid $f -row 2 -column 0 -sticky wes
-	
-	return $f
-
+    # ABSTRACT: Create the botton frame
+    
+    # If exists the bottom frame destroy it
+    set f [::KMProps::cancelBottom]
+    
+    # Create the frame where set the properties
+    ttk::frame $f -borderwidth 0
+    
+    # Grid for toolbar
+    grid $f -row 2 -column 0 -sticky wes
+    
+    return $f
+    
 }
 
-#
-# Destruye el frame inferior 
-#
 proc ::KMProps::cancelBottom { } {
-	
-	set f ${::KMProps::WinPath}.nb.fProp.fBottom
+    # ABSTRACT: Destroy the botton frame
+    variable WinPath
+
+    set f ${WinPath}.nb.fProp.fBottom    
+    if {[winfo exists $f]} {
 	if { [winfo exists $f]} {
-		foreach w [winfo children $f] {
-		        destroy $w
-		}
+	    foreach w [winfo children $f] {
+		destroy $w
+	    }
 	}
 	destroy $f
-	
-	return $f
+    }
+    return $f
 }
 
 proc ::KMProps::initVisibilityClass { } {
-	
-	variable visibilityVars
-	set visibilityVars {}
-	global KPriv
+    variable visibilityVars
+    global KPriv
 
-	set classes [$KPriv(xml) set "/Kratos_Data/ClassConfiguration/Class" ]
-	
-	set classes [split $classes ","]
-	
-	foreach class $classes {
-		lappend visibilityVars $class
-		set ::KMProps::$class ""
-	}
+    set visibilityVars {}
+
+    set classes [$KPriv(xml) set "/Kratos_Data/ClassConfiguration/Class" ]
+    
+    set classes [split $classes ","]
+    
+    foreach classid $classes {
+	lappend visibilityVars $classid
+	set ::KMProps::${classid} ""
+    }
 }
 
 #---------------------------------------------------------------------------------------------- 
 # Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles
 #----------------------------------------------------------------------------------------------
 proc ::KMProps::FillTreeProps { } {
-	
-	variable dimension
-
-	global KPriv
-	
-	#Obtenemos los grupos si aun no han sido cargados (aun no han cargado su ventana)
-	if { [llength $KPriv(groupsId)] == 0 } {
-		::KEGroups::getXmlGroupsId
-	}
-	
-	set T $::KMProps::TreePropsPath
+    variable dimension
+    
+    global KPriv
+    
+    # Obtenemos los grupos si aun no han sido cargados (aun no han cargado su ventana)
+    if { [llength $KPriv(groupsId)] == 0 } {
+	::KEGroups::getXmlGroupsId
+    }
+    
+    set T $::KMProps::TreePropsPath
 	
 	#Seleccionamos todos los nodos del primer nivel
 	set nodes [$KPriv(xml) selectNodes "/Kratos_Data/RootData\[@id\]"]
@@ -2845,7 +2831,7 @@ proc ::KMProps::OpenWindowOutside { w } {
     variable Location
 	
     if { [winfo exists $w] } {
-	# ::KMProps::CloseWindowOutside $w
+	::KMProps::CloseWindowOutside $w
 	::KMProps::CloseWindow $w
     }
 
@@ -2855,7 +2841,7 @@ proc ::KMProps::OpenWindowOutside { w } {
     set title [= "Project properties"]
     InitWindow $w $title KMPropsWindowGeom ::KMProps::InitBaseWindow
     
-    wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1];destroy $w"
+    wm protocol $w WM_DELETE_WINDOW "[list ::KMProps::refreshTree "" 1]; destroy $w"
 
     return $w
 }
@@ -2897,7 +2883,7 @@ proc ::KMProps::ChangeInsideOutside { w} {
     } else {
 
 	# Disabled until the next gid beta version 
-	set Location OUTSIDE
+	# set Location OUTSIDE
 	::KMProps::CreateWindow $w $Location
     }
 }
@@ -2905,26 +2891,26 @@ proc ::KMProps::ChangeInsideOutside { w} {
 proc ::KMProps::InsertCaption { w title} {
     variable Location
     
-    ttk::frame $w.caption -relief solid -borderwidth 1
-    label $w.caption.title -foreground grey60
-    setTooltip $w.caption [_ "Double-click toggle window or inline visualization"]
+    ttk::frame $w.kcaption -relief solid -borderwidth 1
+    label $w.kcaption.title -foreground grey60
+    setTooltip $w.kcaption [_ "Double-click toggle window or inline visualization"]
     if { [ winfo class $w] != "Toplevel" } {
-	$w.caption.title configure -text $title
-	button $w.caption.close -image [ GetImage close17.gif] -command \
+	$w.kcaption.title configure -text $title
+	button $w.kcaption.close -image [ GetImage close17.gif] -command \
 	    "::KMProps::CloseWindow $w" -bd 0
-	$w.caption.title configure -text [_ "Double click here to tear off the window"]
+	$w.kcaption.title configure -text [_ "Double click here to tear off the window"]
     } else {
-	$w.caption.title configure -text [_ "Double click here to integrate the window"]
+	$w.kcaption.title configure -text [_ "Double click here to integrate the window"]
     }
 
     if { "$Location" == "OUTSIDE"} {
-	grid $w.caption.title -sticky ew
+	grid $w.kcaption.title -sticky ew
     } else {
-	grid $w.caption.title $w.caption.close -sticky ew
-	grid configure $w.caption.close  -sticky w
+	grid $w.kcaption.title $w.kcaption.close -sticky ew
+	grid configure $w.kcaption.close  -sticky w
     }
-    bind $w.caption.title <Double-Button-1> "::KMProps::ChangeInsideOutside $w"
-    return $w.caption
+    bind $w.kcaption.title <Double-Button-1> "::KMProps::ChangeInsideOutside $w"
+    return $w.kcaption
 }
 
 proc ::KMProps::CloseWindowOutside { w } {
