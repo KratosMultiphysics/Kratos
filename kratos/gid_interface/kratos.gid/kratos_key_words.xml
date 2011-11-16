@@ -9,6 +9,7 @@
         <Item id="ShellAnisotropic" kkword="ShellAnisotropic" />
         <Item id="LinearElement" kkword="LinearElement" />
         <Item id="LinearElement3D" kkword="LinearElement" />
+	<Item id="Membrane" kkword="MembraneElement" />
         <Item id="EBST" kkword="EBST" />
         <Item id="Thickness" kkword="THICKNESS" />
         <Item id="Dx" kkword="DISPLACEMENT_X" />
@@ -155,23 +156,25 @@
 		<Item id="ElectricalPermitivity" kkword="" />
     </Materials>
     <ElementCLaws>
-        <Item id="ElementTypes" dv="Beam" ivalues="Beam,Truss,Shell,EBST,PlaneStress,PlaneStrain,Solid" values="Beam,Truss,Shell,EBST,PlaneStress,PlaneStrain,Solid"/>
+        <Item id="ElementTypes" dv="Beam" ivalues="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid" values="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid"/>
         <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
         <Item id="Beam" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
+	<Item id="Membrane" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Shell" ivalues="Elastic-Isotropic,Elastic-Anisotropic" values="Elastic-Isotropic,Elastic-Anisotropic"/>
         <Item id="EBST" ivalues="Elastic-Isotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elasto-Plastic,Damage"/>
         <Item id="Solid" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
         <Item id="PlaneStress" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
         <Item id="PlaneStrain" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
         <Item id="Tickness2D" elementType="PlaneStress"/>
-        <Item id="Tickness3D" elementType="Shell,EBST"/>
+        <Item id="Tickness3D" elementType="Shell,Membrane,EBST"/>
     </ElementCLaws>
     <ElementValidCLaws>
         <Item id="TotalLagrangian" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
         <Item id="TotalLagrangian3D" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
         <Item id="CrisfieldTrussElement" claws="Elastic-Isotropic" active="1"/>
         <Item id="ShellIsotropic" claws="Elastic-Isotropic" active="1"/>
+	<Item id="Membrane" claws="Elastic-Isotropic" active="1"/>
         <Item id="ShellAnisotropic" claws="Elastic-Anisotropic" active="1"/>
         <Item id="LinearElement" claws="Elastic-Isotropic" active="1"/>
         <Item id="LinearElement3D" claws="Elastic-Isotropic" active="1"/>
