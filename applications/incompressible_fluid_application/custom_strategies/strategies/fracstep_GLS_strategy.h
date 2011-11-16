@@ -230,7 +230,7 @@ namespace Kratos
 			
 			
 
-			Element & ref_el = model_part.Elements().front();
+			//Element & ref_el = model_part.Elements().front();
 			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
 
 			//int id=1;
@@ -342,7 +342,7 @@ namespace Kratos
 
 			//getting delta time 
 			//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-			double& delta_t = model_part.GetProcessInfo()[DELTA_TIME];
+			//double& delta_t = model_part.GetProcessInfo()[DELTA_TIME];
 			//KRATOS_WATCH(delta_t)
 			//Write the mass factors (that corresponds to the assembly of global lumped mass matrix... instead of building and
 			//storing this matris, we write the mass factors to the nodes in the var MASS_FACTORS
@@ -353,7 +353,7 @@ namespace Kratos
 				in->FastGetSolutionStepValue(NODAL_MASS)=0.0;
 			}
 			double dummy;
-			ProcessInfo& proc_info = model_part.GetProcessInfo();
+			//ProcessInfo& proc_info = model_part.GetProcessInfo();
 
 		  
 /*		  int NumThreads = OpenMPUtils::GetNumThreads();
@@ -806,7 +806,7 @@ namespace Kratos
 			const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 
 
-			double dummy;
+			//double dummy;
 			ProcessInfo& proc_info = model_part.GetProcessInfo();
 
 			array_1d<double,3> zero = ZeroVector(3);
