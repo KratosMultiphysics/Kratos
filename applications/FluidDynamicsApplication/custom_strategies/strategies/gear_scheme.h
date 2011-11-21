@@ -60,7 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 //#include "includes/serializer.h"
 #include "includes/dof.h"
-#include "includes/variables.h"
+//#include "includes/variables.h"
+#include "fluid_dynamics_application_variables.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
 #include "containers/pointer_vector_set.h"
@@ -255,41 +256,77 @@ namespace Kratos
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
             {
-                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++) {
+                const double Tol = 1e-6 * rModelPart.NumberOfNodes();
+                unsigned int iter = 0;
+                const unsigned int MaxIter = 100;
+                double Res_v = 1000.0 * Tol;
+                double Res_p = 1000.0 * Tol;
 
-                    noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
-
-                    ind->FastGetSolutionStepValue(DIVPROJ) = 0.0;
-
-                    ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-
-
-                }//end of loop over nodes
-
-                //loop on nodes to compute ADVPROJ DIVPROJ NODALAREA
-                array_1d<double, 3 > output;
-
-
-                for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
-                {
-                    elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
-                }
-
-                rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-                rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
-                rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
-
+                TSystemVectorType dx_v;
+                TSystemVectorType dx_p;
+                dx_v.resize(2*rModelPart.NumberOfNodes());
+                dx_p.resize(rModelPart.NumberOfNodes());
 
                 for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
                 {
-                    if (ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-                    {
-                        ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-                        KRATOS_WATCH("*********ATTENTION: NODAL AREA IS ZERRROOOO************");
-                    }
-                    ind->FastGetSolutionStepValue(ADVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
-                    ind->FastGetSolutionStepValue(DIVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
+                    noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3); // "x"
+                    ind->FastGetSolutionStepValue(DIVPROJ) = 0.0; // "x"
+                    ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
                 }
+
+                while( (fabs(Res_v) > Tol || fabs(Res_p) > Tol) && iter < MaxIter)
+                {
+                    for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+                    {
+                        noalias(ind->GetValue(ADVPROJ)) = ZeroVector(3); // "b"
+                        ind->GetValue(DIVPROJ) = 0.0; // "b"
+                        ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
+                    }//end of loop over nodes
+
+                    //loop on nodes to compute ADVPROJ DIVPROJ NODALAREA
+                    array_1d<double, 3 > output;
+
+                    for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
+                    {
+                        elem->Calculate(SUBSCALE_VELOCITY, output, CurrentProcessInfo);
+                    }
+
+                    rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+                    rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+                    rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+
+                    unsigned int v_counter = 0;
+                    unsigned int p_counter = 0;
+                    for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+                    {
+                        const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
+                        dx_v[v_counter++] = ind->GetValue(ADVPROJ)[0] / Area;
+                        dx_v[v_counter++] = ind->GetValue(ADVPROJ)[1] / Area;
+                        dx_p[p_counter++] = ind->GetValue(DIVPROJ) / Area;
+                    }
+                    Res_v = TSparseSpace::TwoNorm(dx_v);
+                    Res_p = TSparseSpace::TwoNorm(dx_p);
+
+                    // update
+                    v_counter = 0;
+                    p_counter = 0;
+                    for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+                    {
+                        ind->FastGetSolutionStepValue(ADVPROJ)[0] += dx_v[v_counter++];
+                        ind->FastGetSolutionStepValue(ADVPROJ)[1] += dx_v[v_counter++];
+                        ind->FastGetSolutionStepValue(DIVPROJ) += dx_p[p_counter++];
+                    }
+                    iter++;
+                }
+                std::cout << "Performed OSS Projection in " << iter << " iterations" << std::endl;
+
+//                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
+//                {
+//                    array_1d<double,3> AdvProj = ind->FastGetSolutionStepValue(ADVPROJ);
+//                    double DivProj = ind->FastGetSolutionStepValue(DIVPROJ);
+//                    ind->FastGetSolutionStepValue(ADVPROJ) = -1.0 * AdvProj;
+//                    ind->FastGetSolutionStepValue(DIVPROJ) = -1.0 * DivProj;
+//                }
             }
 
             KRATOS_CATCH("")
