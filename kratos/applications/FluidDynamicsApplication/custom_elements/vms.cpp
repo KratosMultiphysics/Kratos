@@ -206,40 +206,49 @@ namespace Kratos
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
         }
-        else if (rVariable == SUBSCALE)
+        else if (rVariable == SUBSCALE_VELOCITY)
         {
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double,3> AdvVel;
-            this->GetAdvectiveVel(AdvVel,N,0);
-
-            double Density,KinViscosity,Viscosity;
-            this->EvaluateInPoint(Density,DENSITY,N,0);
-            this->EvaluateInPoint(KinViscosity,VISCOSITY,N,0);
-            this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
-
-            double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
-
-            // Set output vector (for a single integration point)
-            rOutput.resize(1);
-            array_1d<double,3> MomError(3,0.0);
-            if (rCurrentProcessInfo[OSS_SWITCH]==1)
+            if( this->GetValue(TRACK_SUBSCALES) == 1 )
             {
-                this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                rOutput.resize(1);
+                const VMS<Dim,NumNodes>* const_this = static_cast< const VMS<Dim,NumNodes>* >(this);
+                rOutput[0] = const_this->GetValue(rVariable);
             }
             else
             {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                double Area;
+                array_1d<double, NumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                array_1d<double,3> AdvVel;
+                this->GetAdvectiveVel(AdvVel,N);
+
+                double Density,KinViscosity,Viscosity;
+                this->EvaluateInPoint(Density,DENSITY,N);
+                this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
+                this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
+                double TauOne,TauTwo;
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
+
+                // Set output vector (for a single integration point)
+                rOutput.resize(1);
+                array_1d<double,3> MomError(3,0.0);
+                if (rCurrentProcessInfo[OSS_SWITCH]==1)
+                {
+                    this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                }
+                else
+                {
+                    this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                }
+                MomError *= TauOne/Density;
+                array_1d<double,3>& rSubscale = rOutput[0];
+                rSubscale[0] = MomError[0];
+                rSubscale[1] = MomError[1];
+                rSubscale[2] = 0.0;
             }
-            MomError *= TauOne/Density;
-            array_1d<double,3>& rSubscale = rOutput[0];
-            rSubscale[0] = MomError[0];
-            rSubscale[1] = MomError[1];
-            rSubscale[2] = 0.0;
         }
         else // Default behaviour (returns elemental data)
         {
@@ -286,42 +295,51 @@ namespace Kratos
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
         }
-        else if(rVariable == SUBSCALE)
+        else if(rVariable == SUBSCALE_VELOCITY)
         {
-            double Area;
-            array_1d<double, NumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-            array_1d<double,3> AdvVel;
-            this->GetAdvectiveVel(AdvVel,N,0);
-
-            double Density,KinViscosity,Viscosity;
-            this->EvaluateInPoint(Density,DENSITY,N,0);
-            this->EvaluateInPoint(KinViscosity,VISCOSITY,N,0);
-            this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
-
-            double TauOne,TauTwo;
-            this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
-
-            // Set output vector (for a single integration point)
-            rOutput.resize(1);
-            array_1d<double,3> MomError(3,0.0);
-            if (rCurrentProcessInfo[OSS_SWITCH]==1)
+            if( this->GetValue(TRACK_SUBSCALES) == 1 )
             {
-                this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                rOutput.resize(1);
+                const VMS<Dim,NumNodes>* const_this = static_cast< const VMS<Dim,NumNodes>* >(this);
+                rOutput[0] = const_this->GetValue(rVariable);
             }
             else
             {
-                this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                double Area;
+                array_1d<double, NumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, NumNodes, Dim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                array_1d<double,3> AdvVel;
+                this->GetAdvectiveVel(AdvVel,N);
+
+                double Density,KinViscosity,Viscosity;
+                this->EvaluateInPoint(Density,DENSITY,N);
+                this->EvaluateInPoint(KinViscosity,VISCOSITY,N);
+                this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
+
+                double TauOne,TauTwo;
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
+
+                // Set output vector (for a single integration point)
+                rOutput.resize(1);
+                array_1d<double,3> MomError(3,0.0);
+                if (rCurrentProcessInfo[OSS_SWITCH]==1)
+                {
+                    this->OSSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                }
+                else
+                {
+                    this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
+                }
+                MomError *= TauOne/Density;
+                array_1d<double,3>& rSubscale = rOutput[0];
+                rSubscale[0] = MomError[0];
+                rSubscale[1] = MomError[1];
+                rSubscale[2] = MomError[2];
             }
-            MomError *= TauOne/Density;
-            array_1d<double,3>& rSubscale = rOutput[0];
-            rSubscale[0] = MomError[0];
-            rSubscale[1] = MomError[1];
-            rSubscale[2] = MomError[2];
         }
-        else // Default behaviour (returns elemental data)else if (rVariable == SUBSCALE)
+        else // Default behaviour (returns elemental data)
         {
             rOutput.resize(1);
             /*
@@ -602,6 +620,20 @@ namespace Kratos
             FirstRow = 0;
             FirstCol += 4;
         }
+    }
+
+    template<>
+    double VMS<2,3>::ConsitentMassCoef(const double Area)
+    {
+        const double Coef = 1.0/12.0;
+        return Area * Coef;
+    }
+
+    template<>
+    double VMS<3,4>::ConsitentMassCoef(const double Volume)
+    {
+        const double Coef = 1.0/20.0;
+        return Volume * Coef;
     }
 
     ///@} // Specialized implementations

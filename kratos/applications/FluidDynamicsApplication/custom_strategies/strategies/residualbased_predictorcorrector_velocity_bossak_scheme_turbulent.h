@@ -596,8 +596,9 @@ namespace Kratos {
                         ind->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
                         //KRATOS_WATCH("*********ATTENTION: NODAL AREA IS ZERRROOOO************");
                     }
-                    ind->FastGetSolutionStepValue(ADVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
-                    ind->FastGetSolutionStepValue(DIVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
+                    const double Area = ind->FastGetSolutionStepValue(NODAL_AREA);
+                    ind->FastGetSolutionStepValue(ADVPROJ) /= Area;
+                    ind->FastGetSolutionStepValue(DIVPROJ) /= Area;
                 }
             }
 
@@ -794,18 +795,18 @@ namespace Kratos {
         void RotationOperator(TMatrixType& rRot,
                               GeometryType::PointType& rThisPoint)
         {
-            typedef boost::numeric::ublas::matrix_column<TMatrixType> ThisColumnType;
+            typedef boost::numeric::ublas::matrix_row<TMatrixType> ThisRowType;
             // Get the normal evaluated at the node
             const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
 
             // Define the new coordinate system, where the first vector is aligned with the normal
-            ThisColumnType rN(rRot,0);
+            ThisRowType rN(rRot,0);
             for( size_t i = 0; i < 3; ++i)
                 rN[i] = rNormal[i];
             this->Normalize(rN);
 
             // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
-            ThisColumnType rT1(rRot,1);
+            ThisRowType rT1(rRot,1);
             rT1(0) = 1.0;
             rT1(1) = 0.0;
             rT1(2) = 0.0;
@@ -828,7 +829,7 @@ namespace Kratos {
             this->Normalize(rT1);
 
             // The third base component is choosen as N x T1, which is normalized by construction
-            ThisColumnType rT2(rRot,2);
+            ThisRowType rT2(rRot,2);
             rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
             rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
             rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
@@ -867,10 +868,11 @@ namespace Kratos {
             }
             if(NeedRotation)
             {
-                LocalSystemMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,Rotation);
-                rLocalMatrix = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),tmp);
+//                LocalSystemMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,boost::numeric::ublas::trans(Rotation));
+//                rLocalMatrix = boost::numeric::ublas::prod(Rotation,tmp);
+                this->ApplyRotation(rLocalMatrix,Rotation);
 
-                LocalSystemVectorType aaa = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),rLocalVector);
+                LocalSystemVectorType aaa = boost::numeric::ublas::prod(Rotation,rLocalVector);
                 noalias(rLocalVector) = aaa;
             }
         }
@@ -901,7 +903,7 @@ namespace Kratos {
 
             if(NeedRotation)
             {
-                LocalSystemVectorType Tmp = boost::numeric::ublas::prod(trans(Rotation),rLocalVector);
+                LocalSystemVectorType Tmp = boost::numeric::ublas::prod(Rotation,rLocalVector);
                 rLocalVector = rLocalVector;
             }
         }
@@ -987,7 +989,7 @@ namespace Kratos {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
                     for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
-                    noalias(Tmp) = boost::numeric::ublas::prod(trans(Rotation),Vel);
+                    noalias(Tmp) = boost::numeric::ublas::prod(Rotation,Vel);
                     for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
                 }
             }
@@ -1008,10 +1010,43 @@ namespace Kratos {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
                     for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
-                    noalias(Tmp) = boost::numeric::ublas::prod(Rotation,Vel);
+                    noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),Vel);
                     for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
                 }
             }
+        }
+
+        /// Transform a local contribution from cartesian coordinates to rotated ones
+        void ApplyRotation(LocalSystemMatrixType& rMatrix,
+                           const LocalSystemMatrixType& rRotation)
+        {
+            // compute B = R*A*transpose(R)
+            const size_t BlockSize = 4;
+            const size_t LocalSize = rMatrix.size1();
+            const size_t NumBlocks = LocalSize / BlockSize;
+            LocalSystemMatrixType Tmp = ZeroMatrix(LocalSize,LocalSize);
+
+            for (size_t iBlock = 0; iBlock < NumBlocks; iBlock++)
+            {
+                for (size_t jBlock = 0; jBlock < NumBlocks; jBlock++)
+                {
+                    for (size_t i = iBlock*BlockSize; i < (iBlock+1)*BlockSize; i++)
+                    {
+                        for(size_t j = jBlock*BlockSize; j < (jBlock+1)*BlockSize; j++)
+                        {
+                            double& tij = Tmp(i,j);
+                            for(size_t k = iBlock*BlockSize; k < (iBlock+1)*BlockSize; k++)
+                            {
+                                for(size_t l = jBlock*BlockSize; l < (jBlock+1)*BlockSize; l++)
+                                {
+                                    tij += rRotation(i,k)*rMatrix(k,l)*rRotation(j,l);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            noalias(rMatrix) = Tmp;
         }
 
         /*@} */

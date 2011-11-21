@@ -35,7 +35,7 @@ namespace Kratos
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
         }
-        else if (rVariable == SUBSCALE)
+        else if (rVariable == SUBSCALE_VELOCITY)
         {
             rOutput.resize(1);
             array_1d<double,3> & rSubscale = rOutput[0];
@@ -88,7 +88,7 @@ namespace Kratos
                 rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
             }
         }
-        else if (rVariable == SUBSCALE)
+        else if (rVariable == SUBSCALE_VELOCITY)
         {
             rOutput.resize(1);
             array_1d<double,3> & rSubscale = rOutput[0];

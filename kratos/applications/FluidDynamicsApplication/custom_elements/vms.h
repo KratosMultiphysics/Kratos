@@ -121,7 +121,7 @@ namespace Kratos
      * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
      * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
      * Error estimation stores ERROR_RATIO on the elements.\n
-     * Some additional variables can be used to print results on the element: SUBSCALE, TAUONE, TAUTWO, MU, VORTICITY.
+     * Some additional variables can be used to print results on the element: SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
      *
      * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
      * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
@@ -337,7 +337,46 @@ namespace Kratos
                 double TauOne, TauTwo;
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
-                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, TauOne, TauTwo, N, DN_DX, Area,rCurrentProcessInfo[DELTA_TIME]);
+            }
+            else if (this->GetValue(TRACK_SUBSCALES) == 1)// Experimental: Dynamic tracking of ASGS subscales (see Codina 2002 Stabilized finite element ... using orthogonal subscales)
+            {
+                /* We want to evaluate v * d(u_subscale)/dt. This term is zero in OSS, due the orthogonality of the two terms. in ASGS, we approximate it as
+                 * d(u_s)/dt = u_s(last iteration) - u_s(previous time step) / DeltaTime where u_s(last iteration) = TauOne(MomResidual(last_iteration) + u_s(previous step)/DeltaTime)
+                 */
+                array_1d<double, 3 > AdvVel;
+                this->GetAdvectiveVel(AdvVel, N);
+
+                double KinViscosity;
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
+                double StaticTauOne;
+                this->CalculateStaticTau(StaticTauOne,AdvVel,Area,Viscosity);
+
+                double TauOne,TauTwo;
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
+
+                array_1d<double,3> ElemMomRes;
+                this->ASGSMomResidual(AdvVel,Density,ElemMomRes,N,DN_DX,1.0);
+
+                const array_1d<double,3>& rOldSubscale = this->GetValue(SUBSCALE_VELOCITY);
+                const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+
+//                array_1d<double,3> Subscale = TauOne * (ElemMomRes + Density * rOldSubscale / DeltaTime);
+                const double C1 = 1.0 - TauOne/StaticTauOne;
+                const double C2 = TauOne / (StaticTauOne*DeltaTime);
+
+                unsigned int LocalIndex = 0;
+                for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+                {
+                    for(unsigned int d = 0; d < TDim; d++)
+                        rRightHandSideVector[LocalIndex++] -= N[iNode] * Area * ( C1 * ElemMomRes[d] - C2 * rOldSubscale[d] );
+//                        rRightHandSideVector[LocalIndex++] -= N[iNode] * Area * ( Subscale[d] - rOldSubscale[d] ) / DeltaTime;
+                    LocalIndex++; // Pressure Dof
+                }
             }
         }
 
@@ -442,7 +481,15 @@ namespace Kratos
             double TauOne, TauTwo;
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
-            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+            if(this->GetValue(TRACK_SUBSCALES)==1)
+            {
+                const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+                this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area,DeltaTime);
+            }
+            else
+            {
+                this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, Area);
+            }
 
             // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
             VectorType U = ZeroVector(LocalSize);
@@ -461,6 +508,51 @@ namespace Kratos
             }
 
             noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
+        }
+
+        virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+        {
+            if(this->GetValue(TRACK_SUBSCALES) == 1)
+            {
+                // Get this element's geometric properties
+                double Area;
+                array_1d<double, TNumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                // Calculate this element's fluid properties
+                double Density, KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
+                // Get Advective velocity
+                array_1d<double, 3 > AdvVel;
+                this->GetAdvectiveVel(AdvVel, N);
+
+                // Calculate stabilization parameters
+                double StaticTauOne;
+                this->CalculateStaticTau(StaticTauOne,AdvVel,Area,Viscosity);
+
+                array_1d<double,3> ElementalMomRes(3,0.0);
+
+                if ( rCurrentProcessInfo[OSS_SWITCH] != 1 ) // ASGS
+                {
+                    this->ASGSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);
+                }
+                else // OSS
+                {
+                    this->OSSMomResidual(AdvVel,Density,ElementalMomRes,N,DN_DX,1.0);;
+                }
+
+                // Update subscale term
+                const double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
+                array_1d<double,3>& OldSubscaleVel = this->GetValue(SUBSCALE_VELOCITY);
+                array_1d<double,3> Tmp = ( 1.0/( 1.0/DeltaTime + 1.0/StaticTauOne)) * (Density*OldSubscaleVel/DeltaTime + ElementalMomRes);
+                OldSubscaleVel = Tmp;
+            }
         }
 
         /// Implementation of Calculate to compute an error estimate.
@@ -588,6 +680,72 @@ namespace Kratos
 
                         this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
                         this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+                        this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+                    }
+                }
+
+                /// Return output
+                rOutput = ElementalMomRes;
+            }
+            else if (rVariable == SUBSCALE_VELOCITY)
+            {
+                // Get the element's geometric parameters
+                double Area;
+                array_1d<double, TNumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                // Calculate this element's fluid properties
+                double Density, KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
+                // Get Advective velocity
+                array_1d<double, 3 > AdvVel;
+                this->GetAdvectiveVel(AdvVel, N);
+
+                // Output containers
+                array_1d< double, 3 > ElementalMomRes(3,0.0);
+                double ElementalMassRes(0.0);
+
+                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, Area);
+
+                if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+                {
+                    /* Projections of the elemental residual are computed with
+                     * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
+                     */
+                    const double Weight = ConsitentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
+                    // Carefully write results to nodal variables, to avoid parallelism problems
+                    for (unsigned int i = 0; i < TNumNodes; ++i)
+                    {
+                        this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+
+                        // Add elemental residual to RHS
+                        array_1d< double, 3 > & rMomRHS = this->GetGeometry()[i].GetValue(ADVPROJ);
+                        double& rMassRHS = this->GetGeometry()[i].GetValue(DIVPROJ);
+                        for (unsigned int d = 0; d < TDim; ++d)
+                            rMomRHS[d] += N[i] * ElementalMomRes[d];
+
+                        rMassRHS += N[i] * ElementalMassRes;
+
+                        // Write nodal area
+                        this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+
+                        // Substract M(consistent)*x(i-1) from RHS
+                        for(unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+                        {
+                            for(unsigned int d = 0; d < TDim; ++d)
+                                rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
+                            rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
+                        }
+                        for(unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                            rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
+                        rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+
                         this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
                     }
                 }
@@ -781,7 +939,7 @@ namespace Kratos
             if(ERROR_RATIO.Key() == 0)
                 KRATOS_ERROR(std::invalid_argument,"ERROR_RATIO Key is 0. Check if the application was correctly registered.","")
             // Additional variables, only required to print results:
-            // SUBSCALE, TAUONE, TAUTWO, MU, VORTICITY.
+            // SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
 
             // Checks on nodes
 
@@ -962,8 +1120,15 @@ namespace Kratos
                                 const double TauTwo,
                                 const array_1d<double, TNumNodes>& rShapeFunc,
                                 const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                                const double Weight)
+                                const double Weight,
+                                const double DeltaTime = 1.0)
         {
+
+            // TO BE REMOVED ---------------------------------------------------------------------------------------------------
+            // Experimental: Dynamic tracking of subscales (see Codina 2002 Stabilized finite element ... using orthogonal subscales)
+            const array_1d<double,3>& OldSubscale = this->GetValue(SUBSCALE_VELOCITY);
+            //------------------------------------------------------------------------------------------------------------------
+
             const unsigned int BlockSize = TDim + 1;
 
             array_1d<double, TNumNodes> AGradN;
@@ -991,6 +1156,11 @@ namespace Kratos
                     {
                         RHS[FirstRow + d] += Const1 * AGradN[i] * rMomProj[d] + Const2 * rShapeDeriv(i, d); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
                         RHS[FirstRow + TDim] += Const1 * rShapeDeriv(i, d) * rMomProj[d]; // TauOne * Grad(q) * MomProjection
+                        if(this->GetValue(TRACK_SUBSCALES)==1)
+                        {
+                            RHS[FirstRow + d] += Const1 * AGradN[i] * TauOne * OldSubscale[d]/DeltaTime;
+                            RHS[FirstRow + TDim] += Const1 * rShapeDeriv(i, d) * TauOne * OldSubscale[d]/DeltaTime;
+                        }
                     }
                     // Update row reference
                     FirstRow += BlockSize;
@@ -1128,9 +1298,9 @@ namespace Kratos
                         PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 
                         // Write v * Grad(p) component
-                        rDampMatrix(FirstRow + m, FirstCol + TDim) = Weight * (G - PDivV);
+                        rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                         // Use symmetry to write the q * rho * Div(u) component
-                        rDampMatrix(FirstCol + TDim, FirstRow + m) = Coef * (G + PDivV);
+                        rDampMatrix(FirstCol + TDim, FirstRow + m) += Coef * (G + PDivV);
 
                         // q-p stabilization block
                         L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
@@ -1138,7 +1308,7 @@ namespace Kratos
                         for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                         {
                             // Velocity block
-                            rDampMatrix(FirstRow + m, FirstCol + n) = Coef * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                            rDampMatrix(FirstRow + m, FirstCol + n) += Coef * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
                         }
 
                     }
@@ -1149,7 +1319,110 @@ namespace Kratos
                         rDampMatrix(FirstRow + d, FirstCol + d) += K;
 
                     // Write q-p stabilization block
-                    rDampMatrix(FirstRow + TDim, FirstCol + TDim) = Weight * TauOne * L;
+                    rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+
+                    // Operate on RHS
+                    L = 0; // We reuse one of the temporary variables for the pressure RHS
+
+                    for (unsigned int d = 0; d < TDim; ++d)
+                    {
+                        rDampRHS[FirstRow + d] += Coef * TauOne * AGradN[i] * rShapeFunc[j] * rBodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                        L += rShapeDeriv(i, d) * rShapeFunc[j] * rBodyForce[d];
+                    }
+                    rDampRHS[FirstRow + TDim] += Coef * TauOne * L; // Grad(q) * TauOne * (Density * BodyForce)
+
+                    // Update reference row index for next iteration
+                    FirstRow += BlockSize;
+                }
+
+                // Update reference indices
+                FirstRow = 0;
+                FirstCol += BlockSize;
+            }
+
+//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+            this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+        }
+
+        /// Add a the contribution from a single integration point to the velocity contribution
+        void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
+                                                     VectorType& rDampRHS,
+                                                     const double Density,
+                                                     const double Viscosity,
+                                                     const array_1d< double, 3 > & rAdvVel,
+                                                     const double TauOne,
+                                                     const double TauTwo,
+                                                     const array_1d< double, TNumNodes >& rShapeFunc,
+                                                     const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+                                                     const double Weight,
+                                                     const double DeltaTime)
+        {
+            const unsigned int BlockSize = TDim + 1;
+
+            const double TauCoef = TauOne*TauTwo / DeltaTime;
+
+            // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+            array_1d<double, TNumNodes> AGradN;
+            this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+            // Build the local matrix and RHS
+            unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
+            double K, G, PDivV, L; // Temporary results
+            double Coef = Density * Weight;
+
+            // Note that we iterate first over columns, then over rows to read the Body Force only once per node
+            for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
+            {
+                // Get Body Force
+                const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
+
+                const array_1d<double,3>& OldVelocity = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+
+                for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+                {
+                    // Calculate the part of the contributions that is constant for each node combination
+
+                    // Velocity block
+                    K = rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
+                    K += TauOne * AGradN[i] * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+
+                    // q-p stabilization block (reset result)
+                    L = 0;
+
+                    for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+                    {
+                        // Velocity block
+//                        K += Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+                        // Note that we are usig kinematic viscosity, as we will multiply it by density later
+
+                        // v * Grad(p) block
+                        G = TauOne * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                        PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+
+                        // Write v * Grad(p) component
+                        rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                        // Use symmetry to write the q * rho * Div(u) component
+                        rDampMatrix(FirstCol + TDim, FirstRow + m) += Coef * (G + PDivV);
+
+                        // q-p stabilization block
+                        L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+
+                        for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
+                        {
+                            // Velocity block
+                            rDampMatrix(FirstRow + m, FirstCol + n) += Coef * (TauTwo + TauCoef) * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo *( 1+TauOne/Dt) * Div(u)
+                            rDampRHS[FirstRow + m] -= Coef * TauCoef * rShapeDeriv(i, m) * rShapeDeriv(j, n) * OldVelocity[n]; // Stabilization: Div(v) * TauTwo*TauOne/Dt * Div(u_old)
+                        }
+
+                    }
+
+                    // Write remaining terms to velocity block
+                    K *= Coef; // Weight by nodal area and density
+                    for (unsigned int d = 0; d < TDim; ++d)
+                        rDampMatrix(FirstRow + d, FirstCol + d) += K;
+
+                    // Write q-p stabilization block
+                    rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
                     // Operate on RHS
                     L = 0; // We reuse one of the temporary variables for the pressure RHS
@@ -1205,7 +1478,7 @@ namespace Kratos
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rElementalMomRes[d] += Weight * (Density * (AGradN[i] * rVelocity[d] - rShapeFunc[i] * rBodyForce[d]) + rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
                     rElementalMassRes += WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
                 }
             }
@@ -1284,8 +1557,8 @@ namespace Kratos
                 // Compute this node's contribution to the residual (evaluated at inegration point)
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * (rBodyForce[d] - AGradN[i] * rVelocity[d])) - rShapeDeriv(i, d) * rPressure);
-                    rElementalMomRes[d] += Weight * rShapeFunc[i] * rProjection[d];
+                    rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
+                    rElementalMomRes[d] -= Weight * rShapeFunc[i] * rProjection[d];
                 }
             }
         }
@@ -1603,6 +1876,8 @@ namespace Kratos
          */
         virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                                  const double Viscosity);
+
+        double ConsitentMassCoef(const double Area);
 
         ///@}
         ///@name Protected  Access
