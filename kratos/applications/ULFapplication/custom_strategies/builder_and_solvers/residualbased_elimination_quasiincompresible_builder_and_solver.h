@@ -1791,7 +1791,7 @@ boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 			//typedef  double value_type;
 			//KRATOS_WATCH(precond)
 			#pragma omp parallel for
-			for (int i=0; i<precond.size();i++)
+			for (unsigned int i=0; i<precond.size();i++)
 			{
 			result[i]=precond[i]*vec[i];
 			}
@@ -1821,7 +1821,7 @@ boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
 
 			//WorkArray = Minv * WorkArray
 			#pragma omp parallel for
-			for(int i=0; i<WorkArray.size(); i++)
+			for(unsigned int i=0; i<WorkArray.size(); i++)
 			{WorkArray[i] *= Minv[i];}
 			
 			//destination = trans(D) * WorkArray
