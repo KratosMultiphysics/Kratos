@@ -178,14 +178,14 @@ namespace Kratos
 			n_disabled+=im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE);
 			
 
-		if (n_disabled>=0 && n_disabled<im->GetGeometry().size())
+		if (n_disabled>0 && n_disabled<im->GetGeometry().size())
 			{
 			reduced_model_part.AddElement(*(im.base()));
 			//reduced_model_part.AddNode(im->GetGeometry()[0]);				
 			}
-		else if (n_disabled>im->GetGeometry().size() || n_disabled<0)
+		else if (n_disabled>im->GetGeometry().size())
 			{
-			KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes...AND cant be negative. " , "");
+			KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes... " , "");
 			}
 			
 
