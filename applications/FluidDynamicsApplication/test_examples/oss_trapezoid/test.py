@@ -59,7 +59,7 @@ domain_size = 2
 problem_name = "trapezoid"
 dynamic_tau = 1.0
 oss_switch = 1
-print_output = True
+print_output = False
 time_step = 0.1
 max_time = 1.0
 # assuming Density = 1.0, Viscosity = 1.0
