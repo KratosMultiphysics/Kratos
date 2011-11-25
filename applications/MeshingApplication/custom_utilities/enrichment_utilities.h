@@ -69,13 +69,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 namespace Kratos {
-    // 	template<std::size_t TDim>
 
+    /** This utility can be used to calculate the enriched shape function for tetrahedra element.
+     *  The metodology consists in partitioning the tetrahedra in a set of sub-tetrahedra and
+     *  cacluate the enrichment information using these partitions.
+     */
     class EnrichmentUtilities {
     public:
 
+
+
+        /**
+         * The method to calculate the ernriched shape functions for given tetrahedra.
+         * @param rPoints A 4x3 matrix where row i has the coordinates of node i.
+         * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
+         * @param rDistances a vector of 4 which holds relative distance (not need to be exact) for each node.
+         * @param rVolumes Result vector with size 6 (maximumn number of partitions) holding the volume of each partition
+         * @param rShapeFunctionValues Result 6x4 matrix where each row represents a partition and holds the shape functions N1 to N4
+         *        of the original tetrahedra evaluated in the gauss point (center) of the partition.
+         * @param rPartitionsSign A result vector of 6 holding the sign of the distance for the partition.
+         *        The value -1 represents the negative distance sign, 1 represents positive distance and 0 stands for not used partition
+         * @param rGradientsValue Restult vector of size 6 holding the gradient of the enriched shape funciton for each volume.
+         *        Each element of vector is a 1x3 matrix representing the gradient of enriched shape function. The use of
+         *        matrix is for possible future improvement.
+         * @return number of partitions created which can be from 1 to 6.
+         *         1 holds for only 1 partition which is the original element. (No partitioning needed)
+         */
         template<class TMatrixType, class TVectorType, class TGradientType>
-        int CalculateEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
+        static int CalculateEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
                 TVectorType const& rDistances, TVectorType& rVolumes, TMatrixType& rShapeFunctionValues,
                 TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue)
         {
@@ -203,7 +224,7 @@ namespace Kratos {
 //            exact_distance[0] =  (edges_dx[0] * grad_d[0] + edges_dy[0] * grad_d[1] + edges_dz[0] * grad_d[2]) * edge_division_i[0];
 //            abs_distance[0] = fabs(exact_distance[0]);
 
-            for(int i = 1 ; i < n_nodes ; i++)
+            for(int i = 0 ; i < n_nodes ; i++)
             {
 
                    if(rDistances[i] < 0)
@@ -296,14 +317,18 @@ namespace Kratos {
                     rPartitionsSign[2] = -1;
                 }
 
+                // dividing volume to volume 0 and 1
                 int edge = edges[node1][node2];
                 int volume1_id = int(edge_i[edge] == node1);
                 int volume2_id = int(edge_j[edge] == node1);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
+
+                // dividing volume 1 to volume 1 and 2
                 edge = edges[node1][node3];
                 volume1_id = 1 + int(edge_i[edge] == node1);
                 volume2_id = 1 + int(edge_j[edge] == node1);
                 volume = rVolumes[1];
+                CopyShapeFunctionsValues(rShapeFunctionValues,1,2);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
                 number_of_partitions = 3; // There are three partitions
@@ -340,22 +365,27 @@ namespace Kratos {
                     rPartitionsSign[3] = -1;
                 }
 
+               // dividing volume to volume 0 and 1
                 int edge = edges[node0][node1];
                 int volume1_id = int(edge_i[edge] == node0);
                 int volume2_id = int(edge_j[edge] == node0);
 
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
+               // dividing volume 1 to volume 1 and 2
                 edge = edges[node0][node2];
                 volume1_id = 1 + int(edge_i[edge] == node0);
                 volume2_id = 1 + int(edge_j[edge] == node0);
                 volume = rVolumes[1];
+                CopyShapeFunctionsValues(rShapeFunctionValues,1,2);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
+               // dividing volume 2 to volume 2 and 3
                 edge = edges[node0][node3];
                 volume1_id = 2 + int(edge_i[edge] == node0);
                 volume2_id = 2 + int(edge_j[edge] == node0);
                 volume = rVolumes[2];
+                CopyShapeFunctionsValues(rShapeFunctionValues,2,3);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
                 number_of_partitions = 4; // There are four partitions
             }
@@ -378,33 +408,42 @@ namespace Kratos {
 
 
 
+               // dividing volume  to volume 1 and 2
                 int edge = edges[node0][node2];
                 int volume1_id = int(edge_i[edge] == node2);
                 int volume2_id = int(edge_j[edge] == node2);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
+               // dividing volume 0 to volume 0 and 2
                 edge = edges[node0][node3];
                 volume1_id = 2 * int(edge_i[edge] == node3);
                 volume2_id = 2 * int(edge_j[edge] == node3);
                 volume = rVolumes[0];
+                CopyShapeFunctionsValues(rShapeFunctionValues,0,2);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
-                edge = edges[node1][node2];
+                // dividing volume 1 to volume 1 and 3
+               edge = edges[node1][node2];
                 volume1_id = 1 + 2 * int(edge_i[edge] == node2);
                 volume2_id = 1 + 2 * int(edge_j[edge] == node2);
                 volume = rVolumes[1];
+                CopyShapeFunctionsValues(rShapeFunctionValues,1,3);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
+                // dividing volume 1 to volume 1 and 4
                 edge = edges[node1][node3];
                 volume1_id = 1 + 3 * int(edge_i[edge] == node3);
                 volume2_id = 1 + 3 * int(edge_j[edge] == node3);
                 volume = rVolumes[1];
+                CopyShapeFunctionsValues(rShapeFunctionValues,1,4);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
+                // dividing volume 2 to volume 2 and 5
                 edge = edges[node1][node3];
                 volume1_id = 2 + 3 * int(edge_i[edge] == node3);
                 volume2_id = 2 + 3 * int(edge_j[edge] == node3);
                 volume = rVolumes[2];
+                CopyShapeFunctionsValues(rShapeFunctionValues,2,5);
                 Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
 
                 number_of_partitions = 6; // There are six partitions
@@ -552,8 +591,16 @@ namespace Kratos {
 
     private:
 
+        template<class TMatrixType>
+        static void CopyShapeFunctionsValues(TMatrixType& rShapeFunctionValues, int OriginId, int DestinationId)
+        {
+            const int n_nodes = 4;
+            for(int i = 0 ; i < n_nodes ; i++)
+                rShapeFunctionValues(DestinationId, i) = rShapeFunctionValues(OriginId, i);
+        }
+
         template<class TMatrixType, class TVectorType>
-        void Divide1To2(array_1d<double, 6 > const& EdgeDivisionI, array_1d<double, 6 > const& EdgeDivisionJ, int Edge,
+        static void Divide1To2(array_1d<double, 6 > const& EdgeDivisionI, array_1d<double, 6 > const& EdgeDivisionJ, int Edge,
                 int Volume1Id, int Volume2Id, double Volume, TMatrixType& rShapeFunctionValues, TVectorType& rVolumes)
         {
             const int edge_i[] = {0, 0, 0, 1, 1, 2};
@@ -568,11 +615,31 @@ namespace Kratos {
             const int i = edge_i[Edge];
             const int j = edge_j[Edge];
 
-            rShapeFunctionValues(Volume1Id, j) += rShapeFunctionValues(Volume1Id, i) * (1.00 - division_i);
-            rShapeFunctionValues(Volume1Id, i) *= division_i;
-            rShapeFunctionValues(Volume2Id, i) += rShapeFunctionValues(Volume2Id, j) * (1.00 - division_j);
-            rShapeFunctionValues(Volume2Id, j) *= division_j;
+            std::cout << "splitting edge" << i << " " << j << std::endl;
+            KRATOS_WATCH(Volume1Id);
+            KRATOS_WATCH(Volume2Id);
+            KRATOS_WATCH(rShapeFunctionValues)
+            
+            double delta1 = rShapeFunctionValues(Volume1Id, j) * (1.00 - division_i);
+            rShapeFunctionValues(Volume1Id, i) += delta1;
+            rShapeFunctionValues(Volume1Id, j) -= delta1;
 
+            double delta2 = rShapeFunctionValues(Volume2Id, i) * (1.00 - division_j);
+            rShapeFunctionValues(Volume2Id, j) += delta2;
+            rShapeFunctionValues(Volume2Id, i) -= delta2;
+
+            KRATOS_WATCH(delta1)
+            KRATOS_WATCH(delta2)
+
+            KRATOS_WATCH(rShapeFunctionValues)
+
+
+
+//            rShapeFunctionValues(Volume1Id, i) += rShapeFunctionValues(Volume1Id, j) * (1.00 - division_i);
+//            rShapeFunctionValues(Volume1Id, j) *= division_i;
+//            rShapeFunctionValues(Volume2Id, j) += rShapeFunctionValues(Volume2Id, i) * (1.00 - division_j);
+//            rShapeFunctionValues(Volume2Id, i) *= division_j;
+//
 //            rShapeFunctionValues(Volume1Id, i) = division_i * 0.25;
 //            rShapeFunctionValues(Volume1Id, j) = 0.5 - 0.25 * division_i;
 //            rShapeFunctionValues(Volume2Id, i) = 0.5 - 0.25 * division_j;
