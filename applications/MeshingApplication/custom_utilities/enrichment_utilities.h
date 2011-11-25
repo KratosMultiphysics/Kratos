@@ -64,8 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_utilities/local_tetrahedra_refine_mesh.h"
-#include "utilities/split_tetrahedra.c"
+//#include "utilities/split_tetrahedra.c"
 
 
 namespace Kratos {
