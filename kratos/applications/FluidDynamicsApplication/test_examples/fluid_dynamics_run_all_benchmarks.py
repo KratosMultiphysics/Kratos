@@ -32,6 +32,28 @@ def Run():
 
 	os.chdir("..")
         ###############################################################################
+	# parabolic flow in a trapezoidal domain: test VMS2D OSS implementation
+	
+        Text += "Parabolic flow OSS test: "
+	
+        os.chdir("oss_trapezoid")	
+	sys.path.append(os.getcwd())
+
+        import trapezoid_benchmark
+	Msg = trapezoid_benchmark.Run()
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "oss_trapezoid test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "oss_trapezoid test FAILED"
+
+
+	os.chdir("..")
+        ###############################################################################
 
 
 	# Add other examples here
