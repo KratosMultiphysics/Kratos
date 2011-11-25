@@ -852,6 +852,45 @@ namespace Kratos
                     rValues[0] = Density * Viscosity;
                 }
             }
+            else if(rVariable == SUBSCALE_PRESSURE)
+            {
+                double TauOne, TauTwo;
+                double Area;
+                array_1d<double, TNumNodes> N;
+                boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+                GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+                array_1d<double, 3 > AdvVel;
+                this->GetAdvectiveVel(AdvVel, N);
+
+                double Density,KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+                double Viscosity;
+                this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+
+                double DivU = 0.0;
+                for(unsigned int i=0; i < TNumNodes;i++)
+                {
+                    for(unsigned int d = 0; d < TDim; d++)
+                        DivU -= DN_DX(i,d) * this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[d];
+                }
+
+                rValues.resize(1, false);
+                rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+                if(rCurrentProcessInfo[OSS_SWITCH]==1)
+                {
+                    double Proj = 0.0;
+                    for(unsigned int i=0; i < TNumNodes;i++)
+                    {
+                        Proj += N[i]*this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+                    }
+                    rValues[0] -= TauTwo*Proj;
+                }
+            }
             else // Default behaviour (returns elemental data)
             {
                 rValues.resize(1, false);
@@ -1154,8 +1193,8 @@ namespace Kratos
                 {
                     for (unsigned int d = 0; d < TDim; ++d)
                     {
-                        RHS[FirstRow + d] += Const1 * AGradN[i] * rMomProj[d] + Const2 * rShapeDeriv(i, d); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
-                        RHS[FirstRow + TDim] += Const1 * rShapeDeriv(i, d) * rMomProj[d]; // TauOne * Grad(q) * MomProjection
+                        RHS[FirstRow + d] -= Const1 * AGradN[i] * rMomProj[d] + Const2 * rShapeDeriv(i, d); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+                        RHS[FirstRow + TDim] -= Const1 * rShapeDeriv(i, d) * rMomProj[d]; // TauOne * Grad(q) * MomProjection
                         if(this->GetValue(TRACK_SUBSCALES)==1)
                         {
                             RHS[FirstRow + d] += Const1 * AGradN[i] * TauOne * OldSubscale[d]/DeltaTime;
@@ -1479,7 +1518,7 @@ namespace Kratos
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
                     rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
-                    rElementalMassRes += WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
+                    rElementalMassRes -= WeightedMass * rShapeDeriv(i, d) * rVelocity[d];
                 }
             }
         }
