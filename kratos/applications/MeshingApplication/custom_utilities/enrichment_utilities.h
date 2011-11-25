@@ -315,7 +315,8 @@ namespace Kratos {
                     rPartitionsSign[1] = 1;
                     rPartitionsSign[2] = -1;
                 }
-
+                KRATOS_WATCH(node1);
+                KRATOS_WATCH(node2);
                 // dividing volume to volume 0 and 1
                 int edge = edges[node1][node2];
                 int volume1_id = int(edge_i[edge] == node1);
@@ -619,7 +620,7 @@ namespace Kratos {
             KRATOS_WATCH(Volume2Id);
             KRATOS_WATCH(rShapeFunctionValues)
             
-            double delta1 = rShapeFunctionValues(Volume1Id, j) * (1.00 - division_i);
+            double delta1 = rShapeFunctionValues(Volume1Id, i) * (1.00 - division_i);
             rShapeFunctionValues(Volume1Id, i) += delta1;
             rShapeFunctionValues(Volume1Id, j) -= delta1;
 
