@@ -1,0 +1,4 @@
+KRATOS_BENCHMARK | Float | x velocity at center node | 1.000 | None | 0.001
+KRATOS_BENCHMARK | Float | x velocity at center node | 0.000 | None | 0.001
+KRATOS_BENCHMARK | Float | pressure at lower right corner | -12.00 | None | 0.01
+KRATOS_BENCHMARK | Float | pressure at upper left corner | -4.00 | None | 0.01
