@@ -908,6 +908,7 @@ namespace Kratos
 
         Triangle2D3<Node<3> > Triangle2D3Prototype( Element::GeometryType::PointsArrayType( 3, Node<3>() ) );
         Serializer::Register( "Triangle2D3", Triangle2D3Prototype );
+       Serializer::Register("DofDouble", Dof<double>());
 
         Triangle2D6<Node<3> > Triangle2D6Prototype( Element::GeometryType::PointsArrayType( 6, Node<3>() ) );
         Serializer::Register( "Triangle2D6", Triangle2D6Prototype );
