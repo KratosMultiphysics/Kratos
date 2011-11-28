@@ -42,7 +42,6 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 from KratosIncompressibleFluidApplication import *
 from KratosFluidDynamicsApplication import *
-from KratosTurbulentFlowApplication import *
 
 import benchmarking
 
@@ -66,7 +65,7 @@ max_time = 1.0
 # mdpa assings this, as well as FLAG_VARIABLE=1.0 in the contour
 
 # Import solver and define solution step data
-import monolithic_solver_bdf2 as monolithic_solver
+import monolithic_solver_eulerian as monolithic_solver
 monolithic_solver.AddVariables(fluid_model_part)
 
 #reading the fluid part
