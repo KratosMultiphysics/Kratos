@@ -59,6 +59,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/drucker_prager_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hooks_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/drucker_prager.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/casm.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/orthotropic_3d.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plasticity_2d.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/plane_stress_J2.cpp
