@@ -105,7 +105,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Matrix, ORTHOTROPIC_POISSON_RATIO )
     KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
     KRATOS_CREATE_VARIABLE( Matrix , MATERIAL_DIRECTION )
-    
+
 //     KRATOS_CREATE_VARIABLE( ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW )
 
     //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VAUX);
@@ -117,8 +117,8 @@ namespace Kratos
 // KRATOS_CREATE_VARIABLE(double, YOUNG_MODULUS )
 // KRATOS_CREATE_VARIABLE(double, POISSON_RATIO )
 // KRATOS_CREATE_VARIABLE(double, MU )
-   KRATOS_CREATE_VARIABLE( double, ALPHA )
-   KRATOS_CREATE_VARIABLE( double, RETRACTION_TIME )
+    KRATOS_CREATE_VARIABLE( double, ALPHA )
+    KRATOS_CREATE_VARIABLE( double, RETRACTION_TIME )
 // KRATOS_CREATE_VARIABLE(double, THICKNESS )
 // KRATOS_CREATE_VARIABLE(double, NEGATIVE_FACE_PRESSURE )
 // KRATOS_CREATE_VARIABLE(double, POSITIVE_FACE_PRESSURE )
@@ -159,8 +159,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, CONCRETE_YOUNG_MODULUS_T )
     KRATOS_CREATE_VARIABLE( double, FRACTURE_ENERGY )
     KRATOS_CREATE_VARIABLE( double, CRUSHING_ENERGY )
-    KRATOS_CREATE_VARIABLE( double, ELASTIC_ENERGY)
-    KRATOS_CREATE_VARIABLE( double, PLASTIC_ENERGY)
+    KRATOS_CREATE_VARIABLE( double, ELASTIC_ENERGY )
+    KRATOS_CREATE_VARIABLE( double, PLASTIC_ENERGY )
 //     KRATOS_CREATE_VARIABLE( double, YIELD_STRESS )
     KRATOS_CREATE_VARIABLE( double, PLASTIC_MODULUS )
     KRATOS_CREATE_VARIABLE( double, PLASTICITY_INDICATOR )
@@ -183,16 +183,17 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRESS )
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRAIN )
-    KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX)
-    KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR)
+    KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX )
+    KRATOS_CREATE_VARIABLE( Vector, PRESTRESS )
+    KRATOS_CREATE_VARIABLE( Vector, CONSTRAINT_VECTOR )
     KRATOS_CREATE_VARIABLE( int,    NODAL_VALUES )
     KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
     KRATOS_CREATE_VARIABLE( double, NODAL_VOLUME )
-    
 
-    
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
-    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
+
+
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
 
 
 //  KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
@@ -335,8 +336,8 @@ namespace Kratos
             mUnsaturatedSoilsElement3PhaseSmallStrain3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
             mEbst3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
             mEbstVel3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-	mPfemContactElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-	mPfemContactElement3DVel(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+            mPfemContactElement3D( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+            mPfemContactElement3DVel( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
 
             mFace2D( 0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -386,12 +387,12 @@ namespace Kratos
             mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
             mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-   
+
             mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
             mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mIsotropic3D()
-             
-   {}
+
+    {}
 
     void KratosStructuralApplication::Register()
     {
@@ -423,8 +424,8 @@ namespace Kratos
 //  KRATOS_REGISTER_VARIABLE(YOUNG_MODULUS )
 //  KRATOS_REGISTER_VARIABLE(POISSON_RATIO )
 //  KRATOS_REGISTER_VARIABLE(MU )
-    KRATOS_REGISTER_VARIABLE( ALPHA )
-    KRATOS_REGISTER_VARIABLE( RETRACTION_TIME)
+        KRATOS_REGISTER_VARIABLE( ALPHA )
+        KRATOS_REGISTER_VARIABLE( RETRACTION_TIME )
 //  KRATOS_REGISTER_VARIABLE(THICKNESS )
 //  KRATOS_REGISTER_VARIABLE(NEGATIVE_FACE_PRESSURE )
 //  KRATOS_REGISTER_VARIABLE(POSITIVE_FACE_PRESSURE )
@@ -458,8 +459,8 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( CONCRETE_YOUNG_MODULUS_T )
         KRATOS_REGISTER_VARIABLE( FRACTURE_ENERGY )
         KRATOS_REGISTER_VARIABLE( CRUSHING_ENERGY )
-        KRATOS_REGISTER_VARIABLE( PLASTIC_ENERGY  )
-        KRATOS_REGISTER_VARIABLE( ELASTIC_ENERGY  )
+        KRATOS_REGISTER_VARIABLE( PLASTIC_ENERGY )
+        KRATOS_REGISTER_VARIABLE( ELASTIC_ENERGY )
 //         KRATOS_REGISTER_VARIABLE( YIELD_STRESS )
         KRATOS_REGISTER_VARIABLE( PLASTIC_MODULUS )
         KRATOS_REGISTER_VARIABLE( PLASTICITY_INDICATOR )
@@ -477,6 +478,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_YOUNG_MODULUS_2D ) // [E1 E2 G12]
         KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_POISSON_RATIO_2D ) // [v12 v21]
         KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
+        KRATOS_REGISTER_VARIABLE( PRESTRESS )
         KRATOS_REGISTER_VARIABLE( DISIPATION )
         KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
         KRATOS_REGISTER_VARIABLE( KINEMATIC_HARDENING_MODULUS )
@@ -485,10 +487,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_VALUES )
         KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE )
         KRATOS_REGISTER_VARIABLE( NODAL_VOLUME )
-        KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX)
-        KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR)
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
-        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX )
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
 
         //KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
 //   KRATOS_REGISTER_VARIABLE(CONTACT_RAMP )
@@ -588,8 +590,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D8N", mMixedLagrangian3D8N )
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D20N", mMixedLagrangian3D20N )
         KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D27N", mMixedLagrangian3D27N )
-        KRATOS_REGISTER_ELEMENT("PfemContactElement3D", mPfemContactElement3D)
-        KRATOS_REGISTER_ELEMENT("PfemContactElement3DVel", mPfemContactElement3DVel)
+        KRATOS_REGISTER_ELEMENT( "PfemContactElement3D", mPfemContactElement3D )
+        KRATOS_REGISTER_ELEMENT( "PfemContactElement3DVel", mPfemContactElement3DVel )
 
 
         KRATOS_REGISTER_ELEMENT( "KinematicLinear3D4N", mKinematicLinear3D4N )
@@ -677,12 +679,11 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION( "PointForce2D", mPointForce2D )
 
 
-	KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
-	KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
-	
-//	KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
-	 Serializer::Register("Isotropic3D", mIsotropic3D);
+        KRATOS_REGISTER_CONDITION( "SlaveContactPoint2D", mSlaveContactPoint2D )
+        KRATOS_REGISTER_CONDITION( "MasterContactFace2D", mMasterContactFace2D )
 
+// KratosComponents<ConstitutiveLaw >::Add("Isotropic3D", mIsotropic3D);
+        Serializer::Register("Isotropic3D", mIsotropic3D);
 //        std::cout << "registered objects:" << std::endl;
 //
 //        for(Serializer::RegisteredObjectsContainerType::iterator i = Serializer::GetRegisteredObjects().begin() ; i != Serializer::GetRegisteredObjects().end() ; i++)
