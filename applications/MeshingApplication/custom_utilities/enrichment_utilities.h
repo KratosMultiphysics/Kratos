@@ -450,14 +450,14 @@ namespace Kratos
             {
                 //compute enriched shape function values
                 double dist = 0.0;
-                double abs_dist = 0.0
+                double abs_dist = 0.0;
                 for (int j = 0; j < 4; j++)
                 {
                     dist += rShapeFunctionValues(i, j) * exact_distance[j];
                     abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                 }
 
-                Nenriched(i, 0) = 0.5 * (rPartitionsSign[i] * abs_dist - dist);
+                NEnriched(i, 0) = 0.5 * (rPartitionsSign[i] * abs_dist - dist);
 
                 //compute shape function gradients
                 for (int j = 0; j < 3; j++)
