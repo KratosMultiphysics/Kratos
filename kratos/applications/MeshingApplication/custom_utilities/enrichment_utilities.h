@@ -87,6 +87,7 @@ namespace Kratos
          * @param rVolumes Result vector with size 6 (maximumn number of partitions) holding the volume of each partition
          * @param rShapeFunctionValues Result 6x4 matrix where each row represents a partition and holds the shape functions N1 to N4
          *        of the original tetrahedra evaluated in the gauss point (center) of the partition.
+         *        so that it is  N(gauss_index, node_index)
          * @param rPartitionsSign A result vector of 6 holding the sign of the distance for the partition.
          *        The value -1 represents the negative distance sign, 1 represents positive distance and 0 stands for not used partition
          * @param rGradientsValue Restult vector of size 6 holding the gradient of the enriched shape funciton for each volume.
@@ -100,7 +101,7 @@ namespace Kratos
         template<class TMatrixType, class TVectorType, class TGradientType>
         static int CalculateTetrahedraEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
         TVectorType const& rDistances, TVectorType& rVolumes, TMatrixType& rShapeFunctionValues,
-        TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, TMatrixType& Nenriched)
+        TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, TMatrixType& NEnriched)
         {
             KRATOS_TRY
 
@@ -450,10 +451,10 @@ namespace Kratos
                 //compute enriched shape function values
                 double dist = 0.0;
                 double abs_dist = 0.0
-                for (int j = 0; j < 3; j++)
+                for (int j = 0; j < 4; j++)
                 {
-                    dist += rShapeFunctionValues(i, j) * exact_distance;
-                    abs_dist += rShapeFunctionValues(i, j) * abs_distance;
+                    dist += rShapeFunctionValues(i, j) * exact_distance[j];
+                    abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                 }
 
                 Nenriched(i, 0) = 0.5 * (rPartitionsSign[i] * abs_dist - dist);
