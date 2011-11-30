@@ -7,7 +7,7 @@ max_time = 1.00000e+00
 output_step = 1.00000e-02
 alpha_shape = 1.60000e+00
 erase_nodes = 1.00000e+00
-adaptive_refinement = 0.00000e+00
+adaptive_refinement = 1.00000e+00
 delete_nodes_close_to_wall = 1.00000e+00
 bulk_modulus = -1.00000e+03
 density = 1.00000e+03
@@ -24,4 +24,3 @@ SolverType = "Incompressible_Modified_FracStep"
 problem_name = 'slosh'
 problem_path = '/home/paolo/Kratos_Newest/applications/ULFapplication/test_exemples/slosh.gid'
 kratos_path = '/home/paolo/Kratos_Newest'
-
