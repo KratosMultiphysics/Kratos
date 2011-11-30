@@ -125,6 +125,7 @@ alias sources_KratosStructuralApplication
         pfem_contact_element3D_vel.cpp
 	brittle_material_2d.cpp 
         face_vel_3D.cpp 
+    casm.cpp
 
 
 	#####################kratos library as defined in the jamroot
