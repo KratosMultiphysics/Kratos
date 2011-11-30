@@ -38,7 +38,8 @@ class StaticStructuralSolver:
 
         self.model_part = model_part
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        self.time_scheme.Check(self.model_part)
+        #if called here, Check may be called before the system is completely set up!!!
+        #self.time_scheme.Check(self.model_part)
 
         #definition of the solvers
         self.structure_linear_solver =  SkylineLUFactorizationSolver()
