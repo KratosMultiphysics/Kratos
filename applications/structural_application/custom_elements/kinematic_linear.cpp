@@ -134,7 +134,6 @@ namespace Kratos
             for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
                 for ( unsigned int i = 0; i < 3; i++ )
                     mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
-
             return;
         }
 
@@ -1046,8 +1045,15 @@ namespace Kratos
         {
             for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
             {
-                mConstitutiveLawVector[PointNumber]->SetValue( INSITU_STRESS, rValues[PointNumber],
-                        rCurrentProcessInfo );
+                mConstitutiveLawVector[PointNumber]->SetValue( INSITU_STRESS, rValues[PointNumber], rCurrentProcessInfo );
+            }
+        }
+
+        if ( rVariable == PRESTRESS )
+        {
+            for ( unsigned int PointNumber = 0; PointNumber < GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(); PointNumber++ )
+            {
+                mConstitutiveLawVector[PointNumber]->SetValue( PRESTRESS, rValues[PointNumber], rCurrentProcessInfo );
             }
         }
 
