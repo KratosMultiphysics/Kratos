@@ -142,6 +142,10 @@ namespace Kratos
         {
             mInSituStress = rValue;
         }
+        if( rThisVariable == PRESTRESS )
+        {
+            mInSituStress = rValue;
+        }
     }
 
     void Isotropic3D::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
@@ -254,7 +258,11 @@ namespace Kratos
         noalias( StressVector ) = prod( mCtangent, StrainVector );
 
         mCurrentStress = StressVector;
+//         std::cout << "before:" << std::endl;
+//         KRATOS_WATCH( StressVector );
         noalias( StressVector ) -= mInSituStress;
+//         std::cout << "after:" << std::endl;
+//         KRATOS_WATCH( StressVector );
         //KRATOS_WATCH(StrainVector)
 //   double c1 = mE / ((1.00+mNU)*(1-2*mNU));
 //   double c2 = c1 * (1-mNU);
