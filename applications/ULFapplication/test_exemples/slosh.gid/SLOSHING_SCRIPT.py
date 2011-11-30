@@ -113,6 +113,11 @@ structure_model_part = ModelPart("StructurePart");
 combined_model_part = ModelPart("CombinedPart");
 fluid_only_model_part = ModelPart("FluidOnlyPart");
 
+
+
+fluid_model_part.AddNodalSolutionStepVariable(IS_VISITED);
+fluid_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
 SolverType=fluid_ulf_var.SolverType
 #if (SolverType=="Incompressible_Modified_FracStep" or SolverType=="FracStep"):
     #fluid_only_model_part = ModelPart("FluidOnlyPart");
@@ -201,7 +206,7 @@ if(SolverType == "Incompressible_Modified_FracStep"):
     for node in fluid_model_part.Nodes:
 	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
 	node.SetSolutionStepValue(DENSITY,0, density)
-	node.SetSolutionStepValue(VISCOSITY,0, 0.001)
+	node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
 	node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.000)
     solver.Initialize()
     
@@ -267,6 +272,21 @@ inlet_vel[1]=0.0
 inlet_vel[2]=0.0
 
 
+def SelectVisited(nodes):
+     for node in nodes:
+         if(node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
+             node.SetValue(IS_VISITED,1.0)
+             node.SetSolutionStepValue(DISTANCE,0,0.0)
+             #print "AAAAAAAAAAAAA"
+         else:
+             node.SetValue(IS_VISITED,0.0)
+
+#set_h_map_process = SetHMapProcess(fluid_model_part);
+
+SelectVisited(fluid_model_part.Nodes)
+
+distance_utils=BodyDistanceCalculationUtils()
+
 dummy=LagrangianInletProcess(fluid_model_part, 0.0, inlet_vel)
 
 while (time < final_time):
@@ -293,6 +313,38 @@ while (time < final_time):
 
         solver.Solve(dummy)        
         print "after completing the solution"
+##        SelectVisited(fluid_model_part.Nodes)
+##        distance_utils.CalculateDistances2D(fluid_model_part.Elements, DISTANCE, True)
+##
+##        for node in fluid_model_part.Nodes:
+##            if (node.GetSolutionStepValue(DISTANCE)<=0.09 and node.GetSolutionStepValue(DISTANCE)>=0.0001):
+##                h=0.05*node.GetSolutionStepValue(DISTANCE)+0.003
+##                node.SetSolutionStepValue(NODAL_H, 0, h)
+##            else:
+##                node.SetSolutionStepValue(NODAL_H, 0, 0.01)
+                  
+
+##        if (time>0.05):
+##            #here we want to store the min_H, max_H, min_dist, max_dist
+##            min_H=1000000.0
+##            max_H=0.0
+##            min_dist=0.0
+##            max_dist=0.0
+##            for node in fluid_model_part.Nodes:
+##                H=node.GetSolutionStepValue(NODAL_H)
+##                if (min_H>H):
+##                    min_H=H
+##                if (max_H<H):
+##                    max_H=H
+##
+##            #min_H=1.0*min_H
+##            #we set min_Dist to the min_H
+##            #I want to prescribe the mesh size: min_H=0.01
+##            min_H=0.004
+##            min_Dist=0.5*min_H
+##            #1.0*min_H
+##
+##            set_h_map_process.CalculateOptimalH(min_H, max_H)
 
         if(time > next_output_time):
     
@@ -306,9 +358,9 @@ while (time < final_time):
 
             gid_io.InitializeResults(time, (combined_model_part).GetMesh());
 
-            gid_io.WriteNodalResults(REACTION, combined_model_part.Nodes, time, 0);
-            gid_io.WriteNodalResults(DISPLACEMENT, combined_model_part.Nodes, time, 0);
-            gid_io.WriteNodalResults(IS_STRUCTURE, combined_model_part.Nodes, time, 0);           
+            gid_io.WriteNodalResults(DISTANCE, combined_model_part.Nodes, time, 0);
+            gid_io.WriteNodalResults(NODAL_H, combined_model_part.Nodes, time, 0);
+            gid_io.WriteNodalResults(IS_VISITED, combined_model_part.Nodes, time, 0);           
             gid_io.WriteNodalResults(IS_FREE_SURFACE, combined_model_part.Nodes, time, 0);
             gid_io.WriteNodalResults(IS_INTERFACE, combined_model_part.Nodes, time, 0);            
             gid_io.WriteNodalResults(VELOCITY, combined_model_part.Nodes, time, 0);
