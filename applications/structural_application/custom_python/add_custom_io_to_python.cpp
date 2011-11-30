@@ -53,8 +53,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-// #include "includes/datafile_io.h"
-// #include "includes/gid_io.h"
+#include "includes/datafile_io.h"
+#include "includes/model_part_io.h"
+#include "includes/gid_io.h"
 #include "custom_utilities/custom_gid_io.h"
 #include "python/add_io_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
