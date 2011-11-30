@@ -260,9 +260,10 @@ class ULF_FSISolver:
    ######################################################################
 ######################################################################
     def Remesh(self):
-	#self.UlfUtils.MarkNodesCloseToWall(self.fluid_model_part, self.domain_size, 3.50)
-	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
-	#self.UlfUtils.MarkNodesCloseToWallForBladder(self.fluid_model_part, 0.0003)
+	
+	#self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
+	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.17)
+	
 			
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
@@ -275,10 +276,12 @@ class ULF_FSISolver:
 
 	#self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         #marking nodes outside of the bounding box
+        self.UlfUtils.MarkLonelyNodesForErasing(self.fluid_model_part)
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         self.node_erase_process.Execute()
+        
          
-        h_factor=0.8;
+        h_factor=0.65;
         ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          
