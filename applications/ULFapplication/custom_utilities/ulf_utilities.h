@@ -836,16 +836,19 @@ namespace Kratos
 		{
 
 //delete lonely nodes //just to try: 19/07/2010
+			/*
 			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
 				in!=ThisModelPart.NodesEnd(); in++)
 			{
 			in->GetValue(ERASE_FLAG)=false;
 
 			}
+			*/
+
 			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
 				in!=ThisModelPart.NodesEnd(); in++)
 			{
-				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)==0.0)
+				if((in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 && in->FastGetSolutionStepValue(IS_STRUCTURE)==0.0 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1 && in->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET,1)!=1.0)
 					{
 					in->GetValue(ERASE_FLAG)=true;
 					KRATOS_WATCH("Marking lonelynodes!!!")
