@@ -80,12 +80,12 @@ class ULFFracStrategyPython:
         ReformDofSet=True
         #maybe should be just "fluid_model_part" below, and not the combined
         #self.PressureLinStrat=ResidualBasedLinearStrategy(self.model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
-        if (domain_size==2):
-	  self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
-	if (domain_size==3):
-	  self.PressureLinStrat=LapModifiedLinearStrategy3D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        #if (domain_size==2):
+	#  self.PressureLinStrat=LapModifiedLinearStrategy2D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+	#if (domain_size==3):
+	#  self.PressureLinStrat=LapModifiedLinearStrategy3D(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
         
-        #self.PressureLinStrat=ResidualBasedLinearStrategy(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
+        self.PressureLinStrat=ResidualBasedLinearStrategy(self.fluid_only_model_part, self.pres_time_scheme, self.pres_linear_solver, False, ReformDofSet, False, False)
         self.PressureLinStrat.SetEchoLevel(1)
         #############################################
         (self.VariableUtils) = VariableUtils()
