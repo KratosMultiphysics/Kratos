@@ -141,8 +141,15 @@ namespace Kratos
 	   return (x<0)?  ceil(x):floor(x);
 	}
 
-	inline double round(double r,unsigned places){
-	double off=pow(10,places);
+		inline double round(double r,unsigned int places){
+	int off=1;
+	for(unsigned int i=0; i<places; i++)
+		off *= 10;
+
+
+
+//		for(unsigned int i=0; i<places;i++
+	//int off=pow(10,places);
 	return cint(r*off)/off;
         }
 	
