@@ -79,6 +79,13 @@ class ContactPair
 		value[1] = Pair[1];
 		return *this; 
 	     }
+
+	ContactPair& operator = (const ContactPair& Pair)
+             { 
+		value[0] = Pair[0];
+		value[1] = Pair[1];
+		return *this; 
+	     }
    
     
     inline bool operator == (const ContactPair& Pair)
