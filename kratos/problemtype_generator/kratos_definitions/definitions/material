@@ -3,6 +3,7 @@ where	*# Property blocks
 
 *loop materials
 *if(strcmp(MatProp(Type),"<TYPE>")==0)
+*format "%i"
 Begin Properties  *MatNum
 <FOR EACH PROPERTY>
 <BEGIN SCALAR>
