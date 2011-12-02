@@ -34,6 +34,7 @@ namespace Kratos
                 mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
                 mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
                 mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+                mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
                 mSpalartAllmaras2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
                 mSpalartAllmaras3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
                 mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -67,6 +68,7 @@ namespace Kratos
                 KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D)
                 KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D)
                 KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D)
+                KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D)
 
                 KRATOS_REGISTER_ELEMENT("SpalartAllmaras2D",mSpalartAllmaras2D)
                 KRATOS_REGISTER_ELEMENT("SpalartAllmaras3D",mSpalartAllmaras3D)
