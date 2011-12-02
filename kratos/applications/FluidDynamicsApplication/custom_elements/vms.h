@@ -359,7 +359,7 @@ namespace Kratos
                 double TauOne,TauTwo;
                 this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
 
-                array_1d<double,3> ElemMomRes;
+                array_1d<double,3> ElemMomRes(3,0.0);
                 this->ASGSMomResidual(AdvVel,Density,ElemMomRes,N,DN_DX,1.0);
 
                 const array_1d<double,3>& rOldSubscale = this->GetValue(SUBSCALE_VELOCITY);
@@ -433,7 +433,7 @@ namespace Kratos
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
-                this->AddMassStabTerms<MatrixType > (rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
+                this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, Area);
             }
         }
 
@@ -469,6 +469,7 @@ namespace Kratos
             double Density, KinViscosity;
             this->EvaluateInPoint(Density, DENSITY, N);
             this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            KRATOS_WATCH(Density);
 
             double Viscosity;
             this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
@@ -718,7 +719,7 @@ namespace Kratos
                     /* Projections of the elemental residual are computed with
                      * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
                      */
-                    const double Weight = ConsitentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
+                    const double Weight = ConsistentMassCoef(Area); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
                     // Carefully write results to nodal variables, to avoid parallelism problems
                     for (unsigned int i = 0; i < TNumNodes; ++i)
                     {
@@ -1129,7 +1130,7 @@ namespace Kratos
         }
 
         /// Add the momentum equation contribution to the RHS (body forces)
-        void AddMomentumRHS(VectorType& F,
+        virtual void AddMomentumRHS(VectorType& F,
                             const double Density,
                             const array_1d<double, TNumNodes>& rShapeFunc,
                             const double Weight)
@@ -1137,7 +1138,7 @@ namespace Kratos
             double Coef = Density * Weight;
 
             array_1d<double, 3 > BodyForce(3, 0.0);
-            this->AddPointContribution(BodyForce, BODY_FORCE, rShapeFunc, Coef);
+            this->EvaluateInPoint(BodyForce, BODY_FORCE, rShapeFunc);
 
             // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
             int LocalIndex = 0;
@@ -1146,14 +1147,14 @@ namespace Kratos
             {
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    F[LocalIndex++] += rShapeFunc[iNode] * BodyForce[d];
+                    F[LocalIndex++] += Coef * rShapeFunc[iNode] * BodyForce[d];
                 }
                 ++LocalIndex; // Skip pressure Dof
             }
         }
 
         /// Add OSS projection terms to the RHS
-        void AddProjectionToRHS(VectorType& RHS,
+        virtual void AddProjectionToRHS(VectorType& RHS,
                                 const array_1d<double, 3 > & rAdvVel,
                                 const double TauOne,
                                 const double TauTwo,
@@ -1228,6 +1229,39 @@ namespace Kratos
                 ++DofIndex; // Skip pressure Dof
             }
         }
+        
+        void AddConsistentMassMatrixContribution(MatrixType& rLHSMatrix,
+                                                 const array_1d<double,TNumNodes>& rShapeFunc,
+                                                 const double Density,
+                                                 const double Weight)
+        {
+            const unsigned int BlockSize = TDim + 1;
+
+            double Coef = Density * Weight;
+            unsigned int FirstRow(0), FirstCol(0);
+            double K; // Temporary results
+
+            // Note: Dof order is (vx,vy,[vz,]p) for each node
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                // Loop over columns
+                for (unsigned int j = 0; j < TNumNodes; ++j)
+                {
+                    // Delta(u) * TauOne * [ AdvVel * Grad(v) ] in velocity block
+                    K = Coef * rShapeFunc[i] * rShapeFunc[j];
+
+                    for (unsigned int d = 0; d < TDim; ++d) // iterate over dimensions for velocity Dofs in this node combination
+                    {
+                        rLHSMatrix(FirstRow + d, FirstCol + d) += K;
+                    }
+                    // Update column index
+                    FirstCol += BlockSize;
+                }
+                // Update matrix indices
+                FirstRow += BlockSize;
+                FirstCol = 0;
+            }
+        }
 
 
         /// Add mass-like stabilization terms to LHS.
@@ -1243,8 +1277,7 @@ namespace Kratos
          * @param rShapeDeriv Shape function derivatives evaluated on integration point
          * @param Weight Area (or volume) times integration point weight
          */
-        template < class TMatrixType >
-        void AddMassStabTerms(TMatrixType& rLHSMatrix,
+        void AddMassStabTerms(MatrixType& rLHSMatrix,
                               const double Density,
                               const array_1d<double, 3 > & rAdvVel,
                               const double TauOne,
@@ -1702,15 +1735,14 @@ namespace Kratos
          * @param Step: The time Step (Defaults to 0 = Current)
          * @param Weight: The variable will be weighted by this value before it is added to rResult
          */
-        void AddPointContribution(double& rResult,
-                                  const Variable< double >& rVariable,
-                                  const array_1d< double, TNumNodes >& rShapeFunc,
-                                  const std::size_t Step = 0,
-                                  const double Weight = 1.0)
+        virtual void AddPointContribution(double& rResult,
+                                          const Variable< double >& rVariable,
+                                          const array_1d< double, TNumNodes >& rShapeFunc,
+                                          const double Weight = 1.0)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-                rResult += Weight * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable, Step);
+                rResult += Weight * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
         }
 
         /// Write the value of a variable at a point inside the element to a double
@@ -1723,15 +1755,15 @@ namespace Kratos
          * @param rShapeFunc: The values of the form functions in the point
          * @param Step: The time Step (Defaults to 0 = Current)
          */
-        void EvaluateInPoint(double& rResult,
-                             const Variable< double >& rVariable,
-                             const array_1d< double, TNumNodes >& rShapeFunc,
-                             const std::size_t Step = 0)
+        virtual void EvaluateInPoint(double& rResult,
+                                     const Variable< double >& rVariable,
+                                     const array_1d< double, TNumNodes >& rShapeFunc)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
-            rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable, Step);
+            rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
-                rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable, Step);
+                rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
+            KRATOS_ERROR(std::logic_error,"Error","")
         }
 
         /// Add the weighted value of a variable at a point inside the element to a vector
@@ -1745,10 +1777,10 @@ namespace Kratos
          * @param rShapeFunc: The values of the form functions in the point
          * @param Weight: The variable will be weighted by this value before it is added to rResult
          */
-        inline void AddPointContribution(array_1d< double, 3 > & rResult,
-                                         const Variable< array_1d< double, 3 > >& rVariable,
-                                         const array_1d< double, TNumNodes>& rShapeFunc,
-                                         const double Weight = 1.0)
+        virtual void AddPointContribution(array_1d< double, 3 > & rResult,
+                                          const Variable< array_1d< double, 3 > >& rVariable,
+                                          const array_1d< double, TNumNodes>& rShapeFunc,
+                                          const double Weight = 1.0)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
             for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -1764,9 +1796,9 @@ namespace Kratos
          * @param rVariable: The nodal variable to be read
          * @param rShapeFunc: The values of the form functions in the point
          */
-        void EvaluateInPoint(array_1d< double, 3 > & rResult,
-                             const Variable< array_1d< double, 3 > >& rVariable,
-                             const array_1d< double, TNumNodes >& rShapeFunc)
+        virtual void EvaluateInPoint(array_1d< double, 3 > & rResult,
+                                     const Variable< array_1d< double, 3 > >& rVariable,
+                                     const array_1d< double, TNumNodes >& rShapeFunc)
         {
             // Compute the weighted value of the nodal variable in the (Gauss) Point
             rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
@@ -1916,7 +1948,7 @@ namespace Kratos
         virtual void CalculateC( boost::numeric::ublas::bounded_matrix<double, (TDim * TNumNodes) / 2, (TDim * TNumNodes) / 2 >& rC,
                                  const double Viscosity);
 
-        double ConsitentMassCoef(const double Area);
+        double ConsistentMassCoef(const double Area);
 
         ///@}
         ///@name Protected  Access
