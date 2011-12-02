@@ -574,9 +574,11 @@ namespace Kratos
                         for (unsigned int k = 0; k < TDim; k++)
                         {
                             double temp = wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                            enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                        }
+                            enrichment_terms_vertical[base_index + k] -= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                            enrichment_terms_horizontal[base_index + k] += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+//                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+//                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                       }
 
                         //pressure term
                         for (unsigned int k = 0; k < TDim; k++)

@@ -623,14 +623,14 @@ namespace Kratos
     }
 
     template<>
-    double VMS<2,3>::ConsitentMassCoef(const double Area)
+    double VMS<2,3>::ConsistentMassCoef(const double Area)
     {
         const double Coef = 1.0/12.0;
         return Area * Coef;
     }
 
     template<>
-    double VMS<3,4>::ConsitentMassCoef(const double Volume)
+    double VMS<3,4>::ConsistentMassCoef(const double Volume)
     {
         const double Coef = 1.0/20.0;
         return Volume * Coef;
