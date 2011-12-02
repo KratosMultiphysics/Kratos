@@ -77,6 +77,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/vms.h"
 #include "custom_elements/bingham_vms.h"
 #include "custom_elements/dynamic_vms.h"
+#include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/spalart_allmaras_element.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/periodic_condition.h"
@@ -251,6 +252,8 @@ namespace Kratos
                 const DynamicVMS<2> mDynamicVMS2D;
                 /// 3D instance of the Dynamic Subscale version of the VMS element
                 const DynamicVMS<3> mDynamicVMS3D;
+                /// 3D instance of the two-fluid VMS element
+                const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 
                 /// 2D Spalart-Allmaras turbulent viscosity transport equation element
                 const SpalartAllmaras<2,3> mSpalartAllmaras2D;
