@@ -242,10 +242,11 @@ namespace Kratos
             array_1d<double, 3 > abs_distance_gradient;
             noalias(abs_distance_gradient) = prod(trans(DN_DX), abs_distance);
 
-            KRATOS_WATCH(rDistances);
-            KRATOS_WATCH(exact_distance);
-            KRATOS_WATCH(exact_distance_gradient);
-            //            KRATOS_WATCH(grad_d);
+//            KRATOS_WATCH(rDistances);
+//            KRATOS_WATCH(exact_distance);
+//            KRATOS_WATCH(exact_distance_gradient);
+//            KRATOS_WATCH(abs_distance_gradient);
+//            //            KRATOS_WATCH(grad_d);
             //            KRATOS_WATCH(edge_division_i)
             //            KRATOS_WATCH(edge_division_j);
             //            KRATOS_WATCH(n_zero_distance_nodes);
@@ -269,7 +270,7 @@ namespace Kratos
             volume *= one_sixth;
 
 
-            KRATOS_WATCH(volume)
+//            KRATOS_WATCH(volume)
             if (number_of_splitted_edges == 0) // no spliting
             {
                 rVolumes[0] = volume;
@@ -314,8 +315,8 @@ namespace Kratos
                     rPartitionsSign[1] = 1;
                     rPartitionsSign[2] = -1;
                 }
-                KRATOS_WATCH(node1);
-                KRATOS_WATCH(node2);
+//                KRATOS_WATCH(node1);
+//                KRATOS_WATCH(node2);
                 // dividing volume to volume 0 and 1
                 int edge = edges[node1][node2];
                 int volume1_id = int(edge_i[edge] == node1);
@@ -445,7 +446,9 @@ namespace Kratos
                 number_of_partitions = 6; // There are six partitions
             }
 
-
+//            KRATOS_WATCH("aaa")
+            KRATOS_WATCH(abs_distance_gradient)
+            KRATOS_WATCH(exact_distance_gradient)
             for (int i = 0; i < number_of_partitions; i++)
             {
                 //compute enriched shape function values
@@ -457,12 +460,16 @@ namespace Kratos
                     abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                 }
 
-                NEnriched(i, 0) = 0.5 * (rPartitionsSign[i] * abs_dist - dist);
+                NEnriched(i, 0) = 0.5 * (abs_dist - rPartitionsSign[i] * dist);
+//KRATOS_WATCH("ccc")
+//KRATOS_WATCH(i)
+//KRATOS_WATCH(j)
 
                 //compute shape function gradients
                 for (int j = 0; j < 3; j++)
-                    rGradientsValue[i](0, j) = 0.5 * (rPartitionsSign[i] * abs_distance_gradient[j] - exact_distance_gradient[j]);
+                    rGradientsValue[i](0, j) = 0.5 * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
             }
+//            KRATOS_WATCH("bbb")
 
             /*
                         int edge_ids[6];
@@ -623,10 +630,10 @@ namespace Kratos
             const int i = edge_i[Edge];
             const int j = edge_j[Edge];
 
-            std::cout << "splitting edge" << i << " " << j << std::endl;
-            KRATOS_WATCH(Volume1Id);
-            KRATOS_WATCH(Volume2Id);
-            KRATOS_WATCH(rShapeFunctionValues)
+//            std::cout << "splitting edge" << i << " " << j << std::endl;
+//            KRATOS_WATCH(Volume1Id);
+//            KRATOS_WATCH(Volume2Id);
+//            KRATOS_WATCH(rShapeFunctionValues)
 
                     double delta1 = rShapeFunctionValues(Volume1Id, i) * (1.00 - division_i);
             rShapeFunctionValues(Volume1Id, i) += delta1;
@@ -636,10 +643,10 @@ namespace Kratos
             rShapeFunctionValues(Volume2Id, j) += delta2;
             rShapeFunctionValues(Volume2Id, i) -= delta2;
 
-            KRATOS_WATCH(delta1)
-            KRATOS_WATCH(delta2)
-
-            KRATOS_WATCH(rShapeFunctionValues)
+//            KRATOS_WATCH(delta1)
+//            KRATOS_WATCH(delta2)
+//
+//            KRATOS_WATCH(rShapeFunctionValues)
 
 
 
