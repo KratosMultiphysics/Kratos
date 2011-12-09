@@ -73,6 +73,7 @@ class FracStepSolver:
         self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.domain_size = domain_size;
+	self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
         #self.MoveMeshFlag = True
 
         if (self.domain_size==2):
@@ -82,6 +83,7 @@ class FracStepSolver:
         ##calculate normals
         self.normal_tools = NormalCalculationUtils()
         #self.Hfinder  = FindNodalHProcess(model_part);
+	self.timer=Timer()  
                 
     #######################################################################
     def Initialize(self):
@@ -110,19 +112,30 @@ class FracStepSolver:
 
     #######################################################################   
     def Solve_step1(self):
+	self.timer.Start("Calculo_aceleracion")
         (self.solver).SolveStep1()
+	self.timer.Stop("Calculo_aceleracion")
+	print self.timer
 #        (self.neigh_finder).Execute();
         #self.Remesh()
 
     #######################################################################   
     def Solve_step2(self):
+	self.timer.Start("Presion")
+	#ssssssssss
         (self.solver).SolveStep2()
+	self.timer.Stop("Presion")
+	print self.timer
+	#sssssss
 #        (self.neigh_finder).Execute();
         #self.Remesh()
 
     #######################################################################   
     def Solve_step3(self):
+	self.timer.Start("Correccion_velocidad")
         (self.solver).SolveStep3()
+	self.timer.Stop("Correccion_velocidad")
+	print self.timer
 #        (self.neigh_finder).Execute();
         #self.Remesh()
 
