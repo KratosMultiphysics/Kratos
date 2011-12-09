@@ -269,21 +269,21 @@ namespace Kratos
 		KRATOS_WATCH("Solve of GLS Frac Step Strategy")
 		//we estimate the time step for the explicit time integration schem estability
 		//ComputeTimeStep(0.8);
-		Timer::Start("SolveStep1");
+		//Timer::Start("SolveStep1");
 		SolveStep1();
-		Timer::Stop("SolveStep1");
+		//Timer::Stop("SolveStep1");
 		KRATOS_WATCH("First frac step completed")
 		//we write now the beginning of step pressure to OLD_IT to use it in the second frac step
 		
 		SavePressureIt();
-		Timer::Start("SolveStep2");
+		//Timer::Start("SolveStep2");
 		double Dp_norm = this->SolveStep2();
-		Timer::Stop("SolveStep2");
+		//Timer::Stop("SolveStep2");
 		//if(this->mReformDofAtEachIteration == true )
 		//		this->Clear();
-		Timer::Start("SolveStep3");
+		//Timer::Start("SolveStep3");
 		SolveStep3();
-		Timer::Stop("SolveStep3");
+		//Timer::Stop("SolveStep3");
 
 		SaveAccelerations();
 		//return 0.0;//
@@ -335,17 +335,13 @@ namespace Kratos
 		void SolveStep1()		
 		{
 			KRATOS_TRY
+//Timer::Start("Calculo_aceleracion");
 			//vector that we shall use to store temporary results in the context
 			array_1d<double,3> aux;	
 			array_1d<double,3> aux1;	
 			ModelPart& model_part=BaseType::GetModelPart();
 
-			//getting delta time 
-			//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-			//double& delta_t = model_part.GetProcessInfo()[DELTA_TIME];
-			//KRATOS_WATCH(delta_t)
-			//Write the mass factors (that corresponds to the assembly of global lumped mass matrix... instead of building and
-			//storing this matris, we write the mass factors to the nodes in the var MASS_FACTORS
+		
 			for(ModelPart::NodeIterator in = BaseType::GetModelPart().NodesBegin() ; 
 					in != BaseType::GetModelPart().NodesEnd() ; ++in)
 			{
@@ -356,37 +352,7 @@ namespace Kratos
 			//ProcessInfo& proc_info = model_part.GetProcessInfo();
 
 		  
-/*		  int NumThreads = OpenMPUtils::GetNumThreads();
-		  PartitionVector ElementPartition;
-		  OpenMPUtils::DivideInPartitions(model_part.Elements().size(),NumThreads,ElementPartition);
-
-#pragma omp parallel firstprivate(ElementPartition)
-		  {
-			  int k = OpenMPUtils::ThisThread();
-			  
-			  
-			  //vector containing the localization in the system of the different terms
-			  Element::EquationIdVectorType EquationId;
-			  ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
-			  
-			  ModelPart::ElementIterator im = model_part.ElementsBegin()+ElementPartition[k];
-			  ModelPart::ElementIterator in = model_part.ElementsBegin()+ElementPartition[k+1];
-
-
-
-			for(ModelPart::ElementIterator im = model_part.ElementsBegin() ; 
-				im != model_part.ElementsEnd() ; ++im)
-			{
-				im->Calculate(NODAL_MASS, dummy, proc_info);				
-			}				
-
-
-}*/
-
-
-
-
-		  
+	  
 		  int NumThreads = OpenMPUtils::GetNumThreads();
 		  PartitionVector ElementPartition;
 		  OpenMPUtils::DivideInPartitions(model_part.Elements().size(),NumThreads,ElementPartition);
@@ -414,15 +380,6 @@ namespace Kratos
 			    }
 		  }
 		  
-
-/*for(ModelPart::ElementIterator im = model_part.ElementsBegin() ; 
-				im != model_part.ElementsEnd() ; ++im)
-			{
-				im->Calculate(NODAL_MASS, dummy, proc_info);				
-			}	
-
-*/
-
 
 
 			if (this->mReformDofAtEachIteration==true)
@@ -464,44 +421,13 @@ namespace Kratos
 			//reset the RHS
 			SetToZero(RHS_VECTOR,model_part.Nodes());
 
-			/*PartitionVector NodePartition;
-		  	OpenMPUtils::DivideInPartitions(model_part.Nodes().size(),NumThreads,NodePartition);
-		  	KRATOS_WATCH("PARALELO");*/
-
-
-			
+		
 			array_1d<double,3> Frac_Step_Switch; 
 
 			Frac_Step_Switch[0]=1.0;
 			Frac_Step_Switch[1]=1.0;
 			Frac_Step_Switch[2]=1.0;
 
-/*#pragma omp parallel firstprivate(Frac_Step_Switch,ElementPartition)
-		  {
-		    int k = OpenMPUtils::ThisThread();
-		    
-		    Element::EquationIdVectorType EquationId;
-		    ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
-		    ModelPart::ElementIterator im = model_part.ElementsBegin()+ElementPartition[k];
-		    ModelPart::ElementIterator in = model_part.ElementsBegin()+ElementPartition[k+1];
-		    KRATOS_WATCH(k)
-		      
-		      for(ModelPart::ElementIterator pElem =  im ; pElem != in ; pElem++)
-			{
-			  
-			  pElem->Calculate(VELOCITY, Frac_Step_Switch, CurrentProcessInfo);	
-			}
-		  }*/
-
-
-
-
-			//loop over elements calculating the Right Hand Side, that is stored directly to the node.. this is done by fct Calculate
-			/*for(ModelPart::ElementIterator im = model_part.ElementsBegin() ; im != model_part.ElementsEnd() ; ++im)
-			{
-			//compute the momentum residual, add it to the RHS_VECTOR on nodes
-			im->Calculate(VELOCITY, Frac_Step_Switch, proc_info);
-			}*/
 		
 
 
@@ -541,7 +467,7 @@ namespace Kratos
 			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
 
 			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
-			
+			//Timer::Stop("Calculo_aceleracion");
 			KRATOS_CATCH("")
 		}
 
@@ -551,10 +477,14 @@ namespace Kratos
 		double SolveStep2()
 		{
 		KRATOS_TRY
+//Timer time;
+Timer::Start("Presion");
 		KRATOS_WATCH("Second stage of Frac Step")
 		
 		//solves the system that is assembled within "calculateLocalSystem" of the element
 		return mpressurestep->Solve();	
+//Timer::Stop("Presion");
+KRATOS_WATCH(time)
 		KRATOS_CATCH("");
 		}
 		
@@ -566,6 +496,9 @@ namespace Kratos
 		void SolveStep3()
 		{
 		KRATOS_TRY
+		
+		//Timer::Start("Ultimo_paso");
+
 					
 		ModelPart& model_part=BaseType::GetModelPart();
 		
@@ -731,7 +664,7 @@ namespace Kratos
 			
 			
 		}
-		
+		//Timer::Stop("Ultimo_paso");
 		KRATOS_CATCH("");
 		}
 		
