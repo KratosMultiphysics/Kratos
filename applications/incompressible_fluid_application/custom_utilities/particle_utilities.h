@@ -74,6 +74,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 
+
+#include <boost/timer.hpp>
+#include "utilities/timer.h"
+
+
+
 namespace Kratos
 {
 
@@ -127,15 +133,15 @@ namespace Kratos
 
             //*************
             // Bucket types
-            typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-            // 			   typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
-            // 			   typedef BinsDynamic< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > DynamicBins;
+            //typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+             			   typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
+             			  // typedef BinsDynamic< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > DynamicBins;
             //*************
             // DynamicBins;
 
-            typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
+            //typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
             // 			   typedef Tree< OCTreePartition<BucketType> > tree; 		//Octree;
-            // 			   typedef Tree< StaticBins > tree; 		     		//Binstree;
+            			   typedef Tree< StaticBins > tree; 		     		//Binstree;
             // 			   typedef Tree< KDTreePartition<StaticBins> > tree; 		//KdtreeBins;
             // 			   typedef typename KdtreeBins::Partitions SubPartitions;
             // 			   typedef Tree< OCTreePartition<StaticBins> > tree; 		//OctreeBins;
@@ -358,16 +364,16 @@ namespace Kratos
 
             //*************
             // Bucket types
-            typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-            // 			   typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
+            	typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
+             			   //typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
             // 			   typedef BinsDynamic< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > DynamicBins;
             //*************
             // DynamicBins;
-
+//typedef Tree< StaticBins > Bin; 
             typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
             // 			   typedef Tree< OCTreePartition<BucketType> > tree; 		//Octree;
             // 			   typedef Tree< StaticBins > tree; 		     		//Binstree;
-            // 			   typedef Tree< KDTreePartition<StaticBins> > tree; 		//KdtreeBins;
+             			   //typedef Tree< KDTreePartition<StaticBins> > tree; 		//KdtreeBins;
             // 			   typedef typename KdtreeBins::Partitions SubPartitions;
             // 			   typedef Tree< OCTreePartition<StaticBins> > tree; 		//OctreeBins;
             /*
@@ -504,9 +510,14 @@ namespace Kratos
         //**********************************************************************************************
         //**********************************************************************************************
 
-        void StreamlineMove(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
+        void StreamlineMove(array_1d<double, 3 > & body_force, const double density, const double speficit_heat, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
         {
             KRATOS_TRY
+		
+
+		Timer time;
+		Timer::Start("StreamlineMove");
+
 
             if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
                 KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
@@ -516,6 +527,7 @@ namespace Kratos
             //            node_locator.UpdateSearchDatabase();
 
             double density_inverse = 1.0 / density;
+	    double specific_heat_inverse = 1.0 / speficit_heat;
 
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
@@ -526,22 +538,12 @@ namespace Kratos
                 pnode->GetValue(ERASE_FLAG) = true;
                 node_it->GetValue(IS_VISITED) = 0;
 
-                //reset the position to the position at the end of the step
-                /*const array_1d<double, 3 > & old_disp = (node_it)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                noalias((node_it)->FastGetSolutionStepValue(DISPLACEMENT)) = old_disp;
-
-                const array_1d<double, 3 > & old_vel = (node_it)->FastGetSolutionStepValue(VELOCITY, 1);
-                noalias((node_it)->FastGetSolutionStepValue(VELOCITY)) = old_vel;
-
-                (node_it)->X() = (node_it)->X0() + old_disp[0];
-                (node_it)->Y() = (node_it)->Y0() + old_disp[1];
-                (node_it)->Z() = (node_it)->Z0() + old_disp[2];*/
-
             }
             //            KRATOS_WATCH("539")
             array_1d<double, 3 > veulerian;
             array_1d<double, 3 > acc_particle;
             array_1d<double, TDim + 1 > N;
+	    double G;
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -560,10 +562,10 @@ namespace Kratos
                     typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                     Element::Pointer pelement;
-                    //            KRATOS_WATCH("561")
+                   
 
                     bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-                    //            KRATOS_WATCH("564")
+                   
 
                     if (is_found == true)
                     {
@@ -578,54 +580,25 @@ namespace Kratos
 
                         array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
 
-			/*veulerian[0]=0.01;
-			veulerian[1]=0.0;
-			veulerian[2]=0.0;*/
                         noalias(disp) += small_dt*veulerian;
 
                         (pparticle)->GetValue(ERASE_FLAG) = false;
 
-                        //compute particle velocity
-                       /* noalias(acc_particle) = body_force - N[0] * geom[0].FastGetSolutionStepValue(PRESS_PROJ) * density_inverse;
-                        for (unsigned int k = 1; k < geom.size(); k++)
-                            noalias(acc_particle) -= N[k] * geom[k].FastGetSolutionStepValue(PRESS_PROJ) * density_inverse;*/
-
-
-                        //array_1d<double, 3 > & force_particle = (iparticle)->FastGetSolutionStepValue(FORCE);
-                        //noalias(force_particle) = ZeroVector(3);
 			noalias(acc_particle) = ZeroVector(3);
+			G = 0.0;
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
-                            noalias(acc_particle) += N[k] * geom[k].FastGetSolutionStepValue(FORCE) * density_inverse;
-                            //force_particle += N[k] * geom[k].FastGetSolutionStepValue(FORCE) * density_inverse;
+                            noalias(acc_particle) += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
+                            G += N[k] * geom[k].FastGetSolutionStepValue(a) * specific_heat_inverse;
 			                        
 			}
 
 
                         array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
-			//KRATOS_WATCH(vel_particle);
+                        double & temperature_particle = (pparticle)->FastGetSolutionStepValue(TEMPERATURE);
 
-                        /*if (use_eulerian_velocity == true)
-                        {
-                            if (substep == 0)
-                            {
-                                //                                    noalias((*it_found)->FastGetSolutionStepValue(DISPLACEMENT)) = (*it_found)->FastGetSolutionStepValue(DISPLACEMENT,1);
-                                noalias(vel_particle) = veulerian;
-                                noalias((pparticle)->FastGetSolutionStepValue(VELOCITY, 1)) = veulerian;
-                            }
-                        }*/
-			//noalias(vel_particle) = veulerian;
-			//KRATOS_WATCH(veulerian);
-			//KRATOS_WATCH(small_dt);
-			//KRATOS_WATCH(acc_particle);
-			/*acc_particle[0]=1.0;
-			acc_particle[1]=0.0;
-			acc_particle[2]=0.0;*/
                         noalias(vel_particle) += small_dt*acc_particle;
-			//KRATOS_WATCH(vel_particle);
-			
-
-			
+                        temperature_particle += small_dt*G;
 
                         //update position
                         noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
@@ -658,6 +631,9 @@ namespace Kratos
 
             //perform the erase
             NodeEraseProcess(rLagrangianModelPart).Execute();
+
+	Timer::Stop("StreamlineMove");
+	KRATOS_WATCH(time)
 
             KRATOS_CATCH("")
         }
@@ -831,6 +807,9 @@ namespace Kratos
         {
             KRATOS_TRY
 
+	Timer time;
+	Timer::Start("Actualizacion");
+
             if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
                 KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 
@@ -868,7 +847,7 @@ namespace Kratos
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-            //const double small_dt = dt / subdivisions;
+            const double small_dt = dt / subdivisions;
 
             const int nparticles = rLagrangianModelPart.Nodes().size();
 
@@ -905,7 +884,7 @@ namespace Kratos
 			noalias(acc_particle) = ZeroVector(3);
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
-                            acc_particle += N[k] * geom[k].FastGetSolutionStepValue(FORCE) * density_inverse;
+                            acc_particle += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
 			                        
 			}
 
@@ -923,7 +902,8 @@ namespace Kratos
             }
 
             
-
+	Timer::Stop("Actualizacion");
+	KRATOS_WATCH(time)
             KRATOS_CATCH("")
         }
 
@@ -941,7 +921,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
             //            node_locator.UpdateSearchDatabase();
 
-            //double density_inverse = 1.0 / density;
+            double density_inverse = 1.0 / density;
 
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
@@ -1090,6 +1070,9 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
         {
             KRATOS_TRY;
 
+	Timer time;
+	Timer::Start("Puntos");
+
             //generate a tree with the position of the lagrangian nodes
             typedef Node < 3 > PointType;
             typedef Node < 3 > ::Pointer PointTypePointer;
@@ -1126,12 +1109,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 Element::Pointer pelement;
 
                 bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-		KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-		KRATOS_WATCH("funciones de forma");
-		KRATOS_WATCH("funciones de forma");
-		KRATOS_WATCH("funciones de forma");
-		KRATOS_WATCH(N);
-
 
                 if (is_found == true)
                 {
@@ -1143,7 +1120,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             }
 
             //erase particles within elements for which reseeding is needed
-           //  #pragma omp parallel for firstprivate(results,N)
+             #pragma omp parallel for firstprivate(results,N)
             for (int i = 0; i < nparticles; i++)
             {
                 ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
@@ -1158,7 +1135,8 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 if (is_found == true)
                 {
                     /*const*/ double& counter = pelement->GetValue(YOUNG_MODULUS);
-                    if(counter  > 14){
+
+                    if(counter  < 4){
                         pparticle->SetValue(ERASE_FLAG,true);
 			counter -=1.0;}
 			
@@ -1176,7 +1154,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
            boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
 #endif
-            //if there are less than the number of particles we decide, reseed the element
 
 
 
@@ -1185,7 +1162,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             {
                 if (el_it->GetValue(YOUNG_MODULUS) < min_number_of_particles)
                 {
-			//KRATOS_WATCH(el_it->GetValue(YOUNG_MODULUS));
                     Geometry< Node<3> >& geom = el_it->GetGeometry();
                     
                     ComputeGaussPointPositions(geom, pos, Nnew);
@@ -1196,23 +1172,38 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                         Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, pos(i, 0), pos(i, 1), pos(i, 2));
 
                         array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
-			pnode->GetSolutionStepValue(FLAG_VARIABLE)=1.0;
 			
+		
 			array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
                         noalias(disp) = ZeroVector(3);
 
                         noalias(vel) = ZeroVector(3);
-                        for (unsigned int j = 0; j < TDim + 1; j++)
+
+
+			double& temp = pnode->FastGetSolutionStepValue(TEMPERATURE);
+			temp=0.0;
+
+                        for (unsigned int j = 0; j < TDim + 1; j++){
                             noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
+			    temp += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE);
 
-
+			}
                         array_1d<double, 3 > & vel_old = pnode->FastGetSolutionStepValue(VELOCITY, 1);
+                        double & temp_old = pnode->FastGetSolutionStepValue(TEMPERATURE, 1);
                         noalias(vel_old) = ZeroVector(3);
-                        for (unsigned int j = 0; j < TDim + 1; j++)
+			temp_old =0.0;
+                        for (unsigned int j = 0; j < TDim + 1; j++){
                             noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
+                            temp_old += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE, 1);
+			}
+
                     }
                 }
             }
+
+
+	Timer::Stop("Puntos");
+	KRATOS_WATCH(time)
 
             KRATOS_CATCH("");
         }
@@ -1359,10 +1350,8 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                         //                           double weight = 1.0;
                         double distance = sqrt(*(SquaredResultsDistances.begin() + k));
                         double weight = SPHCubicKernel(sigma, distance, radius);
-                        //                            KRATOS_WATCH(weight);
-                        //                        double weight = 1.0 / (sqrt(SquaredResultsDistances[k]) + 1e-9);
+
                         tot_weight += weight;
-                        //                            tot_weight += 1.0;
 
                         PointIterator it_found = Results.begin() + k;
 
@@ -1400,6 +1389,9 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
         {
             KRATOS_TRY
 
+	Timer time;
+	Timer::Start("Interpolacion");
+
             if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
                 KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
             if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
@@ -1416,9 +1408,16 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 if (node_it->IsFixed(VELOCITY_X) == false)
                 {
                     (node_it)->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
-                    (node_it)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
                     (node_it)->GetValue(YOUNG_MODULUS) = 0.0;
+
                 }
+		if (node_it->IsFixed(TEMPERATURE) == false)
+                {
+                    (node_it)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
+		    (node_it)->SetValue(BULK_AIR,0.0);
+                 }
+
+
             }
 
              array_1d<double, TDim + 1 > N;
@@ -1450,11 +1449,24 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                         {
                             geom[k].SetLock();
                             geom[k].FastGetSolutionStepValue(VELOCITY) += N[k] * vel_particle;
-                            geom[k].FastGetSolutionStepValue(TEMPERATURE) += N[k] * temperature_particle;
                             geom[k].GetValue(YOUNG_MODULUS) += N[k];
                             geom[k].UnSetLock();
                         }
+
+                        if (geom[k].IsFixed(TEMPERATURE) == false)
+                        {
+                            geom[k].SetLock();
+                            geom[k].FastGetSolutionStepValue(TEMPERATURE) += N[k] * temperature_particle;
+                            geom[k].GetValue(BULK_AIR) += N[k];
+                            geom[k].UnSetLock();
+                        }
+
+
+
                     }
+
+
+
 
                 }
 
@@ -1470,6 +1482,17 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                     if (NN != 0.0)
                     {
                         (node_it)->FastGetSolutionStepValue(VELOCITY) /= NN;
+                    } else
+                    {
+                        std::cout << node_it->Id() << " coeff = " << NN << std::endl;
+                    }
+                }
+
+               if (node_it->IsFixed(TEMPERATURE) == false)
+                {
+                    const double NN = (node_it)->GetValue(BULK_AIR);
+                    if (NN != 0.0)
+                    {
                         (node_it)->FastGetSolutionStepValue(TEMPERATURE) /= NN;
                     } else
                     {
@@ -1477,7 +1500,12 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                     }
                 }
 
+
             }
+
+
+	Timer::Stop("Interpolacion");
+	KRATOS_WATCH(time)
 
             KRATOS_CATCH("")
         }
