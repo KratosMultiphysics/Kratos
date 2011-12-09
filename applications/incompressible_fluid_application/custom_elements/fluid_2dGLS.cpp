@@ -297,6 +297,10 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 	
 	void Fluid2DGLS::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
+		
+
+
+
 		KRATOS_TRY
 		
 		///////////////////////NECESSARY LOCALS///////////////////////////////////////////
@@ -317,6 +321,194 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
 		array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
 		boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+		///////////////////////////////////////////////////////////////////////////////////
+		
+		if(rRightHandSideVector.size() != 3)
+		{
+			rLeftHandSideMatrix.resize(3,3,false);
+			rRightHandSideVector.resize(3,false);
+		}
+
+		double dt = rCurrentProcessInfo[DELTA_TIME];
+		
+		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
+		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
+		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+		//double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
+		double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
+		const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
+
+		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
+		//double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
+		double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
+		const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
+
+		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
+		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+		const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
+		double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
+		//old iteration can be used if we want to iterate between 1st and 2nd fractional steps
+		//double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
+		const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
+
+
+		//in msAuxVec we store the velocity, (not the frac step vel, but u_n, the one that enters the stabilization)
+		msAuxVec[0]=fv0[0];
+		msAuxVec[1]=fv0[1];
+		msAuxVec[2]=fv1[0];
+		msAuxVec[3]=fv1[1];
+		msAuxVec[4]=fv2[0];
+		msAuxVec[5]=fv2[1];
+
+		//getting data for the given geometry
+		double Area;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+
+		//calculating average density and viscosity
+		double nu = 0.33333333333333*(nu0 + nu1 + nu2 );
+ 		double density = 0.33333333333333*(rho0 + rho1 + rho2 );
+
+		//ms_vel_gauss[i] =  msN[0]*(fv0[i]) + msN[1]*(fv1[i]) +  msN[2]*(fv2[i]);
+		//but with one integration N=0.333333333
+		ms_vel_gauss[0] =  0.33333333333333*(fv0[0]+fv1[0]+fv2[0]);
+		ms_vel_gauss[1] =  0.33333333333333*(fv0[1]+fv1[1]+fv2[1]);
+
+		//calculating parameter tau (saved internally to each element)
+		double h = sqrt(2.00*Area);
+		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
+		norm_u = sqrt(norm_u);
+		double tau = 1.00 / ( 4.00*nu/(h*h) +2.00*norm_u/h + 1.0/dt);
+		
+		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
+		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
+		//								   and LHS +=Tau1*(gradQ, gradP)
+		//laplacian term	       L = Dt * gradN * trans(gradN);
+		//stabilization term       Spp = tau * gradN * trans(gradN);
+		//WATCH OUT for DIVISION with RHO - check if it changes or not in case of Momentum being the primary Variable
+		//
+		//	msWorkMatrix stores the element laplacian
+		//
+		noalias(msWorkMatrix)=prod(msDN_DX,trans(msDN_DX));
+		noalias(rLeftHandSideMatrix) = (dt/2.0 + tau) * Area*msWorkMatrix;
+		//rhs consists of D*u_tilda (divergence of the Fractional velocity) and the term: Tau1*(nabla_q, residual_gausspoint)
+		//fv is u_tilda
+		
+		//////////////////////////////////////////////////////////
+		////////////		AND NOW RHS	//////////////////
+		//////////////////////////////////////////////////////////	
+	
+		//Dirichlet contribution  (that is: LHS*p_new)
+		ms_temp_vec_np[0] = p0; 
+		ms_temp_vec_np[1] = p1; 
+		ms_temp_vec_np[2] = p2; 
+		//LHS is already multiplied by AREA
+		noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,ms_temp_vec_np);
+		
+		//NOW RHS-=dt L p_old		
+		//changing the meaning of temp_vec_np
+		ms_temp_vec_np[0] = p0_old; 
+		ms_temp_vec_np[1] = p1_old; 
+		ms_temp_vec_np[2] = p2_old; 
+
+		noalias(rRightHandSideVector) += Area* dt/2.0 * (prod(msWorkMatrix,ms_temp_vec_np)) ;
+		
+		//***************************************************************************
+		
+		//here we have the Du_tila term
+		double Gaux;
+		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1];
+		Gaux += msDN_DX(1,0)*fv1[0] + msDN_DX(1,1)*fv1[1];
+		Gaux += msDN_DX(2,0)*fv2[0] + msDN_DX(2,1)*fv2[1];
+		rRightHandSideVector[0] -= density*Area*Gaux * msN[0]; 
+		rRightHandSideVector[1] -= density*Area*Gaux * msN[1]; 
+		rRightHandSideVector[2] -= density*Area*Gaux * msN[2]; 
+		
+		ms_aux0=0.33333333333333333*(ff0+ff1+ff2);
+		//ms_aux1 - is the product of: (nabla q, f)
+		ms_aux1[0]=msDN_DX(0,0)*ms_aux0[0]+msDN_DX(0,1)*ms_aux0[1];
+		ms_aux1[1]=msDN_DX(1,0)*ms_aux0[0]+msDN_DX(1,1)*ms_aux0[1];
+		ms_aux1[2]=msDN_DX(2,0)*ms_aux0[0]+msDN_DX(2,1)*ms_aux0[1];
+		//KRATOS_WATCH(temp)
+		rRightHandSideVector += tau*density*Area*ms_aux1;
+		
+		
+		//RHS += -tau*nablaN*du_gausspoint/dt
+			
+		//we reuse ms_vel_gauss to store the accelerations( (u_n - u_n-1)/dt)		
+		
+		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
+		ms_vel_gauss[1]=0.33333333333*(fv0_old[1]+fv1_old[1]+fv2_old[1]-fv0_n_1[1]-fv1_n_1[1]-fv2_n_1[1])/dt;
+		
+		//and now we reuse ms_aux1
+
+		ms_aux1=prod(msDN_DX,ms_vel_gauss);
+		
+		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux1;
+		
+ 
+		//and now the stabilization term referring to the convective operator
+		//RHS+=nablaq*convop (convetcion of the Gauss point vel)
+		
+		//contains d_ug/dx
+		//x-component of u derived with resp to x, remember msAuxVec stores velocity
+		msGrad_ug(0,0)=msDN_DX(0,0)*msAuxVec[0]+msDN_DX(1,0)*msAuxVec[2]+msDN_DX(2,0)*msAuxVec[4];
+		//x-component of u derived with resp to y
+		msGrad_ug(0,1)=msDN_DX(0,1)*msAuxVec[0]+msDN_DX(1,1)*msAuxVec[2]+msDN_DX(2,1)*msAuxVec[4];
+		//y-component of u derived with resp to x
+		msGrad_ug(1,0)=msDN_DX(0,0)*msAuxVec[1]+msDN_DX(1,0)*msAuxVec[3]+msDN_DX(2,0)*msAuxVec[5];
+		//y-component of u derived with resp to y
+		msGrad_ug(1,1)=msDN_DX(0,1)*msAuxVec[1]+msDN_DX(1,1)*msAuxVec[3]+msDN_DX(2,1)*msAuxVec[5];
+		
+		array_1d<double,2> a;
+		a[0]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(0,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(0,1);
+		a[1]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(1,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(1,1);
+		
+		//we again reuse ms_aux0
+		noalias(ms_aux0) = prod(msDN_DX,a);
+		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
+
+		
+		KRATOS_CATCH("")
+
+
+
+
+
+
+		/*
+		KRATOS_TRY
+		
+		///////////////////////NECESSARY LOCALS///////////////////////////////////////////
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+		array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
+		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+	       	boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+		array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
+		//array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
+		array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+		array_1d<double,3> ms_temp_vec_np = ZeroVector(3); //dimension = number of nodes
+		//array_1d<double,3> ms_aux0 = ZeroVector(3); //dimension = number of nodes
+		//array_1d<double,3> ms_aux1 = ZeroVector(3); //dimension = number of nodes
+		//boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat1 = ZeroMatrix(6,6);
+    		//boost::numeric::ublas::bounded_matrix<double,6,3> msAuxMat2 = ZeroMatrix(6,3);
+		//boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
+		array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
+		//boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
 		///////////////////////////////////////////////////////////////////////////////////
 		
 		if(rRightHandSideVector.size() != 3)
@@ -386,7 +578,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		double h = sqrt(2.00*Area);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) /*+2.00*norm_u/h */+ 1.0/dt);
+		double tau = 1.00 / ( 4.00*nu/(h*h) + 1.0/dt);
 		
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
 		//we use Backward Euler for this step, therefore stab. contribution no RHS +=Tau1*(gradQ, residual)
@@ -434,7 +626,7 @@ void Fluid2DGLS::CalculateGalerkinMomentumResidual(VectorType& GalerkinRHS)
 		
 		
 		
-		KRATOS_CATCH("")
+		KRATOS_CATCH("")*/
 	}
 	//************************************************************************************
 	//************************************************************************************
