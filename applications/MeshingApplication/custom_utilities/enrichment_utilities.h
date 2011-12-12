@@ -117,8 +117,8 @@ namespace Kratos
                 { 1, 3, -1, 5},
                 { 2, 4, 5, -1}};
 
-            const double epsilon = 1.00e-9;
-            const double near_factor = 1.00e-6;
+            const double epsilon = 1e-15; //1.00e-9;
+            const double near_factor = 1e-12; //1.00e-6;
 
             int number_of_partitions = 1;
 
@@ -446,9 +446,12 @@ namespace Kratos
                 number_of_partitions = 6; // There are six partitions
             }
 
+            //MANUALLY COMPUTING THE SIGNS at gauss points
+
+
 //            KRATOS_WATCH("aaa")
-            KRATOS_WATCH(abs_distance_gradient)
-            KRATOS_WATCH(exact_distance_gradient)
+//            KRATOS_WATCH(abs_distance_gradient)
+//            KRATOS_WATCH(exact_distance_gradient)
             for (int i = 0; i < number_of_partitions; i++)
             {
                 //compute enriched shape function values
@@ -459,6 +462,19 @@ namespace Kratos
                     dist += rShapeFunctionValues(i, j) * exact_distance[j];
                     abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                 }
+
+//                if(dist * rPartitionsSign[i] < 0)
+//                {
+//                    KRATOS_WATCH(dist);
+//                    KRATOS_WATCH(number_of_partitions);
+//                    KRATOS_WATCH(rPartitionsSign[i])
+//                    KRATOS_ERROR(std::logic_error,"partition signs are not correct in partition index ",i)
+//                }
+
+                if(dist < 0.0)
+                    rPartitionsSign[i] = -1;
+                else
+                    rPartitionsSign[i] = 1;
 
                 NEnriched(i, 0) = 0.5 * (abs_dist - rPartitionsSign[i] * dist);
 //KRATOS_WATCH("ccc")
