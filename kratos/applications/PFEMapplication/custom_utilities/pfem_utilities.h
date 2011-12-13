@@ -1259,6 +1259,7 @@ namespace Kratos
                             array_1d<double, 3 > vec1 = ZeroVector(3);
                             array_1d<double, 3 > vec2 = ZeroVector(3);
                             array_1d<double, 3 > vec3 = ZeroVector(3);
+			    array_1d<double, 3 > vec4 = ZeroVector(3);
 
 
                             vec1[0] = sort_coord(0, 0) - sort_coord(1, 0);
@@ -1273,6 +1274,11 @@ namespace Kratos
                             vec3[1] = sort_coord(3, 1) - sort_coord(1, 1);
                             vec3[2] = sort_coord(3, 2) - sort_coord(1, 2);
 
+			    //this last vectoris only needed to have all the edges of the base
+			    vec4[0] = sort_coord(1, 0) - sort_coord(3, 0);  		
+			    vec4[1] = sort_coord(1, 1) - sort_coord(3, 1); 
+			    vec4[2] = sort_coord(1, 2) - sort_coord(3, 2);
+			    
                             //Control the hight of the thetraedral element
                             //Volume of the tethraedra
                             double vol = (vec2[0] * vec3[1] * vec1[2] - vec2[0] * vec3[2] * vec1[1] +
@@ -1286,18 +1292,25 @@ namespace Kratos
                             double area_base = norm_2(outer_prod);
                             area_base *= 0.5;
                             //height
-                            if (area_base > 0.00001)
+                            if (area_base > 0.0000000000001)
                                 vol /= area_base;
                             else
                                 KRATOS_WATCH("Something strange: area of a wall triangular element --> zero");
 
-                            double length_measure1 = norm_2(vec2);
-                            double length_measure = norm_2(vec3);
-                            if (length_measure1 < length_measure)
-                            {
-                                length_measure = length_measure1;
-                            }
-
+                            double length_measure1 = norm_2(vec2);						   
+			    double length_measure = norm_2(vec3);
+			    double length_measure2 = norm_2(vec4);
+					  
+					  
+			    if(length_measure1 < length_measure2){
+				if(length_measure1 < length_measure)
+				      length_measure = length_measure1;
+			    }
+			    else{
+				if(length_measure2 < length_measure)
+				      length_measure = length_measure2;
+			    }
+			    
                             if (fabs(vol) < factor * length_measure)
                             {
                                 for (int i = 0; i < 4; i++)
@@ -1312,7 +1325,7 @@ namespace Kratos
                             }
                         }//interface elements
                     }//non_shell
-                }//all elements loop
+                }//all elements loop 
             }//domain_size==3
             KRATOS_CATCH("")
         }
