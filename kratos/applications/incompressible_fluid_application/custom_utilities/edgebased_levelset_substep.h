@@ -445,7 +445,7 @@ namespace Kratos {
             }
             //std::cout << "mdelta_t_avg ="  << mdelta_t_avg <<std::endl;
             //std::cout << "delta_t ="  << delta_t <<std::endl;
-            //std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
+            std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
             delta_t = delta_t_avg_novisc;
 
 //            delta_t *= CFLNumber;

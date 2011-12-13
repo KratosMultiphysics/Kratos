@@ -45,7 +45,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "utilities/split_tetrahedra.c"
+#include "utilities/split_tetrahedra.h"
 #include "utilities/split_triangle.c"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"

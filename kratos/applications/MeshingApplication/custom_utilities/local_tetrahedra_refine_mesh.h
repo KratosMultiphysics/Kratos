@@ -23,7 +23,7 @@
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/lu.hpp>
-
+#include "utilities/split_tetrahedra.h"
 
 // System includes
 #include <string>
@@ -45,7 +45,7 @@
 #include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "utilities/math_utils.h"
-#include "utilities/split_tetrahedra.c"
+#include "utilities/split_tetrahedra.h"
 #include "utilities/split_triangle.c"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
@@ -582,7 +582,7 @@ namespace Kratos
 		      //           KRATOS_WATCH("-------------------------------------------" )
 
 
-		      create_element = Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
+		      create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
 
 		      if (internal_node == 1)
 		      {
