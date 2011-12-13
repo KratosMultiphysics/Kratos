@@ -25,6 +25,7 @@
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 #include "custom_utilities/tetgen_volume_mesher.h"
 #include "custom_utilities/cutting_app.h"
+#include "utilities/split_tetrahedra.h"
 
 
 namespace Kratos

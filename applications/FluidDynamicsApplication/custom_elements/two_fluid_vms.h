@@ -62,10 +62,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/vms.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
-#include "../../MeshingApplication/custom_utilities/enrichment_utilities.h"
+#include "utilities/split_tetrahedra.h"
+#include "utilities/enrichment_utilities.h" 
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+
 #include "vms.h"
 
 namespace Kratos
@@ -424,7 +426,25 @@ namespace Kratos
             }
 
             this->LumpMassMatrix(rMassMatrix);
-
+//if (ndivisions > 1)
+//{
+//KRATOS_WATCH(this->Id());
+//KRATOS_WATCH(rMassMatrix);
+//
+//for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+//{
+//    double dist = 0.0;
+//    for(unsigned int k=0; k<4; k++)
+//    {
+//        dist += Ngauss(igauss, k)*this->GetGeometry()[k].FastGetSolutionStepValue(DISTANCE);
+//    }
+//    KRATOS_WATCH(dist);
+//    KRATOS_WATCH(signs[igauss]);
+//    if( signs[igauss] * dist < 0.0 )
+//        KRATOS_ERROR(std::logic_error,"sign of partition does not coincide","")
+//}
+//
+//}
             //stabilization terms
             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
             {
@@ -570,12 +590,15 @@ namespace Kratos
                     {
                         int base_index = (TDim + 1) * inode;
 
+                        array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
+                        this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
+
                         //momentum term
                         for (unsigned int k = 0; k < TDim; k++)
                         {
-                            double temp = wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                            enrichment_terms_vertical[base_index + k] -= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                            enrichment_terms_horizontal[base_index + k] += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                            double ConvTerm = wGauss * TauOne * gauss_gradients[igauss](0,k)* AGradN[inode];
+                            enrichment_terms_vertical[base_index + k] += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                            enrichment_terms_horizontal[base_index + k] += Density * (ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, 0));
 //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
 //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
                        }
@@ -614,8 +637,8 @@ namespace Kratos
                     for (unsigned int j = 0; j < LocalSize; j++)
                         rDampMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
 
-                VectorType U = ZeroVector(LocalSize);
-                int LocalIndex = 0;
+//                VectorType U = ZeroVector(LocalSize);
+//                int LocalIndex = 0;
 
                 rRightHandSideVector -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
             }
@@ -638,13 +661,30 @@ namespace Kratos
 
             noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
 
+//            if (ndivisions > 1)
+//            {
+//                KRATOS_WATCH(this->Id());
+//                KRATOS_WATCH(this->GetGeometry());
+//                for(unsigned int k=0; k<4; k++)
+//                    std::cout << " " << this->GetGeometry()[k].FastGetSolutionStepValue(DISTANCE) ;
+//                std::cout << std::endl;
+//                KRATOS_WATCH(ndivisions)
+//                KRATOS_WATCH(rRightHandSideVector);
+//            }
 
-
-
+/*
 
             //this is just a check! to be removed
+            Vector aaa(16,0.0);
+
+
+
+            Vector bbb(16,0.0);
+
             if (ndivisions > 1)
             {
+                KRATOS_WATCH(rRightHandSideVector);
+                
                 double inverse_diag_term = 1.0 / enrichment_diagonal;
                 double pstar = inverse_diag_term * (enriched_rhs - inner_prod(enrichment_terms_horizontal, U));
                 //compute grad_p
@@ -656,12 +696,27 @@ namespace Kratos
                 pressures[3] = this->GetGeometry()[3].FastGetSolutionStepValue(PRESSURE);
                 noalias(grad_p) = prod(trans(DN_DX), pressures);
 
-                KRATOS_WATCH(pstar);
-                KRATOS_WATCH(inner_prod(enrichment_terms_horizontal, U))
-                KRATOS_WATCH(grad_p);
+
+
+
+
+                if(this->Id()==2052)
+                {
+                    KRATOS_WATCH("2052")
+                    KRATOS_WATCH(pstar);
+                    KRATOS_WATCH(inner_prod(enrichment_terms_horizontal, U))
+                    KRATOS_WATCH(grad_p);
+                }
+
+
+
+
+
 
                 for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
                 {
+
+
                     //assigning the gauss data
                     for (unsigned int k = 0; k < TNumNodes; k++)
                         N[k] = Ngauss(igauss, k);
@@ -672,14 +727,51 @@ namespace Kratos
                     this->EvaluateInPoint(Density, DENSITY, N);
                     this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
                     this->EvaluateInPoint(bf, BODY_FORCE, N);
+                    
+                    double Viscosity;
+                    this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
-                    KRATOS_WATCH(igauss)
-                    KRATOS_WATCH(Density * bf);
+                    array_1d<double, 3 > AdvVel;
+                    this->GetAdvectiveVel(AdvVel, N);
 
-                    KRATOS_WATCH(pstar*row(gauss_gradients[igauss], 0))
+                    // Calculate stabilization parameters
+                    double TauOne, TauTwo;
+                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+
+                    for(unsigned int k=0; k<4; k++)
+                    {
+                        for(unsigned int t=0; t<3; t++)
+                        {
+                            aaa[k*(TDim+1)+t] += wGauss*N[k]*(Density*bf[t] - grad_p[t]);
+                            bbb[k*(TDim+1)+t] += wGauss*N[k]*(Density*bf[t]);
+
+                            aaa[k*(TDim+1)+3] += TauOne*wGauss*DN_DX(k,t)*( Density*bf[t] - grad_p[t]);
+                        }
+                    }
+
+                    if(this->Id() == 2052)
+                    {
+                        KRATOS_WATCH(igauss)
+                        KRATOS_WATCH(Density * bf);
+
+                        KRATOS_WATCH(pstar*row(gauss_gradients[igauss], 0))
+                    }
                 }
-            }
 
+                for(unsigned int k=0; k<4; k++)
+                    {
+                        for(unsigned int t=0; t<3; t++)
+                        {
+                             bbb[k*(TDim+1)+t] -= Area*0.25*(grad_p[t]);
+                        }
+                    }
+
+                KRATOS_WATCH(aaa );
+                KRATOS_WATCH(aaa-bbb );
+                KRATOS_WATCH(pstar*enrichment_terms_vertical);
+                KRATOS_WATCH(aaa - pstar*enrichment_terms_vertical);
+            }
+*/
         }
 
         /// Implementation of Calculate to compute the local OSS projections.

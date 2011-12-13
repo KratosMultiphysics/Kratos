@@ -47,7 +47,7 @@
 #include "utilities/math_utils.h"
 //#include "utilities/split_triangle.h"
 #include "utilities/split_triangle.c"
-#include "utilities/split_tetrahedra.c"
+#include "utilities/split_tetrahedra.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_3d_3.h"
@@ -1133,9 +1133,9 @@ namespace Kratos
                     aux[8] = GetUpperTriangularMatrixValue(p_edge_ids, index_1, index_3, MaxNumEntries, NumEntries, Indices, id_values);
                     aux[9] = GetUpperTriangularMatrixValue(p_edge_ids, index_2, index_3, MaxNumEntries, NumEntries, Indices, id_values);
 
-                    TetrahedraSplitMode(aux, edge_ids);
+		    TetrahedraSplit::TetrahedraSplitMode(aux, edge_ids);
 
-                    create_element = Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
+                    create_element = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &splitted_edges, &internal_node);
 
 
 
