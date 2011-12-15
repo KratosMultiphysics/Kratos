@@ -469,7 +469,6 @@ namespace Kratos
             double Density, KinViscosity;
             this->EvaluateInPoint(Density, DENSITY, N);
             this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-            KRATOS_WATCH(Density);
 
             double Viscosity;
             this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
@@ -1763,7 +1762,6 @@ namespace Kratos
             rResult = rShapeFunc[0] * this->GetGeometry()[0].FastGetSolutionStepValue(rVariable);
             for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
                 rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
-            KRATOS_ERROR(std::logic_error,"Error","")
         }
 
         /// Add the weighted value of a variable at a point inside the element to a vector
