@@ -820,26 +820,12 @@ namespace Kratos
             double density_inverse = 1.0 / density;
 
             //reset particle position to the beginning of the step
-            for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
+            /*for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
                     node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
             {
                 Node < 3 > ::Pointer pnode = *(node_it.base());
 
-                //pnode->GetValue(ERASE_FLAG) = false;
-                //node_it->GetValue(IS_VISITED) = 0;
-
-                //reset the position to the position at the end of the step
-                /*const array_1d<double, 3 > & old_disp = (node_it)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                noalias((node_it)->FastGetSolutionStepValue(DISPLACEMENT)) = old_disp;
-
-                const array_1d<double, 3 > & old_vel = (node_it)->FastGetSolutionStepValue(VELOCITY, 1);
-                noalias((node_it)->FastGetSolutionStepValue(VELOCITY)) = old_vel;
-
-                (node_it)->X() = (node_it)->X0() + old_disp[0];
-                (node_it)->Y() = (node_it)->Y0() + old_disp[1];
-                (node_it)->Z() = (node_it)->Z0() + old_disp[2];*/
-
-            }
+            }*/
             //            KRATOS_WATCH("539")
             array_1d<double, 3 > veulerian;
             array_1d<double, 3 > acc_particle;
@@ -851,7 +837,7 @@ namespace Kratos
 
             const int nparticles = rLagrangianModelPart.Nodes().size();
 
-//#pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
+#pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
             for (int i = 0; i < nparticles; i++)
             {
                     ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
@@ -869,18 +855,7 @@ namespace Kratos
 
                         Geometry< Node < 3 > >& geom = pelement->GetGeometry();
 
-                        //move according to the streamline
-                        //noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
-                        //for (unsigned int k = 1; k < geom.size(); k++)
-                        //    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
 
-                        //array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
-
-                        //(pparticle)->GetValue(ERASE_FLAG) = false;
-
-
-                        //array_1d<double, 3 > & force_particle = (iparticle)->FastGetSolutionStepValue(FORCE);
-                        //noalias(force_particle) = ZeroVector(3);
 			noalias(acc_particle) = ZeroVector(3);
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
@@ -895,7 +870,6 @@ namespace Kratos
 			noalias(vel_particle) += (dt/2.0) * acc_particle;
 
 			
-                        //(iparticle)->GetValue(IS_VISITED) = 0;
 
                     }
 
@@ -1138,7 +1112,9 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
 
                     if(counter  < 4){
                         pparticle->SetValue(ERASE_FLAG,true);
-			counter -=1.0;}
+			#pragma omp atomic
+			counter -=1.0;
+			}
 			
                 }
 
