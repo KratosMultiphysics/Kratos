@@ -543,11 +543,12 @@ namespace Kratos
 
             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
 
-            Vector enrichment_terms_vertical(LocalSize, 0.0);
-            Vector enrichment_terms_horizontal(LocalSize, 0.0);
+            Vector enrichment_terms_vertical = ZeroVector(LocalSize);
+            Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
             double enrichment_diagonal = 0.0;
             double enriched_rhs = 0.0;
-            array_1d<double,3> bf = ZeroVector(3);
+            array_1d<double,3> bf(3,0.0);
+            array_1d<double,3> Acceleration(3,0.0);
 
             //do integration
             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
@@ -562,6 +563,7 @@ namespace Kratos
                 this->EvaluateInPoint(Density, DENSITY, N);
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
                 this->EvaluateInPoint(bf,BODY_FORCE,N);
+                this->EvaluateInPoint(Acceleration,ACCELERATION,N);
 
                 double Viscosity;
                 this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
@@ -576,7 +578,7 @@ namespace Kratos
                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 //                else
 //                {
-//                    TauOne = 0.0;
+//                    TauOne = rCurrentProcessInfo[DELTA_TIME];
 //                    TauTwo = 0.0;
 //                }
 
@@ -585,6 +587,7 @@ namespace Kratos
 
                 if (ndivisions > 1)
                 {
+//                    TauOne = rCurrentProcessInfo[DELTA_TIME];
                     //compute enrichment terms contribution
                     for (unsigned int inode = 0; inode < TNumNodes; inode++)
                     {
@@ -618,7 +621,7 @@ namespace Kratos
                         const Matrix& enriched_grad = gauss_gradients[igauss];
                         enrichment_diagonal += wGauss  * TauOne * pow(enriched_grad(0, k), 2);
                         
-                        enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*bf[k];
+                        enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]-Acceleration[k]);
 
 
                     }
