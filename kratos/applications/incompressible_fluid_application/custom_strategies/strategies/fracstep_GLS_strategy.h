@@ -14,6 +14,7 @@
 /* System includes */
 
 
+
 /* External includes */
 #include "boost/smart_ptr.hpp"
 
@@ -22,14 +23,29 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
+//#include "incompressible_fluid_application.h"
+#include "custom_strategies/strategies/solver_configuration.h"
+#include "utilities/geometry_utilities.h"
+#include "custom_processes/generate_slip_condition_process.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "incompressible_fluid_application.h"
+#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
+
+
+
+
 
 //#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 //#include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver.h"
 //#include "custom_strategies/builder_and_solvers/residualbased_elimination_discretelaplacian_builder_and_solver_flexiblefsi.h"
 
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+
+
 
 
 namespace Kratos
@@ -82,656 +98,409 @@ namespace Kratos
 
 
 	*/
-	template<unsigned int TDim, class TSparseSpace,
-	class TDenseSpace,
-	class TLinearSolver
-	>
-	class FracStepStrategy 
-		: public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
-	{
-	public:
-		/**@name Type Definitions */       
-		/*@{ */
 
-		/** Counted pointer of ClassName */
-		typedef std::vector<unsigned int> IndicesVectorType;
+
+    template<class TSparseSpace,
+    class TDenseSpace,
+    class TLinearSolver
+    >
+    class FracStepStrategy
+    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
+    {
+    public:
+        /**@name Type Definitions */
+        /*@{ */
+
+        /** Counted pointer of ClassName */
+        typedef boost::shared_ptr< FracStepStrategy<TSparseSpace, TDenseSpace, TLinearSolver> > Pointer;
+
+        typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+        typedef typename BaseType::TDataType TDataType;
+
+        //typedef typename BaseType::DofSetType DofSetType;
+
+        typedef typename BaseType::DofsArrayType DofsArrayType;
+
+        typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+        typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+        typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
+        typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+	
+	typedef OpenMPUtils::PartitionVector PartitionVector;
+
+
+        /*@} */
+        /**@name Life Cycle
+         */
+        /*@{ */
+
+        /**
+         * Constructor of the FracStepStrategy. Implements the solutions strategy for a Navier Stokes solver
+         * using the fractional step approach. Prepared for both openmp parallelism and mpi parallelism. The function
+         * also calls internally the "Check" function to verify that the input is complete
+         * @param model_part - contains Nodes, elements, etc.
+         * @param solver_config - auxiliary file to ease the configuration. Prescribes the linear solvers and builiding
+         *        strategies to be used in defining the current composite solver.
+         *        @see FractionalStepConfiguration for OpenMP setting or
+         *        @see TrilinosFractionalStepConfiguration (in the Trilinos application) for the MPI version
+         * @param ReformDofAtEachIteration - if set to true the graph of the matrix is recomputed at each iteration
+         * @param velocity_toll - tolerance used in the velocity convergence check
+         * @param pressure_toll - pressure tolerance in finalizing the predictor corrector strategy
+         * @param MaxVelocityIterations - maximum number of iterations of the velocity solver
+         * @param MaxPressureIterations - max number of iteration for the predictor corrector strategy
+         * @param time_order - 1=BDF1 , 2=BDF2
+         * @param domain_size 2=2D, 3=3D
+         * @param predictor_corrector - true->for predictor corrector, false->standard Fractional Step (default = false)
+         */
+        FracStepStrategy(
+                ModelPart& model_part,
+                SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& solver_config,
+                bool ReformDofAtEachIteration = true,
+                double velocity_toll = 0.01,
+                double pressure_toll = 0.01,
+                int MaxVelocityIterations = 3,
+                int MaxPressureIterations = 1,
+                unsigned int time_order = 2,
+                unsigned int domain_size = 2,
+                bool predictor_corrector = false
+                )
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false), msolver_config(solver_config)
+        {
+            KRATOS_TRY
+
+                    this->mvelocity_toll = velocity_toll;
+            this->mpressure_toll = pressure_toll;
+            this->mMaxVelIterations = MaxVelocityIterations;
+            this->mMaxPressIterations = MaxPressureIterations;
+            this->mtime_order = time_order;
+            this->mprediction_order = time_order;
+            this->mdomain_size = domain_size;
+            this->mpredictor_corrector = predictor_corrector;
+            this->mReformDofAtEachIteration = ReformDofAtEachIteration;
+            this->proj_is_initialized = false;
+            this->mecho_level = 1;
+
+            //performs checks to verify the quality of the input
+            //this->Check();
+
+            //initialize strategy
+            this->mpfracvel_strategy = solver_config.pGetStrategy(std::string("vel_strategy"));
+            this->mppressurestep = solver_config.pGetStrategy(std::string("pressure_strategy"));
+
+            //fix fractional_velocities as needed
+            for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
+                    i != BaseType::GetModelPart().NodesEnd(); ++i)
+            {
+                if (i->IsFixed(VELOCITY_X))
+                    (i)->Fix(FRACT_VEL_X);
+                if (i->IsFixed(VELOCITY_Y))
+                    (i)->Fix(FRACT_VEL_Y);
+                if (i->IsFixed(VELOCITY_Z))
+                    (i)->Fix(FRACT_VEL_Z);
+            }
+
+            this->m_step = 1;
+
+            mHasSlipProcess = false;
+
+            KRATOS_CATCH("")
+        }
+
+        /** Destructor.
+         */
+        virtual ~FracStepStrategy()
+        {
+        }
+
+        /** Destructor.
+         */
+
+        //*********************************************************************************
+        //**********************************************************************
+       double Solve()
+        {
+            KRATOS_TRY
+	    Timer time;
+	    Timer::Start("FractionalStep");
+
+            double Dp_norm;
+
+	    Dp_norm = FracStepSolution();
+
+            if (this->mReformDofAtEachIteration == true)
+                this->Clear();
+
+            this->m_step += 1;
+	    Timer::Stop("FractionalStep");
+	    KRATOS_WATCH(time)
+            return Dp_norm;
+
+            KRATOS_CATCH("")
+        }
+
+
+        //*********************************************************************************
+         //******************************************************************************************************
+        double FracStepSolution()
+        {
+            KRATOS_TRY
+
+            double Dp_norm = this->SolveStep2();
+
+            return Dp_norm;
+
+            KRATOS_CATCH("")
+        }
+
+        //******************************************************************************************************
+        //******************************************************************************************************
+
+
+        void SolveStep4()
+        {
+            KRATOS_TRY;
+		Timer time;
+		Timer::Start("paso_4");
+            ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            array_1d<double, 3 > zero = ZeroVector(3);
+            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+
+	    ModelPart& model_part=BaseType::GetModelPart();
 		
-		typedef boost::shared_ptr< FracStepStrategy<TDim, TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-
-		typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-
-		typedef typename BaseType::TDataType TDataType;
-
-		//typedef typename BaseType::DofSetType DofSetType;
-
-		typedef typename BaseType::DofsArrayType DofsArrayType;
-
-		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-		typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-		typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-
-		typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-
-		typedef Node<3> PointType;
-		
-		typedef Node<3>::Pointer PointPointerType;
-
-		typedef std::vector<PointType::Pointer>           PointVector;
-
-		typedef PointVector::iterator PointIterator;
-
-		typedef OpenMPUtils::PartitionVector PartitionVector;
-
-		/*@} */
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
-
-		/** Constructor.
-		*/
-		FracStepStrategy(
-			ModelPart& model_part, 
-			typename TLinearSolver::Pointer pNewPressureLinearSolver,
-			bool CalculateReactions = false,
-			bool ReformDofAtEachIteration = true,
-			bool CalculateNormDxFlag = true
-			//double velocity_toll = 0.01,
-			//double pressure_toll = 0.01,
-			//int MaxVelocityIterations = 3,
-			//int MaxPressureIterations = 1,
-			//unsigned int time_order  = 2,
-			//unsigned int prediction_order  = 2,
-			//unsigned int domain_size = 2
-			//unsigned int laplacian_form = 2, //1 = laplacian, 2 = discrete laplacian
-			//bool predictor_corrector = false
-			)
-			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
-		{
-			KRATOS_TRY
-//std::cout << "SONO QUI" << std::endl;
-			//this->mvelocity_toll = velocity_toll;
-			//this->mpressure_toll = pressure_toll;
-			//this->mMaxVelIterations = MaxVelocityIterations;
-			//this->mMaxPressIterations = MaxPressureIterations;
-			//this->mtime_order = time_order;
-			//this->mprediction_order = time_order;
-			//this->mdomain_size = domain_size;
-
-			//this->mpredictor_corrector = predictor_corrector;
-			this->mReformDofAtEachIteration = ReformDofAtEachIteration;
-
-			//this->proj_is_initialized = false;
-
-			//the system will be cleared at the end!
-			//ReformDofAtEachIteration = false;
-
-				//initializing fractional velocity solution step
-				typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
-			typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
-				( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
-
-			//commented the 3 lines below
-
-			/*
-			bool CalculateReactions = false;
-			bool ReformDofAtEachIteration = true;
-			bool CalculateNormDxFlag = true;
-			*/
-
-
-			//computation of the fractional vel velocity (first step)
-				//3 dimensional case
-			//typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;
-
-			//typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
-
-			
-			//std::cout << "standard laplacian form" << std::endl;
-			//mmin_conv_vel_norm = 0.0;
-			this->mpressurestep = typename BaseType::Pointer(
-				new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >
-				(model_part,pscheme,pNewPressureLinearSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
-			this->mpressurestep->SetEchoLevel(2); 
-			
-			//identify nodes, weher slip shall be imposed .. store them in a list
-			mSlipBoundaryList.clear();
-			//ModelPart& model_part=GetModelPart();
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{
-			//FLAG_VAR = 1 is SLIP
-			if (it->FastGetSolutionStepValue(FLAG_VARIABLE)==3.0)		
-
-			mSlipBoundaryList.push_back(*(it.base()));
-			//mSlipBoundaryList.push_back(it);
-			}
-
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{
-				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
-				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
-				}
-
-				if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
-				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
-				}
-
-				if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
-				{
-					mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
-					mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
-				}
-			}
-			
-			
-
-			//Element & ref_el = model_part.Elements().front();
-			Geometry<Node<3> >::Pointer p_null_geom=Geometry< Node<3> >::Pointer(new Geometry< Node<3> >);
-
-			//int id=1;
-			/*if (TDim==2)
-			{
-			Fluid2DGLS_expl el(1, p_null_geom);
-
-			if (typeid(ref_el) != typeid(el))
-				KRATOS_ERROR(std::logic_error,  "Incompressible Strategy requires utilization of Fluid2DGLS_expl elements " , "");
-			}*/
-
-			/*if (TDim==3)
-			{
-			Fluid3DGLS_expl el(1, p_null_geom);
-
-			if (typeid(ref_el) != typeid(el))
-				KRATOS_ERROR(std::logic_error,  "Incompressible Strategy requires utilization of Fluid3DGLS_expl elements " , "");
-			}*/
-
-			KRATOS_CATCH("")
-		}
-
-
-
-		/** Destructor.
-		*/
-		virtual ~FracStepStrategy() {}
-
-		/** Destructor.
-		*/
-
-		//*********************************************************************************
-		//**********************************************************************
-		double Solve()
-		{
-		KRATOS_WATCH("Solve of GLS Frac Step Strategy")
-		//we estimate the time step for the explicit time integration schem estability
-		//ComputeTimeStep(0.8);
-		//Timer::Start("SolveStep1");
-		SolveStep1();
-		//Timer::Stop("SolveStep1");
-		KRATOS_WATCH("First frac step completed")
-		//we write now the beginning of step pressure to OLD_IT to use it in the second frac step
-		
-		SavePressureIt();
-		//Timer::Start("SolveStep2");
-		double Dp_norm = this->SolveStep2();
-		//Timer::Stop("SolveStep2");
-		//if(this->mReformDofAtEachIteration == true )
-		//		this->Clear();
-		//Timer::Start("SolveStep3");
-		SolveStep3();
-		//Timer::Stop("SolveStep3");
-
-		SaveAccelerations();
-		//return 0.0;//
-		return Dp_norm;
-		
-		}
+	    const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 				
-		//*********************************************************************************
-		//**********************************************************************
-		void ApplyVelocityBoundaryConditions(DofsArrayType& mFixedVelocityDofSet,std::vector<double>& mFixedVelocityDofValues)
-		{	
-			KRATOS_TRY
-				
-			unsigned int i=0;
-			for(typename DofsArrayType::iterator i_dof = mFixedVelocityDofSet.begin() ; i_dof != mFixedVelocityDofSet.end() ; ++i_dof)
-			{
-				i_dof->GetSolutionStepValue() = mFixedVelocityDofValues[i];
-				i++;
-			}
+	   
+	    for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+	      {
+		//it->FastGetSolutionStepValue(AUX_VECTOR)=ZeroVector(3);
+		it->FastGetSolutionStepValue(FORCE)=ZeroVector(3);
+	      }		
+	    
+	    //allocation of work space
+	    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+	    array_1d<double,3> N;
+	    
+	    
+	    //calculate the velocity correction and store it in AUX_VECTOR
+	    for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
+	      {
+		//get the list of nodes of the element
+		Geometry< Node<3> >& geom = it->GetGeometry();
 		
-			KRATOS_CATCH("")
-		}
-		//*********************************************************************************
-		//**********************************************************************
-		void SetToZero( Variable<array_1d<double,3> >& rVariable, ModelPart::NodesContainerType& rNodes)
-		{
-			KRATOS_TRY
-			array_1d<double,3> zero = ZeroVector(3);
-			for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++)
-					noalias(i->FastGetSolutionStepValue(rVariable)) = zero;
-			KRATOS_CATCH("")
-		}
-		//*********************************************************************************
-		//**********************************************************************
-
+		double volume;
+		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
 		
-		void SetToZero( Variable<  double >& rVariable, ModelPart::NodesContainerType& rNodes)
-		{
-			KRATOS_TRY
-			for(ModelPart::NodesContainerType::iterator i = rNodes.begin(); i!=rNodes.end(); i++)
-					i->FastGetSolutionStepValue(rVariable) = 0.0;
-			KRATOS_CATCH("")
-		}
-		//************************************************************************
-		//************************************************************************
+		array_1d<double,3> pres_inc;
+		pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
+		pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
+		pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
 		
-		//*************************************************************************
-		//*************************************************************************
-		void SolveStep1()		
-		{
-			KRATOS_TRY
-//Timer::Start("Calculo_aceleracion");
-			//vector that we shall use to store temporary results in the context
-			array_1d<double,3> aux;	
-			array_1d<double,3> aux1;	
-			ModelPart& model_part=BaseType::GetModelPart();
-
 		
-			for(ModelPart::NodeIterator in = BaseType::GetModelPart().NodesBegin() ; 
-					in != BaseType::GetModelPart().NodesEnd() ; ++in)
-			{
-				//reset the mass factors to Zero			
-				in->FastGetSolutionStepValue(NODAL_MASS)=0.0;
-			}
-			double dummy;
-			//ProcessInfo& proc_info = model_part.GetProcessInfo();
-
-		  
-	  
-		  int NumThreads = OpenMPUtils::GetNumThreads();
-		  PartitionVector ElementPartition;
-		  OpenMPUtils::DivideInPartitions(model_part.Elements().size(),NumThreads,ElementPartition);
-		  
-		  
-#pragma omp parallel firstprivate(ElementPartition)
+		//Gradient operator G:
+		boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
+		boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
+		for (int ii = 0; ii< 3; ii++)
 		  {
-			  int k = OpenMPUtils::ThisThread();
-			  
-			  
-			  //vector containing the localization in the system of the different terms
-			  Element::EquationIdVectorType EquationId;
-			  ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
-			  
-			  ModelPart::ElementIterator im = model_part.ElementsBegin()+ElementPartition[k];
-			  ModelPart::ElementIterator in = model_part.ElementsBegin()+ElementPartition[k+1];
-	  
-			  
-			  
-			  for(ModelPart::ElementIterator pElem =  im ; pElem != in ; pElem++)
-			    {
-			      
-			      pElem->Calculate(NODAL_MASS, dummy, CurrentProcessInfo);	
-			      
-			    }
+		    int column = ii*2;				
+		    shape_func(column,0) = N[ii];
+		    shape_func(column + 1, 1) = shape_func(column,0);
 		  }
-		  
-
-
-			if (this->mReformDofAtEachIteration==true)
-			{
-				mFixedVelocityDofSet.clear();
-				mFixedVelocityDofValues.clear();
-
-				for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-				{
-					if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
-					{
-						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_X) );
-						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_X)->GetSolutionStepValue() );
-					}
-
-					if(it->pGetDof(VELOCITY_Y)->IsFixed() == true)
-					{
-						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Y) );
-						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Y)->GetSolutionStepValue() );
-					}
-
-					if(it->pGetDof(VELOCITY_Z)->IsFixed() == true)
-					{
-						mFixedVelocityDofSet.push_back( it->pGetDof(VELOCITY_Z) );
-						mFixedVelocityDofValues.push_back( it->pGetDof(VELOCITY_Z)->GetSolutionStepValue() );
-					}
-				}
-			}
-			
-			array_1d<double,3> zero = ZeroVector(3);
-			//set WORK = VELOCITY of the old step
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{ 
-			noalias(it->FastGetSolutionStepValue(AUX_VECTOR)) = it->FastGetSolutionStepValue(VELOCITY,1);	
-			noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;		
-			}
-			
-			
-			//reset the RHS
-			SetToZero(RHS_VECTOR,model_part.Nodes());
-
+		noalias(G)=prod(shape_func, trans(DN_DX));
+		G*=volume;
 		
-			array_1d<double,3> Frac_Step_Switch; 
-
-			Frac_Step_Switch[0]=1.0;
-			Frac_Step_Switch[1]=1.0;
-			Frac_Step_Switch[2]=1.0;
-
+		array_1d<double,6> aaa;
+		noalias(aaa) = prod(G,pres_inc);
 		
-
-
-#pragma omp parallel firstprivate(Frac_Step_Switch,ElementPartition)
+		array_1d<double,3> aux;
+		aux[0]=aaa[0];
+		aux[1]=aaa[1];			
+		//z-component is zero
+		aux[2]=0.0;
+		
+		//geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+		geom[0].FastGetSolutionStepValue(FORCE) += aux;
+		//reusing aux for the second node 
+		aux[0]=aaa[2];
+		aux[1]=aaa[3];			
+		//z-component is zero
+		//geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+		geom[1].FastGetSolutionStepValue(FORCE) += aux;
+		//reusing aux for the third node
+		aux[0]=aaa[4];
+		aux[1]=aaa[5];			
+		//geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
+		geom[2].FastGetSolutionStepValue(FORCE) += aux;
+	      }
+	    
+	    //correct the velocities
+	    for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+	      {
+		//VELOCITY = VELOCITY + dt * Minv * AUX_VECTOR
+		double dt_Minv = (dt / 2.00) / it->FastGetSolutionStepValue(NODAL_MASS);
+		//array_1d<double,3>& temp = it->FastGetSolutionStepValue(AUX_VECTOR);
+		array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
+		force_temp *= dt_Minv;//(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
+		//KRATOS_WATCH(force_temp);
+		
+		if(!it->IsFixed(VELOCITY_X))
 		  {
-		    int k = OpenMPUtils::ThisThread();
-		    
-		    Element::EquationIdVectorType EquationId;
-		    ProcessInfo& CurrentProcessInfo = model_part.GetProcessInfo();
-		    ModelPart::ElementIterator im = model_part.ElementsBegin()+ElementPartition[k];
-		    ModelPart::ElementIterator in = model_part.ElementsBegin()+ElementPartition[k+1];
-		    KRATOS_WATCH(k)
+				it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0];
+		  }
+		if(!it->IsFixed(VELOCITY_Y))
+		  {
+		    it->FastGetSolutionStepValue(VELOCITY_Y)+=force_temp[1];						
+		  }
+		if(!it->IsFixed(VELOCITY_Z))
+		  {
+		    it->FastGetSolutionStepValue(VELOCITY_Z)+=force_temp[2];						
+				}
+		
+		
+	      }
+	    //Timer::Stop("Ultimo_paso");
+	
+	    Timer::Stop("paso_4");
+	    KRATOS_WATCH(time)
+	      
+	      KRATOS_CATCH("");
+        }
+	
+       //******************************************************************************************************
+        //******************************************************************************************************
+        /**
+         * solution of the pressure. Implements the second step of the fractional step
+         * @return norm of the pressure variation vector
+         */
+        double SolveStep2()
+        {
+	  KRATOS_TRY;
+	  Timer::Start("Presion");
+	  BaseType::GetModelPart().GetProcessInfo()[FRACTIONAL_STEP] = 4;
+	  return mppressurestep->Solve();
+	  Timer::Stop("Presion");
+	  KRATOS_WATCH(time)
+	    
+	    KRATOS_CATCH("");
+
+        }
+	
+        //******************************************************************************************************
+        //******************************************************************************************************
+	
+        /**
+         * calculation of the projections. Needed for OSS
+         */
+        void SolveStep3()
+        {
+            KRATOS_TRY
+	      
+	      Timer time;
+	    Timer::Start("paso_3");
+	    
+#ifdef _OPENMP
+	    int number_of_threads = omp_get_max_threads();
+#else
+	    int number_of_threads = 1;
+#endif
+	    
+            vector<unsigned int> partition;
+            CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+	    
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+                ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+		
+		
+                array_1d<double, 3 > zero = ZeroVector(3);
+		
+                //first of all set to zero the nodal variables to be updated nodally
+                for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+		  {
+                    /*array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+		      array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
+		      noalias(press_proj) = zero;
+		      noalias(conv_proj) = zero;*/
+		    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
+		    nodal_mass = 0.0;
+		  }
+	      }
+	    
+	    
+	    array_1d<double,3> zero = ZeroVector(3);
+	    //set WORK = VELOCITY of the old step
+	    
+	    
+	    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i){
+	      //noalias(i->FastGetSolutionStepValue(AUX_VECTOR)) = i->FastGetSolutionStepValue(VELOCITY,1);	
+	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;		
+	    }
+	    
+            //add the elemental contributions for the calculation of the velocity
+            //and the determination of the nodal area
+            ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
+	    
+            vector<unsigned int> elem_partition;
+            CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+	    
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+                ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+                ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+                for (ModelPart::ElementIterator i = it_begin; i != it_end; ++i)
+		  {
+                    (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+		  }
+	      }
+	    
+	    
+            /*BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_MASS);
+            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(PRESS_PROJ);
+            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(CONV_PROJ);*/
+	    
+            //solve nodally for the velocity
+	    
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+                ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+		
+                for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+		  {
+                    //array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+                    //array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
+                    double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+		    //array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
+		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
+		    force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+		    if(i->IsFixed(VELOCITY_X) == true){
+		      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
+		      //noalias(i->FastGetSolutionStepValue(VELOCITY)) =    zero;
 		      
-		      for(ModelPart::ElementIterator pElem =  im ; pElem != in ; pElem++)
-			{
-			  
-			  pElem->Calculate(VELOCITY, Frac_Step_Switch, CurrentProcessInfo);	
-			}
+		    }
 		  }
-
-
-
+	      }
+	    
+	    Timer::Stop("paso_3");
+	    KRATOS_WATCH(time)
+	      
+	      KRATOS_CATCH("");
+        }
 	
-			
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-			{	
-
-			array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
-			force_temp *=(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
-
-				if(it->pGetDof(VELOCITY_X)->IsFixed() == true)
-					{
-						noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;	
-					}
-			}
-
-			ApplyVelocityBoundaryConditions(mFixedVelocityDofSet,mFixedVelocityDofValues);
-
-			KRATOS_WATCH("FINISHED STAGE1 OF FRACTIONAL STEP")
-			//Timer::Stop("Calculo_aceleracion");
-			KRATOS_CATCH("")
-		}
-
-		//*********************************************************************************
-		//**********************************************************************
-		//solve the pressure equation
-		double SolveStep2()
-		{
-		KRATOS_TRY
-//Timer time;
-Timer::Start("Presion");
-		KRATOS_WATCH("Second stage of Frac Step")
-		
-		//solves the system that is assembled within "calculateLocalSystem" of the element
-		return mpressurestep->Solve();	
-//Timer::Stop("Presion");
-KRATOS_WATCH(time)
-		KRATOS_CATCH("");
-		}
-		
-	
-		
-		//******************************************************************************************************
-		//******************************************************************************************************
-		
-		void SolveStep3()
-		{
-		KRATOS_TRY
-		
-		//Timer::Start("Ultimo_paso");
-
-					
-		ModelPart& model_part=BaseType::GetModelPart();
-		
-		const double dt = model_part.GetProcessInfo()[DELTA_TIME];
-				
-		//set to zero AUX vector
-		SetToZero(AUX_VECTOR,model_part.Nodes());
-		for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-		{
-			it->FastGetSolutionStepValue(AUX_VECTOR)=ZeroVector(3);
-			it->FastGetSolutionStepValue(FORCE)=ZeroVector(3);
-		}		
-
-		if (TDim==2)
-		{
-			//allocation of work space
-			boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-			array_1d<double,3> N;
-		
-		
-			//calculate the velocity correction and store it in AUX_VECTOR
-			for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
-			{
-				//get the list of nodes of the element
-				Geometry< Node<3> >& geom = it->GetGeometry();
-
-				double volume;
-				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
-						
-				array_1d<double,3> pres_inc;
-				pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
-				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
-				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
-				
-
-				//Gradient operator G:
-				boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-				boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
-				for (int ii = 0; ii< 3; ii++)
-				    {
-					int column = ii*2;				
-					shape_func(column,0) = N[ii];
-					shape_func(column + 1, 1) = shape_func(column,0);
-				    }
-				noalias(G)=prod(shape_func, trans(DN_DX));
-				G*=volume;
-
-				array_1d<double,6> aaa;
-				noalias(aaa) = prod(G,pres_inc);
-
-				array_1d<double,3> aux;
-				aux[0]=aaa[0];
-				aux[1]=aaa[1];			
-				//z-component is zero
-				aux[2]=0.0;
-
-				geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-				geom[0].FastGetSolutionStepValue(FORCE) += aux;
-				//reusing aux for the second node 
-				aux[0]=aaa[2];
-				aux[1]=aaa[3];			
-				//z-component is zero
-				geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-				geom[1].FastGetSolutionStepValue(FORCE) += aux;
-				//reusing aux for the third node
-				aux[0]=aaa[4];
-				aux[1]=aaa[5];			
-				geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-				geom[2].FastGetSolutionStepValue(FORCE) += aux;
-				//for(unsigned int i=0;i<3;i++)
-				//  geom[i].FastGetSolutionStepValue(AUX_VECTOR) += aux0;
-			}
-		}
-		if (TDim==3)
-			{
-			KRATOS_WATCH("Last step in 3D")
-			
-			array_1d<double,4> pres_inc;
-			boost::numeric::ublas::bounded_matrix<double,12,3> shape_func = ZeroMatrix(12, 3);
-			boost::numeric::ublas::bounded_matrix<double,12,4> G = ZeroMatrix(12,4);
-			boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-			array_1d<double,4> N;
-			//array_1d<double,3> aux0, aux1, aux2, aux3; //this are sized to 3 even in 2D!!		
-			for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
-			{
-				Geometry< Node<3> >& geom = it->GetGeometry();
-
-				pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
-				pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
-				pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
-				pres_inc[3] = geom[3].FastGetSolutionStepValue(PRESSURE,1)-geom[3].FastGetSolutionStepValue(PRESSURE);
-				
-				//Riccardo's modification: multiply the G(p_n+1-p_n) by 1/2
-				pres_inc*=0.5;
-	
-				double volume;
-				GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);		
-
-				//Gradient operator G:
-			
-				for (int ii = 0; ii< 4; ii++)
-				    {
-					int column = ii*3;				
-					shape_func(column,0) = N[ii];
-					shape_func(column + 1, 1) = shape_func(column,0);
-					shape_func(column + 2, 2) = shape_func(column,0);
-				    }
-				noalias(G)=prod(shape_func, trans(DN_DX));
-				G*=volume;
-
-				array_1d<double,12> aaa;
-				noalias(aaa) = prod(G,pres_inc);
-
-				array_1d<double,3> aux;
-				aux[0]=aaa[0];
-				aux[1]=aaa[1];			
-				aux[2]=aaa[2];			
-
-				geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-				//reusing aux for the second node 
-				aux[0]=aaa[3];
-				aux[1]=aaa[4];
-				aux[2]=aaa[5];						
-				//z-component is zero
-				geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-				//reusing aux for the third node
-				aux[0]=aaa[6];
-				aux[1]=aaa[7];
-				aux[2]=aaa[8];						
-				geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-
-				aux[0]=aaa[9];
-				aux[1]=aaa[10];
-				aux[2]=aaa[11];						
-				geom[3].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-
-				//for(unsigned int i=0;i<3;i++)
-				//  geom[i].FastGetSolutionStepValue(AUX_VECTOR) += aux0;
-			}
-			}
-		//correct the velocities
-		for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
-		{
-			//VELOCITY = VELOCITY + dt * Minv * AUX_VECTOR
-			double dt_Minv = (dt / 2.00) / it->FastGetSolutionStepValue(NODAL_MASS);
-			array_1d<double,3>& temp = it->FastGetSolutionStepValue(AUX_VECTOR);
-			array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
-			force_temp *=(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
-			//KRATOS_WATCH(force_temp);
-
-			if(!it->IsFixed(VELOCITY_X))
-				{
-				it->FastGetSolutionStepValue(VELOCITY_X)+=dt_Minv*temp[0];
-				}
-			if(!it->IsFixed(VELOCITY_Y))
-				{
-				it->FastGetSolutionStepValue(VELOCITY_Y)+=dt_Minv*temp[1];						
-				}
-			if(!it->IsFixed(VELOCITY_Z))
-				{
-				it->FastGetSolutionStepValue(VELOCITY_Z)+=dt_Minv*temp[2];						
-				}
-			
-			
-		}
-		//Timer::Stop("Ultimo_paso");
-		KRATOS_CATCH("");
-		}
-		
-		void SavePressureIt()
-		{
-			KRATOS_TRY
-			
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-				//setting the old value of the pressure to the current one
-				const double& p = (i)->FastGetSolutionStepValue(PRESSURE);
-				//(i)->FastGetSolutionStepValue(PRESSURE,1) = p;
-				(i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = p;
-
-			}	
-			KRATOS_CATCH("")
-		}
-		//************************************
-		//************************************
-		void SaveAccelerations()
-		{
-		KRATOS_TRY
-		array_1d<double, 3> acc=ZeroVector(3);
-		ModelPart& model_part=BaseType::GetModelPart();
-		const double dt = model_part.GetProcessInfo()[DELTA_TIME];
-		for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ; 
-				i != BaseType::GetModelPart().NodesEnd() ; ++i)
-			{
-			acc=(i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1);
-			(i)->FastGetSolutionStepValue(ACCELERATION)=acc/dt;
-			}
-		KRATOS_CATCH("")
-		}
-		///////////////////////////////////////////
-		void ApplySlipBC()
-		{
-		KRATOS_TRY
-		
-		
-		for (PointIterator it=mSlipBoundaryList.begin(); it!=mSlipBoundaryList.end(); ++it)
-		{
-		//KRATOS_WATCH("slip node")
-		array_1d<double, 3> normal = (*it)->FastGetSolutionStepValue(NORMAL);
-		double length = sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
-		if (length==0)
-			{
-			KRATOS_ERROR(std::logic_error,  "TO apply SLIP you should calculate normals first! Dont forget to assign Condition2D/3D resp for that " , "");
-			}
-		normal*=1.0/length;
-		array_1d<double, 3> normal_comp_vec;
-		//CHECK IF NORMAL IS NORMALIZED (divided by the length)
-		//double length = ...
-		array_1d<double, 3> vel = (*it)->FastGetSolutionStepValue(VELOCITY);
-		double normal_comp;
-		normal_comp=inner_prod(normal, vel);
-		normal_comp_vec = normal_comp*normal;
-		(*it)->FastGetSolutionStepValue(VELOCITY)-=normal_comp_vec;
-		}					
-		KRATOS_CATCH("")
-		}
-
-		//*************************************************************************
-		//*************************************************************************
-		void Reaction()		
-		{
-			KRATOS_TRY
+        //******************************************************************************************************
+        //******************************************************************************************************
+        void Compute()
+        {
+            KRATOS_TRY
 			array_1d<double,3> aux;	
 			array_1d<double,3> aux1;
 
@@ -739,206 +508,234 @@ KRATOS_WATCH(time)
 			const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 
 
-			//double dummy;
-			ProcessInfo& proc_info = model_part.GetProcessInfo();
-
 			array_1d<double,3> zero = ZeroVector(3);
 
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i)
 			{ 
-			noalias(it->FastGetSolutionStepValue(FORCE)) =    zero;		
+			noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;		
 			}
 			
-			array_1d<double,3> Frac_Step_Switch; 
-
-			Frac_Step_Switch[0]=1.0;
-			Frac_Step_Switch[1]=1.0;
-			Frac_Step_Switch[2]=1.0;
-
-
+			
+			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+            		rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
+			
 			//loop over elements calculating the Right Hand Side, that is stored directly to the node.. this is done by fct Calculate
 			for(ModelPart::ElementIterator im = model_part.ElementsBegin() ; im != model_part.ElementsEnd() ; ++im)
 			{
 			//compute the momentum residual, add it to the RHS_VECTOR on nodes
-			im->Calculate(VELOCITY, Frac_Step_Switch, proc_info);
+ 			(im)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 			}
 			
 			
-			for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i)
 			{	
 
-			array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
+			array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
 			//KRATOS_WATCH(it->FastGetSolutionStepValue(NODAL_MASS))
-			force_temp -=it->FastGetSolutionStepValue(NODAL_MASS) * ((it)->FastGetSolutionStepValue(VELOCITY)-(it)->FastGetSolutionStepValue(VELOCITY,1))/dt;
+			force_temp -=i->FastGetSolutionStepValue(NODAL_MASS) * ((i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1))/dt;
 			}
 			
-			KRATOS_CATCH("")
-		}
+	      
+	      KRATOS_CATCH("");
+        }
 
-		//*********************************************************************************
-		//**********************************************************************	
-
-		//******************************************************************************************************
-		//******************************************************************************************************
-		virtual void SetEchoLevel(int Level) 
-		{
-			mpressurestep->SetEchoLevel(Level);
-		}
-
-		//******************************************************************************************************
-		//******************************************************************************************************
-		virtual void Clear() 
-		{
-			KRATOS_WATCH("FractStepGLSStrategy Clear Function called");
-			mpressurestep->Clear();
-		}
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
-
-		/*@} */
-		/**@name Operations */
-		/*@{ */
-
-
-		/*@} */  
-		/**@name Access */
-		/*@{ */
-
-
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
-
-
-		/*@} */      
-		/**@name Friends */
-		/*@{ */
-
-
-		/*@} */
-
-	protected:
-		/**@name Protected static Member Variables */
-		/*@{ */
-
-
-		/*@} */
-		/**@name Protected member Variables */
-		/*@{ */
-		
-		//typename BaseType::Pointer mfracvel_x_strategy;
-		//typename BaseType::Pointer mfracvel_y_strategy;
-		//typename BaseType::Pointer mfracvel_z_strategy;
-		typename BaseType::Pointer mpressurestep;
-
-		//double mvelocity_toll;
-		double mpressure_toll;
-		//unsigned int mdomain_size;
-		//int mMaxVelIterations;
-		//int mMaxPressIterations;
-		//unsigned int mtime_order;
-		//unsigned int mprediction_order;
-		//bool mpredictor_corrector;
-		bool mReformDofAtEachIteration;
-
-		//double mmin_conv_vel_norm;
-
-
-		/*@} */
-		/**@name Protected Operators*/
-		/*@{ */
-
-		/*@} */
-		/**@name Protected Operations*/
-		/*@{ */
-
-
-
-		/*@} */
-		/**@name Protected  Access */
-		/*@{ */
-
-
-		/*@} */     
-		/**@name Protected Inquiry */
-		/*@{ */
-
-
-		/*@} */   
-		/**@name Protected LifeCycle */  
-		/*@{ */
-
-
-
-		/*@} */    
-
-	private:
-		/**@name Static Member Variables */
-		/*@{ */
-
-
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
-		/*		
-		unsigned int m_step;
-		int mdomain_size;
-		double mOldDt;
-		*/
-		//ModelPart& model_part;
 	
-		DofsArrayType mFixedVelocityDofSet;
-		std::vector<double> mFixedVelocityDofValues;
-		PointVector mSlipBoundaryList;
-		//bool proj_is_initialized;
+        /**
+         * 
+         * @param Level
+         */
+        virtual void SetEchoLevel(int Level)
+        {
+	  mecho_level = Level;
+	  mpfracvel_strategy->SetEchoLevel(Level);
+	  mppressurestep->SetEchoLevel(Level);
+        }
+
+        //******************************************************************************************************
+        //******************************************************************************************************
+
+        virtual void Clear()
+        {
+            int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+            if (rank == 0) KRATOS_WATCH("FracStepStrategy Clear Function called");
+            mpfracvel_strategy->Clear();
+            mppressurestep->Clear();
+        }
+
+        virtual double GetStageResidualNorm(unsigned int step)
+        {
+            if (step <= 3)
+                return mpfracvel_strategy->GetResidualNorm();
+            if (step == 4)
+                return mppressurestep->GetResidualNorm();
+            else
+                return 0.0;
+        }
+
+	
+	
+        /*@} */
+        /**@name Operators
+         */
+        /*@{ */
+
+        /*@} */
+        /**@name Operations */
+        /*@{ */
 
 
-		/*@} */
-		/**@name Private Operators*/
-		/*@{ */
-		//this funcion is needed to ensure that all the memory is allocated correctly
+        /*@} */
+        /**@name Access */
+        /*@{ */
 
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
+        /*@} */
+        /**@name Inquiry */
+        /*@{ */
 
 
-		/*@} */
-		/**@name Private  Access */
-		/*@{ */
+        /*@} */
+        /**@name Friends */
+        /*@{ */
 
 
-		/*@} */     
-		/**@name Private Inquiry */
-		/*@{ */
+        /*@} */
+
+    protected:
+        /**@name Protected static Member Variables */
+        /*@{ */
 
 
-		/*@} */   
-		/**@name Un accessible methods */
-		/*@{ */
+        /*@} */
+        /**@name Protected member Variables */
+        /*@{ */
+        typename BaseType::Pointer mpfracvel_strategy;
+        typename BaseType::Pointer mppressurestep;
 
-		/** Copy constructor.
-		*/
-		FracStepStrategy(const FracStepStrategy& Other);
+        double mvelocity_toll;
+        double mpressure_toll;
+        int mMaxVelIterations;
+        int mMaxPressIterations;
+        unsigned int mtime_order;
+        unsigned int mprediction_order;
+        bool mpredictor_corrector;
+        bool mReformDofAtEachIteration;
+        int mecho_level;
+
+        bool muse_dt_in_stabilization;
 
 
-		/*@} */   
+        /*@} */
+        /**@name Protected Operators*/
+        /*@{ */
 
-	}; /* Class FracStepStrategy */
-
-	/*@} */
-
-	/**@name Type Definitions */       
-	/*@{ */
+        /*@} */
+        /**@name Protected Operations*/
+        /*@{ */
 
 
-	/*@} */
 
-}  /* namespace Kratos.*/
+        /*@} */
+        /**@name Protected  Access */
+        /*@{ */
 
-#endif /* KRATOS_GLS_STRATEGY  defined */
+
+        /*@} */
+        /**@name Protected Inquiry */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Protected LifeCycle */
+        /*@{ */
+
+
+
+        /*@} */
+
+    private:
+        /**@name Static Member Variables */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Member Variables */
+        /*@{ */
+        unsigned int m_step;
+        unsigned int mdomain_size;
+        bool proj_is_initialized;
+
+        GenerateSlipConditionProcess::Pointer mpSlipProcess;
+        bool mHasSlipProcess;
+
+        std::vector< Process::Pointer > mInitializeIterationProcesses;
+
+        SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& msolver_config;
+
+        //******************************************************************************************
+        //******************************************************************************************
+
+        inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+        {
+            partitions.resize(number_of_threads + 1);
+            int partition_size = number_of_rows / number_of_threads;
+            partitions[0] = 0;
+            partitions[number_of_threads] = number_of_rows;
+            for (unsigned int i = 1; i < number_of_threads; i++)
+                partitions[i] = partitions[i - 1] + partition_size;
+        }
+
+
+
+
+        /*@} */
+        /**@name Private Operators*/
+        /*@{ */
+        //this funcion is needed to ensure that all the memory is allocated correctly
+
+
+        /*@} */
+        /**@name Private Operations*/
+        /*@{ */
+
+
+        /*@} */
+        /**@name Private  Access */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Private Inquiry */
+        /*@{ */
+
+
+        /*@} */
+        /**@name Un accessible methods */
+        /*@{ */
+
+        /** Copy constructor.
+         */
+        FracStepStrategy(const FracStepStrategy& Other);
+
+
+        /*@} */
+
+    }; /* Class FracStepStrategy */
+
+    /*@} */
+
+    /**@name Type Definitions */
+    /*@{ */
+
+
+    /*@} */
+
+} /* namespace Kratos.*/
+
+#endif /* KRATOS_RESIDUALBASED_FRACTIONALSTEP_STRATEGY  defined */
+
+
+
+
 
 
