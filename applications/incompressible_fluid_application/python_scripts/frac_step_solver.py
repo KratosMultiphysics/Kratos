@@ -1,156 +1,196 @@
+# -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
 from KratosIncompressibleFluidApplication import *
-#temporary - we need it for the nodal_h process
-#from KratosULFApplication import *
-
+from KratosMeshingApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
+    model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
+    model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
+    model_part.AddNodalSolutionStepVariable(CONV_PROJ);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
-    model_part.AddNodalSolutionStepVariable(RHS_VECTOR);
-    model_part.AddNodalSolutionStepVariable(AUX_VECTOR);
-    
-    model_part.AddNodalSolutionStepVariable(IS_FLUID);
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
-    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
-    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    model_part.AddNodalSolutionStepVariable(VISCOSITY);
-    model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-    model_part.AddNodalSolutionStepVariable(NODAL_H);
+    model_part.AddNodalSolutionStepVariable(DENSITY);
+    model_part.AddNodalSolutionStepVariable(VISCOSITY);
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
 
-    model_part.AddNodalSolutionStepVariable(NORMAL);
-    #this one is for Proj Dirichlet Conds
-    model_part.AddNodalSolutionStepVariable(AUX_VEL);
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
+    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
+    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
 
-    print "variables for the Frac Step GLS solver added correctly"
-        
+    print "variables for the incompressible fluid solver added correctly"
+
 def AddDofs(model_part):
+  
     for node in model_part.Nodes:
         #adding dofs
+        node.AddDof(PRESSURE);
+        node.AddDof(FRACT_VEL_X);
+        node.AddDof(FRACT_VEL_Y);
+        node.AddDof(FRACT_VEL_Z);
         node.AddDof(VELOCITY_X);
         node.AddDof(VELOCITY_Y);
         node.AddDof(VELOCITY_Z);
 
-        node.AddDof(AUX_VEL_X);
-        node.AddDof(AUX_VEL_Y);
-        node.AddDof(AUX_VEL_Z);
-        
-        node.AddDof(PRESSURE);
-
-	node.AddDof(ACCELERATION_X);
-        node.AddDof(ACCELERATION_Y);
-        node.AddDof(ACCELERATION_Z);
-
+    print "dofs for the incompressible fluid solver added correctly"
     
-        
-    print "dofs for the Frac Step GLS solver added correctly"
+
+def ReadRestartFile(FileName,nodes):
+   NODES = nodes
+   aaa = open(FileName)
+   for line in aaa:
+       exec(line)
+       
+  
 
 class FracStepSolver:
-    #######################################################################
+    
     def __init__(self,model_part,domain_size):
 
+        #neighbour search
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+
         self.model_part = model_part
-        #self.move_mesh_strategy = 2
-        pDiagPrecond = DiagonalPreconditioner()
+        self.domain_size = domain_size
+
+        #assignation of parameters to be used
+        self.vel_toll = 0.001;
+        self.press_toll = 0.001;
+        self.max_vel_its = 6;
+        self.max_press_its = 3;
+        self.time_order = 2;
+        self.CalculateReactions = False;
+        self.ReformDofAtEachIteration = False; 
+        self.CalculateNormDxFlag = True;
+        self.laplacian_form = 2; #1 = laplacian, 2 = Discrete Laplacian
+        self.predictor_corrector = False;
+
+        self.echo_level = 0
 
         #definition of the solvers
-        self.linear_solver =  SkylineLUFactorizationSolver()
-        print "LIN SOLVER", self.linear_solver
-        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
-        #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
+        pDiagPrecond = DiagonalPreconditioner()
+        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
-        self.max_iter = 10
-                            
-        #default settings
-        self.echo_level = 1
-        self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = False
-        self.CalculateNormDxFlag = True
-        self.domain_size = domain_size;
-	self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
-        #self.MoveMeshFlag = True
+        self.dynamic_tau = 0.001
+        self.activate_tau2 = False
 
-        if (self.domain_size==2):
-            self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
-        if (self.domain_size==3):
-            self.neigh_finder = FindNodalNeighboursProcess(model_part,20,30)
-        ##calculate normals
-        self.normal_tools = NormalCalculationUtils()
-        #self.Hfinder  = FindNodalHProcess(model_part);
-	self.timer=Timer()  
-                
-    #######################################################################
+
+        ##handling slip condition
+        self.slip_conditions_initialized = False
+
+        self.compute_reactions=False
+        self.timer=Timer()    
+        
+        
+
+
     def Initialize(self):
-        #calculate the normals to the overall domain
-        self.normal_tools.CalculateOnSimplex(self.model_part.Conditions,self.domain_size);
-        #for SLIP condition we need to save these Conditions in a list
-        #by now SLIP conditions are identified by FLAG_VARIABLE=3.0. this is done in the constructir of the strategy
-        
-        #creating the solution strategy
-        if (self.domain_size==2):
-            self.solver = FracStepStrategy2D(self.model_part,self.linear_solver,self.CalculateReactionFlag,
-                                                  self.ReformDofSetAtEachStep, self.CalculateNormDxFlag)
-        
+        (self.neighbour_search).Execute()
+
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
+
+        self.domain_size = int(self.domain_size)
+        self.laplacian_form = int(self.laplacian_form)
+        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
+
+        self.ReformDofAtEachIteration = bool(self.ReformDofAtEachIteration)
+        self.vel_toll = float(self.vel_toll)
+        self.press_toll = float(self.press_toll)
+        self.max_vel_its = int(self.max_vel_its)
+        self.max_press_its = int(self.max_press_its)
+        self.time_order = int(self.time_order)
+        self.domain_size = int(self.domain_size)
+        self.predictor_corrector = bool(self.predictor_corrector)
+        self.solver = FracStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+
 
         (self.solver).SetEchoLevel(self.echo_level)
-
-        (self.neigh_finder).Execute();
-        #(self.Hfinder).Execute();
+        print "finished initialization of the fluid strategy"
         
-                 
-    #######################################################################   
+   
     def Solve(self):
+	
+
+	self.timer.Start("Update Fixed Velocity Values")
         (self.solver).Solve()
-        (self.neigh_finder).Execute();
-        #self.Remesh()
-
-    #######################################################################   
-    def Solve_step1(self):
-	self.timer.Start("Calculo_aceleracion")
-        (self.solver).SolveStep1()
-	self.timer.Stop("Calculo_aceleracion")
+	#self.timer.Stop("Update Fixed Velocity Values")
+	print "####################"
+	print "####################"
+	
+	print self.timer.Stop("Update Fixed Velocity Values")
 	print self.timer
-#        (self.neigh_finder).Execute();
-        #self.Remesh()
+	print "####################"
+	print "####################"
 
-    #######################################################################   
-    def Solve_step2(self):
-	self.timer.Start("Presion")
-	#ssssssssss
-        (self.solver).SolveStep2()
-	self.timer.Stop("Presion")
-	print self.timer
-	#sssssss
-#        (self.neigh_finder).Execute();
-        #self.Remesh()
+	
 
-    #######################################################################   
-    def Solve_step3(self):
-	self.timer.Start("Correccion_velocidad")
+    def solve1(self):
+	
+ 	self.timer.Start("primero")
+        print self.model_part
         (self.solver).SolveStep3()
-	self.timer.Stop("Correccion_velocidad")
-	print self.timer
-#        (self.neigh_finder).Execute();
-        #self.Remesh()
+	self.timer.Stop("primero")
 
-    #######################################################################   
-    def Solve_Reaction(self):
-        (self.solver).Reaction()
-#        (self.neigh_finder).Execute();
-        #self.Remesh()
+   
+    def solve2(self):
+	
+ 	self.timer.Start("segundo")
+        print self.model_part
+        (self.solver).SolveStep4()
+	self.timer.Stop("segundo")
 
-    #######################################################################   
-    def SetEchoLevel(self,level):
-        (self.solver).SetEchoLevel(level)
+    def Reactions(self):
+	
+ 	self.timer.Start("reactions")
+	print "ssssssssssssssssssssssssssss"
+        print self.model_part
+        (self.solver).Compute()
+	self.timer.Stop("reactions")
 
-    #######################################################################
 
-    
+    def Clear(self):
+        (self.solver).Clear()
+        self.slip_conditions_initialized = True
+
+       
+
+    def WriteRestartFile(self,FileName):
+        restart_file = open(FileName+".mdpa",'w')
+        import new_restart_utilities
+        new_restart_utilities.PrintProperties(restart_file)
+        new_restart_utilities.PrintNodes(self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintElements("Fluid3D",self.model_part.Elements,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(PRESSURE,"PRESSURE",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(VISCOSITY,"VISCOSITY",self.model_part.Nodes,restart_file)
+        new_restart_utilities.PrintRestart_ScalarVariable(DENSITY,"DENSITY",self.model_part.Nodes,restart_file)
+        restart_file.close() 
+
+
+
+
+        
+        
+
+
+
+
+
+
+
+
+
 
 
