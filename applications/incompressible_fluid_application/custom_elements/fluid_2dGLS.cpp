@@ -574,22 +574,6 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    inline double Fluid2DGLS::CalculateH(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, double Volume)
-    {
-	double inv_h_max = 0.0;
-	for(unsigned int i=0; i<3; i++)
-	{
-	  double inv_h = 0.0;
-	  for(unsigned int k=0; k<2; k++)
-	    inv_h += DN_DX(i,k)*DN_DX(i,k);
-	  
-	  if(inv_h > inv_h_max) inv_h_max = inv_h;
-	}
-	inv_h_max = sqrt(inv_h_max);
-	double h = 1.0/inv_h_max;
-	
-        return h ;
-    }
 
     //#undef GRADPN_FORM
 } // Namespace Kratos
