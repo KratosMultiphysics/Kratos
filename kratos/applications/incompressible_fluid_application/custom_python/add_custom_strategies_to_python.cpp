@@ -345,19 +345,24 @@ namespace Kratos
                     .def("SolveStep3", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
                     .def("Clear", &RungeKuttaFracStepCompStrategy < 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
 
-
-	class_< FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >,
-
+ 	     class_< FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
                     bases< BaseSolvingStrategyType >, boost::noncopyable >
-                    ("FracStepStrategy2D",
-                    init < ModelPart&, LinearSolverType::Pointer,
-                    bool, bool, bool
+                    ("FracStepStrategy",
+                    init < ModelPart&,
+                    SolverConfiguration<SparseSpaceType, LocalSpaceType, LinearSolverType >&,
+                    bool,
+                    double, double,
+                    int, int,
+                    unsigned int, unsigned int,
+                    bool
                     >())
-                    .def("SolveStep1", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
-                    .def("SolveStep2", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
-                    .def("SolveStep3", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
-	            .def("Reaction", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Reaction)
-                    .def("Clear", &FracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear);
+                    .def("SolveStep2", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
+                    .def("SolveStep3", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
+                    .def("SolveStep4", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep4)
+                    .def("Clear", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
+                    .def("Compute", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute)
+                    ;
+
 
 
             //********************************************************************************************
