@@ -67,271 +67,272 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 #include "includes/serializer.h"
 
+
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Fluid2DGLS
-	  : public Element
+    ///@name Kratos Globals
+    ///@{
+
+    ///@}
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name  Functions
+    ///@{
+
+    ///@}
+    ///@name Kratos Classes
+    ///@{
+
+    /// This element implements a Multi-stage element (2D case) to be used in conjuntion with @see FractionalStepStrategy
+
+    /** The element is designed for the solution of the Navier-Stokes equations. Velocity components are considered to be uncoupled, and
+     * laplacian formulation is used for the viscous term.
+     * OSS (Orthogonal Sub-grid Scale) stabilization is used for both the incompressibility constraint and for the convective term.
+     * smagorinsky turbulence model is optionally implemented and controlled by the value of the C_SMAGORINSKY constant, which is passed thorugh the
+     * Processinfo.
+     * The computation of the "tau" used in the stabilization allows the user to take in account a term depending on 1/Dt
+     * this option is controlled by the variable ProcessInfo[DYNAMIC_TAU]. Setting it to 0.0 implies NOT considering a dependence
+     * of tau on Dt.
+     * The class is organized mainly in 3 stages
+     * Stage1 - computes the velocity (designed for non-linear iteration)
+     * Stage2 - computes the pressure
+     * Stage3 - corrects the velocity taking in account the pressure variation computed in the second step
+     */
+    class Fluid2DGLS
+    : public Element
     {
     public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Fluid2DGLS
-      KRATOS_CLASS_POINTER_DEFINITION(Fluid2DGLS);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  Fluid2DGLS(IndexType NewId, GeometryType::Pointer pGeometry);
-      Fluid2DGLS(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+        ///@name Type Definitions
+        ///@{
 
-      /// Destructor.
-      virtual ~Fluid2DGLS();
-      
+        /// Counted pointer of Fluid2DGLS
+        KRATOS_CLASS_POINTER_DEFINITION(Fluid2DGLS);
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+        /// Default constructor.
+        Fluid2DGLS(IndexType NewId, GeometryType::Pointer pGeometry);
+        Fluid2DGLS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+        /// Destructor.
+        virtual ~Fluid2DGLS();
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        ///@}
+        ///@name Operators
+        ///@{
 
-	void Calculate(const Variable<double >& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
-	void Calculate(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo);
-	
+        ///@}
+        ///@name Operations
+        ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "Fluid2DGLS #" ;
-		}
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
+        void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-      /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
+        void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-            
-      ///@}
-      
+        void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+
+        void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+        //void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+
+        int Check(const ProcessInfo& rCurrentProcessInfo);
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+
+        virtual std::string Info() const
+        {
+            return "Fluid2DGLS #";
+        }
+
+        /// Print information about this object.
+
+        virtual void PrintInfo(std::ostream& rOStream) const
+        {
+            rOStream << Info() << Id();
+        }
+
+        /// Print object's data.
+        //      virtual void PrintData(std::ostream& rOStream) const;
+
+
+        ///@}
+        ///@name Friends
+        ///@{
+
+
+        ///@}
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+        ///@name Protected static Member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operators
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operations
+        ///@{
+
+
+        ///@}
+        ///@name Protected  Access
+        ///@{
+
+
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
+
+
+        ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-//		static boost::numeric::ublas::bounded_matrix<double,3,3> msMassFactors;
-//		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-//  		static array_1d<double,3> msN; //dimension = number of nodes
-		//static Matrix msDN_DX;
-		//static Matrix msMassFactors;
-//		static array_1d<double,2> ms_vel_gauss; //dimesion coincides with space dimension
-//		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes
-//		static array_1d<double,3> ms_u_DN;
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
+        ///@name Static Member Variables
+        ///@{
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+
+
+        ///@}
+        ///@name Private Operators
+        ///@{
+        //void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
+        void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+        inline double CalculateH(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, double Volume);
+       // inline double CalculateTau(boost::numeric::ublas::bounded_matrix<double, 3,2 > & DN_DX, array_1d<double, 2 > & vel_gauss, const double h, const double nu, const double norm_u, const ProcessInfo& CurrentProcessInfo);
+        double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX,
+                const double& h,
+                const double& C,
+                const double nu
+                );
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
         ///@}
         ///@name Serialization
         ///@{
-	friend class Serializer;
+
+        friend class Serializer;
 
         // A private default constructor necessary for serialization
-         Fluid2DGLS() : Element()
-	{
-	}
-	
+
+        Fluid2DGLS() : Element()
+        {
+        }
+
         virtual void save(Serializer& rSerializer) const
-	{
-	rSerializer.save("Name", "Fluid2DGLS");
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-	}
-	
-	virtual void load(Serializer& rSerializer)
-	{
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-	}	     
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-	void CalculateLumpedMass();		
-	void CalculateGalerkinMomentumResidual(VectorType& Galerkin_RHS);
-	//calculates stabilized RHS and writes it directly to the nodes
-        void CalculateRHSVector(VectorType& GalerkinRHS, double& dt);
-	
-	//void RungeKuttaTimeIntegration(VectorType& RHS, double& d_t);
-	//SECOND STEP OF FRAC STEP IS DONE WITHIN CALCULATE LOCAL SYSTEM
-	//void SecondStepOfFractionalStep(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, double& dt);
-	void FinalFractionalStep(const ProcessInfo&);	
-	void ComputeTimeStep(double CFLNumber);
+        {
+            rSerializer.save("Name", "Fluid2DGLS");
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+        }
 
-	//void Stage1(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, unsigned int ComponentIndex);
-      //void Stage2(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-       
-  
-	  //inline void CalculateGeometryData(Matrix& msDN_DX, Vector& N, double& Area)
-//	  inline void CalculateGeometryData(boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, array_1d<double,3>& N, double& Area);
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //Fluid2DGLS& operator=(const Fluid2DGLS& rOther);
+        virtual void load(Serializer& rSerializer)
+        {
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+        }
 
-      /// Copy constructor.
-      //Fluid2DGLS(const Fluid2DGLS& rOther);
+        ///@}
+        ///@name Un accessible methods
+        ///@{
 
-        
-      ///@}    
-        
+        /// Assignment operator.
+        //Fluid2DGLS& operator=(const Fluid2DGLS& rOther);
+
+        /// Copy constructor.
+        //Fluid2DGLS(const Fluid2DGLS& rOther);
+
+
+        ///@}
+
     }; // Class Fluid2DGLS 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
-				    Fluid2DGLS& rThis);
-*/
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Fluid2DGLS& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+    ///@}
 
-      return rOStream;
-    }*/
-  ///@} 
+    ///@name Type Definitions
+    ///@{
 
-}  // namespace Kratos.
 
-#endif // KRATOS_FLUID_2D_GLS_H_INCLUDED  defined 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    /// input stream function
+    /*  inline std::istream& operator >> (std::istream& rIStream,
+                                        Fluid2DGLS& rThis);
+     */
+    /// output stream function
+    /*  inline std::ostream& operator << (std::ostream& rOStream,
+                                        const Fluid2DGLS& rThis)
+        {
+          rThis.PrintInfo(rOStream);
+          rOStream << std::endl;
+          rThis.PrintData(rOStream);
+
+          return rOStream;
+        }*/
+    ///@}
+
+} // namespace Kratos.
+
+#endif // KRATOS_FLUID_2D_H_INCLUDED  defined 
+
 
 
