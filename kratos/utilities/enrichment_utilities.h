@@ -98,7 +98,7 @@ namespace Kratos {
          */
         template<class TMatrixType, class TVectorType, class TGradientType>
         static int CalculateTetrahedraEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
-        TVectorType const& rDistances, TVectorType& rVolumes, TMatrixType& rShapeFunctionValues,
+        TVectorType rDistances, TVectorType& rVolumes, TMatrixType& rShapeFunctionValues,
         TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, TMatrixType& NEnriched) {
             KRATOS_TRY
 
@@ -108,7 +108,7 @@ namespace Kratos {
             const int edge_i[] = {0, 0, 0, 1, 1, 2};
             const int edge_j[] = {1, 2, 3, 2, 3, 3};
 
-
+// KRATOS_WATCH("                                                ");
 
             const int edges[4][4] = {
                 {-1, 0, 1, 2},
@@ -162,13 +162,16 @@ namespace Kratos {
             noalias(grad_d) = prod(trans(DN_DX), rDistances);
             double norm = norm_2(grad_d);
             if (norm > epsilon)
-                grad_d /= norm;
+                grad_d /= (norm+epsilon);
 
             array_1d<double, n_nodes> exact_distance = rDistances;
             array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
             double sub_volumes_sum = 0.00;
-
-            for (int edge = 0; edge < n_edges; edge++) {
+	    
+	    //compute edge lenghts and max_lenght	    
+	    double max_lenght = 0.0;
+            for (int edge = 0; edge < n_edges; edge++) 
+	    {
                 const int i = edge_i[edge];
                 const int j = edge_j[edge];
 
@@ -182,46 +185,81 @@ namespace Kratos {
                 edges_dy[edge] = dy;
                 edges_dz[edge] = dz;
                 edges_length[edge] = l;
+		
+		if(l > max_lenght)
+		  max_lenght = l;
+	    }
+	    
+	    double relatively_close = near_factor*max_lenght;
+	    array_1d<bool,4> collapsed_node;
+	    //identify collapsed nodes
+	    for (unsigned int i=0; i<4; i++)
+	    {
+	       if(fabs(rDistances[i]) < relatively_close)
+	       {
+		 collapsed_node[i] = true;
+		 rDistances[i] = 0.0;
+// 		 KRATOS_WATCH("********************************!!!!!!!!!!!!!!!!!!!!!!!!!!!! collapsed node")
+	       }
+	       else
+		 collapsed_node[i] = false;
+	       
+	       abs_distance[i] = fabs(rDistances[i]);
+	    }
+	      
+	    //now decide splitting pattern
+	    for (int edge = 0; edge < n_edges; edge++) 
+	    {
+		 const int i = edge_i[edge];
+                 const int j = edge_j[edge];
+		 if (rDistances[i] * rDistances[j] < 0.0)
+		 {
+		    const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
+		    const double d = fabs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
+		    abs_distance[i] = d * tmp;
+		    abs_distance[j] = d * (1.0 - tmp);
+		   
+		    if (collapsed_node[i] == false && collapsed_node[j] == false)		      
+		    {
+			split_edge[edge + 4] = new_node_id;
+			edge_division_i[edge] = tmp;
+			edge_division_j[edge] = 1.00 - tmp;
 
-                double relatively_near = l * near_factor;
+			//compute the position of the edge node
+			for (unsigned int k = 0; k < 3; k++)
+			    aux_coordinates(new_node_id, k) = rPoints(i, k) * edge_division_j[edge] + rPoints(j, k) * edge_division_i[edge];
 
-                if (fabs(rDistances[i]) < relatively_near) {
-                    signs[i] = 0;
-                } else if (fabs(rDistances[j]) < relatively_near) {
-                    signs[j] = 0;
-                } else if (rDistances[i] * rDistances[j] < -epsilon) {
-                    split_edge[edge + 4] = new_node_id;
-                    edge_division_i[edge] = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
-                    edge_division_j[edge] = 1.00 - edge_division_i[edge];
-                    const double d = fabs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
-
-                    abs_distance[i] = d * edge_division_i[edge];
-                    abs_distance[j] = d * edge_division_j[edge];
-
-                    //compute the position of the edge node
-                    for (unsigned int k = 0; k < 3; k++)
-                        aux_coordinates(new_node_id, k) = rPoints(i, k) * edge_division_j[edge] + rPoints(j, k) * edge_division_i[edge];
-
-                    new_node_id++;
+			new_node_id++;
+		    }
+// 		    else
+// 		    {
+// 		       if(collapsed_node[i] == true) split_edge[edge + 4] = i;
+// 		       else split_edge[edge + 4] = j;
+// 		    }
                 }
             }
 
             for (int i_node = 0; i_node < n_nodes; i_node++) {
-                if (signs[i_node] == 0)
-                    zero_distance_nodes[n_zero_distance_nodes++] = i_node;
-                else if (rDistances[i_node] < 0.00) {
+//                 if (collapsed_node[i_node] == true)
+// 		{
+// 		    abs_distance[i_node] = 0.0;
+// 		    signs[i_node] = 1;
+// 		    positive_distance_nodes[n_negative_distance_nodes++] = i_node;
+// //                     zero_distance_nodes[n_zero_distance_nodes++] = i_node;
+// 		}
+//                 else 
+		  if (rDistances[i_node] < 0.00) {
                     signs[i_node] = -1;
                     negative_distance_nodes[n_negative_distance_nodes++] = i_node;
                 } else {
                     signs[i_node] = 1;
                     positive_distance_nodes[n_positive_distance_nodes++] = i_node;
                 }
-
             }
 
             //assign correct sign to exact distance
             for (int i = 0; i < n_nodes; i++) {
-                if (rDistances[i] < 0)
+                if (rDistances[i] < 0.0)
                     exact_distance[i] = -abs_distance[i];
                 else
                     exact_distance[i] = abs_distance[i];
@@ -248,122 +286,37 @@ namespace Kratos {
 
 
             //            KRATOS_WATCH(volume)
-            if (number_of_splitted_edges == 0) // no spliting
+            if (number_of_splitted_edges == 0) // no splitting
             {
                 rVolumes[0] = volume;
                 sub_volumes_sum = volume;
-                // Looking for the first node with sign not zero to get the sign of the element.
-                for (int i_node = 0; i_node < n_nodes; i_node++)
-                    if (signs[i_node] != 0) {
-                        rPartitionsSign[0] = signs[i_node];
-                        break;
-                    }
-                number_of_partitions = 1; // There is only one partition, the element itself.
-                /*           } else if (number_of_splitted_edges == 1) // The surface passes between two nodes with zero distance
-                           {
-                               const int edge = edges[negative_distance_nodes[0]][positive_distance_nodes[0]];
-                               const int volume1_id = int(edge_i[edge] == positive_distance_nodes[0]);
-                               const int volume2_id = int(edge_j[edge] == positive_distance_nodes[0]);
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
-                               rPartitionsSign[0] = -1;
-                               rPartitionsSign[1] = 1;
-                               number_of_partitions = 2; // There are two partitions
-                           } else if (number_of_splitted_edges == 2) // The surface passes through a node with zero distance
-                           {
-                               // The node 0 is the node with zero distance,
-                               // node1 is the one with sign different than the other two.
-                               int node1;
-                               int node2;
-                               int node3;
-                               if (n_negative_distance_nodes > 1)
-                               {
-                                   node1 = positive_distance_nodes[0];
-                                   node2 = negative_distance_nodes[0];
-                                   node3 = negative_distance_nodes[1];
-                                   rPartitionsSign[0] = -1;
-                                   rPartitionsSign[1] = -1;
-                                   rPartitionsSign[2] = 1;
-                               } else
-                               {
-                                   node1 = negative_distance_nodes[0];
-                                   node2 = positive_distance_nodes[0];
-                                   node3 = positive_distance_nodes[1];
-                                   rPartitionsSign[0] = 1;
-                                   rPartitionsSign[1] = 1;
-                                   rPartitionsSign[2] = -1;
-                               }
-               //                KRATOS_WATCH(node1);
-               //                KRATOS_WATCH(node2);
-                               // dividing volume to volume 0 and 1
-                               int edge = edges[node1][node2];
-                               int volume1_id = int(edge_i[edge] == node1);
-                               int volume2_id = int(edge_j[edge] == node1);
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
+//                 // Looking for the first node with sign not zero to get the sign of the element.
+//                 for (int i_node = 0; i_node < n_nodes; i_node++)
+//                     if (signs[i_node] != 0) {
+//                         rPartitionsSign[0] = signs[i_node];
+//                         break;
+//                     }
+		//take the sign from the node with min distance
+		double min_distance = 1e9;
+		for (int j = 0; j < 4; j++)
+		  if(exact_distance[j] < min_distance) min_distance = exact_distance[j];
 
-                               // dividing volume 1 to volume 1 and 2
-                               edge = edges[node1][node3];
-                               volume1_id = 1 + int(edge_i[edge] == node1);
-                               volume2_id = 1 + int(edge_j[edge] == node1);
-                               volume = rVolumes[1];
-                               CopyShapeFunctionsValues(rShapeFunctionValues, 1, 2);
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
-
-                               number_of_partitions = 3; // There are three partitions
-                           } else if (number_of_splitted_edges == 3) // One node on one side the rest on the other side
-                           {
-
-                               // The node 0 is the node with different sign than the rest,
-                               // node1 is the one with sign different than the other two.
-                               int node0;
-                               int node1;
-                               int node2;
-                               int node3;
-                               if (n_negative_distance_nodes > 1)
-                               {
-                                   node0 = positive_distance_nodes[0];
-                                   node1 = negative_distance_nodes[0];
-                                   node2 = negative_distance_nodes[1];
-                                   node3 = negative_distance_nodes[2];
-                                   rPartitionsSign[0] = -1;
-                                   rPartitionsSign[1] = -1;
-                                   rPartitionsSign[2] = -1;
-                                   rPartitionsSign[3] = 1;
-                               } else
-                               {
-                                   node0 = negative_distance_nodes[0];
-                                   node1 = positive_distance_nodes[0];
-                                   node2 = positive_distance_nodes[1];
-                                   node3 = positive_distance_nodes[2];
-                                   rPartitionsSign[0] = 1;
-                                   rPartitionsSign[1] = 1;
-                                   rPartitionsSign[2] = 1;
-                                   rPartitionsSign[3] = -1;
-                               }
-
-                               // dividing volume to volume 0 and 1
-                               int edge = edges[node0][node1];
-                               int volume1_id = int(edge_i[edge] == node0);
-                               int volume2_id = int(edge_j[edge] == node0);
-
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
-
-                               // dividing volume 1 to volume 1 and 2
-                               edge = edges[node0][node2];
-                               volume1_id = 1 + int(edge_i[edge] == node0);
-                               volume2_id = 1 + int(edge_j[edge] == node0);
-                               volume = rVolumes[1];
-                               CopyShapeFunctionsValues(rShapeFunctionValues, 1, 2);
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
-
-                               // dividing volume 2 to volume 2 and 3
-                               edge = edges[node0][node3];
-                               volume1_id = 2 + int(edge_i[edge] == node0);
-                               volume2_id = 2 + int(edge_j[edge] == node0);
-                               volume = rVolumes[2];
-                               CopyShapeFunctionsValues(rShapeFunctionValues, 2, 3);
-                               Divide1To2(edge_division_i, edge_division_j, edge, volume1_id, volume2_id, volume, rShapeFunctionValues, rVolumes);
-                               number_of_partitions = 4; // There are four partitions
-                 */            } else //if (number_of_splitted_edges == 4)
+		if(min_distance < 0.0)
+		   rPartitionsSign[0] = -1.0;
+		else
+		   rPartitionsSign[0] = 1.0;
+		
+                number_of_partitions = 1; 
+		
+		for (int j = 0; j < 4; j++)
+                        rShapeFunctionValues(0, j) = 0.25;
+		
+		for (int j = 0; j < number_of_partitions; j++)
+		  NEnriched(j, 0) = 0.0;
+		
+		rGradientsValue[0] = ZeroMatrix(1,3);
+	    } 
+	    else //if (number_of_splitted_edges == 4)
             {
                 //define the splitting mode for the tetrahedra
                 int edge_ids[6];
@@ -402,7 +355,18 @@ namespace Kratos {
                 number_of_partitions = nel;
 
             }
+            
+//             if(fabs(sub_volumes_sum/volume - 1.0) > 1e-9)
+// 	    {
+// 	      KRATOS_WATCH(volume);
+// 	      KRATOS_WATCH(rVolumes);
+// 	      KRATOS_WATCH(sub_volumes_sum);
+// 	      KRATOS_ERROR(std::logic_error,"the elemental volume does not match the sum of the sub volumes","")
+// 	    }
+// KRATOS_WATCH(exact_distance);
+// KRATOS_WATCH(abs_distance);
 
+	    double verify_volume = 0.0;
             if (number_of_partitions > 1) { // we won't calculate the N and its gradients for element without partitions
                 for (int i = 0; i < number_of_partitions; i++) {
                     //compute enriched shape function values
@@ -413,22 +377,50 @@ namespace Kratos {
                         abs_dist += rShapeFunctionValues(i, j) * abs_distance[j];
                     }
 
-
                     if (dist < 0.0)
-                        rPartitionsSign[i] = -1;
+                        rPartitionsSign[i] = -1.0;
                     else
-                        rPartitionsSign[i] = 1;
+                        rPartitionsSign[i] = 1.0;
 
                     NEnriched(i, 0) = 0.5 * (abs_dist - rPartitionsSign[i] * dist);
-
+/*KRATOS_WATCH(abs_dist);
+KRATOS_WATCH(dist);
+KRATOS_WATCH(rPartitionsSign);
+KRATOS_WATCH(abs_distance_gradient);
+KRATOS_WATCH(exact_distance_gradient);*/
                     //compute shape function gradients
                     for (int j = 0; j < 3; j++)
                         rGradientsValue[i](0, j) = 0.5 * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
+		    
 
                 }
-
-
             }
+//             else
+// 	    {
+// 	      NEnriched(0,0) = 0.0;
+// 	      
+// 	      for (int j = 0; j < 3; j++)
+//                         rGradientsValue[0](0, j) = 0.0;
+// 	    }
+	    
+// 	    for (unsigned int i=0; i<4; i++)
+// 	    {
+// 	       if( collapsed_node[i] == true)
+// 	       {
+// 		 KRATOS_WATCH(number_of_partitions);
+// 		 for (int k = 0; k < number_of_partitions; k++) 
+// 		 {
+// 		 KRATOS_WATCH(rVolumes[k]);
+// 		 
+// 		 KRATOS_WATCH(NEnriched(k,0));
+// 		 KRATOS_WATCH(rGradientsValue[k]);
+// 		 }
+// 	       } 
+// 	    }
+	       
+	       
+	       
+	       
 
             return number_of_partitions;
             KRATOS_CATCH("");
