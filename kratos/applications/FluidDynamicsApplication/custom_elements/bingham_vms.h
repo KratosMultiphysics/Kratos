@@ -276,7 +276,7 @@ namespace Kratos
                 double Viscosity;
                 this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
 
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 
                 rValues.resize(1, false);
                 if (rVariable == TAUONE)
