@@ -548,7 +548,10 @@ namespace Kratos
             double enrichment_diagonal = 0.0;
             double enriched_rhs = 0.0;
             array_1d<double,3> bf(3,0.0);
-            array_1d<double,3> Acceleration(3,0.0);
+//             array_1d<double,3> Acceleration(3,0.0);
+	    
+	    double positive_volume = 0.0;
+	    double negative_volume = 0.0;
 
             //do integration
             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
@@ -557,13 +560,21 @@ namespace Kratos
                 for (unsigned int k = 0; k < TNumNodes; k++)
                     N[k] = Ngauss(igauss, k);
                 double wGauss = volumes[igauss];
+		
+		if(signs[igauss] > 0)
+		  positive_volume += wGauss;
+		else
+		  negative_volume += wGauss;
 
                 // Calculate this element's fluid properties
                 double Density, KinViscosity;
                 this->EvaluateInPoint(Density, DENSITY, N);
                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
                 this->EvaluateInPoint(bf,BODY_FORCE,N);
-                this->EvaluateInPoint(Acceleration,ACCELERATION,N);
+//                 this->EvaluateInPoint(Acceleration,ACCELERATION,N);
+		
+if(Density != 1.0 && Density != 1000.0)
+  KRATOS_ERROR(std::logic_error,"taking the average of density on element ",this->Id());
 
                 double Viscosity;
                 this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
@@ -581,7 +592,7 @@ namespace Kratos
 //                    TauOne = rCurrentProcessInfo[DELTA_TIME];
 //                    TauTwo = 0.0;
 //                }
-
+		double Dt =  rCurrentProcessInfo[DELTA_TIME];
 
                 this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
 
@@ -613,6 +624,18 @@ namespace Kratos
                             enrichment_terms_vertical[base_index + TDim] += temp;
                             enrichment_terms_horizontal[base_index + TDim] += temp;
                         }
+                        
+                        //add acceleration enrichment term
+			const array_1d<double,3>& old_vnode = this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY,1);			
+			for (unsigned int k = 0; k < TDim; k++)
+                        {
+                            double coeff = wGauss * TauOne *Density *  gauss_gradients[igauss](0,k)*Nenriched(igauss, 0) / Dt;
+                            enrichment_terms_horizontal[base_index + k] += coeff;
+			    
+			    enriched_rhs += coeff * old_vnode[k];
+//                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+//                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                       }
                     }
 
                     //compute diagonal enrichment term
@@ -621,30 +644,118 @@ namespace Kratos
                         const Matrix& enriched_grad = gauss_gradients[igauss];
                         enrichment_diagonal += wGauss  * TauOne * pow(enriched_grad(0, k), 2);
                         
-                        enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]-Acceleration[k]);
+                        enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]/*-Acceleration[k]*/);
 
 
                     }
                 }
             }
 
+// if(this->Id() == 2059)
+// {
+//   KRATOS_WATCH("********************************************")
+//   KRATOS_WATCH(distances)
+//   KRATOS_WATCH(ndivisions)
+//   KRATOS_WATCH(Ngauss);
+//   KRATOS_WATCH(volumes);
+//   for (unsigned int k = 0; k < ndivisions; k++)
+//     KRATOS_WATCH(gauss_gradients[k])
+//   
+// }
+/*	    for (unsigned int i = 0; i < (TDim+1)*TNumNodes; i++)
+	    {
+	      double b = rRightHandSideVector[i];
+	      if ( b == rRightHandSideVector[i] + 10000000.0)
+	      {
+		for (unsigned int k = 0; k < TNumNodes; k++)
+		{
+                    N[k] = Ngauss(0, k);
+		
+		    KRATOS_WATCH(this->GetGeometry()[k].FastGetSolutionStepValue(DISTANCE));
+		}
+		
+                double Density, KinViscosity;
+                this->EvaluateInPoint(Density, DENSITY, N);
+                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+ 		KRATOS_WATCH(N);
+		KRATOS_WATCH(this->Id())
+		KRATOS_WATCH(ndivisions);
+		KRATOS_WATCH(Area);
+		KRATOS_WATCH(enrichment_diagonal)
+		KRATOS_WATCH(b)
+		KRATOS_WATCH(rRightHandSideVector)
+		KRATOS_WATCH(volumes)
+		KRATOS_WATCH(rDampMatrix)
+		KRATOS_WATCH(Ngauss)
+		KRATOS_WATCH(Density)
+		KRATOS_WATCH(DN_DX)
+		KRATOS_WATCH(KinViscosity)
+	      }
+	    }	 */   
+
             if (ndivisions > 1)
             {
 //                KRATOS_WATCH(enrichment_terms_vertical);
 //                KRATOS_WATCH(enrichment_terms_horizontal);
 //                KRATOS_WATCH(enrichment_diagonal);
+/*		double aux_diag = 0.0;
+		for (unsigned int inode = 0; inode < TNumNodes; inode++)
+		  aux_diag += rDampMatrix((TDim + 1) * inode + TDim, (TDim + 1) * inode + TDim );*/
+		      
 
                 //add to LHS enrichment contributions
-                double inverse_diag_term = 1.0 / enrichment_diagonal;
-                for (unsigned int i = 0; i < LocalSize; i++)
-                    for (unsigned int j = 0; j < LocalSize; j++)
-                        rDampMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
+                double inverse_diag_term = 1.0 / ( enrichment_diagonal);
+		
+// 		KRATOS_WATCH(inverse_diag_term);
+// 		KRATOS_WATCH(enrichment_terms_vertical);
+// 		KRATOS_WATCH(enrichment_terms_horizontal);
+// 		
+// 		for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+// 		{
+// 		    //assigning the gauss data
+// 		    for (unsigned int k = 0; k < TNumNodes; k++)
+// 			N[k] = Ngauss(igauss, k);
+// 		    double wGauss = volumes[igauss];
+// 		    
+// 		    KRATOS_WATCH(wGauss);
+// 		}
+		
+// 		if(negative_volume > Area*1e-6 && negative_volume < Area*0.999999 ) //only add enrichment if the splitted volume is not too small 
+// 		{
+		  for (unsigned int i = 0; i < LocalSize; i++)
+		      for (unsigned int j = 0; j < LocalSize; j++)
+			  rDampMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
 
-//                VectorType U = ZeroVector(LocalSize);
-//                int LocalIndex = 0;
+  //                VectorType U = ZeroVector(LocalSize);
+  //                int LocalIndex = 0;
 
-                rRightHandSideVector -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
+		  rRightHandSideVector -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
+//  		}
+//  		else
+// 		{
+// 		  KRATOS_WATCH(negative_volume);
+// 		  KRATOS_WATCH(Area);
+// 		  KRATOS_WATCH(positive_volume);
+// 		}
             }
+//             else
+// 	    {
+// 	       for(unsigned int i=1; i<4; i++)
+// 	       {
+// 		 
+// 		 if(this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY) != this->GetGeometry()[0].FastGetSolutionStepValue(DENSITY))
+// 		 {
+// 		   KRATOS_WATCH(this->Id());
+// 		   KRATOS_WATCH(i)
+// 		   KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE));
+// 		   KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE));
+// 		   
+// 		   KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(DENSITY));
+// 		   KRATOS_WATCH(this->GetGeometry()[0].FastGetSolutionStepValue(DENSITY));
+// 		   KRATOS_ERROR(std::logic_error,"element not divided but with two distinct densities","");
+// 		 }
+// 	       }
+// 	    }
 
             // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
             VectorType U = ZeroVector(LocalSize);
@@ -663,7 +774,11 @@ namespace Kratos
             }
 
             noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
+	    
+	    this->SetValue(FLAG_VARIABLE,ndivisions);
 
+
+	    
 //            if (ndivisions > 1)
 //            {
 //                KRATOS_WATCH(this->Id());
@@ -1214,7 +1329,12 @@ namespace Kratos
 //                    KRATOS_WATCH(navg);
                 }
             }
-            value /= navg;
+            
+            if(navg != 0)
+	      value /= navg;
+	    else
+	      ElementBaseType::EvaluateInPoint(value,rVariable,rShapeFunc);
+	    
             rResult = value;
 //            if(rVariable==DENSITY)
 //                KRATOS_WATCH(rResult)
@@ -1271,8 +1391,12 @@ namespace Kratos
                     value += this->GetGeometry()[i].FastGetSolutionStepValue(rVariable);
                 }
             }
-            value /= navg;
-            rResult = value;
+            if(navg != 0)
+	      value /= navg;
+	    else
+	      ElementBaseType::EvaluateInPoint(value,rVariable,rShapeFunc);
+
+	    rResult = value;
         }
 
         /// Return an estimate for the element size h, used to calculate the stabilization parameters
