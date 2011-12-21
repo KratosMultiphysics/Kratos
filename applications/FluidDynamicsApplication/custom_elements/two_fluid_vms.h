@@ -95,46 +95,7 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /// A stabilized element for the incompressible Navier-Stokes equations.
 
-    /**
-     * This class implements a stabilized formulation based on the
-     * Variational Multiscale framework. The the subscales can be modeled
-     * using either Algebraic Subgird Scales (ASGS) or Orthogonal Subscales (OSS).
-     * In the case of OSS, the projection terms are treated explicitly (computed
-     * using the results of the previous iteration) and the subscales are not
-     * tracked in time. The choice of subscale model is made based on the ProcessInfo
-     * variable OSS_SWITCH (OSS if 1, ASGS otherwise).
-     * This class implements both the 2D and 3D versions of the element.
-     *
-     * The ASGS implementation follows Ramon Codina, A stabilized finite element
-     * method for generalized stationary incompressible flows, Computer Methods in
-     * Applied Mechanics and Engineering. Vol. 190 (2001), 2681-2706.
-     *
-     * The OSS implementation corresponds to the case identified as explicit, quasi-
-     * static orthogonal subscales in Ramon Codina, Stabilized finite element approximation
-     * of transient incompressible flows using orthogonal subscales, Computer Methods
-     * in Applied Mechanics and Engineering. Vol. 191 (2002), 4295-4321.
-     *
-     * In addition to the stabilization, this element implements the Smagorinsky
-     * model of turbulence. This turbulent term is only activated if the elemental
-     * value C_SMAGORINSKY is set to something other than zero.
-     *
-     * This class requires at least the following variables:\n
-     * On each Node, as solution step variables VELOCITY, PRESSURE, ACCELERATION, MESH_VELOCITY, DENSITY, VISCOSITY.\n
-     * On ProcessInfo OSS_SWITCH, DYNAMIC_TAU, DELTA_TIME.\n
-     * If OSS is used, the nodes also require NODAL_AREA, ADVPROJ and DIVPROJ as solution step variables.\n
-     * If Smagorinsky is used, C_SMAGORINSKY has to be defined on the elements.\n
-     * Error estimation stores ERROR_RATIO on the elements.\n
-     * Some additional variables can be used to print results on the element: SUBSCALE_VELOCITY, SUBSCALE_PRESSURE, TAUONE, TAUTWO, MU, VORTICITY.
-     *
-     * @see ResidualBasedEliminationBuilderAndSolver compatible monolithic solution strategy.
-     * @see PressureSplittingBuilderAndSolver compatible segregated solution strategy.
-     * @see TrilinosPressureSplittingBuilderAndSolver compatible mpi strategy.
-     * @see DynamicSmagorinskyUtils to set the Smagorinsky parameter dynamically.
-     * @see ResidualBasedPredictorCorrectorVelocityBossakScheme time scheme that can use
-     * OSS stabilization.
-     */
     template< unsigned int TDim,
             unsigned int TNumNodes = TDim + 1 >
             class TwoFluidVMS : public VMS<TDim, TNumNodes>
@@ -346,7 +307,7 @@ namespace Kratos
                     // Calculate stabilization parameters
                     double TauOne, TauTwo;
 //                    if (ndivisions == 1)
-                   this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+                   this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 //                else
 //                {
 //                    TauOne = 0.0;
@@ -354,7 +315,7 @@ namespace Kratos
 //                }
 //                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 
-                    this->AddProjectionToRHS(rRightHandSideVector, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss, rCurrentProcessInfo[DELTA_TIME]);
+                    this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, wGauss, rCurrentProcessInfo[DELTA_TIME]);
                 }
             }
 
@@ -475,7 +436,7 @@ namespace Kratos
 
                     // Calculate stabilization parameters
                     double TauOne, TauTwo;
-                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 //                    if (ndivisions == 1)
 //                       this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
 //                    else
@@ -573,8 +534,8 @@ namespace Kratos
                 this->EvaluateInPoint(bf,BODY_FORCE,N);
 //                 this->EvaluateInPoint(Acceleration,ACCELERATION,N);
 		
-if(Density != 1.0 && Density != 1000.0)
-  KRATOS_ERROR(std::logic_error,"taking the average of density on element ",this->Id());
+// if(Density != 1.0 && Density != 1000.0)
+//   KRATOS_ERROR(std::logic_error,"taking the average of density on element ",this->Id());
 
                 double Viscosity;
                 this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
@@ -586,7 +547,7 @@ if(Density != 1.0 && Density != 1000.0)
                 // Calculate stabilization parameters
                 double TauOne, TauTwo;
 //                if (ndivisions == 1)
-                   this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
+                   this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 //                else
 //                {
 //                    TauOne = rCurrentProcessInfo[DELTA_TIME];
@@ -610,9 +571,9 @@ if(Density != 1.0 && Density != 1000.0)
                         //momentum term
                         for (unsigned int k = 0; k < TDim; k++)
                         {
-                            double ConvTerm = wGauss * TauOne * gauss_gradients[igauss](0,k)* AGradN[inode];
+                            double ConvTerm = wGauss * TauOne * gauss_gradients[igauss](0,k)* Density * AGradN[inode];
                             enrichment_terms_vertical[base_index + k] += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                            enrichment_terms_horizontal[base_index + k] += Density * (ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, 0));
+                            enrichment_terms_horizontal[base_index + k] += ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
 //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
 //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
                        }

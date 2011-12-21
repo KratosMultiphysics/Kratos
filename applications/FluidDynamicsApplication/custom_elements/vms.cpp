@@ -230,7 +230,7 @@ namespace Kratos
                 this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
 
                 double TauOne,TauTwo;
-                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Density,Viscosity,rCurrentProcessInfo);
 
                 // Set output vector (for a single integration point)
                 rOutput.resize(1);
@@ -243,7 +243,7 @@ namespace Kratos
                 {
                     this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
                 }
-                MomError *= TauOne/Density;
+                MomError *= TauOne;
                 array_1d<double,3>& rSubscale = rOutput[0];
                 rSubscale[0] = MomError[0];
                 rSubscale[1] = MomError[1];
@@ -319,7 +319,7 @@ namespace Kratos
                 this->GetEffectiveViscosity(Density,KinViscosity,N,DN_DX,Viscosity,rCurrentProcessInfo);
 
                 double TauOne,TauTwo;
-                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Viscosity,rCurrentProcessInfo);
+                this->CalculateTau(TauOne,TauTwo,AdvVel,Area,Density,Viscosity,rCurrentProcessInfo);
 
                 // Set output vector (for a single integration point)
                 rOutput.resize(1);
@@ -332,7 +332,7 @@ namespace Kratos
                 {
                     this->ASGSMomResidual(AdvVel,Density,MomError,N,DN_DX,1.0);
                 }
-                MomError *= TauOne/Density;
+                MomError *= TauOne;
                 array_1d<double,3>& rSubscale = rOutput[0];
                 rSubscale[0] = MomError[0];
                 rSubscale[1] = MomError[1];
