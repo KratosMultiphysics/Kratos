@@ -118,7 +118,7 @@ namespace Kratos {
             };
 
             const double epsilon = 1e-15; //1.00e-9;
-            const double near_factor = 1.00e-6;
+            const double near_factor = 1.00e-12;
 
             int number_of_partitions = 1;
 
@@ -162,8 +162,8 @@ namespace Kratos {
             noalias(grad_d) = prod(trans(DN_DX), rDistances);
             double norm = norm_2(grad_d);
             if (norm > epsilon)
-                grad_d /= (norm+epsilon);
-
+                grad_d /= (norm);
+	    
             array_1d<double, n_nodes> exact_distance = rDistances;
             array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
             double sub_volumes_sum = 0.00;
@@ -204,7 +204,7 @@ namespace Kratos {
 	       else
 		 collapsed_node[i] = false;
 	       
-	       abs_distance[i] = fabs(rDistances[i]);
+// 	       abs_distance[i] = fabs(rDistances[i]);
 	    }
 	      
 	    //now decide splitting pattern
@@ -215,9 +215,9 @@ namespace Kratos {
 		 if (rDistances[i] * rDistances[j] < 0.0)
 		 {
 		    const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
-		    const double d = fabs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
-		    abs_distance[i] = d * tmp;
-		    abs_distance[j] = d * (1.0 - tmp);
+// 		    const double d = fabs(edges_dx[edge] * grad_d[0] + edges_dy[edge] * grad_d[1] + edges_dz[edge] * grad_d[2]);
+// 		    abs_distance[i] = d * tmp;
+// 		    abs_distance[j] = d * (1.0 - tmp);
 		   
 		    if (collapsed_node[i] == false && collapsed_node[j] == false)		      
 		    {
@@ -230,7 +230,7 @@ namespace Kratos {
 			    aux_coordinates(new_node_id, k) = rPoints(i, k) * edge_division_j[edge] + rPoints(j, k) * edge_division_i[edge];
 
 			new_node_id++;
-		    }
+ 		    }
 // 		    else
 // 		    {
 // 		       if(collapsed_node[i] == true) split_edge[edge + 4] = i;
@@ -238,6 +238,26 @@ namespace Kratos {
 // 		    }
                 }
             }
+            
+            //compute the abs exact distance for all of the nodes
+	    if(new_node_id > 4) //at least one edge is cut
+	    {
+	       array_1d<double,3> base_point;
+	       base_point[0] = aux_coordinates(4,0);
+	       base_point[1] = aux_coordinates(4,1);
+	       base_point[2] = aux_coordinates(4,2);
+	       
+	       
+	       for (int i_node = 0; i_node < n_nodes; i_node++)
+	       {
+		 double d =    (rPoints(i_node,0) - base_point[0]) * grad_d[0] + 
+			       (rPoints(i_node,1) - base_point[1]) * grad_d[1] + 
+			       (rPoints(i_node,2) - base_point[2]) * grad_d[2] ;
+		 abs_distance[i_node] = fabs(d);
+	       }
+	       
+	    }
+	    
 
             for (int i_node = 0; i_node < n_nodes; i_node++) {
 //                 if (collapsed_node[i_node] == true)
@@ -368,6 +388,29 @@ namespace Kratos {
 
 	    double verify_volume = 0.0;
             if (number_of_partitions > 1) { // we won't calculate the N and its gradients for element without partitions
+	      
+	      	      	    //compute the maximum absolute distance on the cut so to normalize the shape functions
+		//now decide splitting pattern
+		double max_aux_dist_on_cut = -1;
+		for (int edge = 0; edge < n_edges; edge++) 
+		{
+		    const int i = edge_i[edge];
+		    const int j = edge_j[edge];
+		    if (rDistances[i] * rDistances[j] < 0.0)
+		    {
+			const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
+		      
+			//compute the position of the edge node
+			double abs_dist_on_cut = abs_distance[i] * tmp + abs_distance[j] * (1.00 - tmp);
+			
+			if(abs_dist_on_cut > max_aux_dist_on_cut) max_aux_dist_on_cut = abs_dist_on_cut;
+
+		    }
+		 }
+		
+		if(max_aux_dist_on_cut < 1e-10)
+		  max_aux_dist_on_cut = 1e-10;
+		
                 for (int i = 0; i < number_of_partitions; i++) {
                     //compute enriched shape function values
                     double dist = 0.0;
