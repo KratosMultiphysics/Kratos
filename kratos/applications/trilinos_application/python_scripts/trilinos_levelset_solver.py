@@ -4,6 +4,7 @@ from Kratos import *
 from KratosConvectionDiffusionApplication import *
 from KratosTrilinosApplication import *
 from KratosMeshingApplication import *
+from KratosIncompressibleFluidApplication import EstimateDt3D
 import trilinos_convdiff_solver
 import trilinos_monolithic_solver_eulerian
 import mpi
@@ -40,6 +41,8 @@ class TrilinosLevelSetSolver:
     def __init__(self,model_part,domain_size):
         self.model_part = model_part
         self.domain_size = domain_size
+        
+        mpi.world.barrier()
 
         #construct the model part for the convection solver
         if(self.domain_size == 2):
@@ -54,7 +57,7 @@ class TrilinosLevelSetSolver:
         
         
         (ParallelFillCommunicator(self.convection_model_part)).Execute();
-        print "ln52"
+        print "finished initializing the parallel fill communicator"
 
         #constructing the convection solver for the distance
         self.convection_solver = trilinos_convdiff_solver.ConvectionDiffusionSolver(self.convection_model_part,self.domain_size,distance_settings)
@@ -62,14 +65,14 @@ class TrilinosLevelSetSolver:
         #constructing the fluid solver
         self.fluid_solver = trilinos_monolithic_solver_eulerian.MonolithicSolver(self.model_part,self.domain_size)
         self.vel_criteria = 1e-3
-        self.press_criteria = 1e-4
+        self.press_criteria = 1e-5
         self.vel_abs_criteria = 1e-9
         self.press_abs_criteria = 1e-9
         self.fluid_solver.ReformDofSetAtEachStep = False
 
         #select the densities of the two fluids
         self.rho1 = 1000.0 #applied on the negative part of the domain
-        self.rho2 = 100.0 #applied to the positive part of the domain
+        self.rho2 = 1.0 #applied to the positive part of the domain
 
         if(self.domain_size == 2):
             self.redistance_utils = ParallelDistanceCalculator2D()
@@ -91,14 +94,18 @@ class TrilinosLevelSetSolver:
             node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
         self.max_ns_iterations = 20
-        self.dynamic_tau = 0.001
+        self.dynamic_tau = 1.00
+        
+        self.divergence_clearance_performed = False
 
-
-
-
-
-
-
+	mpi.world.barrier()
+	
+	##create utility to estimate Dt
+	self.dt_estimator = EstimateDt3D(self.model_part)
+	
+	
+	
+	
     def Initialize(self):
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
         self.fluid_solver.vel_criteria = self.vel_criteria
@@ -110,37 +117,97 @@ class TrilinosLevelSetSolver:
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.convection_solver.Initialize()
         self.fluid_solver.Initialize()
+        
+    def EstimateDt(self,CFL, dt_max):
+       return self.dt_estimator.EstimateDt(CFL, dt_max)
                  
+                 
+    def DoDivergenceClearance(self):
+        #do a redistance
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        
+	for node in self.model_part.Nodes:
+	    node.SetSolutionStepValue(DENSITY,0,self.rho1)
+	    
+	  
+	(self.fluid_solver).Solve()
+	mpi.world.barrier()
+	
+	zero = Vector(3)
+	zero[0] = 0.0
+	zero[1] = 0.0
+	zero[2] = 0.0
+	
+	for node in self.model_part.Nodes:
+	    #old_pressure = node.GetSolutionStepValue(PRESSURE,1)
+	    #node.SetSolutionStepValue(PRESSURE,0,old_pressure)
+	    
+	    node.SetSolutionStepValue(ACCELERATION,0,zero)
+	    
+	    vel = node.GetSolutionStepValue(VELOCITY)
+	    node.SetSolutionStepValue(VELOCITY,1,vel)
+	mpi.world.barrier()
+	    
+	print "finished divergence cleareance step"
+
    
     def Solve(self):
+      
+        mpi.world.barrier()
+        
+	#at the beginning of the calculations do a div clearance step
+	if(self.divergence_clearance_performed == False):
+	    self.DoDivergenceClearance()
+	    self.divergence_clearance_performed = True
+      
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
-        if(mpi.rank == 0):
-            print "line 106"
+        
+        mpi.world.barrier()
+        #if(mpi.rank == 0):
+            #print "line 106"
 
 
         
         #redistance if required
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        mpi.world.barrier()
         if(mpi.rank == 0):
-            print "line 113"
+            print "finished recalculation of distances"
 
         #convect distance
         (self.convection_solver).Solve()
+        mpi.world.barrier()
         if(mpi.rank == 0):
-            print "line 118"
+            print "finished convection step for the distance function"
+            
+        #snap distance to grid
+        #eps = 1e-4*self.max_edge_size;
+        #for node in self.model_part.Nodes:
+	    #dist = node.GetSolutionStepValue(DISTANCE)
+	    #node.SetValue(DISTANCE,dist)
+	    #if(abs(dist) < eps):
+	      #node.SetSolutionStepValue(DISTANCE,0,0.0)
 
         #apply density
+        mu = 1e-3
+        mu1 = mu/self.rho1
+        mu2 = mu/self.rho2
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
-            if(dist <= 0):
+            if(dist < 0):
                 node.SetSolutionStepValue(DENSITY,0,self.rho1)
+                node.SetSolutionStepValue(VISCOSITY,0,mu1)
             else:
                 node.SetSolutionStepValue(DENSITY,0,self.rho2)
+                node.SetSolutionStepValue(VISCOSITY,0,mu2)
                 
         #solve fluid
         (self.fluid_solver).Solve()
+        mpi.world.barrier()
         if(mpi.rank == 0):
-            print "line 131"
-
+            print "Solution Step finished"
+            
+	
+	
 

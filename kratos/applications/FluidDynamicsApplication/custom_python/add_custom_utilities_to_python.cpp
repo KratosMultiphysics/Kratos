@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/periodic_condition_utilities.h"
+#include "utilities/split_tetrahedra.h"
 
 namespace Kratos
 {

@@ -275,7 +275,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | 0.675209119265 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.28 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | 0.673209186461 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.282 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | 0.671209259932 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | 0.671209259933 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.284 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | 0.669209339772 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.286 | None | None
@@ -947,7 +947,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | 0.00398668452782 | 1e-05 | Non
 KRATOS_BENCHMARK | Float | Time | 0.952 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | 0.00199185382633 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.954 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -2.95994592029e-06 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -2.95994592008e-06 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.956 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.00199775681545 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 0.958 | None | None
@@ -1315,7 +1315,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.362811859213 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.32 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.36480417655 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.322 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.366796484035 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.366796484036 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.324 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.368788781712 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.326 | None | None
@@ -1467,7 +1467,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.514202877374 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.472 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.516194565867 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.474 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.518186247653 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.518186247654 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.476 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.520177922773 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.478 | None | None
@@ -1513,7 +1513,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.560010084371 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.518 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.562001628338 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.52 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.563993166474 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.563993166475 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.522 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.565984698817 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.524 | None | None
@@ -1599,9 +1599,9 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.64564165434 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.604 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.647632979786 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.606 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.649624300903 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.649624300904 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.608 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.651615617724 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.651615617725 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.61 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.653606930282 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.612 | None | None
@@ -1625,7 +1625,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.671528556732 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.63 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.673519828415 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.632 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.675511096184 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.675511096185 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.634 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.677502360072 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.636 | None | None
@@ -1673,11 +1673,11 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.719318058999 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.678 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.721309245145 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.68 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.723300428095 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.723300428096 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.682 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.725291607878 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.725291607879 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.684 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.727282784522 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.727282784523 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.686 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.729273958056 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.688 | None | None
@@ -1701,7 +1701,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.747194384469 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.706 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.749185528421 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.708 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.751176669565 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.751176669566 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.71 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.753167807928 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.712 | None | None
@@ -1753,7 +1753,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.798963282566 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.758 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.800954361916 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.76 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.802945439117 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.802945439118 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.762 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.804936514193 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.764 | None | None
@@ -1781,7 +1781,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.8268382064 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.786 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.828829257776 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.788 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.830820307323 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.830820307324 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.79 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.832811355065 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.792 | None | None
@@ -1815,7 +1815,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.860685845903 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.82 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.862676869123 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.822 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.864667890874 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.864667890875 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.824 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.866658911177 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.826 | None | None
@@ -1827,7 +1827,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.872631963589 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.832 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.874622978294 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.834 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.876613991648 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.876613991649 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.836 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.878605003672 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.838 | None | None
@@ -1841,7 +1841,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.886569038838 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.846 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.888560044492 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.848 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.890551048929 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.89055104893 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.85 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.892542052168 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.852 | None | None
@@ -1883,7 +1883,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -0.928379925896 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.888 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.930370909725 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.89 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -0.932361892702 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -0.932361892703 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.892 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -0.934352874843 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 1.894 | None | None
@@ -2119,7 +2119,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -1.16331361768 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.124 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.16530458407 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.126 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.1672955508 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.16729555081 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.128 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.16928651788 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.13 | None | None
@@ -2331,7 +2331,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -1.37435847706 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.336 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.37634949161 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.338 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.37834050661 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.37834050662 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.34 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.38033152208 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.342 | None | None
@@ -2443,9 +2443,9 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -1.48585593164 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.448 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.48784696798 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.45 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.48983800462 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.48983800463 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.452 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.49182904156 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.49182904157 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.454 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.4938200788 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.456 | None | None
@@ -2541,7 +2541,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -1.58341699612 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.546 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.58540804263 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.548 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.58739908923 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.58739908924 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.55 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.58939013594 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.552 | None | None
@@ -2903,7 +2903,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -1.94379372009 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.908 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.94578471327 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.91 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -1.94777570578 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -1.94777570579 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.912 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -1.94976669765 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 2.914 | None | None
@@ -3031,7 +3031,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -2.07121585087 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.036 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.07320679686 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.038 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -2.07519774203 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -2.07519774204 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.04 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.0771886864 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.042 | None | None
@@ -3113,7 +3113,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -2.15284395421 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.118 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.15483486569 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.12 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -2.15682577629 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -2.1568257763 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.122 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.15881668603 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.124 | None | None
@@ -3411,7 +3411,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -2.44948002831 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.416 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.45147080953 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.418 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -2.45346158993 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -2.45346158994 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.42 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.45545236952 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.422 | None | None
@@ -3435,7 +3435,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -2.47336934933 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.44 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.47536012084 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.442 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -2.47735089154 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -2.47735089155 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.444 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -2.47934166146 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 3.446 | None | None
@@ -4267,7 +4267,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.30148709288 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.272 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.30347772077 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.274 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.30546834873 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.30546834874 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.276 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.30745897678 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.278 | None | None
@@ -4395,7 +4395,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.42888749138 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.4 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.43087812689 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.402 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.43286876256 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.43286876257 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.404 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.43485939839 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.406 | None | None
@@ -4413,7 +4413,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.44680321674 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.418 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.4487938537 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.42 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.45078449082 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.45078449083 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.422 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.45277512812 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.424 | None | None
@@ -4619,7 +4619,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.65183984512 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.624 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.65383050341 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.626 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.65582116193 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.65582116194 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.628 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.6578118207 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.63 | None | None
@@ -4803,7 +4803,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.8349814681 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.808 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.83697215019 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.81 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.83896283255 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.83896283256 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.812 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.84095351519 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.814 | None | None
@@ -4821,7 +4821,7 @@ KRATOS_BENCHMARK | Float | distance on node #15 | -3.85289761675 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.826 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.85488830131 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.828 | None | None
-KRATOS_BENCHMARK | Float | distance on node #15 | -3.85687898613 | 1e-05 | None
+KRATOS_BENCHMARK | Float | distance on node #15 | -3.85687898614 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.83 | None | None
 KRATOS_BENCHMARK | Float | distance on node #15 | -3.85886967124 | 1e-05 | None
 KRATOS_BENCHMARK | Float | Time | 4.832 | None | None
