@@ -101,8 +101,16 @@ namespace Kratos
                     .def("CheckVariableExists", &VariableUtils::SetToZero_VelocityVectorVar)
                     ;
 
+            // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
+            typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
+            typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
+
+            CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
+            CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
+
             class_<NormalCalculationUtils > ("NormalCalculationUtils", init<>())
-                    .def("CalculateOnSimplex", &NormalCalculationUtils::CalculateOnSimplex)
+                    .def("CalculateOnSimplex", CalcOnSimplex_Cond)
+                    .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
                     ;
 
             class_<BodyNormalCalculationUtils > ("BodyNormalCalculationUtils", init<>())
