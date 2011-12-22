@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/parallel_fill_communicator.h"
+#include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 
 namespace Kratos
@@ -82,7 +83,17 @@ namespace Kratos
                     .def("Execute", &ParallelFillCommunicator::Execute )
                     .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
                     ;
-		    
+		
+            class_<TrilinosCuttingApplication, boost::noncopyable >
+                    ("TrilinosCuttingApplication",
+                     init< Epetra_MpiComm& >() )
+                    .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
+                    .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
+                    .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
+                    .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
+            ;
+            
+            
             class_<TrilinosRefineMesh, boost::noncopyable >
                     ("TrilinosRefineMesh",
                      init<ModelPart& , Epetra_MpiComm& >() )
