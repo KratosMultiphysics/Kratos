@@ -168,9 +168,10 @@ class SolvingStrategyPython:
        
         #full output if needed
         if(echo_level >= 3):
-            print "SystemMatrix = ", self.A 
-            print "solution obtained = ", self.Dx 
-            print "RHS = ", self.b
+	    if(mpi.rank == 0):
+		print "SystemMatrix = ", self.A 
+		print "solution obtained = ", self.Dx 
+		print "RHS = ", self.b
             
         #perform update
         self.scheme.Update(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b);

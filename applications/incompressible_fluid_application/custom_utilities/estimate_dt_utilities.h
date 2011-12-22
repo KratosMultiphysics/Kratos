@@ -167,6 +167,11 @@ namespace Kratos {
             double dt = CFL / Max;
             if(dt > dt_max)
                 dt = dt_max;
+	    
+	    //perform mpi sync if needed
+	    double global_dt = dt;
+	    mrModelPart.GetCommunicator().MinAll(global_dt);
+	    dt = global_dt;
 
             return dt;
 

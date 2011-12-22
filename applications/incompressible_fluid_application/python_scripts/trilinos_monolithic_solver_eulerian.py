@@ -69,7 +69,7 @@ class MonolithicSolver:
         self.model_part = model_part
         self.domain_size = domain_size
 
-        self.alpha = -0.3
+        self.alpha = 0.0
         self.move_mesh_strategy = 0
 
         self.Comm = CreateCommunicator()

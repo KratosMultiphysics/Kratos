@@ -282,7 +282,7 @@ namespace Kratos {
 
 			//removing unnecessary memory
 //			delete [] temp_values; //DO NOT DELETE THIS!!
-
+ 
 			KRATOS_CATCH("")
 		}
 

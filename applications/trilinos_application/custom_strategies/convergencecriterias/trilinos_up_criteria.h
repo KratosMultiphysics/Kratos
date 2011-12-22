@@ -182,7 +182,7 @@ namespace Kratos
 		 for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	        	 {
 				ind->GetValue(VELOCITY) = ind->FastGetSolutionStepValue(VELOCITY);
-				ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE);
+				ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE)/ind->FastGetSolutionStepValue(DENSITY);
 			}
 			return true;
 
@@ -220,7 +220,7 @@ namespace Kratos
 	        	 {
 				
 					double current_pr = 0.0;
-					current_pr = ind->FastGetSolutionStepValue(PRESSURE);
+					current_pr = ind->FastGetSolutionStepValue(PRESSURE)/ind->FastGetSolutionStepValue(DENSITY);
 					reference_pr_norm += current_pr*current_pr;
 										
 					const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);

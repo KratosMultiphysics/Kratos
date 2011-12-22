@@ -321,8 +321,6 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b)
         {
-            std::cout << "prediction" << std::endl;
-
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -339,13 +337,13 @@ namespace Kratos {
                 for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
                     array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
                     double& OldPressure = (itNode)->FastGetSolutionStepValue(PRESSURE, 1);
-                    double& OldAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE, 1);
+//                     double& OldAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE, 1);
 
                     //predicting velocity
                     //ATTENTION::: the prediction is performed only on free nodes
                     array_1d<double, 3 > & CurrentVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY);
                     double& CurrentPressure = (itNode)->FastGetSolutionStepValue(PRESSURE);
-                    double& CurrentAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE);
+//                     double& CurrentAirPressure = (itNode)->FastGetSolutionStepValue(AIR_PRESSURE);
 
                     if ((itNode->pGetDof(VELOCITY_X))->IsFree())
                         (CurrentVelocity[0]) = OldVelocity[0];
@@ -357,9 +355,9 @@ namespace Kratos {
 
                     if (itNode->pGetDof(PRESSURE)->IsFree())
                         CurrentPressure = OldPressure;
-                    if (itNode->HasDofFor(AIR_PRESSURE))
-                        if (itNode->pGetDof(AIR_PRESSURE)->IsFree())
-                            CurrentAirPressure = OldAirPressure;
+//                     if (itNode->HasDofFor(AIR_PRESSURE))
+//                         if (itNode->pGetDof(AIR_PRESSURE)->IsFree())
+//                             CurrentAirPressure = OldAirPressure;
 
                     // updating time derivatives ::: please note that displacements and
                     // their time derivatives can not be consistently fixed separately
@@ -380,9 +378,6 @@ namespace Kratos {
                     }
                 }
             }
-
-            std::cout << "end of prediction" << std::endl;
-
         }
 
 
@@ -419,6 +414,11 @@ namespace Kratos {
             (rCurrentElement)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
+
+            if(mDamp[k].size1() != 16)
+                KRATOS_ERROR(std::logic_error,"Wrong number of rows","")
+            if(mDamp[k].size1() != 16)
+                KRATOS_ERROR(std::logic_error,"Wrong number of cols","")
 
             //adding the dynamic contributions (statics is already included)
 
