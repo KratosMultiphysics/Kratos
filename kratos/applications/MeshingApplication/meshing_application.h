@@ -35,7 +35,7 @@ namespace Kratos
 	///@{ 
 
 	// Variables definition 
-    	KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES )
+        //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
 	KRATOS_DEFINE_VARIABLE(double, COUNTER)
 	///@} 
 	///@name Type Definitions
