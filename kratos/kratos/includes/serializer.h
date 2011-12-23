@@ -135,9 +135,16 @@ namespace Kratos
       {
       }
       
-      Serializer(std::string const& Filename, TraceType const& rTrace=SERIALIZER_NO_TRACE) : mpBuffer(new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out)), mTrace(rTrace), mNumberOfLines(0)
+      Serializer(std::string const& Filename, TraceType const& rTrace=SERIALIZER_NO_TRACE) : mTrace(rTrace), mNumberOfLines(0)
       {
-        if(!*mpBuffer)
+	std::fstream* p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out);        
+	if(!(*p_file))
+	{
+	  delete p_file;
+	  p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out); 	  
+	}
+	mpBuffer = p_file;
+	if(!(*mpBuffer))
 	    KRATOS_ERROR(std::invalid_argument, "Error opening input file : ", std::string(Filename+".rest"));
       }
 
@@ -267,7 +274,7 @@ namespace Kratos
 	void load(std::string const & rTag, boost::weak_ptr<TDataType>& pValue)
 	{
 	  // This is for testing. I have to change it. Pooyan.
-	  KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+	  //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 // 	  read(*pValue);
 	}
 	
@@ -275,7 +282,7 @@ namespace Kratos
 	void load(std::string const & rTag, WeakPointerVector<TDataType>& pValue)
 	{
 	  // This is for testing. I have to change it. Pooyan.
-	  KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+	  //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 // 	  read(*pValue);
 	}
 
@@ -450,7 +457,7 @@ namespace Kratos
 	void save(std::string const & rTag, boost::weak_ptr<TDataType> pValue)
 	{
 	  // This is for testing. I have to implement it. Pooyan.
-	  KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+	  //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 // 	  write(*pValue);
 	}
      
@@ -458,7 +465,7 @@ namespace Kratos
 	void save(std::string const & rTag, Kratos::WeakPointerVector<TDataType> pValue)
 	{
 	  // This is for testing. I have to implement it. Pooyan.
-	  KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
+	  //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
 // 	  write(*pValue);
 	}
      
