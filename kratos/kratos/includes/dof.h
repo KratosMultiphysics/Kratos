@@ -668,7 +668,10 @@ namespace Kratos
 	  rSerializer.load("Variable", name);
           mpVariable=KratosComponents<VariableData>::pGet(name);
 	  rSerializer.load("Reaction", name);
-          mpReaction=KratosComponents<VariableData>::pGet(name);
+	  if(name == "NONE")
+	    mpReaction = &msNone;
+	  else
+	    mpReaction=KratosComponents<VariableData>::pGet(name);
 	  rSerializer.load("Variable Type", mVariableType);
 	  rSerializer.load("Reaction Type", mReactionType);
 	}
