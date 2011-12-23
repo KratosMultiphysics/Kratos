@@ -115,6 +115,8 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE(double, RHS_WATER)
     KRATOS_DEFINE_VARIABLE(double, RHS_AIR)
 
+    KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES)
+
     KRATOS_DEFINE_VARIABLE(Matrix, INERTIA )
 
     //for structural application TO BE REMOVED
