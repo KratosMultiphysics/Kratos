@@ -1787,7 +1787,7 @@ namespace Kratos
             virtual void save( Serializer& rSerializer ) const
             {
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
-                rSerializer.save( "Geometry Data", mpGeometryData );
+//                 rSerializer.save( "Geometry Data", mpGeometryData );
             }
 
             virtual void load( Serializer& rSerializer )
