@@ -339,11 +339,17 @@ namespace Kratos
       virtual void save(Serializer& rSerializer) const
       {
 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+	  rSerializer.save("DevStress",mDevStress);
+	  rSerializer.save("Kvisc0",mKvisc0);
+	  rSerializer.save("DevStress",mDevStress);
       }
 
       virtual void load(Serializer& rSerializer)
       {
 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+	  rSerializer.load("DevStress",mDevStress);
+	  rSerializer.load("Kvisc0",mKvisc0);
+	  rSerializer.load("DevStress",mDevStress);	  
       }	
 	
       ///@} 
