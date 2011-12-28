@@ -73,6 +73,7 @@ class TrilinosLevelSetSolver:
         #select the densities of the two fluids
         self.rho1 = 1000.0 #applied on the negative part of the domain
         self.rho2 = 1.0 #applied to the positive part of the domain
+	self.mu   = 1.0e-3
 
         if(self.domain_size == 2):
             self.redistance_utils = ParallelDistanceCalculator2D()
@@ -190,9 +191,8 @@ class TrilinosLevelSetSolver:
 	      #node.SetSolutionStepValue(DISTANCE,0,0.0)
 
         #apply density
-        mu = 1e-3
-        mu1 = mu/self.rho1
-        mu2 = mu/self.rho2
+        mu1 = self.mu/self.rho1
+        mu2 = self.mu/self.rho2
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
             if(dist < 0):
