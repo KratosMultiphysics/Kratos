@@ -71,13 +71,13 @@ class MonolithicSolver:
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-#        self.linear_solver = SuperLUSolver()
+##        self.linear_solver = SuperLUSolver()
 ##        self.linear_solver = SuperLUIterativeSolver()
 
         self.linear_solver = MKLPardisoSolver()
 
 ##        pPrecond = DiagonalPreconditioner()
-####        pPrecond = ILU0Preconditioner()
+######        pPrecond = ILU0Preconditioner()
 ##        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 ####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
@@ -258,7 +258,6 @@ class MonolithicSolver:
         (self.node_erase_process).Execute();
         
         if(self.remeshing_flag==True):           
-            print Time, "-------------------------------------------------REMESH_3D-----------"
 
             (self.neigh_finder).ClearNeighbours();
 
