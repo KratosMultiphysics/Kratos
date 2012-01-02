@@ -183,7 +183,6 @@ namespace Kratos
 
 		  virtual void save(Serializer& rSerializer) const
 		  {
-		     rSerializer.save("Name","Isotropic_Damage_3D ");
 		     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
 		  }
 
@@ -215,7 +214,8 @@ namespace Kratos
 		double mr_new; 
 		double mr_o;
 		double mArea;
-
+	        double mSigma_e;          // Esfuerzo efectivo
+	        double mSigma_y;          // Esfuerzo Resistencia de Comparacion. Este valor evoluciona
 
 		//Vector mstressVector;
 

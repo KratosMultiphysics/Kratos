@@ -183,7 +183,7 @@ void Isotropic_Damage_3D::InitializeMaterial( const Properties& props,
   ml     = pow(fabs(geom.Volume()),0.333333333333333333);   // longitud del elemento
   mr_old = mFt/sqrt(mEc);
   mpFluencyCriteria->InitializeMaterial(*mpProperties);
-  mr_old = mpFluencyCriteria->mSigma_y;   //mFt/sqrt(mEc);
+  mpFluencyCriteria->GetValue(YIELD_STRESS, mr_old);   //mFt/sqrt(mEc);
   mpSofteningBehavior->InitializeMaterial(*mpProperties);
   mr_o   = mr_old; 
   md_old = 0.00;
@@ -273,7 +273,7 @@ void Isotropic_Damage_3D::CalculateStressAndDamage(Vector& StressVector, const V
           }
         else
           {
-              Tau  =  mpFluencyCriteria->mSigma_e;
+               mpFluencyCriteria->GetValue(YIELD_SURFACE, Tau);
           }
         
         mr_new  =  std::max(mr_old,Tau);
@@ -301,7 +301,7 @@ void  Isotropic_Damage_3D::FinalizeSolutionStep( const Properties& props,
 			{
                             md_old = md_new;
                             mr_old = mr_new;
-                            mpFluencyCriteria->mSigma_y = mpFluencyCriteria->mSigma_e;
+                            mpFluencyCriteria->FinalizeSolutionStep();
 			}
 
 
