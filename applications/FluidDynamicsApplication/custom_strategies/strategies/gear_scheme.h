@@ -165,7 +165,7 @@ namespace Kratos
             int ErrorCode = BaseType::Check(rModelPart);
             if (ErrorCode != 0) return ErrorCode;
 
-            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
             // Check buffer size
             if (rModelPart.GetBufferSize() < 3)
@@ -188,13 +188,13 @@ namespace Kratos
             if(ACCELERATION.Key() == 0)
                 KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
 
-            // Check that the ModelPart's ProcessInfo contains the required variables
-            if(rCurrentProcessInfo.Has(DELTA_TIME) != true)
-                KRATOS_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
-            if(rCurrentProcessInfo.Has(BDF_COEFFICIENTS) != true)
-                KRATOS_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
-            if(rCurrentProcessInfo.Has(OSS_SWITCH) != true)
-                KRATOS_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
+//            // Check that the ModelPart's ProcessInfo contains the required variables
+//            if(rCurrentProcessInfo.Has(DELTA_TIME) != true)
+//                KRATOS_ERROR(std::invalid_argument,"No value of DELTA_TIME defined in ProcessInfo for a model part passed to GearScheme","");
+//            if(rCurrentProcessInfo.Has(BDF_COEFFICIENTS) != true)
+//                KRATOS_ERROR(std::invalid_argument,"No value of BDF_COEFFICIENTS defined in ProcessInfo for a model part passed to GearScheme","");
+//            if(rCurrentProcessInfo.Has(OSS_SWITCH) != true)
+//                KRATOS_ERROR(std::invalid_argument,"No value of OSS_SWITCH defined in ProcessInfo for a model part passed to GearScheme","");
 
             return 0;
             KRATOS_CATCH("");
@@ -256,17 +256,7 @@ namespace Kratos
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
             {
-                const double Tol = 1e-6 * rModelPart.NumberOfNodes();
-                unsigned int iter = 0;
-                const unsigned int MaxIter = 100;
-                double Res_v = 1000.0 * Tol;
-                double Res_p = 1000.0 * Tol;
-
-                TSystemVectorType dx_v;
-                TSystemVectorType dx_p;
-                dx_v.resize(2*rModelPart.NumberOfNodes());
-                dx_p.resize(rModelPart.NumberOfNodes());
-
+                // Initialize containers
                 for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
                 {
                     noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3); // "x"
@@ -274,16 +264,38 @@ namespace Kratos
                     ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // "Ml"
                 }
 
-                while( (fabs(Res_v) > Tol || fabs(Res_p) > Tol) && iter < MaxIter)
+                // Newton-Raphson parameters
+                const double RelTol = 1e-4 * rModelPart.NumberOfNodes();
+                const double AbsTol = 1e-6 * rModelPart.NumberOfNodes();
+                const unsigned int MaxIter = 100;
+
+                // iteration variables
+                unsigned int iter = 0;
+                array_1d<double,3> dMomProj(3,0.0);
+                double dMassProj = 0.0;
+
+                double RelMomErr = 1000.0 * RelTol;
+                double RelMassErr = 1000.0 * RelTol;
+                double AbsMomErr = 1000.0 * AbsTol;
+                double AbsMassErr = 1000.0 * AbsTol;
+
+                while( ( (AbsMomErr > AbsTol && RelMomErr > RelTol) || (AbsMassErr > AbsTol && RelMassErr > RelTol) ) && iter < MaxIter)
                 {
+                    // Reinitialize RHS
                     for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
                     {
                         noalias(ind->GetValue(ADVPROJ)) = ZeroVector(3); // "b"
                         ind->GetValue(DIVPROJ) = 0.0; // "b"
                         ind->FastGetSolutionStepValue(NODAL_AREA) = 0.0; // Reset because Calculate will overwrite it
-                    }//end of loop over nodes
+                    }
 
-                    //loop on nodes to compute ADVPROJ DIVPROJ NODALAREA
+                    // Reinitialize errors
+                    RelMomErr = 0.0;
+                    RelMassErr = 0.0;
+                    AbsMomErr = 0.0;
+                    AbsMassErr = 0.0;
+
+                    // Compute new values
                     array_1d<double, 3 > output;
 
                     for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
@@ -294,39 +306,40 @@ namespace Kratos
                     rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
                     rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
                     rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
+                    ///@todo Assemble non-historic db too
 
-                    unsigned int v_counter = 0;
-                    unsigned int p_counter = 0;
+                    // Update iteration variables
                     for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
                     {
                         const double Area = ind->FastGetSolutionStepValue(NODAL_AREA); // Ml dx = b - Mc x
-                        dx_v[v_counter++] = ind->GetValue(ADVPROJ)[0] / Area;
-                        dx_v[v_counter++] = ind->GetValue(ADVPROJ)[1] / Area;
-                        dx_p[p_counter++] = ind->GetValue(DIVPROJ) / Area;
-                    }
-                    Res_v = TSparseSpace::TwoNorm(dx_v);
-                    Res_p = TSparseSpace::TwoNorm(dx_p);
+                        dMomProj = ind->GetValue(ADVPROJ) / Area;
+                        dMassProj = ind->GetValue(DIVPROJ) / Area;
 
-                    // update
-                    v_counter = 0;
-                    p_counter = 0;
-                    for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-                    {
-                        ind->FastGetSolutionStepValue(ADVPROJ)[0] += dx_v[v_counter++];
-                        ind->FastGetSolutionStepValue(ADVPROJ)[1] += dx_v[v_counter++];
-                        ind->FastGetSolutionStepValue(DIVPROJ) += dx_p[p_counter++];
+                        RelMomErr += sqrt( dMomProj[0]*dMomProj[0] + dMomProj[1]*dMomProj[1] + dMomProj[2]*dMomProj[2]);
+                        RelMassErr += fabs(dMassProj);
+
+                        array_1d<double,3>& rMomRHS = ind->FastGetSolutionStepValue(ADVPROJ);
+                        double& rMassRHS = ind->FastGetSolutionStepValue(DIVPROJ);
+                        rMomRHS += dMomProj;
+                        rMassRHS += dMassProj;
+
+                        AbsMomErr += sqrt( rMomRHS[0]*rMomRHS[0] + rMomRHS[1]*rMomRHS[1] + rMomRHS[2]*rMomRHS[2]);
+                        AbsMassErr += fabs(rMassRHS);
                     }
+
+                    if(AbsMomErr > 1e-10)
+                        RelMomErr /= AbsMomErr;
+                    else // If residual is close to zero, force absolute convergence to avoid division by zero errors
+                        RelMomErr = 1000.0;
+
+                    if(AbsMassErr > 1e-10)
+                        RelMassErr /= AbsMassErr;
+                    else
+                        RelMassErr = 1000.0;
+
                     iter++;
                 }
                 std::cout << "Performed OSS Projection in " << iter << " iterations" << std::endl;
-
-//                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
-//                {
-//                    array_1d<double,3> AdvProj = ind->FastGetSolutionStepValue(ADVPROJ);
-//                    double DivProj = ind->FastGetSolutionStepValue(DIVPROJ);
-//                    ind->FastGetSolutionStepValue(ADVPROJ) = -1.0 * AdvProj;
-//                    ind->FastGetSolutionStepValue(DIVPROJ) = -1.0 * DivProj;
-//                }
             }
 
             KRATOS_CATCH("")
