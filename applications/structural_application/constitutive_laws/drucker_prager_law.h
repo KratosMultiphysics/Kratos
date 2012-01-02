@@ -199,12 +199,13 @@ namespace Kratos
 		  ///@name Serialization
 		  ///@{	
 		  friend class Serializer;
-
+ 
+		  
 		  virtual void save(Serializer& rSerializer) const
 		  {
-		     rSerializer.save("Name","DruckerPragerLaw");
 		     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw  );
 		  }
+		  
 
 		  virtual void load(Serializer& rSerializer)
 		  {
