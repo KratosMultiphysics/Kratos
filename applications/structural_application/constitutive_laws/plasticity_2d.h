@@ -88,9 +88,7 @@ namespace Kratos
 			typedef boost::shared_ptr<Plasticity2D> Pointer;
 
 			typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
-
-                        typedef SofteningHardeningCriteria::Pointer SofteningHardeningCriteriaPointer;   
-                        
+                         
                         typedef Properties::Pointer PropertiesPointer;
 
 		        //const ProcessInfo  *mCurrentProcessInfo;
@@ -104,12 +102,14 @@ namespace Kratos
 			
                         virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
 			{
-				boost::shared_ptr<ConstitutiveLaw> p_clone(new Plasticity2D(mpFluencyCriteria->Clone(),mpSofteningBehavior, mpProperties));
+				boost::shared_ptr<ConstitutiveLaw> p_clone(new Plasticity2D(
+				mpFluencyCriteria->Clone(),
+				mpProperties));
 				return p_clone;
 			}
-			
 
-                        Plasticity2D(FluencyCriteriaPointer FluencyCriteria, SofteningHardeningCriteriaPointer SofteningBehavior, PropertiesPointer Property);
+
+                        Plasticity2D(FluencyCriteriaPointer FluencyCriteria, PropertiesPointer Property);
 			/**
 			 * Destructor.
 			 */
@@ -126,66 +126,61 @@ namespace Kratos
 		  bool Has( const Variable<Matrix>& rThisVariable );
 
 		  double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-          Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-          Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+                  Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+                  Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
-		  void SetValue( const Variable<double>& rVariable, 
-		  const double& Value, 
-		  const ProcessInfo& rCurrentProcessInfo );
-		  void SetValue( const Variable<Vector>& rThisVariable, 
-		  const Vector& rValue, 
-		  const ProcessInfo& rCurrentProcessInfo );
-		  void SetValue( const Variable<Matrix>& rThisVariable, 
-		  const Matrix& rValue, 
-		  const ProcessInfo& rCurrentProcessInfo );
+		  void SetValue( const Variable<double>& rVariable, const double& Value, const ProcessInfo& rCurrentProcessInfo );
+		  void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+		  void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo );
 
 
-		  void InitializeMaterial( const Properties& props,
-		  const GeometryType& geom,
-		  const Vector& ShapeFunctionsValues );
-
+		  void InitializeMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues );
 		  void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
-
-		  void CalculateStress( const Vector& StrainVector, 
-		  Vector& StressVector);
+		  void CalculateStress( const Vector& StrainVector,  Vector& StressVector);
 
 		  void CalculateCauchyStresses( Vector& Cauchy_StressVector,
-		  const Matrix& F,
-		  const Vector& PK2_StressVector,
-		  const Vector& GreenLagrangeStrainVector);
+		                                const Matrix& F,
+						const Vector& PK2_StressVector,
+						const Vector& GreenLagrangeStrainVector);
 
 
-		  void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, 
-		  const ProcessInfo& rCurrentProcessInfo);
+		  void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
 
 		  void InitializeSolutionStep( const Properties& props,
-		  const GeometryType& geom,
-		  const Vector& ShapeFunctionsValues ,
-		  const ProcessInfo& CurrentProcessInfo);
+					       const GeometryType& geom,
+					       const Vector& ShapeFunctionsValues ,
+					       const ProcessInfo& CurrentProcessInfo);
 
 		  void FinalizeSolutionStep( const Properties& props,
-		  const GeometryType& geom, 
-		  const Vector& ShapeFunctionsValues ,
-		  const ProcessInfo& CurrentProcessInfo);
+					     const GeometryType& geom, 
+					     const Vector& ShapeFunctionsValues ,
+					     const ProcessInfo& CurrentProcessInfo);
 
-		  void CalculateStressAndTangentMatrix( Vector& StressVector,
-		  const Vector& StrainVector,
-		  Matrix& algorithmicTangent);
+		  void CalculateStressAndTangentMatrix( Vector& StressVector, const Vector& StrainVector, Matrix& AlgorithmicTangent);
 
-		  void Calculate( const Variable<double>& rVariable, 
-		  double& Output, 
-		  const ProcessInfo& rCurrentProcessInfo);
+		  void Calculate( const Variable<double>& rVariable,  double& Output,  const ProcessInfo& rCurrentProcessInfo);
 
                   void UpdateMaterial( const Vector& StrainVector,
-                                     const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues,
-                                     const ProcessInfo& CurrentProcessInfo);
+                                       const Properties& props,
+                                       const GeometryType& geom,
+                                       const Vector& ShapeFunctionsValues,
+                                       const ProcessInfo& CurrentProcessInfo);
 				     
-		 int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+		 int   Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+                 
+		 void  CalculateMaterialResponse( 
+		    const Vector& StrainVector,
+		    const Matrix& DeformationGradient,
+		    Vector& StressVector,
+		    Matrix& AlgorithmicTangent,
+		    const ProcessInfo& CurrentProcessInfo,
+		    const Properties& props, 
+		    const GeometryType& geom,
+		    const Vector& ShapeFunctionsValues,
+		    bool CalculateStresses,
+		    int CalculateTangent,
+		    bool SaveInternalVariables);
 
-
- 
       
 	private:
 
@@ -196,7 +191,6 @@ namespace Kratos
 
 	virtual void save(Serializer& rSerializer) const
 	{
-	   rSerializer.save("Name"," Plasticity2D ");
 	   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
 	}
 
@@ -213,24 +207,12 @@ namespace Kratos
     double mNU;
     double mE;
     double mDE;
-    double mlamda;
-    double mefective_plastic_strain;
-    double mcurrent_efective_plastic_strain; 
-
-    array_1d<double,4>  mplastic_strain;
-    array_1d<double,4>  mcurrent_plastic_strain;
-    array_1d<double,4>  mDerivate_Fluency;
-    
+   
     FluencyCriteriaPointer mpFluencyCriteria;
-    SofteningHardeningCriteriaPointer mpSofteningBehavior;
     PropertiesPointer mpProperties;
 
-
-
-   void CalculateElasticMatrix(Matrix& C, const double E, const double NU);
-   void CalculateElasticStress(const Vector& StrainVector, array_1d<double,4>& StressVector);
-   void Comprobate_State_Vector(Vector& Result);
-   void ComputeCondentationMatrix(const Matrix& TangentMatrix, Matrix& Result);
+    
+   void CalculateElasticStress(const Vector& Strain, array_1d<double,4>& Stress);
 
 
 
