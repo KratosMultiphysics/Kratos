@@ -78,7 +78,7 @@ class FracStepSolver:
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+        #self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
         self.activate_tau2 = False
