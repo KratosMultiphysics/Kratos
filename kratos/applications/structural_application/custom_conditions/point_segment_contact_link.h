@@ -190,6 +190,9 @@ namespace Kratos
              void CalculateTangentialImpenetrabilityConstraint( Vector& rCt);
              void CalculateNormalContactForce(Vector& rNormalForce);
              void CalculateTangentialContactForce(Vector& rTangentialForce);
+	     Vector GetRelativeVelocity();
+	     Vector GetRelativeTangentialVelocity();
+	     void Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo);
             	
 	    friend class Serializer;
 
@@ -198,7 +201,6 @@ namespace Kratos
 
 	    virtual void save(Serializer& rSerializer) const
 	    {
-	    rSerializer.save("Name","PointSegmentContactLink");
 	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 	    }
 

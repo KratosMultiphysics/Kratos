@@ -241,7 +241,6 @@ namespace Kratos
 
 	    virtual void save(Serializer& rSerializer) const
 	    {
-	    rSerializer.save("Name","ContactLink3D_Kinematic_Linear");
 	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 	    }
 

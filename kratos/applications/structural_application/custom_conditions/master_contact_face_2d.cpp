@@ -301,26 +301,31 @@ namespace Kratos
    
      array_1d<double,3> MasterContactFace2D::NormalVector()
      {
-       
+       /// El primer nodo es el slave
        array_1d<double, 3> e3      =   ZeroVector(3);
        array_1d<double, 3> Result  =   ZeroVector(3);
-       
        e3[0] = 0.00; e3[1] = 0.00; e3[2] = 1.00; 
-       
-       /// El primer nodo es el slave
-       Condition::GeometryType& geom = this->GetGeometry();
-       /// tener normal positiva    
-       array_1d<double, 3> t         =  geom[0] - geom[1];
-       t = (1.00 / std::sqrt(inner_prod(t,t))) * t;   
+       Condition::GeometryType& geom =  this->GetGeometry();   
+       array_1d<double, 3> t         =  geom.GetPoint(0) - geom.GetPoint(1); /// tener normal positiva 
+       const double tl               =  norm_2(t);
+       noalias(t)                    =  t * (1.00/tl);
        MathUtils<double>::CrossProduct(Result,e3,t);
-            
-       return Result;
-       
+       return Result; 
      }
    
    
    void MasterContactFace2D::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
    {
+     
+	const int& size =  GetGeometry().IntegrationPoints().size();
+	rValues.resize(size);
+	if(rVariable==NORMAL)
+	 {
+	   for(unsigned int i = 0; i<size; i++)
+	  rValues[i] = NormalVector();
+	 }
+     
+       /*
        const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
        const GeometryType::ShapeFunctionsGradientsType& sf_gradients = GetGeometry().ShapeFunctionsLocalGradients();
        if( rVariable == NORMAL )
@@ -364,7 +369,8 @@ namespace Kratos
                rValues[PointNumber][1] = Result[1];
                rValues[PointNumber][2] = Result[2];
            }
-       }  
+       } 
+       */
    }
    
    

@@ -271,7 +271,6 @@ namespace Kratos
 
             virtual void save( Serializer& rSerializer ) const
             {
-                rSerializer.save( "Name", "MasterContactFace3D" );
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
             }
 
