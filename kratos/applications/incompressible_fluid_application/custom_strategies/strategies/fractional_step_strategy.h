@@ -198,7 +198,7 @@ namespace Kratos
         double Solve()
         {
             KRATOS_TRY
-
+	Timer::Start("solve");
             //assign the correct fractional step coefficients (BDF_COEFFICIENTS..)
             InitializeFractionalStep(this->m_step, this->mtime_order);
             double Dp_norm;
@@ -226,7 +226,7 @@ namespace Kratos
                 this->Clear();
 
             this->m_step += 1;
-
+	Timer::Stop("solve");
             return Dp_norm;
             KRATOS_CATCH("")
         }
