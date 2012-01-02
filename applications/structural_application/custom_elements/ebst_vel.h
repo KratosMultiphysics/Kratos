@@ -130,7 +130,6 @@ namespace Kratos {
 
       virtual void save(Serializer& rSerializer) const
       {
-         rSerializer.save("Name","EbstVel");
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
       }
 

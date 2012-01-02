@@ -558,7 +558,6 @@ namespace Kratos
 
       virtual void save(Serializer& rSerializer) const
       {
-      rSerializer.save("Name","UnsaturatedSoilsElement_3phase");
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
       }
 
