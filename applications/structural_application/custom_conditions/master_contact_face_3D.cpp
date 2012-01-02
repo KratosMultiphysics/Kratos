@@ -71,6 +71,8 @@ namespace Kratos
             Condition( NewId, pGeometry )
     {
         //DO NOT ADD DOFS HERE!!!
+	GetValue( IS_CONTACT_SLAVE  )  = 0;
+	GetValue( IS_CONTACT_MASTER )  = 1;  
     }
 
     //************************************************************************************

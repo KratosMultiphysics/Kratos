@@ -143,23 +143,19 @@ namespace Kratos
      * @return the normal vector 
      */
      Vector PointSegmentContactLink::NormalVector()
-     {
-       
+     { 
+       /// El primer nodo es el slave
        array_1d<double, 3> e3      =   ZeroVector(3);
        array_1d<double, 3> Result  =   ZeroVector(3);
-       
        e3[0] = 0.00; e3[1] = 0.00; e3[2] = 1.00; 
-       
-       /// El primer nodo es el slave
-       Condition::GeometryType& geom = this->GetGeometry();
-       /// tener normal positiva    
-       array_1d<double, 3> t         =  geom[1] - geom[2];
-       t = (1.00 / std::sqrt(inner_prod(t,t))) * t;   
+       Condition::GeometryType& geom =  this->GetGeometry();   
+       array_1d<double, 3> t         =  geom.GetPoint(1) - geom.GetPoint(2); /// tener normal positiva 
+       const double tl               =  norm_2(t);
+       noalias(t)                    =  t * (1.00/tl);
        MathUtils<double>::CrossProduct(Result,e3,t);
-            
        return Result;
-       
      }
+    
     
     //************************************************************************************
     //************************************************************************************ 
@@ -168,11 +164,49 @@ namespace Kratos
     {
       
        Condition::GeometryType& geom = this->GetGeometry();
-       array_1d<double, 3> t =  geom[1] - geom[2];
-       t = (1.00 / std::sqrt(inner_prod(t,t))) * t;
+       array_1d<double, 3> t         =  geom.GetPoint(1) - geom.GetPoint(2);
+       const double tl               =  norm_2(t);
+       noalias(t)                    =  t * (1.00/tl);
        return t;
     }
 
+
+  	Vector PointSegmentContactLink::GetRelativeVelocity()
+	{
+		Vector result(3);
+		Vector slave_velo(3);
+		Vector master_velo(3);
+		noalias(slave_velo) = ZeroVector(3);
+		noalias(master_velo)= ZeroVector(3);
+		
+		for(IndexType i = 0 ; i < GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() ; i++)
+	            slave_velo+= ((GetValue( CONTACT_LINK_SLAVE )->GetGeometry()[i]).GetSolutionStepValue(VELOCITY));
+		
+		
+		for(IndexType i = 0 ; i < GetValue( CONTACT_LINK_MASTER )->GetGeometry().size() ; i++)
+		    master_velo+= ((GetValue( CONTACT_LINK_MASTER )->GetGeometry()[i]).GetSolutionStepValue(VELOCITY));
+		
+		result[0]= (slave_velo(0)-master_velo(0));
+		result[1]= (slave_velo(1)-master_velo(1));
+		result[2]= (slave_velo(2)-master_velo(2));
+		
+		return result;
+	}
+  
+       Vector PointSegmentContactLink::GetRelativeTangentialVelocity()
+       {
+	        Vector result(3);
+		Vector slave_velo(3);
+		Vector master_velo(3);
+		noalias(slave_velo)  = ZeroVector(3);
+		noalias(master_velo) = ZeroVector(3);
+	        Vector Relative_Velocity =  GetRelativeVelocity();
+		return result;
+	 
+       }
+  
+  
+  
 
     //************************************************************************************
     //************************************************************************************
@@ -224,7 +258,7 @@ namespace Kratos
         //**********************************************
         //setting up the dimensions of the contributions
         //**********************************************
-	unsigned int dim = 2;
+	unsigned int dim      = 2;
         unsigned int MasterNN = GetValue( CONTACT_LINK_MASTER )->GetGeometry().size();
         unsigned int SlaveNN  = GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size();
 
@@ -367,7 +401,14 @@ namespace Kratos
    }
    
    void PointSegmentContactLink::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo)
-   {    
+   {
+      const unsigned int& size =  GetGeometry().IntegrationPoints().size();
+      rValues.resize(size);
+      if(rVariable==NORMAL)
+      {
+	 for(unsigned int i = 0; i<size; i++)
+	    rValues[i] = NormalVector();
+      }
    }
    
    double PointSegmentContactLink::CalculateGap()
@@ -401,16 +442,25 @@ namespace Kratos
       {
 	
 	/// La dimension esta dada desde afuera
+	const double toler = 1E-15;
 	Output.resize(6, false);
 	Vector Normal     = NormalVector();
 	Vector Tangential = TangentialVector();
 
 	Condition::GeometryType& geom = this->GetGeometry();
-	array_1d<double, 3> r = geom[1] - geom[0]; 
-	double segmentlength  = GetValue( CONTACT_LINK_MASTER )->GetGeometry().Length();
-	double shi            = inner_prod(r,Tangential)/segmentlength;
- 
-		
+	array_1d<double, 3> r         = geom[1] - geom[0]; 
+	double segmentlength          = GetValue( CONTACT_LINK_MASTER )->GetGeometry().Length();
+	double shi                    = inner_prod(r,Tangential)/segmentlength;
+        const int& ID                 = ((GetValue(CONTACT_LINK_SLAVE )->GetGeometry())(0))->Id();
+	 
+//   	 if(ID==936 || ID==937 || ID==876)
+//  	{
+//  	    KRATOS_WATCH(this->Id()) 
+//  	    KRATOS_WATCH(ID)
+//  	    KRATOS_WATCH(GetValue(CONTACT_LINK_MASTER)->Id())
+//  	    KRATOS_WATCH("---------------------------------------") 
+//         }
+        
 	///calculating shape function values for current master element
 	Vector MasterShapeFunctionValues(GetValue( CONTACT_LINK_MASTER )->GetGeometry().size() );
 	noalias(MasterShapeFunctionValues) = ZeroVector( GetValue( CONTACT_LINK_MASTER )->GetGeometry().size() );
@@ -419,6 +469,9 @@ namespace Kratos
         MasterShapeFunctionValues[0] = 1.0 - shi;  
         MasterShapeFunctionValues[1] = shi;
         
+	if(std::fabs(Normal[0])<toler) Normal[0] = 0.00; 
+	if(std::fabs(Normal[1])<toler) Normal[1] = 0.00;
+	
 	Output[0] =  Normal[0];
 	Output[1] =  Normal[1];
 	Output[2] = -MasterShapeFunctionValues[0]*Normal[0];
@@ -427,20 +480,37 @@ namespace Kratos
 	Output[5] = -MasterShapeFunctionValues[1]*Normal[1];
       }
       
-      
     }
     
+    
+    void PointSegmentContactLink::Calculate( const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+      KRATOS_TRY 
+      if(rVariable==NORMAL)
+            {
+		Condition::GeometryType& geom_1 = this->GetGeometry();
+		Vector Output;
+		Calculate( CONSTRAINT_VECTOR, Output, rCurrentProcessInfo);
+	        for(unsigned int i = 0; i<geom_1.size(); i++)
+		{
+		   geom_1[i].FastGetSolutionStepValue(NORMAL_X) += Output[2*i]   * GetValue(LAMBDAS)[0];  
+		   geom_1[i].FastGetSolutionStepValue(NORMAL_Y) += Output[2*i+1] * GetValue(LAMBDAS)[0];
+		}  
+		
+	    }
+      KRATOS_CATCH("")
+    }
     
      void PointSegmentContactLink::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
      {
           
         const int& size =  GetGeometry().IntegrationPoints().size();
 	rValues.resize(size);
-        if(rVariable==NORMAL_CONTACT_STRESS )
+        if(rVariable==NORMAL_CONTACT_STRESS)
             {
 	        Vector& lamdas   = GetValue(LAMBDAS);
 		rValues[0]       =  lamdas[0];
-		KRATOS_WATCH(rValues[0])
+		//KRATOS_WATCH(rValues[0])
 		
             }
      }

@@ -221,6 +221,8 @@ namespace Kratos
              */
             //virtual void PrintData(std::ostream& rOStream) const;
       
+	    
+	    
         protected:
         
         
@@ -259,7 +261,6 @@ namespace Kratos
 
 		virtual void save(Serializer& rSerializer) const
 		{
-		rSerializer.save("Name","MasterContactFace2D");
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 		}
 

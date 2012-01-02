@@ -202,7 +202,6 @@ CurrentProcessInfo);
 
       virtual void save(Serializer& rSerializer) const
       {
-      rSerializer.save("Name","NodeTyingLagrange");
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
       }
 

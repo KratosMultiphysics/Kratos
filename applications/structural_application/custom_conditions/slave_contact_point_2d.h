@@ -85,7 +85,7 @@ namespace Kratos
 	typedef Condition BaseType;
 	typedef BaseType::EquationIdVectorType EquationIdVectorType;
 	typedef BaseType::MatrixType LHS_ContributionType;
-	typedef MasterContactFace2D MasterContactType;  
+	
 
 	/**
 	* REMOVED
@@ -224,7 +224,7 @@ namespace Kratos
       
         protected:
 	  
-	MasterContactType::Pointer mpMasterContact; 
+	//BaseType::Pointer mpMasterContact; 
         
         
         private:
@@ -260,7 +260,6 @@ namespace Kratos
 
 		virtual void save(Serializer& rSerializer) const
 		{
-		rSerializer.save("Name","SlaveContactPoint2D");
 		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
 		}
 

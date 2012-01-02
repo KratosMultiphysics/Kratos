@@ -90,23 +90,27 @@ namespace Kratos
                                 )
     : Condition( NewId, pGeometry, pProperties )
     {
-        GetValue( CONTACT_LINK_MASTER ) = Master;
-        GetValue( CONTACT_LINK_SLAVE ) = Slave;
-//
-        GetValue( MASTER_CONTACT_LOCAL_POINT ) = MasterContactLocalPoint;
+      
+        
+        GetValue( CONTACT_LINK_MASTER )                     = Master;
+        GetValue( CONTACT_LINK_SLAVE )                      = Slave;
+        GetValue( MASTER_CONTACT_LOCAL_POINT )              = MasterContactLocalPoint;
         GetValue( MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT ) = MasterContactLocalPoint;
-        GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT ) = MasterContactLocalPoint;
-//
-        GetValue( SLAVE_CONTACT_LOCAL_POINT ) = SlaveContactLocalPoint;
-//Test for calculating coordinates at time step midpoint
+        GetValue( MASTER_CONTACT_CURRENT_LOCAL_POINT )      = MasterContactLocalPoint;
+        GetValue( SLAVE_CONTACT_LOCAL_POINT )               = SlaveContactLocalPoint;
+	
+	
+        //Test for calculating coordinates at time step midpoint
         GetValue( MASTER_CONTACT_GLOBAL_POINT ) = GlobalCoordinates(GetValue( CONTACT_LINK_MASTER ), GetValue( MASTER_CONTACT_GLOBAL_POINT ), GetValue( MASTER_CONTACT_LOCAL_POINT ) );
-//Test for calculating coordinates at time step midpoint
-        GetValue( SLAVE_CONTACT_GLOBAL_POINT ) = GlobalCoordinates(GetValue( CONTACT_LINK_SLAVE ), GetValue( SLAVE_CONTACT_GLOBAL_POINT ), GetValue( SLAVE_CONTACT_LOCAL_POINT ) );
-//
+	
+	//Test for calculating coordinates at time step midpoint
+	GetValue( SLAVE_CONTACT_GLOBAL_POINT )  = GlobalCoordinates(GetValue( CONTACT_LINK_SLAVE ), GetValue( SLAVE_CONTACT_GLOBAL_POINT ), GetValue( SLAVE_CONTACT_LOCAL_POINT ) );
+	
         GetValue( CONTACT_SLAVE_INTEGRATION_POINT_INDEX ) = SlaveIntegrationPointIndex;
 
         GetValue(CONTACT_LINK_M ).resize(2,2,false );
         noalias(GetValue(CONTACT_LINK_M )) = ZeroMatrix(2,2 );
+	
     }
     
     //********************************************************
@@ -138,7 +142,7 @@ namespace Kratos
                                              const GeometryType::CoordinatesArrayType& rPoint )
     {
         //setting up result matrix
-		Matrix T( 2, 3 );
+        Matrix T( 2, 3 );
         noalias(T) = ZeroMatrix( 2, 3 );
         //shape function gradients
         Matrix DN = ZeroMatrix( Surface->GetGeometry().PointsNumber(),2);
@@ -316,8 +320,10 @@ namespace Kratos
         //*******************************
         
         //calculating shape function values for current slave element
-        Vector SlaveShapeFunctionValues( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
-		noalias(SlaveShapeFunctionValues) = ZeroVector( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
+	Vector SlaveShapeFunctionValues( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
+	noalias(SlaveShapeFunctionValues) = ZeroVector( GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size() );
+	
+	
         for( IndexType PointNumber = 0; 
              PointNumber<GetValue( CONTACT_LINK_SLAVE )->GetGeometry().size(); PointNumber++ )
         {

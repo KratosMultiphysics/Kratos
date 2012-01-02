@@ -1,14 +1,14 @@
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: rrossi $
+//   Last Modified by:    $Author: rrossi and nelson $
 //   Date:                $Date: 2007-08-17 11:59:46 $
-//   Revision:            $Revision: 1.1 $
+//   Revision:            $Revision: 1.2 $
 //
 //
 
 
-#if !defined(KRATOS_PointMoment3D_CONDITION_H_INCLUDED )
-#define  KRATOS_PointMoment3D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_MOMENT3D_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_MOMENT3D_CONDITION_H_INCLUDED
 
 
 
@@ -178,7 +178,6 @@ namespace Kratos
 
       virtual void save(Serializer& rSerializer) const
       {
-      rSerializer.save("Name","PointMoment3D");
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
       }
 
