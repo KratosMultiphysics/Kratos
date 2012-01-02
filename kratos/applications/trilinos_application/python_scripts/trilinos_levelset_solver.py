@@ -7,7 +7,10 @@ from KratosMeshingApplication import *
 from KratosIncompressibleFluidApplication import EstimateDt3D
 import trilinos_convdiff_solver
 import trilinos_monolithic_solver_eulerian
-import mpi
+try:
+  import boost.mpi as mpi
+except ImportError:
+  import mpi
 
 #settings for the convection solver
 distance_settings = ConvectionDiffusionSettings()
