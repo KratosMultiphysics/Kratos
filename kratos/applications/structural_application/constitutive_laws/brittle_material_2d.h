@@ -168,9 +168,6 @@ namespace Kratos
 
 		  void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
 
-		  void CalculateStress( const Vector& StrainVector, 
-		  Vector& StressVector);
-
 		  void CalculateCauchyStresses( Vector& Cauchy_StressVector,
 		  const Matrix& F,
 		  const Vector& PK2_StressVector,
@@ -190,10 +187,6 @@ namespace Kratos
 		  const GeometryType& geom, 
 		  const Vector& ShapeFunctionsValues ,
 		  const ProcessInfo& CurrentProcessInfo);
-
-		  void CalculateStressAndTangentMatrix( Vector& StressVector,
-		  const Vector& StrainVector,
-		  Matrix& algorithmicTangent);
 
 		  void Calculate( const Variable<double>& rVariable, 
 		  double& Output, 
@@ -217,20 +210,30 @@ namespace Kratos
                                             int CalculateTangent = true,
                                             bool SaveInternalVariables = true
                                           );
+		
+	       void ResetMaterial(const Properties& props,
+                 const GeometryType& geom,
+                 const Vector& ShapeFunctionsValues);
 					  
 	        int Check(const Properties& props,
                       const GeometryType& geom,
                       const ProcessInfo& CurrentProcessInfo);
-
+		      
+		 std::size_t GetStrainSize();
 
  
     private:
   
+   
+    Matrix  mF;
+    Matrix  m_invF_old;
+    Vector  mStrain_Old;  
+    Vector  mStrain_New; 
     bool   mComputeTangentMatrix;
     double mNU;
     double mE;
     double mDE;
-    double mlength;     
+    double mlength; 
     //double mfailurefactor;
 
     FluencyCriteriaPointer mpFluencyCriteria;
@@ -240,15 +243,19 @@ namespace Kratos
    void CalculateElasticMatrix(boost::numeric::ublas::bounded_matrix<double,4,4>& C);
    void CalculateElasticStress(array_1d<double,4>& Strain, array_1d<double,4>& Stress);
    void CalculateAlmansiStrain(const Vector& Strain, const Matrix& F,Vector& Almansi); 
+   void CalculateStress(const Matrix& DeformationGradient, const Vector& StrainVector,  Vector& StressVector);
    void CalculateSPK(const Vector& Cauchy_Stress, const Matrix& F,  Vector& Stress); 
+   void CalculateTangentMatrix(const Matrix& DeformationGradient, const Vector& StrainVector, Vector& StressVector, Matrix& AlgorithmicTangent);
+   void ComputeTrialElasticStress(const Vector& Strain, const Matrix& Inv_Delta_F, array_1d<double,4>&  ElasticTrialStress);
+   void ComputeTrialElasticStress(const Vector& Strain, array_1d<double,4>&  ElasticTrialStress);  
+   void ComputeTrialElasticStress(const Matrix& Delta_F, const Matrix& Inv_Delta_F, array_1d<double,4>&  ElasticTrialStress);
    
-
-   
-    ///@}
+   ///@}
     ///@name Serialization
     ///@{
     friend class Serializer;
 
+    
     virtual void save( Serializer& rSerializer ) const
     {
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
@@ -257,13 +264,11 @@ namespace Kratos
 	rSerializer.save( "DE",  mDE );
 	rSerializer.save( "CTM", mComputeTangentMatrix);
 	rSerializer.save( "LE",  mlength); 
-	//rSerializer.save( "FCP", mpFluencyCriteria);
         rSerializer.save( "PR",  mpProperties);
-	//rSerializer.save( "InSituStress", mInSituStress );
-	//rSerializer.save( "CurrentStress", mCurrentStress );
-	//rSerializer.save( "MaterialParameters", mMaterialParameters );
     }
+    
 
+    
     virtual void load( Serializer& rSerializer )
     {
 	KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
