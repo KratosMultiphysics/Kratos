@@ -287,7 +287,9 @@ namespace Kratos
         {
             //mpFluencyCriteria->CalculateEquivalentUniaxialStress(StressVector, StrainVector, ElasticDomain);
             mpFluencyCriteria->CalculateEquivalentUniaxialStressViaInvariants( StressVector, ElasticDomain );
-            Tau                   =  mpFluencyCriteria->mSigma_e / raiz_Ec;
+	    double Sigma_e        =  0.00;
+	    mpFluencyCriteria->GetValue(YIELD_SURFACE, Sigma_e);
+            Tau                   =  Sigma_e / raiz_Ec;
             mr_new                =  std::max( mr_old, Tau );
             Parameters[0]         =  ml;
             Parameters[1]         =  r_o;
