@@ -208,7 +208,17 @@ namespace Kratos
         StressVector[0] = c1 * StrainVector[0] + c2 * ( StrainVector[1] ) ;
         StressVector[1] = c1 * StrainVector[1] + c2 * ( StrainVector[0] ) ;
         StressVector[2] = c3 * StrainVector[2];
-
+        /*
+	double sigma_z = (mNU)*(StressVector[0] + StressVector[1]);
+	double sigma_m = (StressVector[0] + StressVector[1] + sigma_z)/3.00;
+	array_1d<double,4> Des;
+	Des[0] = StressVector[0] - sigma_m;
+	Des[1] = StressVector[1] - sigma_m;
+	Des[2] = StressVector[2]; 
+	Des[3] = StressVector[3] - sigma_m;
+	KRATOS_WATCH(StressVector)
+	KRATOS_WATCH(Des)
+	*/
     }
 
 
@@ -221,10 +231,14 @@ namespace Kratos
     }
 
 
-
-
-
+   std::size_t PlaneStrain::GetStrainSize()
+    {
+      return 3;
+    }
+ 
     //**********************************************************************
+    //**********************************************************************
+    
     void PlaneStrain::CalculateCauchyStresses(
         Vector& rCauchy_StressVector,
         const Matrix& rF,

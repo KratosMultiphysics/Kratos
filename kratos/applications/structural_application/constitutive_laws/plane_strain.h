@@ -117,6 +117,7 @@ namespace Kratos
 			double& GetValue( const Variable<double>& rThisVariable, double& rValue );
 			Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
 			Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+			std::size_t GetStrainSize();
 			
             void SetValue( const Variable<double>& rVariable, 
                            const double& Value, 
@@ -228,7 +229,6 @@ namespace Kratos
 
 		virtual void save(Serializer& rSerializer) const
 		{
-		  rSerializer.save("Name"," PlaneStrain");
 		  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
 		}
 
