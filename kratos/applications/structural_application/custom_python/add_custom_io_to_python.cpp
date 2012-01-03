@@ -77,11 +77,6 @@ namespace Kratos
             dummy.WriteMesh( rThisMesh );
         }
         
-        void IntPrintOnGaussPoints( GidIOType& dummy, const Variable<int>& rVariable,
-                                       ModelPart& r_model_part, double SolutionTag )
-        {
-            dummy.PrintOnGaussPoints( rVariable, r_model_part, SolutionTag );
-        }
         
         void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,
                                        ModelPart& r_model_part, double SolutionTag )
@@ -190,7 +185,6 @@ namespace Kratos
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_vector_print_on_gauss_points)
 //                     .def("PrintOnGaussPoints", pointer_to_matrix_print_on_gauss_points)
-                    .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
                     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
                     .def("PrintOnGaussPoints", DoublePrintOnGaussPointsIndexed)
                     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
