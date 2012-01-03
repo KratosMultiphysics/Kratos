@@ -4362,7 +4362,7 @@ void IdentifyMasterSegment2D()
 	  for(IteratorType it = it_begin; it!=it_end; it++)
 	  { 
 	    Result.clear();
-	    rBins.SearchAroundObjectsInner(*it, Result); //SearchObjectsInner(*it, Result);
+	    //rBins.SearchAroundObjectsInner(*it, Result); //SearchObjectsInner(*it, Result);
 	    if(Result.size()!=0){
 	    Element::GeometryType& geom = (*it)->GetGeometry();
 	    for(unsigned int i = 0; i<geom.size(); i++){       
