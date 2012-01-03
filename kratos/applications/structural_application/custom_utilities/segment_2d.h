@@ -140,32 +140,36 @@ namespace Kratos
 	  //--------------------------------------------------------------------------->
 	   
 	  inline double DistPoint2Segment2D(const PointType& rPoint)
-	  {
-	      array_1d<double,2 > diff = rPoint - this->mCenter;
+	   {
+	      double param  =  0.00; 
+	      array_1d<double,2 > diff;
 	      array_1d<double,2 > ClosestPoint1;
 	      array_1d<double,2 > ClosestPoint0; 
-	      double param = inner_prod(this->mDirection, diff);
+	      
+	      noalias(diff) = rPoint - this->mCenter;
+	      param         = inner_prod(this->mDirection, diff);
 
+	       
 	      if (-this->mExtent < param)
 	      {
 	         if (param < this->mExtent)
 	          {
-	            ClosestPoint1 = this->mCenter + param * this->mDirection;
+	            noalias(ClosestPoint1) = this->mCenter + param * this->mDirection;
 	          }
-	      else
+	         else
 	          {
-	           ClosestPoint1 = this->mP1;
+	           noalias(ClosestPoint1)  = this->mP1;
 	          }
 	      }
 	      else
 	      {
-	          ClosestPoint1 = this->mP0;
+	          noalias(ClosestPoint1)  = this->mP0;
 	      }
-
+	      
 	      ClosestPoint0 = rPoint;
 	      diff          = ClosestPoint1 - ClosestPoint0;
-	      return std::sqrt(inner_prod(diff, diff));
-	      }
+	      return norm_2(diff);
+	     }
 	      
          };
 	 
