@@ -113,7 +113,10 @@ namespace Kratos
            return p_clone;
          }
  
-       double Calculate(Vector& Imput_Parameters);
+       double Calculate(const Vector& Imput_Parameters);
+       double FunctionBehavior(const Vector& Imput_Parameters);
+       double FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
+       
        
        //void   InitializeMaterial(const Properties& props);  
 	

@@ -66,18 +66,33 @@ namespace Kratos
 		   Linear_Softening::~Linear_Softening(){}
                
 
-                   // For damage model
-//                    double  Linear_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
-// 		   {
-// 		      double q_r  =  r_o/(A+1.00);
-//                       double a    =  1.00 - q_r/r;
-// 		      if (a < 0.00) 
-// 		      {
-// 		      a = fabs(a);cd
-// 		      }
-//                       return a;
-// 		      
-// 		   }
+                  double  Linear_Softening::FunctionBehavior(const Vector& Imput_Parameters)
+                  {
+		     const double& he         = Imput_Parameters[0]; /// Longituf del elemento
+		     const double& Ep         = Imput_Parameters[1]; /// Deformacion plastica efectiva
+		     const double& Ft         = (*mprops)[FT];
+		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
+		     const double& GE         = (*mprops)[FRACTURE_ENERGY];
+		     const double Hs          = Ft*Ft*he/(2.00 * GE);
+		     const double fact        = 1.00 - Hs * Ep/Ft;
+		     const double ft          = Ft * fact; 
+		     //const double param     = 0.30 *(*mprops)[FT];
+		     double result            = ft;  //> param ?  ft:param;    
+                     return result;       
+		  }
+                  
+                  double Linear_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
+                  {     
+		     const double& he         = Imput_Parameters[0]; /// Longituf del elemento
+		     const double& Ep         = Imput_Parameters[1]; /// Deformacion plastica efectiva
+		     const double& Ft         = (*mprops)[FT];
+		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
+		     const double& GE         = (*mprops)[FRACTURE_ENERGY];
+		     const double Hs          = Ft*Ft*he/(2.00 * GE);
+		     //if(ft>param)
+		     double result            = -Hs;
+		     return result; 
+		  }
 
                    // for geomaterials model
                    void Linear_Softening::FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result)
@@ -95,7 +110,7 @@ namespace Kratos
                       return;
                      }
                      
-                  double Linear_Softening::Calculate(Vector& Imput_Parameters)
+                  double Linear_Softening::Calculate( const Vector& Imput_Parameters)
 		   {
 		     const double& Ft   = (*mprops)[FT];
 		     const double& Ec   = (*mprops)[YOUNG_MODULUS];

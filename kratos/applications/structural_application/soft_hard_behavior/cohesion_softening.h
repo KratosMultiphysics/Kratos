@@ -71,8 +71,36 @@ namespace Kratos
                       return p_clone;
                     }
 		   
-		   double   FunctionBehavior(Vector& Imput_Parameters);
-		   double   FirstDerivateFunctionBehavior(Vector& Imput_Parameters);
+		   double   FunctionBehavior(const Vector& Imput_Parameters);
+		   double   FirstDerivateFunctionBehavior(const  Vector& Imput_Parameters);
+		   double   EvolucionLaws(const Vector& Imput_Parameters,const array_1d<double,3>& Sigma);
+		   
+	      private:
+		   /// Esta funcion son con respecto a KPunto
+		   ///  exponencial para la chesion en tracción, para kp es lineal
+		   /// Sigma = Cohesion inicial
+		   void FuntionCCAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
+		   {
+		     value    = 0.00;
+		     derivate = 0.00;
+		     if(Kp<1.00){
+		        value    = (1.00 - Kp) * Sigma; 
+			derivate = -Sigma;
+		     }
+		   }
+		   
+		   void FuntionCTAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
+		   {
+		     value    = 0.00;
+		     derivate = 0.00;
+		     if(Kp<1.00){
+		        const double raiz = std::sqrt((1.00 - Kp));
+		        value             = raiz * Sigma; 
+			derivate          = -Sigma/(2.00 * raiz);
+		     }
+		     
+		   }
+		   
 		   
 		   
            };    
