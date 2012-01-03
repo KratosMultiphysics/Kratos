@@ -112,61 +112,89 @@ namespace Kratos
 	  IntersectTriangleCases(ModelPart& model_part) : mr_model_part(model_part) {}
 	  virtual ~IntersectTriangleCases(){}
 	  
-	  //localiza Casos 1,2,3,5
-	  Intersect LocateCaseItersection(unsigned int& NodeOutside,
+	  //localiza Casos 1,2,3,5  
+	  Intersect LocateCaseItersection(NodePointerType& NodeOutside,
 					  bool& Change, 
-	                                  std::vector<unsigned int>& InsideNodes,
-	                                  PointerType& MasterObject, 
-					  PointerType& SlaveObject)
+	                                  const std::vector<Node<3>::Pointer>& InsideNodes,
+	                                  const PointerType& MasterObject, 
+					  const PointerType& SlaveObject)
 	  {
+    
+	    Intersect  rCase                                  = Case_0;
+	    Change                                            = true;
+	    WeakPointerVector<Condition>& neighb_cond_master  =  MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
+	    WeakPointerVector<Condition>& neighb_cond_slave   =  SlaveObject->GetValue(NEIGHBOUR_CONDITIONS);
 	    
-	    Intersect  rCase = Case_0;
-	    Change           = true;
-	    WeakPointerVector<Condition>& neighb_cond = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
-	    if(InsideNodes.size()!=0)
+	    const int size    = InsideNodes.size();
+	    const int size_1  = neighb_cond_master.size();
+	    const int size_2  = neighb_cond_slave.size();
+
+// 	    KRATOS_WATCH(size)
+// 	    KRATOS_WATCH(size_1)
+// 	    KRATOS_WATCH(size_2)
+// 	    
+//  	    for(unsigned int i = 0; i<size; i++ )
+//  	      std::cout <<  "Node_" << i+1 << " = "  << (InsideNodes[i])->Id() << std::endl;
+	         
+	    if(size!=0 && size_1!=0)
 	    {
-	       if(InsideNodes.size()==1)
-	       {
-		 unsigned int& id = InsideNodes[0];
-		
-		 if(neighb_cond.size()==1)
-		      if(Test_One(mr_model_part.Nodes()(id), MasterObject)==true) 
-		           rCase = Case_1;
-		   
-		   //is corner???
-		   ///WARNING std::cout<< "is corner" << std::endl; 
-		   if(neighb_cond.size()!=1) 
-			 Is_Corner(NodeOutside, rCase, mr_model_part.Nodes()(id), SlaveObject, MasterObject);  
-		   
-		   
-  
-	       }
- 
-                
-	       if(InsideNodes.size()==2) 
-		   rCase = Case_2;
-	        
-	      
-	      }
-	      
-	      //if(rCase == Case_0) rCase = Case_3;
-	      
-	      if( (rCase == Case_5) || (rCase == Case_3) ) //uno dentro y otro fuera
-	      { 
-		Change = false;
-	      }
-	      
-	      //KRATOS_WATCH("FINALLLLL ")
-	      return rCase;
+		 if(size_1==1)
+		 {
+		      if(size==1) {rCase = Case_1;}
+		      if(size==2) {rCase = Case_2;}
+		 }
+		 else if(size_1 !=1 && (size==2))
+		      {
+			 /*if(size_2!=1){ 
+			 Intersect  Aux_Case_1 = Case_0;
+			 Intersect  Aux_Case_2 = Case_0;
+			 Is_Corner(NodeOutside, Aux_Case_1, InsideNodes[0], SlaveObject, MasterObject);
+			 //std::cout <<  "Case_a = " << Aux_Case_1 << std::endl;
+			 //std::cout <<  "Case_b = " << Aux_Case_2 << std::endl;
+			 Is_Corner(NodeOutside, Aux_Case_2, InsideNodes[1], SlaveObject, MasterObject);
+			 bool one = (Aux_Case_1==Case_3 && Aux_Case_2==Case_3);
+			 bool two = (Aux_Case_1==Case_0 && Aux_Case_2==Case_0);
+			    if(one==true || two==true)
+			        rCase = Case_3;
+			 }
+			 else*/
+			   rCase = Case_2;
+		      }
+                        
+		 else if(size_1 !=1 && (size==1))  //is corner???
+		 {  
+		       rCase = Case_1;
+		       //KRATOS_WATCH("CORNERRRRRRR")  
+		       //Is_Corner(NodeOutside, rCase, InsideNodes[0], SlaveObject, MasterObject); 
+		       //if(rCase == Case_0){rCase = Case_1;}
+		       //KRATOS_WATCH(rCase)
+		 }
+	         else
+		   rCase = Case_1;
 	    }
+	    else if(size!=0 && size_1==0)
+	    {
+	      rCase = Case_1;
+	    }  
+	    else
+	    {
+	      rCase = Case_0;  
+	    }
+	      
+	   if(rCase==Case_5 || rCase==Case_3) //uno dentro y otro fuera
+		 Change = false;
+	      
+
+           //std::cout <<  "Vecinos  = " << neighb_cond_master.size() << std::endl;
+	   //std::cout <<  "Size     = " << size << std::endl; 
+	   //std::cout <<  "Case     = " << rCase << std::endl;
+	   return rCase;
 	    
-	  
-	  
-	
-	 
+	  }
+	    
 	 
 	 // Si el nodo esta dentro de elemento   
-         void Is_Corner(unsigned int& NodeOutside,
+         void Is_Corner(NodePointerType& NodeOutside,
                 Intersect&  rCase,
                 const NodePointerType& SlaveNode,
 	        const PointerType& SlaveObject,
@@ -177,7 +205,8 @@ namespace Kratos
 
 	    WeakPointerVector<Condition>& neighb_cond_master  = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
 	    WeakPointerVector<Condition>& neighb_cond_slave   = SlaveNode->GetValue(NEIGHBOUR_CONDITIONS);
-
+            if(neighb_cond_master.size()!=0 || neighb_cond_slave.size()!=0) 
+	    {
 	    double distance  = 0.00;   
 	    std::vector<unsigned int>           segment;
 	    std::vector<double>                 Distances; 
@@ -199,7 +228,6 @@ namespace Kratos
 	    Points0.resize(2, false); 
 	    Points1.resize(2, false);
 	    
-	    ///WARNING std::cout<< "AAAAAAAAAAAAAAAAA" << std::endl;
 	     
 	    for(WeakPointerVector<Condition>::iterator cond_slave  = neighb_cond_slave.begin(); cond_slave!= neighb_cond_slave.end(); ++cond_slave)
 	    {
@@ -248,39 +276,46 @@ namespace Kratos
 	    if(II>neighb_cond_slave.size())
 		break;
 	    }  
-
-            ///WARNING std::cout<< "BBBBBBBBBBBBBBBBB" << std::endl;
-            
-            // is case_1;
-	    if(segment.size()==1){
-	       rCase = Case_1;
+           
+	    if(segment.size()==0){
+	       rCase = Case_0;  //Case_1;
 	       return; 
 	      }
-
-	    //busca si el tercer segmento intersecta con el master
-	    // is case_3 o 5;
-	    
-	     rCase = Is_Case3_Or_Case_5(NodeOutside, SlaveNode, SlaveObject, MasterObject);
-	     
-	    
-	    // Verifica si de verdad es corner o si es un nodo dentro. (case_3 or case_1)
-	    if(rCase==Case_3 && Distances.size()==2)
+	    //is case_1;
+	    else if(segment.size()==1)
 	    {
-	        const double toler  = 1E-6;
-	        double min   = MinDistancesEdges(SlaveObject, MasterObject); 
-	        double diff  = std::fabs(Distances[0] - Distances[1]);
-		double ratio = diff/min;
-		if(ratio>toler)
-		    rCase =Case_1;
+	      rCase = Case_0; //Case_1;
+	      return;
 	    }
-	    
+	    else
+	    {
+	    //busca si el tercer segmento intersecta con el master
+	    // is case_3 o 5;    
+	      rCase = Is_Case3_Or_Case_5(NodeOutside, SlaveNode, SlaveObject, MasterObject);
+		
+	      // Verifica si de verdad es corner o si es un nodo dentro. (case_3 or case_1)
+	      if(rCase==Case_3 && Distances.size()==2)
+	        {
+		  
+	         const double toler  = 1E-6;
+	         double min   = MinDistancesEdges(SlaveObject, MasterObject); 
+	         double diff  = std::fabs(Distances[0] - Distances[1]);
+		 double ratio = std::fabs(diff/min);
+		 //std::cout<< "ratio = " << ratio << std::endl;  
+		 if(ratio>toler)
+		     rCase =Case_1;
+	       }
+	       
+// 	       if(rCase==Case_3)
+// 		  rCase =Case_1; 
+	     }
+	    }
 	    return;      
 	    KRATOS_CATCH("")
 	 }
 	 
 	 
-	Intersect Is_Case3_Or_Case_5(unsigned int& NodeOutside,
-				     //unsigned int& NodeOutsidSegment,
+	Intersect Is_Case3_Or_Case_5(NodePointerType& NodeOutside,
 	                             const NodePointerType& SlaveNode,
 	                             const PointerType& SlaveObject,
 	                             const PointerType& MasterObject)
@@ -295,7 +330,7 @@ namespace Kratos
 	array_1d<double, 2>                 Point;  
 	std::vector<unsigned int>           segment;
 	
-	std::vector<Condition::Pointer>     rConditions;
+	WeakPointerVector<Condition>        rConditions;
 	
 
 	Points0.resize(2, false); 
@@ -303,19 +338,17 @@ namespace Kratos
 	
 	unsigned int I   = 0;
 	unsigned int III = 1;
-	vector<unsigned int> Oposite_Ids(2);
-	
+	std::vector<NodePointerType> Oposite_Ids(2);
  	for(unsigned int i = 0; i<geom_slave.size(); i++){
 	   if(SlaveNode->Id()!=geom_slave[i].Id())
 	   {
-	      Oposite_Ids[I] =  geom_slave[i].Id();
+	      Oposite_Ids[I] =  geom_slave(i);
 	      Points0(I)[0]  =  geom_slave[i].X();
 	      Points0(I)[1]  =  geom_slave[i].Y();
 	      I++;
 	   }
 	 }
 	 
-	
 	WeakPointerVector<Condition>& neighb_cond_master  = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
 	for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); ++cond){
 	Condition::GeometryType& geom_3 = cond->GetGeometry();     
@@ -323,30 +356,31 @@ namespace Kratos
 	Points1(0)[1] = geom_3[0].Y();
 	Points1(1)[0] = geom_3[1].X();
 	Points1(1)[1] = geom_3[1].Y();
-	
-	if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)==IT_POINT) 
+
+	if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY) 
 	{   
-	   rConditions.push_back(neighb_cond_master(I).lock());
-	   is_case5 = true;         
+	   rConditions.push_back(*cond.base()); // *neighb_cond_master(I).lock());        
 	}
+
 	III++;
 	if(III>neighb_cond_master.size())
 	  break;
 	} 
 	
+	if(rConditions.size()==2)  {is_case5 = true; }
 	if(is_case5 == true)
 	{
 	   III   = 1;
 	   rCase = Case_5;
 	   unsigned int j   = 0;
-	   std::vector<unsigned int> Ids(4);
+	   std::vector<NodePointerType> Ids(4);
 	   std::vector<unsigned int> segment;
 	   
-	   for( std::vector<Condition::Pointer>::iterator rcond = rConditions.begin(); rcond != rConditions.end(); rcond++)
+	   for( WeakPointerVector< Condition >::iterator rcond = rConditions.begin(); rcond != rConditions.end(); rcond++)
 	   {
-	     Condition::GeometryType& geom_3 = (*rcond)->GetGeometry();
-	     Ids[0+j] = geom_3[0].Id(); 
-	     Ids[1+j] = geom_3[1].Id();
+	     Condition::GeometryType& geom_3 = (rcond)->GetGeometry();
+	     Ids[0+j] = geom_3(0); 
+	     Ids[1+j] = geom_3(1);
 	     j += 2;
 	     III++;
 	     if(III>rConditions.size())
@@ -356,14 +390,13 @@ namespace Kratos
 	   for(unsigned int i = 0; i<4; i++) {
 	     NodeOutside=Ids[i];
 	     for(unsigned int j = 0; j<4 && j!=i; j++){
-	       if(NodeOutside==Ids[j]){
+	       if( NodeOutside->Id() ==Ids[j]->Id() ){
 	          break;
 	       }
 	     }
-	   }  
+	   }
+	   
 	}
-	
-	//KRATOS_WATCH(rCase)
 	return rCase;
 	 
 	}
@@ -420,7 +453,9 @@ bool Test_One(
   array_1d<double, 2>               Point;
   
   WeakPointerVector<Condition>& neighb_cond_master  = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
-  array_1d<double,3>& old_pos                       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,2);   
+  if(neighb_cond_master.size()!=0)
+  {
+  array_1d<double,3>& old_pos                       = SlaveNode->FastGetSolutionStepValue(DISPLACEMENT,3);   
   
   Points0.resize(2, false); 
   Points1.resize(2, false);
@@ -429,7 +464,7 @@ bool Test_One(
   Points0(0)[1] = SlaveNode->Y0() + old_pos[1];
   Points0(1)[0] = SlaveNode->X(); 
   Points0(1)[1] = SlaveNode->Y(); 
-   
+    
   unsigned int JJ = 1; 
   for(WeakPointerVector< Condition >::iterator cond  = neighb_cond_master.begin(); cond!= neighb_cond_master.end(); cond++){
   Condition::GeometryType& geom_2 = cond->GetGeometry();
@@ -438,7 +473,7 @@ bool Test_One(
     Points1(0)[1] = geom_2[0].Y();
     Points1(1)[0] = geom_2[1].X();
     Points1(1)[1] = geom_2[1].Y();
-
+    
     if(IntersectionSegments::IntersectSegment(Point, Points0, Points1)!=IT_EMPTY)
         return true;
     
@@ -446,7 +481,7 @@ bool Test_One(
     if(JJ>neighb_cond_master.size())
        break;
   }
-  
+  }
   return false;
   KRATOS_CATCH("")
 }
