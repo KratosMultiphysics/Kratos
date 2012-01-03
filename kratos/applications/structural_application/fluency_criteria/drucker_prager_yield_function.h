@@ -112,7 +112,8 @@ namespace Kratos
 
       private:
 
-
+        double mSigma_e; 
+        double mSigma_y;  
 
     };
 }
