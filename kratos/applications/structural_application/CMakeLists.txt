@@ -12,7 +12,6 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic_linear.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_isotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp 	
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_incompresible_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Hypoelastic_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
