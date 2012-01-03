@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication
+KratosStructuralApplication 
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
-pooyan@cimne.upc.edu
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-
-//
-//   Project Name:        Kratos
+ 
+//   
+//   Project Name:        Kratos       
 //   Last modified by:    $Author: kazem $
 //   Date:                $Date: 2009-01-15 18:49:07 $
 //   Revision:            $Revision: 1.20 $
@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes
+// System includes 
 
 
-// External includes
+// External includes 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp>
+#include <boost/timer.hpp> 
 
 
 // Project includes
@@ -107,7 +107,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/multiphase_builder_and_solver.h"
 // #include "custom_strategies/builder_and_solvers/modal_analysis_builder_and_solver.h"
 //#include "custom_strategies/builder_and_solvers/modal_analysis_builder_and_solver.h"
 
@@ -119,8 +118,7 @@ namespace Kratos
 
 
     namespace Python
-    {
-
+    {		
         using namespace boost::python;
 
         void  AddCustomStrategiesToPython()
@@ -129,128 +127,187 @@ namespace Kratos
             typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
             typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+            typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >
+                    BaseSolvingStrategyType;
+                    
+            //typedef ResidualBasedUzawaNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType,
+            //LinearSolverType > ResidualBasedUzawaNewtonRaphsonStrategyType;
 
             typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
             typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >
-            ResidualBasedPredictorCorrectorBossakSchemeType;
+                    ResidualBasedPredictorCorrectorBossakSchemeType;
             typedef ResidualBasedPredictorCorrectorBossakRotationScheme< SparseSpaceType, LocalSpaceType >
-            ResidualBasedPredictorCorrectorBossakRotationSchemeType;
+                    ResidualBasedPredictorCorrectorBossakRotationSchemeType;
 
-
+            
             typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
 
+//             typedef TestingScheme< SparseSpaceType, LocalSpaceType >
+//                     TestingSchemeType;
+            
             typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+            
+            typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType >
+                    MultiPhaseFlowCriteriaType;
+                    
+            typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
+                    BuilderAndSolverType;
 
-            typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType > MultiPhaseFlowCriteriaType;
+//	typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
+                    
+//             typedef ModalAnalysisBuilderAndSolver<SparseSpaceType, LocalSpaceType,
+//                     LinearSolverType> ModalAnalysisBuilderAndSolverType;
+	typedef CompositScheme< SparseSpaceType, LocalSpaceType > CompositSchemeType;
+                    
+	typedef VolumetricScheme< 2, SparseSpaceType, LocalSpaceType > VolumetricSchemeType2D;
+	typedef VolumetricScheme< 3, SparseSpaceType, LocalSpaceType > VolumetricSchemeType3D;
 
-            typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+	typedef InnerVolumetricScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType2D;
+	typedef InnerVolumetricScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType3D;
 
-            typedef CompositScheme< SparseSpaceType, LocalSpaceType > CompositSchemeType;
+	typedef InnerVolumetricDynamicScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType2D;
+	typedef InnerVolumetricDynamicScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType3D;
 
-            typedef VolumetricScheme< 2, SparseSpaceType, LocalSpaceType > VolumetricSchemeType2D;
-            typedef VolumetricScheme< 3, SparseSpaceType, LocalSpaceType > VolumetricSchemeType3D;
+	
+	typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
+	//typedef ResidualCriteria < SparseSpaceType, LocalSpaceType >::Pointer TResidual;
+	//typedef DisplacementCriteria < SparseSpaceType, LocalSpaceType>::Pointer TDisplacement;
 
-            typedef InnerVolumetricScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType2D;
-            typedef InnerVolumetricScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricSchemeType3D;
+	
+// 					;
+           //********************************************************************
+           //********************************************************************
+           class_< ResidualBasedPredictorCorrectorBossakSchemeType,
+           bases< BaseSchemeType >,  boost::noncopyable >
+                   (
+                    "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
+                   );
 
-            typedef InnerVolumetricDynamicScheme< 2, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType2D;
-            typedef InnerVolumetricDynamicScheme< 3, SparseSpaceType, LocalSpaceType > InnerVolumetricDynamicSchemeType3D;
+           
+	
+	  
+	  enum_<Constraint_Enforcement>("Constraint_Enforcement")
+	  .value("Penalty_Methods", Penalty_Methods)
+	  .value("Lagrange_Multiplier_Methods", Lagrange_Multiplier_Methods)
+	  ;
+   
+           class_< ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+                   (
+                  "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, Constraint_Enforcement, int, double, double, double,  bool, bool, bool  >())
+                 .def("Initialize", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)      
+                 .def("ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime) 
+                 .def("SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime)     
+                 .def("SetConditionsFlag", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeContactConditions)
+                 .def("CalculateBoundaryContours", &ResidualBasedCentralDiferencesStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::RecalculateBoundaryContours)
+                  ;
+           
+
+	   class_< ResidualBasedPredictorCorrectorBossakRotationSchemeType,
+ 	   bases< BaseSchemeType >,  boost::noncopyable >
+		    (
+		     "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
+	            );
+    
+           typedef ResidualBasedPredictorCorrectorRelaxationScheme< SparseSpaceType,
+           LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
+           
+           class_< ResidualBasedPredictorCorrectorRelaxationSchemeType,
+           bases< BaseSchemeType >,  boost::noncopyable >
+                   (
+                    "ResidualBasedPredictorCorrectorRelaxationScheme", init< double, double >()
+                   );
+
+           class_< ResidualBasedNewmarkSchemeType,
+           bases< BaseSchemeType >, boost::noncopyable >
+                   (
+                    "ResidualBasedNewmarkScheme", init< double >()
+                   );
+
+// 			class_< TestingSchemeType,
+// 			bases< BaseSchemeType >,  boost::noncopyable >
+// 					(
+// 					"TestingScheme", init< >()
+// 					);
+           
+           class_< MultiPhaseFlowCriteriaType,
+           bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+                   ("MultiPhaseFlowCriteria", init<double, double >() )
+                   ;
+
+//            class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+//                    (
+//                     "ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>()
+//                    );
 
 
-            typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
 
-            class_ < ResidualBasedPredictorCorrectorBossakSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakScheme", init< double >()
-            );
+//	class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeType,
+//			bases< BaseSchemeType >,  boost::noncopyable >
+//					(
+//					"ResidualBasedPredictorCorrectorVelocityBossakScheme", init< double >()
+//					);
+			
+			class_< VolumetricSchemeType2D,
+			bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"VolumetricScheme2D"
+					)
+			.def("CalculateCauchyStress",&VolumetricSchemeType2D::CalculateCauchyStress)
+			;
 
-            class_< ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            (
-                "ResidualBasedCentralDiferencesStrategy", init< ModelPart&, int, double, double, double,  bool, bool, bool  >() )
-            .def( "Initialize", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize )
-            .def( "ComputeCriticalTime",  &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime )
-            .def( "SetFractionDeltaTime", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeFractionDeltaTime )
-            .def( "SetConditionsFlag", &ResidualBasedCentralDiferencesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::ChangeContactConditions )
-            ;
+			class_< InnerVolumetricSchemeType2D,
+			bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"InnerVolumetricScheme2D"
+					);
+
+			class_< InnerVolumetricDynamicSchemeType2D,
+			bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"InnerVolumetricDynamicScheme2D"
+					);
+
+			class_< CompositSchemeType,
+			bases< BaseSchemeType >,  boost::noncopyable >
+					(
+					"CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
+					);
+			
+			class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("ResidualBasedArcLenghtStrategy", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, 
+                                unsigned int, unsigned int,double,bool, bool, bool,bool
+				>() )
+				;
+			
+			
+                        
+			class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+				("ResidualBasedNewtonRaphsonLineSearchesStrategy", 
+				init<ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
+				>() )
+				;
 
 
-            class_ < ResidualBasedPredictorCorrectorBossakRotationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorBossakRotationScheme", init< double >()
-            );
-
-            typedef ResidualBasedPredictorCorrectorRelaxationScheme < SparseSpaceType,
-            LocalSpaceType > ResidualBasedPredictorCorrectorRelaxationSchemeType;
-
-            class_ < ResidualBasedPredictorCorrectorRelaxationSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedPredictorCorrectorRelaxationScheme", init< double, double >()
-            );
-
-            class_ < ResidualBasedNewmarkSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
-            (
-                "ResidualBasedNewmarkScheme", init< double >()
-            );
 
 
-            class_ < MultiPhaseFlowCriteriaType,
-            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-            ( "MultiPhaseFlowCriteria", init<double, double >() )
-            ;
+// 			class_<Residual_Displacement_Criteria<SparseSpaceType, LocalSpaceType >,
+// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+// 			         boost::noncopyable >
+// 			        ("ResidualDisplacementCriteria", init< double, double>() );
+// 
+// 			class_<ResDisCriteria<SparseSpaceType, LocalSpaceType >,
+// 			         bases<ConvergenceCriteria< SparseSpaceType, LocalSpaceType > >,  
+// 			         boost::noncopyable >
+// 			        ("ResDisCriteria", init< TResidual,TDisplacement >());
 
-
-            class_ < VolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "VolumetricScheme2D"
-            )
-            .def( "CalculateCauchyStress", &VolumetricSchemeType2D::CalculateCauchyStress )
-            ;
-
-            class_ < InnerVolumetricSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricScheme2D"
-            );
-
-            class_ < InnerVolumetricDynamicSchemeType2D,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "InnerVolumetricDynamicScheme2D"
-            );
-
-            class_ < CompositSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "CompositScheme", init< BaseSchemeType&, BaseSchemeType& >()
-            );
-
-            class_< ResidualBasedArcLengthStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ( "ResidualBasedArcLenghtStrategy",
-              init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer,
-              unsigned int, unsigned int, double, bool, bool, bool, bool
-              > () )
-            ;
-
-            class_< ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >,  boost::noncopyable >
-            ( "ResidualBasedNewtonRaphsonLineSearchesStrategy",
-              init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, TConvergenceCriteriaType::Pointer, unsigned int, unsigned int, double, double, double, double, bool, bool, bool, bool
-              > () )
-            .def( "SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations )
-            .def( "GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchesStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations )
-            ;
-
-            class_< MultiPhaseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<BuilderAndSolverType>, boost::noncopyable >
-            ( "MultiPhaseBuilderAndSolver", init <LinearSolverType::Pointer>()
-            )
-            ;
-
+           /*
+           class_< ModalAnalysisBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+                   (
+                    "ModalAnalysisBuilderAndSolver", init<LinearSolverType::Pointer>()
+                   );
+*/
         }
     }  // namespace Python.
 
