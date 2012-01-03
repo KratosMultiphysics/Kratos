@@ -64,20 +64,9 @@ namespace Kratos
 	    
 		   Exponential_Softening::Exponential_Softening():SofteningHardeningCriteria() {}
 		   Exponential_Softening::~Exponential_Softening(){}
-               
-//                    double  Exponential_Softening::FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r)
-// 		   {
-// 		      double elev =  A*(1.00-r/r_o);
-//                       double q_r  =  r_o*exp(elev);
-//                       double a    =  1.00 - (q_r/r);
-// 		      if (a < 0.00) 
-// 		      {
-// 		      a = fabs(a);
-// 		      }               
-//                       return a;
-// 		   }   
+                
 		   
-		   double Exponential_Softening::Calculate(Vector& Imput_Parameters)
+		   double Exponential_Softening::Calculate(const Vector& Imput_Parameters)
 		   {
 		     const double& Ft   = (*mprops)[FT];
 		     const double& Ec   = (*mprops)[YOUNG_MODULUS];
@@ -100,11 +89,63 @@ namespace Kratos
 		     
 		     return a;
 		    }
+
+                 double  Exponential_Softening::FunctionBehavior(const Vector& Imput_Parameters)
+                 {
 		   
-		   //void Exponential_Softening::InitializeMaterial(const Properties& props)
-		   //  {
-		   //     mprops = &props;
-		   //  }
+		     /// Using K_punto
+		     const double& Ft   = (*mprops)[FT];
+		     const double& Kp   = Imput_Parameters[3];
+		     double value = 0.00;
+		     if(Kp<1.00)
+		        value    = (1.00 - Kp) * Ft; 
+		     return value;
+		     
+		     /*
+		     const double& he    = Imput_Parameters[0]; /// Longituf del elemento
+		     const double& Ep    = Imput_Parameters[1]; /// Deformacion plastica efectiva
+		     const double& Ft    = (*mprops)[FT];
+		     const double& Ec    = (*mprops)[YOUNG_MODULUS];
+		     const double& GE    = (*mprops)[FRACTURE_ENERGY];
+                     const double H      = Ft*Ft*he/(2.00 * GE);
+		     const double elev   = -2.00 * H * (Imput_Parameters[1]/Ft); 
+		     const double ft     = Ft * exp(elev); 
+		     //const double param  = 0.30 *(*mprops)[FT];
+		     const double result = ft;  //> param ?  ft:param;    
+		     return result;
+		     */
+		     
+		 }
+                 
+                 double  Exponential_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
+                 {
+		    
+		     
+		     /// Using K_punto
+		     const double& Ft   = (*mprops)[FT];
+		     const double Kp    = Imput_Parameters[3] - Imput_Parameters[2];
+		     double value = 0.00;
+		     if(Kp<1.00)
+		        value    = -Ft * Kp; 
+		     return value;
+		    
+		     /*  
+		     const double& he    = Imput_Parameters[0]; /// Longituf del elemento
+		     const double& Ep    = Imput_Parameters[1]; /// Deformacion plastica efectiva
+		     const double& Ft    = (*mprops)[FT];
+		     const double& Ec    = (*mprops)[YOUNG_MODULUS];
+		     const double& GE    = (*mprops)[FRACTURE_ENERGY];
+                     const double H      = Ft*Ft*he/(2.00 * GE);
+		     const double elev   = -2.00 * H * (Imput_Parameters[1]/Ft); 
+		     //const double ft     = Ft * exp(elev); 
+		     //const double param = 0.30 *(*mprops)[FT];
+		     //const double result= -2.00 * Hs * exp(elev);
+		     const double result = -2.00 * H * exp(elev);  //(ft>param) ? -2.00 * Hs * exp(elev): 0.00;   
+		     return result;
+		     */
+		     
+		 }
+
     
     /**
      * definition of CONSTITUTIVE_LAW variable

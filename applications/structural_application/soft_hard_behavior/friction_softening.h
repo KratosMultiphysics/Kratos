@@ -52,7 +52,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* External includes */
 #include "boost/smart_ptr.hpp"
 #include "soft_hard_behavior/softening_hardening_criteria.h"
-
+#include "utilities/math_utils.h"
+#include "custom_utilities/sd_math_utils.h"
+#include <cmath>
 
 
 namespace Kratos
@@ -71,9 +73,9 @@ namespace Kratos
                       return p_clone;
                     }
                     
-		   double   FunctionBehavior(Vector& Imput_Parameters);
-		   double   FirstDerivateFunctionBehavior(Vector& Imput_Parameters);
-		   
+		   double   FunctionBehavior(const Vector& Imput_Parameters);
+		   double   FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
+		  
 		   
            };    
     

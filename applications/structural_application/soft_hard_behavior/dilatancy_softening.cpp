@@ -64,27 +64,45 @@ namespace Kratos
 	    
 		   Dilatancy_Softening::Dilatancy_Softening():SofteningHardeningCriteria() {}
 		   Dilatancy_Softening::~Dilatancy_Softening(){}
-		   double  Dilatancy_Softening::FunctionBehavior(Vector& Imput_Parameters)
+		   double  Dilatancy_Softening::FunctionBehavior(const Vector& Imput_Parameters)
 		   {
-		     //Imput_Parameters[0] = effectivePlasticStrain
-		     //Imput_Parameters[1] = currentcohesion
-		     double result = 0;
-		     result =   (*mprops)[DILATANCY_ANGLE];
-// 		     if(Imput_Parameters[0]<0.1)
-// 		         result =  -2000 * Imput_Parameters[0] +  (*mprops)[COHESION];
-// 		     else
-// 		       result = 0;
-		     return result;
-		       
+		     //const double PI    = 3.1415926535898; 
+		     const double& he    =  Imput_Parameters[0];   /// Longituf del elemento
+		     const double& Ep    =  Imput_Parameters[1];   /// Deformacion plastica efectiva
+		     double angle        =  PI * Imput_Parameters[2]/180.00;
+		     double result       =  0.00;
+		     double friction     =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
+		     double dilatancy    =  PI * (*mprops)[DILATANCY_ANGLE] / 180.00;
+		     double sinTv        =  (sin(friction)-sin(dilatancy))/(1.00 - (sin(friction)*sin(dilatancy)));
+		     double sinangle     =  sin(angle);
+		     result              =  (sinangle-sinTv)/(1.00-sinangle*sinTv); 
+		     result              =  std::asin(result);
+		     
+		     return  (*mprops)[DILATANCY_ANGLE];
+		     
+		     if(angle< std::asin(sinTv))
+                         result =  0.00;  
+		     else
+		         result =  180.00 * result/PI;
+		     
+		     if(result!=result)
+			  KRATOS_ERROR(std::logic_error,  "DILATANCY" , "");
+		     
+		     if(result > (*mprops)[DILATANCY_ANGLE])
+		        result= (*mprops)[DILATANCY_ANGLE];
+		     
+		     
+		     if(result < 1.00)
+		        result = 1.00; /// Initial value no must be 0: Cercano a cero es mas razonable 
+		     
+		     
+		     return result; 
+		     
 		   }
-		   double  Dilatancy_Softening::FirstDerivateFunctionBehavior(Vector& Imput_Parameters)
+		   
+		   double  Dilatancy_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
 		   {
 		     double result = 0; 
-// 		     if(Imput_Parameters[0]<0.1)
-// 		         result =  -2000;
-// 		     else
-// 		       result = 0;
-		     
 		     return result; 
 		   }
 

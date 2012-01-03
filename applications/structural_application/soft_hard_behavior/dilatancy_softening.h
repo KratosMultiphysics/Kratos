@@ -71,8 +71,8 @@ namespace Kratos
                       return p_clone;
                     }
 		   
-		   double   FunctionBehavior(Vector& Imput_Parameters);
-		   double   FirstDerivateFunctionBehavior(Vector& Imput_Parameters);
+		   double   FunctionBehavior(const Vector& Imput_Parameters);
+		   double   FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
 		   
 		   
            };    

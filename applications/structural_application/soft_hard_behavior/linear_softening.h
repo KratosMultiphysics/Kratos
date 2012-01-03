@@ -72,9 +72,17 @@ namespace Kratos
 		   Linear_Softening();
 		  ~Linear_Softening();
                    KRATOS_CLASS_POINTER_DEFINITION(Linear_Softening);
-//                    double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
+		   virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+                    {
+                      boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Linear_Softening());
+                      return p_clone;
+                    }
+		   
                    void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result); 
-		   double Calculate(Vector& Imput_Parameters);
+		   double  Calculate(const Vector& Imput_Parameters);
+		   double  FunctionBehavior(const Vector& Imput_Parameters);
+		   double  FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
+		   
            };    
     
 
