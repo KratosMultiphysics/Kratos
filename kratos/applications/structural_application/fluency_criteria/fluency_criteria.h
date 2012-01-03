@@ -71,26 +71,10 @@ namespace Kratos
     
       class FluencyCriteria
 	  {
-        public:
-	  
-	            double mSigma_e;          // Esfuerzo efectivo
-	            double mSigma_y;          // Esfuerzo Resistencia de Comparacion. Este valor evoluciona
-                    double mElasticDomain;    // the elastic domain
-		    double mSigma_o;          // initial value of the damage or plastic threshold 
-		    
-		    ///  deformacion plastica acumulada. 
-		    ///  Segun Owen depende del criterio del fluecia que uses.
-		    bool   mcompute_tangent_matrix;
-		    double maccumulated_plastic_strain_current;   
-                    double maccumulated_plastic_strain_old;
- 
-		    
+	    public:
 		    const Properties *mprops;
                     myState mState;
                     myPotencialPlastic mPotencialPlastic;
-		    Vector mplastic_strain; 
-		    Vector mplastic_strain_old; 
-
 
 		    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
 		    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
@@ -193,6 +177,8 @@ namespace Kratos
  
                     virtual void UpdateMaterial() {}
 
+                    virtual void ResetInternalVariables(){}  
+		    
 		    virtual void UpdateVariables( const Vector& Variables)
 		    {
 	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for UpdateVariables", "");
@@ -211,6 +197,12 @@ namespace Kratos
 		       KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
 		    }
 		    
+		    virtual void ReturnMapping(const Vector& StrainVector, const Vector& TrialStress, Vector& StressVector)
+		    {
+		       KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
+		    }
+		    
+		    /*
                     virtual void ReturnMapping(const Vector& StressVector, 
                     const Vector& StrainVector, 
                     Vector& delta_lamda,
@@ -225,7 +217,12 @@ namespace Kratos
 		    {
 	              KRATOS_ERROR(std::logic_error,  "Called the virtual function for ReturnMapping", "");
 		    }
-  
+                    */
+                
+                    virtual void GetValue(const Variable<bool>& rVariable, bool& Result)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "GetValue Double", "");
+		    }
                 
                    virtual void GetValue(const Variable<double>& rVariable, double& Result)
 		    {
@@ -244,7 +241,14 @@ namespace Kratos
 		    }
   
   
-                    virtual void GetValue(double Result)
+                    virtual bool PlasticStep(Vector& Stress)
+                    {
+		      return false;
+		      KRATOS_ERROR(std::logic_error,  "PlasticStep", "");
+		    }
+                    
+  
+                    virtual void GetValue(double& Result)
 		    {
 	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
 		    }
@@ -254,6 +258,10 @@ namespace Kratos
 	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
 		    }
                   
+                    virtual  void GetValue(Matrix& Result)
+		    {
+	              KRATOS_ERROR(std::logic_error,  "GetValue", "");
+		    }
 
                      virtual void Finalize()
 		     {
@@ -286,8 +294,10 @@ namespace Kratos
                    {
 		      int    iter      = 1000;
 		      double zero      = 1.0E-12;
-		      Matrix EigenVectors            = ZeroMatrix(3,3);
-		      Matrix StressTensor            = ZeroMatrix(3,3);
+		      Matrix EigenVectors;  EigenVectors.resize(3,3,false);
+		      Matrix StressTensor;  StressTensor.resize(3,3,false);
+		      noalias(EigenVectors)          = ZeroMatrix(3,3);
+		      noalias(StressTensor)          = ZeroMatrix(3,3);
 		      Principal_Stress_Vector        = ZeroVector(3);
                       Vector Prin_Stress_Vector_Aux  = ZeroVector(3);
 		      this->State_Tensor(StressVector,StressTensor);
@@ -312,7 +322,6 @@ namespace Kratos
 
                    void State_Tensor(const Vector& StressVector, Matrix& StressTensor)
                            {    
-				
                                 StressTensor.resize(3,3, false);
 				switch (mState)
 				  {
@@ -341,21 +350,31 @@ namespace Kratos
                                       default:
 				      std::cout<<"Warning: State not valid"<<std::endl;
 				  }
-
+ 
                              Comprobate_State_Tensor(StressTensor, StressVector);
 			  }
 
 
                      
-
+                     
                      void CalculateVectorFlowDerivate(const Vector& StressVector, Second_Order_Tensor& a)
                           {
 
-			    matrix<double> StressTensor         = ZeroMatrix(3,3);
-			    matrix<double> Aux_Tensor           = ZeroMatrix(3,3);
-			    matrix<double> SphericComponent     = IdentityMatrix(3,3);
-			    matrix<double> DesviatoricComponent = ZeroMatrix(3,3);
-
+			    Matrix StressTensor;         
+			    Matrix Aux_Tensor;           
+			    Matrix SphericComponent;    
+			    Matrix DesviatoricComponent; 
+			    
+			    StressTensor.resize(3,3,false);  
+			    Aux_Tensor.resize(3,3,false);        
+			    SphericComponent.resize(3,3,false);   
+			    DesviatoricComponent .resize(3,3,false);
+			    
+			    noalias(StressTensor)         = ZeroMatrix(3,3);
+			    noalias(Aux_Tensor)           = ZeroMatrix(3,3);
+			    noalias(SphericComponent)     = IdentityMatrix(3,3);
+			    noalias(DesviatoricComponent) = ZeroMatrix(3,3);
+			    
                             Vector  I(3);
                             Vector  J(3); 
                             Vector  J_des(3); 
@@ -448,7 +467,8 @@ namespace Kratos
                          c[1](2) = sin(mtetha_Lode - 3.00 * mtetha_Lode - 2.00 * PI / 3.00 );
                          noalias(c[1]) =  fact * (c[1]);
 
-                        matrix<double> StressTensor = ZeroMatrix(3,3); 
+                        Matrix StressTensor;  StressTensor.resize(3,3,false); 
+			noalias(StressTensor) = ZeroMatrix(3,3); 
                         Vector  I(3);
                         Vector  J(3); 
                         Vector  J_des(3); 
@@ -497,15 +517,70 @@ namespace Kratos
                       
 
 
-public:
-                  
-void SpectralDecomposition(const Vector& StressVector, array_1d<double,3>& PrincipalStress, array_1d<array_1d <double,3 > ,3>& EigenVectors)
+protected:
+       
+/// Ver tesis Joaquin Hernadez Pag 71
+///PS->Plastic Strain in cartesian bases
+///PPS->Principal Plastic strain with Delta_Fn+1
+void ComputePlasticStrainBar(const Vector& PS, const Matrix& Inv_DeltaF, Vector& PPS_bar) /// The principal plastic Strain
+{
+  Matrix S; 
+  Matrix EV;
+  Matrix Result;
+  EV.resize(3,3,false);
+  Result.resize(3,3,false);
+  S.resize(3,3,false);
+  PPS_bar         = ZeroVector(3);
+  noalias(EV)     = ZeroMatrix(3,3);
+  noalias(Result) = ZeroMatrix(3,3);
+  noalias(S)      = ZeroMatrix(3,3);
+  
+  switch(mState){
+  case Plane_Strain:
+   {
+      Vector Aux(3);
+      Aux[0] = PS[0];
+      Aux[1] = PS[1];
+      Aux[2] = PS[2];
+      Matrix Saux; Saux.resize(2,2,false);
+      noalias(Saux) = ZeroMatrix(2,2);
+      Saux   = SD_MathUtils<double>::StrainVectorToTensor(Aux);
+      S(0,0) = Saux(0,0); S(0,1) = Saux(0,1);
+      S(1,0) = Saux(1,0); S(1,1) = Saux(1,1);
+      S(2,2) = PS(3);
+      break;
+   }
+    case Tri_D:
+   {
+      S = SD_MathUtils<double>::StrainVectorToTensor(PS);
+      break;
+   }
+  }
+  noalias(Result)        = prod(Matrix(prod(trans(Inv_DeltaF),S)), Inv_DeltaF);  
+  int    iter            = 1000;
+  double zero            = 1.0E-12;
+  SD_MathUtils<double>::EigenVectors(Result, EV, PPS_bar, zero, iter);  
+  array_1d<unsigned int,3> order;
+  array_1d<double,3> P;
+  noalias(P) = PPS_bar;
+  IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(P, order);
+  noalias(PPS_bar) = P;
+  
+}
+  
+
+///WARNING 
+void SpectralDecomposition(const Vector& StressVector, 
+			   array_1d<double,3>& PrincipalStress, 
+			   array_1d<array_1d <double,3 > ,3>& EigenVectors)
 {
 
 int    iter            = 1000;
 double zero            = 1.0E-12;
-Matrix StressTensor    = ZeroMatrix(3,3);
-Matrix EV              = ZeroMatrix(3,3);
+Matrix StressTensor;   StressTensor.resize(3,3,false);
+Matrix EV;             EV.resize(3,3,false);
+noalias(StressTensor)  = ZeroMatrix(3,3);
+noalias(EV)            = ZeroMatrix(3,3);
 PrincipalStress        = ZeroVector(3);
 EigenVectors[0]        = ZeroVector(3);
 EigenVectors[1]        = ZeroVector(3);
@@ -513,6 +588,7 @@ EigenVectors[2]        = ZeroVector(3);
 Vector  Aux_PS         = ZeroVector(3);
 
 this->State_Tensor(StressVector,StressTensor);
+if(mState==Plane_Strain) StressTensor(2,2) =  StressVector[3];
 SD_MathUtils<double>::EigenVectors(StressTensor, EV, Aux_PS, zero, iter);
 
 
@@ -531,6 +607,42 @@ EigenVectors[2][2]       = EV(2,2);
 
 }
 
+///WARNING 
+void SpectralDecompositionStrain(const Vector& StrainVector, 
+			         array_1d<double,3>& PrincipalStrain, 
+			         array_1d<array_1d <double,3 > ,3>& EigenVectors)
+{
+
+int    iter            = 1000;
+double zero            = 1.0E-12;
+Matrix StrainTensor;   StrainTensor.resize(3,3,false);
+Matrix EV;             EV.resize(3,3,false);
+noalias(StrainTensor)  = ZeroMatrix(3,3);
+noalias(EV)            = ZeroMatrix(3,3);
+PrincipalStrain        = ZeroVector(3);
+EigenVectors[0]        = ZeroVector(3);
+EigenVectors[1]        = ZeroVector(3);
+EigenVectors[2]        = ZeroVector(3);
+Vector  Aux_PS         = ZeroVector(3);
+
+StrainTensor = SD_MathUtils<double>::StrainVectorToTensor(StrainVector);
+SD_MathUtils<double>::EigenVectors(StrainTensor, EV, Aux_PS, zero, iter);
+
+
+noalias(PrincipalStrain) = Aux_PS;  
+EigenVectors[0][0]       = EV(0,0);  
+EigenVectors[0][1]       = EV(0,1);
+EigenVectors[0][2]       = EV(0,2);
+
+EigenVectors[1][0]       = EV(1,0);  
+EigenVectors[1][1]       = EV(1,1);
+EigenVectors[1][2]       = EV(1,2);
+
+EigenVectors[2][0]       = EV(2,0);
+EigenVectors[2][1]       = EV(2,1);
+EigenVectors[2][2]       = EV(2,2);
+
+}
 
 void IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(array_1d<double, 3 >& PrincipalStress , array_1d<unsigned int,3>& order)
 {
@@ -542,8 +654,8 @@ void IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(array_1d<double, 3 >
   Aux[2] = PrincipalStress[order[2]];
   for (unsigned int i = 1; i<3; i++)
   {
-  if (PrincipalStress[i]>=Aux[0]) {order[0] = i;  Aux[0] = PrincipalStress[order[0]];}
-  if (PrincipalStress[i]<=Aux[2]) {order[2] = i;  Aux[2] = PrincipalStress[order[2]];}
+     if (PrincipalStress[i]>=Aux[0]) {order[0] = i;  Aux[0] = PrincipalStress[order[0]];}
+     if (PrincipalStress[i]<Aux[2])  {order[2] = i;  Aux[2] = PrincipalStress[order[2]];}
   }
 
   if(order[0]!=0 && order[2]!=0){order[1] = 0;}
@@ -551,35 +663,33 @@ void IdentifyMaximunAndMinumumPrincipalStres_CalculateOrder(array_1d<double, 3 >
   if(order[0]!=2 && order[2]!=2){order[1] = 2;}
   Aux[1] = PrincipalStress[order[1]];
   
+  if(order[0]== order[1] || order[0]== order[2] || order[1]== order[2]){
+    KRATOS_WATCH(PrincipalStress)
+    KRATOS_WATCH(order)
+    KRATOS_ERROR(std::logic_error,  " ORDERRRRRRRRRRRRRRRRRRRRR", "");
+  }
+  
   noalias(PrincipalStress) = Aux;
   return;
 }
 
 
 void AssembleUpdateStressAndStrainTensor(array_1d<double,3>& Sigma, 
-								      array_1d<array_1d < double,3 > ,3>& EigenVectors, 
-								      const array_1d<unsigned int,3>& order,
-								      const Vector& StrainVector, 
-								      Vector& StressVector)
+					 array_1d<array_1d < double,3 > ,3>& EigenVectors, 
+					 const array_1d<unsigned int,3>& order,
+					 const Vector& StrainVector, 
+					 Vector& StressVector)
 {
     
-Matrix StressTensor     = ZeroMatrix(3,3);
-// Matrix StrainTensor     = ZeroMatrix(3,3); 
+Matrix StressTensor; StressTensor.resize(3,3,false); 
+StressTensor     = ZeroMatrix(3,3);
 
-// const double& E         =   (*mprops)[YOUNG_MODULUS];
-// const double& NU        =   (*mprops)[POISSON_RATIO];
-// const double G          =   0.5 * E / (1.00 + NU);
-// const double K          =   E / (3.00 * (1.00-2.00 * NU) );
 
 /// Updating the  elastic stress tensor
-for(unsigned int i=0; i<3; i++)
-{      
- noalias(StressTensor) +=  Sigma[i] * Matrix(outer_prod(EigenVectors[order[i]],  EigenVectors[order[i]]));
-} 
+for(unsigned int i=0; i<3; i++)     
+  noalias(StressTensor) +=  Sigma[i] * Matrix(outer_prod(EigenVectors[order[i]],  EigenVectors[order[i]]));
 
 
-// const double p     = (1.00/3.00) * (StressTensor(0,0) + StressTensor(1,1) + StressTensor(2,2));
-// const double eevd3 =  p/(3.00 * K); 
 switch(mState)
 {
   
@@ -591,66 +701,23 @@ switch(mState)
     
   case Plane_Strain:
   {
-    //array_1d<double,4> ElasticStrain;
-    //array_1d<double,4> ElasticStress;
-    //mplastic_strain.resize(4, false);
-    //mplastic_strain = ZeroVector(4);
-    //ElasticStress   = ZeroVector(4);
-    //ElasticStrain   = ZeroVector(4);
-    
-    //ElasticStress[0] = StressTensor(0,0);  //xx
-    //ElasticStress[1] = StressTensor(1,1);  //yy
-    //ElasticStress[2] = StressTensor(0,1);  //xy
-    //ElasticStress[3] = StressTensor(2,2);  //zz
-  
+    StressVector.resize(4);
     StressVector[0] = StressTensor(0,0);  //xx
     StressVector[1] = StressTensor(1,1);  //yy
     StressVector[2] = StressTensor(0,1);  //xy
-   
-    /*
-    ElasticStrain[0] = (ElasticStress[0] - p ) / (2.00 * G) +  eevd3;        //StrainTensor(0,0);         //xx
-    ElasticStrain[1] = (ElasticStress[1] - p ) / (2.00 * G) +  eevd3;        //StrainTensor(1,1);         //yy
-    ElasticStrain[2] =  ElasticStress[2]/G;                                  //2.00*StrainTensor(0,1);    //xy
-    ElasticStrain[3] = (ElasticStress[3] - p ) /  (2.00 * G) + eevd3;        //StrainTensor(2,2);         //zz  
-    
-    mplastic_strain[0] = StrainVector[0] - ElasticStrain[0];
-    mplastic_strain[1] = StrainVector[1] - ElasticStrain[1];
-    mplastic_strain[2] = StrainVector[2] - ElasticStrain[2];
-    mplastic_strain[3] = 0.00;   /// WARNING = NOT CORRECT  
-    */
-    
+    StressVector[3] = StressTensor(2,2);  //zz
     break;
   }
   
   case Tri_D:
   {
-    
-    //array_1d<double,6> ElasticStrain;
-    //mplastic_strain.resize(6, false);
-    //mplastic_strain = ZeroVector(6);
-    //ElasticStrain   = ZeroVector(6);
+    StressVector.resize(6);
     StressVector[0] = StressTensor(0,0);  
     StressVector[1] = StressTensor(1,1);  
     StressVector[2] = StressTensor(2,2);  
     StressVector[3] = StressTensor(0,1); 
     StressVector[4] = StressTensor(1,2); 
     StressVector[5] = StressTensor(0,2); 
-    
-   /*
-    ElasticStrain[0] = (StressVector[0] - p) / (2.00 * G)  + eevd3;      
-    ElasticStrain[1] = (StressVector[1] - p) / (2.00 * G)  + eevd3;       
-    ElasticStrain[2] = (StressVector[2] - p) / (2.00 * G)  + eevd3;       
-    ElasticStrain[3] =  StressVector[3]/G;                                       
-    ElasticStrain[4] =  StressVector[4]/G;                                       
-    ElasticStrain[5] =  StressVector[5]/G;                                      
-    
-    mplastic_strain[0] = StrainVector[0] - ElasticStrain[0];
-    mplastic_strain[1] = StrainVector[1] - ElasticStrain[1];
-    mplastic_strain[2] = StrainVector[2] - ElasticStrain[2];
-    mplastic_strain[3] = StrainVector[3] - ElasticStrain[3];
-    mplastic_strain[4] = StrainVector[4] - ElasticStrain[4];
-    mplastic_strain[5] = StrainVector[5] - ElasticStrain[5];
-    */
     break; 
    }
  }
@@ -659,7 +726,153 @@ switch(mState)
 }
 
 
-void CalculatePlasticStrain(const Vector& StrainVector, Vector& StressVector)
+void AssembleStress(const Vector& Stress, Vector& StressVector)
+{
+    switch(mState)
+    {
+    case Plane_Strain:
+    {    
+    /// computing the pressure
+    StressVector[0] = Stress[0];
+    StressVector[1] = Stress[1];
+    StressVector[2] = Stress[2];;
+    break;
+    }
+    case Tri_D:
+    {
+     /// computing the pressure
+     StressVector[0] = Stress[0];
+     StressVector[1] = Stress[1];
+     StressVector[2] = Stress[2];
+     StressVector[3] = Stress[3];
+     StressVector[4] = Stress[4];
+     StressVector[5] = Stress[5];
+     break;
+    }
+  }
+}
+
+void CalculatePlasticStrain( const array_1d<double,3>& PrincipalPlasticStrain_current,
+                             const array_1d<array_1d < double,3 > ,3>& EigenVectors,
+			     const array_1d<unsigned int,3>& Order,
+			     Vector& plastic_strain)
+{
+  
+  Matrix PlasticTensor;  PlasticTensor.resize(3,3,false); 
+  PlasticTensor = ZeroMatrix(3,3);
+
+  for(unsigned int i=0; i<3; i++)     
+  noalias(PlasticTensor) +=  PrincipalPlasticStrain_current[i] * Matrix(outer_prod(EigenVectors[Order[i]],  EigenVectors[Order[i]]));
+
+  
+   switch(mState)
+      {
+	case(Plane_Strain):{
+	  plastic_strain = ZeroVector(4);
+	  plastic_strain[0] = PlasticTensor(0,0);
+	  plastic_strain[1] = PlasticTensor(1,1);
+	  plastic_strain[2] = 2.00 * PlasticTensor(1,0);
+	  plastic_strain[3] = PlasticTensor(2,2);
+	  break;
+	}
+	case(Tri_D):
+	{
+	  plastic_strain = ZeroVector(6);
+	  plastic_strain[0] = PlasticTensor(0,0);
+	  plastic_strain[1] = PlasticTensor(1,1);
+	  plastic_strain[2] = PlasticTensor(2,2);
+	  plastic_strain[3] = 2.00 * PlasticTensor(0,1);
+	  plastic_strain[4] = 2.00 * PlasticTensor(1,2);
+	  plastic_strain[5] = 2.00 * PlasticTensor(0,2);
+	  break;
+	}
+  }
+}
+
+
+int SizePlasticStrain()
+{
+      unsigned int size = 0;   
+      switch(mState)
+      {
+	case Plane_Stress:{
+	  KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+	  break;
+	}
+	case(Plane_Strain):{
+           size = 4;
+	   break;
+	}
+        case(Tri_D):{
+         size = 6;
+	 break;
+	}
+      }
+      
+      return size;
+}
+
+
+void CalculateElasticStrain(const Vector& StressVector,  Vector& Elastic_strain)
+{
+   const double d3         = 0.3333333333333;
+   const double& E         =   (*mprops)[YOUNG_MODULUS];
+   const double& NU        =   (*mprops)[POISSON_RATIO];
+   const double G          =   0.5 * E / (1.00 + NU);
+   const double K          =   E / (3.00 * (1.00-2.00 * NU) );
+   double pressure         = 0.00;
+   double volumentric      = 0.00;
+   Vector Desviatoric;
+   
+    switch(mState)
+  {
+      case Plane_Strain:
+      {
+	Desviatoric.resize(4);
+	Elastic_strain.resize(4);
+        pressure        =  d3 * (StressVector[0] + StressVector[1] + StressVector[3]);
+	volumentric     =  d3 * pressure / K;
+	Desviatoric [0] =  (StressVector[0] - pressure);
+	Desviatoric [1] =  (StressVector[1] - pressure);
+	Desviatoric [2] =  (StressVector[2]);
+	Desviatoric [3] =  (StressVector[3] - pressure);
+	Desviatoric    *= (1.00/(2.00*G));
+	
+	Elastic_strain[0] = Desviatoric[0] + volumentric;
+ 	Elastic_strain[1] = Desviatoric[1] + volumentric;
+	Elastic_strain[2] = 2.00 * Desviatoric[2]; 
+	Elastic_strain[3] = Desviatoric[3] + volumentric;
+	break;
+      }
+      case Tri_D:
+      {
+	Desviatoric.resize(6);
+	Elastic_strain.resize(6);
+	pressure        =  d3 * (StressVector[0] + StressVector[1] + StressVector[2]);
+	volumentric     =  d3 * pressure / K;
+	Desviatoric [0] =  (StressVector[0] - pressure);
+	Desviatoric [1] =  (StressVector[1] - pressure);
+	Desviatoric [2] =  (StressVector[2] - pressure);
+	Desviatoric [3] =  (StressVector[3]);
+	Desviatoric [4] =  (StressVector[4]);
+	Desviatoric [5] =  (StressVector[5]);
+	
+	Desviatoric    *= (1.00/(2.00*G));
+
+	Elastic_strain[0] = Desviatoric[0] + volumentric;
+	Elastic_strain[1] = Desviatoric[1] + volumentric;
+        Elastic_strain[2] = Desviatoric[2] + volumentric;
+	Elastic_strain[3] = 2.00 * Desviatoric[3];
+	Elastic_strain[5] = 2.00 * Desviatoric[4]; 
+	Elastic_strain[5] = 2.00 * Desviatoric[5];
+	break;
+      }
+   }
+}
+
+
+
+void CalculatePlasticStrain(const Vector& StrainVector, const Vector& StressVector, Vector& plastic_strain, double sigma_z = 0)
 {
    const double& E         =   (*mprops)[YOUNG_MODULUS];
    const double& NU        =   (*mprops)[POISSON_RATIO];
@@ -679,37 +892,31 @@ void CalculatePlasticStrain(const Vector& StrainVector, Vector& StressVector)
 	
       case Plane_Strain:
       {
-	double sigma_z = 0.00; 
-	sigma_z = (*mprops)[POISSON_RATIO]*(StressVector[0]+StressVector[1]);
-	p                =  (1.00/3.00) * (StressVector[0]+StressVector[1] +sigma_z);
-	eevd3            =  p/(3.00*K);
-	
+	p                =  (1.00/3.00) * (StressVector[0]+StressVector[1] + sigma_z);
+	eevd3            =  0.3333333333333333*p/K;
         array_1d<double,4> ElasticStrain;
-        mplastic_strain.resize(4, false);
-        mplastic_strain = ZeroVector(4);
+        plastic_strain.resize(4, false);
+        plastic_strain  = ZeroVector(4);
         ElasticStrain   = ZeroVector(4);
   
-	ElasticStrain[0] = ( StressVector[0] - p ) / (2.00 * G) +  eevd3;        
-	ElasticStrain[1] = ( StressVector[1] - p ) / (2.00 * G) +  eevd3;        
-	ElasticStrain[2] = StressVector[2]/G;                                 
-	ElasticStrain[3] = ( sigma_z  - p ) /  (2.00 * G) + eevd3;       
+	ElasticStrain[0] = (StressVector[0] - p ) / (2.00 * G) +  eevd3;        
+	ElasticStrain[1] = (StressVector[1] - p ) / (2.00 * G) +  eevd3;        
+	ElasticStrain[2] =  StressVector[2]/G;                                 
+	ElasticStrain[3] =  (sigma_z  - p ) /  (2.00 * G) + eevd3;       
 
-	mplastic_strain[0] = StrainVector[0] - ElasticStrain[0];
-	mplastic_strain[1] = StrainVector[1] - ElasticStrain[1];
-	mplastic_strain[2] = StrainVector[2] - ElasticStrain[2];
-	mplastic_strain[3] = 0.00;   /// WARNING = NOT CORRECT  
+	
+	plastic_strain[0] = StrainVector[0] - ElasticStrain[0];
+	plastic_strain[1] = StrainVector[1] - ElasticStrain[1];
+	plastic_strain[2] = StrainVector[2] - ElasticStrain[2];
+	plastic_strain[3] = - ElasticStrain[3]; 
     
 	break;
-	
-	
       }
-      
       case Tri_D:
       {
-	
 	array_1d<double,6> ElasticStrain;
-        mplastic_strain.resize(6, false);
-        mplastic_strain = ZeroVector(6);
+        plastic_strain.resize(6, false);
+        plastic_strain = ZeroVector(6);
         ElasticStrain   = ZeroVector(6);
     
 	p                =  (1.00/3.00) * (StressVector[0]+StressVector[1]+StressVector[2]);
@@ -722,12 +929,12 @@ void CalculatePlasticStrain(const Vector& StrainVector, Vector& StressVector)
         ElasticStrain[4] =  StressVector[4]/G;                                       
         ElasticStrain[5] =  StressVector[5]/G;                                      
     
-	mplastic_strain[0] = StrainVector[0] - ElasticStrain[0];
-	mplastic_strain[1] = StrainVector[1] - ElasticStrain[1];
-	mplastic_strain[2] = StrainVector[2] - ElasticStrain[2];
-	mplastic_strain[3] = StrainVector[3] - ElasticStrain[3];
-	mplastic_strain[4] = StrainVector[4] - ElasticStrain[4];
-	mplastic_strain[5] = StrainVector[5] - ElasticStrain[5];
+	plastic_strain[0] = StrainVector[0] - ElasticStrain[0];
+	plastic_strain[1] = StrainVector[1] - ElasticStrain[1];
+	plastic_strain[2] = StrainVector[2] - ElasticStrain[2];
+	plastic_strain[3] = StrainVector[3] - ElasticStrain[3];
+	plastic_strain[4] = StrainVector[4] - ElasticStrain[4];
+	plastic_strain[5] = StrainVector[5] - ElasticStrain[5];
     
 
 	break;
