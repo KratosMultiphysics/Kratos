@@ -352,6 +352,20 @@ namespace Kratos
                 return c;
             }	
 
+	      static inline array_1d<double, 3> UnitCrossProduct(const array_1d<double, 3>& vec, const array_1d<double, 3>& Tuple) 
+	      {
+		  array_1d<double, 3> cross;
+		  
+		  cross[0] =  Tuple[1]*vec[2] - Tuple[2]*vec[1];
+		  cross[1] =  Tuple[2]*vec[0] - Tuple[0]*vec[2];
+		  cross[2] =  Tuple[0]*vec[1] - Tuple[1]*vec[0];
+		 
+		  const double length = std::sqrt(inner_prod(cross, cross));
+		  cross = (1.00/length) * cross; 
+		  return cross;
+	      }
+
+
 		//identical but it assumes that the output vector is given already the correct size
             static inline void CrossProduct(array_1d<double, 3>& c, const array_1d<double, 3>& a, const array_1d<double, 3>& b)
             {
