@@ -202,10 +202,12 @@ namespace Kratos
 
             template<class TVariableType>
             void WeightedRecoveryGradients(const Variable<TVariableType>& rVariable, Variable<TVariableType>& rVariable_Smooth,
-            ModelPart& this_model_part, const unsigned int& domain_size )
+            ModelPart& this_model_part, const unsigned int& domain_size)
             {
+	      std::cout<< "SMOTHING SOLUTIONS VARIABLE = " << rVariable <<  std::endl;
               if( minitialize_Setting_Variables==false)
-	      { 
+	      {
+		SettingNodalValues(this_model_part, domain_size);
 		CalculatetributaryFactor(this_model_part, domain_size); 
 		minitialize_Setting_Variables = true;
 	      }
@@ -214,7 +216,7 @@ namespace Kratos
 		{
 		  case 2:  
 		  { 
-		    WeightedRecoveryGradients2D(rVariable, rVariable_Smooth, this_model_part);    
+ 		    WeightedRecoveryGradients2D(rVariable, rVariable_Smooth, this_model_part);    
 		    break;
 		  }
 		  case 3:
@@ -227,7 +229,7 @@ namespace Kratos
 	    }
 		
 	
-		// Only valid for triangle elements
+		///WARNING = Only valid for triangle elements
 		template<class TVariableType>
 		void WeightedRecoveryGradients2D(const Variable<TVariableType>& rVariable, const Variable<TVariableType>& rVariable_Smooth, ModelPart& this_model_part)
 		{
@@ -254,18 +256,26 @@ namespace Kratos
                 #pragma omp parallel for private(Variable_Value) 
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
-  
                     ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
                     ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k+1];
-
                     for ( ElementsArrayType::iterator it = it_begin; it != it_end; ++it )
                     {
                         Element::GeometryType& geom     = it->GetGeometry();
                         it->GetValueOnIntegrationPoints(rVariable, Variable_Value, CurrentProcessInfo );
+ 			    
                         for ( unsigned int i = 0; i < geom.size(); i++ )
                         {
-                            geom[i].SetLock();
-                            geom[i].GetValue(rVariable_Smooth) += fact * geom.Area() * Variable_Value[0];  
+                             geom[i].SetLock();
+			     TVariableType& Nodal_Values =  geom(i)->GetValue(rVariable_Smooth);
+                             Nodal_Values += fact * geom.Area() * Variable_Value[0];  ///un por integrations points
+//                              if(geom(i)->Id()==496){
+// 			     KRATOS_WATCH(it->Id())
+// 			     KRATOS_WATCH(fact)
+// 			     KRATOS_WATCH(geom.Area())
+// 			     KRATOS_WATCH(Variable_Value[0])
+// 			     KRATOS_WATCH(Nodal_Values)  
+//  			   }
+                            
                             geom[i].UnSetLock();
                         }
                     }
@@ -276,13 +286,18 @@ namespace Kratos
                 for ( int k = 0; k < number_of_threads; k++ )
                 {
                     NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-                    NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k+1];
+                    NodesArrayType::iterator i_end   = pNodes.ptr_begin() + node_partition[k+1];
 
                     for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i )
                     {
                         double& Area_Total           =  i->GetValue(NODAL_AREA );
 			TVariableType& Nodal_Values  =  i->GetValue(rVariable_Smooth);
 			Nodal_Values                 = (1.00 / Area_Total) * Nodal_Values;
+// 			if(i->Id()==496){
+//  			     KRATOS_WATCH(Area_Total)   
+//  			     KRATOS_WATCH(Nodal_Values)
+// 			}
+			
 		     }
 		   
           	   }
@@ -703,7 +718,7 @@ namespace Kratos
                     {
                         {
 			    i->GetValue( NODAL_AREA   )  = 0.00;
-			    i->GetValue( NODAL_DAMAGE )  = 0.00;
+			    i->GetValue(NODAL_DAMAGE ) = 0.00;
                             i->GetValue( SPLIT_NODAL  )  = false;
                             i->GetValue( NODAL_STRESS )  = Nodal_Values;
                             i->GetValue( NODAL_STRAIN )  = Nodal_Values;    
@@ -726,7 +741,7 @@ namespace Kratos
                     {
                         {
 			    i->GetValue( NODAL_VOLUME)    = 0.00;
-                            i->GetValue( NODAL_DAMAGE )   = 0.00;
+                            i->GetValue(NODAL_DAMAGE )   = 0.00;
                             i->GetValue( SPLIT_NODAL )    = false;
                             i->GetValue( NODAL_STRESS )   = Nodal_Values;
                             i->GetValue( NODAL_STRAIN )   = Nodal_Values;
