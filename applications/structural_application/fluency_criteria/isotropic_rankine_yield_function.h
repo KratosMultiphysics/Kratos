@@ -46,8 +46,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ISOTROPIC_RANKINE_FUNCTION
 
 #include "fluency_criteria/fluency_criteria.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include <cmath>
-
 
 
 namespace Kratos
@@ -61,7 +61,7 @@ namespace Kratos
       IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM 
       PLANE STRAIN AND AXISYMMETRIC IMPLMENTATIONS
       */
-      
+      typedef SofteningHardeningCriteria::Pointer SoftHardPointerType;  
       class Isotropic_Rankine_Yield_Function: public virtual FluencyCriteria    
       { 
     
@@ -69,13 +69,17 @@ namespace Kratos
 
             virtual boost::shared_ptr<FluencyCriteria> Clone() const
 	        {
-		      boost::shared_ptr<FluencyCriteria> p_clone(new Isotropic_Rankine_Yield_Function(mState));
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Isotropic_Rankine_Yield_Function(
+		      mpSofteningBehaviorFt->Clone(),
+		      mState));
 		      return p_clone;
 		}
   
             Isotropic_Rankine_Yield_Function();              
    
-            Isotropic_Rankine_Yield_Function(myState State);
+            Isotropic_Rankine_Yield_Function(
+            const SoftHardPointerType& SofteningBehavior,
+            const myState& State);
 	   
             ~Isotropic_Rankine_Yield_Function();
 
@@ -88,34 +92,57 @@ namespace Kratos
 
 	void InitializeMaterial(const Properties& props);  
 	bool CheckPlasticAdmisibility(const Vector& Stress); 
-	void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
+	void ReturnMapping(const Vector& StrainVector, const Vector& TrialStress, Vector& StressVector);
 	void FinalizeSolutionStep();
 	void UpdateMaterial();
 	bool CheckValidity( array_1d<double,3>&  Sigma); 
         void GetValue(const Variable<Matrix>& rVariable, Matrix& Result);
-
-      
+	void GetValue(const Variable<double>& rVariable, double& Result);
+	void GetValue(const Variable<Vector>& rVariable, Vector& Result);
+        void GetValue(double& Result);
+	void GetValue(Matrix& Result);
+	
+	
 	public:
-
-	double  mrankine_accumulated_plastic_strain_current;   
+	double  mrankine_accumulated_plastic_strain_current;    
         double  mrankine_accumulated_plastic_strain_old;    
-	double mFt;
-	double mcurrent_Ft;
-	double mH; 
-	bool   minitialize;     
+	double  mFt;
+	double  mcurrent_Ft;
+	double  mH; 
+	double  mhe;    /// length scale; 
+	SoftHardPointerType mpSofteningBehaviorFt;
+	Vector mElastic_strain; 
+        Vector mElastic_strain_old; 
+	
 	array_1d<double, 3>    mPrincipalPlasticStrain_current;
 	array_1d<double, 3>    mPrincipalPlasticStrain_old;  
-	
+	double  mpastic_damage_old;
+	double  mpastic_damage_current;
+	Vector mplastic_strain; 
+	Vector mplastic_strain_old; 
+        Matrix m_inv_DeltaF;
         
         private:
-        bool One_Vector_Return_Mapping_To_Main_Plane(const array_1d<double,3>& PrincipalStress, Vector& delta_lamda,    array_1d<double,3>& Sigma); 
-        bool Two_Vector_Return_Mapping_To_Corner (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda ,    array_1d<double,3>& Sigma);        
-        void Three_Vector_Return_Mapping_To_Apex (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda ,array_1d<double,3>& Sigma);
+        bool One_Vector_Return_Mapping_To_Main_Plane(const array_1d<double,3>& PrincipalStress, Vector& delta_lamda, array_1d<double,3>& Sigma); 
+        bool Two_Vector_Return_Mapping_To_Corner (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda, array_1d<double,3>& Sigma);        
+        void Three_Vector_Return_Mapping_To_Apex (   const array_1d<double,3>& PrincipalStress, Vector& delta_lamda, array_1d<double,3>& Sigma);
+	void CalculatePlasticDamage(const array_1d<double,3>& Sigma);
+	int CheckSurface(const Vector& Stress);
+	double UniaxialTension(const Vector& Stress);
+	//***********************************************************************
+//************************************************* ********************** 
+
+void ComputeActualStrees(const double& Ppvs, 
+			 const array_1d<double,3>& Ppds,
+			 const array_1d<double,3>& PrincipalStress,
+			 array_1d<double,3>& Sigma);
+
+
+void ComputeActualStrain(const array_1d<double,3>& Pps);
 	
 	enum   Cases {right, left};
 	Cases  mCases; 
-   
-           
+	
 
     };
 }
