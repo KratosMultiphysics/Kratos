@@ -66,13 +66,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_fluency_criteria_to_python.h"
 #include "fluency_criteria/fluency_criteria.h"
 #include "python/vector_python_interface.h"
-///#include "fluency_criteria/energy_yield_function.h"
+#include "fluency_criteria/energy_yield_function.h"
 #include "fluency_criteria/isotropic_rankine_yield_function.h"
 //#include "fluency_criteria/tresca_yield_function.h"
 #include "fluency_criteria/von_mises_yield_function.h"     
 #include "fluency_criteria/modified_morh_coulomb_yield_function.h"
 #include "fluency_criteria/morh_coulomb_yield_function.h"
-
+#include "fluency_criteria/standard_morh_coulomb_yield_function.h"
 
 //#include "fluency_criteria/rankine_yield_function.h"
 //#include "fluency_criteria/drucker_prager_yield_function.h"
@@ -80,7 +80,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "soft_hard_behavior/softening_hardening_criteria.h"
 #include "soft_hard_behavior/exponencial_softening.h"
 #include "soft_hard_behavior/linear_softening.h"
-
+#include "soft_hard_behavior/cohesion_softening.h"
+#include "soft_hard_behavior/friction_softening.h"
+#include "soft_hard_behavior/dilatancy_softening.h"
 
 
 #include "spaces/ublas_space.h"
@@ -131,7 +133,7 @@ namespace Kratos
                                   ;
 
            
-				 /* 
+	                     /*			 
 			       class_<Rankine_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("RankineYieldFunction",
 			      init<myState> () )
@@ -140,7 +142,8 @@ namespace Kratos
 				 
                               class_<Isotropic_Rankine_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("IsotropicRankineYieldFunction",
-			      init<myState> () )
+			      init<SofteningHardeningPointerType,
+			      myState> () )
 			      ;  
  
                               /*
@@ -152,19 +155,36 @@ namespace Kratos
 			      
 			      class_<Von_Mises_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("VonMisesYieldFunction",
-			      init<myState, myPotencialPlastic> () )
+			       init<const myState&, const SofteningHardeningPointerType&> () )
+			       //init<myState, myPotencialPlastic> () )
 			      ;  
 
 			      class_<Modified_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("ModifiedMorhCoulombYieldFunction",
 			      init<myState, MorhCoulombPointerType, RankinePointerType> () )
-			      //init<FluencyPointerType&, FluencyPointerType&> () )
+			      /* init<const SofteningHardeningPointerType&,
+			           const SofteningHardeningPointerType&,
+			           const SofteningHardeningPointerType&,
+			           const SofteningHardeningPointerType&,
+			           const myState, 
+			           const myPotencialPlastic> () )
+			           */
 			      ;  
 			      
 
 			      class_<Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("MorhCoulombYieldFunction",
-			      init<SofteningHardeningPointerType, myState, myPotencialPlastic> () )
+			      init<const SofteningHardeningPointerType&,
+			           const SofteningHardeningPointerType&,
+			           const SofteningHardeningPointerType&,
+			           const myState, 
+			           const myPotencialPlastic> () )
+			      ;  
+			      
+			      class_<Standard_Morh_Coulomb_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
+			      ("StandardMorhCoulombYieldFunction",
+			      init<const SofteningHardeningPointerType&,
+			           const myState> () )
 			      ;  
 			      
 			      /*
@@ -174,12 +194,12 @@ namespace Kratos
 			      ;  
                                */
 			      
-			      /*
+			      
 			      class_<Energy_Yield_Function, bases< FluencyCriteriaType >, boost::noncopyable >
 			      ("EnergyYieldFunction",
 			      init<myState> () )
 			      ;  
-                              */
+                              
 			      
 			      class_<Exponential_Softening, bases< SofteningHardeningType>, boost::noncopyable >
 			      ("ExponentialSoftening",
@@ -190,9 +210,22 @@ namespace Kratos
 			      ("LinearSoftening",
 			      init<> () )
 			      ; 
-
-
-
+			      
+			      class_<Cohesion_Softening, bases< SofteningHardeningType>, boost::noncopyable >
+			      ("CohesionSoftening",
+			      init<> () )
+			      ; 
+			      
+			      class_<Friction_Softening, bases< SofteningHardeningType>, boost::noncopyable >
+			      ("FrictionSoftening",
+			      init<> () )
+			      ; 
+			      
+			      class_<Dilatancy_Softening, bases< SofteningHardeningType>, boost::noncopyable >
+			      ("DilatancySoftening",
+			      init<> () )
+			      ; 
+                              
 
                                 }
                 
