@@ -89,12 +89,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-
-
-template<class TSparseSpace,
-class TDenseSpace, 
-class TLinearSolver>
- 
+  
+ enum Constraint_Enforcement{Penalty_Methods, Lagrange_Multiplier_Methods};  
+ template<
+ class TSparseSpace,
+ class TDenseSpace, 
+ class TLinearSolver> 
  class ResidualBasedCentralDiferencesStrategy : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
      {
 
@@ -135,21 +135,43 @@ class TLinearSolver>
 	  typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
 
 	  typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+	  
+	  typedef BoundaryConditionsAndContactUtilities         BoundaryAndContactType;
+	  
+	  typedef ForwardIncrementLagrangeMultiplierScheme      LagrangeMultiplierType;
 
-
-	  ResidualBasedCentralDiferencesStrategy(ModelPart& model_part, int dimension,
-			double alpha_damp,      /// para calcular la matriz de amortiguamiento
-                        double fraction_delta_time,
-                        double max_delta_time,
-			bool   CalculateReactions,
-			bool   ComputeContactConditions,
-			bool   MoveMeshFlag
+	   
+	  
+	  /// Notes:
+	  /*
+	  
+	   a) Penalty methods corresponf to elastic colision and therefore the kinectic energy is preservated.
+	      It need some damping to disipated kinetic energy.
+	      
+	   b) Using lagrangian multiplier aproach, the kinetic energy is disipated during the contact 
+	   iteraction and therefore no contact damping is required.
+	  */
+	  
+	  
+	     ///@param 
+	     ///CE                   Constraint_Enforcement&  
+	     ///alpha_damp,          Para calcular la matriz de amortiguamiento proporcional a la masa
+	     ///fraction_delta_time  Fracion del timepo critico (0-1)
+	     ///max_delta_time,      Maximo incremento de tiempo
+	     
+	  ResidualBasedCentralDiferencesStrategy(
+	                ModelPart& model_part, 
+			const Constraint_Enforcement& CE,  
+			const int        dimension,
+			const double     alpha_damp,        /// para calcular la matriz de amortiguamiento proporcional a la masa
+                        const double     fraction_delta_time,
+                        const double     max_delta_time,
+			const bool       CalculateReactions,
+			const bool       ComputeContactConditions,
+			const bool       MoveMeshFlag
 			)
 	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
-
-
-		std::cout<<std::fixed<<std::scientific<<std::setprecision(6);  
 	        mdimension                 = dimension; 
 		malpha_damp                = alpha_damp;
                 mfraction_delta_time       = fraction_delta_time; 
@@ -163,12 +185,19 @@ class TLinearSolver>
 	        mSolutionStepIsInitialized = false;
 		mSolutionStepIsInitialized = false;
 		mInitializeWasPerformed    = false;
-
+		mClearContactConditions    = false;
+		mLocalSearchInitialize     = false;
+		minitial_conditions_size   = 0;
+		mcontact_conditions_size   = 0; 
 		mtimestep                  = 0.00;
-	  	mpBCCU_Pointer             = typename BoundaryConditionsAndContactUtilities::Pointer (new BoundaryConditionsAndContactUtilities(model_part, mdimension) );
+		mCE                        = CE;
+	  	mpBCCU_Pointer             = typename BoundaryAndContactType::Pointer (new BoundaryAndContactType(model_part, mdimension) );
 		mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
 		
                 std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES "<< std::endl;
+
+		mbeta_damp = 0.00; //0.000006767;
+		
 	      }
 
 	  virtual ~ResidualBasedCentralDiferencesStrategy () {}
@@ -178,8 +207,10 @@ class TLinearSolver>
 
 
 double Solve() 
-      { 
-
+      {
+	KRATOS_TRY
+        std::cout<<std::fixed<<std::scientific<<std::setprecision(6);
+	
 	#ifdef _OPENMP
 	double start_prod = omp_get_wtime();   
 	#endif
@@ -188,104 +219,375 @@ double Solve()
 	ModelPart& r_model_part              = BaseType::GetModelPart();
 	ConditionsArrayType& pConditions     = r_model_part.Conditions();
 
-	//ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
-
 	///Initializa los elementos y condiciones
 	if(mInitializeWasPerformed == false){
-	 Initialize();
-	 minitial_conditions_size = pConditions.size();
+	  
+	  Initialize();
+	  minitial_conditions_size = pConditions.size();
 	}
-
+	
+	
 	///Initialize solution step
 	if(mSolutionStepIsInitialized==false)
 	   InitializeSolutionStep();
-
+ 
 	///Computa el tiempo critico 
 	ComputeCriticalTime();
+  
 
 	if(mInitialConditions==false){
+	   minitial_conditions_size = pConditions.size();
 	   ComputeInitialConditions();
 	   GetForce();
 	}
-
         /// Predict displacements
-	/// Computa el nuevo desplazamiento a partir de los pasos anteriores
+	/// Computa el nuevo desplazamiento a partir de los pasos anteriores en n+1
 	ComputeIntermedialVelocityAndNewDisplacement();
 	
+
+	
+	/// Computa los valores del paso de las velocidades y aceleraciones	
+       ComputeOldVelocitiesAndAccelerations();
+	
+	if(mCalculateReactionsFlag)
+	    CalculateReaction(); 
+	
+	/// Computa los boundaries del modelo antes de la atualizacion de los desplazamientos
+	/*
+ 	if(mComputeContactConditions==true )
+ 	  { 
+	    //mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size);   ///crea las superficies de contacto 
+// 	    if(mCe==Lagrange_Multiplier_Methods) 
+//  	       mpBCCU_Pointer->LocalSearch();
+ 	  }
+ 	  */
+	    
 	/// Actualizacion de los desplazamientos
-	if(BaseType::MoveMeshFlag() == true) 
-	   BaseType::MoveMesh();
-   
+ 	if(BaseType::MoveMeshFlag() == true) 
+ 	   BaseType::MoveMesh();
+   	
+        ///Computing The new internal and external forces  for n+1 step
+	GetForce();
+        
+	 
+	//WARNING = To be checked
+	//ComputeDampingForces();
+	
 	/// Compute contact force and displacements correcions
 	/// realizando el bounding box
 	/// verifico si hay condiciones de contacto y corrijo el desplazamiento
-	if(mComputeContactConditions==true )
+	if(mComputeContactConditions==true)
 	  { 
-                         /// Borra las antiguas condiciones de conatcto
-	    mpBCCU_Pointer->CreateBoundariesAndLinkingConditions();      /// Crea las nuevas condiciones de contacto
-	    double dist = CheckObjectContact(minitial_conditions_size);  /// crea los iteradores del contacto
+	    if(mCE==Penalty_Methods)
+	    {
+	       //const bool rflag = false;
+	       //ResetFlagComputeBoundaryContour(rflag)
+	       //mpBCCU_Pointer->Clear(minitial_conditions_size); //CreateBoundaries(minitial_conditions_size); 
+	       mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size); 
+	       mpBCCU_Pointer->ComputeContactForce();
+	    }
 	    
-	    if (dist!=0)
-	       Update();  
-	  } 
-	
-	
-	/// Computa los valores del paso de las velocidades y aceleraciones
-	ComputeOldVelocitiesAndAccelerations();
-	
-	///Computing The new internal and external forces  for n+1 step
-	GetForce();
-	
+	    if(mCE==Lagrange_Multiplier_Methods)  
+	    {
+ 	    ConditionsContainerIterator end_previos;   
+            ConditionsContainerIterator end_actual;
+            mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size);                                        /// Crea las superficies de contacto
+ 	    mcontact_conditions_size = pConditions.size();                                                     /// Master Condition size + condiciones de inicio  
+ 	    mpBCCU_Pointer->CreateLinkingConditionsBasedOnLocalSearch(minitial_conditions_size);               /// Crea las nuevas condiciones de contacto
+ 	    int dist = CheckObjectContact(mcontact_conditions_size, end_previos, end_actual);                  /// crea los iteradores del contacto
+ 	    
+ 	    if(dist!=0)
+ 	       Update(end_previos,end_actual);  
+	    }
+	  }
+	  
 	FinalizeSolutionStep();
 	
-	CheckConditionsStatus(minitial_conditions_size);
+	if(mComputeContactConditions==true){   
+	    if(mCE==Lagrange_Multiplier_Methods)  
+	    {
+	     ComputeNormalContactReactions(mcontact_conditions_size);
+	     CheckConditionsStatus(mcontact_conditions_size);
+	    }
+	}
+	
+	
+	/// Computing energies
+	//CalculateEnergies();
 
-	      
+	
 	#ifdef _OPENMP
 	double stop_prod = omp_get_wtime();
 	std::cout << "TIME SOLVING  = " << stop_prod - start_prod << std::endl;
 	#endif
 	std::cout << "FINISHED SOLVE"<<std::endl;
-	return 0;     
+	return 0.00;   
+	
+	KRATOS_CATCH("")
       }
 
+
+
+void ComputeDampingForces()
+{
+   ComputeViscousDampingForces();
+}
+
+void ComputeViscousDampingForces()
+{
+   //ComputeDampingForcesWithMass();
+   ComputeDampingForcesWithStiffness();
+}
+
+
+void ComputeNonViscousDampingForces()
+{
+  
+  KRATOS_TRY
+      ModelPart& r_model_part          = BaseType::GetModelPart();
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ElementsArrayType& pNodes        = r_model_part.Nodes(); 
+
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+       #endif
+
+      vector<unsigned int> nodes_partition;
+      CreatePartition(number_of_threads, pNodes.size(), nodes_partition);
+
+      const double damp  = 0.00;
+      array_1d<double, 3> DampingForces;
+
+      #pragma omp parallel for private(DampingForces) 
+      for(int k=0; k<number_of_threads; k++)
+      {
+	typename NodesArrayType::iterator it_begin=pNodes.ptr_begin()+ nodes_partition[k];
+	typename NodesArrayType::iterator it_end=pNodes.ptr_begin()  + nodes_partition[k+1];
+	for (NodesArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	      array_1d<double,3>& rhs = it->FastGetSolutionStepValue(RHS); 
+	      array_1d<double,3>& Vel = it->FastGetSolutionStepValue(VELOCITY); 
+	      noalias(DampingForces)  = -(damp * norm_2(rhs) / norm_2(Vel) ) * Vel;
+              noalias(rhs) += DampingForces;
+	  }  
+	}
+	    KRATOS_CATCH("")
+    }
+ 
+
+
+
+void ComputeDampingForcesWithMass()
+{
+  
+    KRATOS_TRY
+      ModelPart& r_model_part          = BaseType::GetModelPart();
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ElementsArrayType& pElements     = r_model_part.Elements(); 
+
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+       #endif
+
+      vector<unsigned int> element_partition;
+      CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+      unsigned int index = 0; 
+      unsigned int dim_2 = 0; 
+      Matrix rLeftHandSideMatrix;
+      Vector rRightHandSideVector;
+      Vector Velocities;
+      
+      #pragma omp parallel for private(index, dim_2, rLeftHandSideMatrix,Velocities, rRightHandSideVector) 
+      for(int k=0; k<number_of_threads; k++)
+      {
+	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	    /// Las fuerzas de contacto a los elementos que estan en contacto
+	    if((it)->GetValue(IS_TARGET)==true)
+	    {
+		it->MassMatrix(rLeftHandSideMatrix, CurrentProcessInfo);
+		Element::GeometryType& geom         = it->GetGeometry();
+		const unsigned int& dim             = geom.WorkingSpaceDimension();
+		const unsigned int& number_of_nodes = geom.size();
+		index                               = 0;
+		dim_2                               =  dim * number_of_nodes;
+		Velocities.resize(dim_2);
+		rRightHandSideVector.resize(dim_2);
+		for (unsigned int i = 0; i <geom.size(); i++)
+		  {
+		      array_1d<double,3>& Vel = geom[i].FastGetSolutionStepValue(VELOCITY); 
+		      Velocities[index]       = Vel[0];
+		      Velocities[index+1]     = Vel[1];
+		      if(dim==2){
+		           index = index + 2;
+		           }
+		      else{
+			  Velocities[index+2]  = Vel[2];
+			  index = index + 3;
+		        }
+		  }
+		  
+		  noalias(rRightHandSideVector) = -malpha_damp * prod(rLeftHandSideMatrix, Velocities);
+		  for (unsigned int i = 0; i <geom.size(); i++){
+		      array_1d<double,3>& rhs = geom[i].FastGetSolutionStepValue(RHS); 
+		      geom[i].SetLock();
+		      index  = i*dim;
+		      rhs[0] = rhs[0] + rRightHandSideVector[index];
+		      rhs[1] = rhs[1] + rRightHandSideVector[index+1];
+		      rhs[2] = 0.00; 
+		      if(dim==3)
+			rhs[2]=  rhs[2] + rRightHandSideVector[index+2];
+		      geom[i].UnSetLock();
+		  }
+		  
+	      }
+	}
+      }
+	    KRATOS_CATCH("")
+  
+}
+  
+/// Computa las fuerzas viscosas de amortiguamiento alfa * K_elem * Velocidad
+void ComputeDampingForcesWithStiffness()
+{
+  
+      KRATOS_TRY
+      ModelPart& r_model_part          = BaseType::GetModelPart();
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ElementsArrayType& pElements     = r_model_part.Elements(); 
+
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+       #endif
+
+      vector<unsigned int> element_partition;
+      CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+      unsigned int index = 0; 
+      unsigned int dim_2 = 0; 
+      Matrix rLeftHandSideMatrix;
+      Vector rRightHandSideVector;
+      Vector Velocities;
+      
+      #pragma omp parallel for private(index, dim_2, rLeftHandSideMatrix,Velocities, rRightHandSideVector) 
+      for(int k=0; k<number_of_threads; k++)
+      {
+	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	    /// Las fuerzas de contacto a los elementos que estan en contacto
+	    if((it)->GetValue(IS_TARGET)==true)
+	    {
+		it->CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, CurrentProcessInfo);
+		Element::GeometryType& geom         = it->GetGeometry();
+		const unsigned int& dim             = geom.WorkingSpaceDimension();
+		const unsigned int& number_of_nodes = geom.size();
+		index                               = 0;
+		dim_2                               =  dim * number_of_nodes;
+		Velocities.resize(dim_2);
+		rRightHandSideVector.resize(dim_2);
+		for (unsigned int i = 0; i <geom.size(); i++)
+		  {
+		      array_1d<double,3>& Vel = geom[i].FastGetSolutionStepValue(VELOCITY); 
+		      Velocities[index]       = Vel[0];
+		      Velocities[index+1]     = Vel[1];
+		      if(dim==2){
+		           index = index + 2;
+		           }
+		      else{
+			  Velocities[index+2]  = Vel[2];
+			  index = index + 3;
+		        }
+		  }
+		  
+		  noalias(rRightHandSideVector) = -mbeta_damp * prod(rLeftHandSideMatrix, Velocities);
+		  for (unsigned int i = 0; i <geom.size(); i++){
+		      array_1d<double,3>& rhs = geom[i].FastGetSolutionStepValue(RHS); 
+		      geom[i].SetLock();
+		      index  = i*dim;
+		      rhs[0] = rhs[0] + rRightHandSideVector[index];
+		      rhs[1] = rhs[1] + rRightHandSideVector[index+1];
+		      rhs[2] = 0.00; 
+		      if(dim==3)
+			rhs[2]=  rhs[2] + rRightHandSideVector[index+2];
+		      geom[i].UnSetLock();
+		  }
+		  
+	      }
+	}
+      }
+	    KRATOS_CATCH("")
+  
+}
+
+// Calcula fuerza de contacto
+void ComputeNormalContactReactions(const unsigned int& initial_conditions_size)
+{
+      KRATOS_TRY     
+      ModelPart& r_model_part                    = BaseType::GetModelPart();
+      ConditionsContainerType& pConditions       = r_model_part.ConditionsArray();
+      ConditionsContainerIterator  end_previos   = pConditions.begin() + initial_conditions_size; 
+      ConditionsContainerIterator  end_actual    = pConditions.end();
+      ProcessInfo& CurrentProcessInfo            = r_model_part.GetProcessInfo();
+      array_1d<double,3> Output;
+      
+      for(ConditionsContainerIterator rcond = end_previos; rcond!=end_actual; rcond++)
+	  (*rcond)->Calculate(NORMAL, Output, CurrentProcessInfo);
+      
+      
+      KRATOS_CATCH("") 
+}
 
 
 // Borra las condiciones de contacto anteriores sin borrar las otras condiciones de las estructura
 void CheckConditionsStatus(const unsigned int& initial_conditions_size)
 {
-      
-      ModelPart& r_model_part              = BaseType::GetModelPart();
-      ConditionsContainerType& pConditions = r_model_part.ConditionsArray();
-   
-      //WARNING = SOLO BORRAR LAS CONDIIONES DE CONTACTO 
-      if(initial_conditions_size==0){
-      // No bounday conditions in model part
-      pConditions.clear();  
-      }
-      else{
-      ConditionsContainerIterator  end_previos  = pConditions.begin() + initial_conditions_size; //- conditions;  
-      ConditionsContainerIterator  end_actual   = pConditions.end();
+      KRATOS_TRY    
+  
+      ModelPart& r_model_part                    = BaseType::GetModelPart();
+      ConditionsContainerType& pConditions       = r_model_part.ConditionsArray();
+      ConditionsContainerIterator  end_previos   = pConditions.begin() + initial_conditions_size; 
+      ConditionsContainerIterator  end_actual    = pConditions.end();
       pConditions.erase(end_previos, end_actual);
       
-      }
+      KRATOS_CATCH("")
 }
 
 
-double CheckObjectContact(const unsigned int& initial_conditions_size)
+/// me permite los iteradores de los links contacts
+int CheckObjectContact(const unsigned int& initial_conditions_size,
+		       ConditionsContainerIterator& end_previos,   
+                       ConditionsContainerIterator& end_actual)
 {
   
+      KRATOS_TRY
+      
+
       ModelPart& r_model_part                     = BaseType::GetModelPart();
       ConditionsContainerType& pConditions        = r_model_part.ConditionsArray();
-      m_end_previos  = pConditions.begin() + initial_conditions_size;  
-      m_end_actual   = pConditions.end();      
-      return (std::distance(m_end_previos, m_end_actual)); 
+      end_previos  = pConditions.begin() + initial_conditions_size;  
+      end_actual   = pConditions.end();      
+      return (std::distance(end_previos, end_actual)); 
+      
+     KRATOS_CATCH("")
 }
 
 /// comuta el D(n+1) a partir de V(n+1/2) 
 void ComputeIntermedialVelocityAndNewDisplacement()
 {
   
+    KRATOS_TRY
+    
     ModelPart& r_model_part          = BaseType::GetModelPart();
     ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
     NodesArrayType& pNodes           = r_model_part.Nodes(); 
@@ -316,12 +618,11 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 
 	{
-	   
+	       
 	  array_1d<double,3>& actual_displacement   = i->FastGetSolutionStepValue(DISPLACEMENT);     /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT,1);   /// U(n)
 	  array_1d<double,3>& old_displacement      = i->FastGetSolutionStepValue(DISPLACEMENT,2);   /// U(n-1)
-	  array_1d<double,3>& current_Rhs           = i->FastGetSolutionStepValue(RHS);              /// Fext(n) - Fint(n)  
-	  
+	  array_1d<double,3>& current_Rhs           = i->FastGetSolutionStepValue(RHS);              /// Fext(n) - Fint(n)  	  
 	  
 	  const double& nodal_mass    =  i->FastGetSolutionStepValue(NODAL_MASS); 
 	  const double nodal_damping  =  malpha_damp * nodal_mass; 
@@ -331,7 +632,7 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	  
 	  noalias(mid_neg_velocity)   = (1.00/molddelta_time) * (current_displacement - old_displacement);
 	  noalias(mid_pos_velocity)   = (factor_b/factor_a) * mid_neg_velocity + (factor_c/factor_a) * current_Rhs ;
-
+  
 	  /// Update to the new displacement 
 	  ///current_displacement = current_displacement + mid_pos_velocity * current_delta_time;
 	  /// Una aproximacion de la velocidad
@@ -346,15 +647,6 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
 	       actual_displacement[2]     = current_displacement[2] + mid_pos_velocity[2] * current_delta_time; 
 	}
-	
-          if(i->Id()==1324 || i->Id()==1331 )
- 	  {
- 	    KRATOS_WATCH(i->Id()) 
- 	    KRATOS_WATCH(actual_displacement)
- 	    KRATOS_WATCH(current_displacement)
- 	    KRATOS_WATCH(old_displacement)
- 	  }
-
       }   
     }
     
@@ -363,6 +655,7 @@ void ComputeIntermedialVelocityAndNewDisplacement()
     std::cout<< "  CURRENT TIMESTEP             = "<< current_delta_time << "  SECONDS" << std::endl; 
     std::cout<< "  AVERAGE TIMESTEP             = "<< mid_delta_time     << "  SECONDS" << std::endl; 
       
+    KRATOS_CATCH("")
 }
 
 void Initialize()
@@ -374,7 +667,7 @@ void Initialize()
     if(mElementsAreInitialized == false)
 	InitializeElements();
 
-    /// Inicializando las condiciones
+    /// Inicializando las condiciones  
     if(mConditionsAreInitialized == false)
 	InitializeConditions();
 
@@ -405,8 +698,9 @@ void InitializeElements()
 
       vector<unsigned int> element_partition;
       CreatePartition(number_of_threads, pElements.size(), element_partition);
-
-      #pragma omp parallel for private(MassMatrix)
+      unsigned int index = 0;
+      
+      #pragma omp parallel for private(index, MassMatrix)
       for(int k=0; k<number_of_threads; k++)
       {
 	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -416,18 +710,19 @@ void InitializeElements()
 	    Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
 	    (it)->Initialize(); 
 	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
-	    unsigned int dim   = geom.WorkingSpaceDimension();
-	    unsigned int index = 0;
+	    const unsigned int& dim   = geom.WorkingSpaceDimension();
+	    index = 0;
 	    for (unsigned int i = 0; i <geom.size(); i++)
 	     {
-		geom[i].SetLock();
+	        double& mass = geom(i)->FastGetSolutionStepValue(NODAL_MASS);
+		geom(i)->SetLock();
 		index = i*dim;
-		geom[i].FastGetSolutionStepValue(NODAL_MASS) += MassMatrix(index,index);
-		geom[i].UnSetLock();
+		mass  = mass + MassMatrix(index,index);
+		geom(i)->UnSetLock();
 	     }
 	 }
       }
-     r_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS); 
+     //r_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS); 
      mElementsAreInitialized   = true;
      KRATOS_CATCH("")
 }
@@ -438,6 +733,9 @@ void InitializeElements()
 ///WARNING = Falta colocar el contacto
 void InitializeConditions()
 {
+  
+       KRATOS_TRY
+       
       ModelPart& r_model_part          = BaseType::GetModelPart();  
       //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();   
       ConditionsArrayType& pConditions = r_model_part.Conditions();
@@ -466,6 +764,8 @@ void InitializeConditions()
     
       
       mConditionsAreInitialized = true;
+      
+      KRATOS_CATCH("")
       
 }
   
@@ -528,6 +828,7 @@ void ComputeCriticalTime()
     ModelPart& r_model_part          = BaseType::GetModelPart();
     ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
 
+    //double delta_time_penalty  = 1.00;
     double delta_time_computed = 1.00;
     double delta_time_used     = 1.00; 
     double time                = 0.00;
@@ -535,13 +836,19 @@ void ComputeCriticalTime()
 
     
     delta_time_computed = ComputeTime();
+    
+    if(mCE==Penalty_Methods){
+      double time_penalty = ComputeTimePenalty();
+      delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
+    }
+    
     delta_time_computed = Truncar_Delta_Time(delta_time_computed);
     
     if(delta_time_computed>mmax_delta_time) {delta_time_computed = mmax_delta_time;}
     delta_time_used = mfraction_delta_time * delta_time_computed;
     CurrentProcessInfo[DELTA_TIME] = delta_time_used; 
     
-    mtimestep += delta_time_used; 
+    mtimestep = mtimestep + delta_time_used; 
     r_model_part.CloneTimeStep(mtimestep);
     time = CurrentProcessInfo[TIME];
     
@@ -550,11 +857,12 @@ void ComputeCriticalTime()
 	mCalculateOldTime = true;
     }
     
-    std::cout<< "  FACTOR DELTA CRITICAL TIME   = "<< mfraction_delta_time   << "        "  << std::endl;
+    std::cout<< "  TIME STEPS                   = "<< step                   << "         " << std::endl;
+    std::cout<< "  FACTOR DELTA CRITICAL TIME   = "<< mfraction_delta_time   << "         "  << std::endl;
     std::cout<< "  DELTA CRITICAL TIME COMPUTED = "<< delta_time_computed    << "  SECONDS" << std::endl; 
     std::cout<< "  DELTA TIME USED              = "<< delta_time_used        << "  SECONDS" << std::endl;
     std::cout<< "  CURRENT TIME                 = "<< time                   << "  SECONDS" << std::endl;
-    std::cout<< "  TIME STEPS                   = "<< step                   << "         " << std::endl;
+    
   
     KRATOS_CATCH("")
 
@@ -566,54 +874,88 @@ void ComputeCriticalTime()
 double ComputeTime()
 {
   
+    KRATOS_TRY
+  
     ModelPart& r_model_part          = BaseType::GetModelPart();
     ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
-    ElementsArrayType& pElements     = r_model_part.Elements(); 
-    
-    int number_of_threads  =  0;
-    //int thread_id        =  0;
-    double delta_time_a    =  0.00;
-    //double step          =  CurrentProcessInfo[TIME_STEPS];  
+    ElementsArrayType& pElements     = r_model_part.Elements();     
+    //double step                    =  CurrentProcessInfo[TIME_STEPS];  
 
     #ifdef _OPENMP
-       number_of_threads = omp_get_max_threads();
+       int number_of_threads = omp_get_max_threads();
        //thread_id         = omp_get_thread_num();
     #else
-       number_of_threads = 1;
+       int number_of_threads = 1;
        //thread_id = 0;
     #endif
     
-    Vector values;
     vector<unsigned int> element_partition;
     CreatePartition(number_of_threads, pElements.size(), element_partition);
 
     Vector dts(number_of_threads);
-    for(int i = 0; i < number_of_threads; i++){
-       dts[i] = mmax_delta_time;}
-
-
-    #pragma omp parallel for private(delta_time_a, values) shared(dts) 
-    for(int k=0; k<number_of_threads; k++)
-    {
+    double delta_time_a = 0.00;
+    for(int i = 0; i < number_of_threads; i++)
+       dts[i] = mmax_delta_time;
+    
+    
+    // WARNING = Los threads Id siempre empiezan por cero.
+    #pragma omp parallel for private(delta_time_a)  shared(CurrentProcessInfo)
+    for(int k=0; k<number_of_threads; k++){
     typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
     typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-
-    for (ElementsArrayType::iterator it=it_begin; it!= it_end; ++it)
-       {
+    for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
 	  it-> Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
-	  
-	  // WARNING = Los threads Id siempre empiezan por cero. 
-	  if(delta_time_a!=0.00) 
+	  if(delta_time_a>0.00) 
 	     if(delta_time_a < dts[k])
-	       dts[k] = delta_time_a;
-        
-       }
-    }
+	        dts[k] = delta_time_a;
+       } }
+       
     
    return  (*std::min_element(dts.begin(), dts.end())); 
-  
+    
+   KRATOS_CATCH("")
 }
 
+
+double ComputeTimePenalty()
+{
+      ModelPart& r_model_part         = BaseType::GetModelPart();
+      //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+      NodesArrayType& pNodes          = r_model_part.Nodes(); 
+      //ElementsArrayType& pElements    = r_model_part.Elements(); 
+      
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+      #endif
+
+      Vector Min_Mass_Nodal(number_of_threads); 
+      vector<unsigned int> node_partition;
+      CreatePartition(number_of_threads, pNodes.size(), node_partition);
+      
+      
+      double Mass    = (r_model_part.Nodes()(1))->FastGetSolutionStepValue(NODAL_MASS); 
+      double Penalty = 50.00 * (r_model_part.Elements()(1))->GetProperties()[YOUNG_MODULUS];
+      for(int k=0; k<number_of_threads; k++)
+        Min_Mass_Nodal(k) = Mass; 
+	
+      #pragma omp parallel for 
+      for(int k=0; k<number_of_threads; k++)
+	{
+	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+	  {
+	    double& mass = ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
+	    Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
+	  }
+	}
+	
+	Mass = (*std::min_element(Min_Mass_Nodal.begin(), Min_Mass_Nodal.end()));
+	double result = 0.50 * std::sqrt(2.00 * Mass / Penalty); 
+	return result;
+}
 
 //***************************************************************************
 //***************************************************************************
@@ -651,14 +993,13 @@ void ComputeInitialConditions()
 	  ///NOTA antes de hacer update (DISPLACEMENT) == (DISPLACEMENT,1);
 	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  { 
-	  const array_1d<double,3>& CurrentDisplacement  =  (i->FastGetSolutionStepValue(DISPLACEMENT));
-	  const array_1d<double,3>& CurrentVelocity      =  (i->FastGetSolutionStepValue(VELOCITY));
-	  const array_1d<double,3>& CurrentAcceleration  =  (i->FastGetSolutionStepValue(ACCELERATION));
-	  array_1d<double,3>&       OldDisplacement      =  (i->FastGetSolutionStepValue(DISPLACEMENT,2));
+	    const array_1d<double,3>& CurrentDisplacement  =  (i->FastGetSolutionStepValue(DISPLACEMENT));
+	    const array_1d<double,3>& CurrentVelocity      =  (i->FastGetSolutionStepValue(VELOCITY));
+	    const array_1d<double,3>& CurrentAcceleration  =  (i->FastGetSolutionStepValue(ACCELERATION)) + (i->FastGetSolutionStepValue(GRAVITY)); 
+	    array_1d<double,3>&       OldDisplacement      =  (i->FastGetSolutionStepValue(DISPLACEMENT,2));
 	  
-	  /// D_1 7.145 Libro de ""Estructuras Sometiadas a Acciones Sismicas"   
-	  noalias(OldDisplacement) =  0.5*DeltaTime*DeltaTime*CurrentAcceleration - DeltaTime*CurrentVelocity + CurrentDisplacement;
-	  //i->FastGetSolutionStepValue(DISPLACEMENT,2) = OldDisplacement; /// corresponde al time step = -1  
+	    /// D_1 7.145 Libro de ""Estructuras Sometiadas a Acciones Sismicas"   
+	    noalias(OldDisplacement) =  0.5*DeltaTime*DeltaTime*CurrentAcceleration - DeltaTime*CurrentVelocity + CurrentDisplacement;  
 	  }
 	}
 
@@ -674,8 +1015,6 @@ void GetForce()
 {
       KRATOS_TRY
       
-      ModelPart& r_model_part  = BaseType::GetModelPart();   
-
       /// Set to zero de RHS
       SetToZeroRHS();
       
@@ -684,8 +1023,6 @@ void GetForce()
       
       /// Compute the stress and body force of the element.
       Calculate_Elements_RHS_and_Add();
-      
-      r_model_part.GetCommunicator().AssembleCurrentData(RHS);
       
       KRATOS_CATCH("")
 
@@ -721,10 +1058,12 @@ void SetToZeroRHS()
           for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 
 	  {
-            array_1d<double,3>& reaction  = (i->FastGetSolutionStepValue(REACTION));
+	    array_1d<double,3>& normal    = (i->FastGetSolutionStepValue(NORMAL));
+            //array_1d<double,3>& reaction  = (i->FastGetSolutionStepValue(REACTION));
 	    array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(RHS)); 
 	    
-	    noalias(reaction) = ZeroVector(3);
+	    noalias(normal)   = ZeroVector(3);
+	    //noalias(reaction) = ZeroVector(3);
 	    noalias(node_rhs) = ZeroVector(3);
 	    
 	  }
@@ -754,33 +1093,27 @@ void Calculate_Conditions_RHS_and_Add()
       #endif
       vector<unsigned int> condition_partition;
       CreatePartition(number_of_threads, pConditions.size(), condition_partition);
-      unsigned int dim; 
       unsigned int index; 
-     #pragma omp parallel for private (dim, index, rhs_cond)
+     #pragma omp parallel for private (index, rhs_cond)
       for(int k=0; k<number_of_threads; k++)
       {    
 	typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
 	typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
   
         for (ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	{      
-	  
+	{       
 	  Condition::GeometryType& geom = it->GetGeometry();  
 	  it->CalculateRightHandSide(rhs_cond,CurrentProcessInfo);    
-	  dim = geom.WorkingSpaceDimension();  
+	  const unsigned int& dim = geom.WorkingSpaceDimension();
 	  for (unsigned int i = 0; i <geom.size(); i++)
             {
-	     
-	    index = i*dim;
-	    array_1d<double,3>& node_rhs = geom[i].FastGetSolutionStepValue(RHS);
-
-	  
- 	    for(unsigned int kk=0; kk<dim; kk++)
-	    { geom[i].SetLock();
-	     node_rhs[kk] += rhs_cond[index+kk];
-             geom[i].UnSetLock();
-	    }
-	      
+	      index = i*dim;
+	      array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
+ 	      for(unsigned int kk=0; kk<dim; kk++)
+	       {  geom(i)->SetLock();
+	          node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
+                  geom(i)->UnSetLock();
+	       }
            }
         }
       }
@@ -810,9 +1143,8 @@ void Calculate_Elements_RHS_and_Add()
       vector<unsigned int> element_partition;
       CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-      unsigned int dim;
       unsigned int index; 
-      #pragma omp parallel for private (dim, index, rhs_elem)
+      #pragma omp parallel for private (index, rhs_elem)
       for(int k=0; k<number_of_threads; k++)
       {
         typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -820,23 +1152,22 @@ void Calculate_Elements_RHS_and_Add()
          for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
          {
 	  Element::GeometryType& geom = it->GetGeometry();
-          dim = it->GetGeometry().WorkingSpaceDimension();
+          const unsigned int& dim = it->GetGeometry().WorkingSpaceDimension();
 	  it->CalculateRightHandSide(rhs_elem, CurrentProcessInfo); 
 	  for (unsigned int i = 0; i <geom.size(); i++)
 	      {
 		index = i*dim;
-		array_1d<double,3>& node_rhs = geom[i].FastGetSolutionStepValue(RHS);
+		array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
 		for(unsigned int kk=0; kk<dim; kk++)
-		    { geom[i].SetLock();      
-		      node_rhs[kk] += rhs_elem[index+kk];
-                      geom[i].UnSetLock();
+		    { geom(i)->SetLock();      
+		      node_rhs[kk] = node_rhs[kk] + rhs_elem[index+kk];
+                      geom(i)->UnSetLock();
 		    }
 
 	      }
 	}
     }
     
-
      KRATOS_CATCH("")
 }
 
@@ -844,19 +1175,22 @@ void Calculate_Elements_RHS_and_Add()
 //***************************************************************************
 //***************************************************************************
 
+/*
 void Calculate_Final_Force_Contribution(ModelPart::NodeIterator& i)  
-
 {
+        KRATOS_TRY
         array_1d<double,3> Final_Force; 
-        const double nodal_damping   =  malpha_damp * ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
-
-        array_1d<double,3>& node_rhs = (i->FastGetSolutionStepValue(RHS));    
-	const array_1d<double,3>& velocity =  (i->FastGetSolutionStepValue(VELOCITY));
+        const double nodal_damping         =  malpha_damp*((i)->FastGetSolutionStepValue(NODAL_MASS)); 
+        array_1d<double,3>& node_rhs       =  i->FastGetSolutionStepValue(RHS);    
+	const array_1d<double,3>& velocity =  i->FastGetSolutionStepValue(VELOCITY);
+	noalias(Final_Force)               =  nodal_damping * velocity;    
+	for(unsigned int i=0; i<3; i++)
+ 	        node_rhs[i] = node_rhs[i]-Final_Force[i];  
 	
-	noalias(Final_Force) = nodal_damping * velocity;    
-	node_rhs -= Final_Force;  
-
+	KRATOS_CATCH("")
 }
+
+*/
 
 //***************************************************************************
 //***************************************************************************
@@ -865,6 +1199,7 @@ void Calculate_Final_Force_Contribution(ModelPart::NodeIterator& i)
 void ComputeOldVelocitiesAndAccelerations()
 { 
   
+    KRATOS_TRY
     ModelPart& r_model_part          = BaseType::GetModelPart();
     ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
     NodesArrayType& pNodes           = r_model_part.Nodes(); 
@@ -910,7 +1245,7 @@ void ComputeOldVelocitiesAndAccelerations()
 
             
 	    array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));  
- 	    array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));   
+ 	    array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
 	    
 	    /// X 
 	    if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
@@ -922,6 +1257,8 @@ void ComputeOldVelocitiesAndAccelerations()
 	   }
             else
 	    {
+	       //velocity[0]      =  inv_sum_delta_time * (displacement[0] - olddisplacement[0]);
+	       //acceleration[0]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[0] - mid_neg_velocity[0]);  
 	       velocity[0]         =  inv_sum_delta_time * (current_displacement[0] - veryolddisplacement[0]);
 	       acceleration[0]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[0] - mid_neg_velocity_old[0]);  
 	    }
@@ -934,6 +1271,8 @@ void ComputeOldVelocitiesAndAccelerations()
  	    }
              else
  	    {
+	       //velocity[1]      =  inv_sum_delta_time * (displacement[1] - olddisplacement[1]);
+	       //acceleration[1]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[1] - mid_neg_velocity[1]);
  	       velocity[1]         =  inv_sum_delta_time * (current_displacement[1] - veryolddisplacement[1]);
  	       acceleration[1]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[1] - mid_neg_velocity_old[1]);  
       
@@ -948,22 +1287,30 @@ void ComputeOldVelocitiesAndAccelerations()
  	    }
  	    else
  	    {
+	       //velocity[2]      =  inv_sum_delta_time * (displacement[2] - olddisplacement[2]);
+	       //acceleration[2]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[2] - mid_neg_velocity[2]);  
  	       velocity[2]         =  inv_sum_delta_time * (current_displacement[2] - veryolddisplacement[2]);
  	       acceleration[2]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[2] - mid_neg_velocity_old[2]);  
  	      
  	    }  
 	  }  
+	  
+// 	  if(i->Id()==374)
+// 	     KRATOS_WATCH(velocity) 
       }    
   }
+  
+  KRATOS_CATCH("")
 }
  
 
  
 /// Computes the contact force and displacement corrections 
-void Update()
+void Update(const ConditionsContainerIterator& end_previos,   
+            const ConditionsContainerIterator& end_actual)
 {
    KRATOS_TRY
-   mpLagrangianMultiplier->CalculateContactForceAndDisplacementCorrections(m_end_previos,m_end_actual); 
+   mpLagrangianMultiplier->CalculateContactForceAndDisplacementCorrections(end_previos, end_actual); 
    KRATOS_CATCH("")
    return;
 }
@@ -998,6 +1345,7 @@ void FinalizeSolutionStep()
 
       for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  {
+	    (it) -> GetValue(IS_TARGET)=false;
 	    (it) -> FinalizeSolutionStep(CurrentProcessInfo);
 	  }
     }
@@ -1023,58 +1371,63 @@ void FinalizeSolutionStep()
 
 void ChangeContactConditions(const bool& contact)
 { 
-  mComputeContactConditions = contact;
+  KRATOS_TRY
+    mComputeContactConditions = contact;
+  KRATOS_CATCH("")
+}
 
+// Crea nuevamente las condiciones de contacto.
+// WARNING = Hay que evitar que borre las existentes 
+void RecalculateBoundaryContours(const bool& rflag)
+{
+   KRATOS_TRY 
+     std::cout<<"RECOMPUTING BOUNDARY CONTOURS " << std::endl;
+     mpBCCU_Pointer->ResetFlagComputeBoundaryContour(rflag);
+   KRATOS_CATCH("")
 }
 
 void ChangeFractionDeltaTime(const double& new_fraction_delta_time)
 {
+   KRATOS_TRY
    mfraction_delta_time = new_fraction_delta_time;
+   KRATOS_CATCH("")
 }
 
-///* WARNING = check with rossi
+
 void CalculateReaction() 
 {
- /*
- ModelPart& r_model_part = BaseType::GetModelPart();   
- //ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
- //GetForce()
- for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; 
-				i != r_model_part.NodesEnd() ; ++i)
+  ModelPart& r_model_part = BaseType::GetModelPart();   
+  for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
      {
-
-            //KRATOS_WATCH(i->Id()) 
             double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
             array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
-            array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS,1));
-            array_1d<double,3>& rhs_1              = (i->FastGetSolutionStepValue(RHS,2));
+            array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS));
+            //array_1d<double,3>& rhs_1              = (i->FastGetSolutionStepValue(RHS,2));
             array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
             array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));
-            array_1d<double,3> dif                =  rhs - rhs_1;
-            //KRATOS_WATCH(dif)
-            //KRATOS_WATCH(mass*acceleration)       
-            //noalias(reaction)                      = -(mass*acceleration + mass*malpha_damp * velocity);  
-             
+            array_1d<double,3> dif                 =  rhs; //- rhs_1;             
 
             if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
- 		{reaction[0] = -dif[0] - mass * acceleration[0] - mass * malpha_damp * velocity[0];}
+ 		{reaction[0] =  -dif[0] + mass * acceleration[0] + mass * malpha_damp * velocity[0];}
                 
             if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == true )
-		{reaction[1] = -dif[1] - mass * acceleration[1] - mass * malpha_damp * velocity[1];}
+		{reaction[1] = -dif[1] + mass * acceleration[1] + mass * malpha_damp * velocity[1];}
           
-            if( i->HasDofFor(DISPLACEMENT_Z)){
+            if( i->HasDofFor(DISPLACEMENT_Z))
+	        {
 		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == true )
-		{reaction[2] = -dif[2] - mass * acceleration[2] - mass * malpha_damp * velocity[2];}
+		{reaction[2] = -dif[2] + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
                 }
+        }
 }
-*/
-}
+
 
 private:
 
 
 unsigned int    mdimension;
 unsigned int    minitial_conditions_size;  
+unsigned int    mcontact_conditions_size;  
 bool   mInitialCalculations;
 bool   mElementsAreInitialized;
 bool   mConditionsAreInitialized;
@@ -1085,18 +1438,21 @@ bool   mInitializeWasPerformed;
 bool   mComputeContactConditions;
 bool   mCalculateOldTime;
 bool   mSolutionStepIsInitialized;
+bool   mClearContactConditions;
+bool   mLocalSearchInitialize;
 double malpha_damp;
+double mbeta_damp; 
 double mfraction_delta_time;
 double mmax_delta_time;
 double molddelta_time;
 double mtimestep;  /// la suma de los delta time
-
+Constraint_Enforcement mCE; 
 
 /// Contact Condition Iterations
-BoundaryConditionsAndContactUtilities::Pointer mpBCCU_Pointer;
-ForwardIncrementLagrangeMultiplierScheme::Pointer mpLagrangianMultiplier;
-ConditionsContainerIterator m_end_previos;   
-ConditionsContainerIterator m_end_actual;  
+//typename ProofType::Pointer mProof;
+typename BoundaryAndContactType::Pointer mpBCCU_Pointer;
+typename LagrangeMultiplierType::Pointer mpLagrangianMultiplier;
+
 
 
 //******************************************************************************************
@@ -1134,11 +1490,61 @@ inline double Truncar_Delta_Time(double& num)
     }
 
 
+void CalculateEnergies()
+{
+  CalculateKineticEnergy(); 
+}
+
+void CalculateKineticEnergy()
+{
+    KRATOS_TRY
+    ModelPart& r_model_part          = BaseType::GetModelPart();
+    NodesArrayType& pNodes           = r_model_part.Nodes(); 
+      
+    #ifdef _OPENMP
+    int number_of_threads = omp_get_max_threads();
+    #else
+    int number_of_threads = 1;
+    #endif
+
+    vector<unsigned int> node_partition;
+    CreatePartition(number_of_threads, pNodes.size(), node_partition);
+    double vel = 0.00; 
+    //double h   = 0.1;
+    #pragma omp parallel for  private(vel) 
+    for(int k=0; k<number_of_threads; k++)
+      {
+	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+	 { 
+	    double& y_coord              = i->Y0();
+	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
+	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
+	    array_1d<double,3>& Velocity = i->FastGetSolutionStepValue(VELOCITY); 
+	    double& mass                 = i->FastGetSolutionStepValue(NODAL_MASS);  
+	    double& kinetic_energy       = i->FastGetSolutionStepValue(KINETIC_ENERGY);
+	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
+	    vel                          = norm_2(Velocity); 
+	    
+	    /// WARNING = solo valido para matriz de masa diagonal
+	    /// Ek = 0.50 * V^t * M * V 
+	    kinetic_energy               = 0.50 * mass * vel * vel; 
+	    
+	    /// la direccion de la fravedad en Y
+	    potencial_energy = 0.00;
+	    const double h_efe = y_coord + displ[1];
+	    if(h_efe>0)
+	         potencial_energy = std::fabs(mass * Gravity[1] * (h_efe));
+	 }
+      }
+  KRATOS_CATCH("")
+}
+
 
 };  
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
-
 
 
