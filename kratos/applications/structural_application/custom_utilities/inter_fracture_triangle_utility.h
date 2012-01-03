@@ -127,36 +127,61 @@ namespace Kratos
         }
 
 
+
+        ///************************************************************************************************
         ///************************************************************************************************
 
         bool Detect_And_Split_Elements(ModelPart& this_model_part)
         {
             KRATOS_TRY
-   
+            
             bool is_split = false;
             array_1d<double, 3 > Failure_Maps;
             WeakPointerVector< Node < 3 > > Nodes_To_Be_Dupplicated;
             unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
-
-
+            unsigned  int count = 0; 
             if (detect != 0)
             {
-                is_split = true;
                 WeakPointerVector< Node < 3 > >::iterator i_begin = Nodes_To_Be_Dupplicated.ptr_begin();
-                WeakPointerVector< Node < 3 > >::iterator i_end = Nodes_To_Be_Dupplicated.ptr_end();
-
-                for (WeakPointerVector< Node < 3 > >::iterator inode = i_begin; inode != i_end; ++inode)
-                {
-                    Node < 3 > ::Pointer pNode = (*(inode.base())).lock();
-                    Split_Node(this_model_part, pNode);
+                WeakPointerVector< Node < 3 > >::iterator i_end   = Nodes_To_Be_Dupplicated.ptr_end();
+                
+                for(WeakPointerVector< Node < 3 > >::iterator inode = i_begin; inode != i_end; ++inode)
+                {   
+		    const Node<3>::Pointer& pNode = (*(inode.base())).lock();
+                    if(Split_Node(this_model_part, pNode))
+		       count++;
                 }
-
+             
+             bool split_2             = false;
+             unsigned int nodes_added = Finalize(this_model_part, split_2);     
+	     if((count + nodes_added)!=0){ 
+	     is_split = true; 
+	     std::cout<< "NUMBER OF NEW NODES CREATED FOR FRACTURING            = "<< count << std::endl; 
+	     std::cout<< "NUMBER OF NEW NODES CREATED FOR SPECIAL SITUATIONS    = "<< nodes_added << std::endl; 
+	     std::cout<< "NUMBER TOTAL OF NEW NODES CREATED                     = "<< count + nodes_added << std::endl; 
+	     //InitializeElementsAndVariables();
+	     RecomputeNodalMass();
+	     }
+	     else
+	        std::cout<< "NO NEW NODES TO BE CREATED " << std::endl;
+	       
+	     
             }
-
-            Finalize(this_model_part);
-	    InitializeElementsAndVariables();
-	    RecomputeNodalMass();
-	    
+            else{
+	         unsigned int zero         = 0; 
+	         unsigned int nodes_added = Finalize(this_model_part, is_split);
+		if(is_split==true)
+		{
+		     RecomputeNodalMass();
+                     std::cout<< "NUMBER OF NEW NODES CREATED FOR FRACTURING            = "<< zero << std::endl; 
+	             std::cout<< "NUMBER OF NEW NODES CREATED FOR SPECIAL SITUATIONS    = "<< nodes_added << std::endl; 
+	             std::cout<< "NUMBER TOTAL OF NEW NODES CREATED                     = "<< zero + nodes_added << std::endl; 
+		}
+		else
+	           std::cout<< "NO NEW NODES TO BE CREATED " << std::endl;
+	      }
+	      
+	    CheckAloneElement();  
             return is_split;
             KRATOS_CATCH("")
         }
@@ -169,17 +194,16 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            NodesArrayType& pNodes = this_model_part.Nodes();
-            NodesArrayType::iterator i_begin = pNodes.ptr_begin();
-            NodesArrayType::iterator i_end = pNodes.ptr_end();
+            NodesArrayType& pNodes           =  this_model_part.Nodes();
+            NodesArrayType::iterator i_begin =  pNodes.ptr_begin();
+            NodesArrayType::iterator i_end   =  pNodes.ptr_end();
 
             for (ModelPart::NodeIterator inode = i_begin; inode != i_end; ++inode)
             {
                 double& Condition = inode->GetValue(NODAL_DAMAGE);
-                if (Condition >= 0.01)
-                {
+                if (Condition > 0.50){
                     Nodes_To_Be_Dupplicated.push_back(*(inode.base()));
-                }
+		}
             }
 
             return Nodes_To_Be_Dupplicated.size();
@@ -192,7 +216,7 @@ namespace Kratos
         ///************************************************************************************************
         ///* Computa el vector, linea, o plano de falla.
 
-        void Calculate_Map_Failure(Node < 3 > ::Pointer& pNode, array_1d<double, 3 > & Failure_Maps)
+        void Calculate_Map_Failure(const Node<3>::Pointer& pNode, array_1d<double, 3 > & Failure_Maps)
         {
 
             Vector Eigen_Values = ZeroVector(mdomain_size); // Deformaciones o Tensiones principales
@@ -206,7 +230,7 @@ namespace Kratos
             {
                 size = 6;
             }
-            Matrix Nodal_Values = ZeroMatrix(1, size);
+            
 
             Vector_Order_Tensor EigenVector;
 
@@ -216,8 +240,8 @@ namespace Kratos
             EigenVector[2] = ZeroVector(3);
 
 
-            Nodal_Values = pNode->GetValue(NODAL_STRAIN);
-            Vector temp = ZeroVector(size);
+            Matrix& Nodal_Values = pNode->GetValue(NODAL_STRAIN);
+            Vector temp  = ZeroVector(size);
             for (unsigned int j = 0; j < size; j++)
             {
                 temp[j] = Nodal_Values(0, j);
@@ -259,13 +283,16 @@ namespace Kratos
         ///************************************************************************************************
         ///************************************************************************************************
 
-        void Split_Node(ModelPart& this_model_part, Node < 3 > ::Pointer& pNode)
+        bool Split_Node(ModelPart& this_model_part, const Node<3>::Pointer& pNode)
         {
+	  
             KRATOS_TRY
 
             array_1d<double, 3 > failure_map;
             Calculate_Map_Failure(pNode, failure_map);
-
+            
+	    
+	    
             WeakPointerVector< Element > Negative_Elements;
             WeakPointerVector< Element > Positive_Elements;
 
@@ -274,7 +301,6 @@ namespace Kratos
             bool node_created = false;
 
             /// Crea el nuevo nodo y lo inserta al elemento
-            //std::cout<<"INSERTING THE NEW NODE"<<std::endl;
             node_created = CalculateElements(this_model_part, pNode, child_node, failure_map, Negative_Elements, Positive_Elements);
 
 
@@ -289,61 +315,96 @@ namespace Kratos
                 RecomputeLocalneighbourgs(child_node, Negative_Elements);
 
             }
+            
+            return node_created;
             KRATOS_CATCH("")
-
+                 
+      
         }
 
-        void CkeckElementNeighbourgs()
-        {
 
-
-        }
-
-        void RecomputeLocalneighbourgs(Node < 3 > ::Pointer& pNode, WeakPointerVector< Element>& Elements)
+        ///************************************************************************************************
+        ///************************************************************************************************
+	
+        void RecomputeLocalneighbourgs(const Node <3>::Pointer& pNode, WeakPointerVector< Element>& Elements)
         {
             KRATOS_TRY
 
-            WeakPointerVector< Element >& neighb_elems = pNode->GetValue(NEIGHBOUR_ELEMENTS);
-            WeakPointerVector< Node < 3 > >& neighb_nodes = pNode->GetValue(NEIGHBOUR_NODES);
+            WeakPointerVector< Element    >& neighb_elems  = pNode->GetValue(NEIGHBOUR_ELEMENTS);
+            WeakPointerVector< Node < 3 > >& neighb_nodes  = pNode->GetValue(NEIGHBOUR_NODES);
+	    //WeakPointerVector< Condition > & neighb_conds  = pNode->GetValue(NEIGHBOUR_CONDITIONS);
             neighb_elems.clear();
             neighb_nodes.clear();
-
-            for (WeakPointerVector<Element>::iterator elem = Elements.begin(); elem != Elements.end(); ++elem)
+            //neighb_nodes.conds();
+            
+	    /// nodos y elemntos vecinos de un nodo
+	    for (WeakPointerVector<Element>::iterator elem = Elements.begin(); elem != Elements.end(); ++elem)
             {
                 neighb_elems.push_back(*elem.base());
                 Element::GeometryType& geom = elem->GetGeometry();
                 for (unsigned int i = 0; i < geom.size(); i++)
-                {
+                 {
                     WeakPointerVector< Node < 3 > >::iterator repeated_object = std::find(neighb_nodes.begin(), neighb_nodes.end(), geom[i]);
                     if (repeated_object == (neighb_nodes.end()))
                     {
                         neighb_nodes.push_back(geom(i));
                     }
-
                 }
             }
-
+            //elementos vecinos a vecinos
+            for (WeakPointerVector<Element>::iterator elem = Elements.begin(); elem != Elements.end(); ++elem)
+	    {
+	      Geometry<Node<3> >& geom = (elem)->GetGeometry();
+	      (elem->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+	      WeakPointerVector< Element >& neighb_elems = elem->GetValue(NEIGHBOUR_ELEMENTS);
+	      //neighb_face is the vector containing pointers to the three faces around ic
+	      //neighb_face[0] = neighbour face over edge 1-2 of element ic;
+	      //neighb_face[1] = neighbour face over edge 2-0 of element ic;
+	      //neighb_face[2] = neighbour face over edge 0-1 of element ic;
+	      neighb_elems(0) = CheckForNeighbourElems(geom[1].Id(), geom[2].Id(), geom[1].GetValue(NEIGHBOUR_ELEMENTS), elem);
+	      neighb_elems(1) = CheckForNeighbourElems(geom[2].Id(), geom[0].Id(), geom[2].GetValue(NEIGHBOUR_ELEMENTS), elem);
+	      neighb_elems(2) = CheckForNeighbourElems(geom[0].Id(), geom[1].Id(), geom[0].GetValue(NEIGHBOUR_ELEMENTS), elem);
+	    }
+            
             KRATOS_CATCH("")
 
         }
+
+         /// Calculo de los elementos vecinos a un elemento
+         Element::WeakPointer CheckForNeighbourElems (unsigned int Id_1, unsigned int Id_2, WeakPointerVector< Element >& neighbour_elem, WeakPointerVector<Element>::iterator elem)
+		{	//look for the faces around node Id_1
+			for( WeakPointerVector< Element >::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); i++) 
+			{	//look for the nodes of the neighbour faces
+				Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
+				for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); node_i++) 
+				{	
+					if (neigh_elem_geometry[node_i].Id() == Id_2)
+					{
+						if(i->Id() != elem->Id())
+						{
+							return *(i.base());
+						}
+					}
+				}			
+			}
+			return *(elem.base());
+		}
 
 
         ///************************************************************************************************
         ///************************************************************************************************
 
         //pNode = the father node
-
         bool CalculateElements(ModelPart& this_model_part,
-                Node < 3 > ::Pointer& pNode, // Nodo Padre
-                Node < 3 > ::Pointer& pnode, // Nodo Hijo
+                const Node<3>::Pointer& pNode, // Nodo Padre
+                Node<3>::Pointer& pnode, // Nodo Hijo
                 const array_1d<double, 3 > & failure_map,
                 WeakPointerVector< Element >& Negative_Elements,
                 WeakPointerVector< Element >& Positive_Elements
                 )
         {
             KRATOS_TRY
-
-
+            
             double prod = 0.00;
             array_1d<double, 3 > Coord_Point_1;
             array_1d<double, 3 > Coord_Point_2;
@@ -396,7 +457,11 @@ namespace Kratos
                 Negative_Elements.clear();
                 for (WeakPointerVector< Element >::iterator neighb_elem = neighb_elems.begin();
                         neighb_elem != neighb_elems.end(); neighb_elem++)
-                {
+                {   
+		    Element::GeometryType& geom = neighb_elem->GetGeometry(); // Nodos del elemento
+		    noalias(Coord_Point_2)      = geom.Center();
+		    noalias(Unit)               = Coord_Point_2 - Coord_Point_1;
+		    noalias(Unit)               = Unit / norm_2(Unit);
                     if (inner_prod(failure_map, Unit) >= 0.00)
                     {
                         Positive_Elements.push_back(*(neighb_elem.base()));
@@ -414,7 +479,8 @@ namespace Kratos
             {
                 //std::cout<<"NO INSERTED NODE"<<std::endl;
                 return false;
-            } else
+            } 
+            else
             {
 
              
@@ -422,7 +488,6 @@ namespace Kratos
                         neighb_elem != neighb_elems.end(); neighb_elem++)
                 {
 		    mResetingElements.push_back(*neighb_elem.base());
-                    //neighb_elem->Initialize();
                 }
 
                 unsigned int New_Id = this_model_part.Nodes().size() + 1;
@@ -457,6 +522,7 @@ namespace Kratos
          {
 	    KRATOS_TRY
 	       
+	   ElementsArrayType& pElements     = mr_model_part.Elements();     
            ProcessInfo& CurrentProcessInfo =  mr_model_part.GetProcessInfo();
 	   for(WeakPointerVector< Element >::iterator reset_elem = mResetingElements.begin();
                  reset_elem != mResetingElements.end(); reset_elem++)
@@ -465,14 +531,58 @@ namespace Kratos
 		    reset_elem->InitializeSolutionStep(CurrentProcessInfo);
 		    reset_elem->FinalizeSolutionStep(CurrentProcessInfo);  
                 }
-                
+                                
                 if(mResetingElements.size()!=0)
 		    mResetingElements.clear();
 		
                 KRATOS_CATCH("")
 	 }
 
-        
+
+
+      void CheckAloneElement()
+      {
+	
+	ProcessInfo& CurrentProcessInfo =  mr_model_part.GetProcessInfo();
+	ElementsArrayType& pElements     = mr_model_part.Elements();    
+
+	#ifdef _OPENMP
+	int number_of_threads = omp_get_max_threads();
+	#else
+	int number_of_threads = 1;
+	#endif
+	  
+	  
+	  
+	std::cout<< "Element to be reseted" << std::endl; 
+	
+	std::vector<double> Variable_Value; 
+	vector<unsigned int> element_partition;
+	CreatePartition(number_of_threads, pElements.size(), element_partition);
+	unsigned int index = 0;
+	#pragma omp parallel for private(Variable_Value)
+	for(int k=0; k<number_of_threads; k++){
+	  ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	  ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	  for(ElementsArrayType::iterator it= it_begin; it!=it_end; ++it){
+		WeakPointerVector<Element>& Neighb_Elem =  it->GetValue(NEIGHBOUR_ELEMENTS);
+		if(Neighb_Elem(0).lock()->Id()==it->Id())
+		  if(Neighb_Elem(1).lock()->Id()==it->Id())
+		      if(Neighb_Elem(2).lock()->Id()==it->Id()){
+		           it->GetValueOnIntegrationPoints(DAMAGE, Variable_Value, CurrentProcessInfo); 
+			   if(Variable_Value[0]>0.00)
+		           { 
+			     KRATOS_WATCH(it->Id() )
+			     KRATOS_WATCH(Variable_Value[0])
+			     it->ResetConstitutiveLaw();
+			     it->Initialize();
+			     it->InitializeSolutionStep(CurrentProcessInfo);
+			     it->FinalizeSolutionStep(CurrentProcessInfo);  
+		           } } } }
+      }
+       
+      ///************************************************************************************************
+      ///************************************************************************************************
      void RecomputeNodalMass()
       {
       
@@ -538,7 +648,7 @@ namespace Kratos
         ///************************************************************************************************
         ///************************************************************************************************
 
-        void Create_New_Node(ModelPart& this_model_part, const array_1d<double, 3 > & failure_map, Node < 3 > ::Pointer& pnode, unsigned int& New_Id, const Node < 3 > ::Pointer& pNode)
+        void Create_New_Node(ModelPart& this_model_part, const array_1d<double, 3 > & failure_map, Node < 3 > ::Pointer& pnode, unsigned int& New_Id, const Node<3>::Pointer& pNode)
         {
 
 
@@ -602,35 +712,45 @@ namespace Kratos
 
         //pNode = the father node
         void CalculateConditions(ModelPart& this_model_part,
-                Node < 3 > ::Pointer& pNode, // father node
+                const Node<3>::Pointer& pNode, // father node
                 Node < 3 > ::Pointer& pnode, // child node
                 const array_1d<double, 3 > & failure_map)
         {
             KRATOS_TRY
 
-                    double prod = 0.00;
-            array_1d<double, 3 > Coord_Point_1;
-            array_1d<double, 3 > Coord_Point_2;
-            array_1d<double, 3 > normal;
-            array_1d<double, 3 > Unit;
+             
+            //double prod = 0.00;
+            //array_1d<double, 3 > Coord_Point_1;
+            //array_1d<double, 3 > Coord_Point_2;
+            //array_1d<double, 3 > normal;
+            //array_1d<double, 3 > Unit;
 
-            WeakPointerVector< Condition > Negative_Conditions;
-            Negative_Conditions.reserve(5);
-
-            WeakPointerVector< Condition >& neighb_conds = pNode->GetValue(NEIGHBOUR_CONDITIONS);
-
+            //WeakPointerVector< Condition > Negative_Conditions;
+            //Negative_Conditions.reserve(10);
+            int j = 0;  
+	    Condition::Pointer rcond;
+	    WeakPointerVector< Condition >& neighb_conds = pNode->GetValue(NEIGHBOUR_CONDITIONS);
+	    for(WeakPointerVector< Condition >::iterator neighb_cond = neighb_conds.begin();neighb_cond != neighb_conds.end(); neighb_cond++){
+	      if(neighb_cond->GetValue(IS_CONTACT_MASTER)==0){
+		 rcond = (neighb_conds(j).lock());
+	         Insert_New_Node_In_Conditions(rcond);
+	      }
+	      j++;
+	}
+	      
+	    /*
+            bool check = CkeckNumberConditionsSurfaces(pNode);
+	    if(check){
             // Normal al plano de fractura
             Calculate_Normal_Faliure_Maps(normal, failure_map);
-
             Coord_Point_1 = pNode->Coordinates();
-
-
 
             for (WeakPointerVector< Condition >::iterator neighb_cond = neighb_conds.begin();
                     neighb_cond != neighb_conds.end(); neighb_cond++)
             {
+	       
                 Condition::GeometryType& geom = neighb_cond->GetGeometry(); // Nodos de las condiciones
-                noalias(Coord_Point_2) = geom.Center();
+                noalias(Coord_Point_2) = geom.Center();    
                 noalias(Unit) = Coord_Point_2 - Coord_Point_1;
                 noalias(Unit) = Unit / norm_2(Unit);
                 prod = inner_prod(normal, Unit);
@@ -640,50 +760,168 @@ namespace Kratos
                 }
                 Unit = ZeroVector(3);
                 prod = 0.00;
-
             }
+ 
+            //* Esquinas o superficie extrena donde no hay elementos negativos o positivos
+            if(Negative_Conditions.size() == 0)
+            {
+               for (WeakPointerVector< Condition >::iterator neighb_cond = neighb_conds.begin();
+                    neighb_cond != neighb_conds.end(); neighb_cond++)
+                {
+	       
+		      Condition::GeometryType& geom = neighb_cond->GetGeometry(); // Nodos de las condiciones
+		      noalias(Coord_Point_2) = geom.Center();    
+		      noalias(Unit) = Coord_Point_2 - Coord_Point_1;
+		      noalias(Unit) = Unit / norm_2(Unit);
+		      prod = inner_prod(failure_map, Unit);
+		      if (prod < 0.00)
+		      {
+			  Negative_Conditions.push_back(*(neighb_cond.base()));
+		      }
+		      Unit = ZeroVector(3);
+		      prod = 0.00;
 
+                }
+              }
+	    }
+            else
+	    {   
+	      bool exist = false;
+	      int j =  DetectCondition(pNode, exist); 
+	      KRATOS_WATCH(j)
+	      if(exist)
+	      {
+		Condition::Pointer rcond = (neighb_conds(j).lock());
+		Insert_New_Node_In_Conditions(rcond);
+		/*
+		int a        =  0, b = 1; 
+		double toler = 1E-8;
+		double check = 0.00;
+	        Condition::GeometryType& geom_cond  = neighb_conds(j).lock()->GetGeometry();
+	        KRATOS_WATCH(neighb_conds(j).lock()->Id())
+		KRATOS_WATCH(geom_cond(0)->Id())
+		KRATOS_WATCH(geom_cond(1)->Id())
+		KRATOS_WATCH((neighb_conds(j).lock()->GetValue(NEIGHBOUR_ELEMENTS)).size())
+		
+	        Element::Pointer relem              = (neighb_conds(j).lock()->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
+		KRATOS_WATCH("2222222222")
+		Element::GeometryType& geom_elem    = relem->GetGeometry();
+		KRATOS_WATCH("33333333")
+		array_1d<double,3> cond             = geom_cond.GetPoint(1) - geom_cond.GetPoint(0); 
+		KRATOS_WATCH("ONEEEEEE")
+		
+		array_1d<double,3> elem;              
+		noalias(cond) = (1.00/norm_2(cond)) * cond;
+
+ 		for(unsigned int i = 0; i<geom_elem.size(); i++)
+ 		{
+		  if(i==2) {b = 0; a = 2;}
+  		  elem          = geom_elem.GetPoint(b) - geom_elem.GetPoint(a);
+		  noalias(elem) = (1.00/norm_2(elem)) * elem;
+		  check         = std::fabs(inner_prod(elem, cond));
+		  if( std::fabs(check-1.00)<toler )
+		     break;
+		  b++; a++;
+ 		}
+ 		
+ 		 KRATOS_WATCH("TWOOOOOO")
+ 		 KRATOS_WATCH(a)
+ 		 KRATOS_WATCH(b)
+ 		
+ 		 geom_cond(0) = geom_elem(a); 
+		 geom_cond(1) = geom_elem(b);
+		 KRATOS_WATCH(pNode->Id())
+                 KRATOS_WATCH(j)
+
+		 //KRATOS_ERROR(std::logic_error,  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" , "");
+		 
+	      }
+
+	    }
+
+            if(Negative_Conditions.size()!=0){
             /// putting de new node to the negative conditions
             for (WeakPointerVector< Condition >::iterator neg_cond = Negative_Conditions.begin();
                     neg_cond != Negative_Conditions.end(); neg_cond++)
-            {
+                       {
+			 Condition::GeometryType& geom = neg_cond->GetGeometry();
+                         Insert_New_Node_In_Conditions(geom, pnode, pNode->Id());
+                       }
+	       }
 
-                Condition::GeometryType& geom = neg_cond->GetGeometry();
-                Insert_New_Node_In_Conditions(geom, pnode, pNode->Id());
-            }
-
+	    */
             KRATOS_CATCH("")
 
         }
 
 
+         void Insert_New_Node_In_Conditions(Condition::Pointer& rcond)
+         {
+	        
+	        WeakPointerVector<Element>& neighb_elem = rcond->GetValue(NEIGHBOUR_ELEMENTS); 
+	   	int a        =  0, b = 1;
+		const double toler = 1E-8;
+		double check = 0.00;
+                a = 0;
+		b = 1; 
+	        Condition::GeometryType& geom_cond      = rcond->GetGeometry();
+	        Element::Pointer relem                  = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
+		int id = rcond->Id();
+		if(id==1 || id==2 || id==3 || id==4 || id==5 || id==6 || id==7 || id==8)
+		{
+		  KRATOS_WATCH(rcond->Id())
+		  KRATOS_WATCH(relem->Id())  
+		} 
+		  
+		Element::GeometryType& geom_elem        = relem->GetGeometry();
+		array_1d<double,3> cond                 = geom_cond.GetPoint(1) - geom_cond.GetPoint(0); 
+		array_1d<double,3> elem;              
+		noalias(cond) = (1.00/norm_2(cond)) * cond;
+ 		for(unsigned int i = 0; i<geom_elem.size(); i++)
+ 		{
+		  if(i==2) {b = 0; a = 2;}
+  		  elem          = geom_elem.GetPoint(b) - geom_elem.GetPoint(a);
+		  noalias(elem) = (1.00/norm_2(elem)) * elem;
+		  check         = std::fabs(inner_prod(elem, cond));
+		  if( std::fabs(check-1.00)<toler )
+		     break;
+		  b++; a++;
+ 		}
+ 		 /// Las condiciones se nombran contrario a las manecillas del reloj 
+ 		 geom_cond(0) = geom_elem(b); 
+		 geom_cond(1) = geom_elem(a);
+		 
+		 KRATOS_WATCH(geom_cond(0)->Id())
+		 KRATOS_WATCH(geom_cond(1)->Id())
+		 KRATOS_WATCH("------------------")  
+	 }
+
         ///************************************************************************************************
         ///************************************************************************************************
 
-        void Insert_New_Node_In_Elements(Element::GeometryType& geom, Node < 3 > ::Pointer& pnode, unsigned int Node_Id_Old)
+        inline void Insert_New_Node_In_Elements(Element::GeometryType& geom, Node < 3 > ::Pointer& pnode, const unsigned int& Node_Id_Old)
         {
+	    KRATOS_TRY
             for (unsigned int i = 0; i < geom.size(); i++)
-            {
                 if (geom[i].Id() == Node_Id_Old)
-                {
                     geom(i) = pnode;
-                }
-            }
+	    KRATOS_CATCH("")
+            
         }
 
         ///************************************************************************************************
         ///************************************************************************************************
 
-        void Insert_New_Node_In_Conditions(Condition::GeometryType& geom, Node < 3 > ::Pointer& pnode, unsigned int Node_Id_Old)
+        inline void Insert_New_Node_In_Conditions(Condition::GeometryType& geom, Node < 3 > ::Pointer& pnode, const unsigned int& Node_Id_Old)
         {
+	    KRATOS_TRY
             for (unsigned int i = 0; i < geom.size(); i++)
-            {
-                if (geom[i].Id() == Node_Id_Old)
-                {
-                    geom(i) = pnode;
-                }
-            }
+                if(geom[i].Id() == Node_Id_Old)
+                    geom(i) = pnode;  
+	    KRATOS_CATCH("")
+            
         }
+
 
         ///************************************************************************************************
         ///************************************************************************************************
@@ -701,7 +939,7 @@ namespace Kratos
         ///************************************************************************************************
         ///************************************************************************************************
 
-        void Find_Coord_Gauss_Points(Element::GeometryType& geom, array_1d<double, 3 > & Coord_Point)
+        inline void Find_Coord_Gauss_Points(Element::GeometryType& geom, array_1d<double, 3 > & Coord_Point)
         {
             double x = 0.00;
             double y = 0.00;
@@ -729,14 +967,20 @@ namespace Kratos
 
         }
 
-        void Finalize(ModelPart& this_model_part)
+        unsigned int Finalize(ModelPart& this_model_part, bool& split)
         {
-            NodesArrayType& pNodes       = this_model_part.Nodes();
-	    ElementsArrayType& pElements = this_model_part.Elements();
+	  
+	    KRATOS_TRY
 	    
+	    std::cout<< "FINALIZE BEGIN"<< std::endl;
 	    
+	    unsigned int result              = 0; 
+            NodesArrayType& pNodes           = this_model_part.Nodes();
+	    ElementsArrayType& pElements     = this_model_part.Elements();
+	    ConditionsArrayType& pConditions = this_model_part.Conditions();
+	        
             #ifdef _OPENMP
-            int number_of_threads = 1; //omp_get_max_threads();
+            int number_of_threads = omp_get_max_threads();
             #else
             int number_of_threads = 1;
             #endif
@@ -754,8 +998,8 @@ namespace Kratos
 		   }
 	    }
 
-
             vector<unsigned int> node_partition;
+	    number_of_threads  = 1;
             CreatePartition(number_of_threads, pNodes.size(), node_partition);
             //mfail_node.clear();
 
@@ -765,164 +1009,181 @@ namespace Kratos
 	    array_1d<double, 3> dir  = ZeroVector(3);
 	    Node < 3 > ::Pointer     pchild_node; 
 	    std::vector< WeakPointerVector<Element> > LevelElements;
-	    std::vector< int > IdElements_1;
-	    std::vector< int > IdElements_2;
 	    
-            #pragma omp parallel for 
-            for (int k = 0; k < number_of_threads; k++)
-            {
-                NodesArrayType::iterator i_begin = pNodes.ptr_begin() + node_partition[k];
-                NodesArrayType::iterator i_end = pNodes.ptr_begin() + node_partition[k + 1];
-
-                for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
-                {
-                    i->GetValue(SPLIT_NODAL)       = false;
-		    
+            NodesArrayType::iterator i_begin = pNodes.ptr_begin();
+            NodesArrayType::iterator i_end   = pNodes.ptr_end(); 
+            for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
+                {    
+                    i->GetValue(SPLIT_NODAL)       = false;        
 		    if(i->GetValue(IS_BOUNDARY)==1)
 		    {
-		       WeakPointerVector<Condition>& Neighb_Conditions  =  i->GetValue(NEIGHBOUR_CONDITIONS);
-		       if(Neighb_Conditions.size()>2)
-		       {
-			  
+		       if(CkeckNumberMasterSurfaces(*(i.base()))) 
+		       { 
+			  split = true;
 			  WeakPointerVector<Element>& Neighb_Elem =  i->GetValue(NEIGHBOUR_ELEMENTS);
-                          //busco  de estos elementos quien es vecinos
-			  for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
-			        {
-				  IdElements_1.push_back(neighb->Id()); 
-				}
-			  level = 1;
-			  for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
-			  {
-			     
+			  level = 0;
+			  for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); ++neighb)
+			  {     
 			     if(neighb->GetValue(ACTIVATION_LEVEL)==0)
-			     {
-			      neighb->GetValue(ACTIVATION_LEVEL)=level;  
-			      WeakPointerVector<Element>& Neighb_Elem_2 =  neighb->GetValue(NEIGHBOUR_ELEMENTS);
-			      IdElements_2.clear();
-			      for(WeakPointerVector<Element>::iterator  neighb_2 = Neighb_Elem_2.begin(); neighb_2!= Neighb_Elem_2.end(); neighb_2++)
-			        {
-				  IdElements_2.push_back(neighb_2->Id()); 
-				}
-			       for(unsigned int id = 0; id<IdElements_2.size();id++)
-			       {
-				  const int& this_id =  IdElements_2[id];
-			   	  std::vector< int >::iterator is = std::find(IdElements_1.begin(), IdElements_1.end(), this_id);
-			          if(is!=IdElements_1.end())
-				     (Neighb_Elem_2(id).lock())->GetValue(ACTIVATION_LEVEL)=level;
-				}
-				
-				level++;
+			     { 
+			        level++;
+			        neighb->GetValue(ACTIVATION_LEVEL)=level;  
+			        WeakPointerVector<Element>& Neighb_Elem_2 =  neighb->GetValue(NEIGHBOUR_ELEMENTS);
+			        for(WeakPointerVector<Element>::iterator  neighb_2 = Neighb_Elem_2.begin(); neighb_2!= Neighb_Elem_2.end(); ++neighb_2){
+				    neighb_2->GetValue(ACTIVATION_LEVEL)=level; 
+				    WeakPointerVector<Element>& Neighb_Elem_3 =  neighb_2->GetValue(NEIGHBOUR_ELEMENTS);
+	                            for(WeakPointerVector<Element>::iterator  neighb_3 = Neighb_Elem_3.begin(); neighb_3!= Neighb_Elem_3.end(); ++neighb_3){
+				       if(neighb_3->GetValue(ACTIVATION_LEVEL)==0)
+				          neighb_3->GetValue(ACTIVATION_LEVEL)=level; 
+				       }
+				     }
+		                 }
+		             }
+	
+			if(level!=0)
+			{
+			KRATOS_WATCH(i->Id()) 
+			KRATOS_WATCH(level)
+			count = level;
+			LevelElements.resize(count);   
+			for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
+			{
+			  const int&  the_level = neighb->GetValue(ACTIVATION_LEVEL);
+			  LevelElements[the_level-1].push_back(*neighb.base());
+			}
+			
+			Node<3>::Pointer& pfather_node =  *i.base(); 
+			KRATOS_WATCH(LevelElements.size())
+			for(unsigned int ii = 0; ii<LevelElements.size()-1; ii++)
+			{
+			  /// creo los nodos para cada grupo elementos
+			  New_Id  = this_model_part.Nodes().size() + 1;
+			  result++;
+			  Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
+			  WeakPointerVector<Element>& thiswaek = LevelElements[ii];
+			  for(WeakPointerVector<Element>::iterator  it = thiswaek.begin(); it != thiswaek.end();  it++)
+			  {
+			    KRATOS_WATCH(it->Id()) 
+			    KRATOS_WATCH(it->GetValue(ACTIVATION_LEVEL))
+			    Element::GeometryType& geom = it->GetGeometry(); 
+			    for(unsigned int j = 0; j<geom.size(); j++)
+			      if(geom[j].Id()==i->Id())
+				  Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());  
+			      
+
+			     /// creo los nuevos nodos para las condiciones
+			     /*
+			     WeakPointerVector<Condition>& Neighb_Conditions   = it->GetValue(NEIGHBOUR_CONDITIONS);
+			     KRATOS_WATCH(Neighb_Conditions.size())
+			     for(WeakPointerVector<Condition>::iterator  icond = Neighb_Conditions.begin(); icond != Neighb_Conditions.end(); ++icond)
+			       {   
+		                  
+				  KRATOS_WATCH(icond->Id())
+				  Condition::GeometryType& geom_c = icond->GetGeometry(); 
+			          for(unsigned int j = 0; j<geom_c.size(); j++)
+			            if(geom_c[j].Id()==i->Id())
+				      Insert_New_Node_In_Conditions(geom_c, pchild_node, pfather_node->Id());
+				   
+			       }
+			       */
+			       //std::cout<< "*************************************"<< std::endl; 
+			       
 			     }
 			     
-			  }
-			  
-			   count = level -1;
-			   LevelElements.resize(count);   
-			   for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
-			   {
-			      const int&  the_level = neighb->GetValue(ACTIVATION_LEVEL);
-			      LevelElements[the_level-1].push_back(*neighb.base());
-			   }
-			   
-			   Node<3>::Pointer& pfather_node =  *i.base(); 
-		           New_Id  = this_model_part.Nodes().size() + 1;
-                           Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
-			   // creo los nodos para cada grupo
-			   for(unsigned int ii = 0; ii<LevelElements.size()-1; ii++)
-			   {
-			     WeakPointerVector<Element>& thiswaek = LevelElements[ii];
-			     for(WeakPointerVector<Element>::iterator  it = thiswaek.begin(); it != thiswaek.end();  it++)
-			     {
-			      Element::GeometryType& geom = it->GetGeometry(); 
-		              for(unsigned int j = 0; j<geom.size(); j++)
-		                {
-				 if(geom[j].Id()==i->Id())
-				 {
-                                    Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());
-				 }
-			       }
-		             }   
-		           }
-		           
-		           for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
-			       neighb->GetValue(ACTIVATION_LEVEL)=0;
-     
-		          LevelElements.clear();
-                        }
-                     }
-                     
-		}
-	    }
-
-            /* 
-	    unsigned int New_Id      = 0;
-	    array_1d<double, 3> dir  = ZeroVector(3);
-	    Node < 3 > ::Pointer pchild_node; 
-            vector<unsigned int> element_partition;
-            CreatePartition(number_of_threads, pElements.size(), element_partition);
-	    unsigned int size_1; 
-	    unsigned int size_2;   
-	    
-	    #pragma omp parallel for 
-            for(int k=0; k<number_of_threads; k++)          
-	    {
-	         ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
- 	         ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-	         for (ElementsArrayType::iterator it=it_begin; it!=it_end; ++it)
-	           {
-		     size_1 = ComputeNumNeighbElem(it); 
-		     switch(size_1){
-		       case 0:
-		         {
-	                  Element::GeometryType& geom = it->GetGeometry(); 
-		          for(unsigned int i = 0; i<geom.size(); i++)
-		          {
-                              Node<3>::Pointer& pfather_node                =  geom(i); 
-			      WeakPointerVector<Element>& Neighb_Elem_Elem  =  pfather_node->GetValue(NEIGHBOUR_ELEMENTS);
-			      size_2                                        =  (geom[i].GetValue(NEIGHBOUR_ELEMENTS)).size()-1;
-
-			      if(size_2!=0){
-			         for(unsigned int j = 0; j<size_2; j++) 
-			           {
-				     New_Id  = this_model_part.Nodes().size() + 1;
-                                     Create_New_Node(this_model_part, dir,  pchild_node, New_Id, pfather_node); 
-                                     Insert_New_Node_In_Elements(geom, pchild_node, pfather_node->Id());
-				     pchild_node->GetValue(NEIGHBOUR_ELEMENTS).push_back(Neighb_Elem_Elem(j).lock());
-			           }
-
-                                    Neighb_Elem_Elem.erase(Neighb_Elem_Elem.begin(),Neighb_Elem_Elem.begin() + size_2);  
+			      int j = 0;  
+			      Condition::Pointer rcond;
+			      WeakPointerVector< Condition >& neighb_conds = pfather_node->GetValue(NEIGHBOUR_CONDITIONS);
+			      for(WeakPointerVector< Condition >::iterator neighb_cond = neighb_conds.begin();neighb_cond != neighb_conds.end(); neighb_cond++){
+			          if(neighb_cond->GetValue(IS_CONTACT_MASTER)==0){
+			          rcond = (neighb_conds(j).lock());
+			           Insert_New_Node_In_Conditions(rcond);
+			         }
+			        j++;
 			      }
-			   }
-			    
-		          break;
-			 }
-		       case 1: case 2:
-		       {
-			 
-			 
-			 break;
-		       }
-		       default:
-			  break; 
-                     }
-		   }
-		}
-	       
-	       */
-	     
-	    FindElementalNeighboursProcess ElementosVecinos(this_model_part, 2, 10);
-            FindNodalNeighboursProcess NodosVecinos(this_model_part, 2, 10);
-            FindConditionsNeighboursProcess CondicionesVecinas(this_model_part, 2, 10);
+			     /*
+			      bool exist = false;
+			      WeakPointerVector<Condition>& neighb_conds =  i->GetValue(NEIGHBOUR_CONDITIONS);
+			      int j =  DetectCondition(pfather_node, exist);       
+			      if(exist)
+			      {
+				KRATOS_WATCH("AKIIIIIIIIIIIIIIIIIIII")
+				Condition::Pointer rcond = (neighb_conds(j).lock());
+				Insert_New_Node_In_Conditions(rcond);
+			      }
+			      */
+			  }
+			
+			for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++){
+			        neighb->GetValue(ACTIVATION_LEVEL)=0;  
+			        WeakPointerVector<Element>& Neighb_Elem_2 =  neighb->GetValue(NEIGHBOUR_ELEMENTS);
+			        for(WeakPointerVector<Element>::iterator  neighb_2 = Neighb_Elem_2.begin(); neighb_2!= Neighb_Elem_2.end(); neighb_2++){
+				  WeakPointerVector<Element>& Neighb_Elem_3 =  neighb_2->GetValue(NEIGHBOUR_ELEMENTS);
+				  neighb_2->GetValue(ACTIVATION_LEVEL)=0; 
+	                          for(WeakPointerVector<Element>::iterator  neighb_3 = Neighb_Elem_3.begin(); neighb_3!= Neighb_Elem_3.end(); neighb_3++){    
+                                      neighb_3->GetValue(ACTIVATION_LEVEL)=0; 
+			          }
+				}
+		             }
+		             
+		          }
+                       }
+                       
+                   LevelElements.clear();
+		   LevelElements.reserve(10); 
+                   }
+	       }
 
-            ElementosVecinos.ClearNeighbours();
-            NodosVecinos.ClearNeighbours();
-            CondicionesVecinas.ClearNeighbours();
-            ElementosVecinos.Execute();
-            NodosVecinos.Execute();
-            CondicionesVecinas.Execute();
+
+	    std::cout<< "FINALIZE END"<< std::endl;
+	    return result;
+	    
+	    KRATOS_CATCH("")
 	}
 	
-      unsigned int ComputeNumNeighbElem(const ElementsArrayType::iterator& relem)
+ 
+ 
+      inline bool CkeckNumberConditionsSurfaces(const Node<3>::Pointer& rnode)
+      { 
+	unsigned int count = 0; 
+        unsigned int id = rnode->Id();
+	WeakPointerVector<Condition>& Neighb_Conditions = rnode->GetValue(NEIGHBOUR_CONDITIONS);     
+	for(WeakPointerVector<Condition>::iterator icond = Neighb_Conditions.begin(); icond!=Neighb_Conditions.end(); icond++){
+	   if( icond->GetValue( IS_CONTACT_MASTER )== 0){
+	       count++;
+	   }
+	}
+   	return count>=2;
+      }
+ 
+ 
+      inline bool CkeckNumberMasterSurfaces(const Node<3>::Pointer&  rnode)
+      {
+	unsigned int count = 0;  
+        WeakPointerVector<Condition>& Neighb_Conditions = rnode->GetValue(NEIGHBOUR_CONDITIONS);  
+	for(WeakPointerVector<Condition>::iterator icond = Neighb_Conditions.begin(); icond!=Neighb_Conditions.end(); icond++)
+	   if( icond->GetValue( IS_CONTACT_MASTER )== 1)
+	       count++;
+	  
+	return count>2;
+      }
+     
+      
+      inline int DetectCondition(const Node<3>::Pointer&  rnode, bool& exist )
+      {
+	unsigned int count = 0;
+	exist = false;
+        WeakPointerVector<Condition>& Neighb_Conditions = rnode->GetValue(NEIGHBOUR_CONDITIONS);  
+	for(WeakPointerVector<Condition>::iterator icond = Neighb_Conditions.begin(); icond!=Neighb_Conditions.end(); icond++){
+	   if( icond->GetValue( IS_CONTACT_MASTER )== 0){
+	     exist = true;
+	     break;}
+	   count++;
+	 }
+	 return count;
+      }
+      
+      
+      inline unsigned int ComputeNumNeighbElem(const ElementsArrayType::iterator& relem)
       {
 	unsigned int count = 0;
 	 WeakPointerVector<Element>& Neighb_Elem_Elem = relem->GetValue(NEIGHBOUR_ELEMENTS);
@@ -934,18 +1195,14 @@ namespace Kratos
       }
 
 
-       void Calculate_Normal_Faliure_Maps(array_1d<double, 3 > & normal, const array_1d<double, 3 > & failure_map)
+       inline void Calculate_Normal_Faliure_Maps(array_1d<double, 3 > & normal, const array_1d<double, 3 > & failure_map)
         {
-
-            // WARNING: SOLO 2D
-            //double tetha = atan(failure_map[1]/failure_map[0]);
-            //tetha += PI/2.00;
-            normal[0] = -failure_map[1]; //cos(tetha);
+            normal[0] = -failure_map[1]; 
             normal[1] = failure_map[0];
             normal[2] = 0.00;
             noalias(normal) = normal / norm_2(normal);
 
-        }
+         }
 
 
         ModelPart& mr_model_part;
