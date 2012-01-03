@@ -154,6 +154,8 @@ KRATOS_TRY
     WeakPointerVector< Element > Negative_Elements;                           
     WeakPointerVector< Element > Positive_Elements; 
     WeakPointerVector< Element > Splitted_Elements;
+    WeakPointerVector< Element > mSplitted_Elements;
+    WeakPointerVector< Node<3> > Fail_Node;
     
    
 
@@ -162,14 +164,16 @@ KRATOS_TRY
      
     
     Initialize(this_model_part, refine_on_reference);
-    Detect_Node_To_Be_Splitted(this_model_part);
+    Detect_Node_To_Be_Splitted(this_model_part, Fail_Node);
      
       
     array_1d<double,3>  Failure_Maps;  
-    for(WeakPointerVector< Node<3> >::iterator inode = mFail_Node.begin();
-    inode != mFail_Node.end(); inode++)
+    for(WeakPointerVector< Node<3> >::iterator inode = Fail_Node.begin();
+    inode != Fail_Node.end(); inode++)
       {
-         
+	 KRATOS_WATCH(inode->Id())
+	
+	 /*
          Calculate_Map_Failure(inode, Failure_Maps);
          Detect_Elements(this_model_part, inode, Failure_Maps, Splitted_Elements); 
          Calculate_Negative_And_Positive_Elements(this_model_part, inode, Failure_Maps,  Negative_Elements, Positive_Elements);  
@@ -190,7 +194,9 @@ KRATOS_TRY
          ElementosVecinos.Execute(); 
          NodosVecinos.Execute();           
          Failure_Maps = ZeroVector(3);           
-         Splitted_Elements.clear();         
+         Splitted_Elements.clear();     
+	 */
+	 
       }
     
   
@@ -203,21 +209,6 @@ KRATOS_TRY
   KRATOS_CATCH("")
 
 }
-
-
-///************************************************************************************************          
-///************************************************************************************************  
-
-
-inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-    {
-      partitions.resize(number_of_threads+1);
-      int partition_size = number_of_rows / number_of_threads;
-      partitions[0] = 0;
-      partitions[number_of_threads] = number_of_rows;
-      for(unsigned int i = 1; i<number_of_threads; i++)
-      partitions[i] = partitions[i-1] + partition_size ;
-    }
 
 
 
@@ -266,12 +257,14 @@ void Initialize(ModelPart& this_model_part, bool refine_on_reference)
 
 
 }
+///************************************************************************************************          
+///************************************************************************************************  
 
 
 void Finalize(ModelPart& this_model_part, bool refine_on_reference)
 {
+  
 Renumering_Elements_And_Nodes(this_model_part);
-
 if(refine_on_reference==true)
   {
      for(ModelPart::NodesContainerType::iterator it=this_model_part.NodesBegin(); it!=this_model_part.NodesEnd(); it++)
@@ -288,57 +281,25 @@ if(refine_on_reference==true)
 
 ///************************************************************************************************          
 ///************************************************************************************************      
-void Detect_Node_To_Be_Splitted(ModelPart& this_model_part)
+void Detect_Node_To_Be_Splitted(ModelPart& this_model_part,
+				WeakPointerVector< Node<3> >&  Fail_Node)
 {
+
 KRATOS_TRY  
-/*
-NodesArrayType& pNodes = this_model_part.Nodes();
-
-#ifdef _OPENMP
-int number_of_threads = omp_get_max_threads();
-#else
-int number_of_threads = 1;
-#endif
-
-mFail_Node.reserve(1000);
-
-vector<unsigned int> node_partition;
-CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
-#pragma omp parallel for  
-for(int k=0; k<number_of_threads; k++)
-{
-NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)     
-  {
-    double& Condition = i->FastGetSolutionStepValue(NODAL_DAMAGE);
-    if(Condition >= 1.00)
-	  {  
-	      i->FastGetSolutionStepValue(SPLIT_NODAL) = true;   
-              mFail_Node.push_back(*(i.base()) );  
-	  }
-  }
-
-}
-  */
-
-
 
  for( 
      ModelPart::NodesContainerType::iterator inode = this_model_part.NodesBegin();
      inode != this_model_part.NodesEnd();
      inode++)	
-      {
-         bool & split = inode->GetValue(SPLIT_NODAL);  
-	 if ( split == true) { 
-              //KRATOS_WATCH(inode->Id())        
-              mFail_Node.push_back(*(inode.base()) );  
-	  }
+      { 
+	 double& Condition = inode->GetValue(NODAL_DAMAGE);
+         if (Condition > 0.30){        
+              Fail_Node.push_back(*(inode.base()) );  
+	     }
      }
 
 KRATOS_CATCH("")
+
 }
 
 
@@ -1293,11 +1254,23 @@ private:
 bool mInitialize;
 ModelPart& mr_model_part;
 unsigned int mdomain_size;
-WeakPointerVector< Element > mSplitted_Elements;
-WeakPointerVector< Node<3> > mFail_Node;
+
+///************************************************************************************************          
+///************************************************************************************************  
 
 
-};
+inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    {
+      partitions.resize(number_of_threads+1);
+      int partition_size = number_of_rows / number_of_threads;
+      partitions[0] = 0;
+      partitions[number_of_threads] = number_of_rows;
+      for(unsigned int i = 1; i<number_of_threads; i++)
+      partitions[i] = partitions[i-1] + partition_size ;
+    }
+
+  };
 }
+
 #endif 
 
