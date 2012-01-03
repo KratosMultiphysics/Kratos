@@ -161,11 +161,20 @@ namespace Kratos
 			}
 
 
-		    void  Energy_Yield_Function::CalculateEquivalentUniaxialStressViaCilindricalCoordinate( 
-		    const Vector& StressVector,double& Result){}
+                    void Energy_Yield_Function::GetValue(const Variable<double>& rVariable, double& Result)
+                    {
+		      if(rVariable==YIELD_STRESS)
+			Result = mSigma_y;
+		      else if(rVariable==YIELD_SURFACE)
+			Result =  mSigma_e; 
+		      return;
+		    }
 
-
-
+                    void Energy_Yield_Function::FinalizeSolutionStep()
+                    {
+                         mSigma_y = mSigma_e;
+		    }
+		    
 		    void Energy_Yield_Function::CalculateDerivateFluencyCriteria(const Vector& StressVector,Vector& DerivateFluencyCriteria)
 			{
 			  
