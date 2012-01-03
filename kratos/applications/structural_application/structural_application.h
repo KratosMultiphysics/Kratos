@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 #include "custom_elements/total_lagrangian.h"
+#include "custom_elements/linear_incompresible_element.h"
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
 #include "custom_elements/kinematic_linear.h"
@@ -162,7 +163,7 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER );
     //CONTACT_LINK_SLAVE is defined in condition.h
     KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_LINK_SLAVE );
-    
+    KRATOS_DEFINE_VARIABLE( Node<3>::Pointer,  NEAR_NODE);
     KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_LOCAL_POINT );
     KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_LOCAL_POINT );
     KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT );
@@ -210,6 +211,8 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(Vector, ORTHOTROPIC_YOUNG_MODULUS_2D) // [E1 E2 G12]
       KRATOS_DEFINE_VARIABLE(Vector, ORTHOTROPIC_POISSON_RATIO_2D) // [v12 v21]
       KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+      KRATOS_DEFINE_VARIABLE(Vector, ALMANSI_PLASTIC_STRAIN)
+      KRATOS_DEFINE_VARIABLE(Vector, ALMANSI_ELASTIC_STRAIN)
       KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRESS)
       KRATOS_DEFINE_VARIABLE(Matrix, NODAL_STRAIN)
       KRATOS_DEFINE_VARIABLE(Matrix, CONSTRAINT_MATRIX)
@@ -218,7 +221,17 @@ namespace Kratos
       KRATOS_DEFINE_VARIABLE(double, DISIPATION)
       KRATOS_DEFINE_VARIABLE(int,     NODAL_VALUES)
       KRATOS_DEFINE_VARIABLE(double,  NODAL_DAMAGE)
-       KRATOS_DEFINE_VARIABLE(double, NODAL_VOLUME)
+      KRATOS_DEFINE_VARIABLE(double, NODAL_VOLUME)
+      KRATOS_DEFINE_VARIABLE(bool, IS_TARGET)
+      KRATOS_DEFINE_VARIABLE(bool, IS_CONTACTOR) 
+      KRATOS_DEFINE_VARIABLE(double, DAMPING_RATIO) 
+      KRATOS_DEFINE_VARIABLE(double, KINETIC_ENERGY) 
+      KRATOS_DEFINE_VARIABLE(double, POTENCIAL_ENERGY)
+      KRATOS_DEFINE_VARIABLE(double, DEFORMATION_ENERGY)
+      KRATOS_DEFINE_VARIABLE(double, VON_MISES_STRESS)
+      KRATOS_DEFINE_VARIABLE(double, YIELD_SURFACE)
+      KRATOS_DEFINE_VARIABLE(double, RHS_PRESSURE)
+      KRATOS_DEFINE_VARIABLE(bool, COMPUTE_TANGENT_MATRIX)
       KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
       KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 
@@ -390,6 +403,7 @@ namespace Kratos
             const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
             const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
             const LinearElement mLinearElement2D3N;
+	    const LinearElement mLinearElement2D6N;
             const LinearElement mLinearElement2D4N;
             const LinearElement mLinearElement2D8N;
             const LinearElement mLinearElement2D9N;
@@ -401,6 +415,10 @@ namespace Kratos
             const ShellAnisotropic mAnisoShellElement;
             const ShellAnisotropicLinear mAnisoLinearShellElement;
             const MembraneElement mMembraneElement;
+	    
+	    const LinearIncompresibleElement mLinearIncompresibleElement2D3N;
+	    const LinearIncompresibleElement mLinearIncompresibleElement3D4N; 
+	    
             const TotalLagrangian mTotalLagrangian2D3N; 
             const TotalLagrangian mTotalLagrangian2D4N; 
             const TotalLagrangian mTotalLagrangian2D6N;
