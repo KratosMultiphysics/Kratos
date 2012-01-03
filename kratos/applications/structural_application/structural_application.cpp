@@ -135,6 +135,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER )
     //CONTACT_LINK_SLAVE is defined in condition.h
     KRATOS_CREATE_VARIABLE( Condition::Pointer, CONTACT_LINK_SLAVE )
+    KRATOS_CREATE_VARIABLE( Node<3>::Pointer,   NEAR_NODE )
     KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_LOCAL_POINT )
     KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_LOCAL_POINT )
     KRATOS_CREATE_VARIABLE( Point<3>, MASTER_CONTACT_LAST_CURRENT_LOCAL_POINT )
@@ -180,7 +181,9 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( Vector, VECTOR_DAMAGE )
     KRATOS_CREATE_VARIABLE( Vector, ORTHOTROPIC_YOUNG_MODULUS_2D ) // [E1 E2 G12]
     KRATOS_CREATE_VARIABLE( Vector, ORTHOTROPIC_POISSON_RATIO_2D ) // [v12 v21]
-    KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
+    KRATOS_CREATE_VARIABLE( Matrix, GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR)
+    KRATOS_CREATE_VARIABLE( Vector, ALMANSI_PLASTIC_STRAIN)
+    KRATOS_CREATE_VARIABLE( Vector, ALMANSI_ELASTIC_STRAIN)
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRESS )
     KRATOS_CREATE_VARIABLE( Matrix, NODAL_STRAIN )
     KRATOS_CREATE_VARIABLE( Matrix, CONSTRAINT_MATRIX )
@@ -189,6 +192,18 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( int,    NODAL_VALUES )
     KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE )
     KRATOS_CREATE_VARIABLE( double, NODAL_VOLUME )
+    KRATOS_CREATE_VARIABLE( bool,   IS_TARGET)
+    KRATOS_CREATE_VARIABLE( bool,   IS_CONTACTOR)
+    KRATOS_CREATE_VARIABLE( bool,   COMPUTE_TANGENT_MATRIX)
+    KRATOS_CREATE_VARIABLE( double, DAMPING_RATIO)
+    KRATOS_CREATE_VARIABLE( double, KINETIC_ENERGY)
+    KRATOS_CREATE_VARIABLE( double, POTENCIAL_ENERGY)
+    KRATOS_CREATE_VARIABLE( double, DEFORMATION_ENERGY)
+    KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS)
+    KRATOS_CREATE_VARIABLE( double, RHS_PRESSURE)
+    KRATOS_CREATE_VARIABLE(double,  YIELD_SURFACE)
+    
+    
 
 
 
@@ -267,8 +282,9 @@ namespace Kratos
             mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
             mLinearElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+            mLinearElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
             mLinearElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-            mLinearElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+            mLinearElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
             mLinearElement2D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9<Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
             mLinearElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
             mLinearElement3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8<Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
@@ -290,6 +306,8 @@ namespace Kratos
             mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
             mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
 
+            mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+            mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
 
             mMixedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -417,6 +435,14 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( STRESSES )
         KRATOS_REGISTER_VARIABLE( FLUID_FLOWS )
         KRATOS_REGISTER_VARIABLE( CONTACT_PENETRATION )
+        KRATOS_REGISTER_VARIABLE( DAMPING_RATIO)
+        KRATOS_REGISTER_VARIABLE( KINETIC_ENERGY)
+        KRATOS_REGISTER_VARIABLE( POTENCIAL_ENERGY)
+        KRATOS_REGISTER_VARIABLE( DEFORMATION_ENERGY)
+        KRATOS_REGISTER_VARIABLE( VON_MISES_STRESS)
+        KRATOS_REGISTER_VARIABLE( RHS_PRESSURE)
+        
+        
         //  KRATOS_REGISTER_VARIABLE(WRINKLING_APPROACH )
 //  KRATOS_REGISTER_VARIABLE(GREEN_LAGRANGE_STRAIN_TENSOR )
 //  KRATOS_REGISTER_VARIABLE(PK2_STRESS_TENSOR )
@@ -440,6 +466,7 @@ namespace Kratos
         //CONTACT_LINK_MASTER is defined in condition.h
         KRATOS_REGISTER_VARIABLE( CONTACT_LINK_MASTER )
         //CONTACT_LINK_SLAVE is defined in condition.h
+	KRATOS_REGISTER_VARIABLE( NEAR_NODE)
         KRATOS_REGISTER_VARIABLE( CONTACT_LINK_SLAVE )
         KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_LOCAL_POINT )
         KRATOS_REGISTER_VARIABLE( MASTER_CONTACT_CURRENT_LOCAL_POINT )
@@ -478,7 +505,10 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_YOUNG_MODULUS_2D ) // [E1 E2 G12]
         KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_POISSON_RATIO_2D ) // [v12 v21]
         KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_PLASTIC_STRAIN_TENSOR )
+        KRATOS_REGISTER_VARIABLE( ALMANSI_PLASTIC_STRAIN)
+        KRATOS_REGISTER_VARIABLE( ALMANSI_ELASTIC_STRAIN)
         KRATOS_REGISTER_VARIABLE( PRESTRESS )
+
         KRATOS_REGISTER_VARIABLE( DISIPATION )
         KRATOS_REGISTER_VARIABLE( ISOTROPIC_HARDENING_MODULUS )
         KRATOS_REGISTER_VARIABLE( KINEMATIC_HARDENING_MODULUS )
@@ -487,6 +517,14 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( NODAL_VALUES )
         KRATOS_REGISTER_VARIABLE( NODAL_DAMAGE )
         KRATOS_REGISTER_VARIABLE( NODAL_VOLUME )
+        KRATOS_REGISTER_VARIABLE( IS_TARGET)
+        KRATOS_REGISTER_VARIABLE( IS_CONTACTOR)
+        KRATOS_REGISTER_VARIABLE( COMPUTE_TANGENT_MATRIX)
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX)
+        KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR)
+        KRATOS_REGISTER_VARIABLE( YIELD_SURFACE)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX )
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
@@ -563,7 +601,10 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
         KRATOS_REGISTER_ELEMENT( "HypoelasticElement2D3N", mHypoelasticElement2D3N )
+        KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement2D3N", mLinearIncompresibleElement2D3N )
+        KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement3D4N", mLinearIncompresibleElement3D4N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D3N", mLinearElement2D3N )
+        KRATOS_REGISTER_ELEMENT( "LinearElement2D6N", mLinearElement2D6N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D4N", mLinearElement2D4N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D8N", mLinearElement2D8N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D9N", mLinearElement2D9N )
