@@ -42,12 +42,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
+/* *********************************************************   
+*          
+*   Last Modified by:    $Author: Nelson $
+*   Date:                $Date: 2011-11-9 
+\*  Revision:           $Revision: 1.2 $
+*
+* ***********************************************************/
+
 #if !defined(VON_MISES_FUNCTION_UTILS)
 #define VON_MISES_FUNCTION_UTILS
 
 
 #include "custom_utilities/tensor_utils.h"
 #include "fluency_criteria/fluency_criteria.h"
+#include "soft_hard_behavior/softening_hardening_criteria.h"
 #include <cmath>
 
 
@@ -61,6 +70,7 @@ namespace Kratos
     
         public:
 
+	    typedef SofteningHardeningCriteria::Pointer SoftHardPointerType;   
 	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
 	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
 			  
@@ -68,14 +78,17 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri    
   
-            Von_Mises_Yield_Function(myState State, myPotencialPlastic PotencialPlastic);
-
+            //Von_Mises_Yield_Function(const myState& State, myPotencialPlastic PotencialPlastic);
+            Von_Mises_Yield_Function(const myState& State, const SoftHardPointerType& Soft);
+	    
             virtual boost::shared_ptr<FluencyCriteria> Clone() const
 	        {
-		      boost::shared_ptr<FluencyCriteria> p_clone(new Von_Mises_Yield_Function(mState,mPotencialPlastic));
+		      //boost::shared_ptr<FluencyCriteria> p_clone(new Von_Mises_Yield_Function(mState,mPotencialPlastic));
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Von_Mises_Yield_Function(
+		      mState, 
+                      mpSigmaBehavior->Clone()));
 		      return p_clone;
 		}
-			
 	   
             ~Von_Mises_Yield_Function();
 
@@ -85,26 +98,33 @@ namespace Kratos
 //***********************************************************************
 
 
-		     void InitializeMaterial(const Properties& props);
-		     
+		     void InitializeMaterial(const Properties& props);  
 		     void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
-		     
 		     void FinalizeSolutionStep();
+		     void UpdateMaterial();
+		     void GetValue(const Variable<double>& rVariable, double& Result);
+		     void CalculateElasticStrain(Vector& DesviatoricStress, double Pressure, Vector& Elastic_Strain);
+		     double UniaxialTension(const Vector& Desviatoric_Trial_Stress);
+		     void CalculatePlasticDamage(const Vector& Elastic_Stress, const Vector& Desviatoric_Trial_Stress);
+		     //void GetValue(const Variable<Matrix>& rVariable, Matrix& Result);
+		     //void GetValue(const Variable<Vector>& rVariable, Vector& Result);
+		     void GetValue(double& Result);
+		     //void GetValue(Matrix& Result);
 		     
-                     
-		    
-
-      private:
-	
-      void Update();
-	
-      array_1d<double,4>  melastic_strain;
-      array_1d<double,4>  mcurrent_elastic_strain;
-      array_1d<double,4>  mplastic_strain;
-      array_1d<double,4>  mcurrent_plastic_strain;
-
-
-
+	private:
+	double mplastic_damage_old;
+	double mplastic_damage_new;
+	double mhe;
+        double mSigma_yold;
+	double mSigma_ynew;
+	double melastic_z_old;
+	double melastic_z_new;
+        bool   mcompute_tangent_matrix;
+        double maccumulated_plastic_strain_current;   
+        double maccumulated_plastic_strain_old;
+        Vector  mold_plastic_strain;
+        Vector  mcurrent_plastic_strain;
+	SoftHardPointerType mpSigmaBehavior;
 
     };
 }
