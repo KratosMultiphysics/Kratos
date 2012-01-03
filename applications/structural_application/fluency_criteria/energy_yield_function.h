@@ -89,21 +89,11 @@ namespace Kratos
 // Diferent limits in traccion and compresion
 
 		     void InitializeMaterial(const Properties& props);
-		     
-
 		    void  CalculateEquivalentUniaxialStress(
 		    const Vector& StressVector,const Vector& StrainVector,  double& Result);
-
-
-		    void CalculateEquivalentUniaxialStressViaInvariants(
-		    const Vector& StressVector,double& Result);
-
-
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-		    const Vector& StressVector,double& Result);
-
-
-
+		    void CalculateEquivalentUniaxialStressViaInvariants(const Vector& StressVector,double& Result);
+                    void FinalizeSolutionStep();
+                    void GetValue(const Variable<double>& rVariable, double& Result);
 		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 		    
 
@@ -115,7 +105,10 @@ namespace Kratos
         double mu_c;
         double mr;
         Vector mP_Stress;
-
+	double mElasticDomain;    // the elastic domain
+        double mSigma_o;          // initial value of the damage or plastic threshold 
+	double mSigma_e;          // Esfuerzo efectivo
+        double mSigma_y;          // Esfuerzo Resistencia de Comparacion. Este valor evoluciona
 
 
 
