@@ -71,7 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 #include "custom_elements/total_lagrangian.h"
-#include "custom_elements/linear_incompresible_element.h"
+//#include "custom_elements/linear_incompresible_element.h"
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
 #include "custom_elements/kinematic_linear.h"
@@ -416,8 +416,8 @@ namespace Kratos
             const ShellAnisotropicLinear mAnisoLinearShellElement;
             const MembraneElement mMembraneElement;
 	    
-	    const LinearIncompresibleElement mLinearIncompresibleElement2D3N;
-	    const LinearIncompresibleElement mLinearIncompresibleElement3D4N; 
+	    //const LinearIncompresibleElement mLinearIncompresibleElement2D3N;
+	    //const LinearIncompresibleElement mLinearIncompresibleElement3D4N; 
 	    
             const TotalLagrangian mTotalLagrangian2D3N; 
             const TotalLagrangian mTotalLagrangian2D4N; 
