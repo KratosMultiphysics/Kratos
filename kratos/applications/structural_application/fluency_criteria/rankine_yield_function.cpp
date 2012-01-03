@@ -62,7 +62,9 @@ namespace Kratos
 			  
 	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matri
            
-            Rankine_Yield_Function::Rankine_Yield_Function(myState State)
+            Rankine_Yield_Function::Rankine_Yield_Function(
+            
+            myState State)
 	    :FluencyCriteria()
 	    {
               mState = State;
