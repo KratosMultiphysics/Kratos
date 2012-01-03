@@ -12,6 +12,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_anisotropic_linear.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_isotropic.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp 	
+        #${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_incompresible_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Hypoelastic_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
@@ -70,15 +71,17 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	#rankine_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/isotropic_rankine_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/morh_coulomb_yield_function.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/standard_morh_coulomb_yield_function.cpp
         #tresca_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/von_mises_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/modified_morh_coulomb_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/drucker_prager_yield_function.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/exponencial_softening.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/linear_softening.cpp
-	
+        ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/cohesion_softening.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/friction_softening.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/soft_hard_behavior/dilatancy_softening.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/fluency_criteria/energy_yield_function.cpp
-        
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_face_2d.cpp 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_point_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_point_2d.cpp 
@@ -101,7 +104,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_kinematic_linear.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_newmark.cpp 
-
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_point_3d.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_explicit.cpp
 )
 
 ###############################################################
