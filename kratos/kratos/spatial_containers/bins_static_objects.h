@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #if !defined(KRATOS_BINS_STATIC_OBJECTS_CONTAINER_H_INCLUDED)
-#define  KRATOS_BINS_DYNAMIC_OBJECTS_CONTAINER_H_INCLUDED
+#define  KRATOS_BINS_STATIC_OBJECTS_CONTAINER_H_INCLUDED
 
 
 
@@ -548,7 +548,7 @@ namespace Kratos
       SizeType NumberOfResults = 0;
       TConfigure::CalculateBoundingBox(ThisObject, Low, High);
       Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-      SearchInBoxLocal_(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
+      SearchInBoxLocal(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
       return NumberOfResults;
      } 
        
