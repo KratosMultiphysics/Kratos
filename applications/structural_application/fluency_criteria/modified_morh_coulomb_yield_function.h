@@ -59,11 +59,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
   {
-
+       //typedef Morh_Coulomb_Yield_Function MorhCoulomb;
+       //typedef Isotropic_Rankine_Yield_Function Rankine;
       /*! Explicit elastic predictor/ return mapping algorithm for the associative and non-associative, isotropic
-       softening Morh Coulomb with isotropic non-hardening Rankine Tension Cutt Off. */
-            
-      class Modified_Morh_Coulomb_Yield_Function:  public virtual FluencyCriteria 
+       softening Morh Coulomb with isotropic non-hardening Rankine Tension Cutt Off. */      
+      class Modified_Morh_Coulomb_Yield_Function: public FluencyCriteria    //public Isotropic_Rankine_Yield_Function,  public Morh_Coulomb_Yield_Function
           
       { 
     
@@ -74,22 +74,63 @@ namespace Kratos
 	    typedef  Isotropic_Rankine_Yield_Function::Pointer      RankinePointerType;
 
             
+	    /// empty constructor
 	    Modified_Morh_Coulomb_Yield_Function();  
+	    
+	    /// Two fucntion from python
 	    Modified_Morh_Coulomb_Yield_Function(
 	    myState State, 
-	    const MorhCoulombPointerType MorhCoulomb, 
-	    const RankinePointerType RanKine);
+	    const  MorhCoulombPointerType MorhCoulomb, 
+	    const  RankinePointerType RanKine);
 	    
+	    /*
+	    /// with derivate class
+	    Modified_Morh_Coulomb_Yield_Function(
+	    const SoftHardPointerType& SofteningBehavior,           /// For Ft
+	    const SoftHardPointerType& SofteningBehaviorCohesion,   /// For Cohesion
+	    const SoftHardPointerType& SofteningBehaviorFriction,   /// For Friction Angle
+            const SoftHardPointerType& SofteningBehaviorDilatancy,  /// For Dilatancy
+	    const myState& State, 
+            const myPotencialPlastic& PotencialPlastic);
+	    */
 	    
-	      
             virtual boost::shared_ptr<FluencyCriteria> Clone() const
 	        {
+		      /*  
+		      boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(     
+		      Rankine::mpSofteningBehaviorFt->Clone(),
+		      MorhCoulomb::mpSofteningBehavior_Cohesion->Clone(),
+		      MorhCoulomb::mpSofteningBehavior_Friction->Clone(),
+		      MorhCoulomb::mpSofteningBehavior_Dilatancy->Clone(),
+		      mState, 
+		      MorhCoulomb::mPotencialPlastic));
+		      return p_clone;
+		      */
+		      /*
+		      MorhCoulombPointerType m_clone  = mMorhCoulomb->Clone();
+		      RankinePointerType r_clone      = mRankine->Clone();
+		      */
+		      
+		      MorhCoulombPointerType m_clone(new Morh_Coulomb_Yield_Function(                   
+		      mMorhCoulomb->mpSofteningBehavior_Cohesion, 
+		      mMorhCoulomb->mpSofteningBehavior_Friction,
+		      mMorhCoulomb->mpSofteningBehavior_Dilatancy, 
+		      mMorhCoulomb->mState, 
+		      mMorhCoulomb->mPotencialPlastic));
+		      
+		      RankinePointerType r_clone(new Isotropic_Rankine_Yield_Function(
+		      mRankine->mpSofteningBehaviorFt,
+		      mState));
+		      
+		      
 		      boost::shared_ptr<FluencyCriteria> p_clone(new Modified_Morh_Coulomb_Yield_Function(
 		      mState, 
-		      mMorhCoulomb,
-		      mRankine 
+		      m_clone,
+		      r_clone
 		      ));
-		      return p_clone;
+		      
+ 		      return p_clone;
+		      
 		}
    
             
@@ -102,23 +143,27 @@ namespace Kratos
 //***********************************************************************
    
 
-      
+      bool CheckPlasticAdmisibility(const Vector& Stress); 
       void InitializeMaterial(const Properties& props);  
-      void ReturnMapping(const Vector& StrainVector, Vector& StressVector);
+      void ReturnMapping(const Vector& StrainVector, const Vector& TrialStress, Vector& StressVector);
       void FinalizeSolutionStep();
       void UpdateMaterial();
-      void GetValue(double Result);
       void GetValue(const Variable<Matrix>& rVariable, Matrix& Result);
       void GetValue(const Variable<double>& rVariable, double& Result);
-   
+      void GetValue(const Variable<Vector>& rVariable, Vector& Result);
+      void GetValue(double& Result);
+      void GetValue(Matrix& Result);
 
-      private:
+      
+      protected:
 	
 	
       bool Return_Mapping_Intersection_Main_Plane_And_Sigma1_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma);  
       bool Return_Mapping_Intersection_Main_Plane_Corner_And_Sigma1_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma); 
       bool Return_Mapping_Intersection_Main_Plane_Corner_And_Sigma1_And_Sigma_2_Tesile_Plane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma); 
       void CalculatePlasticDamage(const array_1d<double,3>& Sigma);
+      void ComputeActualStrees(const double& Ppvs, const array_1d<double,3>& Ppds, const array_1d<double,3>& PrincipalStress, array_1d<double,3>& Sigma);
+      void ComputeActualStrain(const array_1d<double,3>& Pps);
       
       MorhCoulombPointerType mMorhCoulomb;
       RankinePointerType     mRankine; 
@@ -127,11 +172,21 @@ namespace Kratos
       
       double m_modified_morh_coulomb_maccumulated_plastic_strain_old; 
       double m_modified_morh_coulomb_maccumulated_plastic_strain_current;
+      //double m_modified_morh_coulomb_maccumulated_plastic_strain_current_pos;
+      //double m_modified_morh_coulomb_maccumulated_plastic_strain_current_neg;
+      
+      
+      
+      
       //double mfracture_strain;
       double  mlength;
       double  mpastic_damage_old;
       double  mpastic_damage_current;
-      
+      Vector mplastic_strain; 
+      Vector mplastic_strain_old; 
+      Vector mElastic_strain; 
+      Vector mElastic_strain_old; 
+      Matrix m_inv_DeltaF;
 	  
 	inline double cint(double x){
 	  double intpart;
