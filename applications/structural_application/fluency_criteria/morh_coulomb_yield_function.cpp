@@ -121,7 +121,7 @@ double Morh_Coulomb_Yield_Function::Toler(const Vector& Stress)
   const double& cohe      = mcurrent_cohesion;
   const double cosphi     = std::cos(PI * friction  / 180.00);
   const double sinphi     = std::sin(PI * friction  / 180.00);
-  double toler            = tol*((Stress[0] + Stress[2]) * sinphi + 2.00 * mcurrent_cohesion * cosphi);
+  double toler            = tol*((Stress[0] + Stress[2]) * sinphi + 2.00 * cohe* cosphi);
   if(toler>1.00) toler    = 1.00;
   if(toler<0.001)  toler  = 0.001;
   return toler;
@@ -252,6 +252,11 @@ void Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, cons
     mpressure =  d3 * (Sigma[0] + Sigma[1] + Sigma[2]);
     switch(mState)
       {
+      case Plane_Stress:
+      {
+      KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+      break;
+      }
       case Plane_Strain:
       {    
 	/// computing the pressure
@@ -335,8 +340,7 @@ I[2] = 1.00;
 
 Vector Imput(3);
 Imput    = ZeroVector(3);
-bool mov = false; 
-
+//bool mov = false; 
 while(fabs(res)>toler && iter++ < max )
    {      
      
@@ -521,10 +525,10 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
   double Partial_Ep_gama_b = 0.00; 
   
   const double raiz2d3 = 0.8164958092773; 
-  double aux_1   = 0.00;
-  double aux_2   = 0.00;
-  double aux_3   = 0.00;
-  double aux_4   = 0.00;
+  //double aux_1   = 0.00;
+  //double aux_2   = 0.00;
+  //double aux_3   = 0.00;
+  //double aux_4   = 0.00;
   double aux     = 1.00;
   double a       = 0.00;
   double b       = 0.00;
@@ -801,7 +805,7 @@ else
     mPrincipalPlasticStrain_current[2] =  mPrincipalPlasticStrain_old[2]  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00);
   }
   */
-   
+  } 
   return check;
 
 }
