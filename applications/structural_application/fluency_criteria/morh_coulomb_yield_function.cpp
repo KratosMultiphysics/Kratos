@@ -788,21 +788,20 @@ else
    /*if(edges ==true)  //rigth
    {
     //updating the correct principal pastic strain
-    mPrincipalPlasticStrain_current[0] = /*mPrincipalPlasticStrain_old[0]   PPS_bar[0] +  (dgama[0] + dgama[1])  * (1.00  + sinpsi);
-    mPrincipalPlasticStrain_current[1] = /*mPrincipalPlasticStrain_old[1]   PPS_bar[1] + dgama[1] * (sinpsi - 1.00);
-    mPrincipalPlasticStrain_current[2] = /*mPrincipalPlasticStrain_old[2]   PPS_bar[2]  + dgama[0] * (sinpsi - 1.00); 
+    mPrincipalPlasticStrain_current[0] = /*mPrincipalPlasticStrain_old[0]*/ /*  PPS_bar[0] +  (dgama[0] + dgama[1])  * (1.00  + sinpsi);
+    mPrincipalPlasticStrain_current[1] = /*mPrincipalPlasticStrain_old[1]*/ /*  PPS_bar[1] + dgama[1] * (sinpsi - 1.00);
+    mPrincipalPlasticStrain_current[2] = /*mPrincipalPlasticStrain_old[2]*/ /*  PPS_bar[2]  + dgama[0] * (sinpsi - 1.00); 
    }
    else
    {
     //updating the correct principal pastic strain
-    mPrincipalPlasticStrain_current[0] =  /*mPrincipalPlasticStrain_old[0]  PPS_bar[0]  + dgama[0] * (sinpsi + 1.00); 
-    mPrincipalPlasticStrain_current[1] =  /*mPrincipalPlasticStrain_old[1]  PPS_bar[1]  + dgama[1] * (sinpsi + 1.00);
-    mPrincipalPlasticStrain_current[2] =  /*mPrincipalPlasticStrain_old[2]  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00);
+    mPrincipalPlasticStrain_current[0] =  /*mPrincipalPlasticStrain_old[0]*//*  PPS_bar[0]  + dgama[0] * (sinpsi + 1.00); 
+    mPrincipalPlasticStrain_current[1] =  /*mPrincipalPlasticStrain_old[1]*//*  PPS_bar[1]  + dgama[1] * (sinpsi + 1.00);
+    mPrincipalPlasticStrain_current[2] =  /*mPrincipalPlasticStrain_old[2]*//*  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00);
      
    }*/ 
   }
   
-  //KRATOS_WATCH(Sigma)
   return check;
 
 }
