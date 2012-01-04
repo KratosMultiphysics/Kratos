@@ -821,7 +821,7 @@ Sigma = ZeroVector(3);
 const double& E         =   (*mprops)[YOUNG_MODULUS];
 const double& NU        =   (*mprops)[POISSON_RATIO];
 const double K          =   E / (3.00 * (1.00-2.00 * NU) );
-const double G          =   0.5 * E / (1.00 + NU);
+//const double G          =   0.5 * E / (1.00 + NU);
 const double toler      =   Toler(PrincipalStress);
 const unsigned max      =   100;
 unsigned int iter       =   0;  
@@ -1159,7 +1159,7 @@ void Morh_Coulomb_Yield_Function::CalculatePlasticDamage(const array_1d<double,3
 	  */
 	  
           
-          const double toler = 1E-6;
+          const double toler = 1E-10;
 	  double teta_a     =  Tensor_Utils<double>::Mc_aully(Sigma);
           double teta_b     =  std::fabs(Sigma[0]) + std::fabs(Sigma[1]) + std::fabs(Sigma[2]);
 	  double teta       =  0.00;
@@ -1168,7 +1168,7 @@ void Morh_Coulomb_Yield_Function::CalculatePlasticDamage(const array_1d<double,3
 	  double disipation  =  inner_prod(Sigma, DeltaPlasticStrain);
 	  
 	  
-	  if (fabs(teta_b) > 1E-10)
+	  if (fabs(teta_b) > toler)
           {
 	   teta = teta_a/teta_b;
 	   // computing Kp_punto
