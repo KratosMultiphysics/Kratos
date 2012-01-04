@@ -123,8 +123,8 @@ void Standard_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVec
     
     const double& Young   = (*mprops)[YOUNG_MODULUS];
     const double& Poisson = (*mprops)[POISSON_RATIO];
-    const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
-    const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
+    //const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
+    //const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
     
     array_1d<double,3> PrincipalStress;
     array_1d<double,3> Sigma;
@@ -205,7 +205,7 @@ double denom   = 0.00;
 double sinphi  =   std::sin(PI * friction * d180);
 double cosphi  =   std::cos(PI * friction * d180);
 double sinpsi  =   std::sin(PI * dilatancy* d180);
-double cospsi  =   std::cos(PI * dilatancy* d180); 
+//double cospsi  =   std::cos(PI * dilatancy* d180); 
 
 
 // Start Newton-Raphson iterations for DGAMA
@@ -225,7 +225,7 @@ Imput_Parameters[2] =  0.00;
 
 Partial_Cohesion       =  mpSofteningBehavior_Cohesion->FirstDerivateFunctionBehavior(Imput_Parameters);  
 const double d3        =  0.3333333333333333;
-const double raiz2d3   =  0.8164958092773; 
+//const double raiz2d3   =  0.8164958092773; 
 double Ppvs = 0.00;           /// principal plastic volumetric strain  
 array_1d<double,3> Ppds;      /// principal plastic desviatoric strain
 array_1d<double,3> Pps;       /// principal plastic  strain
@@ -333,14 +333,14 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
   double sinphi  =   std::sin(PI * friction * d180);
   double cosphi  =   std::cos(PI * friction * d180);
   double sinpsi  =   std::sin(PI * dilatancy* d180);
-  double cospsi  =   std::cos(PI * dilatancy* d180); 
+//  double cospsi  =   std::cos(PI * dilatancy* d180); 
   
 
   double sigma_a = 0.00;
   double sigma_b = 0.00;
   double Partial_Cohesion  = 0.00;  
   
-  const double raiz2d3 = 0.8164958092773; 
+//  const double raiz2d3 = 0.8164958092773; 
   double aux     = 0.00;
   double a       = 0.00;
   double b       = 0.00;
@@ -367,7 +367,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
   
   int singular  = 0.00;
   double norma  = norm_2(residual);
-  double phipsi = 0.00;
+//  double phipsi = 0.00;
   Vector Imput_Parameters;
   Imput_Parameters.resize(3);
   Imput_Parameters[0] =  0.00;
@@ -479,7 +479,7 @@ else
 */
   
   bool check = CheckValidity(Sigma);
-  /*
+  
   if (check==true)
   { 
     Vector PPS_bar;
@@ -489,21 +489,19 @@ else
    /*if(edges ==true)  //rigth
    {
     //updating the correct principal pastic strain
-    mPrincipalPlasticStrain_current[0] = /*mPrincipalPlasticStrain_old[0]   PPS_bar[0] +  (dgama[0] + dgama[1])  * (1.00  + sinpsi);
-    mPrincipalPlasticStrain_current[1] = /*mPrincipalPlasticStrain_old[1]   PPS_bar[1] + dgama[1] * (sinpsi - 1.00);
-    mPrincipalPlasticStrain_current[2] = /*mPrincipalPlasticStrain_old[2]   PPS_bar[2]  + dgama[0] * (sinpsi - 1.00); 
+    mPrincipalPlasticStrain_current[0] = mPrincipalPlasticStrain_old[0]   PPS_bar[0] +  (dgama[0] + dgama[1])  * (1.00  + sinpsi);
+    mPrincipalPlasticStrain_current[1] = mPrincipalPlasticStrain_old[1]   PPS_bar[1] + dgama[1] * (sinpsi - 1.00);
+    mPrincipalPlasticStrain_current[2] = mPrincipalPlasticStrain_old[2]   PPS_bar[2]  + dgama[0] * (sinpsi - 1.00); 
    }
    else
    {
     //updating the correct principal pastic strain
-    mPrincipalPlasticStrain_current[0] =  /*mPrincipalPlasticStrain_old[0]  PPS_bar[0]  + dgama[0] * (sinpsi + 1.00); 
-    mPrincipalPlasticStrain_current[1] =  /*mPrincipalPlasticStrain_old[1]  PPS_bar[1]  + dgama[1] * (sinpsi + 1.00);
-    mPrincipalPlasticStrain_current[2] =  /*mPrincipalPlasticStrain_old[2]  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00);
-     
+    mPrincipalPlasticStrain_current[0] =  mPrincipalPlasticStrain_old[0]  PPS_bar[0]  + dgama[0] * (sinpsi + 1.00); 
+    mPrincipalPlasticStrain_current[1] =  mPrincipalPlasticStrain_old[1]  PPS_bar[1]  + dgama[1] * (sinpsi + 1.00);
+    mPrincipalPlasticStrain_current[2] =  mPrincipalPlasticStrain_old[2]  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00); 
    }
+   */
   }
-  */
-  //KRATOS_WATCH(Sigma)
   return check;
 }
 
@@ -513,11 +511,11 @@ else
 void Standard_Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& PrincipalStress, array_1d<double, 3 >& Sigma)
 {
 
-const double d3         =   0.3333333333333333;
+//const double d3         =   0.3333333333333333;
 const double d180       =   0.005555555555555555555;  
 const double& E         =   (*mprops)[YOUNG_MODULUS];
 const double& NU        =   (*mprops)[POISSON_RATIO];
-const double G          =   0.5 * E / (1.00 + NU);
+//const double G          =   0.5 * E / (1.00 + NU);
 const double K          =   E / (3.00 * (1.00-2.00 * NU) );
 const double toler      =   1E-6;
 const double& friction  =  (*mprops)[INTERNAL_FRICTION_ANGLE]; 
@@ -533,14 +531,14 @@ const double cotphi  =   cosphi/sinphi;
 const double alpha   =   cosphi/sinpsi;
 
 
-int iter           = 0.00;
+unsigned int iter  = 0.00;
 double d           = 0.00;
 double r           = 0.00;
 double p_trial     = (1.00/3.00) * ( PrincipalStress[0] + PrincipalStress[1] + PrincipalStress[2] );
 double p           = 0.00;
 double fact        = 0.00;
 
-const double raiz2d3   = 0.8164958092773;  
+//const double raiz2d3   = 0.8164958092773;  
 double dgama_b         = 0.00;
 double ddgama_b        = 0.00;  // volumetric part
 
@@ -557,8 +555,7 @@ Partial_Cohesion    =  mpSofteningBehavior_Cohesion->FirstDerivateFunctionBehavi
 
 
 while(std::fabs(r) > toler && iter++<max ) 
-{
-  
+{  
    d         = K +  Partial_Cohesion * cotphi * alpha; 
    ddgama_b  = -r / d;
    dgama_b  += ddgama_b;
