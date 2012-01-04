@@ -536,6 +536,11 @@ void ComputePlasticStrainBar(const Vector& PS, const Matrix& Inv_DeltaF, Vector&
   noalias(S)      = ZeroMatrix(3,3);
   
   switch(mState){
+  case Plane_Stress:
+  {
+    KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+    break;
+  }
   case Plane_Strain:
    {
       Vector Aux(3);
@@ -556,6 +561,7 @@ void ComputePlasticStrainBar(const Vector& PS, const Matrix& Inv_DeltaF, Vector&
       break;
    }
   }
+  
   noalias(Result)        = prod(Matrix(prod(trans(Inv_DeltaF),S)), Inv_DeltaF);  
   int    iter            = 1000;
   double zero            = 1.0E-12;
@@ -730,6 +736,12 @@ void AssembleStress(const Vector& Stress, Vector& StressVector)
 {
     switch(mState)
     {
+     case Plane_Stress:
+     {
+      KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+      break;
+    }  
+      
     case Plane_Strain:
     {    
     /// computing the pressure
@@ -767,6 +779,11 @@ void CalculatePlasticStrain( const array_1d<double,3>& PrincipalPlasticStrain_cu
   
    switch(mState)
       {
+       case Plane_Stress:
+       {
+         KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+         break;
+       }
 	case(Plane_Strain):{
 	  plastic_strain = ZeroVector(4);
 	  plastic_strain[0] = PlasticTensor(0,0);
@@ -826,6 +843,12 @@ void CalculateElasticStrain(const Vector& StressVector,  Vector& Elastic_strain)
    
     switch(mState)
   {
+    
+     case Plane_Stress:
+      {
+       KRATOS_ERROR(std::logic_error,  " Only Plane Strain and 3D cases are allowed", "");
+       break;
+      }
       case Plane_Strain:
       {
 	Desviatoric.resize(4);
