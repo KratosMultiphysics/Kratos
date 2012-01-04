@@ -899,7 +899,7 @@ double ComputeTime()
     
     
     // WARNING = Los threads Id siempre empiezan por cero.
-    #pragma omp parallel for private(delta_time_a)  shared(CurrentProcessInfo)
+    #pragma omp parallel for private(delta_time_a)  //shared(CurrentProcessInfo)
     for(int k=0; k<number_of_threads; k++){
     typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
     typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
