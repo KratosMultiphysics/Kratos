@@ -121,8 +121,8 @@ bool Standard_Morh_Coulomb_Yield_Function::CheckPlasticAdmisibility(const Vector
 void Standard_Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, const Vector& TrialStress, Vector& StressVector)
 {
     
-    const double& Young   = (*mprops)[YOUNG_MODULUS];
-    const double& Poisson = (*mprops)[POISSON_RATIO];
+    //const double& Young   = (*mprops)[YOUNG_MODULUS];
+    //const double& Poisson = (*mprops)[POISSON_RATIO];
     //const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
     //const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
     
@@ -437,10 +437,6 @@ fact1       =  2.00 *  cosphi * mcurrent_cohesion;
 residual[0] =  sigma_a - a * dgama[0] - b * dgama[1] - fact1;  
 residual[1] =  sigma_b - b * dgama[0] - a * dgama[1] - fact1;
 
-KRATOS_WATCH(residual)
-KRATOS_WATCH(dgama)
-KRATOS_WATCH(Pps)
-
 
 //Check convergence
 norma = std::fabs(residual[0]) + std::fabs(residual[1]);  
@@ -479,14 +475,14 @@ else
 */
   
   bool check = CheckValidity(Sigma);
-  
+  /*
   if (check==true)
   { 
     Vector PPS_bar;
     ComputePlasticStrainBar(mplastic_strain_old ,m_inv_DeltaF, PPS_bar);
     noalias(mPrincipalPlasticStrain_current) = PPS_bar + Pps;
     
-   /*if(edges ==true)  //rigth
+   if(edges ==true)  //rigth
    {
     //updating the correct principal pastic strain
     mPrincipalPlasticStrain_current[0] = mPrincipalPlasticStrain_old[0]   PPS_bar[0] +  (dgama[0] + dgama[1])  * (1.00  + sinpsi);
@@ -500,8 +496,8 @@ else
     mPrincipalPlasticStrain_current[1] =  mPrincipalPlasticStrain_old[1]  PPS_bar[1]  + dgama[1] * (sinpsi + 1.00);
     mPrincipalPlasticStrain_current[2] =  mPrincipalPlasticStrain_old[2]  PPS_bar[2]  + (dgama[0] + dgama[1])  * (sinpsi - 1.00); 
    }
-   */
   }
+  */
   return check;
 }
 
@@ -707,11 +703,15 @@ void Standard_Morh_Coulomb_Yield_Function::GetValue(double& Result)
 
 void Standard_Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
 {
-        m_inv_DeltaF;
 	m_inv_DeltaF.resize(3,3, false);
 	noalias(m_inv_DeltaF) = ZeroMatrix(3,3);
 	switch(mState)
          {
+	  case Plane_Stress:
+	    {
+	    KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+	    break;
+	    }
           case Plane_Strain:
             {
 	      m_inv_DeltaF(0,0)    = Result(0,0);
