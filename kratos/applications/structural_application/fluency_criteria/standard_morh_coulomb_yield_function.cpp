@@ -538,7 +538,7 @@ double p_trial     = (1.00/3.00) * ( PrincipalStress[0] + PrincipalStress[1] + P
 double p           = 0.00;
 double fact        = 0.00;
 
-//const double raiz2d3   = 0.8164958092773;  
+const double raiz2d3   = 0.8164958092773;  
 double dgama_b         = 0.00;
 double ddgama_b        = 0.00;  // volumetric part
 
