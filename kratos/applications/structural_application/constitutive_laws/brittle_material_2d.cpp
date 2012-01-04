@@ -345,7 +345,7 @@ void BrittleMaterial2D::ComputeTrialElasticStress(const Vector& Strain,
 						  const Matrix& Inv_Delta_F,
 						  array_1d<double,4>&  ElasticTrialStress)
 {
-    const int  dim        = 4; /// size of plastic strain
+    //const int  dim        = 4; /// size of plastic strain
     const int  dim2       = 3; 
     const double& Young   = (*mpProperties)[YOUNG_MODULUS];
     const double& Poisson = (*mpProperties)[POISSON_RATIO];
@@ -420,8 +420,8 @@ void BrittleMaterial2D::ComputeTrialElasticStress(const Vector& Strain,
 /// FOR SMALL DEFORMATION
 void BrittleMaterial2D::ComputeTrialElasticStress(const Vector& Strain, array_1d<double,4>&  ElasticTrialStress)
 {
-    const int  dim        = 4; /// size of plastic strain
-    const int  dim2       = 3; 
+    //const int  dim        = 4; /// size of plastic strain
+    //const int  dim2       = 3; 
     const double& Young   = (*mpProperties)[YOUNG_MODULUS];
     const double& Poisson = (*mpProperties)[POISSON_RATIO];
     const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
