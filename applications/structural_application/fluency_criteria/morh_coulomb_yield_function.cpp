@@ -848,8 +848,8 @@ double p_trial     = (1.00/3.00) * ( PrincipalStress[0] + PrincipalStress[1] + P
 double p           = 0.00;
 
 
-const double dgama_a   = 1.00/(2.00 * G ); 
-const double raiz2d3   = 0.8164958092773;  
+//const double dgama_a   = 1.00/(2.00 * G ); 
+//const double raiz2d3   = 0.8164958092773;  
 double dgama_b         = 0.00;
 double ddgama_b        = 0.00;  // volumetric part
 
@@ -1090,11 +1090,15 @@ void Morh_Coulomb_Yield_Function::GetValue(double& Result)
 
 void Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
 {
-        m_inv_DeltaF;
 	m_inv_DeltaF.resize(3,3, false);
 	noalias(m_inv_DeltaF) = ZeroMatrix(3,3);
 	switch(mState)
          {
+	  case Plane_Stress:
+	  {
+	  KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+	  break;
+	  }
           case Plane_Strain:
             {
 	      m_inv_DeltaF(0,0)    = Result(0,0);
