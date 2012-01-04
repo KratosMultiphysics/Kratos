@@ -128,8 +128,8 @@ namespace Kratos
              {
 	       
 		noalias(StressVector) = ZeroVector(3);
-		const double& Young   = (*mprops)[YOUNG_MODULUS];
-		const double& Poisson = (*mprops)[POISSON_RATIO];
+		//const double& Young   = (*mprops)[YOUNG_MODULUS];
+		//const double& Poisson = (*mprops)[POISSON_RATIO];
 		//const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
 		//const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
 	             
@@ -396,8 +396,8 @@ namespace Kratos
                 double norma = norm_2(residual);
 		int singular = 0;  
 		const double raiz2d3 = 0.8164958092773; 
-		double aux_1 = 0.00; 
-		double aux_2 = 0.00;   
+		//double aux_1 = 0.00; 
+		//double aux_2 = 0.00;   
 		double aux   = 1.00;
 		double H     = 0.00;
 		double& gama_a = dgama[0];
@@ -697,8 +697,8 @@ namespace Kratos
                 double norma = norm_2(residual);
 		int singular = 0;  
 		const double raiz2d3 = 0.8164958092773; 
-		double aux_1   = 0.00; 
-		double aux_2   = 0.00;   
+		//double aux_1   = 0.00; 
+		//double aux_2   = 0.00;   
 		double aux     = 1.00;
 		double& gama_a = dgama[0];
 		double& gama_b = dgama[1];
@@ -1110,9 +1110,9 @@ namespace Kratos
 	double norma         = norm_2(residual);
 	int singular         = 0;  
 	const double raiz2d3 = 0.8164958092773; 
-	double aux_1         = 0.00; 
-	double aux_2         = 0.00;   
-	double aux_3         = 0.00;  
+	//double aux_1         = 0.00; 
+	//double aux_2         = 0.00;   
+	//double aux_3         = 0.00;  
 	double aux           = 1.00;
 	
 	double& gama_a = dgama[0];
@@ -1158,7 +1158,7 @@ namespace Kratos
 	I[1] = 1.00;
 	I[2] = 1.00;
 	
-	int count = 0;
+	//int count = 0;
 	while(fabs(norma)>toler && iter++ < max )
 		{
 		  Partial_Ep_gama_a  = (2.00/3.00) *( ( (gama_a)*(1.00 + sinpsi) + gama_c ) * (1.00 + sinpsi) +  (gama_a + gama_b)  * (sinpsi-1.00) * (sinpsi - 1.00 ) ) ; 
@@ -1580,25 +1580,25 @@ namespace Kratos
             }
             
         
+        /// WARNING = This funtion is not used
         bool Modified_Morh_Coulomb_Yield_Function::CheckPlasticAdmisibility(const Vector& Stress)
         { 
-	  	const double& friction  = mMorhCoulomb->mcurrent_minternal_friction_angle; 
+	       return false;
+	        /*
+ 	  	const double& friction  = mMorhCoulomb->mcurrent_minternal_friction_angle; 
 	        const double& cohe      = mMorhCoulomb->mcurrent_cohesion;
 	        const double sinphi     = std::sin(PI * friction  / 180.00);
 	        const double cosphi     = std::cos(PI * friction  / 180.00);
-
 	        // Check plastic admissibility
 	        double sigma_ef = (Stress[0] - Stress[2]) + (Stress[0] + Stress[2]) * sinphi;
 	        double phia     = sigma_ef - 2.00 *  cosphi * cohe;
-                return false;
-	  /*
-	  bool plastic_1 = mMorhCoulomb->CheckPlasticAdmisibility(Stress); 
-	  bool plastic_2 = mRankine->CheckPlasticAdmisibility(Stress); 
-	  if(plastic_1== false && plastic_2==false)
-	     return false; 
-	  else
-	    return true;
-	  */
+	        bool plastic_1 = mMorhCoulomb->CheckPlasticAdmisibility(Stress); 
+	        bool plastic_2 = mRankine->CheckPlasticAdmisibility(Stress); 
+		if(plastic_1== false && plastic_2==false)
+		  return false; 
+		else
+		  return true;
+		*/
 	}
 	
 	
@@ -1617,11 +1617,15 @@ namespace Kratos
      
       void Modified_Morh_Coulomb_Yield_Function::GetValue(Matrix& Result)
       {
-	m_inv_DeltaF;
 	m_inv_DeltaF.resize(3,3, false);
 	noalias(m_inv_DeltaF) = ZeroMatrix(3,3);
 	switch(mState)
          {
+	  case Plane_Stress:
+	  {
+	  KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+	  break;
+	  }
           case Plane_Strain:
             {
 	      m_inv_DeltaF(0,0)    = Result(0,0);
@@ -1658,7 +1662,7 @@ namespace Kratos
 	      mpastic_damage_current = 1.00; 
 	  */
 	  
-	            const double toler = 1E-6;
+	  const double toler = 1E-8;
 	  double teta_a     =  Tensor_Utils<double>::Mc_aully(Sigma);
           double teta_b     =  std::fabs(Sigma[0]) + std::fabs(Sigma[1]) + std::fabs(Sigma[2]);
 	  double teta       =  0.00;
@@ -1666,7 +1670,7 @@ namespace Kratos
 	  double disipation =  inner_prod(Sigma, DeltaPlasticStrain);
 	  
 	  
-	  if (fabs(teta_b) > 1E-8)
+	  if (fabs(teta_b) > toler)
           {
 	   teta = teta_a/teta_b;
 	   // computing Kp_punto
