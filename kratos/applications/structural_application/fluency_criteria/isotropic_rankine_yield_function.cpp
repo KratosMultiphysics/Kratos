@@ -145,14 +145,14 @@ namespace Kratos
 	        if(mcurrent_Ft>0.00){
 		const double& Young   = (*mprops)[YOUNG_MODULUS];
 		const double& Poisson = (*mprops)[POISSON_RATIO];
-		const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
-		const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
+		//const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
+		//const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
 
 		array_1d<double,3> PrincipalStress = ZeroVector(3);
 		array_1d<double,3> Sigma = ZeroVector(3);
 		array_1d<array_1d < double,3 > ,3> EigenVectors;
 		array_1d<unsigned int,3> Order;
-		const double d3  = 0.3333333333333333333; 
+		//const double d3  = 0.3333333333333333333; 
 
 		const int dim =  TrialStress.size();
 		Vector Stress(dim);
@@ -728,7 +728,7 @@ bool Isotropic_Rankine_Yield_Function::CheckValidity( array_1d<double,3>& Sigma)
    {
      int size = SizePlasticStrain();
      Result.resize(1, size, false);
-     for(unsigned int i = 0; i< size; i++ )
+     for(int i = 0; i< size; i++ )
         Result(0,i) = mplastic_strain(i); 
    }
     return;
@@ -742,11 +742,15 @@ bool Isotropic_Rankine_Yield_Function::CheckValidity( array_1d<double,3>& Sigma)
    
    void Isotropic_Rankine_Yield_Function::GetValue(Matrix& Result)
    {
-        m_inv_DeltaF;
 	m_inv_DeltaF.resize(3,3, false);
 	noalias(m_inv_DeltaF) = ZeroMatrix(3,3);
 	switch(mState)
          {
+	  case Plane_Stress:
+          {
+	    KRATOS_ERROR(std::logic_error,  "PLANE STRESS NOT IMPLEMENTED" , "");
+	    break;
+          } 
           case Plane_Strain:
             {
 	      m_inv_DeltaF(0,0)    = Result(0,0);
@@ -782,11 +786,11 @@ void Isotropic_Rankine_Yield_Function::GetValue(const Variable<Vector>& rVariabl
    void Isotropic_Rankine_Yield_Function::GetValue(const Variable<double>& rVariable, double& Result)
       {
 	
-          const double& Ft   = (*mprops)[FT];
-	  const double& Ec   = (*mprops)[YOUNG_MODULUS];
-	  const double& GE   = (*mprops)[FRACTURE_ENERGY];
-	  const double Eu    =  (2.00 * GE)/(Ft * mhe);
-	
+          //const double& Ft   = (*mprops)[FT];
+	  //const double& Ec   = (*mprops)[YOUNG_MODULUS];
+	  //const double& GE   = (*mprops)[FRACTURE_ENERGY];
+	  //const double Eu    =  (2.00 * GE)/(Ft * mhe);
+	  
 	if(rVariable==COHESION)
 	  Result = 0.00;
         
@@ -817,7 +821,7 @@ void Isotropic_Rankine_Yield_Function::GetValue(const Variable<Vector>& rVariabl
 	  kp_punto               =  kp_punto/gf; 
 	  mpastic_damage_current =  mpastic_damage_old + 0.816496581 * kp_punto;  
 	  */
-	  const double toler = 1E-6;
+	  const double toler = 1E-10;
 	  double teta_a     =  Tensor_Utils<double>::Mc_aully(Sigma);
           double teta_b     =  std::fabs(Sigma[0]) + std::fabs(Sigma[1]) + std::fabs(Sigma[2]);
 	  double teta       =  0.00;
@@ -825,7 +829,7 @@ void Isotropic_Rankine_Yield_Function::GetValue(const Variable<Vector>& rVariabl
           noalias(DeltaPlasticStrain) = mPrincipalPlasticStrain_current - mPrincipalPlasticStrain_old;
 	  double disipation  =  inner_prod(Sigma, DeltaPlasticStrain);
 	  
-	  if (fabs(teta_b) > 1E-10)
+	  if (fabs(teta_b) > toler)
           {
 	   teta = teta_a/teta_b;
 	   // computing Kp_punto
