@@ -130,8 +130,8 @@ namespace Kratos
 		noalias(StressVector) = ZeroVector(3);
 		const double& Young   = (*mprops)[YOUNG_MODULUS];
 		const double& Poisson = (*mprops)[POISSON_RATIO];
-		const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
-		const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
+		//const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
+		//const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
 	             
 		Vector Aux_Trial_Stress;
 		Aux_Trial_Stress.resize(StressVector.size());
