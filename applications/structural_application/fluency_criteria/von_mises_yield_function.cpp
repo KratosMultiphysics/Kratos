@@ -41,13 +41,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 
-/* *********************************************************   
+/**********************************************************   
 *          
 *   Last Modified by:    $Author: Nelson $
 *   Date:                $Date: 2011-11-9 
-\*   Revision:           $Revision: 1.2 $
+*   Revision:            $Revision: 1.2 $
 *
-* ***********************************************************/
+************************************************************/
 
 
 //#include "utilities/math_utils.h"
@@ -57,12 +57,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 
 /***********************************************************************
-C STATE UPDATE PROCEDURE FOR THE VON MISES ELASTO-PLASTIC MATERIAL MODEL
-C WITH NON-LINEAR (PIECEWISE LINEAR) ISOTROPIC HARDENING:
-C IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM (BOXES 7.3-4).
-C PLANE STRAIN AND AXISYMMETRIC IMPLEMENTATIONS.
-C***********************************************************************
-*/
+STATE UPDATE PROCEDURE FOR THE VON MISES ELASTO-PLASTIC MATERIAL MODEL
+WITH NON-LINEAR (PIECEWISE LINEAR) ISOTROPIC HARDENING:
+IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM (BOXES 7.3-4).
+PLANE STRAIN AND AXISYMMETRIC IMPLEMENTATIONS.
+***********************************************************************/
 
 
 namespace Kratos
@@ -369,9 +368,9 @@ namespace Kratos
 	  SpectralDecompositionStrain(DeltaPlasticStrain, PrincipalStrain, EigenVectors);
 	  
 	  
-	  double teta_at          =  Tensor_Utils<double>::Mc_aully(Sigma);
-	  double teta_ac          =  Tensor_Utils<double>::Mc_aully(-Sigma);
-          double teta_b           =  std::fabs(Sigma[0]) + std::fabs(Sigma[1]) + std::fabs(Sigma[2]);
+	  //double teta_at          =  Tensor_Utils<double>::Mc_aully(Sigma);
+	  //double teta_ac          =  Tensor_Utils<double>::Mc_aully(-Sigma);
+          //double teta_b           =  std::fabs(Sigma[0]) + std::fabs(Sigma[1]) + std::fabs(Sigma[2]);
            
           // computing Kp_punto
 	  double gc_p  = (*mprops)[CRUSHING_ENERGY]/mhe; 
