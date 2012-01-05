@@ -190,8 +190,8 @@ void Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, cons
 {
     const double& Young   = (*mprops)[YOUNG_MODULUS];
     const double& Poisson = (*mprops)[POISSON_RATIO];
-    const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
-    const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
+    //const double Gmodu    = Young/(2.00 * (1.00 + Poisson) );
+    //const double Bulk     = Young/(3.00 * (1.00-2.00*Poisson)); 
     
     array_1d<double,3> PrincipalStress = ZeroVector(3);
     array_1d<double,3> Sigma = ZeroVector(3);
