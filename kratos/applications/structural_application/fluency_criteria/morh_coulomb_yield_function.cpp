@@ -239,17 +239,14 @@ void Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, cons
       mplastic_strain[0] = PlasticTensor(0,0);
       mplastic_strain[1] = PlasticTensor(1,1);
       mplastic_strain[2] = 2.00 * PlasticTensor(1,0);
-      mplastic_strain[3] = PlasticTensor(2,2);
-      
-
-      
-      double p       =  d3 * (Sigma[0]+Sigma[1]+Sigma[2]);
-      double eevd3   =  d3*p/Bulk;
-      melastic_z_new = (Sigma[3] - p ) /  (2.00 * Gmodu) + eevd3;  
+      mplastic_strain[3] = PlasticTensor(2,2);      
     }   
 
     CalculateElasticStrain(Stress, mElastic_strain);
-    mpressure =  d3 * (Sigma[0] + Sigma[1] + Sigma[2]);
+    mpressure       =  d3 * (Sigma[0] + Sigma[1] + Sigma[2]);
+    //double eevd3    =  d3*mpressure/Bulk;
+    //melastic_z_new  = (Sigma[3] - p ) /  (2.00 * Gmodu) + eevd3; 
+    
     switch(mState)
       {
       case Plane_Stress:
@@ -264,6 +261,7 @@ void Morh_Coulomb_Yield_Function::ReturnMapping(const Vector& StrainVector, cons
         StressVector[1] = Stress[1];
         StressVector[2] = Stress[2];
         msigma_z        = Stress[3];
+	melastic_z_new  = mElastic_strain[3]; 
 	break;
       }
 	
