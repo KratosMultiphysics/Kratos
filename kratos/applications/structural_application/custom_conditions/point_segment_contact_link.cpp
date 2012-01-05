@@ -451,7 +451,7 @@ namespace Kratos
 	array_1d<double, 3> r         = geom[1] - geom[0]; 
 	double segmentlength          = GetValue( CONTACT_LINK_MASTER )->GetGeometry().Length();
 	double shi                    = inner_prod(r,Tangential)/segmentlength;
-        const int& ID                 = ((GetValue(CONTACT_LINK_SLAVE )->GetGeometry())(0))->Id();
+        //const int& ID                 = ((GetValue(CONTACT_LINK_SLAVE )->GetGeometry())(0))->Id();
 	 
 //   	 if(ID==936 || ID==937 || ID==876)
 //  	{
