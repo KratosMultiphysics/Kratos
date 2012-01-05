@@ -1,0 +1,60 @@
+BeginZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d.post.vv
+   x -1.62482 1.62482
+   y 0.866027 -0.866027
+   z -2.59808 2.59808
+   e 0.866025
+   v -0.258458 0.341131 0.0883272
+   r 0.89946
+   m 0.751655 -0.335229 0.56801 0 -0.0174425 0.850796 0.525207 0 -0.659325 -0.404682 0.633658 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector -9.375 -11.4565 149.474 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/pure_convection_3d.gid/pure_convection_3d.post.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 1
+  Num sets: 0
+  Num cuts: 0
+  Mesh: 0
+  State: On
+    Name: "Layer0"
+    IdSet: 1
+    Color Type: 1
+    Color Ambient: 0.12 0.12 0.12 0.498039
+    Color Diffuse: 0.6 0.6 0.6 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 1
+    Property Transparent: 0
+    Property Style: 14
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndMesh: 0
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 192} {No results} {} {} {} {} 4 0
+EndPostState
+
