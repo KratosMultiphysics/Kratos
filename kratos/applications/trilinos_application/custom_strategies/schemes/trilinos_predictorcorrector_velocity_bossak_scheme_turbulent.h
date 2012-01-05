@@ -131,14 +131,14 @@ namespace Kratos {
         /** Constructor.
          */
 
-        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy)
-        : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy)
+        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, unsigned int DomainSize)
+        : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize)
         {
             std::cout << "using the TRILINOS velocity Bossak Time Integration Scheme (with turbulence model)" << std::endl;
         }
 
-        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, Process::Pointer pTurbulenceModel)
-        : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, pTurbulenceModel)
+        TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent(double NewAlphaBossak, double MoveMeshStrategy, unsigned int DomainSize, Process::Pointer pTurbulenceModel)
+        : ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace,TDenseSpace>(NewAlphaBossak, MoveMeshStrategy, DomainSize, pTurbulenceModel)
         {
 
             std::cout << "using the TRILINOS velocity Bossak Time Integration Scheme (with turbulence model)" << std::endl;
