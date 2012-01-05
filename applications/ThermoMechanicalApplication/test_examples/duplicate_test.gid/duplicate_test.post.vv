@@ -1,0 +1,156 @@
+BeginZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/duplicate_test.gid/duplicate_test.post.vv
+   x -8.63013 18.6301
+   y 12.2648 -2.26483
+   z -21.7945 21.7945
+   e 7.26483
+   v 0 0 0
+   r 1
+   m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
+   c 5 5 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 2
+   DrawingType 3
+   LightVector -9.375 -11.4565 149.474 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/kazem/kratos/applications/ThermoMechanicalApplication/test_examples/duplicate_test.gid/duplicate_test.post.vv
+
+
+BeginPostState
+BeginSingleMesh
+  Num meshes: 0
+  Num sets: 7
+  Num cuts: 0
+  Set: 0
+  State: Off
+    Name: "circle"
+    IdSet: 1
+    Color Type: 1
+    Color Ambient: 0.12 0.12 0.12 0.498039
+    Color Diffuse: 0.6 0.6 0.6 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 0
+  Set: 1
+  State: Off
+    Name: "left"
+    IdSet: 2
+    Color Type: 1
+    Color Ambient: 0.2 0 0.2 0.498039
+    Color Diffuse: 1 0 1 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 1
+  Set: 2
+  State: On
+    Name: "right"
+    IdSet: 3
+    Color Type: 1
+    Color Ambient: 0 0.2 0.2 0.498039
+    Color Diffuse: 0 1 1 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 2
+  Set: 3
+  State: On
+    Name: "bottom"
+    IdSet: 4
+    Color Type: 1
+    Color Ambient: 0.130196 0 0.0258824 0.498039
+    Color Diffuse: 0.65098 0 0.129412 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 3
+  Set: 4
+  State: Off
+    Name: "bottom lines"
+    IdSet: 5
+    Color Type: 1
+    Color Ambient: 0.130196 0 0.0258824 0.498039
+    Color Diffuse: 0.65098 0 0.129412 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 4
+  Set: 5
+  State: On
+    Name: "left lines"
+    IdSet: 6
+    Color Type: 1
+    Color Ambient: 0.2 0 0.2 0.498039
+    Color Diffuse: 1 0 1 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 5
+  Set: 6
+  State: On
+    Name: "right lines"
+    IdSet: 7
+    Color Type: 1
+    Color Ambient: 0 0.2 0.2 0.498039
+    Color Diffuse: 0 1 1 0.498039
+    Color Specular: 0.8 0.8 0.8 0.498039
+    Color Shininess: 0.3
+    Property Massive: 0
+    Property Transparent: 0
+    Property Style: 305
+    Property Edge Width: 1
+    Property Vector Filter Factor: 0
+    Property Stream Arrow: 0
+  EndSet: 6
+EndSingleMesh
+  Post_Prefs_Vector_Size: 0 32 32 32
+  ResultView: {Id 9} {No results} {} {} {} {} 4 0
+EndPostState
+
