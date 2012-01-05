@@ -24,6 +24,7 @@ Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
 Import_KratosMixedElementApplication = False
+Import_ThermoMechanicalApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -48,7 +49,7 @@ print "Import_PodApplication: False"
 print "Import_LevelSetApplication: False"
 print "Import_FluidDynamicsApplication: False"
 print "Import_KratosMixedElementApplication: False"
-
+print "Import_ThermoMechanicalApplication: False"
 
 def ImportApplications(kernel, applications_path):
     ##########################################################################
@@ -75,6 +76,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_LevelSetApplication:"+str(Import_LevelSetApplication)
     print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
     print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
+    print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -268,6 +270,13 @@ def ImportApplications(kernel, applications_path):
         kernel.AddApplication(mixed_element_application)
         print "KratosMixedElementApplication sucessfully imported"
         
+    if(Import_ThermoMechanicalApplication == True):
+        print "importing ThermoMechanicalApplication ..."
+        sys.path.append(applications_path + '/ThermoMechanicalApplication/python_scripts')
+        from KratosThermoMechanicalApplication import *
+        thermo_mechanical_application = KratosThermoMechanicalApplication()
+        kernel.AddApplication(thermo_mechanical_application)
+        print "KratosThermoMechanicalApplication sucessfully imported"
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -317,3 +326,5 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(fluid_dynamics_application);
     if(Import_KratosMixedElementApplication == True):
         kernel.InitializeApplication(mixed_element_application);
+    if(Import_ThermoMechanicalApplication == True):
+        kernel.InitializeApplication(thermo_mechanical_application);
