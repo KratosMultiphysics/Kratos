@@ -15,7 +15,8 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/dynamic_vms.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras_element.cpp
+#        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras_element.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spalart_allmaras.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_wall_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/periodic_condition.cpp
