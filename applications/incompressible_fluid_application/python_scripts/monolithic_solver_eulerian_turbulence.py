@@ -109,11 +109,12 @@ class MonolithicSolver:
         # time scheme
         if self.turbulence_model == None:
             self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme\
-                               ( self.alpha,self.move_mesh_strategy )
+                               ( self.alpha,self.move_mesh_strategy,self.domain_size )
         else:
             self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
                                (self.alpha,\
                                 self.move_mesh_strategy,\
+                                self.domain_size,\
                                 self.turbulence_model)
 
         #creating the solution strategy

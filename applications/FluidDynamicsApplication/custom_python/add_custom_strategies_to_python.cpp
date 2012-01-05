@@ -97,8 +97,8 @@ namespace Kratos
 			//********************************************************************
  			class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
  					bases< BaseSchemeType >,  boost::noncopyable >
- 				("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",init<double,double,Process::Pointer >() )
-                                .def(init<double,double >())// constructor without a turbulence model
+                                ("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",init<double,double,unsigned int,Process::Pointer >() )
+                                .def(init<double,double,unsigned int >())// constructor without a turbulence model
  				;
 
                         class_< GearScheme< SparseSpaceType, LocalSpaceType >,

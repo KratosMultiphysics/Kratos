@@ -146,9 +146,11 @@ namespace Kratos {
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
-            double MoveMeshStrategy)
+            double MoveMeshStrategy,
+            unsigned int DomainSize)
         :
-            Scheme<TSparseSpace, TDenseSpace>()
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mDomainSize(DomainSize)
         {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -173,10 +175,12 @@ namespace Kratos {
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
             double NewAlphaBossak,
             double MoveMeshStrategy,
+            unsigned int DomainSize,
             Process::Pointer pTurbulenceModel)
         :
-            Scheme<TSparseSpace, TDenseSpace>(),
-            mpTurbulenceModel(pTurbulenceModel)
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mpTurbulenceModel(pTurbulenceModel),
+          mDomainSize(DomainSize)
         {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -220,11 +224,13 @@ namespace Kratos {
         {
             KRATOS_TRY;
 
-            this->RotateVelocities(r_model_part);
+            if(mDomainSize == 3)
+                this->RotateVelocities(r_model_part);
 
             BasicUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
-            this->RecoverVelocities(r_model_part);
+            if(mDomainSize == 3)
+                this->RecoverVelocities(r_model_part);
 
             AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
@@ -415,19 +421,16 @@ namespace Kratos {
 
             (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
 
-            if(mDamp[k].size1() != 16)
-                KRATOS_ERROR(std::logic_error,"Wrong number of rows","")
-            if(mDamp[k].size1() != 16)
-                KRATOS_ERROR(std::logic_error,"Wrong number of cols","")
-
             //adding the dynamic contributions (statics is already included)
-
             AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-            this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            if(mDomainSize == 3)
+            {
+                this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+                this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            }
 
             KRATOS_CATCH("")
         }
@@ -455,8 +458,11 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // If there is a slip condition, apply it on a rotated system of coordinates
-            this->Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
-            this->ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+            if(mDomainSize == 3)
+            {
+                this->Rotate(RHS_Contribution,rCurrentElement->GetGeometry());
+                this->ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+            }
         }
 
         /** functions totally analogous to the precedent but applied to
@@ -485,8 +491,11 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-            this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+            if(mDomainSize == 3)
+            {
+                this->Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+                this->ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+            }
 
             KRATOS_CATCH("")
         }
@@ -515,8 +524,11 @@ namespace Kratos {
             AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
-            this->Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-            this->ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+            if(mDomainSize == 3)
+            {
+                this->Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+                this->ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+            }
 
             KRATOS_CATCH("");
         }
@@ -847,8 +859,9 @@ namespace Kratos {
                     LocalSystemVectorType& rLocalVector,
                     GeometryType& rGeometry)
         {
-            const size_t Dim = 3;
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            if (rLocalVector.size() != 16) return; // Do nothing in 2D
+            const size_t Dim = 3; //rGeometry.WorkingSpaceDimension();
+            const size_t BlockSize = 4; //Dim + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
@@ -881,8 +894,9 @@ namespace Kratos {
         void Rotate(LocalSystemVectorType& rLocalVector,
                     GeometryType& rGeometry)
         {
-            const size_t Dim = 3;
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            if (rLocalVector.size() != 16) return; // Do nothing in 2D
+            const size_t Dim = 3; //rGeometry.WorkingSpaceDimension();
+            const size_t BlockSize = 4; //Dim + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
@@ -904,7 +918,7 @@ namespace Kratos {
             if(NeedRotation)
             {
                 LocalSystemVectorType Tmp = boost::numeric::ublas::prod(Rotation,rLocalVector);
-                rLocalVector = rLocalVector;
+                noalias(rLocalVector) = Tmp;
             }
         }
 
@@ -918,6 +932,7 @@ namespace Kratos {
                                 LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
         {
+            if (rLocalVector.size() != 16) return; // Do nothing in 2D
             const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
@@ -955,6 +970,7 @@ namespace Kratos {
         void ApplySlipCondition(LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
         {
+            if (rLocalVector.size() != 16) return; // Do nothing in 2D
             const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
@@ -1037,9 +1053,10 @@ namespace Kratos {
                             double& tij = Tmp(i,j);
                             for(size_t k = iBlock*BlockSize; k < (iBlock+1)*BlockSize; k++)
                             {
+                                const double Rik = rRotation(i,k);
                                 for(size_t l = jBlock*BlockSize; l < (jBlock+1)*BlockSize; l++)
                                 {
-                                    tij += rRotation(i,k)*rMatrix(k,l)*rRotation(j,l);
+                                    tij += Rik*rMatrix(k,l)*rRotation(j,l);
                                 }
                             }
                         }
@@ -1077,6 +1094,8 @@ namespace Kratos {
         /*@{ */
 
         Process::Pointer mpTurbulenceModel;
+
+        unsigned int mDomainSize;
 
         /*@} */
         /**@name Private Operators*/

@@ -588,8 +588,9 @@ namespace Kratos {
                         //KRATOS_WATCH("*********ATTENTION: NODAL AREA IS ZERRROOOO************");
                     }
 
-                    ind->FastGetSolutionStepValue(ADVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
-                    ind->FastGetSolutionStepValue(DIVPROJ) /= ind->FastGetSolutionStepValue(NODAL_AREA);
+                    const double Area = ind->FastGetSolutionStepValue(NODAL_AREA);
+                    ind->FastGetSolutionStepValue(ADVPROJ) /= Area;
+                    ind->FastGetSolutionStepValue(DIVPROJ) /= Area;
 
                 }
 
