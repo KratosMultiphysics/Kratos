@@ -321,7 +321,7 @@ namespace Kratos
 	rValues.resize(size);
 	if(rVariable==NORMAL)
 	 {
-	   for(unsigned int i = 0; i<size; i++)
+	   for(int i = 0; i<size; i++)
 	  rValues[i] = NormalVector();
 	 }
      
