@@ -119,8 +119,14 @@ public:
     {}
 
     /// Additional constructor using a specific quadrature
-    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, Element::IntegrationMethod ThisIntegrationMethod) :
-        Element(NewId, pGeometry, pProperties),
+    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, const Element::IntegrationMethod& ThisIntegrationMethod) :
+        Element(NewId, pGeometry),
+        mIntegrationMethod(ThisIntegrationMethod)
+    {}
+
+    /// Additional constructor using a specific quadrature
+    SpalartAllmaras(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, const Element::IntegrationMethod& ThisIntegrationMethod) :
+        Element(NewId,pGeometry,pProperties),
         mIntegrationMethod(ThisIntegrationMethod)
     {}
 

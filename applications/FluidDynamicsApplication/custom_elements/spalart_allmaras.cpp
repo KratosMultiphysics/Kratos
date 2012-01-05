@@ -295,6 +295,7 @@ void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step)
 
 // Protected functions: Definition of local contributions ---------------------
 
+// Lumped version
 void SpalartAllmaras::AddMassTerm(MatrixType &rMassMatrix,
                                   const ShapeFunctionsType N,
                                   const double Weight)
@@ -304,6 +305,16 @@ void SpalartAllmaras::AddMassTerm(MatrixType &rMassMatrix,
     for(SizeType i = 0; i < NumNodes; i++)
         rMassMatrix(i,i) += LumpFactor;
 }
+
+//void SpalartAllmaras::AddMassTerm(MatrixType &rMassMatrix,
+//                                  const ShapeFunctionsType N,
+//                                  const double Weight)
+//{
+//    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+//    for(SizeType i = 0; i < NumNodes; i++)
+//        for(SizeType j = 0; j < NumNodes; j++)
+//            rMassMatrix(i,j) += Weight * N[i] * N[j];
+//}
 
 void SpalartAllmaras::AddConvection(MatrixType &rLHS,
                                    const ShapeFunctionsType &N,
@@ -333,7 +344,7 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
 {
     // Constants of the Spalart-Allmaras model
     const double sigma = 2.0 / 3.0; // Prandtl number
-    const double kappa = 0.41; // Square of Von Karman's constant
+    const double kappa = 0.41; // Von Karman's constant
     const double cb1 = 0.1355; // Production coefficient
     const double cb2 = 0.6220; // Coefficient for non-consistent diffusion
     const double cw1 = cb1 / (kappa*kappa) + (1.0 + cb2) / sigma; // Destruction coefficient
@@ -354,7 +365,7 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
     double r = LastEddyViscosity / (S_hat * kappa*kappa * Distance*Distance);
     if (r > 10.0) r = 10.0; // Numerical control in r
     const double g = r + cw2 * (pow(r,6) - r);
-    const double fw = pow( (1.0+pow(cw3,6)) / ( pow(g,6) + pow(cw3,6) ) , 1.0/6.0);
+    const double fw = g * pow( (1.0+pow(cw3,6)) / ( pow(g,6) + pow(cw3,6) ) , 1.0/6.0);
 
     // Geometric constants
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
@@ -382,7 +393,7 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
 
             // Diffusion
             for (SizeType d = 0; d < Dim; d++)
-                    rLHS(i,j) += Weight * Diffusivity * DN_DX(i,d) * DN_DX(j,d);
+                rLHS(i,j) += Weight * Diffusivity * DN_DX(i,d) * DN_DX(j,d);
 
             // Add the (linearisation of) the second diffusive term cb2/sigma * Gradient(Viscosity)^2
             rLHS(i,j) -= N[i] * tmp;
@@ -500,11 +511,11 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
             double Length = Edge[0]*Edge[0];
             for (SizeType d = 0; d < Dim; d++)
                 Length += Edge[d]*Edge[d];
-            Length = sqrt(Length);
             if (Length < MinLength) MinLength = Length;
         }
+    MinLength = sqrt(MinLength);
 
-    double Tmp = TimeCoeff + 4.0 * Diffusivity / MinLength*MinLength + 2.0 * VelNorm / MinLength;
+    double Tmp = TimeCoeff + 4.0 * Diffusivity / (MinLength*MinLength) + 2.0 * VelNorm / MinLength;
     return 1.0 / Tmp;
 }
 
