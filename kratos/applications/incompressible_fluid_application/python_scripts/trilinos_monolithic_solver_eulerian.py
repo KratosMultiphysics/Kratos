@@ -74,7 +74,7 @@ class MonolithicSolver:
 
         self.Comm = CreateCommunicator()
 
-        self.time_scheme = TrilinosPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
+        self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
         self.linear_solver =  TrilinosLinearSolver()
         
         #definition of the convergence criteria

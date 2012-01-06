@@ -216,7 +216,7 @@ namespace Kratos
              */
             void  PrintInfo(std::ostream& rOStream) const
             {
-                rOStream << "Aztec solver finished.";
+//                rOStream << "Aztec solver finished.";
             }
             
             /**
