@@ -110,12 +110,12 @@ namespace Kratos {
 
 // KRATOS_WATCH("                                                ");
 
-            const int edges[4][4] = {
+            /*const int edges[4][4] = {
                 {-1, 0, 1, 2},
                 { 0, -1, 3, 4},
                 { 1, 3, -1, 5},
                 { 2, 4, 5, -1}
-            };
+		};*/
 
             const double epsilon = 1e-15; //1.00e-9;
             const double near_factor = 1.00e-12;
@@ -143,11 +143,11 @@ namespace Kratos {
             int new_node_id = 4;
             bounded_matrix<double, 4, 4 > length = ZeroMatrix(4, 4);
 
-            int n_zero_distance_nodes = 0;
+            //int n_zero_distance_nodes = 0;
             int n_negative_distance_nodes = 0;
             int n_positive_distance_nodes = 0;
             int signs[] = {-2, -2, -2, -2};
-            int zero_distance_nodes[] = {-1, -1, -1, -1};
+            //int zero_distance_nodes[] = {-1, -1, -1, -1};
             int negative_distance_nodes[] = {-1, -1, -1, -1};
             int positive_distance_nodes[] = {-1, -1, -1, -1};
 
@@ -345,7 +345,7 @@ namespace Kratos {
                 int n_splitted_edges; //number of splitted edges
                 int nint; //number of internal nodes
                 int t[56];
-                bool split_needed = TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
+                TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
 
 
 
@@ -386,7 +386,7 @@ namespace Kratos {
 // KRATOS_WATCH(exact_distance);
 // KRATOS_WATCH(abs_distance);
 
-	    double verify_volume = 0.0;
+	    //double verify_volume = 0.0;
             if (number_of_partitions > 1) { // we won't calculate the N and its gradients for element without partitions
 	      
 	      	      	    //compute the maximum absolute distance on the cut so to normalize the shape functions

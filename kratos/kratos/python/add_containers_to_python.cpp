@@ -484,6 +484,7 @@ namespace Kratos
 			  .def("SetSurfaceSourceVariable",&ConvectionDiffusionSettings::SetSurfaceSourceVariable)
 			  .def("SetProjectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
 			  .def("SetMeshVelocityVariable",&ConvectionDiffusionSettings::SetMeshVelocityVariable)
+			  .def("SetConvectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
  			  .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
 			  .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
 			  .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_internal_reference<>() )
@@ -492,6 +493,7 @@ namespace Kratos
 			  .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
 			  .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
 			  .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
+			  .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
 			  ;	
  		class_< RadiationSettings, RadiationSettings::Pointer, boost::noncopyable >	("RadiationSettings", init<	>() )
  			  .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
