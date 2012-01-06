@@ -134,13 +134,13 @@ namespace Kratos
 	        //calculating viscosity
 	        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);		
                 const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-                const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
+//                 const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
                 const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
 		
 		const double& ambient_temperature = GetProperties()[AMBIENT_TEMPERATURE];
 		double StefenBoltzmann = 5.67e-8;
 		double emissivity = GetProperties()[EMISSIVITY];
-// 		double convection_coefficient = GetProperties()[CONVECTION_COEFFICIENT];
+		double convection_coefficient = GetProperties()[CONVECTION_COEFFICIENT];
 
 		const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
 		const double& T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
@@ -155,8 +155,8 @@ namespace Kratos
 				rLeftHandSideMatrix.resize(MatSize,MatSize,false);
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);	
 			
-			rLeftHandSideMatrix(0,0) = ( rDiffusionVar + emissivity*StefenBoltzmann*4.0*pow(T0,3)  )* 0.5 * lenght;
-			rLeftHandSideMatrix(1,1) = ( rDiffusionVar + emissivity*StefenBoltzmann*4.0*pow(T1,3)  )* 0.5 * lenght; 
+			rLeftHandSideMatrix(0,0) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T0,3)  )* 0.5 * lenght;
+			rLeftHandSideMatrix(1,1) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T1,3)  )* 0.5 * lenght; 
 		}
 
 /*		KRATOS_WATCH(GetProperties()[AMBIENT_TEMPERATURE] );
@@ -176,9 +176,9 @@ namespace Kratos
 			if(rRightHandSideVector.size() != MatSize )
 				rRightHandSideVector.resize(MatSize,false);
 			
-			rRightHandSideVector[0] =  q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)  -  rDiffusionVar * ( T0 - ambient_temperature);
+			rRightHandSideVector[0] =  q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)  -  convection_coefficient * ( T0 - ambient_temperature);
 
-			rRightHandSideVector[1] =  q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux) -  rDiffusionVar * ( T1 - ambient_temperature);
+			rRightHandSideVector[1] =  q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux) -  convection_coefficient * ( T1 - ambient_temperature);
 
 /*			rRightHandSideVector[0] =  emissivity*q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)   
 									-  convection_coefficient * ( T0 - ambient_temperature);
