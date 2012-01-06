@@ -41,6 +41,7 @@ thermal_settings.SetUnknownVariable(TEMPERATURE)
 thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
 thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
 thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+convection_settings.SetConvectionVariable(VELOCITY)
 ##########################################################
 
 #importing the solver files

@@ -138,7 +138,7 @@ namespace Kratos {
         double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
         double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
         double heat_source = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
+        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
         const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
 
@@ -152,7 +152,7 @@ namespace Kratos {
             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < dim; j++)
                 ms_vel_gauss[j] += v[j] - w[j];
@@ -163,7 +163,7 @@ namespace Kratos {
         specific_heat *= lumping_factor;
         heat_source *= lumping_factor;
         ms_vel_gauss *= lumping_factor;	
-KRATOS_WATCH(conductivity);	
+
 	//we divide conductivity by (ro*C) and heat_source by C
 	conductivity /= (density*specific_heat);
 	heat_source /= (specific_heat);	

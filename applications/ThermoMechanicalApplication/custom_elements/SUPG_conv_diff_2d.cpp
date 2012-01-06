@@ -132,13 +132,14 @@ namespace Kratos {
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
+        const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
 
         double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
         double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
         double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
         double heat_source = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
+        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
         const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
 
@@ -152,7 +153,7 @@ namespace Kratos {
             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < dim; j++)
                 ms_vel_gauss[j] += v[j] - w[j];

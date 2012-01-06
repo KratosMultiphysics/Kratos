@@ -37,8 +37,8 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/
- 
+ */
+
 //   
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author: kazem $
@@ -57,7 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes 
 #include "boost/smart_ptr.hpp"
- 
+
 
 // Project includes
 #include "includes/define.h"
@@ -71,183 +71,183 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
+    ///@name Kratos Globals
+    ///@{
+
+    ///@}
+    ///@name Type Definitions
+    ///@{
+
+    ///@}
+    ///@name  Enum's
+    ///@{
+
+    ///@}
+    ///@name  Functions
+    ///@{
+
+    ///@}
+    ///@name Kratos Classes
+    ///@{
+
+    /// ASGS, Incompressible fluid, Variational multi scale method, Quasi-static subscales, Implicit method.
+
+    /**
+    ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
+    Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
+    to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscalesï¿½ estimation.
+    The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
+    This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
+    The detailed description of the formulation could be fined in
+       "Stabilized finite element approximation of transient incompressible flows using orthogonal subscales, Comput. Methods Appl. Mech. Engrg. 191 (2002) 4295?4321"
   
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// ASGS, Incompressible fluid, Variational multi scale method, Quasi-static subscales, Implicit method.
-  /** 
-  ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
-  Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-  to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
-  The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
-  This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
-  The detailed description of the formulation could be fined in
-     "Stabilized finite element approximation of transient incompressible flows using orthogonal subscales, Comput. Methods Appl. Mech. Engrg. 191 (2002) 4295?4321"
-  
-  */
-  class SUPGConv3D
-	  : public SUPGConvDiff3D
+     */
+    class SUPGConv3D
+    : public SUPGConvDiff3D
     {
     public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Fluid2DASGS
-      KRATOS_CLASS_POINTER_DEFINITION(SUPGConv3D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
+        ///@name Type Definitions
+        ///@{
 
-	  SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+        /// Counted pointer of Fluid2DASGS
+        KRATOS_CLASS_POINTER_DEFINITION(SUPGConv3D);
 
-      /// Destructor.
-      virtual ~SUPGConv3D();
-      
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+        /// Default constructor.
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+        SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry);
+        SUPGConv3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-//       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-      	        /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
-	        /**
-	         * @param ElementalDofList: the list of DOFs
-	         * @param rCurrentProcessInfo: the current process info instance
-		 */
-// 	         void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-	  
+        /// Destructor.
+        virtual ~SUPGConv3D();
 
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+        ///@}
+        ///@name Operators
+        ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "SUPGConv3D #" ;
-		}
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
+        ///@}
+        ///@name Operations
+        ///@{
 
-      /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
+        Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-            
-      ///@}
-      
+        void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+        void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+        void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+        void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
+
+
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+
+        virtual std::string Info() const
+        {
+            return "SUPGConv3D #";
+        }
+
+        /// Print information about this object.
+
+        virtual void PrintInfo(std::ostream& rOStream) const
+        {
+            rOStream << Info() << Id();
+        }
+
+        /// Print object's data.
+        //      virtual void PrintData(std::ostream& rOStream) const;
+
+
+        ///@}
+        ///@name Friends
+        ///@{
+
+
+        ///@}
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables  
-      ///@{ 
- 		 
-      ///@}
-      ///@name Protected Operators
-      ///@{ 
-       SUPGConv3D() : SUPGConvDiff3D(){}
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-   // private:
-       	         
- 	         /// To Calculate tau
-	        /**
-	         * @return tau: multiplied by Residual of the momentum equation		    
-		 */		 
-	         virtual void CalculateConvTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
-                              
-	    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-      
-     ///@}
-     ///@name Serialization
-     ///@{	
+        ///@name Protected static Member Variables
+        ///@{
+
+
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+
+        ///@}
+        ///@name Protected Operators
+        ///@{
+
+        SUPGConv3D() : SUPGConvDiff3D()
+        {
+        }
+
+        ///@}
+        ///@name Protected Operations
+        ///@{
+
+
+        ///@}
+        ///@name Protected  Access
+        ///@{
+
+
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
+
+
+        ///@}
+
+        // private:
+
+        /// To Calculate tau
+        /**
+         * @return tau: multiplied by Residual of the momentum equation
+         */
+        virtual void CalculateConvTau(array_1d<double, 3 > & ms_adv_vel, double& tau, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
+
+    private:
+        ///@name Static Member Variables
+        ///@{
+
+        ///@}
+        ///@name Member Variables
+        ///@{
+
+        ///@}
+        ///@name Serialization
+        ///@{
         friend class Serializer;
-//         ASGS2D() : Element()
-//         {
-//         }
-        
+        //         ASGS2D() : Element()
+        //         {
+        //         }
+
         virtual void save(Serializer& rSerializer) const
         {
             rSerializer.save("Name", "SUPGConv3D");
@@ -258,67 +258,67 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         }
-        
-      ///@} 
 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-	
-      /// Assignment operator.
-      //Fluid2DASGS& operator=(const Fluid2DASGS& rOther);
+        ///@}
 
-      /// Copy constructor.
-      //Fluid2DASGS(const Fluid2DASGS& rOther);
+        ///@name Private Operations
+        ///@{
 
-        
-      ///@}    
-        
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Un accessible methods
+        ///@{
+
+
+        /// Assignment operator.
+        //Fluid2DASGS& operator=(const Fluid2DASGS& rOther);
+
+        /// Copy constructor.
+        //Fluid2DASGS(const Fluid2DASGS& rOther);
+
+
+        ///@}
+
     }; // Class Fluid2DASGS 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
-				    Fluid2DASGS& rThis);
-*/
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Fluid2DASGS& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+    ///@}
 
-      return rOStream;
-    }*/
-  ///@} 
+    ///@name Type Definitions
+    ///@{
 
-}  // namespace Kratos.
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    /// input stream function
+    /*  inline std::istream& operator >> (std::istream& rIStream,
+                                        Fluid2DASGS& rThis);
+     */
+    /// output stream function
+    /*  inline std::ostream& operator << (std::ostream& rOStream,
+                                        const Fluid2DASGS& rThis)
+        {
+          rThis.PrintInfo(rOStream);
+          rOStream << std::endl;
+          rThis.PrintData(rOStream);
+
+          return rOStream;
+        }*/
+    ///@}
+
+} // namespace Kratos.
 
 #endif // KRATOS_ASGS_2D_H_INCLUDED  defined 
 

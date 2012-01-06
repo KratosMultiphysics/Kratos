@@ -131,12 +131,13 @@ namespace Kratos {
 //        const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
+        const Variable<array_1d<double, 3 > >& rConvVar = my_settings->GetConvectionVariable();
 
-
+// KRATOS_WATCH(rConvVar);
 //         double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
 //         double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
 //         double heat_source = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
+        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
         const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
 
@@ -149,7 +150,7 @@ namespace Kratos {
 //             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
 //             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
-            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < dim; j++)
                 ms_vel_gauss[j] += v[j] - w[j];
@@ -165,7 +166,7 @@ namespace Kratos {
 // 	heat_source /= (specific_heat);	
 	
         double tau;
-        CalculateTau(ms_vel_gauss,tau,delta_t, Volume, rCurrentProcessInfo);
+        CalculateConvTau(ms_vel_gauss,tau,delta_t, Volume, rCurrentProcessInfo);
 
 	//Crank-Nicholson factor
 	double cr_nk = 0.5;
@@ -245,7 +246,7 @@ namespace Kratos {
     //*************************************************************************************
     //*************************************************************************************
 
-    void SUPGConv3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo) {
+    void SUPGConv3D::CalculateConvTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double volume, const ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
 
