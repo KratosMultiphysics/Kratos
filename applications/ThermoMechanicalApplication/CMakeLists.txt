@@ -24,6 +24,7 @@ set( KRATOS_THERMO_MECHANICAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_diff_2d.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_diff_3d.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/SUPG_conv_3d.cpp  
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_face2d.cpp  
 
 )
 
