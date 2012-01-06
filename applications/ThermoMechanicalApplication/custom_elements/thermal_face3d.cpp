@@ -130,10 +130,11 @@ namespace Kratos
 		const double& ambient_temperature = GetProperties()[AMBIENT_TEMPERATURE];
 		double StefenBoltzmann = 5.67e-8;
 		double emissivity = GetProperties()[EMISSIVITY];
+		double convection_coefficient = GetProperties()[CONVECTION_COEFFICIENT];
 
 	        ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);		
                 const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-                const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
+/*                const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();*/
                 const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
 		
 		const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
@@ -144,9 +145,9 @@ namespace Kratos
 		const double& q1 = GetGeometry()[1].FastGetSolutionStepValue(rSurfaceSourceVar);
 		const double& q2 = GetGeometry()[2].FastGetSolutionStepValue(rSurfaceSourceVar);
 
-		//const double C0 = GetGeometry()[0].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
-		//const double C1 = GetGeometry()[1].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
-		//const double C2 = GetGeometry()[2].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
+// 		const double C0 = GetGeometry()[0].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
+// 		const double C1 = GetGeometry()[1].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
+// 		const double C2 = GetGeometry()[2].FastGetSolutionStepValue(CONVECTION_COEFFICIENT);
 //		double C=0.333333333333*(C0+C1+C2);
 
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
@@ -154,9 +155,9 @@ namespace Kratos
 			if(rLeftHandSideMatrix.size1() != MatSize )
 				rLeftHandSideMatrix.resize(MatSize,MatSize,false);
 			noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize,MatSize);
-			rLeftHandSideMatrix(0,0) = ( rDiffusionVar + emissivity*StefenBoltzmann*4.0*pow(T0,3)  )* 0.333333333333 * area;
-			rLeftHandSideMatrix(1,1) = ( rDiffusionVar + emissivity*StefenBoltzmann*4.0*pow(T1,3)  )* 0.333333333333 * area; 
-			rLeftHandSideMatrix(2,2) = ( rDiffusionVar + emissivity*StefenBoltzmann*4.0*pow(T2,3)  )* 0.333333333333 * area; 
+			rLeftHandSideMatrix(0,0) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T0,3)  )* 0.333333333333 * area;
+			rLeftHandSideMatrix(1,1) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T1,3)  )* 0.333333333333 * area; 
+			rLeftHandSideMatrix(2,2) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T2,3)  )* 0.333333333333 * area; 
 		}
 
 		//resizing as needed the RHS
@@ -167,13 +168,13 @@ namespace Kratos
 				rRightHandSideVector.resize(MatSize,false);
 			
 			rRightHandSideVector[0] =  emissivity*q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)   
-									-  rDiffusionVar * ( T0 - ambient_temperature);
+									-  convection_coefficient * ( T0 - ambient_temperature);
 
 			rRightHandSideVector[1] =  emissivity*q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux)  
-									-  rDiffusionVar * ( T1 - ambient_temperature);
+									-  convection_coefficient * ( T1 - ambient_temperature);
 
 			rRightHandSideVector[2] =  emissivity*q2  - emissivity*StefenBoltzmann*(pow(T2,4) - aux)  
-									-  rDiffusionVar * ( T2 - ambient_temperature);
+									-  convection_coefficient * ( T2 - ambient_temperature);
 			
 			rRightHandSideVector *= 0.3333333333333*area;
 			
