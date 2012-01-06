@@ -31,6 +31,7 @@
 #include "custom_elements/SUPG_conv_diff_2d.h"
 #include "custom_elements/SUPG_conv_diff_3d.h"
 #include "custom_elements/SUPG_conv_3d.h"
+#include "custom_elements/thermal_face2D.h"
 namespace Kratos
 {
 
@@ -39,6 +40,8 @@ namespace Kratos
 
 	// Variables definition 
         KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
+	KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)	
+        
 
 	///@} 
 	///@name Type Definitions
@@ -194,6 +197,7 @@ namespace Kratos
 // 		const Elem3D   mElem3D; 
  		const HeatContact2D  mHeatContact2D;
  		const HeatContact3D  mHeatContact3D;
+		const ThermalFace2D  mThermalFace2D;
 		
  		const SUPGConvDiff2D  mSUPGConvDiff2D;		
  		const SUPGConvDiff3D  mSUPGConvDiff3D;	
