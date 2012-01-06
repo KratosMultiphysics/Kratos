@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 #importing the Kratos Library
 from Kratos import *
-from KratosConvectionDiffusionApplication import *
+#from KratosConvectionDiffusionApplication import *
+from KratosThermoMechanicalApplication import *
 from KratosTrilinosApplication import *
 from KratosMeshingApplication import *
 from KratosIncompressibleFluidApplication import EstimateDt3D
-import trilinos_convdiff_solver
+import trilinos_pureconvection_solver
+import trilinos_thermal_solver
 import trilinos_monolithic_solver_eulerian
 
 try:
@@ -15,11 +17,8 @@ except ImportError:
 
 #settings for the convection solver
 distance_settings = ConvectionDiffusionSettings()
-distance_settings.SetDensityVariable(DENSITY_AIR)
-distance_settings.SetDiffusionVariable(CONDUCTIVITY)
 distance_settings.SetUnknownVariable(DISTANCE)
-distance_settings.SetVolumeSourceVariable(HEAT_FLUX)
-distance_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+distance_settings.SetConvectionVariable(VELOCITY)
 distance_settings.SetMeshVelocityVariable(MESH_VELOCITY)
 
 temperature_settings = ConvectionDiffusionSettings()
@@ -29,6 +28,7 @@ temperature_settings.SetUnknownVariable(TEMPERATURE)
 temperature_settings.SetVolumeSourceVariable(HEAT_FLUX)
 temperature_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
 temperature_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+temperature_settings.SetConvectionVariable(VELOCITY)
 
 
 def AddVariables(model_part ):
@@ -36,18 +36,19 @@ def AddVariables(model_part ):
     #variables needed for the fluid solver
     trilinos_monolithic_solver_eulerian.AddVariables(model_part)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
     #variables needed for the distance solver
-    trilinos_convdiff_solver.AddVariables(model_part,distance_settings)
-    trilinos_convdiff_solver.AddVariables(model_part,temperature_settings)
+    trilinos_pureconvection_solver.AddVariables(model_part,distance_settings)
+    trilinos_thermal_solver.AddVariables(model_part,temperature_settings)
 
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 
 
 def AddDofs(model_part):
     trilinos_monolithic_solver_eulerian.AddDofs(model_part)
-    trilinos_convdiff_solver.AddDofs(model_part,distance_settings)
-    trilinos_convdiff_solver.AddDofs(model_part,temperature_settings)
+    trilinos_pureconvection_solver.AddDofs(model_part,distance_settings)
+    trilinos_thermal_solver.AddDofs(model_part,temperature_settings)
 
     print "variables for the convection diffusion solver added correctly"
 
@@ -62,10 +63,11 @@ class TrilinosLevelSetSolver:
 
         #construct the model part for the convection solver
         if(self.domain_size == 2):
-            conv_elem = "ConvDiff2D"
+            raise "error, still not implemented in 2D"
+            conv_elem = "SUPGConv2D"
             conv_cond = "Condition2D"
         else:
-            conv_elem = "ConvDiff3D"
+            conv_elem = "SUPGConv3D"
             conv_cond = "Condition3D"
         self.convection_model_part = ModelPart("convection_model_part")
         self.conv_generator = ConnectivityPreserveModeler()
@@ -74,12 +76,12 @@ class TrilinosLevelSetSolver:
         if(mpi.rank == 0):
 	  print "finished initializing the parallel fill communicator for convection_model_part"
         
-        #construct the model part for the convection solver
+        #construct the model part for the t solver
         if(self.domain_size == 2):
-            conv_elem = "ConvDiff2D"
+            conv_elem = "SUPGConvDiff2D"
             conv_cond = "ThermalFace2D"
         else:
-            conv_elem = "ConvDiff3D"
+            conv_elem = "SUPGConvDiff3D"
             conv_cond = "ThermalFace3D"
         self.thermal_model_part = ModelPart("thermal_model_part")
         self.conv_generator = ConnectivityPreserveModeler()
@@ -89,10 +91,10 @@ class TrilinosLevelSetSolver:
 	  print "finished initializing the parallel fill communicator for thermal_model_part"
 
         #constructing the convection solver for the distance
-        self.convection_solver = trilinos_convdiff_solver.ConvectionDiffusionSolver(self.convection_model_part,self.domain_size,distance_settings)
+        self.convection_solver = trilinos_pureconvection_solver.Solver(self.convection_model_part,self.domain_size,distance_settings)
 
         #constructing the convection solver for the distance
-        self.thermal_solver = trilinos_convdiff_solver.ConvectionDiffusionSolver(self.thermal_model_part,self.domain_size,temperature_settings)
+        self.thermal_solver = trilinos_thermal_solver.Solver(self.thermal_model_part,self.domain_size,temperature_settings)
         
         #constructing the fluid solver
         self.fluid_solver = trilinos_monolithic_solver_eulerian.MonolithicSolver(self.model_part,self.domain_size)
@@ -115,6 +117,7 @@ class TrilinosLevelSetSolver:
         #common properties for the two fluids
 	self.mu   = 1.0e-3
 	self.ambient_temperature = 293.15 #note that temperatures should be given in Kelvins
+        self.mould_temperature = self.ambient_temperature
 	self.inlet_temperature = 800.0
 	self.convection_coefficient = 0.0
 	self.emissivity = 0.0
@@ -131,18 +134,18 @@ class TrilinosLevelSetSolver:
         self.max_distance = self.max_edge_size * 3.0;
 
         #assigning the fluid properties
-        conductivity = 0.0;
-        density = 1.0;
-        specific_heat = 1.0;
-        for node in model_part.Nodes:
-            node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
-            node.SetSolutionStepValue(DENSITY_AIR,0,density);
-            node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
+#        conductivity = 0.0;
+#        density = 1.0;
+#        specific_heat = 1.0;
+#        for node in model_part.Nodes:
+#            node.SetSolutionStepValue(temperature_settings.GetDiffusionVariable(),0,conductivity);
+#            node.SetSolutionStepValue(temperature_settings.GetDensityVariable(),0,density);
+#            node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
         self.max_ns_iterations = 20
         self.dynamic_tau = 1.00
         
-        self.divergence_clearance_performed = False
+        self.divergence_clearance_performed = True #setting to true it will not perform it
 
 	mpi.world.barrier()
 	
@@ -180,6 +183,7 @@ class TrilinosLevelSetSolver:
 	    print "specific_heat positive domain (specific_heat2)    = ",self.specific_heat2
 	    print "inlet temperature                                 = ",self.inlet_temperature
 	    print "ambient_temperature                               = ",self.ambient_temperature
+	    print "mould_temperature                                 = ",self.mould_temperature
 	    print "convection_coefficient                            = ",self.convection_coefficient
 	    print "emissivity                                        = ",self.emissivity
 	    print " "
@@ -191,7 +195,18 @@ class TrilinosLevelSetSolver:
 	    
 	mpi.world.barrier()
 	
-	
+    def ApplyFluidProperties(self):
+        #apply density
+        mu1 = self.mu/self.rho1
+        mu2 = self.mu/self.rho2
+        for node in self.model_part.Nodes:
+            dist = node.GetSolutionStepValue(DISTANCE)
+            if(dist < 0):
+                node.SetSolutionStepValue(DENSITY,0,self.rho1)
+                node.SetSolutionStepValue(VISCOSITY,0,mu1)
+            else:
+                node.SetSolutionStepValue(DENSITY,0,self.rho2)
+                node.SetSolutionStepValue(VISCOSITY,0,mu2)
 	
 	
 	
@@ -199,6 +214,10 @@ class TrilinosLevelSetSolver:
         self.EchoSettings()
       
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.convection_solver.dynamic_tau = self.dynamic_tau
+        self.thermal_solver.dynamic_tau = self.dynamic_tau
+        self.fluid_solver.dynamic_tau = self.dynamic_tau
+
         self.fluid_solver.vel_criteria = self.vel_criteria
         self.fluid_solver.press_criteria = self.press_criteria
         self.fluid_solver.vel_abs_criteria = self.vel_abs_criteria
@@ -209,15 +228,17 @@ class TrilinosLevelSetSolver:
         self.convection_solver.Initialize()
         self.thermal_solver.Initialize()
         self.fluid_solver.Initialize()
+
+        self.thermal_solver.SetEchoLevel(0)
+        self.convection_solver.SetEchoLevel(0)
         
         self.next_redistance = self.redistance_frequency
         
-        #set the temperature to the ambient temperature
+        #set the temperature to the mould temperature
         for node in self.model_part.Nodes:
-	  node.SetSolutionStepValue(TEMPERATURE,0,self.ambient_temperature)
-	  node.SetSolutionStepValue(TEMPERATURE,1,self.ambient_temperature)
-	  node.SetSolutionStepValue(TEMPERATURE,2,self.ambient_temperature)
-	  
+	  node.SetSolutionStepValue(TEMPERATURE,0,self.mould_temperature)
+	  node.SetSolutionStepValue(TEMPERATURE,1,self.mould_temperature)
+
         #build a list of inlet nodes
         self.inlet_nodes = []
         for node in self.model_part.Nodes:
@@ -227,20 +248,23 @@ class TrilinosLevelSetSolver:
 	    node.Fix(TEMPERATURE)
 	    node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
 	    node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
-	    node.SetSolutionStepValue(TEMPERATURE,2,self.inlet_temperature)
 	  
 	  #also set to inlet temperature all of the nodes which fall within the negative areo of the domain
 	  if(node.GetSolutionStepValue(DISTANCE) < 0.0):
 	    node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
 	    node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
-	    node.SetSolutionStepValue(TEMPERATURE,2,self.inlet_temperature)
+
+        self.ApplyFluidProperties()
 	    
 	    
 	#set the thermal properties to the appropriate values
 	for prop in self.thermal_model_part.Properties:
 	  prop.SetValue(AMBIENT_TEMPERATURE,self.ambient_temperature)
 	  prop.SetValue(EMISSIVITY,self.emissivity)
-	  prop.SetValue(CONVECTION_COEFFICIENT,self.convection_coefficient)   
+	  prop.SetValue(CONVECTION_COEFFICIENT,self.convection_coefficient)
+ 
+#        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+
         
     def EstimateDt(self,CFL, dt_max):
        return self.dt_estimator.EstimateDt(CFL, dt_max)
@@ -251,7 +275,7 @@ class TrilinosLevelSetSolver:
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         
 	for node in self.model_part.Nodes:
-	    node.SetSolutionStepValue(DENSITY,0,self.rho1)
+	    node.SetSolutionStepValue(TEMPERATURE,0,self.rho1)
 	    
 	  
 	(self.fluid_solver).Solve()
@@ -290,12 +314,6 @@ class TrilinosLevelSetSolver:
 
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
-        
-        self.variable_utils.SetToZero_ScalarVar(HEAT_FLUX,self.model_part.Nodes)
-        self.variable_utils.SetToZero_ScalarVar(FACE_HEAT_FLUX,self.model_part.Nodes)
-        self.variable_utils.SetToZero_ScalarVar(CONDUCTIVITY,self.model_part.Nodes)
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(SPECIFIC_HEAT,0,1.0);
 	
 	(self.convection_solver).Solve()
         mpi.world.barrier()
@@ -310,7 +328,7 @@ class TrilinosLevelSetSolver:
 
         self.thermal_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.thermal_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,temperature_settings)
-        
+
         for node in self.thermal_model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
             if(dist < 0):
@@ -322,6 +340,15 @@ class TrilinosLevelSetSolver:
 	
 	(self.thermal_solver).Solve()
         mpi.world.barrier()
+
+        #get rid of overshoots and undershoots
+        for node in self.thermal_model_part.Nodes:
+            temperature = node.GetSolutionStepValue(TEMPERATURE)
+            if(temperature > self.inlet_temperature):
+                node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
+            elif(temperature < self.ambient_temperature):
+                node.SetSolutionStepValue(TEMPERATURE,0,self.ambient_temperature)
+
         if(mpi.rank == 0):
             print "finished thermal solution"
             
@@ -335,16 +362,18 @@ class TrilinosLevelSetSolver:
 	      #node.SetSolutionStepValue(DISTANCE,0,0.0)
 
         #apply density
-        mu1 = self.mu/self.rho1
-        mu2 = self.mu/self.rho2
-        for node in self.model_part.Nodes:
-            dist = node.GetSolutionStepValue(DISTANCE)
-            if(dist < 0):
-                node.SetSolutionStepValue(DENSITY,0,self.rho1)
-                node.SetSolutionStepValue(VISCOSITY,0,mu1)
-            else:
-                node.SetSolutionStepValue(DENSITY,0,self.rho2)
-                node.SetSolutionStepValue(VISCOSITY,0,mu2)
+#        mu1 = self.mu/self.rho1
+#        mu2 = self.mu/self.rho2
+#        for node in self.model_part.Nodes:
+#            dist = node.GetSolutionStepValue(DISTANCE)
+#            if(dist < 0):
+#                node.SetSolutionStepValue(DENSITY,0,self.rho1)
+#                node.SetSolutionStepValue(VISCOSITY,0,mu1)
+#            else:
+#                node.SetSolutionStepValue(DENSITY,0,self.rho2)
+#                node.SetSolutionStepValue(VISCOSITY,0,mu2)
+
+        self.ApplyFluidProperties()
                 
         #apply temperature dependent properties ...
                 
