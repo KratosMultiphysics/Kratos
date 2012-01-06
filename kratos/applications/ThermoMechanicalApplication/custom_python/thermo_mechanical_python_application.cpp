@@ -89,6 +89,7 @@ namespace Python
 	
 	//registering variables in python
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  NODE_PROPERTY_ID )
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AMBIENT_TEMPERATURE )
 
 
 
