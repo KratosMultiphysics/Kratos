@@ -21,13 +21,13 @@ def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(NORMAL);
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
-def AddDofs(model_part):
+def AddDofs(model_part,settings):
     for node in model_part.Nodes:
         #adding dofs
         #node.AddDof(VELOCITY_X);
         #node.AddDof(VELOCITY_Y);
         #node.AddDof(VELOCITY_Z);
-	node.AddDof(TEMPERATURE);
+	node.AddDof(settings.TEMPERATURE);
         
     print "dofs for the THERMO monolithic solver added correctly"
 

@@ -230,10 +230,9 @@ namespace Kratos
 	        /**
 	         * @return tau: multiplied by Residual of the momentum equation		    
 		 */		 
+	         virtual void CalculateConvTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
                               
 	    private:
-	          void CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
-	      
       ///@name Static Member Variables 
       ///@{ 
         
