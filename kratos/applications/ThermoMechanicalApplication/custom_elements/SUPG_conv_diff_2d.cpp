@@ -166,8 +166,8 @@ namespace Kratos {
         ms_vel_gauss *= lumping_factor;	
 
 	//we divide conductivity by (ro*C) and heat_source by C
-	conductivity /= (density*specific_heat);
-	heat_source /= (specific_heat);	
+// 	conductivity /= (density*specific_heat);
+// 	heat_source /= (specific_heat);	
 	
         double tau;
         CalculateTau(ms_vel_gauss,tau,conductivity,delta_t, Area, rCurrentProcessInfo);
@@ -178,7 +178,7 @@ namespace Kratos {
 	
         //INERTIA CONTRIBUTION
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);	
-        noalias(rLeftHandSideMatrix) = dt_inv * msMassFactors;	
+        noalias(rLeftHandSideMatrix) = dt_inv * density * specific_heat * msMassFactors;	
 	
         //viscous term
 	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Laplacian_Matrix = prod(DN_DX , trans(DN_DX));
@@ -188,16 +188,15 @@ namespace Kratos {
         array_1d<double, 3 > a_dot_grad;	
         noalias(a_dot_grad) = prod(DN_DX, ms_vel_gauss);
 	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Advective_Matrix = outer_prod(N, a_dot_grad);	
-        noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * Advective_Matrix;	
+        noalias(rLeftHandSideMatrix) += (1.0-cr_nk) * density * specific_heat * Advective_Matrix;	
 
         //stabilization terms
         array_1d<double, 3 > a_dot_grad_and_mass;
-	a_dot_grad_and_mass = dt_inv * N  +  (1.0-cr_nk) * a_dot_grad;
+	a_dot_grad_and_mass = density * specific_heat*(dt_inv * N  +  (1.0-cr_nk) * a_dot_grad);
         noalias(rLeftHandSideMatrix) += tau * outer_prod(a_dot_grad, a_dot_grad_and_mass);	
 
 	//Add heat_source
 	noalias(rRightHandSideVector) = heat_source * N;
-
 	//Take N_value terms
 	array_1d<double, 3 > step_unknown;
         for (unsigned int iii = 0; iii < nodes_number; iii++)
@@ -213,12 +212,12 @@ namespace Kratos {
 // 	noalias(rRightHandSideVector) -= cr_nk * conductivity * prod(Laplacian_Matrix, step_unknown);
 	
 	//Add all n_step terms 
-	boost::numeric::ublas::bounded_matrix<double, 3, 3 > old_step_matrix = dt_inv*msMassFactors ;
-	old_step_matrix -= ( cr_nk*Advective_Matrix + cr_nk* conductivity *Laplacian_Matrix);
+	boost::numeric::ublas::bounded_matrix<double, 3, 3 > old_step_matrix = dt_inv*density * specific_heat*msMassFactors ;
+	old_step_matrix -= ( cr_nk * density * specific_heat * Advective_Matrix + cr_nk* conductivity *Laplacian_Matrix);
 	noalias(rRightHandSideVector) += prod(old_step_matrix, step_unknown);
 	
 	//Add n_Stabilization terms		
-	a_dot_grad_and_mass = dt_inv * N  -  cr_nk * a_dot_grad;
+	a_dot_grad_and_mass = density * specific_heat*(dt_inv * N  -  cr_nk * a_dot_grad);
 	double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
 	old_res += heat_source;
 	noalias(rRightHandSideVector) += tau * a_dot_grad * old_res;	
