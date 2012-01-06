@@ -41,6 +41,7 @@ namespace Kratos
 		mHeatContact2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 		mHeatContact3D(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 		mThermalFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+		mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		
 		
 		mSUPGConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -68,6 +69,7 @@ namespace Kratos
 		KRATOS_REGISTER_CONDITION("HeatContact2D", mHeatContact2D);
 		KRATOS_REGISTER_CONDITION("HeatContact3D", mHeatContact3D);
 		KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
+		KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
 		
 		KRATOS_REGISTER_ELEMENT("SUPGConvDiff2D", mSUPGConvDiff2D);				
 		KRATOS_REGISTER_ELEMENT("SUPGConvDiff3D", mSUPGConvDiff3D);
