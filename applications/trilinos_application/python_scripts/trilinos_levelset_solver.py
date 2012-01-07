@@ -213,7 +213,7 @@ class TrilinosLevelSetSolver:
     def Initialize(self):
         self.EchoSettings()
       
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        
         self.convection_solver.dynamic_tau = self.dynamic_tau
         self.thermal_solver.dynamic_tau = self.dynamic_tau
         self.fluid_solver.dynamic_tau = self.dynamic_tau
@@ -255,6 +255,8 @@ class TrilinosLevelSetSolver:
 	    node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
 
         self.ApplyFluidProperties()
+        
+#        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 	    
 	    
 	#set the thermal properties to the appropriate values
@@ -314,6 +316,7 @@ class TrilinosLevelSetSolver:
 
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
+#        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,0.001)
 	
 	(self.convection_solver).Solve()
         mpi.world.barrier()
@@ -328,6 +331,7 @@ class TrilinosLevelSetSolver:
 
         self.thermal_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.thermal_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,temperature_settings)
+#        (self.thermal_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,0.001)
 
         for node in self.thermal_model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
@@ -378,6 +382,7 @@ class TrilinosLevelSetSolver:
         #apply temperature dependent properties ...
                 
         #solve fluid
+        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau)
         (self.fluid_solver).Solve()
         mpi.world.barrier()
         if(mpi.rank == 0):
@@ -397,14 +402,18 @@ class TrilinosLevelSetSolver:
       
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo            
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
+#        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,1.0)
         
-        #recompute distance function as needed
-        if(self.internal_step_counter >= self.next_redistance):
-	  self.DoRedistance()
-	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
+#        if(self.internal_step_counter >= self.next_redistance):
+#	  self.DoRedistance()
+#	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
         
         #convect distance function
         self.ConvectDistance()
+
+        #recompute distance function as needed
+#        self.DoRedistance()
+
 
         #compute temperature distribution    
         self.ComputeThermalSolution()
@@ -414,7 +423,11 @@ class TrilinosLevelSetSolver:
         
         self.internal_step_counter += 1
 
+        if(self.internal_step_counter >= self.next_redistance):
+	  self.DoRedistance()
+	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
         
-            
+    def GetSolverIterations(self):
+       return (self.fluid_solver).solver.iterations_last_solution
 	
 

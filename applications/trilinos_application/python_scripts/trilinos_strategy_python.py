@@ -54,6 +54,8 @@ class SolvingStrategyPython:
         #provide settings to the builder and solver
         (self.builder_and_solver).SetCalculateReactionsFlag(self.CalculateReactionsFlag);
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep);
+
+        self.iterations_last_solution = 0
         
     #######################################################################
     def Initialize(self):
@@ -117,6 +119,8 @@ class SolvingStrategyPython:
         #finalize the solution step
         self.FinalizeSolutionStep(self.CalculateReactionsFlag)
         self.SolutionStepIsInitialized = False
+
+        self.iterations_last_solution = it - 1
         
         #clear if needed - deallocates memory
         mpi.world.barrier()
