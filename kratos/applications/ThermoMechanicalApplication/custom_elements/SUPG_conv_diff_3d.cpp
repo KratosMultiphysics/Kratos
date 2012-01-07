@@ -171,6 +171,7 @@ namespace Kratos {
 	
         double tau;
         CalculateTau(ms_vel_gauss,tau,conductivity,delta_t, Volume, rCurrentProcessInfo);
+//        tau *= density * specific_heat;
 
 	//Crank-Nicholson factor
 	double cr_nk = 0.5;
@@ -221,7 +222,7 @@ namespace Kratos {
 	a_dot_grad_and_mass = density * specific_heat * (dt_inv * N  -  cr_nk * a_dot_grad);
 	double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
 	old_res += heat_source;
-	noalias(rRightHandSideVector) += tau * a_dot_grad * old_res;	
+	noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
 
 	
         //subtracting the dirichlet term

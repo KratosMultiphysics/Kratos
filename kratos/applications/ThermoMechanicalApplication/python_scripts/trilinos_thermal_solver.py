@@ -48,28 +48,33 @@ class Solver:
 	self.buildertype="standard"
 
         #definition of the solvers
-#        aztec_parameters = ParameterList()
-#        aztec_parameters.set("AZ_solver","AZ_gmres");
-#        aztec_parameters.set("AZ_kspace",100);
-#        aztec_parameters.set("AZ_output","AZ_none");
-#        preconditioner_type = "ILU"
-#        preconditioner_parameters = ParameterList()
-#        overlap_level = 0
-#        nit_max = 1000
-#        linear_tol = 1e-9
-#        self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
-
         aztec_parameters = ParameterList()
         aztec_parameters.set("AZ_solver","AZ_gmres");
+        aztec_parameters.set("AZ_kspace",100);
         aztec_parameters.set("AZ_output","AZ_none");
-#        aztec_parameters.set("AZ_output",10);
-        MLList = ParameterList()
-        default_settings = EpetraDefaultSetter()
-        default_settings.SetDefaults(MLList,"NSSA");
-#        MLList.set("ML output", 10);
+        aztec_parameters.set("AZ_output",10);
+        preconditioner_type = "ILU"
+        preconditioner_parameters = ParameterList()
+        overlap_level = 0
         nit_max = 1000
         linear_tol = 1e-9
-        self.linear_solver =  MultiLevelSolver(aztec_parameters,MLList,linear_tol,nit_max);
+        self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+
+#        aztec_parameters = ParameterList()
+#        aztec_parameters.set("AZ_solver","AZ_gmres");
+#        aztec_parameters.set("AZ_kspace", 100);
+#        aztec_parameters.set("AZ_output","AZ_none");
+#        aztec_parameters.set("AZ_output",10);
+#        MLList = ParameterList()
+#        default_settings = EpetraDefaultSetter()
+#        default_settings.SetDefaults(MLList,"NSSA");
+##        MLList.set("ML output", 10);
+#        MLList.set("PDE equations", 1);
+##        MLList.set("null space: add default vectors",1);
+#        MLList.set("aggregation: type","Uncoupled");
+#        nit_max = 1000
+#        linear_tol = 1e-9
+#        self.linear_solver =  MultiLevelSolver(aztec_parameters,MLList,linear_tol,nit_max);
 
         #definition of the convergence criteria
         self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
