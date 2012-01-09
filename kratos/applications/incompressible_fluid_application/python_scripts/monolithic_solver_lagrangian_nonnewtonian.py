@@ -71,13 +71,13 @@ class MonolithicSolver:
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver = SuperLUSolver()
+#        self.linear_solver = SuperLUSolver()
 ##        self.linear_solver = SuperLUIterativeSolver()
 
         self.linear_solver = MKLPardisoSolver()
 
 ##        pPrecond = DiagonalPreconditioner()
-######        pPrecond = ILU0Preconditioner()
+####        pPrecond = ILU0Preconditioner()
 ##        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 ####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
@@ -163,7 +163,7 @@ class MonolithicSolver:
         
         (self.solver).Solve()
         
-        self.RestoreOldPosition()
+##        self.RestoreOldPosition()
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
 
         (self.solver).Clear()
@@ -226,7 +226,8 @@ class MonolithicSolver:
 ##                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
 ##                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
     ########################################################################
-    def Remesh3D(self):
+    def Remesh3D(self, param):
+##        self.remeshing_flag==False
         delta_displ_max = 0.0
         nodal_h_max = 0.0
         for node in self.model_part.Nodes:
@@ -247,7 +248,7 @@ class MonolithicSolver:
                 nodal_h_max = node.GetSolutionStepValue(NODAL_H)
 
                 
-        if(delta_displ_max > 0.25 * nodal_h_max):
+        if(delta_displ_max > param * nodal_h_max):
             self.remeshing_flag==True
             
         (self.MeshMover).Execute();
@@ -258,6 +259,7 @@ class MonolithicSolver:
         (self.node_erase_process).Execute();
         
         if(self.remeshing_flag==True):           
+            print Time, "-------------------------------------------------REMESH_3D-----------"
 
             (self.neigh_finder).ClearNeighbours();
 
@@ -267,10 +269,8 @@ class MonolithicSolver:
             ##remesh
             if(self.domain_size == 2):
                 (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##       	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Monolithic2DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
             elif(self.domain_size == 3):
                 (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Monolithic3DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
 
             print "regenerated mesh"			      
 
@@ -308,12 +308,14 @@ class MonolithicSolver:
                 red_factor = 0.0001
             elif(self.domain_size == 3):
                 red_factor = 0.1
-            if(displ < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
+##            if(displ < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
+            if(delta_displ_square < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
 
-
+###mod 13 dic 2011
+##            print node.GetSolutionStepValue(NODAL_H)
         (self.MeshMover).Execute(); #to update the position with the new displacement
 
              
