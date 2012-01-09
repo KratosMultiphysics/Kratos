@@ -45,10 +45,13 @@ class Solver:
         #definition of the solvers
         aztec_parameters = ParameterList()
         aztec_parameters.set("AZ_solver","AZ_gmres");
-        aztec_parameters.set("AZ_kspace",100);
+        aztec_parameters.set("AZ_kspace",200);
         aztec_parameters.set("AZ_output","AZ_none");
+
         preconditioner_type = "ILU"
         preconditioner_parameters = ParameterList()
+        preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+        preconditioner_parameters.set ("fact: level-of-fill", 1);
         overlap_level = 0
         nit_max = 1000
         linear_tol = 1e-9
@@ -56,24 +59,29 @@ class Solver:
 
 #        aztec_parameters = ParameterList()
 #        aztec_parameters.set("AZ_solver","AZ_gmres");
-#        aztec_parameters.set("AZ_output","AZ_none");
-##        aztec_parameters.set("AZ_output",10);
+#        aztec_parameters.set("AZ_kspace", 100);
+##        aztec_parameters.set("AZ_output","AZ_none");
+#        aztec_parameters.set("AZ_output",10);
 #        MLList = ParameterList()
 #        default_settings = EpetraDefaultSetter()
 #        default_settings.SetDefaults(MLList,"NSSA");
-##        MLList.set("ML output", "ML_none");
+##        MLList.set("ML output", 10);
+#        MLList.set("PDE equations", 1);
+#        MLList.setboolvalue("null space: add default vectors",True);
+#        MLList.set("aggregation: type","Uncoupled");
 #        nit_max = 1000
 #        linear_tol = 1e-9
+#        print MLList
 #        self.linear_solver =  MultiLevelSolver(aztec_parameters,MLList,linear_tol,nit_max);
         
         #definition of the convergence criteria
-        self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
+        self.conv_criteria = TrilinosDisplacementCriteria(1e-9,1e-12,self.Comm)
 
         self.CalculateReactionFlag = False
         self.ReformDofSetAtEachStep = False
         self.MoveMeshFlag = False
         self.calculate_norm_dx_flag = False
-        self.max_iterations = 1
+        self.max_iterations = 4
 
         if(domain_size == 2):
             self.guess_row_size = 20

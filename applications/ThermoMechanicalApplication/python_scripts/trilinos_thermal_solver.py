@@ -50,11 +50,13 @@ class Solver:
         #definition of the solvers
         aztec_parameters = ParameterList()
         aztec_parameters.set("AZ_solver","AZ_gmres");
-        aztec_parameters.set("AZ_kspace",100);
+        aztec_parameters.set("AZ_kspace",200);
         aztec_parameters.set("AZ_output","AZ_none");
         aztec_parameters.set("AZ_output",10);
         preconditioner_type = "ILU"
         preconditioner_parameters = ParameterList()
+        preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+        preconditioner_parameters.set ("fact: level-of-fill", 1);
         overlap_level = 0
         nit_max = 1000
         linear_tol = 1e-9
@@ -63,14 +65,14 @@ class Solver:
 #        aztec_parameters = ParameterList()
 #        aztec_parameters.set("AZ_solver","AZ_gmres");
 #        aztec_parameters.set("AZ_kspace", 100);
-#        aztec_parameters.set("AZ_output","AZ_none");
+##        aztec_parameters.set("AZ_output","AZ_none");
 #        aztec_parameters.set("AZ_output",10);
 #        MLList = ParameterList()
 #        default_settings = EpetraDefaultSetter()
-#        default_settings.SetDefaults(MLList,"NSSA");
+#        default_settings.SetDefaults(MLList,"SA");
 ##        MLList.set("ML output", 10);
 #        MLList.set("PDE equations", 1);
-##        MLList.set("null space: add default vectors",1);
+#        MLList.setboolvalue("null space: add default vectors",True);
 #        MLList.set("aggregation: type","Uncoupled");
 #        nit_max = 1000
 #        linear_tol = 1e-9
