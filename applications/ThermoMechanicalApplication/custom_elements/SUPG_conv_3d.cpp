@@ -221,15 +221,15 @@ namespace Kratos
         h = 0.666666667 * h * 1.732;
 
         double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
-//        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
+        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
 
         
-        double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
-        noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
-
-        boost::numeric::ublas::bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
-        noalias(rLeftHandSideMatrix) += prod(DN_DX,aux34);
+//        double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
+//        boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
+//        noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
+//
+//        boost::numeric::ublas::bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
+//        noalias(rLeftHandSideMatrix) += prod(DN_DX,aux34);
 
         //Add N_mass terms
         // 	noalias(rRightHandSideVector) += dt_inv * prod(msMassFactors, step_unknown);
