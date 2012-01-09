@@ -202,6 +202,35 @@ namespace Kratos
         for (unsigned int iii = 0; iii < nodes_number; iii++)
             step_unknown[iii] = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar, 1);
 
+        //compute shock capturing term
+        array_1d<double,4> aux_t;
+        aux_t[0] = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+        aux_t[1] = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
+        aux_t[2] = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
+        aux_t[3] = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar);
+        array_1d<double,3> grad_g = prod(trans(DN_DX),aux_t);
+
+        double res = inner_prod(ms_vel_gauss,grad_g);
+
+        double dphi_dt = 0.0;
+        for (unsigned int i = 0; i < 4; i++)
+            dphi_dt += N[i]*(aux_t[i] - GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1));
+        res += dt_inv * dphi_dt;
+
+        double h = pow(12.0 * Volume, 0.333333333333333333333);
+        h = 0.666666667 * h * 1.732;
+
+        double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
+//        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
+
+        
+        double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
+        boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
+        noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
+
+        boost::numeric::ublas::bounded_matrix<double, 3, 4 > aux34 = prod(aux33,trans(DN_DX));
+        noalias(rLeftHandSideMatrix) += prod(DN_DX,aux34);
+
         //Add N_mass terms
         // 	noalias(rRightHandSideVector) += dt_inv * prod(msMassFactors, step_unknown);
         //
