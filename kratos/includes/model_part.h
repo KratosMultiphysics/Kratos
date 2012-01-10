@@ -74,6 +74,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
+#include "includes/table.h"
+#include "containers/pointer_vector_map.h"
 
 
 namespace Kratos
@@ -210,7 +212,25 @@ namespace Kratos
             usage. */
         typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
 
-        ///@}
+		// Defining a table with double argument and result type as table type.
+		typedef Table<double,double> TableType;
+		
+		// The container of the tables. A vector map of the tables.
+		typedef PointerVectorMap<SizeType, TableType> TablesContainerType;
+
+       /** Iterator over the Tables. This iterator is an indirect
+	  iterator over Tables::Pointer which turn back a reference to
+	  Table by * operator and not a pointer for more convenient
+	  usage. */
+      typedef TablesContainerType::iterator TableIterator;
+
+      /** Const iterator over the Tables. This iterator is an indirect
+	  iterator over Tables::Pointer which turn back a reference to
+	  Table by * operator and not a pointer for more convenient
+	  usage. */
+      typedef TablesContainerType::const_iterator TableConstantIterator;
+
+	  ///@}
         ///@name Life Cycle
         ///@{
 
@@ -668,6 +688,74 @@ namespace Kratos
         {
             return mVariablesList.DataSize() * mBufferSize;
         }
+
+
+      ///@}
+        ///@name Tables
+        ///@{
+
+        SizeType NumberOfTables() const
+        {
+			return mTables.size();
+        }
+
+        /** Inserts a Table
+         */
+        void AddTable(IndexType TableId, TableType::Pointer pNewTable)
+        {
+			mTables.insert(TableId, pNewTable);
+        }
+
+        /** Returns the Table::Pointer  corresponding to it's identifier */
+        TableType::Pointer pGetTable(IndexType TableId)
+        {
+            return mTables(TableId);
+        }
+
+        /** Returns a reference to Table corresponding to the identifier */
+        TableType& GetTable(IndexType TableId)
+        {
+            return mTables[TableId];
+        }
+
+        /** Remove the Table with given Id from current mesh.
+         */
+        void RemoveTable(IndexType TableId)
+        {
+			mTables.erase(TableId);
+        }
+
+
+        TableIterator TablesBegin()
+        {
+			return mTables.begin();
+        }
+
+        TableConstantIterator TablesBegin() const
+        {
+			return mTables.begin();
+        }
+
+        TableIterator TablesEnd()
+        {
+ 			return mTables.end();
+        }
+
+        TableConstantIterator TablesEnd() const
+        {
+  			return mTables.end();
+       }
+
+        TablesContainerType& Tables()
+        {
+            return mTables;
+        }
+
+        TablesContainerType::ContainerType& TablesArray()
+        {
+			return mTables.GetContainer();
+        }
+
 
 
         ///@}
@@ -1172,6 +1260,8 @@ namespace Kratos
         IndexType mCurrentIndex;
 
         ProcessInfo::Pointer mpProcessInfo;
+
+		TablesContainerType mTables;
 
         std::vector<IndexType> mIndices;
 
