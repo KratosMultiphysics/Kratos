@@ -37,6 +37,8 @@ python-extension KratosR1PoissonApplication
 	#"system" includes	
 	/KratosProject//pythonlib
 	/KratosProject//boost_python_lib
+
+/KratosProject//libomp
     ;
 
 #################################################################################

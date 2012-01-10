@@ -195,12 +195,16 @@ namespace Kratos
     private:
       ///@name Static Member Variables 
       ///@{ 
-		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-		static boost::numeric::ublas::bounded_matrix<double,2,2> Poisson2D::msD;
-  		static array_1d<double,3> msN; //dimension = number of nodes
-		static array_1d<double,3> ms_temp; //dimension = number of nodes
-		static array_1d<double,3> Poisson2D::point_sources; //dimension = number of nodes
-
+// 		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+// 		static boost::numeric::ublas::bounded_matrix<double,2,2> Poisson2D::msD;
+//   		static array_1d<double,3> msN; //dimension = number of nodes
+// 		static array_1d<double,3> ms_temp; //dimension = number of nodes
+// 		static array_1d<double,3> Poisson2D::point_sources; //dimension = number of nodes
+// 		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+// 		boost::numeric::ublas::bounded_matrix<double,2,2> Poisson2D::msD;
+//   		array_1d<double,3> msN; //dimension = number of nodes
+// 		array_1d<double,3> ms_temp; //dimension = number of nodes
+// 		array_1d<double,3> Poisson2D::point_sources; //dimension = number of nodes
       ///@} 
       ///@name Member Variables 
       ///@{        

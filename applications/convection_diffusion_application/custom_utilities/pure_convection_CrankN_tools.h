@@ -52,7 +52,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_PURE_CONVECTION_CRANKN_UTILITIES_INCLUDED
 
 
-
 // System includes
 #include <string>
 #include <iostream> 

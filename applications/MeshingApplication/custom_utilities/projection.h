@@ -88,7 +88,7 @@ namespace Kratos
 	*/
 
 	//class MeshTransfer
-	template<std::size_t TDim>
+	template<std::size_t TDim >
 	class MeshTransfer  
 	{
 	public:
@@ -96,7 +96,7 @@ namespace Kratos
 		///@{
 
 		/// Pointer definition of MeshTransfer
-		KRATOS_CLASS_POINTER_DEFINITION(MeshTransfer<TDim>);
+		KRATOS_CLASS_POINTER_DEFINITION(MeshTransfer<TDim >);
 
 		///@}
 		///@name Life Cycle 
@@ -426,7 +426,7 @@ namespace Kratos
 				//find all of the new nodes within the radius
 				int number_of_points_in_radius;
 
-				//look between the new nodes which of them is inside the radius of the circumscribed cyrcle
+				//look between the new nodes which of them is inside the radius of the circumscribed circle
 				number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
  						ResultsDistances.begin(),  MaximumNumberOfResults);
 						
