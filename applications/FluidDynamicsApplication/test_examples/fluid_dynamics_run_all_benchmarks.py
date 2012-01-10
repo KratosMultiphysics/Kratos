@@ -54,7 +54,28 @@ def Run():
 
 	os.chdir("..")
         ###############################################################################
+        # slip condition and wall law (MonolithicWallCondition2D + ResidualBasedVelocityBossakSchemeTurbulent)
+	
+        Text += "Slip condition and wall law test: "
+	
+        os.chdir("slip_test")	
+	sys.path.append(os.getcwd())
 
+        import slip_test_benchmark
+	Msg = slip_test_benchmark.Run()
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "slip condition test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "slip condition test FAILED"
+
+
+	os.chdir("..")
+        ###############################################################################
 
 	# Add other examples here
 

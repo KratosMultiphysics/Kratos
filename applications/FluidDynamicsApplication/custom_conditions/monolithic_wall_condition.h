@@ -490,12 +490,16 @@ namespace Kratos
         {
             GeometryType& rGeometry = this->GetGeometry();
             const size_t BlockSize = TDim + 1;
+            const double NodalFactor = 1.0 / double(TDim);
 
-            double area = 0.3333333333333 * rGeometry.Area();
+            double area = NodalFactor * rGeometry.DomainSize();
+            // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
-                if( rGeometry[itNode].GetValue(IS_STRUCTURE) != 0.0 )
+                const NodeType& rConstNode = rGeometry[itNode];
+                const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
+                if( y > 0.0 && rConstNode.GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                     const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
@@ -505,13 +509,11 @@ namespace Kratos
                     const double B = 5.2;
                     const double limit_yplus = 10.9931899; // limit between linear and log regions
 
-                    const double y = rGeometry[itNode].GetValue(Y_WALL); // wall distance to use in stress calculation
-
                     const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
                     const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
 
                     double wall_vel = 0.0;
-                    for (size_t d = 0; d < 3; d++)
+                    for (size_t d = 0; d < TDim; d++)
                     {
                         wall_vel += Vel[d]*Vel[d];
                     }
@@ -557,11 +559,12 @@ namespace Kratos
                             }
                         }
 
-                        for (size_t d = 0; d < 3; d++)
+                        const double Tmp = area * utau * utau * rho / wall_vel;
+                        for (size_t d = 0; d < TDim; d++)
                         {
                             size_t k = itNode*BlockSize+d;
-                            rLocalVector[k] -= Vel[d] * area * utau * utau * rho / wall_vel;
-                            rLocalMatrix(k,k) += area * utau * utau * rho / wall_vel;
+                            rLocalVector[k] -= Vel[d] * Tmp;
+                            rLocalMatrix(k,k) += Tmp;
                         }
                     }
                 }
