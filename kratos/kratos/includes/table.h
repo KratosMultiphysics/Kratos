@@ -195,10 +195,68 @@ namespace Kratos
 		  return mData[size-1].second;
         }
 
+	  // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
+	  void insert(argument_type const& X, result_type const& Y)
+	  {
+		  result_row_type a = {{Y}};
+		  insert(X,a);
+	  }
+
+	  // inserts a row in a sorted position where Xi-1 < X < Xi+1 and fills the first column with Y
+	  // assumes that Y has [] operator with TResultsColumns element
+	  template<class TArrayType>
+	  void insert(argument_type const& X, TArrayType const& Y)
+	  {
+			  result_row_type a;
+			  for(std::size_t i = 0 ; i < TResultsColumns ; i++)
+				  a[i] = Y[i];
+		  insert(X,a);
+	  }
+
+	  // inserts a row in a sorted position where Xi-1 < X < Xi+1
+	  void insert(argument_type const& X, result_row_type const& Y)
+	  {
+		  std::size_t size = mData.size();
+
+		  if(size == 0)
+			  mData.push_back(RecordType(X,Y));
+
+		  if(X <= mData[0].first)
+			  mData.insert(mData.begin(), RecordType(X,Y));
+
+		  for(std::size_t i = 1 ; i < size ; i++)
+			if(X <= mData[i].first)
+			  mData.insert(mData.begin() + i, RecordType(X,Y));
+
+	  }
+
+
+	  // assumes that the X is the greater than the last argument and put the row at the end.
+	  // faster than insert.
           void PushBack(argument_type const& X, result_type const& Y)
           {
 			  result_row_type a = {{Y}};
               mData.push_back(RecordType(X,a));
+          }
+
+	  // assumes that the X is the greater than the last argument and put the row at the end.
+	  // assumes that Y has [] operator with TResultsColumns element
+	  // faster than insert.
+		  template<class TArrayType>
+          void PushBack(argument_type const& X, TArrayType const& Y)
+          {
+			  result_row_type a;
+			  for(std::size_t i = 0 ; i < TResultsColumns ; i++)
+				  a[i] = Y[i];
+              mData.push_back(RecordType(X,a));
+          }
+
+	  // assumes that the X is the greater than the last argument and put the row at the end.
+	  // faster than insert.
+		  template<class TArrayType>
+          void PushBack(argument_type const& X, result_row_type const& Y)
+          {
+              mData.push_back(RecordType(X,Y));
           }
      
       ///@}
