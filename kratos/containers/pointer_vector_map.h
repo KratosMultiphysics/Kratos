@@ -371,7 +371,7 @@ namespace Kratos
     
     void Sort()
     {
-      std::sort(mData.begin(), mData.end(), CompareValue());
+      std::sort(mData.begin(), mData.end(), CompareKey());
       mSortedPartSize = mData.size();
     }
     
@@ -487,16 +487,18 @@ namespace Kratos
     private:
      class CompareKey : public std::binary_function<value_type, key_type, bool>{
      public:
-       bool operator()(value_type& a, key_type b) const
+       bool operator()(value_type const& a, key_type b) const
        {return TCompareType()(a.first, b);}
-       bool operator()(key_type a, value_type& b) const
-       {return TCompareType()(a.first, b);}
-     };
-     class CompareValue : public std::binary_function<value_type&, value_type&, bool>{
-     public:
-       bool operator()(value_type& a, value_type& b) const
+       bool operator()(key_type a, value_type const& b) const
+       {return TCompareType()(a, b.first);}
+       bool operator()(value_type const& a, value_type const& b) const
        {return TCompareType()(a.first, b.first);}
      };
+//     class CompareValue : public std::binary_function<value_type&, value_type&, bool>{
+//     public:
+//       bool operator()(value_type& a, value_type& b) const
+//       {return TCompareType()(a.first, b.first);}
+//     };
      class EqualKeyTo : public std::binary_function<value_type&, value_type&, bool>{
 		 key_type mKey;
      public:
