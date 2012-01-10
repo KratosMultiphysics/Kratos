@@ -25,7 +25,7 @@ void SphericRotatingParticle::ComputeForcesOnCenterNode (double dt, array_1d<dou
     double tang_stiffness = mTangentialStiffness;
     double critic_damp_fraction = mZeta;
     double static_friction_coef = mStaticFriction;
-    double dynamic_friction_coef = mDynamicFriction;
+//    double dynamic_friction_coef = mDynamicFriction;
     array_1d<double, 3 > & force = GetForce();
     array_1d<double, 3 > & moment = GetMoment();
     noalias(force) = ZeroVector(3);
@@ -69,10 +69,10 @@ void SphericRotatingParticle::ComputeForcesOnCenterNode (double dt, array_1d<dou
             array_1d<double, 3 > other_to_me_vect_dot = vel - other_vel;
             double separation_celerity = other_to_me_vect_dot[0] * other_to_me_versor[0] + other_to_me_vect_dot[1] * other_to_me_versor[0] + other_to_me_vect_dot[2] * other_to_me_versor[0];
             array_1d<double, 3 > tang_velocity_of_me_from_other = other_to_me_vect_dot - separation_celerity * other_to_me_versor;
-            double tang_celerity_of_me_from_other = sqrt(tang_velocity_of_me_from_other[0] * tang_velocity_of_me_from_other[0] + tang_velocity_of_me_from_other[1] * tang_velocity_of_me_from_other[1] + tang_velocity_of_me_from_other[2] * tang_velocity_of_me_from_other[2]); ;
+//            double tang_celerity_of_me_from_other = sqrt(tang_velocity_of_me_from_other[0] * tang_velocity_of_me_from_other[0] + tang_velocity_of_me_from_other[1] * tang_velocity_of_me_from_other[1] + tang_velocity_of_me_from_other[2] * tang_velocity_of_me_from_other[2]); ;
             // Computing maximum to avoid "sticking"
             double normal_viscous_f = -normal_damping_coef * separation_celerity;
-            double tang_viscous_f = -tang_damping_coef * tang_celerity_of_me_from_other;
+//            double tang_viscous_f = -tang_damping_coef * tang_celerity_of_me_from_other;
 #if STICKING_ALLOWED == 0
             if (separation_celerity > 0.0){
                 double normal_viscous_f = 0.5 * (-normal_force_norm + normal_viscous_f + fabs(-normal_force_norm - normal_viscous_f)); // The maximum between the minus elastic force and the vioscous force
@@ -179,7 +179,7 @@ void SphericRotatingParticle::ComputeNewTangentialDisplacements(){
             array_1d<double, 3 > difference_contact_displ = other_to_me_vect_incr - contribution_of_ang_incr_to_tang_displ - other_contribution_of_ang_incr_to_tang_displ;
             array_1d<double, 3 > tang_displacement_incr = difference_contact_displ - (difference_contact_displ[0] * other_to_me_versor[0] + difference_contact_displ[1] * other_to_me_versor[1] + difference_contact_displ[2] * other_to_me_versor[2]) * other_to_me_versor;
             array_1d<double, 3 > calculated_tang_displ = tang_displ + tang_displacement_incr;
-            double old_tang_displ_norm_2 = tang_displ[0] * tang_displ[0] + tang_displ[1] * tang_displ[1] + tang_displ[2] * tang_displ[2];
+//            double old_tang_displ_norm_2 = tang_displ[0] * tang_displ[0] + tang_displ[1] * tang_displ[1] + tang_displ[2] * tang_displ[2];
             double calculated_tang_displ_norm_2 = calculated_tang_displ[0] * calculated_tang_displ[0] + calculated_tang_displ[1] * calculated_tang_displ[1] + calculated_tang_displ[2] * calculated_tang_displ[2];
             double max_tang_force_norm = *inormalf;
             double max_tang_displ_2 = max_tang_force_norm * max_tang_force_norm / (mTangentialStiffness * mTangentialStiffness);

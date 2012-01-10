@@ -18,9 +18,9 @@ namespace Kratos{
 
 void CircularHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >& gravity){
     double mass = mMass;
-    double n_exponent = 1.5;
+//    double n_exponent = 1.5;
     double radius = mRadius;
-    double young_mod = mYoung;
+//    double young_mod = mYoung;
     double poisson_coef = mPoisson;
     double young_star = mYoungStar;
     double zeta = mZeta;
@@ -34,8 +34,8 @@ void CircularHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<dou
         ineighbour != CircularHertzianParticle::mNeighbours.end(); ineighbour++){
 //        KRATOS_WATCH('In loop for adding every force');
         double other_radius = ineighbour->GetRadius();
-        double other_young = ineighbour->GetYoung();
-        double other_poisson = ineighbour->GetPoisson();
+//        double other_young = ineighbour->GetYoung();
+//        double other_poisson = ineighbour->GetPoisson();
         double other_zeta = ineighbour->GetZeta();
         double other_mass = ineighbour->GetMass();
         array_1d<double,3> other_to_me_dist = this->GetPosition() - ineighbour->GetPosition();
@@ -57,7 +57,7 @@ void CircularHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<dou
             double other_young_star = ineighbour->GetYoungStar();
 //            KRATOS_WATCH(young_star);
 //            KRATOS_WATCH(other_young_star);
-            double equiv_radius_double = 2.0 / ((1.0 / radius) + (1.0 / other_radius));
+//            double equiv_radius_double = 2.0 / ((1.0 / radius) + (1.0 / other_radius));
             double equiv_young_star = 1.0 / ((1.0 / young_star) + (1.0 / other_young_star));
             double mod_force = 0.25 * M_PI * equiv_young_star * indentation;
 //            KRATOS_WATCH(equiv_young_star);
