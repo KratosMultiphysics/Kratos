@@ -291,7 +291,7 @@ public:
                 double m = (*particle_it)->GetMass();
                 double new_freq_2 = k / (r * m);
                 double new_damping_ratio = (*particle_it)->GetZeta();
-                double new_critic_damp = new_damping_ratio * sqrt(new_freq_2);
+//                double new_critic_damp = new_damping_ratio * sqrt(new_freq_2);
                 if (new_freq_2 > max_nat_freq_2) {
                     max_nat_freq_2 = new_freq_2;
                 }
@@ -340,7 +340,7 @@ public:
             double max_nat_freq, max_nat_freq_2 = 0.0;
             double max_damping_ratio = 0.0;
             double dt;
-            double radius_quot = M_PI * (mMaxRadius + mMinRadius) / mMinRadius;
+//            double radius_quot = M_PI * (mMaxRadius + mMinRadius) / mMinRadius;
             for (ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin();
                     particle_it != mListOfParticlePointers.end(); ++particle_it) {
                 double k = (*particle_it)->GetStiffness();
@@ -348,7 +348,7 @@ public:
                 double m = (*particle_it)->GetMass();
                 double new_freq_2 = k / (r * m);
                 double new_damping_ratio = (*particle_it)->GetZeta();
-                double new_critic_damp = new_damping_ratio * sqrt(new_freq_2);
+//                double new_critic_damp = new_damping_ratio * sqrt(new_freq_2);
                 if (new_freq_2 > max_nat_freq_2) {
                     max_nat_freq_2 = new_freq_2;
                 }

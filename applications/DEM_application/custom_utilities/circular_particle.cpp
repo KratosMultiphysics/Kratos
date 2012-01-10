@@ -21,7 +21,7 @@ void CircularParticle::ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >
     double mass = mMass;
     double radius = mRadius;
     double stiffness = mStiffness / radius;
-    double undamp_nat_freq = sqrt(stiffness / mass);
+//    double undamp_nat_freq = sqrt(stiffness / mass);
     double critic_damp_fraction = mZeta;
     array_1d<double,3>& force = GetForce();
     noalias(force) = ZeroVector(3);
@@ -33,7 +33,7 @@ void CircularParticle::ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >
         double other_mass = ineighbour->GetMass();
         double other_radius = ineighbour->GetRadius();
         double other_stiffness = ineighbour->GetStiffness() / other_radius;
-        double other_undamp_nat_freq = sqrt(other_stiffness / other_mass);
+//        double other_undamp_nat_freq = sqrt(other_stiffness / other_mass);
         double other_critic_damp_fraction = ineighbour->GetZeta() * other_stiffness;
         
         array_1d<double,3> other_to_me_dist = this->GetPosition() - ineighbour->GetPosition();

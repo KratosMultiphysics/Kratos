@@ -149,11 +149,11 @@ namespace Kratos {
             //**************************************************************************************************************************************************************
 
             unsigned int MaximumNumberOfResults = 100;
-            int step_data_size = model_part.GetNodalSolutionStepDataSize();
-            double radius = 2.0 * max_radius;
+//            int step_data_size = model_part.GetNodalSolutionStepDataSize();
+//            double radius = 2.0 * max_radius;
             ParticlePointerVector Results(MaximumNumberOfResults);
             DistanceVector ResultsDistances(MaximumNumberOfResults);
-            unsigned int bucket_size = 20;
+//            unsigned int bucket_size = 20;
 #if KD_TREE == 1
             tree nodes_tree(aux_list_of_particles.begin(), aux_list_of_particles.end(), bucket_size);
 #endif

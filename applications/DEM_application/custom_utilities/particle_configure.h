@@ -167,7 +167,7 @@ public:
     //******************************************************************************************************************
 
      static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint){
-        double separation_from_particle_radius_ratio = 0.1;
+//        double separation_from_particle_radius_ratio = 0.1;
         array_1d<double, 3> center_of_particle = rObject->GetPosition();
         double radius = rObject->GetRadius();
         bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
