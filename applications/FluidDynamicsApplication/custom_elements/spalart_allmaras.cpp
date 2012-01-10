@@ -121,8 +121,11 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
         const SizeType NumNodes = this->GetGeometry().PointsNumber();
         const SizeType NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
 
-        const Matrix& NContainer = this->GetGeometry().ShapeFunctionsValues();
+        const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
+
+        double NodalArea = 0.0;
+        double ConvTerm = 0.0;
 
         for (SizeType g = 0; g < NumGauss; g++) // Loop on Gauss points
         {
@@ -144,17 +147,17 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
             this->EvaluateConvection(UGradN,ConvVel,DN_DX);
 
             // Finish evaluation of convective term as Velocity * Grad(N_i) * Viscosity_node_i
-            double ConvTerm = 0.0;
+            NodalArea += GaussWeight;
             for (SizeType i = 0; i < NumNodes; i++)
-                ConvTerm += UGradN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+                ConvTerm += GaussWeight * UGradN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+        }
 
-            for (SizeType i = 0; i < NumNodes; i++)
-            {
-                this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += GaussWeight;
-                this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += GaussWeight * ConvTerm;
-                this->GetGeometry()[i].UnSetLock();
-            }
+        for (SizeType i = 0; i < NumNodes; i++)
+        {
+            this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea;
+            this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += ConvTerm;
+            this->GetGeometry()[i].UnSetLock();
         }
     }
     KRATOS_CATCH("")
@@ -167,7 +170,7 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
     const SizeType NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
 
-    const Matrix& NContainer = this->GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
+    const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
 
     const double Tau = this->CalculateTau(rCurrentProcessInfo);
@@ -257,7 +260,6 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    KRATOS_WATCH(NumNodes);
 
     if (rElementalDofList.size() != NumNodes)
         rElementalDofList.resize(NumNodes);
@@ -270,12 +272,10 @@ void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo 
 void SpalartAllmaras::EquationIdVector(Element::EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo)
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
-    KRATOS_WATCH(NumNodes);
 
     if (rResult.size() != NumNodes)
         rResult.resize(NumNodes, false);
 
-    KRATOS_WATCH(GetGeometry()[0].GetDof(TURBULENT_VISCOSITY))
     for (SizeType i = 0; i < NumNodes; i++)
         rResult[i] = GetGeometry()[i].GetDof(TURBULENT_VISCOSITY).EquationId();
 }
@@ -470,7 +470,7 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
     const SizeType NumNodes = rGeom.PointsNumber();
 
     // Shape functions at the element center
-    const Matrix& NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
+    const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
     const Vector& N = row(NContainer,0);
 
     // Time Term
