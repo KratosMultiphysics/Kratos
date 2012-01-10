@@ -18,10 +18,12 @@
 
 
 // External includes 
+#include <boost/array.hpp>  
 
 
 // Project includes
 #include "includes/define.h"
+#include "containers/variable.h"
 
 
 namespace Kratos
@@ -49,10 +51,10 @@ namespace Kratos
   ///@{
   
   /// This class represents the value of its variable depending to other variable.
-  /** Table class stores the value of its first variable respect to the value of its second variable.
+  /** Table class stores the value of its second variable respect to the value of its first variable.
   *   It also provides a piecewise linear interpolator/extrapolator for getting intermediate values.
   */
-  template<class TArgumentType, class TResultType>
+  template<class TArgumentType, class TResultType = TArgumentType, std::size_t TResultsColumns = 1>
   class Table
     {
     public:
@@ -65,14 +67,26 @@ namespace Kratos
 	  typedef TArgumentType argument_type; // To be STL conformance.
 	  typedef TResultType result_type; // To be STL conformance.
 
-	  typedef std::vector<std::pair<TArgumentType,TResultType> > TableContainerType;
+	  typedef boost::array<TResultType, TResultsColumns>  result_row_type;
+
+      typedef std::pair<argument_type, result_row_type> RecordType;
+
+	  typedef std::vector<RecordType> TableContainerType;
+
+	  typedef Variable<TArgumentType> XVariableType;
+	  typedef Variable<TResultType> YVariableType;
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      Table()
+      Table() : mData(), mpXVariable(NULL) , mpYVariable(NULL)
+	  {
+	  }
+
+      /// Default constructor.
+      Table(XVariableType const& XVariable, YVariableType const& YVariable) : mData(), mpXVariable(&XVariable) , mpYVariable(&YVariable)
 	  {
 	  }
 
@@ -81,34 +95,64 @@ namespace Kratos
 	  {
 	  }
       
+      
+      /// Assignment operator.
+      Table& operator=(Table const& rOther)
+	  {
+		  mData = rOther.mData;
+		  return *this;
+	  }
+
 
       ///@}
       ///@name Operators 
       ///@{
+
+	  // I want to put operator(i,j) for accessing, operator(i) for first column and operator[i] for getting the complete row
       
-	  // This operator calculates the piecewise linear interpolation for 
-	  // given argument
-	  result_type operator()(argument_type const& X) const
+	  // This operator gives the first column result for the nearest argument found in table
+	  result_type const& operator()(argument_type const& X) const
 	  {
-		  return GetValue(X);
+		  return GetNearestRow(X)[0];
 	  }
 
-	  // This operator gives the result for the nearest value to argument found in table 
-	  result_type const & operator[](argument_type const& X) const
+	  // This operator gives the first column result for the nearest argument found in table
+	  result_type& operator()(argument_type const& X) 
 	  {
+		  return GetNearestRow(X)[0];
 	  }
 
-	  // This operator gives the result for the nearest value to argument found in table 
-	  result_type & operator[](argument_type& X)
+	  // This operator gives the result in the Jth column for the nearest argument found in table
+	  result_type const& operator()(argument_type const& X, std::size_t J) const
 	  {
+		  return GetNearestRow(X)[J];
+	  }
+
+	  // This operator gives the result in the Jth column for the nearest argument found in table
+	  result_type& operator()(argument_type const& X, std::size_t J) 
+	  {
+		  return GetNearestRow(X)[J];
+	  }
+
+	  // This operator gives the row for the nearest value to argument found in table 
+	  result_row_type const & operator[](argument_type const& X) const
+	  {
+              return GetNearestRow(X);
+	  }
+
+	  // This operator gives the row for the nearest value to argument found in table 
+	  result_row_type & operator[](argument_type& X)
+	  {
+              return GetNearestRow(X);
 	  }
       
       ///@}
       ///@name Operations
       ///@{
       
-	  // Get the value for the given argument using piecewise linear
-	  result_type GetValue(argument_type const& X) const
+
+	  // Get the nesrest value for the given argument
+	  result_type& GetNearestRow(argument_type const& X)
 	  {
 		  std::size_t size = mData.size();
 
@@ -118,43 +162,71 @@ namespace Kratos
 		  if(size==1) // constant table. Returning the only value we have.
 			  return mData.begin()->second;
 
-		  result_type y1 = mData[0].second;
-		  result_type y2 = mData[1].second;
-
-		  result_type result;
-		  if(x <= mData[0].first)
-			  return Interpolate(x, mData[0].first, mData[0].second, mData[1].first, mData[1].second, result);
+		  if(X <= mData[0].first)
+			  return mData[0].second;
 
 		  for(std::size_t i = 1 ; i < size ; i++)
-			if(x <= mData[i].first)
-			  return Interpolate(x, mData[i-1].first, mData[i-1].second, mData[i].first, mData[i].second, result);
+			if(X <= mData[i].first)
+			  return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
 		  // now the x is outside the table and we hae to extrapolate it using last two records of table.
-		  return Interpolate(x, mData[size-2].first, mData[size-2].second, mData[size-1].first, mData[size-1].second, result);
+		  return mData[size-1].second;
 	  }
 
-	  result_type& Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, Result)
+	  // Get the nesrest value for the given argument
+	  result_type const& GetNearestRow(argument_type const& X)  const
 	  {
-		  argument_type dx = X2-X1;
-		  result_type dy=Y2-Y1;
+		  std::size_t size = mData.size();
 
-		  double dx_norm = NormOf(dx);
-		  double scale = 0.00;
+		  if(size == 0)
+			  KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
 
-		  if(dx_norm)
-			  scale = NormOf(X-X1) / dx_norm;
+		  if(size==1) // constant table. Returning the only value we have.
+			  return mData.begin()->second;
 
-		  Result = Y1 + dy * scale;
+		  if(X <= mData[0].first)
+			  return mData[0].second;
 
-		  return Result;
+		  for(std::size_t i = 1 ; i < size ; i++)
+			if(X <= mData[i].first)
+			  return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second : mData[i].second;
 
-	  }
-      
+		  // now the x is outside the table and we hae to extrapolate it using last two records of table.
+		  return mData[size-1].second;
+        }
+
+          void PushBack(argument_type const& X, result_type const& Y)
+          {
+			  result_row_type a = {{Y}};
+              mData.push_back(RecordType(X,a));
+          }
+     
       ///@}
       ///@name Access
       ///@{ 
       
-      
+
+          TableContainerType& Data()
+          {
+              return mData;
+          }
+
+          TableContainerType const& Data() const
+          {
+              return mData;
+          }
+
+          XVariableType& GetXVariable()
+          {
+              return *mpXVariable;
+          }
+
+          YVariableType& GetYVariable()
+          {
+              return *mpYVariable;
+          }
+
+
       ///@}
       ///@name Inquiry
       ///@{
@@ -165,14 +237,21 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const;
+      virtual std::string Info() const
+	  {
+		  return "Table";
+	  }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+      virtual void PrintInfo(std::ostream& rOStream) const
+	  {
+		  rOStream << Info();
+	  }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-      
+      virtual void PrintData(std::ostream& rOStream) const
+	  {
+	  }
             
       ///@}      
       ///@name Friends
@@ -228,17 +307,14 @@ namespace Kratos
       ///@{ 
         
 		TableContainerType mData;
+                const XVariableType* mpXVariable;
+                const YVariableType* mpYVariable;
         
       ///@} 
       ///@name Private Operators
       ///@{ 
 
-		double NormOf(double Value)
-		{
-			return Value;
-		}
-        
-        
+
         
       ///@} 
       ///@name Private Operations
@@ -259,9 +335,6 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
-      /// Assignment operator.
-      Table& operator=(Table const& rOther);
-
       /// Copy constructor.
       Table(Table const& rOther);
 
@@ -280,14 +353,16 @@ namespace Kratos
   ///@name Input and output 
   ///@{ 
         
- 
+
   /// input stream function
+  template<class TArgumentType, class TResultType>
   inline std::istream& operator >> (std::istream& rIStream, 
-				    Table& rThis);
+				    Table<TArgumentType, TResultType>& rThis);
 
   /// output stream function
+  template<class TArgumentType, class TResultType>
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Table& rThis)
+				    const Table<TArgumentType, TResultType>& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -295,6 +370,7 @@ namespace Kratos
 
       return rOStream;
     }
+
   ///@}
 
   ///@} addtogroup block
