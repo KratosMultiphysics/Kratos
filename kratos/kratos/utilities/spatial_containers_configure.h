@@ -177,7 +177,7 @@ class SpatialContainersConfigure
 ///******************************************************************************************************************  
 	
    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
-    { 
+ { 
     rHighPoint = rObject->GetGeometry().GetPoint(0);
     rLowPoint  = rObject->GetGeometry().GetPoint(0);        
      for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)      
@@ -186,7 +186,7 @@ class SpatialContainersConfigure
 	  {
  	      rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i]; 
  	      rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
- 	  }
+              }
         }           
     }
     

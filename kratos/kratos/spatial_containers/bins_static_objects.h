@@ -351,7 +351,7 @@ namespace Kratos
 	
        #ifdef _OPENMP
        double stop_prod = omp_get_wtime();
-       std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
+//       std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
        #endif
          
      }
@@ -646,7 +646,6 @@ namespace Kratos
         MaxBox[i] = MinBox[i] + mCellSize[i];
       }
       CoordinateType MaxBox_ = static_cast<CoordinateType>(Box.Axis[0].Min+1) * mCellSize[0] + mMinPoint[0];  // 
-
       MinCell[2] = MinBox[2];
       MaxCell[2] = MaxBox[2];
       for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block, MinCell[2]+=mCellSize[2], MaxCell[2]+=mCellSize[2] )

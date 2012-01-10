@@ -73,7 +73,7 @@ namespace Kratos
         }
         void WriteMesh( GidIOType& dummy, GidIOType::MeshType& rThisMesh )
         {
-            dummy.WriteMesh( rThisMesh );
+//            dummy.WriteMesh( rThisMesh );
         }
         
         void DoublePrintOnGaussPoints( GidIOType& dummy, const Variable<double>& rVariable,

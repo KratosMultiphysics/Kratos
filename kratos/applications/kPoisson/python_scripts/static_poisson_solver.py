@@ -32,7 +32,7 @@ class StaticPoissonSolver:
         #creating the solution strategy
         CalculateReactionFlag = False
         ReformDofSetAtEachStep = False
-        MoveMeshFlag = True
+        MoveMeshFlag = False
         import strategy_python
         self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.poisson_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
       

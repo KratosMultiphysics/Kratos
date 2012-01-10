@@ -23,6 +23,7 @@ Import_OpenCLApplication = False
 Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
+Import_KratosDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 
@@ -48,6 +49,7 @@ print "Import_OpenCLApplication: False"
 print "Import_PodApplication: False"
 print "Import_LevelSetApplication: False"
 print "Import_FluidDynamicsApplication: False"
+print "Import_KratosDEMApplication: False"
 print "Import_KratosMixedElementApplication: False"
 print "Import_ThermoMechanicalApplication: False"
 
@@ -76,6 +78,7 @@ def ImportApplications(kernel, applications_path):
     print "Import_LevelSetApplication:"+str(Import_LevelSetApplication)
     print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
     print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
+    print "Import_KratosDEMApplication:  "+str(Import_KratosDEMApplication)
     print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
 
     if(Import_ALEApplication == True):
@@ -262,6 +265,15 @@ def ImportApplications(kernel, applications_path):
         fluid_dynamics_application = KratosFluidDynamicsApplication()
         kernel.AddApplication(fluid_dynamics_application)
         print "KratosFluidDynamicsApplication sucessfully imported"
+
+    if(Import_KratosDEMApplication == True):
+    	print "importing KratosDEMApplication ..."
+    	sys.path.append(applications_path + '/DEM_application/python_scripts')
+    	from KratosDEMApplication import *
+    	DEM_application = KratosDEMApplication()
+    	kernel.AddApplication(DEM_application)
+    	print "KratosDEMApplication sucessfully imported"
+
     if(Import_KratosMixedElementApplication == True):
         print "importing KratosMixedElementApplication ..."
         sys.path.append(applications_path + '/MixedElementApplication/python_scripts')
@@ -324,6 +336,8 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(levelset_application);
     if(Import_FluidDynamicsApplication == True):
         kernel.InitializeApplication(fluid_dynamics_application);
+    if(Import_KratosDEMApplication == True):
+        kernel.InitializeApplication(DEM_application);   
     if(Import_KratosMixedElementApplication == True):
         kernel.InitializeApplication(mixed_element_application);
     if(Import_ThermoMechanicalApplication == True):

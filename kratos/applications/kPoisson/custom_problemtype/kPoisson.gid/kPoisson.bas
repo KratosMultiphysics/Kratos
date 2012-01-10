@@ -72,4 +72,8 @@ gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
 solver.Solve()
 
 gid_io.WriteNodalResults(DUMMY_UNKNOWN,model_part.Nodes,0,0)
+for iii in model_part.Nodes:
+     print iii.X,' ', iii.Y,'\n'
+for iii in model_part.Nodes:
+     print iii.X,' ', iii.Y,' ',iii.GetSolutionStepValue(DUMMY_UNKNOWN),'\n' 
 gid_io.FinalizeResults()
