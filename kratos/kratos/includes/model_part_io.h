@@ -396,6 +396,8 @@ namespace Kratos
 	    ReadBlockName(word);
 	    if(word == "ModelPartData")
 		 ReadModelPartDataBlock(rThisModelPart);
+		else if(word == "Table")
+			ReadTableBlock(rThisModelPart.Tables());
 	    else if(word == "Properties")
 	      ReadPropertiesBlock(rThisModelPart.rProperties());
 	    else if(word == "Nodes")
@@ -686,6 +688,52 @@ namespace Kratos
 	  }
 
 	  
+	}
+
+	KRATOS_CATCH("")
+      }
+
+	  void ReadTableBlock(ModelPart::TablesContainerType& rTables)
+      {
+	KRATOS_TRY
+
+		ModelPart::TableType temp_table;
+
+        SizeType table_id;
+		std::string word;
+
+	ReadWord(word);
+	ExtractValue(word, table_id);
+		
+	std::string variable_name;
+
+	ReadWord(variable_name);
+
+	if(!KratosComponents<Variable<double> >::Has(variable_name))
+	{
+	    std::stringstream buffer;
+	    buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
+	    buffer << " [Line " << mNumberOfLines << " ]";
+	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	  
+	}
+
+	ReadWord(variable_name);
+
+	if(!KratosComponents<Variable<double> >::Has(variable_name))
+	{
+	    std::stringstream buffer;
+	    buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
+	    buffer << " [Line " << mNumberOfLines << " ]";
+	    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+	  
+	}
+
+	while(!mInput.eof())
+	{
+	  ReadWord(variable_name);
+	  if(CheckEndBlock("Table", variable_name))
+	    break;
 	}
 
 	KRATOS_CATCH("")
