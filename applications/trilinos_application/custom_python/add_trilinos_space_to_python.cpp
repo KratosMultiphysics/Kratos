@@ -217,6 +217,13 @@ namespace Kratos {
             dummy.set(name, value);
         }
 
+        void SetBoolValue(Teuchos::ParameterList& dummy, const string &name, int value) {
+            if(value == 0)
+                dummy.set(name, false);
+            else
+                dummy.set(name, true);
+        }
+
 	void  AddBasicOperations()
         {
 
@@ -276,6 +283,7 @@ namespace Kratos {
                     .def("set", SetDoubleValue)
                     .def("set", SetIntValue)
                     .def("set", SetCharValue)
+                    .def("setboolvalue", SetBoolValue)
                     .def(self_ns::str(self))
                     ;
 
