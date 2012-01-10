@@ -73,10 +73,10 @@ namespace Kratos
       
       void SetDefaults(Teuchos::ParameterList& rlist, std::string settings_name)
       {
-	if(settings_name == std::string("SA") )
+//	if(settings_name == std::string("SA") )
 	  ML_Epetra::SetDefaults(settings_name.c_str(),rlist);
-	else
-	  std::cout << "WARNING: no defaults were set!!" << std::endl;
+//	else
+//	  std::cout << "WARNING: no defaults were set!!" << std::endl;
 	
       }
       

@@ -128,7 +128,7 @@ class TrilinosLevelSetSolver:
         else:
             self.redistance_utils = ParallelDistanceCalculator3D()
 
-        self.max_levels = 10
+        self.max_levels = 50
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.convection_model_part)
         self.max_distance = self.max_edge_size * 3.0;
@@ -142,7 +142,7 @@ class TrilinosLevelSetSolver:
 #            node.SetSolutionStepValue(temperature_settings.GetDensityVariable(),0,density);
 #            node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
-        self.max_ns_iterations = 20
+        self.max_ns_iterations = 8
         self.dynamic_tau = 1.00
         
         self.divergence_clearance_performed = True #setting to true it will not perform it
@@ -230,7 +230,7 @@ class TrilinosLevelSetSolver:
         self.fluid_solver.Initialize()
 
         self.thermal_solver.SetEchoLevel(0)
-        self.convection_solver.SetEchoLevel(0)
+        self.convection_solver.SetEchoLevel(1)
         
         self.next_redistance = self.redistance_frequency
         
@@ -316,7 +316,7 @@ class TrilinosLevelSetSolver:
 
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
-#        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,0.001)
+        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau)
 	
 	(self.convection_solver).Solve()
         mpi.world.barrier()
@@ -331,7 +331,7 @@ class TrilinosLevelSetSolver:
 
         self.thermal_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.thermal_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,temperature_settings)
-#        (self.thermal_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,0.001)
+        (self.thermal_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,0.0) #self.dynamic_tau)
 
         for node in self.thermal_model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
@@ -399,21 +399,14 @@ class TrilinosLevelSetSolver:
 	if(self.divergence_clearance_performed == False):
 	    self.DoDivergenceClearance()
 	    self.divergence_clearance_performed = True
-      
-        self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo            
-        (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
-#        (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,1.0)
-        
-#        if(self.internal_step_counter >= self.next_redistance):
-#	  self.DoRedistance()
-#	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
-        
+            
         #convect distance function
         self.ConvectDistance()
 
         #recompute distance function as needed
-#        self.DoRedistance()
-
+        if(self.internal_step_counter >= self.next_redistance):
+	  self.DoRedistance()
+	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
 
         #compute temperature distribution    
         self.ComputeThermalSolution()
@@ -423,9 +416,6 @@ class TrilinosLevelSetSolver:
         
         self.internal_step_counter += 1
 
-        if(self.internal_step_counter >= self.next_redistance):
-	  self.DoRedistance()
-	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
         
     def GetSolverIterations(self):
        return (self.fluid_solver).solver.iterations_last_solution
