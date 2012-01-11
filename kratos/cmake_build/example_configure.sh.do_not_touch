@@ -44,6 +44,8 @@ cmake ..  									\
 -DPARMETIS_ROOT_DIR="/home/rrossi/compiled_libraries/ParMetis-3.1.1" 		\
 -DTRILINOS_APPLICATION=ON							\
 -DTRILINOS_ROOT="/home/rrossi/compiled_libraries/trilinos-10.2.0"		\
+-DDEM_APPLICATION=OFF								\
+
 
 
 #decomment this to have it verbose
