@@ -35,12 +35,12 @@ cmake ..  									\
 -DFLUID_DYNAMICS_APPLICATION=ON 						\
 -DALE_APPLICATION=ON 								\
 -DFSI_APPLICATION=ON 								\
--DOPENCL_APPLICATION=ON								\
+-DOPENCL_APPLICATION=OFF								\
 -DMIXED_ELEMENT_APPLICATION=ON							\
--DMKL_SOLVERS_APPLICATION=ON							\
+-DMKL_SOLVERS_APPLICATION=OFF							\
 -DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"		\
 -DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"		\
--DMETIS_APPLICATION=ON								\
+-DMETIS_APPLICATION=OFF								\
 -DPARMETIS_ROOT_DIR="/home/rrossi/compiled_libraries/ParMetis-3.1.1" 		\
 -DTRILINOS_APPLICATION=ON							\
 -DTRILINOS_ROOT="/home/rrossi/compiled_libraries/trilinos-10.2.0"		\
