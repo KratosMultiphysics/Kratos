@@ -18,5 +18,5 @@ cmake.exe -H.. -B. ^
  -DALE_APPLICATION=ON  ^
  -DFSI_APPLICATION=ON  ^
  -DBOOST_ROOT="c:/kratos/external_libraries/boost/boost_1_43_0"  ^
- 
+ -DDEM_APPLICATION=OFF  ^
 
