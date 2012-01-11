@@ -110,9 +110,13 @@ alias sources_KratosStructuralApplication
         #tresca_yield_function.cpp
         von_mises_yield_function.cpp
         modified_morh_coulomb_yield_function.cpp
+        standard_morh_coulomb_yield_function.cpp
         drucker_prager_yield_function.cpp
         exponencial_softening.cpp
         linear_softening.cpp
+        dilatancy_softening.cpp
+        friction_softening.cpp
+        cohesion_softening.cpp
         plasticity_2d.cpp
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
@@ -121,11 +125,13 @@ alias sources_KratosStructuralApplication
 	slave_contact_point_2d.cpp 
         point_segment_contact_link.cpp
         point_point_contact_link.cpp
+        contact_link_3D_explicit.cpp
+        slave_contact_point_3d.cpp
 	pfem_contact_element3D.cpp
         pfem_contact_element3D_vel.cpp
 	brittle_material_2d.cpp 
         face_vel_3D.cpp 
-    casm.cpp
+        casm.cpp
 
 
 	#####################kratos library as defined in the jamroot
