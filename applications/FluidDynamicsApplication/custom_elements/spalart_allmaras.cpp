@@ -357,9 +357,22 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
     const double fv1 = (Xi * Xi * Xi) / (Xi * Xi * Xi + cv1_cube);
     const double fv2 = 1.0 - Xi / (1.0 + Xi * fv1);
 
-    // Modified strain rate
-    const double S = this->MeasureOfVorticity(DN_DX);
-    const double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
+//    // Modified strain rate
+//    const double S = this->MeasureOfVorticity(DN_DX);
+//    const double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
+    // Modified strain rate (using rotation correction)
+    const double Cprod = 2.0;
+    double NormS = 0.0;
+    double NormOmega = 0.0;
+    this->VelocityGradientNorms(NormS,NormOmega,DN_DX);
+    // S = NormOmega + Cprod * min(0,NormS-NormOmega);
+    double S = NormOmega;
+    if(NormS < NormOmega)
+        S += Cprod * (NormS-NormOmega);
+    double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
+    // Check on S_hat
+    if (S_hat < 0.3 * NormOmega)
+        S_hat = 0.3 * NormOmega;
 
     // Destruction function
     double r = LastEddyViscosity / (S_hat * kappa*kappa * Distance*Distance);
@@ -460,6 +473,41 @@ double SpalartAllmaras::MeasureOfVorticity(const ShapeDerivativesType &DN_DX)
             S += 2.0 * Omega(i,j) * Omega(i,j);
     S = std::sqrt(S);
     return S;
+}
+
+void SpalartAllmaras::VelocityGradientNorms(double &rNormS,
+                                            double &rNormOmega,
+                                            const ShapeDerivativesType &DN_DX)
+{
+    const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    Matrix S = ZeroMatrix(Dim,Dim); // Rate of strain
+    Matrix Omega = ZeroMatrix(Dim,Dim); // Rate of rotation
+
+    for (SizeType n = 0; n < NumNodes; n++)
+    {
+        const array_1d<double,3>& rNodalVelocity = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
+        for (SizeType i = 0; i < Dim; i++)
+            for (SizeType j = 0; j < Dim; j++)
+            {
+                S(i,j) += 0.5 * ( DN_DX(n,j)*rNodalVelocity[i] + DN_DX(n,i)*rNodalVelocity[j] );
+                Omega(i,j) += 0.5 * ( DN_DX(n,j)*rNodalVelocity[i] - DN_DX(n,i)*rNodalVelocity[j] );
+            }
+    }
+
+    // Compute norms
+    rNormS = 0.0;
+    rNormOmega = 0.0;
+
+    for (SizeType i = 0; i < Dim; i++)
+        for (SizeType j = 0; j < Dim; j++)
+        {
+            rNormS += 2.0 * S(i,j) * S(i,j);
+            rNormOmega += 2.0 * Omega(i,j) * Omega(i,j);
+        }
+    rNormS = std::sqrt(rNormS);
+    rNormOmega = std::sqrt(rNormOmega);
 }
 
 double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
