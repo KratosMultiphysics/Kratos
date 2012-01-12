@@ -293,6 +293,9 @@ protected:
 
     double MeasureOfVorticity(const ShapeDerivativesType& DN_DX);
 
+    void VelocityGradientNorms(double& rNormS,
+                               double& rNormOmega,
+                               const ShapeDerivativesType& DN_DX);
 
     double CalculateTau(const ProcessInfo& rCurrentProcessInfo);
 
