@@ -38,38 +38,14 @@ model_part = ModelPart("FluidPart");
 from KratosThermoMechanicalApplication import *
 import benchmarking
 
-def BenchmarkCheck(time, model_part):
-    max_press = 0.0; 
-    min_press = 0.0;
-    vel2min = 10000.0;
-    id_min_vel = 0
-    x_min_vel = 0.0
-    y_min_vel = 0.0
+def BenchmarkCheck(model_part):
     for node in model_part.Nodes:
-        press = node.GetSolutionStepValue(PRESSURE);
-        if(press > max_press):
-            max_press = press
-        elif(press < min_press):
-             min_press = press
-
         x = node.X
         y = node.Y
-        vel = node.GetSolutionStepValue(VELOCITY)
-        vel2 = vel[0]**2 + vel[1]**2
-        if(x > 0.1 and x<0.9 and y>0.1 and y<0.9):
-            if(vel2 < vel2min):
-                vel2min = vel2
-                id_min_vel = node.Id
-                x_min_vel = node.X
-                y_min_vel = node.Y
-            
-        
-    benchmarking.Output(time, "Time")
-    benchmarking.Output(min_press, "minimum pressure", 0.00001)
-    benchmarking.Output(max_press, "maximum pressure", 0.00001)
-    benchmarking.Output(id_min_vel, "Id of the node with minimum velocity norm", 0.0)
-    benchmarking.Output(x_min_vel, "coord x minimum velocity norm", 0.0)
-    benchmarking.Output(y_min_vel, "coord y minimum velocity norm", 0.0)
+        if(x == 0.0):
+          temperature = node.GetSolutionStepValue(TEMPERATURE)
+	  benchmarking.Output(node.Id, "ID node",1,1)
+	  benchmarking.Output(temperature, "Temperature", 0.001,0.001)
 
 ##########################################################
 thermal_settings = ConvectionDiffusionSettings()
@@ -78,12 +54,13 @@ thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
 thermal_settings.SetUnknownVariable(TEMPERATURE)
 thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
 thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetConvectionVariable(VELOCITY)
 thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
 ##########################################################
 
 #importing the solver files
-import thermo_monolithic_solver_eulerian
-thermo_monolithic_solver_eulerian.AddVariables(model_part,thermal_settings)
+import thermal_solver
+thermal_solver.AddVariables(model_part,thermal_settings)
 
 
 
@@ -108,25 +85,25 @@ gid_io.ReadModelPart(model_part)
 model_part.SetBufferSize(3)
 
 #importing the solver files
-thermo_monolithic_solver_eulerian.AddDofs(model_part)
+thermal_solver.AddDofs(model_part,thermal_settings)
 print "111111111111111111111111111111111111111111"
 
 #creating a fluid solver object
-solver = thermo_monolithic_solver_eulerian.MonolithicSolver(model_part,domain_size,thermal_settings)
+solver = thermal_solver.Solver(model_part,domain_size,thermal_settings)
 a = Matrix(4,2)
+
 
 a[0,0] = 1
 a[0,1] = 5
 
-a[1,0] = 5
-a[1,1] = 2
+a[1,0] = 2
+a[1,1] = 5
 
 a[2,0] = 1
 a[2,1] = 3
 
 a[3,0] = 2
 a[3,1] = 4
-
 print a
 solver.contact_matix =  a
 solver.Namx = len(model_part.Properties)
@@ -146,7 +123,7 @@ for node in model_part.Nodes:
 #assigning a rotational velocity field
 for node in model_part.Nodes:
     node.SetSolutionStepValue(TEMPERATURE,0,0.0);
-    if(node.Y > 2.99 or node.Y < -2.99 or node.X >2.99 or node.X< -2.99):
+    if(node.Y > 2.99 ): #or node.Y < -2.99 or node.X >2.99 or node.X< -2.99
          node.SetSolutionStepValue(TEMPERATURE,0,5.0);
          node.Fix(TEMPERATURE)
 
@@ -180,7 +157,6 @@ for step in range(0,nsteps):
     #print model_part.ProcessInfo()[TIME]    #solving the fluid problem
     if(step > 3):
      solver.Solve()
-     BenchmarkCheck(time, model_part)
 
     #print the results
     if(out == output_step):
@@ -195,6 +171,8 @@ for step in range(0,nsteps):
         
         out = 0
     out = out + 1
+    
+BenchmarkCheck(model_part)    
 gid_io.FinalizeResults()
 
           
