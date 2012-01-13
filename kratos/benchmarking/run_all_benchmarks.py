@@ -48,6 +48,11 @@ os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
 import fluid_dynamics_run_all_benchmarks
 Text += fluid_dynamics_run_all_benchmarks.Run()
 
+# Fluid Dynamics application
+os.chdir(ApplicationsRoot + "ThermoMechanicalApplication/test_examples")
+import ThermoMechanical_benchmarks
+Text += ThermoMechanical_benchmarks.Run()
+
 # Add other directories here
 
 #print Text
