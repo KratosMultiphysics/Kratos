@@ -18,7 +18,7 @@ if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
 endif(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
 
 
-#tell the lionker to give an error if undefined functions are found
+#tell the linker to give an error if undefined functions are found
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
 
 #set kratos specific module path
@@ -107,6 +107,8 @@ if(${MPI_NEEDED} MATCHES ON )
 
     #note that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
     include_directories(${MPI_INCLUDE_PATH})
+    find_package(Boost COMPONENTS mpi REQUIRED)
+#    find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
 
@@ -147,11 +149,32 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # message("inc_dirs = ${inc_dirs}")
 
 
-
+file(WRITE KratosLoader.py "import sys
+sys.path.append(\"${CMAKE_INSTALL_PREFIX}/libs\")
+sys.path.append(\"${CMAKE_INSTALL_PREFIX}/applications\")
+print \"Kratos Libs Directory        =${CMAKE_INSTALL_PREFIX}/libs\"
+print \"Kratos applications Directory=${CMAKE_INSTALL_PREFIX}/applications\"   ")
 
 ################################################################################
+set(PACKAGING_DIR /opt/kratos)
+file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
+sys.path.append(\"${PACKAGING_DIR}/libs\")
+sys.path.append(\"${PACKAGING_DIR}/applications\")
+print \"Kratos Libs Directory        =${PACKAGING_DIR}/libs\"
+print \"Kratos applications Directory=${PACKAGING_DIR}/applications\"   ")
+
+file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
+
+install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
+install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION packaging )
+install(FILES ${CMAKE_SOURCE_DIR}/cmake_modules/script.py DESTINATION packaging )
+
+
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
 SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-Set(CPACK_PACKAGING_INSTALL_PREFIX /opt/kratos )
+Set(CPACK_PACKAGING_INSTALL_PREFIX ${PACKAGING_DIR} )
+set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake_modules/postinst;${CMAKE_SOURCE_DIR}/cmake_modules/prerm;")
+
 INCLUDE(CPack)
+
