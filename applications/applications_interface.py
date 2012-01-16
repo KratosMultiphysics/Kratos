@@ -38,6 +38,7 @@ print "Import_ConstitutiveLawsApplication: False"
 print "Import_ULFApplication: False"
 print "Import_MeshingApplication: False"
 print "Import_KratosMKLSolversApplication: False"
+print "Import_KratosMKLSolversApplication: False"
 print "Import_KratosTrilinosApplication: False"
 print "Import_KratosMetisApplication: False"
 print "Import_PoissonApplication: False"  
@@ -53,7 +54,11 @@ print "Import_KratosDEMApplication: False"
 print "Import_KratosMixedElementApplication: False"
 print "Import_ThermoMechanicalApplication: False"
 
-def ImportApplications(kernel, applications_path):
+import os.path
+application_directory = os.path.dirname( os.path.realpath(__file__)  )
+    
+def ImportApplications(kernel, applications_path=application_directory ):
+  
     ##########################################################################
     ##importing the applications
     print "Applications Available:"
@@ -342,3 +347,10 @@ def ImportApplications(kernel, applications_path):
         kernel.InitializeApplication(mixed_element_application);
     if(Import_ThermoMechanicalApplication == True):
         kernel.InitializeApplication(thermo_mechanical_application);
+        
+  
+#def ImportApplications(kernel  ):
+    #import os.path
+    #application_directory = os.path.dirname( os.path.realpath(__file__)  )
+    #ImportApplications(kernel, application_directory )
+
