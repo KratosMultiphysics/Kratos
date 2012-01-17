@@ -1592,7 +1592,7 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 		    for(int k=0; k<number_of_threads; k++){
 			  size+=LinkingConditions[k].size(); 
 			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it )
-			      mr_model_part.Conditions().push_back(*it.base());
+			      mr_model_part.Conditions().push_back(*it);
 		    }
 		    
 		    std::cout<<"     NUMBER OF LINKING CONTACT CONDITIONS    = " << size               <<  std::endl; 
@@ -1947,7 +1947,7 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 		    for(int k=0; k<number_of_threads; k++){
 			  size+=LinkingConditions[k].size(); 
 			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it )
-			      mr_model_part.Conditions().push_back(*it.base());
+			      mr_model_part.Conditions().push_back(*it);
 		    }
 
 
@@ -3613,8 +3613,8 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      
 				       if(is_repited==false)
 				         {
-					   (*elem.base())->GetValue(IS_BOUNDARY) = 1;
-				           mBoundaryElements.push_back(*elem.base());
+					   (*elem)->GetValue(IS_BOUNDARY) = 1;
+				           mBoundaryElements.push_back(*elem);
 					   is_repited = true;
 				         }
 				   } 
@@ -3628,7 +3628,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 	           NodesContainerType& rNodes  =  mr_model_part.NodesArray();
 	           for(NodesIteratorType inode =  rNodes.begin(); inode!=rNodes.end(); ++inode){
 		       if((*inode)->GetValue(IS_BOUNDARY) == 1){
-			   mBoundaryNodes.push_back(*inode.base());
+			   mBoundaryNodes.push_back(*inode);
 		           WeakPointerVector<Element>& neighb_elems = (*inode)->GetValue(NEIGHBOUR_ELEMENTS);
 			   I = 0;
 		           for( ElementIteratorType neighb_elem  = neighb_elems.begin(); neighb_elem!= neighb_elems.end(); ++neighb_elem){
@@ -3721,8 +3721,8 @@ void CalculateBoundaryContour3D(ConditionsArrayType& MasterConditions)
 		}
 		  if(is_repited==false)
 		  {
-		  (*elem.base())->GetValue(IS_BOUNDARY) = 1;
-		  mBoundaryElements.push_back(*elem.base());
+		  (*elem)->GetValue(IS_BOUNDARY) = 1;
+		  mBoundaryElements.push_back(*elem);
 		  is_repited = true;
 		  }
 		} 
@@ -3760,7 +3760,7 @@ void CreateMasterConditions2D(const array_1d<NodePointerType,2>&  rPair, const I
 	   
 	    Line2D2<Node<3> >::Pointer pgeom =  Line2D2<Node<3> >::Pointer (new Line2D2<Node<3> >( rPair[0], rPair[1] ) ) ;  
 	    Condition::Pointer MasterSegment = Condition::Pointer(new MasterContactFaceType(Id, pgeom ) ) ;
-	    MasterSegment->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(elem.base()));
+	    MasterSegment->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(elem));
 	    
 	    ((rPair)[0])->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSegment); 
 	    ((rPair)[1])->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSegment); 
@@ -3785,7 +3785,7 @@ void CreateMasterConditions3D(const array_1d<NodePointerType,3>&  rPair,
 	    Triangle2D3<Node<3> >::Pointer pgeom  =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> > ( rPair[0], rPair[1], rPair[2]) );  
 							
  	    Condition::Pointer MasterSurface      =  Condition::Pointer(new MasterContactFace3D(Id, pgeom) ); 
- 	    MasterSurface->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(elem.base()));
+ 	    MasterSurface->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(elem));
  	    MasterSurface->GetValue(IS_BOUNDARY) = 1;
  	    rPair[0]->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSurface); 
  	    rPair[1]->GetValue(NEIGHBOUR_CONDITIONS).push_back(MasterSurface); 
