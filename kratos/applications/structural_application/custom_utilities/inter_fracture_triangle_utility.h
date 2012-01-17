@@ -522,7 +522,7 @@ namespace Kratos
          {
 	    KRATOS_TRY
 	       
-	   ElementsArrayType& pElements     = mr_model_part.Elements();     
+	   //ElementsArrayType& pElements     = mr_model_part.Elements();     
            ProcessInfo& CurrentProcessInfo =  mr_model_part.GetProcessInfo();
 	   for(WeakPointerVector< Element >::iterator reset_elem = mResetingElements.begin();
                  reset_elem != mResetingElements.end(); reset_elem++)
@@ -559,7 +559,7 @@ namespace Kratos
 	std::vector<double> Variable_Value; 
 	vector<unsigned int> element_partition;
 	CreatePartition(number_of_threads, pElements.size(), element_partition);
-	unsigned int index = 0;
+	//unsigned int index = 0;
 	#pragma omp parallel for private(Variable_Value)
 	for(int k=0; k<number_of_threads; k++){
 	  ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -761,8 +761,9 @@ namespace Kratos
                 Unit = ZeroVector(3);
                 prod = 0.00;
             }
- 
-            //* Esquinas o superficie extrena donde no hay elementos negativos o positivos
+            */
+            /* Esquinas o superficie extrena donde no hay elementos negativos o positivos */
+	    /*
             if(Negative_Conditions.size() == 0)
             {
                for (WeakPointerVector< Condition >::iterator neighb_cond = neighb_conds.begin();
@@ -793,7 +794,7 @@ namespace Kratos
 	      {
 		Condition::Pointer rcond = (neighb_conds(j).lock());
 		Insert_New_Node_In_Conditions(rcond);
-		/*
+		
 		int a        =  0, b = 1; 
 		double toler = 1E-8;
 		double check = 0.00;
@@ -858,7 +859,7 @@ namespace Kratos
          void Insert_New_Node_In_Conditions(Condition::Pointer& rcond)
          {
 	        
-	        WeakPointerVector<Element>& neighb_elem = rcond->GetValue(NEIGHBOUR_ELEMENTS); 
+	        //WeakPointerVector<Element>& neighb_elem = rcond->GetValue(NEIGHBOUR_ELEMENTS); 
 	   	int a        =  0, b = 1;
 		const double toler = 1E-8;
 		double check = 0.00;
@@ -977,7 +978,7 @@ namespace Kratos
 	    unsigned int result              = 0; 
             NodesArrayType& pNodes           = this_model_part.Nodes();
 	    ElementsArrayType& pElements     = this_model_part.Elements();
-	    ConditionsArrayType& pConditions = this_model_part.Conditions();
+	    //ConditionsArrayType& pConditions = this_model_part.Conditions();
 	        
             #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -1145,7 +1146,7 @@ namespace Kratos
       inline bool CkeckNumberConditionsSurfaces(const Node<3>::Pointer& rnode)
       { 
 	unsigned int count = 0; 
-        unsigned int id = rnode->Id();
+        //unsigned int id = rnode->Id();
 	WeakPointerVector<Condition>& Neighb_Conditions = rnode->GetValue(NEIGHBOUR_CONDITIONS);     
 	for(WeakPointerVector<Condition>::iterator icond = Neighb_Conditions.begin(); icond!=Neighb_Conditions.end(); icond++){
 	   if( icond->GetValue( IS_CONTACT_MASTER )== 0){
