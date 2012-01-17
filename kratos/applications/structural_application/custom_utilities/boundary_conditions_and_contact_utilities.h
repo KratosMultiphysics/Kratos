@@ -297,7 +297,7 @@ void ComputeContactForce()
 	            ComputeContactForce2D(*it, *rthis);
         } } } 
  
- /*
+    
     else
     { 
      #pragma omp parallel for private(NumberOfResults, begin)
@@ -314,12 +314,11 @@ void ComputeContactForce()
 	NumberOfResults = rBins->SearchObjects(*it, begin, MaxNumberOfResults);
 	//if(Result[k].size()!=0){
 	if(NumberOfResults!=0)
-	   for(ResultIteratorType rthis = Result[k].begin(); rthis!= Result[k].begin() + NumberOfResults /* rthis!=Result[k].end(); rthis++)
+	   for(ResultIteratorType rthis = Result[k].begin(); rthis!= Result[k].begin() + NumberOfResults /*rthis!=Result[k].end()*/ ; rthis++)
 	     if((*it)->Id()!=(*rthis)->Id())
 	        ComputeContactForce3D(*it, *rthis);
-	  } } }   
-	  
-	  */
+	  } } }     
+	
     std::cout<<"     FINISHING COMPUTE CONTACT CONDITIONS  " << std::endl; 
     KRATOS_CATCH("")
  }
@@ -1100,7 +1099,7 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
            NodesArrayType& pNodes           =  mr_model_part.Nodes();
 	   ElementsArrayType& pElements     =  mr_model_part.Elements(); 
 	   ConditionsArrayType& pConditions =  mr_model_part.Conditions(); 
-	   ProcessInfo& CurrentProcessInfo  =  mr_model_part.GetProcessInfo();
+	   //ProcessInfo& CurrentProcessInfo  =  mr_model_part.GetProcessInfo();
 	   mPairContacts.clear(); 
 	   
 	   #ifdef _OPENMP
@@ -4039,12 +4038,12 @@ void IdentifyMasterSegment2D()
   vector<unsigned int> node_partition;
   CreatePartition(number_of_threads, pNodes.size(), node_partition);
   
-  int    I                     = 0;
-  double g                     = 0.00;
-  double g_old                 = 0.00;
+  //int    I                     = 0;
+  //double g                     = 0.00;
+  //double g_old                 = 0.00;
   double gl                    = 0.00;
   double gr                    = 0.00;
-  double compare_distance      = 0.00;
+  //double compare_distance      = 0.00;
   double pr                    = 0.00;
   double pl                    = 0.00;
   double wr                    = 0.00;
@@ -4084,7 +4083,7 @@ void IdentifyMasterSegment2D()
 	 if( neighb_cond.size()!=0 &&  neighb_cond_slave.size()!=0 )
 	 {
 	   array_1d<int,2> RL;
-	   double& distance                    =  i->GetValue(DISTANCE); 
+	   //double& distance                    =  i->GetValue(DISTANCE); 
 	   const unsigned int& ID              =  i->GetValue(NEAR_NODE)->Id();
 	   const unsigned int& ID_slave        =  i->Id();
 	   
@@ -4137,7 +4136,7 @@ void IdentifyMasterSegment2D()
 	   last->Calculate(NORMAL,  Normal_l, CurrentProcessInfo);
 	   
 	  
-	   const double& cs  =  norm_2(CS);
+	   //const double& cs  =  norm_2(CS);
 	   const double& cl  =  norm_2(CL);
 	   const double& cr  =  norm_2(CR);
 	   noalias(CL)       =  CL * (1.00/cl);
@@ -4350,7 +4349,7 @@ void IdentifyMasterSegment2D()
 	 
 	  KRATOS_TRY
 	  std::cout<< "     SEARCHING NEAR NODE  " <<std::endl; 
-	  ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo(); 
+	  //ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo(); 
 	  
 	  unsigned int I                    = 0; 
 	  double compare_distance           = 0.00;
