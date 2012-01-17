@@ -517,7 +517,7 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
         // noalias(mStress)= StressVector;
 
         double pTr = (mCurrentStress(0) + mCurrentStress(1) + mCurrentStress(2)) / 3.0;
-        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);
+        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);  
 
 
         mMth = 0;
@@ -870,7 +870,7 @@ void Casm::formResidualVector(Vector& R, Vector& dG)
 void Casm::solveByGauss(Matrix& A, Vector& B) {
     double sum;
 
-    int N = B.size();
+    unsigned int N = B.size();
 
     //triangular decomposition
     decompose(A, N);
@@ -895,13 +895,13 @@ void Casm::solveByGauss(Matrix& A, Vector& B) {
 }//solveGauss
 
 void Casm::decompose(Matrix& A, int N) {
-    for (unsigned int k = 0; k < N; k++) {
+    for (int k = 0; k < N; k++) {
 
-        for (unsigned int i = k + 1; i < N; i++)
-            for (unsigned int j = k + 1; j < N; j++)
+        for (int i = k + 1; i < N; i++)
+            for (int j = k + 1; j < N; j++)
                 A(i,j) = A(i,j) - A(i,k) * A(k,j) / A(k,k);
 
-        for (unsigned int i = k + 1; i < N; i++)
+        for (int i = k + 1; i < N; i++)
             A(i,k) = A(i,k) / A(k,k);
     }
 }
