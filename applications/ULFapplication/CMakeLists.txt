@@ -41,3 +41,6 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
+
+# Add to the KratosMultiphisics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ULFApplication.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )

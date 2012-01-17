@@ -32,6 +32,7 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_first.cpp
+        ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
 )
 
 
@@ -50,8 +51,10 @@ install(TARGETS KratosTrilinosApplication DESTINATION libs )
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION applications/${CURRENT_DIR_NAME}  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+
+  message("trilinos libs to be installed" ${TRILINOS_LIBRARIES})
+  install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
-message("trilinos libs to be installed" ${TRILINOS_LIBRARIES})
-#install(DIRECTORY ${MY_TRILINOS_LIBS_DIR} DESTINATION libs FILES_MATCHING PATTERN "*.so" )
-install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
+# Add to the KratosMultiphisics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosApplication.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )
