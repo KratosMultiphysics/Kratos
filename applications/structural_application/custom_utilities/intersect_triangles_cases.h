@@ -123,11 +123,11 @@ namespace Kratos
 	    Intersect  rCase                                  = Case_0;
 	    Change                                            = true;
 	    WeakPointerVector<Condition>& neighb_cond_master  =  MasterObject->GetValue(NEIGHBOUR_CONDITIONS);
-	    WeakPointerVector<Condition>& neighb_cond_slave   =  SlaveObject->GetValue(NEIGHBOUR_CONDITIONS);
+	    //WeakPointerVector<Condition>& neighb_cond_slave   =  SlaveObject->GetValue(NEIGHBOUR_CONDITIONS);
 	    
 	    const int size    = InsideNodes.size();
 	    const int size_1  = neighb_cond_master.size();
-	    const int size_2  = neighb_cond_slave.size();
+	    //const int size_2  = neighb_cond_slave.size();
 
 // 	    KRATOS_WATCH(size)
 // 	    KRATOS_WATCH(size_1)
