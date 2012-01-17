@@ -152,11 +152,12 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     set(PACKAGING_DIR /opt/kratos)
-    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-    sys.path.append(\"${PACKAGING_DIR}/libs\")
-    sys.path.append(\"${PACKAGING_DIR}/applications\")
-    print \"Kratos Libs Directory        =${PACKAGING_DIR}/libs\"
-    print \"Kratos applications Directory=${PACKAGING_DIR}/applications\"   ")
+    #take care: do not indent the 5 lines below
+file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
+sys.path.append(\"${PACKAGING_DIR}/libs\")
+sys.path.append(\"${PACKAGING_DIR}/applications\")
+print \"Kratos Libs Directory        =${PACKAGING_DIR}/libs\"
+print \"Kratos applications Directory=${PACKAGING_DIR}/applications\"   ")
 
     file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
 
@@ -168,6 +169,7 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
     SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
     Set(CPACK_PACKAGING_INSTALL_PREFIX ${PACKAGING_DIR} )
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake_modules/postinst;${CMAKE_SOURCE_DIR}/cmake_modules/prerm;")
 
