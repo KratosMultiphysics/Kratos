@@ -35,3 +35,5 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
+# Add to the KratosMultiphisics Python module
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )

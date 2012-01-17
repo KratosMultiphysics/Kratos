@@ -33,6 +33,9 @@ FACE CONDITION Fluid3DNeumann surface
 FACE CONDITION Monolithic2DNeumann line
 FACE CONDITION Monolithic3DNeumann surface
 
+FACE CONDITION MonolithicSlipCondition2D line
+FACE CONDITION MonolithicSlipCondition3D surface
+
 #this line allows to put a value on the "faces" -- NOTE THAT WE CAN NOT USE THE SAME NAME FOR A "FACE CONDITION" and a "FLAG FACE VALUE"
 FLAG FACE VALUE IS_STRUCTURE line surface 0.0 1.0
 
@@ -55,8 +58,8 @@ ELEMENT VMS2D surface
 ELEMENT VMS3D volume
 
 
-OPTION 2D_Boundary_Condition line Condition2D Fluid2DNeumann Monolithic2DNeumann
-OPTION 3D_Boundary_Condition surface Condition3D Fluid3DNeumann Monolithic3DNeumann
+OPTION 2D_Boundary_Condition line Condition2D Fluid2DNeumann Monolithic2DNeumann MonolithicSlipCondition2D
+OPTION 3D_Boundary_Condition surface Condition3D Fluid3DNeumann Monolithic3DNeumann MonolithicSlipCondition3D
 OPTION 2D_Body_Element surface Fluid2D Fluid2DCoupled VMS2D ASGS2D ASGSCompressible2D NoNewtonianASGS2D BinghamNonNewtonianASGS2D ASGSCOMPPRDC2D EbstVel3D3N
 OPTION 3D_Body_Element volume Fluid3D Fluid3DCoupled VMS3D ASGS3D ASGSCompressible3D ASGSCOMPPRDC3D NoNewtonianASGS3D BinghamNonNewtonianASGS3D
 
