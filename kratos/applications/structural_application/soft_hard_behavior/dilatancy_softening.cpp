@@ -67,8 +67,8 @@ namespace Kratos
 		   double  Dilatancy_Softening::FunctionBehavior(const Vector& Imput_Parameters)
 		   {
 		     //const double PI    = 3.1415926535898; 
-		     const double& he    =  Imput_Parameters[0];   /// Longituf del elemento
-		     const double& Ep    =  Imput_Parameters[1];   /// Deformacion plastica efectiva
+//		     const double& he    =  Imput_Parameters[0];   /// Longituf del elemento
+//		     const double& Ep    =  Imput_Parameters[1];   /// Deformacion plastica efectiva
 		     double angle        =  PI * Imput_Parameters[2]/180.00;
 		     double result       =  0.00;
 		     double friction     =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
