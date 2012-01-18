@@ -114,15 +114,15 @@ namespace Kratos
 		   double  Friction_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
 		   {
 		     const double& he   = Imput_Parameters[0]; /// Longituf del elemento
-		     const double& Ep   = Imput_Parameters[1]; /// Deformacion plastica efectiva
+//		     const double& Ep   = Imput_Parameters[1]; /// Deformacion plastica efectiva
 		     const double& Ft   = (*mprops)[FT];
-	             const double& Ec   = (*mprops)[YOUNG_MODULUS];
+//	             const double& Ec   = (*mprops)[YOUNG_MODULUS];
 	             const double& GE   = (*mprops)[FRACTURE_ENERGY];
-	             const double Ef    = (2.00 * GE)/(Ft * he); /// parametro a cambiar
+//	             const double Ef    = (2.00 * GE)/(Ft * he); /// parametro a cambiar
 		     double result      = 0.00;
-		     double frac        = 2.00 * std::sqrt(Ep * Ef ) /(Ep + Ef);
-		     double sin         = 0.00;
-		     double friction    =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
+//		     double frac        = 2.00 * std::sqrt(Ep * Ef ) /(Ep + Ef);
+//		     double sin         = 0.00;
+//		     double friction    =  PI * (*mprops)[INTERNAL_FRICTION_ANGLE] / 180.00;
 		     /*
 		        if(Ep<Ef){
 		        double aux         =  2.00 * std::sin(friction) * std::sqrt(Ep * Ef ) /(Ep + Ef);
