@@ -1,0 +1,12 @@
+#!/bin/bash
+
+CONFPATH="/etc/ld.so.conf.d"
+CONFFILE="kratos.conf"
+#CONFPATH="${HOME}"
+
+if [ -e ${CONFPATH}/${CONFFILE} ]; then
+ rm -f ${CONFPATH}/${CONFFILE}
+fi
+
+ldconfig
+
