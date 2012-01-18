@@ -71,7 +71,7 @@ namespace Kratos
 		     const double& he         = Imput_Parameters[0]; /// Longituf del elemento
 		     const double& Ep         = Imput_Parameters[1]; /// Deformacion plastica efectiva
 		     const double& Ft         = (*mprops)[FT];
-		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
+//		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
 		     const double& GE         = (*mprops)[FRACTURE_ENERGY];
 		     const double Hs          = Ft*Ft*he/(2.00 * GE);
 		     const double fact        = 1.00 - Hs * Ep/Ft;
@@ -84,9 +84,9 @@ namespace Kratos
                   double Linear_Softening::FirstDerivateFunctionBehavior(const Vector& Imput_Parameters)
                   {     
 		     const double& he         = Imput_Parameters[0]; /// Longituf del elemento
-		     const double& Ep         = Imput_Parameters[1]; /// Deformacion plastica efectiva
+//		     const double& Ep         = Imput_Parameters[1]; /// Deformacion plastica efectiva
 		     const double& Ft         = (*mprops)[FT];
-		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
+//		     const double& Ec         = (*mprops)[YOUNG_MODULUS];
 		     const double& GE         = (*mprops)[FRACTURE_ENERGY];
 		     const double Hs          = Ft*Ft*he/(2.00 * GE);
 		     //if(ft>param)
