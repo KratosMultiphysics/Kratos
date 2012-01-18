@@ -318,9 +318,9 @@ namespace Kratos
       }
       
        
-      #ifdef _OPENMP
-      double start_prod = omp_get_wtime();
-      #endif
+//      #ifdef _OPENMP
+//      double start_prod = omp_get_wtime();
+//      #endif
       
       #pragma omp parallel for  private(High, Low) 
       for(int k=0; k<number_of_threads; k++)
@@ -349,10 +349,10 @@ namespace Kratos
         }
       }
 	
-       #ifdef _OPENMP
-       double stop_prod = omp_get_wtime();
+ //      #ifdef _OPENMP
+//       double stop_prod = omp_get_wtime();
 //       std::cout << "Time Calculating Bounding Boxes  = " << stop_prod - start_prod << std::endl;
-       #endif
+//     #endif
          
      }
      
@@ -407,7 +407,7 @@ namespace Kratos
       PointType Low, High;      
       SearchStructureType Box;
 
-      SizeType n_objects = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+//      SizeType n_objects = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd); /// WARNING
 
       // Allocate CellAcess
 
