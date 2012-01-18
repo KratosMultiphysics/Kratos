@@ -517,7 +517,7 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
         // noalias(mStress)= StressVector;
 
         double pTr = (mCurrentStress(0) + mCurrentStress(1) + mCurrentStress(2)) / 3.0;
-        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);  
+//        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);  
 
 
         mMth = 0;
@@ -545,9 +545,9 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
 //     std::cout << " Look Here Pc=============== " << mModelData[9] << std::endl;
         std::cout << " Look Here pTr=============== " << pTr << std::endl;
 
-        double dummy_1 = pow(qTr / (mMth * pTr), mModelData[7]);
+//        double dummy_1 = pow(qTr / (mMth * pTr), mModelData[7]);
 //     KRATOS_WATCH(dummy_1);
-        double dummy_2 = log(pTr / mModelData[9]) / lnr ;
+//        double dummy_2 = log(pTr / mModelData[9]) / lnr ;
 //     KRATOS_WATCH(dummy_2);
         double yield_function = pow(qTr / (mMth * pTr), mModelData[7]) + log(pTr / mModelData[9]) / lnr ;
         KRATOS_WATCH(yield_function);
