@@ -151,22 +151,22 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 ################################################################################
 # install core files for the KratosMultiphysics python module
 # note that this does not install KratosLoader.py, as it is different for installation and packaging runs (see next code block)
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     set(PACKAGING_DIR /opt/kratos)
     #take care: do not indent the lines below
-file(WRITE ${CMAKE_SOURCE_DIR}/KratosMultiphysics/KratosLoader.py "import sys
+file(WRITE ${PACKAGING_DIR}/KratosMultiphysics/KratosLoader.py "import sys
 kratos_libs=\"${PACKAGING_DIR}/libs\"
 kratos_applications=\"${PACKAGING_DIR}/applications\"
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) ")
 
-    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
+   file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
     install(FILES ${CMAKE_SOURCE_DIR}/cmake_modules/script.py DESTINATION packaging )
