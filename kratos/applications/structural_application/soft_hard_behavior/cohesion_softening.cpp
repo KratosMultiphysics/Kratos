@@ -67,8 +67,8 @@ namespace Kratos
 		   double  Cohesion_Softening::FunctionBehavior(const Vector& Imput_Parameters)
 		   {
 		     const double c     = (*mprops)[COHESION];
-		     const double& Ft   = (*mprops)[FT];
-		     const double& Fc   = (*mprops)[FC];
+//		     const double& Ft   = (*mprops)[FT];
+//		     const double& Fc   = (*mprops)[FC];
 //		     const double Ro    = Fc/Ft;
 		     const double& he   = Imput_Parameters[0];       /// Longituf del elemento
 		     const double& Ep   = Imput_Parameters[1];       /// Deformacion plastica efectiva
@@ -85,11 +85,11 @@ namespace Kratos
 		   {
 		     
 		     const double c     = (*mprops)[COHESION];
-		     const double& Ft   = (*mprops)[FT];
-		     const double& Fc   = (*mprops)[FC];
+//		     const double& Ft   = (*mprops)[FT];
+//		     const double& Fc   = (*mprops)[FC];
 //		     const double Ro    = Fc/Ft;
 		     const double& he   = Imput_Parameters[0];       /// Longituf del elemento
-		     const double& Ep   = Imput_Parameters[1];       /// Deformacion plastica efectiva
+//		     const double& Ep   = Imput_Parameters[1];       /// Deformacion plastica efectiva
 //	             const double& Em   = (*mprops)[YOUNG_MODULUS];
 	             const double& GE   = (*mprops)[FRACTURE_ENERGY];
 	             const double Ec    = 2.00 * GE /(std::sqrt(PI) * c * he); 
