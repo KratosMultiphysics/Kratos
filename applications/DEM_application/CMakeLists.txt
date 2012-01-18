@@ -30,4 +30,4 @@ install(TARGETS KratosDEMApplication DESTINATION libs )
 # message("KratosDEMApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION "${CMAKE_SOURCE_DIR}/KratosMultiphysics" )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/DEMApplication.py" DESTINATION KratosMultiphysics )
