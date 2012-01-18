@@ -160,16 +160,17 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     set(PACKAGING_DIR /opt/kratos)
     #take care: do not indent the lines below
-file(WRITE ${PACKAGING_DIR}/KratosMultiphysics/KratosLoader.py "import sys
+file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
 kratos_libs=\"${PACKAGING_DIR}/libs\"
 kratos_applications=\"${PACKAGING_DIR}/applications\"
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) ")
 
-   file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
+    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
 
+    install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics ) 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
-    install(FILES ${CMAKE_SOURCE_DIR}/cmake_modules/script.py DESTINATION packaging )
+    install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
 
 
     SET(CPACK_GENERATOR "DEB")
@@ -177,7 +178,7 @@ sys.path.append(kratos_applications) ")
     SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
     Set(CPACK_PACKAGING_INSTALL_PREFIX ${PACKAGING_DIR} )
-    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake_modules/postinst;${CMAKE_SOURCE_DIR}/cmake_modules/prerm;")
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
 
     INCLUDE(CPack)
 else(${INSTALL_PYTHON_FILES} MATCHES ON)

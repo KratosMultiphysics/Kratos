@@ -13,9 +13,12 @@ fi
 cp /opt/kratos/packaging/kratos.conf ${CONFPATH}/${CONFFILE}
 ldconfig
 
-#cd /opt/kratos/packaging
-#python script.py install
-#cd ..
-#rm -rf /opt/kratos/packaging
+cd /opt/kratos/
+python script.py install
+python script.py clean
+rm /opt/kratos/script.py
+rm -rf /opt/kratos/KratosMultiphysics
+rm -rf /opt/kratos/packaging
+rm -rf /opt/kratos/build
 
 
