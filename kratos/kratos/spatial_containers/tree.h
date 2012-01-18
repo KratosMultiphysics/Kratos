@@ -22,6 +22,7 @@
 
 
 // Project includes
+#include "containers/array_1d.h"
 #include "search_structure.h"
 
 namespace Kratos
