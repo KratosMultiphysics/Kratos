@@ -309,7 +309,7 @@ namespace Kratos
 		///@{ 
 
 		/// Assignment operator.
-		FindNodalHProcess& operator=(FindNodalHProcess const& rOther){};
+		FindNodalHProcess& operator=(FindNodalHProcess const& rOther){ return *this; };
 
 		/// Copy constructor.
 		//FindNodalHProcess(FindNodalHProcess const& rOther);
