@@ -582,7 +582,7 @@ namespace Kratos
 	Points3[2] = geom_2[2].Z(); 
 			
 	
-	double compare_distance = rPlane.DistPoint3Triangle3(Points0, Points1, Points2, Points3);
+//	double compare_distance = rPlane.DistPoint3Triangle3(Points0, Points1, Points2, Points3);
 	rPoint = rPlane.mClosestPoint;
 	Vector Normal = NormalVector(GetValue(CONTACT_LINK_MASTER),rPoint);
 	MasterShapeFunctionValues[0] = rPlane.mTriangleBary[0];
@@ -633,7 +633,7 @@ namespace Kratos
       KRATOS_TRY 
       if(rVariable==NORMAL)
             {
-		Condition::GeometryType& geom_1 = this->GetGeometry();
+//		Condition::GeometryType& geom_1 = this->GetGeometry();
 		const int& size =  GetGeometry().IntegrationPoints().size();
 	        Output.resize(size);
 	        GeometryType::CoordinatesArrayType rPoint; 
