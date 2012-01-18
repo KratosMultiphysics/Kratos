@@ -69,14 +69,14 @@ namespace Kratos
 		     const double c     = (*mprops)[COHESION];
 		     const double& Ft   = (*mprops)[FT];
 		     const double& Fc   = (*mprops)[FC];
-		     const double Ro    = Fc/Ft;
+//		     const double Ro    = Fc/Ft;
 		     const double& he   = Imput_Parameters[0];       /// Longituf del elemento
 		     const double& Ep   = Imput_Parameters[1];       /// Deformacion plastica efectiva
-	             const double& Em   = (*mprops)[YOUNG_MODULUS];
+//	             const double& Em   = (*mprops)[YOUNG_MODULUS];
 	             const double& GE   = (*mprops)[FRACTURE_ENERGY];
 	             const double Ec    = 2.00 * GE /(std::sqrt(PI) * c * he); 
                      const double elev  = (Ep/Ec)*(Ep/Ec); 
-		     double cohe        = (*mprops)[COHESION]*std::exp(-elev);
+//		     double cohe        = (*mprops)[COHESION]*std::exp(-elev);
 		     double result      = c;  //cohe;   //> param ?  cohe:param;    
 		     return result;          //= (*mprops)[COHESION];
 		   }
@@ -87,13 +87,13 @@ namespace Kratos
 		     const double c     = (*mprops)[COHESION];
 		     const double& Ft   = (*mprops)[FT];
 		     const double& Fc   = (*mprops)[FC];
-		     const double Ro    = Fc/Ft;
+//		     const double Ro    = Fc/Ft;
 		     const double& he   = Imput_Parameters[0];       /// Longituf del elemento
 		     const double& Ep   = Imput_Parameters[1];       /// Deformacion plastica efectiva
-	             const double& Em   = (*mprops)[YOUNG_MODULUS];
+//	             const double& Em   = (*mprops)[YOUNG_MODULUS];
 	             const double& GE   = (*mprops)[FRACTURE_ENERGY];
 	             const double Ec    = 2.00 * GE /(std::sqrt(PI) * c * he); 
-                     const double elev  = (Ep/Ec)*(Ep/Ec); 
+//                     const double elev  = (Ep/Ec)*(Ep/Ec); 
 		     
 		     double cohe   =  0.00;   //2.00 * (Ep/Ec) * (*mprops)[COHESION]*std::exp(-elev);
 		     double result =  cohe;   //> param ?  cohe:param;    
@@ -110,7 +110,7 @@ namespace Kratos
 		      double cn    =  Imput_Parameters[2];
 		      double co    =  (*mprops)[COHESION];
 		      double result      =  0.00;
-		      const double toler =  1E-3;
+//		      const double toler =  1E-3;
 		      
 		      if(Kpn1<1.00){
 		      
