@@ -533,7 +533,7 @@ void malla::rm_f_slivers(double h3_factor){
     // agrega los vecinos a rehacer pero ojo si uno es el last por el swap de vuelae
     for (j=0;j<nc;j++){
       vj=vi[j];
-      if (vj>0) if (vj==e.len-1) rehacer+=i; else rehacer+=vj;
+      if (vj>0) {if (vj==e.len-1) rehacer+=i; else rehacer+=vj;}
     }
     vuelae(i,true); // marca frontera
     alguno=true;
