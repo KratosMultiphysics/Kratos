@@ -149,7 +149,8 @@ namespace Kratos {
             double MoveMeshStrategy,
             unsigned int DomainSize)
         :
-            Scheme<TSparseSpace, TDenseSpace>()
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mDomainSize(DomainSize)
         {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -177,8 +178,9 @@ namespace Kratos {
             unsigned int DomainSize,
             Process::Pointer pTurbulenceModel)
         :
-            Scheme<TSparseSpace, TDenseSpace>(),
-            mpTurbulenceModel(pTurbulenceModel)
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mDomainSize(DomainSize),
+          mpTurbulenceModel(pTurbulenceModel)
         {
             //default values for the Newmark Scheme
             mAlphaBossak = NewAlphaBossak;
@@ -801,40 +803,58 @@ namespace Kratos {
             // Get the normal evaluated at the node
             const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
 
-            // Define the new coordinate system, where the first vector is aligned with the normal
-            ThisRowType rN(rRot,0);
-            for( size_t i = 0; i < 3; ++i)
-                rN[i] = rNormal[i];
-            this->Normalize(rN);
-
-            // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
-            ThisRowType rT1(rRot,1);
-            rT1(0) = 1.0;
-            rT1(1) = 0.0;
-            rT1(2) = 0.0;
-
-            double dot = TDenseSpace::Dot(rN,rT1);
-
-            // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
-            // If this is the case, repeat the procedure using (0,1,0)
-            if ( fabs(dot) > 0.99 )
+            if(mDomainSize == 3)
             {
-                rT1(0) = 0.0;
-                rT1(1) = 1.0;
+                // Define the new coordinate system, where the first vector is aligned with the normal
+                ThisRowType rN(rRot,0);
+                for( size_t i = 0; i < 3; ++i)
+                    rN[i] = rNormal[i];
+                this->Normalize(rN);
+
+                // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+                ThisRowType rT1(rRot,1);
+                rT1(0) = 1.0;
+                rT1(1) = 0.0;
                 rT1(2) = 0.0;
 
-                dot = TDenseSpace::Dot(rN,rT1);
+                double dot = TDenseSpace::Dot(rN,rT1);
+
+                // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+                // If this is the case, repeat the procedure using (0,1,0)
+                if ( fabs(dot) > 0.99 )
+                {
+                    rT1(0) = 0.0;
+                    rT1(1) = 1.0;
+                    rT1(2) = 0.0;
+
+                    dot = TDenseSpace::Dot(rN,rT1);
+                }
+
+                // calculate projection and normalize
+                rT1 -= dot * rN;
+                this->Normalize(rT1);
+
+                // The third base component is choosen as N x T1, which is normalized by construction
+                ThisRowType rT2(rRot,2);
+                rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
+                rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
+                rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
             }
+            else //if(mDomainSize == 2)
+            {
+                /* The basis for the new coordinate system is (normal,tangent)
+                   Tangent vector is chosen (-normal_y, normal_x) so that the resulting base
+                   is right-handed.
+                 */
+                ThisRowType rN(rRot,0);
+                ThisRowType rT(rRot,1);
 
-            // calculate projection and normalize
-            rT1 -= dot * rN;
-            this->Normalize(rT1);
-
-            // The third base component is choosen as N x T1, which is normalized by construction
-            ThisRowType rT2(rRot,2);
-            rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
-            rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
-            rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
+                rN[0] = rNormal[0];
+                rN[1] = rNormal[1];
+                this->Normalize(rN);
+                rT[0] = -rN[1];
+                rT[1] = rN[0];
+            }
 
         }
 
@@ -849,8 +869,7 @@ namespace Kratos {
                     LocalSystemVectorType& rLocalVector,
                     GeometryType& rGeometry)
         {
-            const size_t Dim = 3;
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t BlockSize = mDomainSize + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
@@ -863,7 +882,7 @@ namespace Kratos {
                 if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     NeedRotation = true;
-                    MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
+                    MatrixBlockType Block(Rotation,range(Index,Index+mDomainSize),range(Index,Index+mDomainSize));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
                 }
                 Index += BlockSize;
@@ -883,8 +902,7 @@ namespace Kratos {
         void Rotate(LocalSystemVectorType& rLocalVector,
                     GeometryType& rGeometry)
         {
-            const size_t Dim = 3;
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t BlockSize = mDomainSize + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             LocalSystemMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
@@ -897,7 +915,7 @@ namespace Kratos {
                 if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
                     NeedRotation = true;
-                    MatrixBlockType Block(Rotation,range(Index,Index+Dim),range(Index,Index+Dim));
+                    MatrixBlockType Block(Rotation,range(Index,Index+mDomainSize),range(Index,Index+mDomainSize));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
                 }
                 Index += BlockSize;
@@ -906,7 +924,7 @@ namespace Kratos {
             if(NeedRotation)
             {
                 LocalSystemVectorType Tmp = boost::numeric::ublas::prod(Rotation,rLocalVector);
-                rLocalVector = rLocalVector;
+                noalias(rLocalVector) = Tmp;
             }
         }
 
@@ -920,7 +938,7 @@ namespace Kratos {
                                 LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
         {
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t BlockSize = mDomainSize + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
             const size_t LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
@@ -957,13 +975,13 @@ namespace Kratos {
         void ApplySlipCondition(LocalSystemVectorType& rLocalVector,
                                 GeometryType& rGeometry)
         {
-            const size_t BlockSize = 4; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
+            const size_t BlockSize = mDomainSize + 1; // Number of rows associated to each node. Assuming vx,vy,vz,p (this is what ASGS and VMS elements do)
 
             for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
             {
                 if( rGeometry[itNode].GetValue(IS_STRUCTURE) != 0.0 )
                 {
-                    // We fix the firs dof (normal velocity) for each rotated block
+                    // We fix the first dof (normal velocity) for each rotated block
                     size_t j = itNode * BlockSize;
 
                     // If the mesh is moving, we must impose v_normal = vmesh_normal
@@ -979,10 +997,9 @@ namespace Kratos {
         /// Transform nodal velocities to the rotated coordinates (aligned with each node's normal)
         void RotateVelocities(ModelPart& rModelPart)
         {
-            const size_t Dim = 3;
-            LocalSystemMatrixType Rotation = IdentityMatrix(Dim,Dim);
-            LocalSystemVectorType Vel(Dim);
-            LocalSystemVectorType Tmp(Dim);
+            LocalSystemMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
+            LocalSystemVectorType Vel(mDomainSize);
+            LocalSystemVectorType Tmp(mDomainSize);
 
             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
             {
@@ -990,9 +1007,9 @@ namespace Kratos {
                 {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-                    for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
+                    for(size_t i = 0; i < mDomainSize; i++) Vel[i] = rVelocity[i];
                     noalias(Tmp) = boost::numeric::ublas::prod(Rotation,Vel);
-                    for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
+                    for(size_t i = 0; i < mDomainSize; i++) rVelocity[i] = Tmp[i];
                 }
             }
         }
@@ -1000,10 +1017,9 @@ namespace Kratos {
         /// Transform nodal velocities from the rotated system to the original one
         void RecoverVelocities(ModelPart& rModelPart)
         {
-            const size_t Dim = 3;
-            LocalSystemMatrixType Rotation = IdentityMatrix(Dim,Dim);
-            LocalSystemVectorType Vel(Dim);
-            LocalSystemVectorType Tmp(Dim);
+            LocalSystemMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
+            LocalSystemVectorType Vel(mDomainSize);
+            LocalSystemVectorType Tmp(mDomainSize);
 
             for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
             {
@@ -1011,9 +1027,9 @@ namespace Kratos {
                 {
                     this->RotationOperator<LocalSystemMatrixType>(Rotation,*itNode);
                     array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-                    for(size_t i = 0; i < Dim; i++) Vel[i] = rVelocity[i];
+                    for(size_t i = 0; i < mDomainSize; i++) Vel[i] = rVelocity[i];
                     noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),Vel);
-                    for(size_t i = 0; i < Dim; i++) rVelocity[i] = Tmp[i];
+                    for(size_t i = 0; i < mDomainSize; i++) rVelocity[i] = Tmp[i];
                 }
             }
         }
@@ -1023,7 +1039,7 @@ namespace Kratos {
                            const LocalSystemMatrixType& rRotation)
         {
             // compute B = R*A*transpose(R)
-            const size_t BlockSize = 4;
+            const size_t BlockSize = mDomainSize + 1;
             const size_t LocalSize = rMatrix.size1();
             const size_t NumBlocks = LocalSize / BlockSize;
             LocalSystemMatrixType Tmp = ZeroMatrix(LocalSize,LocalSize);
@@ -1077,6 +1093,8 @@ namespace Kratos {
         /*@} */
         /**@name Member Variables */
         /*@{ */
+
+        const size_t mDomainSize;
 
         Process::Pointer mpTurbulenceModel;
 
