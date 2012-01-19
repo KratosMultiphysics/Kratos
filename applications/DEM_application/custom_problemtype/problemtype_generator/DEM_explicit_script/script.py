@@ -1,8 +1,8 @@
 import DEM_explicit_solver_var
 import time as timer
-import matplotlib
-from numpy import *
-from pylab import *
+#import matplotlib
+#from numpy import *
+#from pylab import *
 
 ##################################################################
 ## ATTENTION: here the order is important
