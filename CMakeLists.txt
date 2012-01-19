@@ -42,6 +42,7 @@ endif (OPENMP_FOUND)
 #finding and including BOOST library
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
+set(Boost_REALPATH ON)
 find_package(Boost COMPONENTS python REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 link_directories(${Boost_LIBRARY_DIRS})
@@ -107,7 +108,7 @@ if(${MPI_NEEDED} MATCHES ON )
 
     #note that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
     include_directories(${MPI_INCLUDE_PATH})
-    find_package(Boost COMPONENTS mpi REQUIRED)
+    find_package(Boost COMPONENTS mpi serialization REQUIRED)
 #    find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
@@ -173,10 +174,20 @@ sys.path.append(kratos_applications) ")
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
 
 
+    install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
+    install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+#    GET_FILENAME_COMPONENT(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES} REALPATH)
+#    install(FILES ${PYTHON_LIBRARIES_REALPATH} DESTINATION libs)
+#    install(FILES ${PYTHON_LIBRARIES} DESTINATION libs)
+
+
+
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
-    SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
+    #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libblas3gf | libblas.so.3gf | libatlas3gf-base, libc6 (>= 2.7), libgcc1 (>= 1:4.1.1), libgfortran3 (>= 4.6), libgomp1 (>= 4.4), liblapack3gf | liblapack.so.3gf | libatlas3gf-base, libopenmpi1.3, libparmetis3.1, libstdc++6 (>= 4.4.0), ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
+#    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
     Set(CPACK_PACKAGING_INSTALL_PREFIX ${PACKAGING_DIR} )
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
 

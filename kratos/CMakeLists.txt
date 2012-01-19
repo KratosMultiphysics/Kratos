@@ -64,7 +64,7 @@ set( KRATOS_PYTHON_SOURCES
 ###############################################################
 ## define library KratosCore to be included in all of the others
 add_library(KratosCore STATIC ${KRATOS_CORE_SOURCES})
-target_link_libraries(KratosCore ${Boost_LIBRARIES} ${PYTHON_LIBRARIES} gidpost ${MPI_LIBRARIES})
+target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost ${MPI_LIBRARIES})
 install(TARGETS KratosCore DESTINATION libs )
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 #     SET_TARGET_PROPERTIES( KratosCore PROPERTIES COMPILE_FLAGS -fPIC)
