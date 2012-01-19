@@ -36,12 +36,19 @@ python-extension KratosThermoMechanicalApplication
 #	element_2d.cpp 
 #	element_3d.cpp 
         heat_contact_2d.cpp
-	thermomechanical_application.cpp 
+	heat_contact_3d.cpp
+        SUPG_conv_diff_2d.cpp
+	SUPG_conv_diff_3d.cpp 
+	SUPG_conv_3d.cpp
+	thermal_face2d.cpp  
+	thermal_face3d.cpp  
+
+	thermo_mechanical_application.cpp 
 	add_custom_strategies_to_python.cpp 
 	add_custom_utilities_to_python.cpp 
 	add_custom_processes_to_python.cpp 
 
-	thermomechanical_python_application.cpp 
+	thermo_mechanical_python_application.cpp 
 
 
 	#kratos library
