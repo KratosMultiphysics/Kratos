@@ -132,7 +132,7 @@ namespace Kratos
             }
 
             //mark elements for splitting depending on the desired error ratio
-            unsigned int number_of_splitted_elements = 0;
+            unsigned int large_error_elems = 0;
             for(ModelPart::ElementsContainerType::iterator it=ThisModelPart.ElementsBegin(); it!=ThisModelPart.ElementsEnd(); it++)
             {
                 double ratio = it->GetValue(rVariable);
@@ -144,7 +144,7 @@ namespace Kratos
                     int& current_level = it->GetValue(REFINEMENT_LEVEL);
                     current_level += 1;
 
-                    number_of_splitted_elements++;
+                    large_error_elems++;
 
                     //mark all of the nodes with the refinement level
                     Geometry< Node<3> >& geom = it->GetGeometry();
@@ -203,7 +203,7 @@ namespace Kratos
                     it->GetValue(SPLIT_ELEMENT) = true;
                     current_level += 1; //here we increase the level
 
-                    number_of_splitted_elements++;
+                    large_error_elems++;
 
                     //mark all of the nodes with the refinement level
                     Geometry< Node<3> >& geom = it->GetGeometry();
@@ -233,7 +233,6 @@ namespace Kratos
                     if (ElemSize < MinSize)
                     {
                         itElem->SetValue(SPLIT_ELEMENT,false);
-                        number_of_splitted_elements -= 1;
                     }
                 }
             }
@@ -247,13 +246,19 @@ namespace Kratos
                     if (ElemSize < MinSize)
                     {
                         itElem->SetValue(SPLIT_ELEMENT,false);
-                        number_of_splitted_elements -= 1;
                     }
                 }
             }
 
-            KRATOS_WATCH("***********************************************************");
-            std::cout << "total number of refined elements = " << number_of_splitted_elements << std::endl;
+            unsigned int split_elems = 0;
+            for ( ModelPart::ElementIterator itElem = ThisModelPart.ElementsBegin(); itElem != ThisModelPart.ElementsEnd(); ++itElem)
+            {
+                if(itElem->GetValue(SPLIT_ELEMENT) == true)
+                    split_elems++;
+            }
+
+            std::cout << "Refinement utility found " << large_error_elems << " with an error ratio over tolerance." << std::endl;
+            std::cout << "Final number of refined elements: " << split_elems << std::endl;
 
             KRATOS_CATCH("")
         }

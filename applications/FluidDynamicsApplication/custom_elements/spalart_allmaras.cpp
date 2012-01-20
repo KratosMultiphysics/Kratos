@@ -370,7 +370,7 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
     if(NormS < NormOmega)
         S += Cprod * (NormS-NormOmega);
     double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
-    // Check on S_hat
+    // Numerical control on S_hat
     if (S_hat < 0.3 * NormOmega)
         S_hat = 0.3 * NormOmega;
 
