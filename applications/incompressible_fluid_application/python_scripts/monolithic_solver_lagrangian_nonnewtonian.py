@@ -163,7 +163,7 @@ class MonolithicSolver:
         
         (self.solver).Solve()
         
-##        self.RestoreOldPosition()
+        self.RestoreOldPosition()
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
 
         (self.solver).Clear()
@@ -225,6 +225,7 @@ class MonolithicSolver:
 ##            for node in self.model_part.Nodes:            
 ##                if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
 ##                    node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
+            
     ########################################################################
     def Remesh3D(self, param):
 ##        self.remeshing_flag==False
@@ -242,13 +243,14 @@ class MonolithicSolver:
 
 ##            displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
             delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
-            if (delta_displ_square > delta_displ_max):
+            if (delta_displ_square > delta_displ_max):#value independent from discretization----> not good to compare with mesh dimension....
                 delta_displ_max = delta_displ_square
-            if(node.GetSolutionStepValue(NODAL_H) > nodal_h_max):
-                nodal_h_max = node.GetSolutionStepValue(NODAL_H)
+            delta_displ_max = math.sqrt(delta_displ_max)
+##            if(node.GetSolutionStepValue(NODAL_H) > nodal_h_max):#aprox max mesh dimension
+##                nodal_h_max = node.GetSolutionStepValue(NODAL_H)
 
                 
-        if(delta_displ_max > param * nodal_h_max):
+        if(delta_displ_max > param):
             self.remeshing_flag==True
             
         (self.MeshMover).Execute();
@@ -303,19 +305,25 @@ class MonolithicSolver:
 
             displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
             delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
+            delta_displ_square = math.sqrt(delta_displ_square)
+##            print "****************************************************************"
+##            print "disp", displ
+##            print "delta_displ_square", delta_displ_square
             
             if(self.domain_size == 2):
                 red_factor = 0.0001
             elif(self.domain_size == 3):
                 red_factor = 0.1
-##            if(displ < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
-            if(delta_displ_square < (node.GetSolutionStepValue(NODAL_H)* red_factor)):                
+
+##            print "red_factor", red_factor
+##            print "nodal H", node.GetSolutionStepValue(NODAL_H)
+                
+##            if(delta_displ_square < (node.GetSolutionStepValue(NODAL_H)* red_factor)):
+            if(delta_displ_square < 0.0001):                
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
 
-###mod 13 dic 2011
-##            print node.GetSolutionStepValue(NODAL_H)
         (self.MeshMover).Execute(); #to update the position with the new displacement
 
              
