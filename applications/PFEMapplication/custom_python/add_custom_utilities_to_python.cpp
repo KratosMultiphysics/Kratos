@@ -121,7 +121,9 @@ namespace Python
 		.def("MoveNodes",&PfemUtils::MoveNodes)
 		.def("AssignMeshVelocity",&PfemUtils::AssignMeshVelocity)
                 .def("CFLdeltaT",&PfemUtils::CFLdeltaT)
-                .def("ExplicitDeltaT",&PfemUtils::ExplicitDeltaT)						     
+                .def("ExplicitDeltaT",&PfemUtils::ExplicitDeltaT)
+		.def("CheckInvertedElements",&PfemUtils::CheckInvertedElements)
+                
 		 ;
 	  
 	  class_<NormalToWallCalculationUtils>("NormalToWallCalculationUtils", init<>())
