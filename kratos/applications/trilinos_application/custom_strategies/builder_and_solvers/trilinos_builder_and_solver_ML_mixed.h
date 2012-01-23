@@ -418,7 +418,7 @@ namespace Kratos
                 solver.SetAztecOption(AZ_solver, AZ_gmres_condnum);
                 solver.SetAztecOption(AZ_output, AZ_none);
                 solver.SetAztecOption(AZ_kspace, 200);
-                solver.Iterate(500, 1e-9);
+                solver.Iterate(500, 1e-8);
 
                 // delete the preconditioner. Do it BEFORE MPI_Finalize
                 delete MLPrec;
