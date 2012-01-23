@@ -180,7 +180,25 @@ namespace Kratos
 				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
 					if(static_cast<int>(*i_node_id) > number_of_nodes)
 						number_of_nodes = *i_node_id;
+// KRATOS_WATCH(number_of_nodes)
 
+			//verify that all of the nodes exist
+			std::vector< bool > aux(number_of_nodes,false);
+			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
+			for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
+				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
+				{
+					aux[static_cast<int>(*i_node_id)-1] = true;
+				}
+				
+			for(unsigned int i=0; i<aux.size(); i++)
+			  if(aux[i] != true)
+			  {
+			    KRATOS_ERROR(std::logic_error,"Isolated node found! The problematic node has Id  ",i+1);
+			  }
+// KRATOS_WATCH("sequential numbering of nodes verified")
+			
+			
 			mrElementsPartitions.resize(number_of_elements);
 			mrNodesPartitions.resize(number_of_nodes);
 
