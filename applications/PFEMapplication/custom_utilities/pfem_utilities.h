@@ -1852,6 +1852,51 @@ namespace Kratos
             KRATOS_CATCH("");
         }
         //**********************************************************************************************
+	bool CheckInvertedElements(ModelPart& ThisModelPart, int domain_size)
+        {
+            KRATOS_TRY;
+
+            bool inverted_elements = false;
+            //auxiliary vectors
+            double Atot = 0.00;
+            if (domain_size == 2)
+            {
+                for (ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                        i != ThisModelPart.ElementsEnd(); i++)
+                {
+                    //calculating shape functions values
+                    Geometry< Node < 3 > >& geom = i->GetGeometry();
+                    double Ael = 0.0;
+                    if (geom.size() == 3)
+                    {
+                        Ael = GeometryUtils::CalculateVolume2D(geom);
+                        Atot += Ael;
+                    }
+                    if (Ael < 0) inverted_elements = true;
+                }
+            } else if (domain_size == 3)
+            {
+                for (ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                        i != ThisModelPart.ElementsEnd(); i++)
+                {
+                    //calculating shape functions values
+                    Geometry< Node < 3 > >& geom = i->GetGeometry();
+
+                    double Ael = 0.0;
+                    if (geom.size() == 4)
+                    {
+                        Ael = GeometryUtils::CalculateVolume3D(geom);
+                        Atot += Ael;
+                    }
+                    if (Ael < 0) inverted_elements = true;
+                }
+            }
+
+            //return the bool inverted elements
+            return inverted_elements;
+            KRATOS_CATCH("");
+        }
+	
         //**********************************************************************************************
 
         void ColourAirWaterElement(ModelPart& ThisModelPart, int domain_size)
