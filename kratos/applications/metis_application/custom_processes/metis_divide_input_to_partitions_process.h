@@ -164,8 +164,9 @@ namespace Kratos
 			IO::ConnectivitiesContainerType elements_connectivities;
 			IO::ConnectivitiesContainerType conditions_connectivities;
 			int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
+// 	KRATOS_WATCH("line 167")		
 			mrIO.ReadConditionsConnectivities(conditions_connectivities);
-			
+// 	KRATOS_WATCH("line 168")		
 			MetisGraphPartitioningProcess::PartitionIndicesType nodes_partitions;
 			MetisGraphPartitioningProcess::PartitionIndicesType elements_partitions;
 			MetisGraphPartitioningProcess::PartitionIndicesType conditions_partitions;
