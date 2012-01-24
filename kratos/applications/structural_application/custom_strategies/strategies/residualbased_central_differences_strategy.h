@@ -165,7 +165,7 @@ namespace Kratos
 	                ModelPart& model_part, 
 			const Constraint_Enforcement& CE,  
 			const int        dimension,
-			const double     alpha_damp,        /// para calcular la matriz de amortiguamiento proporcional a la masa
+			const double     damping_ratio, /// para calcular la matriz de amortiguamiento proporcional a la masa
                         const double     fraction_delta_time,
                         const double     max_delta_time,
 			const bool       CalculateReactions,
@@ -175,7 +175,6 @@ namespace Kratos
 	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 	        mdimension                 = dimension; 
-		malpha_damp                = alpha_damp;
                 mfraction_delta_time       = fraction_delta_time; 
                 mmax_delta_time            = max_delta_time;
                 mCalculateReactionsFlag    = CalculateReactions; 
@@ -198,7 +197,9 @@ namespace Kratos
 		
                 std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES "<< std::endl;
 
-		mbeta_damp = 0.00; //0.000006767;
+		mdamping_ratio = damping_ratio;
+		malpha_damp    = 0.00;
+		mbeta_damp     = 0.00; 
 		mDTU.CreateJoints(model_part);
 		
 	      }
@@ -317,7 +318,7 @@ double Solve()
 	
 	
 	/// Computing energies
-	//CalculateEnergies();
+	CalculateEnergies();
 
 	
 	#ifdef _OPENMP
@@ -339,7 +340,7 @@ void ComputeDampingForces()
 
 void ComputeViscousDampingForces()
 {
-   //ComputeDampingForcesWithMass();
+   ComputeDampingForcesWithMass();
    ComputeDampingForcesWithStiffness();
 }
 
@@ -844,6 +845,14 @@ void ComputeCriticalTime()
     
     delta_time_computed = ComputeTime();
     
+    //Calculo los factores de alfa y beta para amortiguar la estructura
+    // 3d static and dynamic analisis damping and Energy Disispation 19-7
+    double wmax = 2.00 / delta_time_computed;
+    mbeta_damp  = 0.00;
+    malpha_damp = 2.00 * wmax * mdamping_ratio;  
+    
+    
+    
     if(mCE==Penalty_Methods){
       double time_penalty = ComputeTimePenalty();
       delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
@@ -870,6 +879,8 @@ void ComputeCriticalTime()
     std::cout<< "  DELTA CRITICAL TIME COMPUTED = "<< delta_time_computed    << "  SECONDS" << std::endl; 
     std::cout<< "  DELTA TIME USED              = "<< delta_time_used        << "  SECONDS" << std::endl;
     std::cout<< "  CURRENT TIME                 = "<< time                   << "  SECONDS" << std::endl;
+    std::cout<< "  BETA_DAMPING                 = "<< mbeta_damp             << "         " << std::endl;
+    std::cout<< "  ALPHA_DAMPING                = "<< malpha_damp            << "         " << std::endl;
     
   
     KRATOS_CATCH("")
@@ -1241,7 +1252,8 @@ void ComputeOldVelocitiesAndAccelerations()
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 
 	{
-	   
+	  array_1d<double,3>& normal                = i->FastGetSolutionStepValue(NORMAL);
+	  noalias(normal)                           = ZeroVector(3);
 	  array_1d<double,3>& displacement          = i->FastGetSolutionStepValue(DISPLACEMENT);   /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT,1);   /// U(n)
 	  array_1d<double,3>& olddisplacement       = i->FastGetSolutionStepValue(DISPLACEMENT,2);   /// U(n-1)
@@ -1417,15 +1429,15 @@ void CalculateReaction()
             array_1d<double,3> dif                 =  rhs; //- rhs_1;             
 
             if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
- 		{reaction[0] =  -dif[0] + mass * acceleration[0] + mass * malpha_damp * velocity[0];}
+ 		{reaction[0] =  -dif[0];}  //+ mass * acceleration[0] + mass * malpha_damp * velocity[0];}
                 
             if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == true )
-		{reaction[1] = -dif[1] + mass * acceleration[1] + mass * malpha_damp * velocity[1];}
+		{reaction[1] = -dif[1];}  //+ mass * acceleration[1] + mass * malpha_damp * velocity[1];}
           
             if( i->HasDofFor(DISPLACEMENT_Z))
 	        {
 		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == true )
-		{reaction[2] = -dif[2] + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
+		{reaction[2] = -dif[2];} // + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
                 }
         }
 }
@@ -1449,6 +1461,7 @@ bool   mCalculateOldTime;
 bool   mSolutionStepIsInitialized;
 bool   mClearContactConditions;
 bool   mLocalSearchInitialize;
+double mdamping_ratio;
 double malpha_damp;
 double mbeta_damp; 
 double mfraction_delta_time;
@@ -1543,12 +1556,13 @@ void CalculateKineticEnergy()
 	    /// WARNING = solo valido para matriz de masa diagonal
 	    /// Ek = 0.50 * V^t * M * V 
 	    kinetic_energy               = 0.50 * mass * vel * vel; 
-	    
+	    /*
 	    /// la direccion de la fravedad en Y
 	    potencial_energy = 0.00;
 	    const double h_efe = y_coord + displ[1];
 	    if(h_efe>0)
 	         potencial_energy = std::fabs(mass * Gravity[1] * (h_efe));
+	    */
 	 }
       }
   KRATOS_CATCH("")
