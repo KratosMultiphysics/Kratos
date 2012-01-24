@@ -85,7 +85,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* For contact analysis */
 #include "custom_strategies/schemes/forward_increment_lagrange_multiplier_scheme.h"
 #include "custom_utilities/boundary_conditions_and_contact_utilities.h"
-
+#include "custom_utilities/joint.h"
+#include "custom_utilities/disconnect_utility.h"
 
 namespace Kratos
 {
@@ -140,6 +141,7 @@ namespace Kratos
 	  
 	  typedef ForwardIncrementLagrangeMultiplierScheme      LagrangeMultiplierType;
 
+	   typedef Joint<4> Joint2D;
 	   
 	  
 	  /// Notes:
@@ -197,6 +199,7 @@ namespace Kratos
                 std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES "<< std::endl;
 
 		mbeta_damp = 0.00; //0.000006767;
+		mDTU.CreateJoints(model_part);
 		
 	      }
 
@@ -225,7 +228,6 @@ double Solve()
 	  Initialize();
 	  minitial_conditions_size = pConditions.size();
 	}
-	
 	
 	///Initialize solution step
 	if(mSolutionStepIsInitialized==false)
@@ -268,7 +270,9 @@ double Solve()
    	
         ///Computing The new internal and external forces  for n+1 step
 	GetForce();
+	Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
+	
 	 
 	//WARNING = To be checked
 	//ComputeDampingForces();
@@ -346,7 +350,7 @@ void ComputeNonViscousDampingForces()
   KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
-      ElementsArrayType& pNodes        = r_model_part.Nodes(); 
+      ElementsArrayType& pNodes        = r_model_part.Nodes(); ///  WARNING
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -662,15 +666,17 @@ void Initialize()
 {
 
     KRATOS_TRY
-
+   
     /// Inicializando los elemtos
     if(mElementsAreInitialized == false)
 	InitializeElements();
-
+   
+    
     /// Inicializando las condiciones  
     if(mConditionsAreInitialized == false)
 	InitializeConditions();
 
+    
     mInitializeWasPerformed   = true;
 
 
@@ -709,6 +715,7 @@ void InitializeElements()
 	  {
 	    Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
 	    (it)->Initialize(); 
+	    (it)->GetValue(IS_INACTIVE) = false;
 	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
 	    const unsigned int& dim   = geom.WorkingSpaceDimension();
 	    index = 0;
@@ -841,7 +848,7 @@ void ComputeCriticalTime()
       double time_penalty = ComputeTimePenalty();
       delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
     }
-    
+            
     delta_time_computed = Truncar_Delta_Time(delta_time_computed);
     
     if(delta_time_computed>mmax_delta_time) {delta_time_computed = mmax_delta_time;}
@@ -851,6 +858,7 @@ void ComputeCriticalTime()
     mtimestep = mtimestep + delta_time_used; 
     r_model_part.CloneTimeStep(mtimestep);
     time = CurrentProcessInfo[TIME];
+    
     
     if(mCalculateOldTime==false) {
         molddelta_time    = delta_time_used;
@@ -938,7 +946,7 @@ double ComputeTimePenalty()
       double Mass    = (r_model_part.Nodes()(1))->FastGetSolutionStepValue(NODAL_MASS); 
       double Penalty = 50.00 * (r_model_part.Elements()(1))->GetProperties()[YOUNG_MODULUS];
       for(int k=0; k<number_of_threads; k++)
-        Min_Mass_Nodal(k) = Mass; 
+        Min_Mass_Nodal[k] = Mass; 
 	
       #pragma omp parallel for 
       for(int k=0; k<number_of_threads; k++)
@@ -947,6 +955,7 @@ double ComputeTimePenalty()
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
+	    
 	    double& mass = ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
 	    Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
 	  }
@@ -1447,6 +1456,8 @@ double mmax_delta_time;
 double molddelta_time;
 double mtimestep;  /// la suma de los delta time
 Constraint_Enforcement mCE; 
+Disconnect_Triangle_Utilities mDTU;
+
 
 /// Contact Condition Iterations
 //typename ProofType::Pointer mProof;
@@ -1474,6 +1485,7 @@ inline double Truncar_Delta_Time(double& num)
       double num_trucado = num; 
       unsigned long int a     = 1;
       unsigned long int i     = 10;
+      if(num!=0.00){
       while(trunc==false)
 	{
 	  num_trucado = num_trucado*i;
@@ -1482,7 +1494,8 @@ inline double Truncar_Delta_Time(double& num)
               num_trucado = static_cast<long unsigned int>(num_trucado);  
               num         = num_trucado/a;
               trunc       = true;
-	  }
+	   }
+ 	  }
 	}
  
         return num;
@@ -1541,6 +1554,194 @@ void CalculateKineticEnergy()
   KRATOS_CATCH("")
 }
 
+unsigned int Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D>::iterator End)
+        {
+	  KRATOS_TRY
+	  double dpefa = 0.63;
+	  double dpefb = 1.8;
+	  double dpefc = 6.0;
+	  double dpefm = 0.0;
+	  double small,sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau;
+	  double e1x,e1y,h,area;
+	  int nfail;
+	  int nsoft;
+          double d1nccx[4];
+	  double d1nccy[4];
+	  
+	  ModelPart& r_model_part = BaseType::GetModelPart();
+	  Properties&  prop       = r_model_part.GetProperties(1);
+	  
+	  
+	  const double& dpeft = (prop)[TENSILE_STRENGTH];
+	  const double dpepe  = 50.00 * (prop)[YOUNG_MODULUS];
+	  const double& dpefs = (prop)[SHEAR_STRENGTH];
+	  const double& dpegf = (prop)[FRACTURE_ENERGY];
+	  
+	  small=1E-6; nsoft=0;
+	  
+	  /// WARNING = to be paralelized
+	  #ifdef _OPENMP
+	  int number_of_threads = 1; //omp_get_max_threads();
+	  #else
+	  int number_of_threads = 1;
+	  #endif
+           
+          int size = std::distance(Begin, End); 
+	  vector<unsigned int> node_partition;
+	  CreatePartition(number_of_threads, size, node_partition);
+	  
+	  #pragma omp parallel for  private(sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau, e1x,e1y,h,area, nfail, nsoft, d1nccx, d1nccy)
+	  for(int k=0; k<number_of_threads; k++)
+	  {  
+	    std::vector<Joint2D>::iterator i_begin = Begin  + node_partition[k];
+	    std::vector<Joint2D>::iterator i_end   = Begin  + node_partition[k+1];
+	    for(std::vector<Joint2D>::iterator Joint = i_begin; Joint != i_end; ++Joint) 
+	    { 
+	      if((Joint)->IsFail()==false){
+	      array_1d<double,3>& node_rhs_0 =  (*Joint)[0]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_1 =  (*Joint)[1]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_2 =  (*Joint)[2]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_3 =  (*Joint)[3]->FastGetSolutionStepValue(RHS);
+	      
+	      d1nccx[0] = (*Joint)[0]->X();  
+	      d1nccx[1] = (*Joint)[1]->X();  
+	      d1nccx[2] = (*Joint)[2]->X();  
+	      d1nccx[3] = (*Joint)[3]->X();  
+	      
+	      d1nccy[0] = (*Joint)[0]->Y();  
+	      d1nccy[1] = (*Joint)[1]->Y();  
+	      d1nccy[2] = (*Joint)[2]->Y();  
+	      d1nccy[3] = (*Joint)[3]->Y();  
+	      
+	      e1x=0.50*(d1nccx[1]+d1nccx[2]-d1nccx[0]-d1nccx[3]);
+	      e1y=0.50*(d1nccy[1]+d1nccy[2]-d1nccy[0]-d1nccy[3]);
+	      h=std::sqrt(e1x*e1x+e1y*e1y);
+	      
+	      e1x=e1x/(h+small);
+	      e1y=e1y/(h+small);
+	      s1=(d1nccy[0]-d1nccy[3])*e1y+(d1nccx[0]-d1nccx[3])*e1x;
+	      s2=(d1nccy[1]-d1nccy[2])*e1y+(d1nccx[1]-d1nccx[2])*e1x;
+	      o1=(d1nccy[0]-d1nccy[3])*e1x-(d1nccx[0]-d1nccx[3])*e1y;
+	      o2=(d1nccy[1]-d1nccy[2])*e1x-(d1nccx[1]-d1nccx[2])*e1y;
+	      
+	      
+	      op=2.00*h*dpeft/dpepe;
+	      sp=2.00*h*dpefs/dpepe;
+	      ot=std::max((2.00*op),(3.00*dpegf/dpeft));
+	      st=std::max((2.00*sp),(3.00*dpegf/dpefs));
+	      nfail=0;
+	       
+	      for(int integ=0;integ<3;integ++)
+	      {  if(integ==0)
+	         { o=o1; s=s1;
+	         }
+	         else if(integ==2)
+	         { o=o2; s=s2;
+	         } 
+	         else
+	         { o=0.50*(o1+o2); s=0.50*(s1+s2);
+	         }
+	         
+	         sabs=std::fabs(s);
+	         if((o>op)&&(sabs>sp))
+	         { z=std::sqrt(((o-op)/ot)*((o-op)/ot)+((sabs-sp)/st)*((sabs-sp)/st));
+	         }
+	         else if(o>op)
+	         { z=(o-op)/ot;
+	         }
+	         else if(sabs>sp)
+	         { z=(sabs-sp)/st;
+	         }
+	         else
+	         { z=0.00;
+	         }
+	         
+	         if(z>=1.00)    
+	         {
+		   nfail=nfail+1;
+		   if((nfail>1))
+		      (Joint)->SetFail();
+	            z=1.00;
+	         }
+	         
+	         z=(1.00 - ((dpefa+dpefb-1.00)/(dpefa+dpefb))*exp(z*(dpefa+dpefc*dpefb)/((dpefa+dpefb)*(1.00-dpefa-dpefb))))*(dpefa*(1.00-z)+dpefb*pow((1.00-z),dpefc));        
+	        
+
+		if(o<0.00)                 /* normal stress*/ 
+	        { sigma=2.00*o*dpeft/op;   /* sigma=R0; */
+	        }
+	        else if(o>op)
+	        { sigma=dpeft*z; nsoft=nsoft+1;
+	        }
+	        else
+	        { sigma=(2.00*o/op-(o/op)*(o/op))*z*dpeft;
+	        }
+	        if((sigma>0.00)&&(sabs>sp))           /* shear stress */ 
+	        { tau=z*dpefs;
+	        }
+	        else if(sigma>0.00)
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
+	        }
+	        else if(sabs>sp)
+	        { tau=z*dpefs-dpefm*sigma;
+	        }
+	        else
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*sigma);
+	        }  
+		if(s<0.00)tau=-tau;
+		if(integ==0)  /* nodal forces */
+		{ 
+		  area=h/6.00; /* area=h/6.0; */
+		  (*Joint)[0]->SetLock();
+		  node_rhs_0[0] = node_rhs_0[0] - area*(tau*e1x-sigma*e1y); 
+		  node_rhs_0[1] = node_rhs_0[1] - area*(tau*e1y+sigma*e1x);
+		  (*Joint)[0]->UnSetLock();
+		  (*Joint)[3]-> SetLock();
+		  node_rhs_3[0] = node_rhs_3[0] + area*(tau*e1x-sigma*e1y);
+		  node_rhs_3[1] = node_rhs_3[1] + area*(tau*e1y+sigma*e1x);
+		  (*Joint)[3]->UnSetLock();
+		}
+		else if(integ==1)
+		{ 
+		  area=h/3.00;  /* area=h/3.0; */
+		  
+		  (*Joint)[0]->SetLock();
+		  node_rhs_0[0] = node_rhs_0[0] -area*(tau*e1x-sigma*e1y);
+		  node_rhs_0[1] = node_rhs_0[1]-area*(tau*e1y+sigma*e1x);
+		  (*Joint)[0]->UnSetLock();
+		  
+		  (*Joint)[3]->SetLock();
+		  node_rhs_3[1] = node_rhs_3[1]+area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[0] = node_rhs_3[0] +area*(tau*e1x-sigma*e1y);
+		  (*Joint)[3]->UnSetLock();
+		  
+		  (*Joint)[1]->SetLock();
+		  node_rhs_1[0] = node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1] = node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  (*Joint)[1]->UnSetLock();
+		  
+		  (*Joint)[2]->SetLock();
+		  node_rhs_2[1] = node_rhs_2[1]+area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[0] = node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
+		  (*Joint)[2]->UnSetLock();
+		}
+		else
+		{ 
+		  area=h/6.00; /* area=h/6.0; */
+		  
+		  (*Joint)[1]->SetLock();
+		  node_rhs_1[0]=node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1]=node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  (*Joint)[1]->UnSetLock();
+		  
+		  (*Joint)[2]->SetLock();
+		  node_rhs_2[1]=node_rhs_2[1]+area*(tau*e1y+sigma*e1x); 
+		  node_rhs_2[0]=node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
+		  (*Joint)[2]->UnSetLock();
+	      } } } } }
+	  return 0;
+	  KRATOS_CATCH("")
+	}
 
 };  
 
