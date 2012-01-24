@@ -523,10 +523,10 @@ void BrittleMaterial2D::CalculateStress(
 	//ComputeTrialElasticStress(Almansi, inv_Delta_F, ElasticTrialStress);
 	
 	///WARNING = For small deformation
-	ComputeTrialElasticStress(Almansi, ElasticTrialStress);
+	///ComputeTrialElasticStress(Almansi, ElasticTrialStress);
 	
 	///WARNING = For large deformation Using Elastic
- 	//ComputeTrialElasticStress(Delta_F, Inv_Delta_F, ElasticTrialStress);
+ 	ComputeTrialElasticStress(Delta_F, Inv_Delta_F, ElasticTrialStress);
 
 	mpFluencyCriteria->ReturnMapping(Almansi, ElasticTrialStress,  StressVector);
 	
