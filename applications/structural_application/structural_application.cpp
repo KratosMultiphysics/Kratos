@@ -195,17 +195,18 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( bool,   IS_TARGET)
     KRATOS_CREATE_VARIABLE( bool,   IS_CONTACTOR)
     KRATOS_CREATE_VARIABLE( bool,   COMPUTE_TANGENT_MATRIX)
+    KRATOS_CREATE_VARIABLE( double,   IS_DISCRETE)
     KRATOS_CREATE_VARIABLE( double, DAMPING_RATIO)
     KRATOS_CREATE_VARIABLE( double, KINETIC_ENERGY)
     KRATOS_CREATE_VARIABLE( double, POTENCIAL_ENERGY)
     KRATOS_CREATE_VARIABLE( double, DEFORMATION_ENERGY)
     KRATOS_CREATE_VARIABLE( double, VON_MISES_STRESS)
     KRATOS_CREATE_VARIABLE( double, RHS_PRESSURE)
+    KRATOS_CREATE_VARIABLE(double,  TENSILE_STRENGTH)
+    KRATOS_CREATE_VARIABLE(double,  SHEAR_STRENGTH)
+    KRATOS_CREATE_VARIABLE(double,  VISCOUS_DAMPING)
     KRATOS_CREATE_VARIABLE(double,  YIELD_SURFACE)
     
-    
-
-
 
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
@@ -306,8 +307,8 @@ namespace Kratos
             mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
             mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
 
-            //mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-            //mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+            mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+            mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
 
             mMixedLagrangian2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -520,15 +521,20 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( IS_TARGET)
         KRATOS_REGISTER_VARIABLE( IS_CONTACTOR)
         KRATOS_REGISTER_VARIABLE( COMPUTE_TANGENT_MATRIX)
+        KRATOS_REGISTER_VARIABLE( IS_DISCRETE)
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX)
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR)
         KRATOS_REGISTER_VARIABLE( YIELD_SURFACE)
+        KRATOS_REGISTER_VARIABLE( TENSILE_STRENGTH)
+        KRATOS_REGISTER_VARIABLE( SHEAR_STRENGTH)
+        KRATOS_REGISTER_VARIABLE( VISCOUS_DAMPING)
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_MATRIX )
         KRATOS_REGISTER_VARIABLE( CONSTRAINT_VECTOR )
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
+
 
         //KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
 //   KRATOS_REGISTER_VARIABLE(CONTACT_RAMP )
@@ -601,8 +607,8 @@ namespace Kratos
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
         KRATOS_REGISTER_ELEMENT( "HypoelasticElement2D3N", mHypoelasticElement2D3N )
-        //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement2D3N", mLinearIncompresibleElement2D3N )
-        //KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement3D4N", mLinearIncompresibleElement3D4N )
+        KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement2D3N", mLinearIncompresibleElement2D3N )
+        KRATOS_REGISTER_ELEMENT( "LinearIncompresibleElement3D4N", mLinearIncompresibleElement3D4N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D3N", mLinearElement2D3N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D6N", mLinearElement2D6N )
         KRATOS_REGISTER_ELEMENT( "LinearElement2D4N", mLinearElement2D4N )
