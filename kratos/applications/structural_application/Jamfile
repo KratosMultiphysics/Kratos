@@ -49,13 +49,15 @@ alias sources_KratosStructuralApplication
 	linear_element.cpp
 	Hypoelastic_element.cpp
 	total_lagrangian.cpp
+        linear_incompresible_element.cpp
         mixed_lagrangian.cpp
 	kinematic_linear.cpp
 	unsaturated_soils_element_2phase.cpp
-        unsaturated_soils_element_1phase_small_strain.cpp   
+    unsaturated_soils_element_1phase_small_strain.cpp   
 	unsaturated_soils_element_2phase_small_strain.cpp
 	unsaturated_soils_element_3phase.cpp
 	unsaturated_soils_element_3phase_small_strain.cpp	
+#upc_test_element.cpp
 	face2D.cpp 
 	face3D.cpp 
         face_pressure3D.cpp
@@ -77,10 +79,8 @@ alias sources_KratosStructuralApplication
 	isotropic_3d.cpp 
 	hyperelastic_3d.cpp 
 	hyperelastic_2d.cpp 
-	viscoelastic_2d.cpp
-        viscofibers_2d.cpp # new!!
-	viscofibers_hypermatrix_2d.cpp # new!!
 	von_mises_3d.cpp
+#von_mises_3d_new.cpp
 	membrane_element.cpp 
 	isotropic_2d.cpp 
 	plane_strain.cpp
@@ -97,6 +97,9 @@ alias sources_KratosStructuralApplication
 	master_contact_face_3D_newmark.cpp 
 	slave_contact_face_3D_newmark.cpp 
 	contact_link_3D_newmark.cpp 
+#	isotropic_elastic_large_strain.cpp
+#	bossak_auxiliaries.cpp
+#	tensor.cpp
 	add_custom_parallel_strategies_to_python.cpp 
 	crisfield_truss_element.cpp
 	ebst.cpp
@@ -104,33 +107,38 @@ alias sources_KratosStructuralApplication
 	orthotropic_3d.cpp
         add_fluency_criteria_to_python.cpp
         energy_yield_function.cpp
-        #rankine_yield_function.cpp
+#       rankine_yield_function.cpp
+        isotropic_rankine_damage_2d.cpp
         isotropic_rankine_yield_function.cpp
-        morh_coulomb_yield_function.cpp
         #tresca_yield_function.cpp
         von_mises_yield_function.cpp
         modified_morh_coulomb_yield_function.cpp
         standard_morh_coulomb_yield_function.cpp
-        drucker_prager_yield_function.cpp
+        morh_coulomb_yield_function.cpp
+        #drucker_prager_yield_function.cpp
         exponencial_softening.cpp
         linear_softening.cpp
+        cohesion_softening.cpp
         dilatancy_softening.cpp
         friction_softening.cpp
-        cohesion_softening.cpp
         plasticity_2d.cpp
+#       plasticity_3d.cpp
+#        plastic_damage_3d.cpp
+#        plastic_damage_2d.cpp
+        brittle_material_2d.cpp
+        brittle_material_3d.cpp
         mohr_coulomb_plane_strain.cpp
         plane_stress_J2.cpp
         master_contact_face_2d.cpp 
-        master_contact_point_2d.cpp
 	slave_contact_point_2d.cpp 
+        slave_contact_point_3d.cpp 
+        contact_link_3D_explicit.cpp
+        master_contact_point_2d.cpp 
         point_segment_contact_link.cpp
         point_point_contact_link.cpp
-        contact_link_3D_explicit.cpp
-        slave_contact_point_3d.cpp
-	pfem_contact_element3D.cpp
+        pfem_contact_element3D.cpp
         pfem_contact_element3D_vel.cpp
-	brittle_material_2d.cpp 
-        face_vel_3D.cpp 
+        face_vel_3D.cpp
         casm.cpp
 
 
@@ -152,7 +160,6 @@ lib KratosStructuralApplicationStatic
 import python ;
 python-extension KratosStructuralApplication 
 	: 
-		##KratosStructuralApplicationStatic
 		sources_KratosStructuralApplication 
 	;
 
@@ -160,5 +167,4 @@ python-extension KratosStructuralApplication
 #################################################################################
 #################################################################################
 ## rules to install ... and to remove the prefix "lib"
-#install install : KratosStructuralApplicationStatic KratosStructuralApplication : <location>$(TOP)/libs ;
-install install : KratosStructuralApplication : <location>$(TOP)/libs ;
+install install : KratosStructuralApplicationStatic KratosStructuralApplication : <location>$(TOP)/libs ;
