@@ -390,7 +390,7 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
       } } }
       dmin2=big;
 
-      
+      /* main loop */
       for(it=0;it<2;it++)
       { jt=it+1; if(jt>1)jt=0;
 	for(in=0;in<3;in++)
@@ -3584,7 +3584,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					Pair[0]   =  geom_1(1);
 					Pair[1]   =  geom_1(2);
-					CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					//CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 		                        geom_1[1].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					geom_1[2].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					Id++; 
@@ -3594,7 +3594,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					 Pair[0] =   geom_1(2);
 					 Pair[1] =   geom_1(0);
-					 CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					 //CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 					 geom_1[2].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 geom_1[0].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 Id++; 
@@ -3604,7 +3604,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					 Pair[0] =   geom_1(0);
 					 Pair[1] =   geom_1(1);
-					 CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					 //CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 					 geom_1[0].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 geom_1[1].GetValue(IS_BOUNDARY) = 1; // FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 Id++; 
