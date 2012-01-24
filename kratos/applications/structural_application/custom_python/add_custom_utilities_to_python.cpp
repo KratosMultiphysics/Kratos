@@ -76,7 +76,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/contact_utility.h"
-#include "custom_utilities/volume_utility.h" // VM
+#include "custom_utilities/volume_utility.h" 
 #include "custom_utilities/restart_utility.h"
 #include "custom_utilities/node_snapping_utility.h"
 #include "custom_elements/rigid_body_3D.h"
@@ -89,6 +89,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/inter_fracture_triangle_utility.h"
 #include "custom_utilities/inter_fracture_tetrahedra_utility.h"
 //#include "custom_utilities/mark_element_for_refinement.h"
+#include "custom_utilities/disconnect_utility.h"
 
 
 namespace Kratos
@@ -297,6 +298,14 @@ namespace Kratos
                     ;
 
 
+		    
+		    
+           class_<Disconnect_Triangle_Utilities, boost::noncopyable >
+                    ("DisconnectTriangle", init<ModelPart&>() )
+		    .def("DisconnectElements", &Disconnect_Triangle_Utilities::Disconnect_Elements)
+                    ;
+                  
+		    
             class_<Intra_Fracture_Triangle, boost::noncopyable >
                     ("IntraFractureTriangle", init<ModelPart&, int >() )
 		    .def("DetectAndSplitElements",              &Intra_Fracture_Triangle::Detect_And_Split_Elements)
@@ -304,6 +313,7 @@ namespace Kratos
 
             class_<Inter_Fracture_Triangle, boost::noncopyable >
                     ("InterFractureTriangle", init<ModelPart&, int >() )
+                    .def("DetectAndSplitElementsHeuristicFormula", &Inter_Fracture_Triangle::Detect_And_Split_Elements_Heuristic_Formula)
 		    .def("DetectAndSplitElements",              &Inter_Fracture_Triangle::Detect_And_Split_Elements)
 		    .def("Finalize",                            &Inter_Fracture_Triangle::Finalize)
                     ;
