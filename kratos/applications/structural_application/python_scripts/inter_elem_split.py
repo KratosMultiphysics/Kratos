@@ -23,18 +23,27 @@ class Nodal_Split_Elem:
     def Initialize(self):
         self.initialize= False  
        
+       
+        #@ old version
+    def Inter_Fracture_Heuristic(self):
+        print "INITIALIZING FRACTURE PROCESS "
+        is_split = False; 
+        is_split = self.split.DetectAndSplitElementsHeuristicFormula(self.model_part)      
+	return is_split;   
+       
     
-
+    #@ old version
     def Inter_Fracture(self):
-
+        print "INITIALIZING FRACTURE PROCESS "
         self.smoothing.SettingNodalValues(self.model_part, self.domain_size)  
         self.smoothing.WeightedRecoveryGradients(DAMAGE,                        NODAL_DAMAGE,  self.model_part, self.domain_size)
-        self.smoothing.WeightedRecoveryGradients(PK2_STRESS_TENSOR,             NODAL_STRESS,  self.model_part, self.domain_size)
+        #self.smoothing.WeightedRecoveryGradients(PK2_STRESS_TENSOR,             NODAL_STRESS,  self.model_part, self.domain_size)
         self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR,  NODAL_STRAIN , self.model_part, self.domain_size)
-        #self.smoothing.InterpolatedRecoveryGradients(PK2_STRESS_TENSOR,         NODAL_STRESS,  self.model_part, self.domain_size)
                
         #print "DETECTING AND SPLIT ELEMENTS "
+        is_split = False; 
         is_split = self.split.DetectAndSplitElements(self.model_part)   
+        
 	#self.split.Finalize(self.model_part)
 	
 	#self.smoothing.RecomputeValuesForNewMesh(self.model_part, self.domain_size)
