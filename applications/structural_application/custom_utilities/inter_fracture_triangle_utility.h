@@ -96,7 +96,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/triangle_2d_3.h"
 #include "processes/node_erase_process.h" 
 #include "spatial_containers/spatial_containers.h"
-
+#include "custom_utilities/joint.h"
+#include "custom_utilities/disconnect_utility.h"
 
 namespace Kratos
 {
@@ -116,10 +117,12 @@ namespace Kratos
         typedef Node < 3 > ::Pointer PointPointerType;
         typedef std::vector<PointType::Pointer> PointVector;
         typedef PointVector::iterator PointIterator;
+	typedef Joint<4> Joint2D;
 
         Inter_Fracture_Triangle(ModelPart& model_part, int domain_size) : mr_model_part(model_part)
         {
-            mdomain_size = domain_size;
+            mdomain_size  = domain_size;
+	    mjoint_create = false; 
         }
 
         ~Inter_Fracture_Triangle()
@@ -131,6 +134,13 @@ namespace Kratos
         ///************************************************************************************************
         ///************************************************************************************************
 
+        bool Detect_And_Split_Elements_Heuristic_Formula(ModelPart& this_model_part)
+        {
+	  //Detect_Node_To_Be_Splitted_Heuristic_Formula(mDTU.Begin(), mDTU.End());
+	  return false;
+	}
+
+
         bool Detect_And_Split_Elements(ModelPart& this_model_part)
         {
             KRATOS_TRY
@@ -138,8 +148,9 @@ namespace Kratos
             bool is_split = false;
             array_1d<double, 3 > Failure_Maps;
             WeakPointerVector< Node < 3 > > Nodes_To_Be_Dupplicated;
-            unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
-            unsigned  int count = 0; 
+            
+	    unsigned int detect = Detect_Node_To_Be_Splitted(this_model_part, Nodes_To_Be_Dupplicated);
+	    unsigned  int count = 0; 
             if (detect != 0)
             {
                 WeakPointerVector< Node < 3 > >::iterator i_begin = Nodes_To_Be_Dupplicated.ptr_begin();
@@ -190,6 +201,157 @@ namespace Kratos
         ///************************************************************************************************
         ///************************************************************************************************
 
+       
+
+      unsigned int Detect_Node_To_Be_Splitted_Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D>::iterator End)
+        {
+	  KRATOS_TRY
+	  double dpefa = 0.63;
+	  double dpefb = 1.8;
+	  double dpefc = 6.0;
+	  double dpefm = 0.0;
+	  double small,sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau;
+	  double e1x,e1y,h,area;
+	  int ielem,integ,i0,i1,i2,i3,nfail,m;
+	  int nsoft;
+          double d1nccx[4];
+	  double d1nccy[4];
+	  
+	  double dpeft = 3.15e+06; 
+	  double dpepe = 100E+9;
+	  double dpefs = 3.15e+06;
+	  double dpegf = 3.0e+2;
+	  
+	  small=1E-6; nsoft=0;
+	  
+	  for(std::vector<Joint2D>::iterator Joint = Begin; Joint != End; Joint++) 
+	  { 
+	    
+	      array_1d<double,3>& node_rhs_0 =  (*Joint)[0]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_1 =  (*Joint)[1]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_2 =  (*Joint)[2]->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3>& node_rhs_3 =  (*Joint)[3]->FastGetSolutionStepValue(RHS);
+	      
+	      d1nccx[0] = (*Joint)[0]->X();  
+	      d1nccx[1] = (*Joint)[1]->X();  
+	      d1nccx[2] = (*Joint)[2]->X();  
+	      d1nccx[3] = (*Joint)[3]->X();  
+	      
+	      d1nccy[0] = (*Joint)[0]->Y();  
+	      d1nccy[1] = (*Joint)[1]->Y();  
+	      d1nccy[2] = (*Joint)[2]->Y();  
+	      d1nccy[3] = (*Joint)[3]->Y();  
+	      
+	      e1x=0.50*(d1nccx[1]+d1nccx[2]-d1nccx[0]-d1nccx[3]);
+	      e1y=0.50*(d1nccy[1]+d1nccy[2]-d1nccy[0]-d1nccy[3]);
+	      h=std::sqrt(e1x*e1x+e1y*e1y);
+	      
+	      e1x=e1x/(h+small);
+	      e1y=e1y/(h+small);
+	      s1=(d1nccy[0]-d1nccy[3])*e1y+(d1nccx[0]-d1nccx[3])*e1x;
+	      s2=(d1nccy[1]-d1nccy[2])*e1y+(d1nccx[1]-d1nccx[2])*e1x;
+	      o1=(d1nccy[0]-d1nccy[3])*e1x-(d1nccx[0]-d1nccx[3])*e1y;
+	      o2=(d1nccy[1]-d1nccy[2])*e1x-(d1nccx[1]-d1nccx[2])*e1y;
+	      
+	      
+	      op=2.00*h*dpeft/dpepe;
+	      sp=2.00*h*dpefs/dpepe;
+	      ot=std::max((2.00*op),(3.00*dpegf/dpeft));
+	      st=std::max((2.00*sp),(3.00*dpegf/dpefs));
+	      nfail=0;
+	       
+	      for(integ=0;integ<3;integ++)
+	      {  if(integ==0)
+	         { o=o1; s=s1;
+	         }
+	         else if(integ==2)
+	         { o=o2; s=s2;
+	         } 
+	         else
+	         { o=0.50*(o1+o2); s=0.50*(s1+s2);
+	         }
+	         
+	         sabs=std::fabs(s);
+	         if((o>op)&&(sabs>sp))
+	         { z=std::sqrt(((o-op)/ot)*((o-op)/ot)+((sabs-sp)/st)*((sabs-sp)/st));
+	         }
+	         else if(o>op)
+	         { z=(o-op)/ot;
+	         }
+	         else if(sabs>sp)
+	         { z=(sabs-sp)/st;
+	         }
+	         else
+	         { z=0.00;
+	         }
+	         
+	         if(z>=1.00)    
+	         {
+		   nfail=nfail+1;
+	           z=1.00;
+	         }
+	         z=(1.00 - ((dpefa+dpefb-1.00)/(dpefa+dpefb))*exp(z*(dpefa+dpefc*dpefb)/((dpefa+dpefb)*(1.00-dpefa-dpefb))))*(dpefa*(1.00-z)+dpefb*pow((1.00-z),dpefc));        
+	        
+
+		if(o<0.00)                 /* normal stress*/ 
+	        { sigma=2.00*o*dpeft/op;   /* sigma=R0; */
+	        }
+	        else if(o>op)
+	        { sigma=dpeft*z; nsoft=nsoft+1;
+	        }
+	        else
+	        { sigma=(2.00*o/op-(o/op)*(o/op))*z*dpeft;
+	        }
+	        if((sigma>0.00)&&(sabs>sp))           /* shear stress */ 
+	        { tau=z*dpefs;
+	        }
+	        else if(sigma>0.00)
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
+	        }
+	        else if(sabs>sp)
+	        { tau=z*dpefs-dpefm*sigma;
+	        }
+	        else
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*sigma);
+	        }  
+		if(s<0.00)tau=-tau;
+		if(integ==0)  /* nodal forces */
+		{ 
+		  area=h/6.00; /* area=h/6.0; */
+		  node_rhs_0[0] = node_rhs_0[0] - area*(tau*e1x-sigma*e1y); 
+		  node_rhs_3[0] = node_rhs_3[0] + area*(tau*e1x-sigma*e1y);
+		  node_rhs_0[1] = node_rhs_0[0] - area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[1] = node_rhs_3[1] + area*(tau*e1y+sigma*e1x);
+		}
+		else if(integ==1)
+		{ 
+		  area=h/3.00;  /* area=h/3.0; */
+		  
+		  node_rhs_0[0] = node_rhs_0[0] -area*(tau*e1x-sigma*e1y);
+		  node_rhs_3[0] = node_rhs_0[3] +area*(tau*e1x-sigma*e1y);
+		  node_rhs_0[1] = node_rhs_0[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[1] = node_rhs_3[1]+area*(tau*e1y+sigma*e1x);
+		  node_rhs_1[0] = node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_2[0] = node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1] = node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[1] = node_rhs_2[1]+area*(tau*e1y+sigma*e1x);
+		}
+		else
+		{ 
+		  area=h/6.00; /* area=h/6.0; */
+		  node_rhs_1[0]=node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_2[0]=node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1]=node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[1]=node_rhs_2[1]+area*(tau*e1y+sigma*e1x); 
+	      } } } 
+	  return 0;
+	  KRATOS_CATCH("")
+	}
+
+     
+        ///************************************************************************************************
+        ///************************************************************************************************
+
         unsigned int Detect_Node_To_Be_Splitted(ModelPart& this_model_part, WeakPointerVector< Node < 3 > >& Nodes_To_Be_Dupplicated)
         {
             KRATOS_TRY
@@ -198,7 +360,7 @@ namespace Kratos
             NodesArrayType::iterator i_begin =  pNodes.ptr_begin();
             NodesArrayType::iterator i_end   =  pNodes.ptr_end();
 
-            for (ModelPart::NodeIterator inode = i_begin; inode != i_end; ++inode)
+            for(ModelPart::NodeIterator inode = i_begin; inode != i_end; ++inode)
             {
                 double& Condition = inode->GetValue(NODAL_DAMAGE);
                 if (Condition > 0.50){
@@ -653,7 +815,7 @@ namespace Kratos
 
 
             //node to get the DOFs from
-            int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
+            int step_data_size   = this_model_part.GetNodalSolutionStepDataSize();
             const double ancho_w = 1E-9;
             array_1d<double, 3 > Aux = -1.00 * (ancho_w * failure_map);
 
@@ -868,11 +1030,11 @@ namespace Kratos
 	        Condition::GeometryType& geom_cond      = rcond->GetGeometry();
 	        Element::Pointer relem                  = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
 		int id = rcond->Id();
-		if(id==1 || id==2 || id==3 || id==4 || id==5 || id==6 || id==7 || id==8)
-		{
-		  KRATOS_WATCH(rcond->Id())
-		  KRATOS_WATCH(relem->Id())  
-		} 
+// 		if(id==1 || id==2 || id==3 || id==4 || id==5 || id==6 || id==7 || id==8)
+// 		{
+// 		  KRATOS_WATCH(rcond->Id())
+// 		  KRATOS_WATCH(relem->Id())  
+// 		} 
 		  
 		Element::GeometryType& geom_elem        = relem->GetGeometry();
 		array_1d<double,3> cond                 = geom_cond.GetPoint(1) - geom_cond.GetPoint(0); 
@@ -892,9 +1054,9 @@ namespace Kratos
  		 geom_cond(0) = geom_elem(b); 
 		 geom_cond(1) = geom_elem(a);
 		 
-		 KRATOS_WATCH(geom_cond(0)->Id())
-		 KRATOS_WATCH(geom_cond(1)->Id())
-		 KRATOS_WATCH("------------------")  
+// 		 KRATOS_WATCH(geom_cond(0)->Id())
+// 		 KRATOS_WATCH(geom_cond(1)->Id())
+// 		 KRATOS_WATCH("------------------")  
 	 }
 
         ///************************************************************************************************
@@ -1043,8 +1205,8 @@ namespace Kratos
 	
 			if(level!=0)
 			{
-			KRATOS_WATCH(i->Id()) 
-			KRATOS_WATCH(level)
+// 			KRATOS_WATCH(i->Id()) 
+// 			KRATOS_WATCH(level)
 			count = level;
 			LevelElements.resize(count);   
 			for(WeakPointerVector<Element>::iterator  neighb = Neighb_Elem.begin(); neighb!= Neighb_Elem.end(); neighb++)
@@ -1054,7 +1216,7 @@ namespace Kratos
 			}
 			
 			Node<3>::Pointer& pfather_node =  *i.base(); 
-			KRATOS_WATCH(LevelElements.size())
+// 			KRATOS_WATCH(LevelElements.size())
 			for(unsigned int ii = 0; ii<LevelElements.size()-1; ii++)
 			{
 			  /// creo los nodos para cada grupo elementos
@@ -1064,8 +1226,8 @@ namespace Kratos
 			  WeakPointerVector<Element>& thiswaek = LevelElements[ii];
 			  for(WeakPointerVector<Element>::iterator  it = thiswaek.begin(); it != thiswaek.end();  it++)
 			  {
-			    KRATOS_WATCH(it->Id()) 
-			    KRATOS_WATCH(it->GetValue(ACTIVATION_LEVEL))
+// 			    KRATOS_WATCH(it->Id()) 
+// 			    KRATOS_WATCH(it->GetValue(ACTIVATION_LEVEL))
 			    Element::GeometryType& geom = it->GetGeometry(); 
 			    for(unsigned int j = 0; j<geom.size(); j++)
 			      if(geom[j].Id()==i->Id())
@@ -1208,9 +1370,10 @@ namespace Kratos
 
         ModelPart& mr_model_part;
         unsigned int mdomain_size;
+	bool mjoint_create;
 	WeakPointerVector< Element > mResetingElements;
-        //WeakPointerVector< Node<3> > mfail_node;
 
+        
 
     };
 }
