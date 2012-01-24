@@ -547,19 +547,27 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
 	      for(in=0;in<3;in++)
               { 
 		array_1d<double,3>& node_rhs_1 = this_geom_1(in)->FastGetSolutionStepValue(RHS);
+		array_1d<double,3>& normal_1  = this_geom_1(in)->FastGetSolutionStepValue(NORMAL);
 		this_geom_1[in].SetLock();
 		node_rhs_1[0] = node_rhs_1[0] + 0.50 * fx[in];
                 node_rhs_1[1] = node_rhs_1[1] + 0.50 * fy[in];
-		node_rhs_1[2] = 0.00;
+		node_rhs_1[2] =  0.00;
+		normal_1[0]   += 0.50 * fx[in]; 
+		normal_1[1]   += 0.50 * fy[in]; 
+		normal_1[2]    = 0.00; 
 		this_geom_1[in].UnSetLock();
                 ie=in+1; if(ie>2)ie=0;
                 for(jn=0;jn<3;jn++)
                 { 
 		  array_1d<double,3>& node_rhs_2 = this_geom_2(in)->FastGetSolutionStepValue(RHS);
+		  array_1d<double,3>& normal_2   = this_geom_2(in)->FastGetSolutionStepValue(NORMAL);
 		  this_geom_2[jn].SetLock();
 		  node_rhs_2[0] = node_rhs_2[0]-0.50 * fx[jn]*d[it][jn][ie];
                   node_rhs_2[1] = node_rhs_2[1]-0.50 * fy[jn]*d[it][jn][ie];
 		  node_rhs_2[2] = 0.00;
+		  normal_2[0]   -= 0.50 * fx[jn]*d[it][jn][ie];
+	 	  normal_2[1]   -= 0.50 * fy[jn]*d[it][jn][ie];
+		  normal_2[2]    = 0.00; 		  
 		  this_geom_2[jn].UnSetLock();
                 } } } }
     KRATOS_CATCH("")
