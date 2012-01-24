@@ -22,28 +22,29 @@ class Split_Triangle_Elem:
     
 
     def Intra_Fracture(self):
-        self.smoothing.SettingNodalValues(self.model_part, self.domain_size)  
-        self.smoothing.DoubleWeightedRecoveryGradients(DAMAGE, self.model_part, self.domain_size)
-        #self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)
-        #self.smoothing.Finalize() 
+        #self.smoothing.SettingNodalValues(self.model_part, self.domain_size)  
+        self.smoothing.WeightedRecoveryGradients(DAMAGE,                        NODAL_DAMAGE,  self.model_part, self.domain_size)
+        #self.smoothing.WeightedRecoveryGradients(PK2_STRESS_TENSOR,             NODAL_STRESS,  self.model_part, self.domain_size)
+        self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR,  NODAL_STRAIN , self.model_part, self.domain_size)
 
-        refine  =  True; 
-        self.split.DetectAndSplitElements(refine) 
+
+        #refine  =  True; 
+        #self.split.DetectAndSplitElements(refine) 
 	  
 
 	##self.detect.Finalize(self.model_part)
 	#self.smoothing.SettingNodalValues(self.model_part, self.domain_size)
 	#self.smoothing.RecomputeValuesForNewMesh(self.model_part, self.domain_size)
 	#self.Smoothing();
-	#self.smoothing.Finalize()           
+	self.smoothing.Finalize()           
 				  
     #################################################################
     def Smoothing(self):
         self.smoothing.SettingNodalValues(self.model_part, self.domain_size)   
         #self.smoothing.InterpolatedRecoveryGradients(PK2_STRESS_TENSOR, self.model_part, self.domain_size)
         #self.smoothing.InterpolatedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)  
-        self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)
+        #self.smoothing.WeightedRecoveryGradients(GREEN_LAGRANGE_STRAIN_TENSOR, self.model_part, self.domain_size)
         #self.smoothing.WeightedRecoveryGradients(PK2_STRESS_TENSOR, self.model_part, self.domain_size)
-        self.smoothing.DoubleWeightedRecoveryGradients(DAMAGE, self.model_part, self.domain_size)
+        #self.smoothing.DoubleWeightedRecoveryGradients(DAMAGE, self.model_part, self.domain_size)
 
 
