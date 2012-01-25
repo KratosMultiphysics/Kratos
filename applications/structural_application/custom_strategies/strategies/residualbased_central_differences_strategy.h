@@ -848,13 +848,13 @@ void ComputeCriticalTime()
     //Calculo los factores de alfa y beta para amortiguar la estructura
     // 3d static and dynamic analisis damping and Energy Disispation 19-7
     double wmax = 2.00 / delta_time_computed;
-    mbeta_damp  = 0.00;
-    malpha_damp = 2.00 * wmax * mdamping_ratio;  
+    mbeta_damp  = mdamping_ratio / wmax ; 
+    malpha_damp = mdamping_ratio * wmax ;  
     
     
     
     if(mCE==Penalty_Methods){
-      double time_penalty = ComputeTimePenalty();
+      double time_penalty =  ComputeTimePenalty();
       delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
     }
             
@@ -874,15 +874,13 @@ void ComputeCriticalTime()
 	mCalculateOldTime = true;
     }
     
+    std::cout<< "  BETA_DAMPING FOR STIFFNESS   = "<< mbeta_damp             << "         " << std::endl;
+    std::cout<< "  ALPHA_DAMPING FOR MASS       = "<< malpha_damp            << "         " << std::endl;
     std::cout<< "  TIME STEPS                   = "<< step                   << "         " << std::endl;
     std::cout<< "  FACTOR DELTA CRITICAL TIME   = "<< mfraction_delta_time   << "         "  << std::endl;
     std::cout<< "  DELTA CRITICAL TIME COMPUTED = "<< delta_time_computed    << "  SECONDS" << std::endl; 
     std::cout<< "  DELTA TIME USED              = "<< delta_time_used        << "  SECONDS" << std::endl;
-    std::cout<< "  CURRENT TIME                 = "<< time                   << "  SECONDS" << std::endl;
-    std::cout<< "  BETA_DAMPING                 = "<< mbeta_damp             << "         " << std::endl;
-    std::cout<< "  ALPHA_DAMPING                = "<< malpha_damp            << "         " << std::endl;
-    
-  
+    std::cout<< "  CURRENT TIME                 = "<< time                   << "  SECONDS" << std::endl;  
     KRATOS_CATCH("")
 
 }
@@ -953,9 +951,21 @@ double ComputeTimePenalty()
       vector<unsigned int> node_partition;
       CreatePartition(number_of_threads, pNodes.size(), node_partition);
       
+      Properties&  prop  = r_model_part.GetProperties(1);
+      double aux         = 0.00;
+      double Penalty     = (prop)[YOUNG_MODULUS];
+      double Mass        = (r_model_part.Nodes()(1))->FastGetSolutionStepValue(NODAL_MASS); 
+      std::size_t nprop  = r_model_part.NumberOfProperties();
+            
+      for(std::size_t i = 1; i<= nprop; i++)
+      {
+	 Properties&  prop_aux  = r_model_part.GetProperties(i);
+	 aux                    = (prop_aux)[YOUNG_MODULUS];
+	 Penalty                = ( Penalty > aux ) ? aux : Penalty; 
+      }
+
+      Penalty = 50 * Penalty;
       
-      double Mass    = (r_model_part.Nodes()(1))->FastGetSolutionStepValue(NODAL_MASS); 
-      double Penalty = 50.00 * (r_model_part.Elements()(1))->GetProperties()[YOUNG_MODULUS];
       for(int k=0; k<number_of_threads; k++)
         Min_Mass_Nodal[k] = Mass; 
 	
