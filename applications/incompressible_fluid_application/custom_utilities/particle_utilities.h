@@ -78,6 +78,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <boost/timer.hpp>
 #include "utilities/timer.h"
 
+#ifdef _OPENMP
+#include "omp.h"
+#endif
+
 
 
 namespace Kratos
@@ -98,414 +102,13 @@ namespace Kratos
             }
             return dist; //square distance because it is easier to work without the square root//
         }
+
     };
 
     template<std::size_t TDim> class ParticleUtils
     {
     public:
         KRATOS_CLASS_POINTER_DEFINITION(ParticleUtils<TDim>);
-
-        //**********************************************************************************************
-        //**********************************************************************************************
-
-        void BackAndForth(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart)
-        {
-            KRATOS_TRY
-
-            //clear lagrangian model par and reseed it
-            rLagrangianModelPart.Nodes().clear();
-            Reseed(rEulerianModelPart, rLagrangianModelPart);
-
-
-
-            double density_inverse = 1.0 / density;
-
-            //defintions for spatial search
-            typedef Node < 3 > PointType;
-            typedef Node < 3 > ::Pointer PointTypePointer;
-            typedef std::vector<PointType::Pointer> PointVector;
-            typedef std::vector<PointType::Pointer>::iterator PointIterator;
-            typedef std::vector<double> DistanceVector;
-            typedef std::vector<double>::iterator DistanceIterator;
-
-            //creating an auxiliary list for the new nodes
-            PointVector list_of_nodes;
-
-            //*************
-            // Bucket types
-            //typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-             			   typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
-             			  // typedef BinsDynamic< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > DynamicBins;
-            //*************
-            // DynamicBins;
-
-            //typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-            // 			   typedef Tree< OCTreePartition<BucketType> > tree; 		//Octree;
-            			   typedef Tree< StaticBins > tree; 		     		//Binstree;
-            // 			   typedef Tree< KDTreePartition<StaticBins> > tree; 		//KdtreeBins;
-            // 			   typedef typename KdtreeBins::Partitions SubPartitions;
-            // 			   typedef Tree< OCTreePartition<StaticBins> > tree; 		//OctreeBins;
-            /*
-                                       typedef Bins< TDim, PointType, stdPointVector> stdBins;
-                                       typedef Tree< Bins<TDim,PointType,stdPointVector> > tree; 	//stdStaticBins;*/
-
-            //starting calculating time of construction of the kdtree
-            boost::timer kdtree_construction;
-
-            for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
-                    node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
-            {
-                PointTypePointer pnode = *(node_it.base());
-
-                pnode->GetValue(ERASE_FLAG) = true;
-                node_it->GetValue(IS_VISITED) = 0;
-
-                //putting the nodes of the destination_model part in an auxiliary list
-                list_of_nodes.push_back(pnode);
-
-                //                //reset the position to the position at the end of the step
-                //                array_1d<double, 3 > & old_disp = (node_it)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                //                (node_it)->FastGetSolutionStepValue(DISPLACEMENT) = old_disp;
-                //
-                //                (node_it)->X() = (node_it)->X0() + old_disp[0];
-                //                (node_it)->Y() = (node_it)->Y0() + old_disp[1];
-                //                (node_it)->Z() = (node_it)->Z0() + old_disp[2];
-
-            }
-
-            std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
-
-
-            //work arrays
-            Node < 3 > work_point(0, 0.0, 0.0, 0.0);
-            unsigned int MaximumNumberOfResults = 10000;
-            PointVector Results(MaximumNumberOfResults);
-            DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
-            array_1d<double, TDim + 1 > N; //Shape functions vector//
-            array_1d<double, TDim + 1 > pressures; //Shape functions vector//
-            boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-
-            array_1d<double, TDim> gradp;
-            array_1d<double, 3 > acc_particle;
-            array_1d<double, 3 > veulerian;
-
-            //create a spatial database with the list of new nodes
-            unsigned int bucket_size = 20;
-
-            double small_dt = dt / subdivisions;
-
-            for (unsigned int substep = 0; substep < subdivisions; substep++)
-            {
-                //compute the tree with the position of the nodes
-                tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
-                //loop over all of the elements in the eulerian mesh to perform the interpolation
-                for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
-                        el_it != rEulerianModelPart.ElementsEnd(); el_it++)
-                {
-                    Geometry<Node < 3 > >&geom = el_it->GetGeometry();
-
-                    //find the center and "radius" of the element
-                    double xc, yc, zc, radius;
-                    CalculateCenterAndSearchRadius(geom, xc, yc, zc, radius, N);
-                    work_point.X() = xc;
-                    work_point.Y() = yc;
-                    work_point.Z() = zc;
-
-                    //find all of the new nodes within the radius
-                    int number_of_points_in_radius;
-
-                    //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
-                    number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
-                            SquaredResultsDistances.begin(), MaximumNumberOfResults);
-
-                    if (number_of_points_in_radius > 0)
-                    {
-                        //check if inside
-                        for (PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
-                        {
-
-                            bool is_inside = false;
-                            is_inside = CalculatePosition(geom, (*it_found)->X(), (*it_found)->Y(), (*it_found)->Z(), N);
-
-                            if (is_inside == true && (*it_found)->GetValue(IS_VISITED) == 0)
-                            {
-                                //                                KRATOS_WATCH("219")
-                                (*it_found)->GetValue(IS_VISITED) = 1;
-
-                                //move according to the streamline
-                                noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
-                                for (unsigned int k = 1; k < geom.size(); k++)
-                                    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
-
-                                array_1d<double, 3 > & disp = (*it_found)->FastGetSolutionStepValue(DISPLACEMENT);
-
-                                noalias(disp) -= small_dt*veulerian;
-
-                                array_1d<double, 3 > & vel_particle = (*it_found)->FastGetSolutionStepValue(VELOCITY);
-
-                                noalias(vel_particle) = veulerian;
-                            }
-                        }
-
-                    }
-                }
-
-                //position is to be updated only after all of the searches!
-                //                std::cout << "substep= " << substep << (rLagrangianModelPart.NodesBegin()+200)->FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = rLagrangianModelPart.NodesBegin();
-                        it != rLagrangianModelPart.NodesEnd(); it++)
-                {
-                    noalias(it->Coordinates()) = it->GetInitialPosition();
-                    noalias(it->Coordinates()) += it->FastGetSolutionStepValue(DISPLACEMENT);
-                    (it)->GetValue(IS_VISITED) = 0;
-
-                }
-            }
-
-            //now go forth (computing the acceleration)
-            for (unsigned int substep = 0; substep < subdivisions; substep++)
-            {
-                //compute the tree with the position of the nodes
-                tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
-                //loop over all of the elements in the eulerian mesh to perform the interpolation
-                for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
-                        el_it != rEulerianModelPart.ElementsEnd(); el_it++)
-                {
-                    Geometry<Node < 3 > >&geom = el_it->GetGeometry();
-
-                    //find the center and "radius" of the element
-                    double xc, yc, zc, radius;
-                    CalculateCenterAndSearchRadius(geom, xc, yc, zc, radius, N);
-                    work_point.X() = xc;
-                    work_point.Y() = yc;
-                    work_point.Z() = zc;
-
-                    //find all of the new nodes within the radius
-                    int number_of_points_in_radius;
-
-                    //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
-                    number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
-                            SquaredResultsDistances.begin(), MaximumNumberOfResults);
-
-                    if (number_of_points_in_radius > 0)
-                    {
-                        //check if inside
-                        for (PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
-                        {
-
-                            bool is_inside = false;
-                            is_inside = CalculatePosition(geom, (*it_found)->X(), (*it_found)->Y(), (*it_found)->Z(), N);
-
-                            if (is_inside == true && (*it_found)->GetValue(IS_VISITED) == 0)
-                            {
-                                (*it_found)->GetValue(IS_VISITED) = 1;
-
-                                //move according to the streamline
-                                noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
-                                for (unsigned int k = 1; k < geom.size(); k++)
-                                    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
-
-                                array_1d<double, 3 > & disp = (*it_found)->FastGetSolutionStepValue(DISPLACEMENT);
-
-                                noalias(disp) += small_dt*veulerian;
-
-                                //compute particle velocity
-                                noalias(acc_particle) = body_force - N[0] * geom[0].FastGetSolutionStepValue(PRESS_PROJ) * density_inverse;
-                                for (unsigned int k = 1; k < geom.size(); k++)
-                                    noalias(acc_particle) -= N[k] * geom[k].FastGetSolutionStepValue(PRESS_PROJ) * density_inverse;
-
-                                array_1d<double, 3 > & vel_particle = (*it_found)->FastGetSolutionStepValue(VELOCITY);
-
-                                noalias(vel_particle) += small_dt*acc_particle;
-
-                            }
-                        }
-
-                    }
-                }
-
-                //position is to be updated only after all of the searches!
-                //                std::cout << "substep= " << substep << (rLagrangianModelPart.NodesBegin()+200)->FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = rLagrangianModelPart.NodesBegin();
-                        it != rLagrangianModelPart.NodesEnd(); it++)
-                {
-                    noalias(it->Coordinates()) = it->GetInitialPosition();
-                    noalias(it->Coordinates()) += it->FastGetSolutionStepValue(DISPLACEMENT);
-                    (it)->GetValue(IS_VISITED) = 0;
-
-                }
-            }
-
-
-
-
-            KRATOS_CATCH("")
-        }
-        //**********************************************************************************************
-        //**********************************************************************************************
-
-        void ConvectParticles(const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity)
-        {
-            KRATOS_TRY
-
-
-                    //defintions for spatial search
-                    typedef Node < 3 > PointType;
-            typedef Node < 3 > ::Pointer PointTypePointer;
-            typedef std::vector<PointType::Pointer> PointVector;
-            typedef std::vector<PointType::Pointer>::iterator PointIterator;
-            typedef std::vector<double> DistanceVector;
-            typedef std::vector<double>::iterator DistanceIterator;
-
-            //creating an auxiliary list for the new nodes
-            PointVector list_of_nodes;
-
-            //*************
-            // Bucket types
-            	typedef Bucket< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-             			   //typedef Bins< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > StaticBins;
-            // 			   typedef BinsDynamic< TDim, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > DynamicBins;
-            //*************
-            // DynamicBins;
-//typedef Tree< StaticBins > Bin; 
-            typedef Tree< KDTreePartition<BucketType> > tree; //Kdtree;
-            // 			   typedef Tree< OCTreePartition<BucketType> > tree; 		//Octree;
-            // 			   typedef Tree< StaticBins > tree; 		     		//Binstree;
-             			   //typedef Tree< KDTreePartition<StaticBins> > tree; 		//KdtreeBins;
-            // 			   typedef typename KdtreeBins::Partitions SubPartitions;
-            // 			   typedef Tree< OCTreePartition<StaticBins> > tree; 		//OctreeBins;
-            /*
-                                       typedef Bins< TDim, PointType, stdPointVector> stdBins;
-                                       typedef Tree< Bins<TDim,PointType,stdPointVector> > tree; 	//stdStaticBins;*/
-
-            //starting calculating time of construction of the kdtree
-            boost::timer kdtree_construction;
-
-            for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
-                    node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
-            {
-                PointTypePointer pnode = *(node_it.base());
-
-                pnode->GetValue(ERASE_FLAG) = true;
-                node_it->GetValue(IS_VISITED) = 0;
-
-                //putting the nodes of the destination_model part in an auxiliary list
-                list_of_nodes.push_back(pnode);
-
-                //reset the position to the position at the end of the step
-                array_1d<double, 3 > & old_disp = (node_it)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                (node_it)->FastGetSolutionStepValue(DISPLACEMENT) = old_disp;
-
-                (node_it)->X() = (node_it)->X0() + old_disp[0];
-                (node_it)->Y() = (node_it)->Y0() + old_disp[1];
-                (node_it)->Z() = (node_it)->Z0() + old_disp[2];
-
-            }
-
-            std::cout << "kdt constructin time " << kdtree_construction.elapsed() << std::endl;
-
-
-            //work arrays
-            Node < 3 > work_point(0, 0.0, 0.0, 0.0);
-            unsigned int MaximumNumberOfResults = 10000;
-            PointVector Results(MaximumNumberOfResults);
-            DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
-            array_1d<double, TDim + 1 > N; //Shape functions vector//
-            array_1d<double, TDim + 1 > pressures; //Shape functions vector//
-            boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-
-            //create a spatial database with the list of new nodes
-            unsigned int bucket_size = 20;
-
-            double small_dt = dt / subdivisions;
-
-            for (unsigned int substep = 0; substep < subdivisions; substep++)
-            {
-                //compute the tree with the position of the nodes
-                tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
-
-                //loop over all of the elements in the eulerian mesh to perform the interpolation
-                for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
-                        el_it != rEulerianModelPart.ElementsEnd(); el_it++)
-                {
-                    Geometry<Node < 3 > >&geom = el_it->GetGeometry();
-
-                    //find the center and "radius" of the element
-                    double xc, yc, zc, radius;
-                    CalculateCenterAndSearchRadius(geom, xc, yc, zc, radius, N);
-                    work_point.X() = xc;
-                    work_point.Y() = yc;
-                    work_point.Z() = zc;
-
-                    //find all of the new nodes within the radius
-                    int number_of_points_in_radius;
-
-                    //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
-                    number_of_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, Results.begin(),
-                            SquaredResultsDistances.begin(), MaximumNumberOfResults);
-
-                    array_1d<double, 3 > veulerian;
-
-                    if (number_of_points_in_radius > 0)
-                    {
-                        //check if inside
-                        for (PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
-                        {
-
-                            bool is_inside = false;
-                            is_inside = CalculatePosition(geom, (*it_found)->X(), (*it_found)->Y(), (*it_found)->Z(), N);
-
-                            if (is_inside == true && (*it_found)->GetValue(IS_VISITED) == 0)
-                            {
-                                (*it_found)->GetValue(IS_VISITED) = 1;
-
-                                //move according to the streamline
-                                noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
-                                for (unsigned int k = 1; k < geom.size(); k++)
-                                    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
-
-                                array_1d<double, 3 > & disp = (*it_found)->FastGetSolutionStepValue(DISPLACEMENT);
-
-                                noalias(disp) += small_dt*veulerian;
-
-                                (*it_found)->GetValue(ERASE_FLAG) = false;
-
-                                if (substep == 0 && use_eulerian_velocity == true)
-                                {
-                                    double temperature = N[0] * geom[0].FastGetSolutionStepValue(TEMPERATURE);
-                                    for (unsigned int k = 1; k < geom.size(); k++)
-                                        temperature += N[k] * geom[k].FastGetSolutionStepValue(TEMPERATURE);
-                                    (*it_found)->FastGetSolutionStepValue(TEMPERATURE) = temperature;
-                                }
-
-                            }
-                        }
-
-                    }
-                }
-
-                //position is to be updated only after all of the searches!
-                //                std::cout << "substep= " << substep << (rLagrangianModelPart.NodesBegin()+200)->FastGetSolutionStepValue(DISPLACEMENT) << std::endl;
-                for (ModelPart::NodesContainerType::iterator it = rLagrangianModelPart.NodesBegin();
-                        it != rLagrangianModelPart.NodesEnd(); it++)
-                {
-                    noalias(it->Coordinates()) = it->GetInitialPosition();
-                    noalias(it->Coordinates()) += it->FastGetSolutionStepValue(DISPLACEMENT);
-                    (it)->GetValue(IS_VISITED) = 0;
-
-                }
-            }
-
-            //perform the erase
-            NodeEraseProcess(rLagrangianModelPart).Execute();
-
-
-
-
-            KRATOS_CATCH("")
-        }
 
         //**********************************************************************************************
         //**********************************************************************************************
@@ -585,20 +188,20 @@ namespace Kratos
                         (pparticle)->GetValue(ERASE_FLAG) = false;
 
 			noalias(acc_particle) = ZeroVector(3);
-			G = 0.0;
+			//G = 0.0;
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
                             noalias(acc_particle) += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
-                            G += N[k] * geom[k].FastGetSolutionStepValue(a) * specific_heat_inverse;
+                            //G += N[k] * geom[k].FastGetSolutionStepValue(a) * specific_heat_inverse;
 			                        
 			}
 
 
                         array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
-                        double & temperature_particle = (pparticle)->FastGetSolutionStepValue(TEMPERATURE);
+                        //double & temperature_particle = (pparticle)->FastGetSolutionStepValue(TEMPERATURE);
 
                         noalias(vel_particle) += small_dt*acc_particle;
-                        temperature_particle += small_dt*G;
+                        //temperature_particle += small_dt*G;
 
                         //update position
                         noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
@@ -638,7 +241,7 @@ namespace Kratos
             KRATOS_CATCH("")
         }
 
-        //**********************************************************************************************
+//**********************************************************************************************
 //**********************************************************************************************
 
         void StreamlineMove2(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
@@ -857,6 +460,9 @@ namespace Kratos
 
 
 			noalias(acc_particle) = ZeroVector(3);
+			
+
+
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
                             acc_particle += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
@@ -867,7 +473,7 @@ namespace Kratos
                         array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
 
                         
-			noalias(vel_particle) += (dt/2.0) * acc_particle;
+			noalias(vel_particle) += /*(dt/2.0) **/ acc_particle;
 
 			
 
@@ -1042,40 +648,41 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
 
         void ReseedEmptyElements(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
         {
-            KRATOS_TRY;
+	  KRATOS_TRY;
+	  
+	  Timer time;
+	  Timer::Start("Puntos");
 
-	Timer time;
-	Timer::Start("Puntos");
+	  //generate a tree with the position of the lagrangian nodes
+	  typedef Node < 3 > PointType;
+	  typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node<3> NodeType;
 
-            //generate a tree with the position of the lagrangian nodes
-            typedef Node < 3 > PointType;
-            typedef Node < 3 > ::Pointer PointTypePointer;
+	  unsigned int min_number_of_particles = 4  ;
 
-            unsigned int min_number_of_particles = 4  ;
-
-            int id;
-            if (rLagrangianModelPart.Nodes().size() != 0)
-                id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
-            else
-                id = 1;
-
-            for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
-                    el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+	  int id;
+	  if (rLagrangianModelPart.Nodes().size() != 0)
+	    id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+	  else
+	    id = 1;
+	  
+	  for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
+	       el_it != rEulerianModelPart.ElementsEnd(); el_it++)
             {
                 el_it->SetValue(YOUNG_MODULUS,0.0);
             }
-
-            //count particles that fall within an element
-             array_1d<double, TDim + 1 > N;
-            const int max_results = 1000;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-             int nparticles = rLagrangianModelPart.Nodes().size();
-
-            //count particles within an element
-            #pragma omp parallel for firstprivate(results,N)
-            for (int i = 0; i < nparticles; i++)
+	  int last_id=id;
+	  //count particles that fall within an element
+	  array_1d<double, TDim + 1 > N;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  int nparticles = rLagrangianModelPart.Nodes().size();
+	  
+	  //count particles within an element
+#pragma omp parallel for firstprivate(results,N)
+	  for (int i = 0; i < nparticles; i++)
             {
-                ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 
                 Node < 3 > ::Pointer pparticle = *(iparticle.base());
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
@@ -1094,7 +701,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             }
 
             //erase particles within elements for which reseeding is needed
-             #pragma omp parallel for firstprivate(results,N)
+#pragma omp parallel for firstprivate(results,N)
             for (int i = 0; i < nparticles; i++)
             {
                 ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
@@ -1110,7 +717,8 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 {
                     /*const*/ double& counter = pelement->GetValue(YOUNG_MODULUS);
 
-                    if(counter  < 4){
+		  //if(counter  < 4){
+		    if(counter  > 14){  //14
                         pparticle->SetValue(ERASE_FLAG,true);
 			#pragma omp atomic
 			counter -=1.0;
@@ -1123,70 +731,266 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             NodeEraseProcess(rLagrangianModelPart).Execute();
 
             //now do reseed
-#ifdef USE_FEW_PARTICLES
+/*#ifdef USE_FEW_PARTICLES
                                     boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
                                     boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > Nnew;
 #else
-            boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
+           boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
            boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
-#endif
+#endif*/
 
 
-
-          for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
-                    el_it != rEulerianModelPart.ElementsEnd(); el_it++)
-            {
-                if (el_it->GetValue(YOUNG_MODULUS) < min_number_of_particles)
-                {
-                    Geometry< Node<3> >& geom = el_it->GetGeometry();
-                    
-                    ComputeGaussPointPositions(geom, pos, Nnew);
-
-                    for (unsigned int i = 0; i < pos.size1(); i++)
-                    {
-                        int node_id = id++;
-                        Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, pos(i, 0), pos(i, 1), pos(i, 2));
-
-                        array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
-			
-		
-			array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-                        noalias(disp) = ZeroVector(3);
-
+/*	   for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();	el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+	     {
+	       if (el_it->GetValue(YOUNG_MODULUS) < min_number_of_particles)
+		 {
+		   Geometry< Node<3> >& geom = el_it->GetGeometry();
+		   
+		   ComputeGaussPointPositions(geom, pos, Nnew);
+		   
+		   for (unsigned int i = 0; i < pos.size1(); i++)
+		     {
+		       int node_id = id++;
+		       Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, pos(i, 0), pos(i, 1), pos(i, 2));
+		       
+		       array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
+		       
+		       
+		       array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+		       noalias(disp) = ZeroVector(3);
+		       
                         noalias(vel) = ZeroVector(3);
-
-
+			
+			
 			double& temp = pnode->FastGetSolutionStepValue(TEMPERATURE);
 			temp=0.0;
-
+			
                         for (unsigned int j = 0; j < TDim + 1; j++){
-                            noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
-			    temp += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE);
-
+			  noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
+			  temp += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE);
+			  
 			}
                         array_1d<double, 3 > & vel_old = pnode->FastGetSolutionStepValue(VELOCITY, 1);
                         double & temp_old = pnode->FastGetSolutionStepValue(TEMPERATURE, 1);
                         noalias(vel_old) = ZeroVector(3);
 			temp_old =0.0;
                         for (unsigned int j = 0; j < TDim + 1; j++){
-                            noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
-                            temp_old += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE, 1);
+			  noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
+			  temp_old += Nnew(i, j) * geom[j].FastGetSolutionStepValue(TEMPERATURE, 1);
 			}
+			
+		     }
+		 }
+	     }*/
 
-                    }
-                }
-            }
+	  
+	  
+	  int number_of_threads = OpenMPUtils::GetNumThreads();
+	  KRATOS_WATCH(number_of_threads);
+	  vector<unsigned int> elem_partition;
+	  
+	  int number_of_rows=rEulerianModelPart.Elements().size();
+	  KRATOS_WATCH(number_of_threads);
+	  //KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
+
+	  elem_partition.resize(number_of_threads + 1);
+	  int elem_partition_size = number_of_rows / number_of_threads;
+	  elem_partition[0] = 0;
+	  elem_partition[number_of_threads] = number_of_rows;
+	  KRATOS_WATCH(elem_partition_size);
+	  for (unsigned int i = 1; i < number_of_threads; i++)
+	    elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
+	  
+	  typedef Node < 3 > PointType;
+	  std::vector<ModelPart::NodesContainerType> aux;// aux;
+	  aux.resize(number_of_threads);
 
 
-	Timer::Stop("Puntos");
-	KRATOS_WATCH(time)
+#pragma omp parallel firstprivate(elem_partition)
+	  {
+	    int k = OpenMPUtils::ThisThread();
+	    ModelPart::ElementsContainerType::iterator it_begin = rEulerianModelPart.ElementsBegin() +  elem_partition[k]; 
+	    ModelPart::ElementsContainerType::iterator it_end = rEulerianModelPart.ElementsBegin() + elem_partition[k+1] ; 
+	    KRATOS_WATCH(min_number_of_particles);
+	    //ModelPart::NodesContainerType local_list=aux[k];
+	    PointerVectorSet<Node<3>, IndexedObject> & list=aux[k];
+	    //KRATOS_WATCH(k);
 
-            KRATOS_CATCH("");
-        }
+	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
+	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
 
+
+	  int local_id=1;
+	    for (ModelPart::ElementsContainerType::iterator el_it = it_begin; el_it != it_end; el_it++)
+	      {
+		int z=el_it->GetValue(YOUNG_MODULUS);
+		//KRATOS_WATCH(z);
+		//KRATOS_WATCH( min_number_of_particles);
+		if (el_it->GetValue(YOUNG_MODULUS) < 4)
+		  {
+		    Geometry< Node<3> >& geom = el_it->GetGeometry();
+		    
+		    ComputeGaussPointPositions(geom, pos, Nnew);
+		    
+                    for (unsigned int i = 0; i < pos.size1(); i++)
+		      {
+                        int node_id = local_id++;
+			
+			Node < 3 > ::Pointer pnode = NodeType::Pointer(new NodeType(node_id, pos(i,0), pos(i,1), pos(i,2)));
+			
+			pnode->SetSolutionStepVariablesList(&(rEulerianModelPart.GetNodalSolutionStepVariablesList()));
+
+
+			pnode->SetBufferSize(3);
+			
+			
+
+			///////////////////
+		       array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
+		       
+		       array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+		       noalias(disp) = ZeroVector(3);
+		       
+                       noalias(vel) = ZeroVector(3);
+			
+			
+		
+                        for (unsigned int j = 0; j < 3; j++){
+			
+			  noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
+			  
+			}
+                        //array_1d<double, 3 > & vel_old = pnode->FastGetSolutionStepValue(VELOCITY, 1);
+
+                        //noalias(vel_old) = ZeroVector(3);
+                        /*for (unsigned int j = 0; j < 3; j++){
+			
+			  noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
+			}*/
+			
+			(list).push_back(pnode);
+
+		      }
+
+		  }
+	    
+	      }
+	  }
+
+	  for(int k=0;k<number_of_threads; k++){
+	    PointerVectorSet<Node<3>, IndexedObject> & list=aux[k];
+	    for(PointerVectorSet<Node<3>, IndexedObject>::ptr_iterator it =  list.ptr_begin(); it!=list.ptr_end(); it++){
+	      //rLagrangianModelPart.AddNode(*it);
+	      rLagrangianModelPart.Nodes().push_back(*it);
+	      //KRATOS_WATCH(k);
+	       int node_id=last_id++;//last_id++;
+	       (*it)->SetId(node_id);
+	       //KRATOS_WATCH(rLagrangianModelPart.Nodes().size());
+	    }
+	  }
+
+
+	   Timer::Stop("Puntos");
+	   KRATOS_WATCH(time);
+	   
+	   KRATOS_CATCH("");
+	}
+	
+	   /*#ifdef _OPENMP
+	    int number_of_threads = omp_get_max_threads();
+#else
+	    int number_of_threads = 1;
+#endif*/
+
+
+
+	   /*	    int number_of_threads = OpenMPUtils::GetNumThreads();
+	    KRATOS_WATCH(number_of_threads);
+	    vector<unsigned int> elem_partition;
+	    
+	    int number_of_rows=rEulerianModelPart.Elements().size();
+	    KRATOS_WATCH(number_of_rows);
+	    elem_partition.resize(number_of_threads + 1);
+	    int elem_partition_size = number_of_rows / number_of_threads;
+            elem_partition[0] = 0;
+            elem_partition[number_of_threads] = number_of_rows;
+	    
+            for (unsigned int i = 1; i < number_of_threads; i++)
+	      elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
+	    
+	    
+	   	    
+	    //ModelPart& model_part=BaseType::GetModelPart();
+#pragma omp parallel firstprivate(elem_partition,) SHARED(rLagrangianModelPart)
+RALLEL SHARED(A,B,C,CHUNK) PRIVATE(I)
+
+	    //#pragma omp parallel for schedule(static,1)
+	    //for (int k = 0; k < number_of_threads; k++)
+	    {
+		int k = OpenMPUtils::ThisThread();
+		ModelPart::ElementsContainerType::iterator it_begin = rEulerianModelPart.ElementsBegin() +  elem_partition[k]; 
+		ModelPart::ElementsContainerType::iterator it_end = rEulerianModelPart.ElementsBegin() + elem_partition[k+1] ; 
+		KRATOS_WATCH(k);
+		KRATOS_WATCH(number_of_rows);
+		//ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+		//ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+		
+		for (ModelPart::ElementsContainerType::iterator el_it = it_begin; el_it != it_end; el_it++)
+		  {
+		    KRATOS_WATCH("DENTRO")
+		      //if (el_it->GetValue(YOUNG_MODULUS) < min_number_of_particles)
+			//{
+			Geometry< Node<3> >& geom = el_it->GetGeometry();
+			
+			ComputeGaussPointPositions(geom, pos, Nnew);
+			
+			for (unsigned int i = 0; i < pos.size1(); i++)
+			  {
+			    int node_id = id++;
+			    Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, pos(i, 0), pos(i, 1), pos(i, 2));
+			    
+			    array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
+			    
+			    
+			    array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+			    //noalias(disp) = ZeroVector(3);
+			    disp[0]=0.0;
+			    disp[1]=0.0;
+			    disp[2]=0.0;
+			    //noalias(vel) = ZeroVector(3);
+			    vel[0]=0.0;
+			    vel[1]=0.0;
+			    vel[2]=0.0;
+			    
+			    for (unsigned int j = 0; j < TDim + 1; j++){
+			      noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
+			      
+			      }
+			    array_1d<double, 3 > & vel_old = pnode->FastGetSolutionStepValue(VELOCITY, 1);
+			    //noalias(vel_old) = ZeroVector(3);
+			    vel_old[0]=0.0;
+			    vel_old[1]=0.0;
+			    vel_old[2]=0.0;
+			    for (unsigned int j = 0; j < TDim + 1; j++){
+			      //geom()[2].SetLock();
+			      noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
+			    }
+			    
+			  }
+			//}
+		  }
+	    }
+
+
+	    Timer::Stop("Puntos");
+	    KRATOS_WATCH(time)
+	      
+	      KRATOS_CATCH("");
+        }*/
+	
         //**********************************************************************************************
         //**********************************************************************************************
-
+	
         void VisualizationModelPart(ModelPart& rCompleteModelPart, ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart)
         {
             KRATOS_TRY;
@@ -1311,13 +1115,13 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 {
 
                     array_1d<double, 3 > & vel = (node_it)->FastGetSolutionStepValue(VELOCITY);
-                    double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
+                    //double& temperature = (node_it)->FastGetSolutionStepValue(TEMPERATURE);
 
                     array_1d<double, 3 > original_vel = vel;
-                    double original_temperature = temperature;
+                    //double original_temperature = temperature;
 
                     noalias(vel) = ZeroVector(3);
-                    temperature = 0.0;
+                    //temperature = 0.0;
 
                     double tot_weight = 0.0;
 
@@ -1336,21 +1140,21 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                         //                            KRATOS_WATCH( *(SquaredResultsDistances.begin()+k) );
 
                         const array_1d<double, 3 > particle_velocity = (*it_found)->FastGetSolutionStepValue(VELOCITY);
-                        const double particle_temperature = (*it_found)->FastGetSolutionStepValue(TEMPERATURE);
+                        //const double particle_temperature = (*it_found)->FastGetSolutionStepValue(TEMPERATURE);
 
                         noalias(vel) += weight * particle_velocity;
-                        temperature += weight * particle_temperature;
+                        //temperature += weight * particle_temperature;
                     }
 
                     vel /= tot_weight;
-                    temperature /= tot_weight;
+                    //temperature /= tot_weight;
 
                     if (node_it->IsFixed(VELOCITY_X))
                     {
 			noalias(vel) = original_vel;
                     }
-                    if (node_it->IsFixed(TEMPERATURE))
-                        temperature = original_temperature;
+                    /*if (node_it->IsFixed(TEMPERATURE))
+                        temperature = original_temperature;*/
                 } else
                 {
                    if (node_it->IsFixed(VELOCITY_X))  {noalias(vel1) = original_vel1;}
@@ -1387,11 +1191,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                     (node_it)->GetValue(YOUNG_MODULUS) = 0.0;
 
                 }
-		if (node_it->IsFixed(TEMPERATURE) == false)
-                {
-                    (node_it)->FastGetSolutionStepValue(TEMPERATURE) = 0.0;
-		    (node_it)->SetValue(BULK_AIR,0.0);
-                 }
+		
 
 
             }
@@ -1417,7 +1217,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                 {
                     Geometry<Node<3> >& geom = pelement->GetGeometry();
                     const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
-                    const double& temperature_particle = (iparticle)->FastGetSolutionStepValue(TEMPERATURE);
 
                     for (unsigned int k = 0; k < geom.size(); k++)
                     {
@@ -1429,23 +1228,8 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                             geom[k].UnSetLock();
                         }
 
-                        if (geom[k].IsFixed(TEMPERATURE) == false)
-                        {
-                            geom[k].SetLock();
-                            geom[k].FastGetSolutionStepValue(TEMPERATURE) += N[k] * temperature_particle;
-                            geom[k].GetValue(BULK_AIR) += N[k];
-                            geom[k].UnSetLock();
-                        }
-
-
-
                     }
-
-
-
-
                 }
-
             }
 
 
@@ -1463,19 +1247,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
                         std::cout << node_it->Id() << " coeff = " << NN << std::endl;
                     }
                 }
-
-               if (node_it->IsFixed(TEMPERATURE) == false)
-                {
-                    const double NN = (node_it)->GetValue(BULK_AIR);
-                    if (NN != 0.0)
-                    {
-                        (node_it)->FastGetSolutionStepValue(TEMPERATURE) /= NN;
-                    } else
-                    {
-                        std::cout << node_it->Id() << " coeff = " << NN << std::endl;
-                    }
-                }
-
 
             }
 
@@ -1824,7 +1595,6 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             M(2, 1) = c1;
             M(2, 2) = c2;
         }
-
     };
 
 } // namespace Kratos.
