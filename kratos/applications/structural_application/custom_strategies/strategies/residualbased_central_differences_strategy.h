@@ -195,11 +195,15 @@ namespace Kratos
 	  	mpBCCU_Pointer             = typename BoundaryAndContactType::Pointer (new BoundaryAndContactType(model_part, mdimension) );
 		mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
 		
-                std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES "<< std::endl;
-
-		mdamping_ratio = damping_ratio;
-		malpha_damp    = 0.00;
-		mbeta_damp     = 0.00; 
+		std::cout <<"DYNAMIC SOLVER ANALYSIS FOR COMBINED FINITE AND DISCRET ELEMENT METHODS "<< std::endl;
+                std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES    "<< std::endl;
+                std::cout <<"IMPLEMENTED BY           =  ING. NELSON LAFONTAINE "<< std::endl;
+		
+		mdamping_coeficients = false;
+		mdamping_ratio       = damping_ratio;
+		malpha_damp          = 0.00;
+		mbeta_damp           = 0.00; 
+		
 		mDTU.CreateJoints(model_part);
 		
 	      }
@@ -271,7 +275,9 @@ double Solve()
    	
         ///Computing The new internal and external forces  for n+1 step
 	GetForce();
-	Heuristic_Formula(mDTU.Begin(), mDTU.End());
+	
+	/// Fragmentation and fracture
+	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
 	
 	 
@@ -323,7 +329,7 @@ double Solve()
 	
 	#ifdef _OPENMP
 	double stop_prod = omp_get_wtime();
-	std::cout << "TIME SOLVING  = " << stop_prod - start_prod << std::endl;
+	std::cout << "TIME SOLVING                   = "<<  stop_prod      << "  SECONDS" << std::endl; 
 	#endif
 	std::cout << "FINISHED SOLVE"<<std::endl;
 	return 0.00;   
@@ -847,10 +853,12 @@ void ComputeCriticalTime()
     
     //Calculo los factores de alfa y beta para amortiguar la estructura
     // 3d static and dynamic analisis damping and Energy Disispation 19-7
-    double wmax = 2.00 / delta_time_computed;
-    mbeta_damp  = mdamping_ratio / wmax ; 
-    malpha_damp = mdamping_ratio * wmax ;  
-    
+   if(mdamping_coeficients==false){
+      double wmax = 2.00 / delta_time_computed;
+      mbeta_damp  = mdamping_ratio / wmax ; 
+      malpha_damp = mdamping_ratio * wmax ; 
+      mdamping_coeficients = true;
+   }
     
     
     if(mCE==Penalty_Methods){
@@ -1439,15 +1447,15 @@ void CalculateReaction()
             array_1d<double,3> dif                 =  rhs; //- rhs_1;             
 
             if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
- 		{reaction[0] =  -dif[0];}  //+ mass * acceleration[0] + mass * malpha_damp * velocity[0];}
+ 		{reaction[0] =  -dif[0] + mass * acceleration[0] + mass * malpha_damp * velocity[0];}
                 
             if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == true )
-		{reaction[1] = -dif[1];}  //+ mass * acceleration[1] + mass * malpha_damp * velocity[1];}
+		{reaction[1] = -dif[1] + mass * acceleration[1] + mass * malpha_damp * velocity[1];}
           
             if( i->HasDofFor(DISPLACEMENT_Z))
 	        {
 		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == true )
-		{reaction[2] = -dif[2];} // + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
+		{reaction[2] = -dif[2] + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
                 }
         }
 }
@@ -1471,6 +1479,7 @@ bool   mCalculateOldTime;
 bool   mSolutionStepIsInitialized;
 bool   mClearContactConditions;
 bool   mLocalSearchInitialize;
+bool   mdamping_coeficients;
 double mdamping_ratio;
 double malpha_damp;
 double mbeta_damp; 
