@@ -262,94 +262,119 @@ namespace Kratos
 
         void SolveStep4()
         {
-            KRATOS_TRY;
-		Timer time;
-		Timer::Start("paso_4");
-            ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-            array_1d<double, 3 > zero = ZeroVector(3);
-            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-
-
-	    ModelPart& model_part=BaseType::GetModelPart();
-		
-	    const double dt = model_part.GetProcessInfo()[DELTA_TIME];
-				
-	   
-	    for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+	  KRATOS_TRY;
+	  Timer time;
+	  Timer::Start("paso_4");
+	  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	  array_1d<double, 3 > zero = ZeroVector(3);
+	  Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+	  
+#ifdef _OPENMP
+	  int number_of_threads = omp_get_max_threads();
+#else
+	  int number_of_threads = 1;
+#endif
+	    
+	  ModelPart& model_part=BaseType::GetModelPart();
+	  
+	  const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	    
+	    
+	  vector<unsigned int> partition;
+	  CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+	  
+#pragma omp parallel for schedule(static,1)
+	  for (int k = 0; k < number_of_threads; k++)
 	      {
-		//it->FastGetSolutionStepValue(AUX_VECTOR)=ZeroVector(3);
-		it->FastGetSolutionStepValue(FORCE)=ZeroVector(3);
-	      }		
-	    
-	    //allocation of work space
-	    boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
-	    array_1d<double,3> N;
-	    
-	    
-	    //calculate the velocity correction and store it in AUX_VECTOR
-	    for (typename ModelPart::ElementsContainerType::iterator it=model_part.ElementsBegin(); it!=model_part.ElementsEnd(); ++it)
-	      {
-		//get the list of nodes of the element
-		Geometry< Node<3> >& geom = it->GetGeometry();
+                ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
 		
-		double volume;
-		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
-		
-		array_1d<double,3> pres_inc;
-		pres_inc[0] = geom[0].FastGetSolutionStepValue(PRESSURE,1)-geom[0].FastGetSolutionStepValue(PRESSURE);
-		pres_inc[1] = geom[1].FastGetSolutionStepValue(PRESSURE,1)-geom[1].FastGetSolutionStepValue(PRESSURE);
-		pres_inc[2] = geom[2].FastGetSolutionStepValue(PRESSURE,1)-geom[2].FastGetSolutionStepValue(PRESSURE);
-		
-		
-		//Gradient operator G:
-		boost::numeric::ublas::bounded_matrix<double,6,2> shape_func = ZeroMatrix(6, 2);
-		boost::numeric::ublas::bounded_matrix<double,6,3> G = ZeroMatrix(6,3);
-		for (int ii = 0; ii< 3; ii++)
+		array_1d<double, 3 > zero = ZeroVector(3);
+		for (typename ModelPart::NodesContainerType::iterator it=it_begin; it!=it_end; ++it)
 		  {
-		    int column = ii*2;				
-		    shape_func(column,0) = N[ii];
-		    shape_func(column + 1, 1) = shape_func(column,0);
-		  }
-		noalias(G)=prod(shape_func, trans(DN_DX));
-		G*=volume;
-		
-		array_1d<double,6> aaa;
-		noalias(aaa) = prod(G,pres_inc);
-		
-		array_1d<double,3> aux;
-		aux[0]=aaa[0];
-		aux[1]=aaa[1];			
-		//z-component is zero
-		aux[2]=0.0;
-		
-		//geom[0].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-		geom[0].FastGetSolutionStepValue(FORCE) += aux;
-		//reusing aux for the second node 
-		aux[0]=aaa[2];
-		aux[1]=aaa[3];			
-		//z-component is zero
-		//geom[1].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-		geom[1].FastGetSolutionStepValue(FORCE) += aux;
-		//reusing aux for the third node
-		aux[0]=aaa[4];
-		aux[1]=aaa[5];			
-		//geom[2].FastGetSolutionStepValue(AUX_VECTOR) += aux;
-		geom[2].FastGetSolutionStepValue(FORCE) += aux;
+		    it->FastGetSolutionStepValue(FORCE)=ZeroVector(3);
+		  }		
 	      }
-	    
-	    //correct the velocities
-	    for (typename ModelPart::NodesContainerType::iterator it=model_part.NodesBegin(); it!=model_part.NodesEnd(); ++it)
+	  //allocation of work space
+	  
+	  
+	 
+	  
+	  
+	  vector<unsigned int> elem_partition;
+	  CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+	  
+#pragma omp parallel for schedule(static,1)
+	  for (int k = 0; k < number_of_threads; k++)
+	    {
+	      ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+	      ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+	      for (ModelPart::ElementIterator i = it_begin; i != it_end; ++i)
+		
+		{
+		  //get the list of nodes of the element
+		  boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
+		  array_1d<double,3> N;
+		  Geometry< Node<3> >& geom = i->GetGeometry();
+		  
+		  double volume;
+		  GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
+		  
+		  array_1d<double,3> aux;
+		  double p0 = geom[0].FastGetSolutionStepValue(PRESSURE);
+		  double p0old = geom[0].FastGetSolutionStepValue(PRESSURE,1);
+		  
+		  double p1 = geom[1].FastGetSolutionStepValue(PRESSURE);
+		  double p1old = geom[1].FastGetSolutionStepValue(PRESSURE,1);
+		  
+		  double p2 = geom[2].FastGetSolutionStepValue(PRESSURE);
+		  double p2old = geom[2].FastGetSolutionStepValue(PRESSURE,1);
+		    
+		  double p_avg = N[0]*(p0 - p0old) + N[1]*(p1 - p1old) + N[2]*(p2 - p2old);
+		  p_avg *= volume;
+		  aux [0] = DN_DX(0, 0) * p_avg;
+		  aux [1] = DN_DX(0, 1) * p_avg;
+		  aux [2] =0.0;
+		  
+		  
+		  geom[0].SetLock();
+		  geom[0].FastGetSolutionStepValue(FORCE) += aux;
+		  geom[0].UnSetLock();
+
+
+		  aux[0] = DN_DX(1, 0) * p_avg;
+		  aux[1] = DN_DX(1, 1) * p_avg;
+		  
+		  geom[1].SetLock();
+		  geom[1].FastGetSolutionStepValue(FORCE) += aux;
+		  geom[1].UnSetLock();
+		  
+		  aux[0] = DN_DX(2, 0) * p_avg;
+		  aux[1] = DN_DX(2, 1) * p_avg;
+		  
+		    geom[2].SetLock();
+		    geom[2].FastGetSolutionStepValue(FORCE) += aux;
+		    geom[2].UnSetLock();
+		    
+		}
+	    }
+	  //correct the velocities
+	  
+#pragma omp parallel for schedule(static,1)
+	  for (int k = 0; k < number_of_threads; k++)
+	    {
+	      ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+	      ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+	      
+	    for (typename ModelPart::NodesContainerType::iterator it=it_begin; it!=it_end; ++it)
 	      {
-		//VELOCITY = VELOCITY + dt * Minv * AUX_VECTOR
 		double dt_Minv = (dt / 2.00) / it->FastGetSolutionStepValue(NODAL_MASS);
-		//array_1d<double,3>& temp = it->FastGetSolutionStepValue(AUX_VECTOR);
 		array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
-		force_temp *= dt_Minv;//(1.0/ it->FastGetSolutionStepValue(NODAL_MASS));
-		//KRATOS_WATCH(force_temp);
+		force_temp *= dt_Minv;
 		
 		if(!it->IsFixed(VELOCITY_X))
 		  {
-				it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0];
+		    it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0];
 		  }
 		if(!it->IsFixed(VELOCITY_Y))
 		  {
@@ -358,19 +383,17 @@ namespace Kratos
 		if(!it->IsFixed(VELOCITY_Z))
 		  {
 		    it->FastGetSolutionStepValue(VELOCITY_Z)+=force_temp[2];						
-				}
-		
-		
+		  }
 	      }
-	    //Timer::Stop("Ultimo_paso");
-	
-	    Timer::Stop("paso_4");
-	    KRATOS_WATCH(time)
-	      
-	      KRATOS_CATCH("");
+	    }
+	  
+	  Timer::Stop("paso_4");
+	  KRATOS_WATCH(time)
+	    
+	    KRATOS_CATCH("");
         }
 	
-       //******************************************************************************************************
+	//******************************************************************************************************
         //******************************************************************************************************
         /**
          * solution of the pressure. Implements the second step of the fractional step
@@ -423,10 +446,6 @@ namespace Kratos
                 //first of all set to zero the nodal variables to be updated nodally
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 		  {
-                    /*array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
-		      array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
-		      noalias(press_proj) = zero;
-		      noalias(conv_proj) = zero;*/
 		    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 		    nodal_mass = 0.0;
 		  }
@@ -438,12 +457,10 @@ namespace Kratos
 	    
 	    
 	    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i){
-	      //noalias(i->FastGetSolutionStepValue(AUX_VECTOR)) = i->FastGetSolutionStepValue(VELOCITY,1);	
-	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;		
+	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;	
+
 	    }
 	    
-            //add the elemental contributions for the calculation of the velocity
-            //and the determination of the nodal area
             ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
             rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
 	    
@@ -462,10 +479,6 @@ namespace Kratos
 	      }
 	    
 	    
-            /*BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_MASS);
-            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(PRESS_PROJ);
-            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(CONV_PROJ);*/
-	    
             //solve nodally for the velocity
 	    
 #pragma omp parallel for schedule(static,1)
@@ -476,15 +489,11 @@ namespace Kratos
 		
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 		  {
-                    //array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
-                    //array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
                     double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
-		    //array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
 		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
 		    force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
 		    if(i->IsFixed(VELOCITY_X) == true){
 		      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
-		      //noalias(i->FastGetSolutionStepValue(VELOCITY)) =    zero;
 		      
 		    }
 		  }
@@ -501,42 +510,83 @@ namespace Kratos
         void Compute()
         {
             KRATOS_TRY
-			array_1d<double,3> aux;	
-			array_1d<double,3> aux1;
 
-			ModelPart& model_part=BaseType::GetModelPart();
-			const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+#ifdef _OPENMP
+	      int number_of_threads = omp_get_max_threads();
+#else
+	    int number_of_threads = 1;
+#endif
+	    
+	    array_1d<double,3> aux;	
+	    array_1d<double,3> aux1;
+	    
+	    ModelPart& model_part=BaseType::GetModelPart();
+	    const double dt = model_part.GetProcessInfo()[DELTA_TIME];
+	    
+	    
+            vector<unsigned int> partition;
+            CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
+	    
+	    
+	    
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+                ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+		
+		
+                array_1d<double, 3 > zero = ZeroVector(3);
+		
+                //first of all set to zero the nodal variables to be updated nodally
+                for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+		  {
+		    noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;	
+		    (i)->FastGetSolutionStepValue(NODAL_MASS)=0.0;
+		  }
+	      }	
+	    
+	    ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	    rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
+            
+	    
+	    vector<unsigned int> elem_partition;
+	    CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
+	    
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+		
+                ModelPart::ElementIterator it_begin = BaseType::GetModelPart().ElementsBegin() + elem_partition[k];
+                ModelPart::ElementIterator it_end = BaseType::GetModelPart().ElementsBegin() + elem_partition[k + 1];
+		
+		
+                for (ModelPart::ElementIterator i = it_begin; i != it_end; ++i)
+		  {
+		    
+		    (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+		  }
+		
+	      }
+	    
 
-
-			array_1d<double,3> zero = ZeroVector(3);
-
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i)
-			{ 
-			noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;		
-			}
-			
-			
-			ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-            		rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
-			
-			//loop over elements calculating the Right Hand Side, that is stored directly to the node.. this is done by fct Calculate
-			for(ModelPart::ElementIterator im = model_part.ElementsBegin() ; im != model_part.ElementsEnd() ; ++im)
-			{
-			//compute the momentum residual, add it to the RHS_VECTOR on nodes
- 			(im)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
-			}
-			
-			
-			for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i)
-			{	
-
-			array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
-			//KRATOS_WATCH(it->FastGetSolutionStepValue(NODAL_MASS))
-			force_temp -=i->FastGetSolutionStepValue(NODAL_MASS) * ((i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1))/dt;
-			}
-			
-	      
-	      KRATOS_CATCH("");
+#pragma omp parallel for schedule(static,1)
+            for (int k = 0; k < number_of_threads; k++)
+	      {
+                ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
+                ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
+		
+		
+                array_1d<double, 3 > zero = ZeroVector(3);
+		
+                //first of all set to zero the nodal variables to be updated nodally
+                for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
+		  {
+		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
+		    force_temp -=i->FastGetSolutionStepValue(NODAL_MASS) * ((i)->FastGetSolutionStepValue(VELOCITY)-(i)->FastGetSolutionStepValue(VELOCITY,1))/dt;
+		  }
+	      }
+	    KRATOS_CATCH("");
         }
 
 	
@@ -550,18 +600,18 @@ namespace Kratos
 	  mpfracvel_strategy->SetEchoLevel(Level);
 	  mppressurestep->SetEchoLevel(Level);
         }
-
+	
         //******************************************************************************************************
         //******************************************************************************************************
-
+	
         virtual void Clear()
         {
-            int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-            if (rank == 0) KRATOS_WATCH("FracStepStrategy Clear Function called");
-            mpfracvel_strategy->Clear();
-            mppressurestep->Clear();
+	  int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
+	  if (rank == 0) KRATOS_WATCH("FracStepStrategy Clear Function called");
+	  mpfracvel_strategy->Clear();
+	  mppressurestep->Clear();
         }
-
+	
         virtual double GetStageResidualNorm(unsigned int step)
         {
             if (step <= 3)
