@@ -186,7 +186,7 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl", mFluid2DGLS_expl);
 		KRATOS_REGISTER_ELEMENT("Fluid3DGLS_expl", mFluid3DGLS_expl);		
 
-		KRATOS_REGISTER_ELEMENT("Fluid2DGLS", mFluid2DGLS_expl);
+		KRATOS_REGISTER_ELEMENT("Fluid2DGLS", mFluid2DGLS);
 
 		KRATOS_REGISTER_ELEMENT("Fluid2DGLS_expl_comp", mFluid2DGLS_expl_comp);	
 		KRATOS_REGISTER_ELEMENT("Fluid3DGLS_expl_comp", mFluid3DGLS_expl_comp);	
