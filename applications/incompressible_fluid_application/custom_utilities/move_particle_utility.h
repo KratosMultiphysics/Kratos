@@ -97,70 +97,62 @@ namespace Kratos
         //typedef Configure::PointerContactType             PointerContactType; 
         //typedef Configure::PointerTypeIterator            PointerTypeIterator;
 
-		KRATOS_CLASS_POINTER_DEFINITION(MoveParticleUtility);
+        KRATOS_CLASS_POINTER_DEFINITION(MoveParticleUtility);
 
-		MoveParticleUtility(ModelPart& model_part , ModelPart& particle_model_part)
-			: mr_model_part(model_part), mr_particle_model_part(particle_model_part)
-		{}
+        MoveParticleUtility(ModelPart& model_part , ModelPart& particle_model_part)
+                : mr_model_part(model_part), mr_particle_model_part(particle_model_part)
+        {}
 
-		~MoveParticleUtility()
-		{}
+        ~MoveParticleUtility()
+        {}
 
-		void MountBin() //qué tipo de data es el object bin?
-		{
-			KRATOS_TRY
-			
-			 
-			 
-			//copy the elements to a new container, as the list will
-			//be shuffled duringthe construction of the tree
-			ContainerType& rElements           =  mr_model_part.ElementsArray();
-	        IteratorType it_begin              =  rElements.begin();
-	        IteratorType it_end                =  rElements.end();
+        void MountBin() 
+        {
+                KRATOS_TRY
 
-			typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end ) );
-			paux.swap(mpBinsObjectDynamic);
-			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end ); 
-				
-			KRATOS_WATCH("inside MountBin")
+                //copy the elements to a new container, as the list will
+                //be shuffled duringthe construction of the tree
+                ContainerType& rElements           =  mr_model_part.ElementsArray();
+                IteratorType it_begin              =  rElements.begin();
+                IteratorType it_end                =  rElements.end();
 
-			KRATOS_CATCH("")
-		}
+                typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure>(it_begin, it_end ) );
+                paux.swap(mpBinsObjectDynamic);
+                //BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end ); 
+
+                KRATOS_WATCH("inside MountBin")
+
+                KRATOS_CATCH("")
+        }
 
 
-		void MoveParticles() 
-		{
-			KRATOS_TRY
-			
-			array_1d<double,TDim+1> N;
-			const int max_results = 1000;
-			ResultContainerType results(max_results);
-			
-			double Dt= 0.1;
-			double nsubsteps = 1.0;
-			
-			int nparticles = mr_particle_model_part.Nodes().size();
-			
-			#pragma omp parallel for firstprivate(results,N,Dt,nsubsteps)
-			for(int i=0; i<nparticles;i++)
-			{
-				ModelPart::NodesContainerType::iterator iparticle=mr_particle_model_part.NodesBegin() + i;
-			//for(ModelPart::NodesContainerType::iterator iparticle=mr_particle_model_part.NodesBegin(); iparticle!=mr_particle_model_part.NodesEnd(); iparticle++)
-			//{
-				Node<3>::Pointer pparticle = *(iparticle.base());
-				ResultIteratorType result_begin = results.begin();
-				
-				std::cout << "BBBBBBBBBBBBBBB" << std::endl;
-				MoveParticle(VELOCITY,Dt,nsubsteps,pparticle,N,result_begin,max_results);
-				
+        void MoveParticles() 
+        {
+                KRATOS_TRY
 
-				
-			}
-				
-			KRATOS_WATCH("inside Moveparticle")
+                array_1d<double,TDim+1> N;
+                const int max_results = 1000;
+                ResultContainerType results(max_results);
 
-			KRATOS_CATCH("")
-		}
+                double Dt= 0.1;
+                double nsubsteps = 1.0;
+
+                int nparticles = mr_particle_model_part.Nodes().size();
+
+                #pragma omp parallel for firstprivate(results,N,Dt,nsubsteps)
+                for(int i=0; i<nparticles;i++)
+                {
+                        ModelPart::NodesContainerType::iterator iparticle=mr_particle_model_part.NodesBegin() + i;
+                        Node<3>::Pointer pparticle = *(iparticle.base());
+                        ResultIteratorType result_begin = results.begin();
+
+                        MoveParticle(VELOCITY,Dt,nsubsteps,pparticle,N,result_begin,max_results);				
+                }
+
+                KRATOS_WATCH("inside Moveparticle")
+
+                KRATOS_CATCH("")
+        }
 
 
 	protected:
@@ -192,9 +184,9 @@ namespace Kratos
 			
 			if(is_found == true)
 			{
-			KRATOS_WATCH(pelement->Id());
-			KRATOS_WATCH(N);
-			KRATOS_WATCH("****");
+                                KRATOS_WATCH(pelement->Id());
+                                KRATOS_WATCH(N);
+                                KRATOS_WATCH("****");
 				Geometry< Node<3> >& geom = pelement->GetGeometry();
 				
 				//get "velocity at position"			
@@ -226,30 +218,22 @@ namespace Kratos
 		//ask to the container for the list of candidate elements
 		const array_1d<double,3>& coords = pparticle->Coordinates();
 		SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(coords, result_begin, MaxNumberOfResults );
-		KRATOS_WATCH(results_found)
 				
 		if(results_found>0){
 		//loop over the candidate elements and check if the particle falls within
-		for(SizeType i = 0; i< results_found; i++)
-		{
-			std::cout<< "KIIIIIIIIIIIIII" << std::endl;
-			KRATOS_WATCH((*(result_begin+i))->Id());
-			Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
-			
-			
-			//find local position
-			bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
-			
-			KRATOS_WATCH("ln243");
-			KRATOS_WATCH(N);
-			
-			if(is_found == true)
-			{
-				pelement = (*(result_begin+i));
-				return true;
-			}
-		}
-	}
+                        for(SizeType i = 0; i< results_found; i++)
+                        {
+                                Geometry<Node<3> >& geom = (*(result_begin+i))->GetGeometry();
+                                //find local position
+                                bool is_found = CalculatePosition(geom,coords[0],coords[1],coords[2],N);
+
+                                if(is_found == true)
+                                {
+                                        pelement = (*(result_begin+i));
+                                        return true;
+                                }
+                        }
+                }
 		
 		//not found case
 		return false;
