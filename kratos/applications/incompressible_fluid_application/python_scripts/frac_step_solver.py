@@ -18,7 +18,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
-
+    model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
@@ -29,7 +29,6 @@ def AddVariables(model_part):
 def AddDofs(model_part):
   
     for node in model_part.Nodes:
-        #adding dofs
         node.AddDof(PRESSURE);
         node.AddDof(FRACT_VEL_X);
         node.AddDof(FRACT_VEL_Y);
@@ -152,6 +151,7 @@ class FracStepSolver:
     def Reactions(self):
 	
  	self.timer.Start("reactions")
+	#sssssssssss
 	print "ssssssssssssssssssssssssssss"
         print self.model_part
         (self.solver).Compute()
@@ -169,11 +169,21 @@ class FracStepSolver:
         import new_restart_utilities
         new_restart_utilities.PrintProperties(restart_file)
         new_restart_utilities.PrintNodes(self.model_part.Nodes,restart_file)
-        new_restart_utilities.PrintElements("Fluid3D",self.model_part.Elements,restart_file)
+        new_restart_utilities.PrintElements("Fluid2D",self.model_part.Elements,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Y,"VELOCITY_Y",self.model_part.Nodes,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(VELOCITY_Z,"VELOCITY_Z",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ACCELERATION_X,"ACCELERATION_X",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ACCELERATION_Y,"ACCELERATION_Y",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ACCELERATION_Z,"ACCELERATION_Z",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_ACCELERATION_X,"ANGULAR_ACCELERATION_X",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_ACCELERATION_Y,"ANGULAR_ACCELERATION_Y",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_ACCELERATION_Z,"ANGULAR_ACCELERATION_Z",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_VELOCITY_X,"ANGULAR_VELOCITY_X",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_VELOCITY_Y,"ANGULAR_VELOCITY_Y",self.model_part.Nodes,restart_file)
+	new_restart_utilities.PrintRestart_ScalarVariable(ANGULAR_VELOCITY_Z,"ANGULAR_VELOCITY_Z",self.model_part.Nodes,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(PRESSURE,"PRESSURE",self.model_part.Nodes,restart_file)
+
         new_restart_utilities.PrintRestart_ScalarVariable(VISCOSITY,"VISCOSITY",self.model_part.Nodes,restart_file)
         new_restart_utilities.PrintRestart_ScalarVariable(DENSITY,"DENSITY",self.model_part.Nodes,restart_file)
         restart_file.close() 
