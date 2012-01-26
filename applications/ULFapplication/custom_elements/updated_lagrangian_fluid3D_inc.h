@@ -270,8 +270,7 @@ namespace Kratos
 	
         virtual void save(Serializer& rSerializer) const
 	{
-	rSerializer.save("Name", " UpdatedLagrangianFluid3Dinc");
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 	}
 	
 	virtual void load(Serializer& rSerializer)
