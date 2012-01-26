@@ -260,8 +260,8 @@ namespace Kratos
 			
 		//we reuse ms_vel_gauss to store the accelerations( (u_n - u_n-1)/dt)		
 		
-		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
-		ms_vel_gauss[1]=0.33333333333*(fv0_old[1]+fv1_old[1]+fv2_old[1]-fv0_n_1[1]-fv1_n_1[1]-fv2_n_1[1])/dt;
+		ms_vel_gauss[0]=0.33333333333*(fv0[0]+fv1[0]+fv2[0]-fv0_old[0]-fv1_old[0]-fv2_old[0])/dt;
+		ms_vel_gauss[1]=0.33333333333*(fv0[1]+fv1[1]+fv2[1]-fv0_old[1]-fv1_old[1]-fv2_old[1])/dt;
 		
 		//and now we reuse ms_aux1
 
@@ -288,8 +288,8 @@ namespace Kratos
 		a[1]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(1,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(1,1);
 		
 		//we again reuse ms_aux0
-		noalias(ms_aux0) = prod(msDN_DX,a);
-		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
+		//noalias(ms_aux0) = prod(msDN_DX,a);
+		//noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
 
 		
 		KRATOS_CATCH("")
@@ -452,8 +452,13 @@ namespace Kratos
 			
 		//we reuse ms_vel_gauss to store the accelerations( (u_n - u_n-1)/dt)		
 		
-		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
+/*		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
 		ms_vel_gauss[1]=0.33333333333*(fv0_old[1]+fv1_old[1]+fv2_old[1]-fv0_n_1[1]-fv1_n_1[1]-fv2_n_1[1])/dt;
+*/
+		ms_vel_gauss[0]=0.33333333333*(fv0[0]+fv1[0]+fv2[0]-fv0_old[0]-fv1_old[0]-fv2_old[0])/dt;
+		ms_vel_gauss[1]=0.33333333333*(fv0[1]+fv1[1]+fv2[1]-fv0_old[1]-fv1_old[1]-fv2_old[1])/dt;
+
+
 		
 		//and now we reuse ms_aux1
 
@@ -480,8 +485,8 @@ namespace Kratos
 		a[1]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(1,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(1,1);
 		
 		//we again reuse ms_aux0
-		noalias(ms_aux0) = prod(msDN_DX,a);
-		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
+		//noalias(ms_aux0) = prod(msDN_DX,a);
+		//noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
 
 		
 		KRATOS_CATCH("")
@@ -574,12 +579,186 @@ namespace Kratos
 		//y comp
 		GalerkinRHS[5]=-1.0*(msWorkMatrix(2,0)*vel0[1]+msWorkMatrix(2,1)*vel1[1]+msWorkMatrix(2,2)*vel2[1]);
 
+		//////////////////////////////////////
+		//////////////////////////////////////
+	        /*GetGeometry()[0].SetLock();
+		array_1d<double,3>& rmu0 = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+		rmu0[0] += GalerkinRHS[0];
+		rmu0[1] += GalerkinRHS[1];
+		GetGeometry()[0].UnSetLock();
+
+		GetGeometry()[1].SetLock();
+		array_1d<double,3>& rmu1 = GetGeometry()[1].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+		rmu1[0] += GalerkinRHS[2];
+		rmu1[1] += GalerkinRHS[3];
+		GetGeometry()[1].UnSetLock();
+	
+		GetGeometry()[2].SetLock();
+		array_1d<double,3>& rmu2 = GetGeometry()[2].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+		rmu2[0] += GalerkinRHS[4];
+		rmu2[1] += GalerkinRHS[5];
+		GetGeometry()[2].UnSetLock();*/
+		//////////////////////////////////////
+		//////////////////////////////////////
+
+
 		ms_adv_vel[0] = msN[0]*(vel0[0])+msN[1]*(vel1[0])+msN[2]*(vel2[0]);
 		ms_adv_vel[1] = msN[0]*(vel0[1])+msN[1]*(vel1[1])+msN[2]*(vel2[1]);
 
 	
 		
 		const array_1d<double,3> body_force = 0.333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+						GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +	GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
+		unsigned int number_of_nodes=3;
+		for(unsigned int i = 0; i<number_of_nodes; i++)
+		{
+			GalerkinRHS[i*2] += body_force[0]* density * Area * 0.3333333333333;
+			GalerkinRHS[i*2+1] += body_force[1] * density * Area * 0.3333333333333;
+		}
+		
+		
+		double p_avg=0.333333333333*(p_n0+p_n1+p_n2)*Area;
+
+
+
+		GalerkinRHS[0]+=msDN_DX(0,0)*p_avg;
+		GalerkinRHS[1]+=msDN_DX(0,1)*p_avg; 
+
+		GalerkinRHS[2]+=msDN_DX(1,0)*p_avg; 
+		GalerkinRHS[3]+=msDN_DX(1,1)*p_avg; 
+
+		GalerkinRHS[4]+=msDN_DX(2,0)*p_avg; 
+		GalerkinRHS[5]+=msDN_DX(2,1)*p_avg; 
+		
+
+
+		//////////////////////////////////////
+		//////////////////////////////////////
+	        /*GetGeometry()[0].SetLock();
+		array_1d<double,3>& rmp0 = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+		rmp0[0] += msDN_DX(0,0)*p_avg;
+		rmp0[1] += msDN_DX(0,1)*p_avg; 
+		GetGeometry()[0].UnSetLock();
+
+		GetGeometry()[1].SetLock();
+		array_1d<double,3>& rmp1 = GetGeometry()[1].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+		rmp1[0] += msDN_DX(1,0)*p_avg; 
+		rmp1[1] += msDN_DX(1,1)*p_avg; 
+		GetGeometry()[1].UnSetLock();
+	
+		GetGeometry()[2].SetLock();
+		array_1d<double,3>& rmp2 = GetGeometry()[2].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+		rmp2[0] += msDN_DX(2,0)*p_avg; 
+		rmp2[1] += msDN_DX(2,1)*p_avg; 
+		GetGeometry()[2].UnSetLock();*/
+		//////////////////////////////////////
+		//////////////////////////////////////
+
+
+		
+		GetGeometry()[0].SetLock();
+		array_1d<double,3>& rhs0 = GetGeometry()[0].FastGetSolutionStepValue(FORCE);
+		rhs0[0] += GalerkinRHS[0];
+		rhs0[1] += GalerkinRHS[1];
+		GetGeometry()[0].UnSetLock();
+
+		GetGeometry()[1].SetLock();
+		array_1d<double,3>& rhs1 = GetGeometry()[1].FastGetSolutionStepValue(FORCE);
+		rhs1[0] += GalerkinRHS[2];
+		rhs1[1] += GalerkinRHS[3];
+		GetGeometry()[1].UnSetLock();
+	
+		GetGeometry()[2].SetLock();
+		array_1d<double,3>& rhs2 = GetGeometry()[2].FastGetSolutionStepValue(FORCE);
+		rhs2[0] += GalerkinRHS[4];
+		rhs2[1] += GalerkinRHS[5];
+		GetGeometry()[2].UnSetLock();
+
+
+		double nodal_contrib = 0.333333333333333333333333333 * Area*density;
+
+        	GetGeometry()[0].SetLock();
+        	GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        	GetGeometry()[0].UnSetLock();
+
+        	GetGeometry()[1].SetLock();
+        	GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        	GetGeometry()[1].UnSetLock();
+
+        	GetGeometry()[2].SetLock();
+        	GetGeometry()[2].FastGetSolutionStepValue(NODAL_MASS) += nodal_contrib;
+        	GetGeometry()[2].UnSetLock();
+
+
+
+        }
+        else if (FractionalStepNumber == 6) //calculation of velocities
+        {
+	//KRATOS_ERROR(std::logic_error, "method not implemented", "");
+
+		///////////////////////NECESSARY LOCALS///////////////////////////////////////////
+		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
+		array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
+		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX = ZeroMatrix(3,2);
+		array_1d<double,3> msN = ZeroVector(3); //dimension = number of nodes
+		boost::numeric::ublas::bounded_matrix<double,6,2> msShapeFunc = ZeroMatrix(6,2);
+		boost::numeric::ublas::bounded_matrix<double,2,6> msConvOp = ZeroMatrix(2,6);
+	       	boost::numeric::ublas::bounded_matrix<double,6,6> msAuxMat = ZeroMatrix(6,6);
+		array_1d<double,6> msAuxVec = ZeroVector(6); //dimension = number of nodes
+		array_1d<double,2> ms_adv_vel = ZeroVector(2); //dimesion coincides with space dimension
+		array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
+
+		///////////////////////////////////////////////////////////////////////////////////
+
+	
+		//first we compute  the force term and pressure gradient terms:
+		//getting data for the given geometry
+		double Area;
+		GeometryUtils::CalculateGeometryData(GetGeometry(),msDN_DX,msN,Area);
+
+		//getting the velocity on the nodes and other necessary variabless
+		const array_1d<double,3> vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		double p_n0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
+		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+		
+		const array_1d<double,3> vel1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+		double p_n1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
+		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+		
+		const array_1d<double,3>& vel2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+		double p_n2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
+		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
+		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
+			
+		//====================================================================
+		//calculating viscosity and density
+		double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
+		double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
+		
+		noalias(msWorkMatrix) = Area*density*nu * prod(msDN_DX,trans(msDN_DX));
+				
+		//x comp
+		GalerkinRHS[0]=-1.0*(msWorkMatrix(0,0)*vel0[0]+msWorkMatrix(0,1)*vel1[0]+msWorkMatrix(0,2)*vel2[0]);
+		//y comp
+		GalerkinRHS[1]=-1.0*(msWorkMatrix(0,0)*vel0[1]+msWorkMatrix(0,1)*vel1[1]+msWorkMatrix(0,2)*vel2[1]);
+
+		//x comp
+		GalerkinRHS[2]=-1.0*(msWorkMatrix(1,0)*vel0[0]+msWorkMatrix(1,1)*vel1[0]+msWorkMatrix(1,2)*vel2[0]);
+		//y comp
+		GalerkinRHS[3]=-1.0*(msWorkMatrix(1,0)*vel0[1]+msWorkMatrix(1,1)*vel1[1]+msWorkMatrix(1,2)*vel2[1]);
+
+		//x comp
+		GalerkinRHS[4]=-1.0*(msWorkMatrix(2,0)*vel0[0]+msWorkMatrix(2,1)*vel1[0]+msWorkMatrix(2,2)*vel2[0]);
+		//y comp
+		GalerkinRHS[5]=-1.0*(msWorkMatrix(2,0)*vel0[1]+msWorkMatrix(2,1)*vel1[1]+msWorkMatrix(2,2)*vel2[1]);
+
+		ms_adv_vel[0] = msN[0]*(vel0[0])+msN[1]*(vel1[0])+msN[2]*(vel2[0]);
+		ms_adv_vel[1] = msN[0]*(vel0[1])+msN[1]*(vel1[1])+msN[2]*(vel2[1]);
+
+	
+		
+		const array_1d<double,3> body_force = 0.333333333333333*(GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE)+	GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE) +	GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE));
 		unsigned int number_of_nodes=3;
 		for(unsigned int i = 0; i<number_of_nodes; i++)
 		{
@@ -634,10 +813,7 @@ namespace Kratos
 
 
 
-        }
-        else if (FractionalStepNumber == 6) //calculation of velocities
-        {
-	KRATOS_ERROR(std::logic_error, "method not implemented", "");
+
         }
 
         KRATOS_CATCH("");
