@@ -242,8 +242,7 @@ namespace Kratos
 	}
 	
         virtual void save(Serializer& rSerializer) const
-	{
-	rSerializer.save("Name", "Fluid2DGLS_expl");
+	{	
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 	}
 	
