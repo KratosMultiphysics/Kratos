@@ -350,8 +350,6 @@ namespace Kratos
                     .def("VisualizationModelPart", &ParticleUtils < 2 > ::VisualizationModelPart)
                     .def("TransferToEulerianMesh", &ParticleUtils < 2 > ::TransferToEulerianMesh)
                     .def("RestartStep", &ParticleUtils < 2 > ::RestartStep)
-                    .def("BackAndForth", &ParticleUtils < 2 > ::BackAndForth)
-                    .def("ConvectParticles", &ParticleUtils < 2 > ::ConvectParticles)
                     .def("TransferToEulerianMeshShapeBased", &ParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
                     .def("aa", &ParticleUtils < 2 > ::aa)
 		    .def("StreamlineMove2", &ParticleUtils < 2 > ::StreamlineMove2)
