@@ -61,7 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/duplicate_interface_nodes_create_conditions_process.h" 
- 
+#include "custom_processes/activation_deactivation_conditions_process.h" 
+
 #include "includes/node.h"
 
 namespace Kratos
@@ -78,7 +79,11 @@ namespace Python
 		   .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
 		   .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
 		   .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)		   
-		 ;		  
+		 ;	
+	class_<ActivationDeactivationConditionsProcess, bases<Process> >("ActivationDeactivationConditionsProcess", init<ModelPart& ,int, const Matrix >())
+		   .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
+		 ;		 
+		 
   }
 	
 }  // namespace Python.
