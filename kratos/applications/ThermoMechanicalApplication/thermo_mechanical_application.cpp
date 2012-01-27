@@ -33,7 +33,8 @@ namespace Kratos
 //
 	KRATOS_CREATE_VARIABLE(int, NODE_PROPERTY_ID)
 	KRATOS_CREATE_VARIABLE(double,  AMBIENT_TEMPERATURE)	
-	
+	KRATOS_CREATE_VARIABLE(double,  HTC)	
+	KRATOS_CREATE_VARIABLE(int, REF_ID)
 
 	KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -42,7 +43,8 @@ namespace Kratos
 		mHeatContact3D(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 		mThermalFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
 		mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-		
+		mEnvironmentContact(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+
 		
 		mSUPGConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 		mSUPGConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -59,7 +61,11 @@ namespace Kratos
 		std::cout << "Initializing KratosThermoMechanicalApplication... " << std::endl;
 
 		KRATOS_REGISTER_VARIABLE(NODE_PROPERTY_ID)		
+		KRATOS_REGISTER_VARIABLE(AMBIENT_TEMPERATURE)
+		KRATOS_REGISTER_VARIABLE(HTC)		
+		KRATOS_REGISTER_VARIABLE(REF_ID)		
 		
+	
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
@@ -70,6 +76,8 @@ namespace Kratos
 		KRATOS_REGISTER_CONDITION("HeatContact3D", mHeatContact3D);
 		KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
 		KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
+		KRATOS_REGISTER_CONDITION("EnvironmentContact", mEnvironmentContact);
+
 		
 		KRATOS_REGISTER_ELEMENT("SUPGConvDiff2D", mSUPGConvDiff2D);				
 		KRATOS_REGISTER_ELEMENT("SUPGConvDiff3D", mSUPGConvDiff3D);
