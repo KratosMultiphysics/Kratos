@@ -103,8 +103,7 @@ namespace Kratos
 	//************************************************************************************
 	void HeatContact3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
-	  int nodes_number = GetGeometry().size();
-	  int dim = 3;
+	  unsigned int nodes_number = GetGeometry().size();
 	  
 	  if(rLeftHandSideMatrix.size1() != 2)
 	  {
