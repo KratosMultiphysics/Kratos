@@ -104,7 +104,7 @@ namespace Kratos
 	void EnvironmentContact::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 	  
-	  int nodes_number = GetGeometry().size();
+// 	  int nodes_number = GetGeometry().size();
 	  
 	  if(rLeftHandSideMatrix.size1() != 1)
 	  {
