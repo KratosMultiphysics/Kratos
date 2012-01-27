@@ -51,7 +51,8 @@ class DynamicStructuralSolver:
 
         self.model_part               = model_part  
         self.domain_size              = domain_size
-        self.alpha_damp               = 0.00;
+        self.damping_ratio            = 0.3;
+        self.penalty_factor           = 50.00  
         self.max_delta_time           = 0.05;
         self.fraction_delta_time      = 0.90;
         self.CalculateReactionFlag    = True;
@@ -71,7 +72,7 @@ class DynamicStructuralSolver:
     def Initialize(self):
         
         #creating the solution strategy
-        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part, self.CE, self.domain_size,  self.alpha_damp, self.fraction_delta_time, self.max_delta_time, self.CalculateReactionFlag, self.ComputeContactConditions, self.MoveMeshFlag)
+        self.solver = ResidualBasedCentralDiferencesStrategy(self.model_part, self.CE, self.domain_size,  self.damping_ratio, self.fraction_delta_time, self.max_delta_time, self.penalty_factor, self.CalculateReactionFlag, self.ComputeContactConditions, self.MoveMeshFlag)
 
         
     #######################################################################   
