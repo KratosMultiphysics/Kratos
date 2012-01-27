@@ -104,7 +104,6 @@ namespace Kratos
 	void HeatContact2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 	{
 	  int nodes_number = GetGeometry().size();
-	  int dim = 2;
 	  
 	  if(rLeftHandSideMatrix.size1() != 2)
 	  {
@@ -138,7 +137,7 @@ if(length == 0.0)
 	//Residual
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();	
 	array_1d<double, 2 > unknown_vec;
-        for (unsigned int iii = 0; iii < nodes_number; iii++)
+        for ( int iii = 0; iii < nodes_number; iii++)
             unknown_vec[iii] =  GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);	
 	
 	noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, unknown_vec);	
