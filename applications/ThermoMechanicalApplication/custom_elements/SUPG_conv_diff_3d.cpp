@@ -98,8 +98,8 @@ namespace Kratos {
     void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
-        int nodes_number = GetGeometry().size();
-        int dim = 3;
+        unsigned int nodes_number = GetGeometry().size();
+        unsigned int dim = 3;
         unsigned int matsize = nodes_number;
         const double lumping_factor = 1.00 / double(nodes_number);
 
