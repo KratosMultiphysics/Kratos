@@ -205,8 +205,9 @@ namespace Kratos
 	    
 	    
             BoundaryConditionsAndContactUtilities(){}
-            BoundaryConditionsAndContactUtilities(ModelPart& model_part, const unsigned int& dimension) : mr_model_part(model_part), mrdimension(dimension) 
+            BoundaryConditionsAndContactUtilities(ModelPart& model_part, const unsigned int& dimension, const double& penalty_factor) : mr_model_part(model_part), mrdimension(dimension) 
               {  
+		mpenalty_factor = penalty_factor;
 		mcompute_boundary_contour = true;
               }   
   
@@ -353,8 +354,9 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
   ldouble ny[2][3];
   ldouble d[2][3][3];
  
-  ldouble  pen_vec_tar =  50.00 * (Target->GetProperties()[YOUNG_MODULUS]);
-  ldouble  pen_vec_con =  50.00 * (Contactor->GetProperties()[YOUNG_MODULUS]);
+  ldouble  pen_vec_tar = mpenalty_factor * (Target->GetProperties()[YOUNG_MODULUS]);
+  ldouble  pen_vec_con = mpenalty_factor * (Contactor->GetProperties()[YOUNG_MODULUS]);
+  
   
   //Target->GetValue(IS_TARGET) = true;
   
@@ -602,8 +604,8 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 
 	NodePointerType ipt[4], ipc[4];
 
-	double  pen_vec_tar =  50.00 * (Target->GetProperties()[YOUNG_MODULUS]);
-	double  pen_vec_con =  50.00 * (Contactor->GetProperties()[YOUNG_MODULUS]);
+	double  pen_vec_tar =  mpenalty_factor * (Target->GetProperties()[YOUNG_MODULUS]);
+	double  pen_vec_con =  mpenalty_factor * (Contactor->GetProperties()[YOUNG_MODULUS]);
 	//Target->GetValue(IS_TARGET) = true;
 	penalty = std::min(pen_vec_tar, pen_vec_con); ///penalty term
 	Element::GeometryType& Tgeom = Target->GetGeometry();
@@ -4015,6 +4017,7 @@ void NodeInside(PointerType& MasterObject, PointerType& SlaveObject,  std::vecto
        private:
        ModelPart mr_model_part;    
        unsigned int mrdimension;
+       double       mpenalty_factor;  
        bool mcompute_boundary_contour;
        
        NodesContainerType            mBoundaryNodes;
