@@ -42,6 +42,7 @@ python-extension KratosThermoMechanicalApplication
 	SUPG_conv_3d.cpp
 	thermal_face2d.cpp  
 	thermal_face3d.cpp  
+        environment_contact.cpp
 
 	thermo_mechanical_application.cpp 
 	add_custom_strategies_to_python.cpp 
