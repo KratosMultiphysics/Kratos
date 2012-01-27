@@ -168,12 +168,19 @@ namespace Kratos
 			const double     damping_ratio, /// para calcular la matriz de amortiguamiento proporcional a la masa
                         const double     fraction_delta_time,
                         const double     max_delta_time,
+		        const double     penalty_factor, 
 			const bool       CalculateReactions,
 			const bool       ComputeContactConditions,
 			const bool       MoveMeshFlag
 			)
 	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
+		
+	        std::cout <<"DYNAMIC SOLVER ANALYSIS FOR COMBINED FINITE AND DISCRET ELEMENT METHODS "<< std::endl;
+                std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES    "<< std::endl;
+                std::cout <<"IMPLEMENTED BY           =  ING. NELSON LAFONTAINE "<< std::endl;
+		
+		
 	        mdimension                 = dimension; 
                 mfraction_delta_time       = fraction_delta_time; 
                 mmax_delta_time            = max_delta_time;
@@ -192,17 +199,17 @@ namespace Kratos
 		mcontact_conditions_size   = 0; 
 		mtimestep                  = 0.00;
 		mCE                        = CE;
-	  	mpBCCU_Pointer             = typename BoundaryAndContactType::Pointer (new BoundaryAndContactType(model_part, mdimension) );
-		mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
+	  	mpBCCU_Pointer             = typename BoundaryAndContactType::Pointer (new BoundaryAndContactType(model_part, mdimension, penalty_factor));
 		
-		std::cout <<"DYNAMIC SOLVER ANALYSIS FOR COMBINED FINITE AND DISCRET ELEMENT METHODS "<< std::endl;
-                std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES    "<< std::endl;
-                std::cout <<"IMPLEMENTED BY           =  ING. NELSON LAFONTAINE "<< std::endl;
-		
+		if(mCE==Lagrange_Multiplier_Methods){
+		 mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
+		}
+				
 		mdamping_coeficients = false;
 		mdamping_ratio       = damping_ratio;
 		malpha_damp          = 0.00;
 		mbeta_damp           = 0.00; 
+		mpenalty_factor      = penalty_factor;
 		
 		mDTU.CreateJoints(model_part);
 		
@@ -277,7 +284,7 @@ double Solve()
 	GetForce();
 	
 	/// Fragmentation and fracture
-	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
+	Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
 	
 	 
@@ -972,7 +979,7 @@ double ComputeTimePenalty()
 	 Penalty                = ( Penalty > aux ) ? aux : Penalty; 
       }
 
-      Penalty = 50 * Penalty;
+      Penalty = mpenalty_factor * Penalty;
       
       for(int k=0; k<number_of_threads; k++)
         Min_Mass_Nodal[k] = Mass; 
@@ -992,6 +999,7 @@ double ComputeTimePenalty()
 	
 	Mass = (*std::min_element(Min_Mass_Nodal.begin(), Min_Mass_Nodal.end()));
 	double result = 0.50 * std::sqrt(2.00 * Mass / Penalty); 
+	
 	return result;
 }
 
@@ -1487,6 +1495,7 @@ double mfraction_delta_time;
 double mmax_delta_time;
 double molddelta_time;
 double mtimestep;  /// la suma de los delta time
+double mpenalty_factor;
 Constraint_Enforcement mCE; 
 Disconnect_Triangle_Utilities mDTU;
 
@@ -1606,7 +1615,7 @@ unsigned int Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector
 	  
 	  
 	  const double& dpeft = (prop)[TENSILE_STRENGTH];
-	  const double dpepe  = 50.00 * (prop)[YOUNG_MODULUS];
+	  const double dpepe  = mpenalty_factor * (prop)[YOUNG_MODULUS];
 	  const double& dpefs = (prop)[SHEAR_STRENGTH];
 	  const double& dpegf = (prop)[FRACTURE_ENERGY];
 	  
