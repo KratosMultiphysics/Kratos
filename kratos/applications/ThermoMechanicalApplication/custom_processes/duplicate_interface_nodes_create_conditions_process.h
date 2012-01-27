@@ -100,6 +100,7 @@ namespace Kratos
 
 	   virtual void Execute()
 		 {
+	            KRATOS_WATCH("INSIDE DuplicateInterfaceNodesCreateConditionsProcess");
 		   
 		   //create Hash vector
 		   Vector hash_list;
@@ -212,7 +213,7 @@ namespace Kratos
 				    ele_base->GetValue(IS_VISITED) = 1.0;					
 				    int ele_base_mat = (ele_base->pGetProperties())->Id();
 				    Geometry< Node<3> >& geom = ele_base->GetGeometry();
-				    for(int iii = 0; iii<geom.size(); ++iii)
+				    for(unsigned int iii = 0; iii<geom.size(); ++iii)
 				      if( geom[iii].Id() == nd->GetValue(AUX_INDEX) )
 					geom(iii) = pnode;						
 			      				      
@@ -229,7 +230,7 @@ namespace Kratos
 					{
 					  ngh_ele->GetValue(IS_VISITED) = 1.0;	
 					  Geometry< Node<3> >& geom = ngh_ele->GetGeometry();
-					  for(int iii = 0; iii<geom.size(); ++iii)
+					  for(unsigned int iii = 0; iii<geom.size(); ++iii)
 					   if( geom[iii].Id() == nd->GetValue(AUX_INDEX) )
 					     geom(iii) = pnode;						    
 					}					
@@ -262,7 +263,7 @@ namespace Kratos
 				      
 				      int ele_mat = (im->pGetProperties())->Id();	
 				      Geometry< Node<3> >& geom = im->GetGeometry();
-				      for(int iii = 0; iii<geom.size(); ++iii)	
+				      for(unsigned int iii = 0; iii<geom.size(); ++iii)	
 					geom[iii].GetValue(NODE_PROPERTY_ID) = ele_mat;
 			      }	
 			      
@@ -276,8 +277,8 @@ namespace Kratos
 			 //   //Loop over elements to create the condition  //
 			 //_________________________________________________//   
 // 			Properties::Pointer cond_properties = mr_model_part.GetMesh().pGetProperties(1);
-			Properties& temp_prop = mr_model_part.GetMesh().GetProperties(1);
-			Properties::Pointer pCond_prop(new Properties(temp_prop));
+// 			Properties& temp_prop = mr_model_part.GetMesh().GetProperties(1);
+// 			Properties::Pointer pCond_prop(new Properties(temp_prop));
 			
 	
 			for(ModelPart::NodesContainerType::iterator nd = mr_model_part.NodesBegin() ; 
@@ -301,17 +302,78 @@ namespace Kratos
 
 					//Create new condition  and assign prop_id
 					cnd_id++;
-					int condtion_prop_id;
-					PairToId(nd->GetValue(NODE_PROPERTY_ID), sc_nd->GetValue(NODE_PROPERTY_ID), mr_Nmax, condtion_prop_id);
-					pCond_prop->SetId(condtion_prop_id);
-					Condition::Pointer p_cond = mrCndHeat.Create(cnd_id, temp, pCond_prop);					
-					mr_model_part.Conditions().push_back(p_cond);					
+					unsigned int condition_ref_id;
+					
+					PairToId(nd->GetValue(NODE_PROPERTY_ID), sc_nd->GetValue(NODE_PROPERTY_ID), mr_Nmax, condition_ref_id);
+					
+/*					pCond_prop->SetId(condtion_prop_id);*/
+					Condition::Pointer p_cond = mrCndHeat.Create(cnd_id, temp, mr_model_part.GetMesh().pGetProperties(1));	
+				        p_cond->SetValue( IS_INACTIVE,0 );
+				        p_cond->SetValue( REF_ID,condition_ref_id );					
+					mr_model_part.Conditions().push_back(p_cond);	
+					
+					//create Ambient Temprerature conditions on FIRST duplicated nodes
+					cnd_id++;
+					Condition::NodesArrayType env_temp;
+					env_temp.reserve(1);
+					env_temp.push_back(*(nd.base())); 
+					
+					int prop_id = nd->GetValue(NODE_PROPERTY_ID);
+					
+					Condition::Pointer p_env_cond_first = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, env_temp, mr_model_part.GetMesh().pGetProperties(prop_id));
+					p_env_cond_first->SetValue( IS_INACTIVE,1 );
+					p_env_cond_first->SetValue( REF_ID, (prop_id*mr_Nmax + prop_id) );
+				        mr_model_part.Conditions().push_back(p_env_cond_first);
+					
+					
+					//create Ambient Temprerature conditions on SECOND duplicated nodes					
+					cnd_id++;
+					env_temp.clear();
+					env_temp.push_back(*(sc_nd.base())); 
+					
+					prop_id = sc_nd->GetValue(NODE_PROPERTY_ID);
+					
+					Condition::Pointer p_env_cond_second = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, env_temp, mr_model_part.GetMesh().pGetProperties(prop_id));
+					p_env_cond_second->SetValue( IS_INACTIVE,1 );
+					p_env_cond_second->SetValue( REF_ID, (prop_id*mr_Nmax + prop_id) );						
+					mr_model_part.Conditions().push_back(p_env_cond_second);
+					
 				      }
 				    }
 
 			    }//end of loop over nodes
 
- 
+
+			    KRATOS_WATCH(mr_model_part.Conditions().size());
+
+			  //add nodal boundary condition for the Ambient Temperature
+			for(ModelPart::NodesContainerType::iterator nd = mr_model_part.NodesBegin() ; 
+					    nd != mr_model_part.NodesEnd() ; ++nd)
+			    {
+			      if(nd->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0){
+				//free DOF
+// 				nd->Free(TEMPERATURE);
+				
+				cnd_id++;
+				//generate a face condition
+				Condition::NodesArrayType temp;
+				temp.reserve(1);	
+				
+				//fill points
+				temp.push_back(*(nd.base())); 	
+
+// 				pCond_prop->SetId(nd->GetValue(NODE_PROPERTY_ID));
+				int prop_id = nd->GetValue(NODE_PROPERTY_ID);
+				Condition::Pointer p_cond = KratosComponents<Condition>::Get("EnvironmentContact").Create(cnd_id, temp, mr_model_part.GetMesh().pGetProperties(prop_id));
+				p_cond->SetValue( IS_INACTIVE,1 );
+				p_cond->SetValue( REF_ID, prop_id );					
+				
+				mr_model_part.Conditions().push_back(p_cond);
+			      }
+			      
+			    }
+			    KRATOS_WATCH(mr_model_part.Conditions().size());
+			    
 // 			for(ModelPart::ElementsContainerType::iterator Belem = mr_model_part.ElementsBegin(); Belem != mr_model_part.ElementsEnd(); ++Belem)
 // 			{
 // 		           WeakPointerVector< Element >& Belem_ngh = Belem->GetValue(NEIGHBOUR_ELEMENTS);
@@ -432,7 +494,7 @@ namespace Kratos
 
 
 
-		void PairToId(int ii, int jj, int N_max, int& cond_prop_id)
+		void PairToId(unsigned int ii, unsigned int jj, int N_max, unsigned int& cond_prop_id)
 		{
 		  if( ii > N_max or jj > N_max )
 		    	KRATOS_ERROR(std::logic_error," Beginning or end id is bigger than Max_Id","");	
@@ -442,7 +504,7 @@ namespace Kratos
 		  cond_prop_id = ii*N_max + jj; 
 		}
 		
-		void IdToPair(int cond_prop_id , int N_max, int& init_prop_id, int& end_prop_id)
+		void IdToPair(unsigned int cond_prop_id , unsigned int N_max, int& init_prop_id, int& end_prop_id)
 		{
 		  if( N_max == 0 or cond_prop_id < N_max)
 		    	KRATOS_ERROR(std::logic_error,"Max_Id is zero or Condition_id is less than N_max","");	
