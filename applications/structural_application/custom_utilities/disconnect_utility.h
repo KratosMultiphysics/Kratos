@@ -260,6 +260,12 @@ namespace Kratos
             array_1d<double, 3 > & accel_new = pnode->FastGetSolutionStepValue(ACCELERATION);
             accel_new = accel_old;
 
+	    if(pnode->Id()==273)
+	    {
+	       array_1d<double, 3 > & force = pnode->FastGetSolutionStepValue(FORCE);
+	       force =  ZeroVector(3);
+	    }
+	    
 	    pNode = pnode;
 	    
         }
