@@ -66,13 +66,14 @@ namespace Kratos
       ConvectionDiffusionSettings(){};
       ConvectionDiffusionSettings(const ConvectionDiffusionSettings& rOther):
 	    mpDensityVar(rOther.mpDensityVar), 
-	    mpDiffusionVar(rOther.mpDensityVar),
+	    mpDiffusionVar(rOther.mpDiffusionVar),
 	    mpUnknownVar(rOther.mpUnknownVar),
 	    mpVolumeSourceVar(rOther.mpVolumeSourceVar),
 	    mpSurfaceSourceVar(rOther.mpSurfaceSourceVar),
 	    mpProjectionVar(rOther. mpProjectionVar),
 	    mpConvectionVar(rOther.mpConvectionVar),
-	    mpMeshVelocityVar(rOther.mpMeshVelocityVar)
+	    mpMeshVelocityVar(rOther.mpMeshVelocityVar),
+	    mpTransferCoefficientVar(rOther.mpTransferCoefficientVar)	    
 	    {
 	    }
 
@@ -105,6 +106,9 @@ namespace Kratos
       
       void SetMeshVelocityVariable(const Variable<array_1d<double,3> >& rvar){mpMeshVelocityVar = &rvar;}
       const Variable<array_1d<double,3> >& GetMeshVelocityVariable(){return *mpMeshVelocityVar;}
+      
+      void SetTransferCoefficientVariable(const Variable<double>& rvar){mpTransferCoefficientVar = &rvar;}
+      const Variable<double>& GetTransferCoefficientVariable(){return *mpTransferCoefficientVar;}      
      
       ///@}
       ///@name Operations
@@ -118,13 +122,14 @@ namespace Kratos
       ConvectionDiffusionSettings& operator=(ConvectionDiffusionSettings const& rOther)
       {
 	    mpDensityVar = rOther.mpDensityVar;
-	    mpDiffusionVar = rOther.mpDensityVar;
+	    mpDiffusionVar = rOther.mpDiffusionVar;
 	    mpUnknownVar = rOther.mpUnknownVar;
 	    mpVolumeSourceVar = rOther.mpVolumeSourceVar;
 	    mpSurfaceSourceVar = rOther.mpSurfaceSourceVar;
 	    mpProjectionVar = rOther. mpProjectionVar;
 	    mpConvectionVar = rOther.mpConvectionVar;
 	    mpMeshVelocityVar = rOther.mpMeshVelocityVar;
+	    mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
 	    return *this;
       }
       
@@ -181,7 +186,7 @@ namespace Kratos
       const Variable<double>* mpProjectionVar;
       const Variable<array_1d<double,3> >* mpConvectionVar;
       const Variable<array_1d<double,3> >* mpMeshVelocityVar;
-        
+      const Variable<double>* mpTransferCoefficientVar;       
         
       ///@} 
       ///@name Protected Operators
@@ -241,6 +246,7 @@ namespace Kratos
 	  rSerializer.save("ProjectionVar",mpProjectionVar);
 	  rSerializer.save("ConvectionVar",mpConvectionVar);
 	  rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
+	  rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);	  
 // 	  rSerializer.save("",);
 	}
 
@@ -254,6 +260,8 @@ namespace Kratos
 	  rSerializer.load("ProjectionVar",mpProjectionVar);
 	  rSerializer.load("ConvectionVar",mpConvectionVar);
 	  rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
+	  rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);	  
+	  
 	}
 
         
