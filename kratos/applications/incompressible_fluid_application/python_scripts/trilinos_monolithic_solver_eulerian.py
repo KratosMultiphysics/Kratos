@@ -69,12 +69,13 @@ class MonolithicSolver:
         self.model_part = model_part
         self.domain_size = domain_size
 
-        self.alpha = 0.0
+        self.alpha = 0.0 #-0.3
         self.move_mesh_strategy = 0
 
         self.Comm = CreateCommunicator()
 
         self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
+        self.time_scheme.Check(model_part)
         self.linear_solver =  TrilinosLinearSolver()
         
         #definition of the convergence criteria
@@ -103,8 +104,22 @@ class MonolithicSolver:
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
             self.buildertype="ML3Dpress"
             
-##        self.guess_row_size = 15
+        #self.guess_row_size = 25
         #self.buildertype="standard"
+	#aztec_parameters = ParameterList()
+	#aztec_parameters.set("AZ_solver","AZ_gmres");
+	#aztec_parameters.set("AZ_kspace",200);
+	#aztec_parameters.set("AZ_output","AZ_none");
+	#aztec_parameters.set("AZ_output",10);
+	#preconditioner_type = "ILU"
+	#preconditioner_parameters = ParameterList()
+	#preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+	#preconditioner_parameters.set ("fact: level-of-fill", 1);
+	#overlap_level = 0
+	#nit_max = 1000
+	#linear_tol = 1e-9
+	#self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+
         #solver_parameters = ParameterList()
         #self.linear_solver =  AmesosSolver("Superludist",solver_parameters);
 

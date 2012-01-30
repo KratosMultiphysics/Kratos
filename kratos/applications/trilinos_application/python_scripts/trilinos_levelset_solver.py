@@ -358,7 +358,7 @@ class TrilinosLevelSetSolver:
             
     def ComputeFluidSolution(self):
 	#snap distance to grid
-        #eps = 1e-4*self.max_edge_size;
+        #eps = 1e-3*self.max_edge_size;
         #for node in self.model_part.Nodes:
 	    #dist = node.GetSolutionStepValue(DISTANCE)
 	    #node.SetValue(DISTANCE,dist)
@@ -387,6 +387,11 @@ class TrilinosLevelSetSolver:
         mpi.world.barrier()
         if(mpi.rank == 0):
             print "Solution Step finished"
+            
+        #for node in self.model_part.Nodes:
+	    #dist = node.GetValue(DISTANCE)
+	    #if(abs(dist) < eps):
+	      #node.SetSolutionStepValue(DISTANCE,0,dist)
             
         
       
