@@ -199,8 +199,7 @@ namespace Kratos
         double nu_turbulent = 0.0;
         if (Cs != 0.0){
             nu_turbulent = ComputeSmagorinskyViscosity(DN_DX, h, Cs, nu);
-	
-}
+        }
 
 
         //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
@@ -404,7 +403,7 @@ namespace Kratos
 			    DN_DX(1,0)*fv1[0] + DN_DX(1,1)*fv1[1] +
 			    DN_DX(2,0)*fv2[0] + DN_DX(2,1)*fv2[1];
 	    div_v *= tau2;
-	    rRightHandSideVector[0] += Area*density*DN_DX(0,ComponentIndex)*div_v;
+            rRightHandSideVector[0] -= Area*density*DN_DX(0,ComponentIndex)*div_v;
 	    rRightHandSideVector[1] -= Area*density*DN_DX(1,ComponentIndex)*div_v;
 	    rRightHandSideVector[2] -= Area*density*DN_DX(2,ComponentIndex)*div_v;
 	}

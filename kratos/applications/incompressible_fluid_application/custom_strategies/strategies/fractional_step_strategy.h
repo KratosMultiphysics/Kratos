@@ -1238,7 +1238,7 @@ namespace Kratos
                         array_1d<double,3>& react = geom[k].FastGetSolutionStepValue(rReactionVar);
 
                         #pragma omp atomic
-                        react[component] += rhs[k];
+                        react[component] -= rhs[k];
                     }
                 }
             }
