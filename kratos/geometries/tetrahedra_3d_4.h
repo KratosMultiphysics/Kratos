@@ -1059,7 +1059,7 @@ namespace Kratos
 
             virtual void save( Serializer& rSerializer ) const
             {
-                //rSerializer.save("Name","Tetrahedra3D4");
+
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
             }
 
