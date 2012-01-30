@@ -263,7 +263,7 @@ namespace Kratos
         
         virtual void save(Serializer& rSerializer) const
         {
-            rSerializer.save("Name", "ExplicitASGSCompressible3D");
+
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ASGS3D);
         }
 
