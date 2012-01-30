@@ -1413,7 +1413,7 @@ namespace Kratos
 
             virtual void save( Serializer& rSerializer ) const
             {
-                //rSerializer.save("Name","Hexahedra3D20");
+
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType );
             }
 
