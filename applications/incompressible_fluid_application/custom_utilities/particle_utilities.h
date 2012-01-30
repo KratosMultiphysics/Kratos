@@ -129,7 +129,7 @@ namespace Kratos
             //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
             //            node_locator.UpdateSearchDatabase();
 
-            double density_inverse = 1.0 / density;
+//            double density_inverse = 1.0 / density;
 	    double specific_heat_inverse = 1.0 / speficit_heat;
 
             //reset particle position to the beginning of the step
@@ -420,7 +420,7 @@ namespace Kratos
             //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
             //            node_locator.UpdateSearchDatabase();
 
-            double density_inverse = 1.0 / density;
+         //   double density_inverse = 1.0 / density;
 
             //reset particle position to the beginning of the step
             /*for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
@@ -436,7 +436,7 @@ namespace Kratos
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-            const double small_dt = dt / subdivisions;
+         //   const double small_dt = dt / subdivisions;
 
             const int nparticles = rLagrangianModelPart.Nodes().size();
 
@@ -501,7 +501,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
             //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
             //            node_locator.UpdateSearchDatabase();
 
-            double density_inverse = 1.0 / density;
+//            double density_inverse = 1.0 / density;
 
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();

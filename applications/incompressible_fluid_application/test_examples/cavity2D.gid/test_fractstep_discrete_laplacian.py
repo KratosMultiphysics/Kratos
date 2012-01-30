@@ -10,12 +10,9 @@ domain_size = fluid_only_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = fluid_only_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = fluid_only_var.kratos_path + '/applications' ##kratos_root/applications
+import KratosLoader
 kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
 sys.path.append(kratos_benchmarking_path)
 
 #importing Kratos main library
@@ -26,7 +23,7 @@ kernel = Kernel()   #defining kernel
 import applications_interface
 applications_interface.Import_IncompressibleFluidApplication = True
 ##applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+applications_interface.ImportApplications(kernel)
 
 ## from now on the order is not anymore crucial
 ##################################################################

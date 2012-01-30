@@ -93,7 +93,7 @@ namespace Kratos
   /** 
   ASGS is an abriviation for Algebraic Sub-Grid Scale element. It is implemented to solve
   Implicitly the NS equations in a variotionally consistant sub-grid scale methid. It also has the OSS swith
-  to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscales´ estimation.
+  to use Orthogonal Sub Scales to use impose explicity the orthogonality condition on subscalesÂ´ estimation.
   The "Dynamic_Tau" swith allows the use of "Dt", time step, in calculation of Tau.
   This element just work with Monolithic schemes like "monolithic_solver_eulerian" or "monolithic_solver_lagranigan".
   The detailed description of the formulation could be fined in
@@ -141,7 +141,7 @@ namespace Kratos
       
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-      	        /// The DOF´s are VELOCITY_X, VELOCITY_Y and PRESSURE
+      	        /// The DOFÂ´s are VELOCITY_X, VELOCITY_Y and PRESSURE
 	        /**
 	         * @param ElementalDofList: the list of DOFs
 	         * @param rCurrentProcessInfo: the current process info instance
@@ -362,7 +362,6 @@ namespace Kratos
         
         virtual void save(Serializer& rSerializer) const
         {
-            rSerializer.save("Name", "ASGS2D");
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
         }
 

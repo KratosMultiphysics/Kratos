@@ -182,10 +182,10 @@ namespace Kratos {
                 KRATOS_ERROR(std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.","");
 
             // Checks on process info
-            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+//            const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-            if(rCurrentProcessInfo.Has(DELTA_TIME) == 0)
-                KRATOS_ERROR(std::invalid_argument,"ProcessInfo does not contain a value for DELTA_TIME","");
+//            if(rCurrentProcessInfo.Has(DELTA_TIME) == 0)
+//                KRATOS_ERROR(std::invalid_argument,"ProcessInfo does not contain a value for DELTA_TIME","");
 
             return 0;
             KRATOS_CATCH("");

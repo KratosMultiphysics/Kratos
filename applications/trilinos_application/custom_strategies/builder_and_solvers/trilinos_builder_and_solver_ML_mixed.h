@@ -412,7 +412,7 @@ namespace Kratos
 
                 // Instruct AztecOO to use GMRES with estimation of the condition
                 // number. Also, requires output every 32 iterations
-                // Then, solve with 500 iterations and 1e-12 as tolerance on the
+                // Then, solve with 500 iterations and 1e-8 as tolerance on the
                 // relative residual
 
                 solver.SetAztecOption(AZ_solver, AZ_gmres_condnum);

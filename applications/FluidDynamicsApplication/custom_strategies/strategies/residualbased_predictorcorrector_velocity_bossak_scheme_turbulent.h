@@ -881,10 +881,17 @@ namespace Kratos {
             {
                 if( rGeometry[j].GetValue(IS_STRUCTURE) != 0.0 )
                 {
+/*					if(rGeometry[j].Id() == 1309)
+						KRATOS_ERROR(std::logic_error,"found node 1309","")*/
+					
                     NeedRotation = true;
                     MatrixBlockType Block(Rotation,range(Index,Index+mDomainSize),range(Index,Index+mDomainSize));
                     this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
+					
+/*					if(rGeometry[j].Id() == 1309)
+						KRATOS_WATCH(Block)*/
                 }
+
                 Index += BlockSize;
             }
             if(NeedRotation)
@@ -952,7 +959,10 @@ namespace Kratos {
                     // If the mesh is moving, we must impose v_normal = vmesh_normal
                     array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                     VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-                    const array_1d<double,3>& rNormal = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+                    array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+					this->Normalize(rN);
+					
+					double diag_value = rLocalMatrix(j,j);
 
                     for( size_t i = 0; i < j; ++i) // Skip term (i,j)
                     {
@@ -965,7 +975,7 @@ namespace Kratos {
                         rLocalMatrix(j,i) = 0.0;
                     }
 
-                    rLocalVector(j) = TDenseSpace::Dot(rNormal,VMesh);
+                    rLocalVector(j) = inner_prod(rN,VMesh);
                     rLocalMatrix(j,j) = 1.0;
                 }
             }
@@ -987,9 +997,10 @@ namespace Kratos {
                     // If the mesh is moving, we must impose v_normal = vmesh_normal
                     array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                     VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-                    const array_1d<double,3>& rNormal = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-
-                    rLocalVector[j] = TDenseSpace::Dot(rNormal,VMesh);
+                    array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+					this->Normalize(rN);
+					
+                    rLocalVector[j] = inner_prod(rN,VMesh);
                 }
             }
         }
