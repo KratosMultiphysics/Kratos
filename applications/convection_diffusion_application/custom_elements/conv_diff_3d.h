@@ -232,7 +232,6 @@ void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo
 	
         virtual void save(Serializer& rSerializer) const
 	{
-	//rSerializer.save("Name", "ConvDiff3D");
 	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 	}
 	
