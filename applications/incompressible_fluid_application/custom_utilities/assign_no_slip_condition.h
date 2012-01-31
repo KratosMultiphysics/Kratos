@@ -100,7 +100,7 @@ namespace Kratos
 			 {
 				if( it->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
 				   {	
-	      KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> NOSLIPBOUNDARY «««««««««««««««««««««");	
+	      KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> NOSLIPBOUNDARY <<<<<<<<<<<<<<<<<<<<<");
 				       Condition::NodesArrayType temp;	
 				       temp.reserve(1);
 				       temp.push_back(*(it.base()));	
