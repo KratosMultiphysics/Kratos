@@ -45,7 +45,7 @@
  * @param DFGRD0 .........
  * @param DFGRD1 .........
  * @param NOEL ...........
- * @param NPT ............
+ * @param NPT ............ some paramter that is needed by hypoplastic material law
  * @param KSLAY ..........
  * @param KSPT ...........
  * @param KSTEP ..........
@@ -57,7 +57,7 @@ extern "C" void umat_wrapper_( double* STRESS, double* STATEV, double** DDSDDE, 
                                    double* TIME, double* DTIME, double* TEMP, double* DTEMP, double* PREDEF, double* DPRED,
                                    char* MATERL, int* NDI, int* NSHR, int* NTENS, int* NSTATV, double* PROPS, int* NPROPS,
                                    double* COORDS, double** DROT, double* PNEWDT, double* CELENT, double** DFGRD0,
-                                   double** DFGRD1, double* NOEL, double* NPT, double* KSLAY, double* KSPT, double* KSTEP,
+                                   double** DFGRD1, double* NOEL, int* NPT, double* KSLAY, double* KSPT, double* KSTEP,
                                    double* KINC, int* MATERIALNUMBER );
 
 namespace Kratos
@@ -159,6 +159,16 @@ namespace Kratos
 
                 break;
 
+            case 2:
+                //hypoplastic material with small-strain stiffness
+                STATEV = new double[14];
+                for ( unsigned int i = 0; i < 14; i++ )
+                    STATEV[i] = 0.0;
+
+                NSTATV[0] = 14;
+
+                break;
+
 
             default:
                 std::cout << "No umat material with id: " << MaterialNumber[0] << " defined" << std::endl;
@@ -190,12 +200,23 @@ namespace Kratos
                                           bool SaveInternalVariables )
     {
         double DDSDDE[NTENS[0]][NTENS[0]];
+        double DDSDDT[NTENS[0]];
+        double DRPLDE[NTENS[0]];
+	double TIM[2];
+	double DTIME[1];
+	int NPT[1];
+	TIM[0] = CurrentProcessInfo[TIME];
+	TIM[1] = CurrentProcessInfo[DELTA_TIME];
+	DTIME[0] = CurrentProcessInfo[DELTA_TIME];
+	NPT[0] = 0;
 
         for ( unsigned int i = 0; i < NTENS[0]; i++ )
         {
             STRAN[i] = StrainVector[i];
 
             //deltaEpsilon = Epsilon - STATEV  in case of mises_umat!
+            DDSDDT[i] = 0.0;
+	    DRPLDE[i] = 0.0;
 
             if ( MaterialNumber[0] == 0 || MaterialNumber[0] == 1 )
             {
@@ -215,10 +236,11 @@ namespace Kratos
         // if any new umat is implemented, please check the required parameters and add them accordingly
         // make sure that for backward compatibility the new parameters are initialized as NULL pointers for all
         // other umat materials
-        umat_wrapper_( STRESS, STATEV, ( double** ) DDSDDE, NULL, NULL, NULL, NULL, NULL, NULL, NULL, STRAN, DSTRAN,
-                       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NDI, NSHR, NTENS, NSTATV, PROPS, NPROPS,
-                       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, MaterialNumber );
-
+KRATOS_WATCH("before calling umat");
+        umat_wrapper_( STRESS, STATEV, ( double** ) DDSDDE, NULL, NULL, NULL, NULL, DDSDDT, DRPLDE, NULL, STRAN, DSTRAN,
+                       TIM, DTIME, NULL, NULL, NULL, NULL, NULL, NDI, NSHR, NTENS, NSTATV, PROPS, NPROPS,
+                       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NPT, NULL, NULL, NULL, NULL, MaterialNumber );
+KRATOS_WATCH("after calling umat");
 
         //copy variables back
         for ( unsigned int i = 0; i < NTENS[0]; i++ )
@@ -230,8 +252,6 @@ namespace Kratos
 
             StressVector[i] = STRESS[i];
         }
-        for( unsigned int i=0; i<13; i++ )
-            KRATOS_WATCH(STATEV[i]);
     }
 
     void Umat::FinalizeSolutionStep( const Properties& props,
