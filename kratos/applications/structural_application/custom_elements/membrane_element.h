@@ -306,7 +306,6 @@ class MembraneElement
 
 	    virtual void save(Serializer& rSerializer) const
 	    {
-	       rSerializer.save("Name","MembraneElement");
 	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
 	    }
 
