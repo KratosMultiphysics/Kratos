@@ -13,6 +13,7 @@ set( EXTERNAL_CONSTITUTIVE_LAWS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_constitutive_laws_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/umat.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/umat/mises_umat.f
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/umat/umat_hypo.f
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/umat/umat_fortran_wrapper.f
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/umat/xit.f
 
