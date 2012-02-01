@@ -634,10 +634,10 @@ namespace Kratos
                 KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
     
 	    if(DP_ALPHA1.Key() == 0 || props[DP_ALPHA1]<= 0.00)
-                KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+                KRATOS_ERROR(std::invalid_argument,"DP_ALPHA1 has Key zero or invalid value ","");
 	    
 	    if(DP_K.Key() == 0 || props[DP_K]<= 0.00)
-                KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+                KRATOS_ERROR(std::invalid_argument,"DP_K has Key zero or invalid value ","");
 	    
 	    return 0;
          }
