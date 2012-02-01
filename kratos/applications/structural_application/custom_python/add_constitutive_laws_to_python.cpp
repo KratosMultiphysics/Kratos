@@ -220,28 +220,13 @@ namespace Kratos
                      init<>() ) 
                     ;
             
-            class_< DruckerPrager, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("DruckerPrager",
-                     init<>() )
-                    ;
-            
-            /*	
-
-			class_< IsotropicElasticLargeStrain, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-			("IsotropicElasticLargeStrain",
-			init<>() )
-			;
-			*/
-
-
-            
             class_< HooksLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
                     ("HooksLaw",
                      init<>() )
                     ;
             
             class_< DruckerPragerLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-                    ("DruckerPragerLaw",
+                    ("DruckerPrager",
                      init<>() )
                     ;
             
