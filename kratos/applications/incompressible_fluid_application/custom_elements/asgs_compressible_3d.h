@@ -249,7 +249,9 @@ namespace Kratos
         
         virtual void save(Serializer& rSerializer) const
         {
+
              KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ASGS3D);
+
         }
 
         virtual void load(Serializer& rSerializer)
