@@ -291,7 +291,7 @@ namespace Kratos
 
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-
+vc2=1.0;
 	}
 	//*************************************************************************************
 	//*************************************************************************************
@@ -420,7 +420,7 @@ namespace Kratos
              CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
              Vel_art_visc = 1.4 * abs(div_vel) * pow(H,2);
 
-	     Pr_art_visc = 1.4*sqrt(norm_grad_p/density) * pow(H,1.5);
+	     Pr_art_visc = 1.0*sqrt(norm_grad_p/density) * pow(H,1.5);
 	    } 
 	   
 	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
