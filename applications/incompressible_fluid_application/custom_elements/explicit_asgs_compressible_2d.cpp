@@ -164,7 +164,7 @@ namespace Kratos
 
 	//viscous term	
 	//CalculateViscousTerm(rDampMatrix, DN_DX, Area);
-	CalcualteDCOperatior(rDampMatrix, DN_DX, Area);
+	CalcualteDCOperator(rDampMatrix, DN_DX, Area);
 	//Advective term
 	double tauone;
 	double tautwo;
@@ -218,7 +218,7 @@ namespace Kratos
 			K(row + jj, row + jj) += density*lump_mass_fac;
 
 		//add pressure mass
-			K(row + dof , row + dof ) += 1.5*lump_mass_fac;
+			K(row + dof , row + dof ) += 1.0*lump_mass_fac;
 	    }
 	
 	
@@ -284,10 +284,10 @@ namespace Kratos
                 int column = jj * (dof + 1) + dof;
 
                 K(row, column) -=  area * N(jj) * DN_DX(ii, 0);
-                K(column, row) += 1.5*VC2 * area * density * N(jj) * DN_DX(ii, 0);
+                K(column, row) += 1.0*VC2 * area * density * N(jj) * DN_DX(ii, 0);
 
                 K(row + 1, column) -=  area * N(jj) * DN_DX(ii, 1);
-                K(column, row + 1) += 1.5*VC2 * area * density * N(jj) * DN_DX(ii, 1);
+                K(column, row + 1) += 1.0*VC2 * area * density * N(jj) * DN_DX(ii, 1);
             }
         }
 
@@ -321,7 +321,7 @@ namespace Kratos
             for (int jj = 0; jj < nodes_number; jj++) {
                 int column = jj * (dof + 1) + dof;
 
-                K(row, column) += 1.5*area * tauone * gard_opr(ii, jj);
+                K(row, column) += 1.0*area * tauone * gard_opr(ii, jj);
 
             }
         }
@@ -343,7 +343,7 @@ namespace Kratos
 
 
         array_1d<double, 3 > fbd_stblterm = ZeroVector(nodes_number);
-        fbd_stblterm = 1.5*tauone * prod(DN_DX, bdf);
+        fbd_stblterm = 1.0*tauone * prod(DN_DX, bdf);
 
 
         for (int ii = 0; ii < nodes_number; ++ii) {
@@ -359,7 +359,7 @@ namespace Kratos
 	  {
 	    KRATOS_TRY
 	//tau*div(V).P_dot
-	  double stbl_fac = tautwo * area;
+	  double stbl_fac = 1.0*tautwo * area;
           int nodes_number = 3;
           int dof = 2;
 
@@ -429,7 +429,7 @@ namespace Kratos
 						
         for (int ii = 0; ii < nodes_number; ++ii) {
             int index = ii * (dof + 1) + dof;	    
-            F[index] -= tautwo * lump_mass_fac * nonlinear_term;
+            F[index] -= 0.666666666666666667*tautwo * lump_mass_fac * nonlinear_term;
         }	 
 	 
 	 
@@ -491,8 +491,8 @@ namespace Kratos
 	   }
 	
 	mean_rho_w *= 0.333333333333333333333333333333333333;
-	mean_old_rho_w *=0.333333333333333333333333333333333333;
-	mean_old_pr_w *=0.333333333333333333333333333333333333;
+	mean_old_rho_w *=0.333333333333333333333333333333333;
+	mean_old_pr_w *=0.3333333333333333333333333333333333;
 
 
 	double alpha = (mean_old_pr_w * K2 + K1)/mean_old_rho_w;
@@ -504,13 +504,16 @@ namespace Kratos
 	 double mean_vc=0.0;
 		for(int ii = 0; ii<3; ii++)
 		    {
-			mean_vc = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
-			mean_vc2 += mean_vc * mean_vc;
+			mean_vc += GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
+// 			mean_vc2 += mean_vc * mean_vc;
 		    }
-
-	 vc2 =mean_vc2*0.333333333333333333333333;
-
+           mean_vc *= 0.3333333333333333333333333;
+	   vc2 = mean_vc*mean_vc;
+// 	 vc2 =mean_vc2*0.333333333333333333333333;
+//  vc2 = 5.0/9.0;
 //  vc2 = 1.0;
+
+
 	}
 
 
@@ -598,7 +601,6 @@ namespace Kratos
          tauone = time*VC2;
             //tauone = time;
             tautwo = time;
-	    
 
             KRATOS_CATCH("")
 
@@ -778,7 +780,8 @@ namespace Kratos
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(AIR_SOUND_VELOCITY ) ;
 	    inv_max_h = sqrt(inv_max_h);
 	    
-//  VC = 1.0;	    
+//  VC = sqrt(5.0)/3.0;	   
+//   VC = 1.0;
 	    calc_t = 1.0/(inv_max_h * VC );
 
 
@@ -791,7 +794,7 @@ namespace Kratos
         }
         //************************************************************************************
     //************************************************************************************
-     void ExplicitASGSCompressible2D::CalcualteDCOperatior(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
+     void ExplicitASGSCompressible2D::CalcualteDCOperator(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area)
       {
         KRATOS_TRY 
         int nodes_number = 3;
@@ -926,7 +929,7 @@ namespace Kratos
 	  }
 	  mean_acc *= 0.33333333333333333333333333333333333;
 	  grad_rho *= 0.33333333333333333333333333333333333;
-	  grad_pr *= 0.33333333333333333333333333333333333;	  
+	  grad_pr  *= 0.33333333333333333333333333333333333;	  
 	  grad_rho[2] = 0.0;
 	  grad_pr[2] = 0.0;
 	  
@@ -954,9 +957,13 @@ namespace Kratos
 	      else
 		    ch_length = 2.0/sqrt(denom);
 	    }
-	   else
+	   else{
 	         ch_length = 0.0;
-	  
+/*		 KRATOS_WATCH("CalculateCharectristicLength zero norm_n_dir ");
+		 KRATOS_WATCH(this->Id());
+		 KRATOS_WATCH(norm_grad_rho);
+		 KRATOS_WATCH(norm_acc);*/		 
+	   }
 	    KRATOS_CATCH("")
 	}
 	
