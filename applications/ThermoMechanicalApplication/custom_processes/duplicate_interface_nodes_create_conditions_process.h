@@ -74,7 +74,7 @@ namespace Kratos
 // 		DuplicateInterfaceNodesCreateConditionsProcess()
 // 		{
 // 		}
-	       DuplicateInterfaceNodesCreateConditionsProcess(ModelPart& ThisModelPart, char* heat_contact_condition, int max_id, const Matrix contact_table )
+	       DuplicateInterfaceNodesCreateConditionsProcess(ModelPart& ThisModelPart, char* heat_contact_condition, unsigned int max_id, const Matrix contact_table )
 			:Process(), mr_model_part(ThisModelPart), mrCndHeat(KratosComponents<Condition>::Get(heat_contact_condition)), mr_Nmax(max_id), mr_contact_table(contact_table)
 		{
 		}		
@@ -494,7 +494,7 @@ namespace Kratos
 
 
 
-		void PairToId(unsigned int ii, unsigned int jj, int N_max, unsigned int& cond_prop_id)
+		void PairToId(unsigned int ii, unsigned int jj,unsigned int N_max, unsigned int& cond_prop_id)
 		{
 		  if( ii > N_max or jj > N_max )
 		    	KRATOS_ERROR(std::logic_error," Beginning or end id is bigger than Max_Id","");	
@@ -516,7 +516,7 @@ namespace Kratos
 		private:		
 			  ModelPart& mr_model_part;
 			  Condition const& mrCndHeat;	
-			  int mr_Nmax;
+			  unsigned int mr_Nmax;
                           const Matrix mr_contact_table;			  
 			  
 		//functions
@@ -544,7 +544,7 @@ namespace Kratos
 											
 				
 				//copying this data in the position of the vector we are interested in
-				for(unsigned int j= 0; j<data_size; j++)
+				for( int j= 0; j<data_size; j++)
 				{ 
 					created_step_data[j] = master_step_data[j];								
 				}
