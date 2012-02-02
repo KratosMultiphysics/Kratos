@@ -185,6 +185,9 @@ namespace Kratos
        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
        virtual void CalculateResidual(const MatrixType& K, VectorType& F);
 	virtual void CalculateDivPdotStblTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX,const array_1d<double,3>& N, const double time,const double thawone,const double volume);
+        virtual void CalculateNonlinearStblTerm(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tauone,const double area);
+	virtual void CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad );
+ 	virtual void CalculateArtifitialViscosity(double& art_visc,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>&DN_DX);
 
       ///@} 
       ///@name Protected Operators
