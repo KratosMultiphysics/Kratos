@@ -1044,7 +1044,7 @@ namespace Kratos {
         double mean_y_adv = 0.25 * (advproj_0[1] + advproj_1[1] + advproj_2[1]+ advproj_3[1]);
         double mean_z_adv = 0.25 * (advproj_0[2] + advproj_1[2] + advproj_2[2]+ advproj_3[2]);
 
-        double mean_div = 0.3333333333333333 * (div_proj_0 + div_proj_1 + div_proj_2 + div_proj_3);
+        double mean_div = 0.25 * (div_proj_0 + div_proj_1 + div_proj_2 + div_proj_3);
 
         for (unsigned int ii = 0; ii < number_of_nodes; ii++) {
             int index = ii * (dim + 1);
@@ -1278,8 +1278,8 @@ namespace Kratos {
         double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1]+ ms_adv_vel[2] * ms_adv_vel[2];
         advvel_norm = sqrt(advvel_norm);
 
-        double ele_length = pow(12*volume,0.333333333333333333333);  
-        ele_length = 2.0/3.0 * ele_length * sqrt(3.00);
+        double ele_length = pow(12.0*volume,0.333333333333333333333);  
+        ele_length = 0.666666667 * ele_length * 1.732;//2.0/3.0 * ele_length * sqrt(3.00)
 
         double mu;
         //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
