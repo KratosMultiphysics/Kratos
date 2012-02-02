@@ -74,7 +74,7 @@ namespace Kratos
 // 		DuplicateInterfaceNodesCreateConditionsProcess()
 // 		{
 // 		}
-	       ActivationDeactivationConditionsProcess(ModelPart& ThisModelPart, int max_id, const Matrix activation_table )
+	       ActivationDeactivationConditionsProcess(ModelPart& ThisModelPart,unsigned int max_id, const Matrix activation_table )
 		:Process(), mr_model_part(ThisModelPart), mr_Nmax(max_id), mr_active_deactive_table(activation_table)
 		{
 		}		
@@ -111,18 +111,18 @@ namespace Kratos
 		    for (ModelPart::ConditionsContainerType::iterator cnd = mr_model_part.ConditionsBegin() ; 
 					cnd != mr_model_part.ConditionsEnd() ; ++cnd)
 		      {		   
-			    int cond_ref_id = cnd->GetValue(REF_ID);
+			    unsigned int cond_ref_id = cnd->GetValue(REF_ID);
 			    
 			    if( hash_list(cond_ref_id - 1, 0) == 1.0)
 			      cnd->SetValue(IS_INACTIVE ,  ! hash_list(cond_ref_id-1,1) );
 			    
 			   //free or fix tenperature just for teh exterior environment_contact conditions 
-			    if(cond_ref_id <= mr_Nmax)
+			    if(cond_ref_id <= mr_Nmax){
 			      if( hash_list(cond_ref_id-1,1) == 1)
 				(cnd->GetGeometry()[0]).Free(TEMPERATURE);
 			      else
 				(cnd->GetGeometry()[0]).Fix(TEMPERATURE);
-		   
+			    }
 		      }
 
 		}//end of execute
@@ -132,7 +132,7 @@ namespace Kratos
 			
 		private:		
 			  ModelPart& mr_model_part;
-			  int mr_Nmax;
+			  unsigned int mr_Nmax;
 			  const Matrix mr_active_deactive_table;
 			  
 		//functions
