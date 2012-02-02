@@ -284,15 +284,20 @@ namespace Kratos
 
 	 double mean_vc2=0.0;
 	 double mean_vc=0.0;
+	 double max_vc = 0.0;
 		for(int ii = 0; ii<3; ii++)
 		    {
 			mean_vc = GetGeometry()[ii].FastGetSolutionStepValue(WATER_SOUND_VELOCITY ) ;
-			mean_vc2 += mean_vc * mean_vc;
+			if(mean_vc > max_vc)
+			  max_vc = mean_vc;
+			
+			mean_vc2 += (mean_vc) * (mean_vc);
 		    }
 
+// 	vc2 = max_vc*max_vc;
 	 vc2 =mean_vc2*0.333333333333333333333333;
 
-//vc2 = 10.0;
+// 	  vc2 = 5.0/9.0;
 
 	}
 	//*************************************************************************************
@@ -339,7 +344,10 @@ namespace Kratos
             double VC = GetGeometry()[ii].FastGetSolutionStepValue(WATER_SOUND_VELOCITY ) ;
 
 	    inv_max_h = sqrt(inv_max_h);
-	    calc_t = 1.0/(inv_max_h * VC );
+	    if(VC!=0.0)
+	     calc_t = 1.0/(inv_max_h * VC );
+	    else
+	      calc_t = 2*Output;
    
 	    if( calc_t < Output)
 		  Output = calc_t;
@@ -393,6 +401,176 @@ namespace Kratos
 
         KRATOS_CATCH("")
 	  }
+        //************************************************************************************
+    //************************************************************************************	  
+	        void ASGSCOMPPRDC2D::CalculateNonlinearStblTerm(VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double time,const double tautwo,const double area)
+	{
+	    KRATOS_TRY	  
+	double lump_mass_fac = area * 0.333333333333333333333333;
+	int nodes_number = 3;
+        int dof = 2;	
+	
+        double density;
+        double mu;
+        calculatedensity(GetGeometry(), density, mu);
+	
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+	
+         double mean_pressure_rate = N(0) * (GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE_DT));
+	 for( int ii=1; ii < nodes_number; ++ii)
+            mean_pressure_rate +=  N(ii) * (GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE_DT));
+	 
+	 
+
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1));
+	    
+	 }
+	 
+	 double nonlinear_term = div_vel *(mean_pressure_rate + density*VC2*div_vel);
+						
+        for (int ii = 0; ii < nodes_number; ++ii) {
+            int index = ii * (dof + 1) + dof;	    
+            F[index] -= 6.15*tautwo * lump_mass_fac * nonlinear_term; // gamma = 5/3 ---> 0.66666666666667 gamma = 7/5 ----> 0.4 gamma=7.15
+        }	 
+	 
+	 
+        KRATOS_CATCH("")	  
+	}  
+    //************************************************************************************
+    //************************************************************************************
+     void ASGSCOMPPRDC2D::CalculateArtifitialViscosity(double& Vel_art_visc ,double& Pr_art_visc ,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX)
+ 	{
+	    KRATOS_TRY    
+	  
+	 Vel_art_visc = 0.0; 
+	 Pr_art_visc = 0.0;
+         int nodes_number = 3;
+	 double div_vel = 0.0;
+         for( int ii=0; ii < nodes_number; ++ii)
+	 {
+	    const array_1d<double,3>& vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
+	    div_vel += (vel[0]*DN_DX(ii,0) + vel[1]*DN_DX(ii,1));
+	    
+	 }  
+	 
+	 double H=0.0;
+	 double norm_grad_p = 0.0;
+	 
+	double mu;
+        double density;
+        calculatedensity(GetGeometry(), density, mu);
+	double VC2;
+	CalculateSoundVelocity(GetGeometry(), VC2);
+	double vc_factor = sqrt(VC2);
+	 
+	 if( div_vel < 0.0)
+	    {
+             CalculateCharectristicLength(H,DN_DX,norm_grad_p);	
+             Vel_art_visc = 1.4*10.0 * abs(div_vel) * pow(H,2);
+
+	     Pr_art_visc = 1.0*1.0 *sqrt(norm_grad_p/density) * pow(H,1.5);
+	    } 
+	   
+	   this->GetValue(VEL_ART_VISC)=Vel_art_visc;
+	   this->GetValue(PR_ART_VISC)=Pr_art_visc;
+	    
+	    
+	    KRATOS_CATCH("")
+	} 	  
+	 //************************************************************************************
+         //************************************************************************************
+        void ASGSCOMPPRDC2D::CalculateCharectristicLength(double& ch_length, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,double& norm_grad )
+ 	{
+	    KRATOS_TRY 
+	  GeometryType::JacobiansType J;
+	  GetGeometry().Jacobian(J); 
+
+	  Matrix CC;
+	  CC.resize(2,2,false);	  	
+	  
+	  Matrix DD;
+	  DD.resize(2,2,false);	  	  
+
+	  noalias(CC) = prod(J[0],trans(J[0]));	 
+	  DD=CC;
+	  
+	  double det = CC(1,1)*CC(0,0) - CC(0,1)*CC(1,0);
+	  
+	  if(det == 0.0)
+	      	KRATOS_ERROR(std::logic_error,"ZERO DETERMINANT IN ARTIFICIAL VISCOSITY ",det)
+	  else 
+	     det = 1.0/det;
+	  
+          double zarf = CC(0,0);	  
+	  CC(0,0) = det*CC(1,1);
+	  CC(1,1) = det*zarf;
+	  CC(0,1) = -CC(0,1)*det;
+	  CC(1,0) = -CC(1,0)*det;
+	  //KRATOS_WATCH( prod(DD,CC));	  
+
+	  int nodes_number = 3;
+	  array_1d<double,3> mean_acc =  GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+	  double rho = GetGeometry()[0].FastGetSolutionStepValue(DENSITY_WATER);
+	  double pr = GetGeometry()[0].FastGetSolutionStepValue(WATER_PRESSURE);
+	  
+	  array_1d<double,3> grad_rho,grad_pr;
+	  grad_rho[0] = DN_DX(0,0)*rho;
+	  grad_rho[1] = DN_DX(0,1)*rho;
+	  grad_pr[0] = DN_DX(0,0)*pr;
+	  grad_pr[1] = DN_DX(0,1)*pr;	  
+		  
+          for (int ii = 1; ii < nodes_number; ii++) {	  
+	        mean_acc += GetGeometry()[ii].FastGetSolutionStepValue(ACCELERATION);  
+		rho = GetGeometry()[ii].FastGetSolutionStepValue(DENSITY_WATER);
+		pr = GetGeometry()[ii].FastGetSolutionStepValue(WATER_PRESSURE);		
+		grad_rho[0] += DN_DX(ii,0)*rho;
+		grad_rho[1] += DN_DX(ii,1)*rho;	
+		grad_pr[0] += DN_DX(ii,0)*pr;
+		grad_pr[1] += DN_DX(ii,1)*pr;				
+	  }
+	  mean_acc *= 0.33333333333333333333333333333333333;
+	  grad_rho *= 0.33333333333333333333333333333333333;
+	  grad_pr *= 0.33333333333333333333333333333333333;	  
+	  grad_rho[2] = 0.0;
+	  grad_pr[2] = 0.0;	  
+	  
+	  double norm_acc =  MathUtils<double>::Norm3(mean_acc);
+	  double norm_grad_rho =  MathUtils<double>::Norm3(grad_rho);
+          norm_grad =  MathUtils<double>::Norm3(grad_pr);
+	  
+	  
+	  array_1d<double,3>  n_dir= ZeroVector(3);
+	  if(norm_acc != 0.0)
+	             n_dir = 0.75/norm_acc*mean_acc;
+	  if(norm_grad_rho != 0.0)
+	             n_dir +=  0.25/norm_grad_rho*grad_rho;
+	  
+	  double norm_n_dir =  MathUtils<double>::Norm3(n_dir);	
+ 	  
+	  if(norm_n_dir != 0.0)
+	    {
+	      n_dir/=norm_n_dir;	  
+	      array_1d<double,3>  CC_n;	  
+	      CC_n = prod(CC,n_dir);	  
+	      double denom = n_dir[0]*CC_n[0] + n_dir[1]*CC_n[1] + n_dir[2]*CC_n[2];
+
+	      if(denom <= 0.0)
+		    KRATOS_ERROR(std::logic_error,"CalculateCharectristicLength zero or negative denominator ",denom)	
+	      else
+		    ch_length = 2.0/sqrt(denom);
+	    }
+	   else
+	         ch_length = 0.0;
+	  
+	    KRATOS_CATCH("")
+	}	
+        //************************************************************************************
+    //************************************************************************************
 
 } // Namespace Kratos
 
