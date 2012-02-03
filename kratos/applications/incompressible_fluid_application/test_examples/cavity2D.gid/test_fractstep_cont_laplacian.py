@@ -10,26 +10,14 @@ domain_size = fluid_only_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-import KratosLoader
 kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(kratos_benchmarking_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-##applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosIncompressibleFluidApplication import *
 import benchmarking
+
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+
 
 def BenchmarkCheck(time, model_part):
     max_press = 0.0; 
