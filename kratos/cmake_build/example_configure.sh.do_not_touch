@@ -42,7 +42,7 @@ cmake ..  									\
 -DMKLSOLVER_LIB_DIR="/opt/intel/Compiler/11.1/072/mkl/lib/em64t"		\
 -DMETIS_APPLICATION=OFF								\
 -DPARMETIS_ROOT_DIR="/home/rrossi/compiled_libraries/ParMetis-3.1.1" 		\
--DTRILINOS_APPLICATION=ON							\
+-DTRILINOS_APPLICATION=OFF							\
 -DTRILINOS_ROOT="/home/rrossi/compiled_libraries/trilinos-10.2.0"		\
 -DDEM_APPLICATION=OFF								\
 
