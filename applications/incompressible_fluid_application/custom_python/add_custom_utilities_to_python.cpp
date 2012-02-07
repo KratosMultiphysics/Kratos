@@ -330,6 +330,7 @@ namespace Kratos
 
 		class_<LagrangianParticleUtils < 2 > >("LagrangianUtils2D", init<>())
                     .def("StreamlineMove", &LagrangianParticleUtils < 2 > ::StreamlineMove)
+                    .def("StreamlineCorrect", &LagrangianParticleUtils < 2 > ::StreamlineCorrect)
                     .def("Reseed", &LagrangianParticleUtils < 2 > ::Reseed)
                     .def("ReseedEmptyElements", &LagrangianParticleUtils < 2 > ::ReseedEmptyElements)
                     .def("VisualizationModelPart", &LagrangianParticleUtils < 2 > ::VisualizationModelPart)
