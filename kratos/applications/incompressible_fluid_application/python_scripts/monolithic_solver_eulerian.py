@@ -1,9 +1,6 @@
 #importing the Kratos Library
-#from Kratos import *
-#from KratosIncompressibleFluidApplication import *
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.StructuralApplication import *
 
 ##from KratosExternalSolversApplication import *
 #from KratosStructuralApplication import *
