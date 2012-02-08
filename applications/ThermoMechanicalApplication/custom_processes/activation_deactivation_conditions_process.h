@@ -139,7 +139,7 @@ namespace Kratos
 		
 		inline void MakeHashList(Matrix& hash_list)
 		{
-		   for(int jj = 0; jj<hash_list.size1(); ++jj ){
+		   for(unsigned int jj = 0; jj<hash_list.size1(); ++jj ){
 		     hash_list(jj,0) = 0.0;
 		     hash_list(jj,1) = 0.0;
 		   }
