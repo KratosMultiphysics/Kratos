@@ -556,7 +556,7 @@ namespace Kratos
 		
 		inline void MakeHashList(Vector& hash_list)
 		{
-		   for(int jj = 0; jj>hash_list.size(); ++jj )
+		   for(unsigned int jj = 0; jj>hash_list.size(); ++jj )
 		     hash_list[jj] = 0.0;
 		   
 		   int contact_num = mr_contact_table.size1();
