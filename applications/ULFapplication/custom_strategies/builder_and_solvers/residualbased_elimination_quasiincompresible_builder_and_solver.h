@@ -10,7 +10,7 @@
 #if !defined(KRATOS_RESIDUAL_BASED_ELIMINATION_QUASI_INCOMPRESSIBLE_BUILDER_AND_SOLVER )
 #define  KRATOS_RESIDUAL_BASED_ELIMINATION_QUASI_INCOMPRESSIBLE_BUILDER_AND_SOLVER
 
-
+ 
 /* System includes */
 #include <set>
 
@@ -719,6 +719,8 @@ void AssembleRHS_parallel(
 			TSystemVectorType& Dx,
 			TSystemVectorType& b)
 		{
+			//KRATOS_WATCH(b);			
+			TSparseSpace::SetToZero(b);
 			//KRATOS_WATCH("Calculating REACTIONSSSSSSSS")
 			//reset the reactions to zero in all the nodes
 			for (typename NodesArrayType::iterator node_iterator =r_model_part.NodesBegin(); node_iterator !=r_model_part.NodesEnd(); ++node_iterator)
@@ -729,6 +731,7 @@ void AssembleRHS_parallel(
 			}
 			
 			//refresh RHS to have the correct reactions
+			
 			BuildRHS(pScheme,r_model_part,b);
 
 			//KRATOS_WATCH(b)
