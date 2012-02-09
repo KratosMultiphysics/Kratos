@@ -137,8 +137,8 @@ namespace Kratos
 	     	      
 	      int  count   = 0;
 	      int  count_2 = 0;
-              bool test_1  = false;
-	      bool test_2  = false;   
+//              bool test_1  = false;
+//	      bool test_2  = false;   
 	      Joint2D rJoint;
 	      ElementsArrayType::iterator it_begin=pElements.ptr_begin();
 	      ElementsArrayType::iterator it_end=pElements.ptr_end();
