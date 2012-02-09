@@ -384,6 +384,17 @@ namespace Kratos {
                 }
             }
             new_model_part.Nodes().Sort();
+            /*
+            for (PointerVector<Node < 3 > >::iterator it = new_nodes.begin(); it != new_nodes.end(); it++)
+            {
+               new_model_part.GetMesh(0).Nodes().push_back(*it.base());
+            }
+
+            unsigned int current_size = new_model_part.Nodes().size();
+            */
+            
+            
+            new_model_part.Nodes().Unique();
                     
 
             KRATOS_WATCH('hola3')
@@ -414,7 +425,7 @@ namespace Kratos {
 	           new_model_part.Conditions().push_back(p_condition); //and done! added a new triangloe to the new model part
                 }
              }
-             
+            Clear();
 	    KRATOS_WATCH("Finished copying conditions surfaces")
             KRATOS_CATCH("")
         }
@@ -464,7 +475,12 @@ namespace Kratos {
             Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, mr_new_model_part, father_node_ids, List_New_Nodes, partition_new_nodes, versor, Xp, tolerance);
              MPI_Barrier(MPI_COMM_WORLD);
             if (mrComm.MyPID() == 0) cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << endl;
-           
+            
+             if (mrComm.MyPID() == 0) {
+             KRATOS_WATCH(List_New_Nodes);
+             KRATOS_WATCH(p_edge_ids);
+                }
+                     
             GenerateElements(mr_model_part, mr_new_model_part, Elems_In_Plane, p_edge_ids, versor, plane_number, number_of_triangles);
              MPI_Barrier(MPI_COMM_WORLD);
             if (mrComm.MyPID() == 0) cout << "finished generating elements" << endl;
@@ -472,8 +488,8 @@ namespace Kratos {
 
 
             //fill the communicator
-            ParallelFillCommunicator(new_model_part).Execute();
-            if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+            //ParallelFillCommunicator(new_model_part).Execute();
+            //if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
 
             //clean up the data
             Clear();
@@ -1029,12 +1045,12 @@ namespace Kratos {
                
             }
             new_model_part.Nodes().Sort();
-            
+            /*
             for (PointerVector<Node < 3 > >::iterator it = new_nodes.begin(); it != new_nodes.end(); it++)
             {
                new_model_part.GetMesh(0).Nodes().push_back(*it.base());
             }
-
+*/           
             unsigned int current_size = new_model_part.Nodes().size();
 
             
@@ -1133,6 +1149,7 @@ namespace Kratos {
                             int index_i = geom[i].Id() - 1; //i node id
                             int index_j = geom[j].Id() - 1;
                             int NodeId = GetUpperTriangularMatrixValue(p_edge_ids, index_i, index_j, MaxNumEntries, NumEntries, Indices, id_values);
+                             if (mrComm.MyPID() == 0 && NodeId>-0.5 ) KRATOS_WATCH(NodeId);
                             for (unsigned int l = 0; l != 3; ++l) {
                                 if (TriangleNodesArray[l] == NodeId //if we have already saved this node or it has not been cutted, then we have no new node to add (coord(i,j)=-1)
                                         || NodeId < 1)
@@ -1199,6 +1216,7 @@ namespace Kratos {
                             int index_i = geom[i].Id() - 1;
                             int index_j = geom[j].Id() - 1;
                             int NodeId = GetUpperTriangularMatrixValue(p_edge_ids, index_i, index_j, MaxNumEntries, NumEntries, Indices, id_values);
+                            if (mrComm.MyPID() == 0 && NodeId>-0.5) KRATOS_WATCH(NodeId);
                             for (unsigned int l = 0; l != 3; ++l) {
                                 if (TriangleNodesArray[l] == NodeId //same as the part with only one triangle (look above)
                                         || NodeId < 1) {
