@@ -227,7 +227,7 @@ double Solve()
         std::cout<<std::fixed<<std::scientific<<std::setprecision(6);
 	
 	#ifdef _OPENMP
-	double start_prod = omp_get_wtime();   
+//	double start_prod = omp_get_wtime();   
 	#endif
 	std::cout<<"INITIALIZE SOLVE"<<std::endl;
 	
@@ -1572,13 +1572,13 @@ void CalculateKineticEnergy()
 	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	 { 
-	    double& y_coord              = i->Y0();
-	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
-	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
+//	    double& y_coord              = i->Y0();
+//	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
+//	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
 	    array_1d<double,3>& Velocity = i->FastGetSolutionStepValue(VELOCITY); 
 	    double& mass                 = i->FastGetSolutionStepValue(NODAL_MASS);  
 	    double& kinetic_energy       = i->FastGetSolutionStepValue(KINETIC_ENERGY);
-	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
+//	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
 	    vel                          = norm_2(Velocity); 
 	    
 	    /// WARNING = solo valido para matriz de masa diagonal
