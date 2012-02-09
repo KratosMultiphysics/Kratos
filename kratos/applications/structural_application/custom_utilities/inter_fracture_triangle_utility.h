@@ -212,9 +212,10 @@ namespace Kratos
 	  double dpefm = 0.0;
 	  double small,sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau;
 	  double e1x,e1y,h,area;
-	  int ielem,integ,i0,i1,i2,i3,nfail,m;
+	  //int ielem,i0,i1,i2,i3l,m;
+                    int integ, nfail;
 	  int nsoft;
-          double d1nccx[4];
+                    double d1nccx[4];
 	  double d1nccy[4];
 	  
 	  double dpeft = 3.15e+06; 
