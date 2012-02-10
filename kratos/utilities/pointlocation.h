@@ -145,7 +145,7 @@ namespace Kratos
 		for(ModelPart::ElementsContainerType::iterator i = m_model_part.ElementsBegin(); 
 						 i!=m_model_part.ElementsEnd(); i++)
 			{	
-				melem = melem + 1;
+				melem = i->Id();
 
 				Geometry< Node<3> >& geom = i->GetGeometry();  // current element's coordinates
 					
@@ -168,7 +168,7 @@ namespace Kratos
 		Avector[1] = N[1];
 		Avector[2] = N[2];
 		
-		return melem; //note: It's NOT THE ELEMENT ID!! it's the position (current-begin)
+		return melem;  //note: It's THE ELEMENT ID!! (it's NOT the position (current-begin))
 		
 		KRATOS_CATCH ("");	
 		
