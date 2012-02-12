@@ -404,7 +404,7 @@ namespace Kratos
 		if (domain_size!=3)
 			 KRATOS_ERROR(std::logic_error,"error: This function is implemented for 3D only","");
 
-
+ 
 		std::vector<array_1d<double,3> > PointsOfFSTriangle;
 		PointsOfFSTriangle.reserve(3);
 		double total_fs_area=0.0;
@@ -412,27 +412,31 @@ namespace Kratos
 		for(ModelPart::ElementsContainerType::iterator in = ThisModelPart.ElementsBegin(); 
 					in!=ThisModelPart.ElementsEnd(); in++)
 				{
-				int n_fs=in->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
-				n_fs+=in->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
-				n_fs+=in->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);
-				n_fs+=in->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE);
-		
-				if (n_fs==3)
+				//only for tetrahedras
+				if (in->GetGeometry().size()==4)
 					{
-					int position=0;
-					for (int i=0;i<4;i++)
+					int n_fs=in->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
+					n_fs+=in->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
+					n_fs+=in->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);
+					n_fs+=in->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE);
+		
+					if (n_fs==3)
 						{
-
-						if (in->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
+						int position=0;
+						for (int i=0;i<4;i++)
 							{
-							PointsOfFSTriangle[position][0]=in->GetGeometry()[i].X();
-							PointsOfFSTriangle[position][1]=in->GetGeometry()[i].Y();
-							PointsOfFSTriangle[position][2]=in->GetGeometry()[i].Z();
-							position++;
 
-							}
-						}					
-					total_fs_area+=CalculateTriangleArea3D(PointsOfFSTriangle[0], PointsOfFSTriangle[1], PointsOfFSTriangle[2]);
+							if (in->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
+								{
+								PointsOfFSTriangle[position][0]=in->GetGeometry()[i].X();
+								PointsOfFSTriangle[position][1]=in->GetGeometry()[i].Y();
+								PointsOfFSTriangle[position][2]=in->GetGeometry()[i].Z();
+								position++;
+
+								}
+							}					
+						total_fs_area+=CalculateTriangleArea3D(PointsOfFSTriangle[0], PointsOfFSTriangle[1], PointsOfFSTriangle[2]);
+						}
 					}		
 			
 				}
