@@ -189,25 +189,25 @@ class ULFFracStrategyPython:
             
         time_ln190 = time.time()
             
-        (self.builder_and_solver).SavePressureIteration(self.model_part);
-        for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):# and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
+        #(self.builder_and_solver).SavePressureIteration(self.model_part);
+        #for node in self.model_part.Nodes:
+            #if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
+                #if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):# and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
 		    
-		  #and node.X>0.5):
-                  #node.SetSolutionStepValue(PRESSURE,0,0.0)
-                  #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                  node.Fix(PRESSURE)
-            #if the problem involves FSI, then the pressure at the FSI interface should be fixed also
-            if (FSI==True):
-	        if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-		    node.Fix(PRESSURE)
+		  ##and node.X>0.5):
+                  ##node.SetSolutionStepValue(PRESSURE,0,0.0)
+                  ##print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                  #node.Fix(PRESSURE)
+            ##if the problem involves FSI, then the pressure at the FSI interface should be fixed also
+            #if (FSI==True):
+	        #if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+		    #node.Fix(PRESSURE)
 
-        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
-        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
+        #self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
+        #self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
 
-        self.PressureLinStrat.Solve()        
-        self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);     
+        #self.PressureLinStrat.Solve()        
+        #self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);     
         
         time_ln212 = time.time()
         
@@ -386,6 +386,7 @@ class ULFFracStrategyPython:
     def FinalizeSolutionStep(self,CalculateReactionsFlag):
 	if(CalculateReactionsFlag == True):
 	    #note that the reactions are reset to zero inside of the CalculateReactions function
+	    print "FRACTIONAL STEP IS..................................................", self.model_part.ProcessInfo.GetValue(FRACTIONAL_STEP)
             self.builder_and_solver.CalculateReactions(self.scheme,self.model_part,self.A,self.Dx,self.b)
 
 	#Finalisation of the solution step, 
@@ -563,3 +564,44 @@ class ULFFracStrategyPython:
     #######################################################################
     def MoveMesh(self):
         self.scheme.MoveMesh(self.model_part.Nodes);
+         #######################################################################
+    def CorrectVolume(self, domain_size, initial_volume, model_part, UlfUtils):      
+        v_n=UlfUtils.CalculateVolume(model_part, domain_size)
+        print "Total fluid volume is ", v_n
+        dV=initial_volume-v_n
+        A_fs=1.4*(UlfUtils.CalculateFreeSurfaceArea(model_part, domain_size));
+        
+        #for node in self.fluid_model_part.Nodes:
+            #if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
+		#V_fs=node.GetSolutionStepValue(NODAL_AREA)          
+		#h_fs=node.GetSolutionStepValue(NODAL_H)          		
+                #A_fs+=V_fs/(0.81*h_fs)
+        correction=0.0
+        
+        if (dV>0 and A_fs>0.00000000000000000000000000000000001):
+            correction=dV/A_fs;
+        print "initial_volume is                 ------------------------------------------------ ", initial_volume
+	print "v_n is                 ------------------------------------------------ ", v_n
+        print "dV is                 ------------------------------------------------ ", dV
+        print "A_fs                 ------------------------------------------------ ", A_fs
+        print "Correction isssssss                 ------------------------------------------------ ", correction
+        for node in model_part.Nodes:
+            if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0):
+	      normal=node.GetSolutionStepValue(NORMAL)
+	      node.X+=normal[0]*correction;
+	      node.Y+=normal[1]*correction;
+	      node.Z+=normal[2]*correction;
+	      disp_x=node.GetSolutionStepValue(DISPLACEMENT_X)
+	      disp_y=node.GetSolutionStepValue(DISPLACEMENT_Y)
+	      disp_z=node.GetSolutionStepValue(DISPLACEMENT_Z)
+	      
+	      corrected_disp_x=disp_x+normal[0]*correction;
+	      corrected_disp_y=disp_y+normal[1]*correction;
+	      corrected_disp_z=disp_z+normal[2]*correction;
+	      
+	      node.SetSolutionStepValue(DISPLACEMENT_X, 0, corrected_disp_x)
+	      node.SetSolutionStepValue(DISPLACEMENT_Y, 0, corrected_disp_y)
+	      node.SetSolutionStepValue(DISPLACEMENT_Z, 0, corrected_disp_z)
+	      #print "NORMAL",  normal
+        
+	self.scheme.MoveMesh(self.model_part.Nodes);
