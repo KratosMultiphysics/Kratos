@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "ULF_application.h"
+#include "boost/smart_ptr.hpp"
 
 namespace Kratos
 {
@@ -381,6 +382,64 @@ namespace Kratos
 	
 		//**********************************************************************************************
 		//*		//**********************************************************************************************
+		////////////////////////////////////////////////////////////
+		double Length(array_1d<double,3>& Point1, array_1d<double,3>& Point2)
+		{
+		//KRATOS_WATCH("length calculation")
+		return sqrt((Point1[0]-Point2[0])*(Point1[0]-Point2[0]) + (Point1[1]-Point2[1])*(Point1[1]-Point2[1]) +(Point1[2]-Point2[2])*(Point1[2]-Point2[2]));
+		}
+		double CalculateTriangleArea3D(	array_1d<double,3>& Point1, array_1d<double,3>& Point2, array_1d<double,3>& Point3	)
+		{
+			//Heron's formula
+			double a=Length(Point1, Point2);//sqrt((Point1[0]-Point2[0])*(Point1[0]-Point2[0]) + (Point1[1]-Point2[1])*(Point1[1]-Point2[1]) +(Point1[2]-Point2[2])*(Point1[2]-Point2[2]));
+			double b=Length(Point1, Point3);//sqrt((Point3[0]-Point2[0])*(Point3[0]-Point2[0]) + (Point3[1]-Point2[1])*(Point3[1]-Point2[1]) +(Point3[2]-Point2[2])*(Point3[2]-Point2[2]));
+			double c=Length(Point2, Point3);//sqrt((Point1[0]-Point3[0])*(Point1[0]-Point3[0]) + (Point1[1]-Point3[1])*(Point1[1]-Point3[1]) +(Point1[2]-Point3[2])*(Point1[2]-Point3[2]));
+			double p=0.5*(a+b+c);
+			return sqrt(p*(p-a)*(p-b)*(p-c));
+		}
+
+		////////////////////////////////////////////////////////////////////////////////////////////
+		double CalculateFreeSurfaceArea(ModelPart& ThisModelPart, int domain_size)
+		{
+		if (domain_size!=3)
+			 KRATOS_ERROR(std::logic_error,"error: This function is implemented for 3D only","");
+
+
+		std::vector<array_1d<double,3> > PointsOfFSTriangle;
+		PointsOfFSTriangle.reserve(3);
+		double total_fs_area=0.0;
+
+		for(ModelPart::ElementsContainerType::iterator in = ThisModelPart.ElementsBegin(); 
+					in!=ThisModelPart.ElementsEnd(); in++)
+				{
+				int n_fs=in->GetGeometry()[0].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				n_fs+=in->GetGeometry()[1].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				n_fs+=in->GetGeometry()[2].FastGetSolutionStepValue(IS_FREE_SURFACE);
+				n_fs+=in->GetGeometry()[3].FastGetSolutionStepValue(IS_FREE_SURFACE);
+		
+				if (n_fs==3)
+					{
+					int position=0;
+					for (int i=0;i<4;i++)
+						{
+
+						if (in->GetGeometry()[i].FastGetSolutionStepValue(IS_FREE_SURFACE)==1.0)
+							{
+							PointsOfFSTriangle[position][0]=in->GetGeometry()[i].X();
+							PointsOfFSTriangle[position][1]=in->GetGeometry()[i].Y();
+							PointsOfFSTriangle[position][2]=in->GetGeometry()[i].Z();
+							position++;
+
+							}
+						}					
+					total_fs_area+=CalculateTriangleArea3D(PointsOfFSTriangle[0], PointsOfFSTriangle[1], PointsOfFSTriangle[2]);
+					}		
+			
+				}
+				
+		return total_fs_area;
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////
 		void CalculateNodalArea(ModelPart& ThisModelPart, int domain_size)
 		{
 			
