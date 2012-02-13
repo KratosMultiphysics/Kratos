@@ -88,9 +88,10 @@ namespace Kratos
 	   
 	   Joint(const std::vector<Node<3>::Pointer>& rNodes)
 	   {
-	     mfail  = false; 
+	     mfail   = false; 
 	     mNodes.resize(Tdim);
-	     mNodes = rNodes;
+	     mNodes  = rNodes;
+	     //mlength = Length();
 	   }
 	   
 	   ~Joint(){}
@@ -98,8 +99,28 @@ namespace Kratos
 	   void InsertNode(const int& pos, const Node<3>::Pointer& rNode)
 	   {
 	     mNodes[pos] = rNode;  
+	     //mlength     = Length();
+	   
 	   }
 
+//           double GetLength()
+//           {
+// 	    return mlength;
+// 	  }
+	  
+          double Length()
+          {
+	     array_1d<double, 2> Node_One;
+	     array_1d<double, 2> Node_Two;
+	     array_1d<double, 2> L;
+	     Node_One[0]  = (*this)[0]->X0();  
+	     Node_One[1]  = (*this)[0]->Y0();  
+	     Node_Two[0]  = (*this)[1]->X0();  
+	     Node_Two[1]  = (*this)[1]->Y0();
+	     noalias(L)   = Node_One-Node_Two;
+	     return std::sqrt(inner_prod(L,L ));
+	  }
+          
           bool IsFail()
           {
 	    return mfail;
@@ -136,6 +157,7 @@ namespace Kratos
 	  
 	  private:
 	    bool mfail; 
+	    //double mlength;
 	    std::vector<Node<3>::Pointer> mNodes; 
 	};
 	
