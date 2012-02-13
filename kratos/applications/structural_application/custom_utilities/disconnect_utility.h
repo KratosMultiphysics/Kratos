@@ -153,8 +153,8 @@ namespace Kratos
     
     #pragma omp parallel for private(count_2)  
     for(int k=0; k<number_of_threads; k++){
-    typename ElementsArrayType::iterator it_begin = pElements.ptr_begin()+element_partition[k];
-    typename ElementsArrayType::iterator it_end   = pElements.ptr_begin()+element_partition[k+1];
+    ElementsArrayType::iterator it_begin = pElements.ptr_begin()+element_partition[k];
+    ElementsArrayType::iterator it_end   = pElements.ptr_begin()+element_partition[k+1];
     for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
 	      //ElementsArrayType::iterator it_begin=pElements.ptr_begin();
 	      //ElementsArrayType::iterator it_end=pElements.ptr_end();      
@@ -235,11 +235,9 @@ namespace Kratos
 		inode = pNodes.begin() + i;
 	      }
 	      
-	      int  count   = 0;
-	      int  count_2 = 0;
-              bool test_1  = false;
-	      bool test_2  = false;   
-	      Joint2D rJoint;
+	      unsigned int count   = 0;
+	      unsigned int count_2 = 0;
+              Joint2D rJoint;
 	      ElementsArrayType::iterator it_begin=pElements.ptr_begin();
 	      ElementsArrayType::iterator it_end=pElements.ptr_end();
 	      
@@ -259,7 +257,7 @@ namespace Kratos
 		   {
 		     TheNodes(geom_1, count, 0, 1, rJoint);
 		     Element::GeometryType& geom_2 = neighb->GetGeometry();
-		     const int& Id = it->Id();
+		     const unsigned int& Id = it->Id();
 		     count_2 = SearchEdge(neighb, Id);     
 		     TheNodes(geom_2, count_2, 2, 3, rJoint);
 		     mJointsArray.push_back(rJoint); 
@@ -275,7 +273,7 @@ namespace Kratos
 	  }
 	  
 	  
-	int SearchEdge(WeakPointerVector<Element>::iterator& this_elem, const int& Id)
+	int SearchEdge(WeakPointerVector<Element>::iterator& this_elem, const unsigned int& Id)
 	 {
 	    int count = 0;
 	    WeakPointerVector< Element >& neighb_elems = this_elem->GetValue(NEIGHBOUR_ELEMENTS); 
