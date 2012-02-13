@@ -204,7 +204,7 @@ namespace Kratos
 		if(mCE==Lagrange_Multiplier_Methods){
 		 mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
 		}
-				
+	
 		mdamping_coeficients = false;
 		mdamping_ratio       = damping_ratio;
 		malpha_damp          = 0.00;
@@ -227,13 +227,15 @@ double Solve()
         std::cout<<std::fixed<<std::scientific<<std::setprecision(6);
 	
 	#ifdef _OPENMP
-//	double start_prod = omp_get_wtime();   
+	double start_prod = omp_get_wtime();   
 	#endif
 	std::cout<<"INITIALIZE SOLVE"<<std::endl;
 	
 	ModelPart& r_model_part              = BaseType::GetModelPart();
 	ConditionsArrayType& pConditions     = r_model_part.Conditions();
 
+	
+	
 	///Initializa los elementos y condiciones
 	if(mInitializeWasPerformed == false){
 	  
@@ -241,13 +243,14 @@ double Solve()
 	  minitial_conditions_size = pConditions.size();
 	}
 	
+	
+	
 	///Initialize solution step
 	if(mSolutionStepIsInitialized==false)
 	   InitializeSolutionStep();
  
 	///Computa el tiempo critico 
 	ComputeCriticalTime();
-  
 
 	if(mInitialConditions==false){
 	   minitial_conditions_size = pConditions.size();
@@ -277,16 +280,20 @@ double Solve()
  	  */
 	    
 	/// Actualizacion de los desplazamientos
- 	if(BaseType::MoveMeshFlag() == true)
+ 	if(BaseType::MoveMeshFlag() == true) 
  	   BaseType::MoveMesh();
    	
         ///Computing The new internal and external forces  for n+1 step
 	GetForce();
 	
-	/// Fragmentation and fracture
-	Heuristic_Formula(mDTU.Begin(), mDTU.End());
-        
+	/// Discontinum Mechanics
+	//ComputeInterfaceForces();
 	
+	
+	
+	/// Fragmentation and fracture
+	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
+        
 	 
 	//WARNING = To be checked
 	//ComputeDampingForces();
@@ -336,7 +343,7 @@ double Solve()
 	
 	#ifdef _OPENMP
 	double stop_prod = omp_get_wtime();
-	std::cout << "TIME SOLVING                   = "<<  stop_prod      << "  SECONDS" << std::endl; 
+	std::cout << "TIME SOLVING                   = "<<   stop_prod - start_prod    << "  SECONDS" << std::endl; 
 	#endif
 	std::cout << "FINISHED SOLVE"<<std::endl;
 	return 0.00;   
@@ -471,6 +478,43 @@ void ComputeDampingForcesWithMass()
 	    KRATOS_CATCH("")
   
 }
+  
+/// for discontinum Galerking methods  
+void ComputeInterfaceForces()
+{
+    KRATOS_TRY
+    ModelPart& r_model_part          = BaseType::GetModelPart();
+    ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+    ElementsArrayType& pElements     = r_model_part.Elements(); 
+
+    #ifdef _OPENMP
+    int number_of_threads = omp_get_max_threads();
+    #else
+    int number_of_threads = 1;
+    #endif
+
+    vector<unsigned int> element_partition;
+    CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+    Vector rRightHandSideVector;
+    
+    
+    #pragma omp parallel for private(rRightHandSideVector)
+    for(int k=0; k<number_of_threads; k++)
+    {
+    typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+    typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+    for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+     {
+        KRATOS_WATCH(it->Id())
+        it->Calculate(INTERFACE_FORCES, rRightHandSideVector, CurrentProcessInfo);
+     }
+    }
+    
+    KRATOS_CATCH("")
+}
+  
+  
   
 /// Computa las fuerzas viscosas de amortiguamiento alfa * K_elem * Velocidad
 void ComputeDampingForcesWithStiffness()
@@ -636,7 +680,8 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 
 	{
-	       
+	  /// Nota = Se ha agregado a la ecuacion la velocidad. Antes no habia  actual_velocity;   
+	  //array_1d<double,3>& actual_velocity       = i->FastGetSolutionStepValue(VELOCITY);        /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& actual_displacement   = i->FastGetSolutionStepValue(DISPLACEMENT);     /// Estamos en paso  T(n+1)
 	  array_1d<double,3>& current_displacement  = i->FastGetSolutionStepValue(DISPLACEMENT,1);   /// U(n)
 	  array_1d<double,3>& old_displacement      = i->FastGetSolutionStepValue(DISPLACEMENT,2);   /// U(n-1)
@@ -648,8 +693,8 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	  const double factor_b       =  2.00 *  nodal_mass - nodal_damping *  molddelta_time;  
 	  const double factor_c       =  2.00 *  mid_delta_time;
 	  
-	  noalias(mid_neg_velocity)   = (1.00/molddelta_time) * (current_displacement - old_displacement);
-	  noalias(mid_pos_velocity)   = (factor_b/factor_a) * mid_neg_velocity + (factor_c/factor_a) * current_Rhs ;
+	  noalias(mid_neg_velocity)   = (1.00/molddelta_time) * (current_displacement - old_displacement);  
+	  noalias(mid_pos_velocity)   = (factor_b/factor_a) * mid_neg_velocity + (factor_c/factor_a) * current_Rhs; //+ actual_velocity;
   
 	  /// Update to the new displacement 
 	  ///current_displacement = current_displacement + mid_pos_velocity * current_delta_time;
@@ -685,7 +730,6 @@ void Initialize()
     if(mElementsAreInitialized == false)
 	InitializeElements();
    
-    
     /// Inicializando las condiciones  
     if(mConditionsAreInitialized == false)
 	InitializeConditions();
@@ -872,8 +916,10 @@ void ComputeCriticalTime()
       double time_penalty =  ComputeTimePenalty();
       delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
     }
-            
+    
     delta_time_computed = Truncar_Delta_Time(delta_time_computed);
+
+    
     
     if(delta_time_computed>mmax_delta_time) {delta_time_computed = mmax_delta_time;}
     delta_time_used = mfraction_delta_time * delta_time_computed;
@@ -949,6 +995,7 @@ double ComputeTime()
 }
 
 
+///WARNING = Cuidado con los nodos que sueltos. Aquellos que no tienen masa
 double ComputeTimePenalty()
 {
       ModelPart& r_model_part         = BaseType::GetModelPart();
@@ -993,13 +1040,13 @@ double ComputeTimePenalty()
 	  {
 	    
 	    double& mass = ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
+	    if(mass==0.00) KRATOS_WATCH(i->Id())
 	    Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
 	  }
 	}
 	
 	Mass = (*std::min_element(Min_Mass_Nodal.begin(), Min_Mass_Nodal.end()));
 	double result = 0.50 * std::sqrt(2.00 * Mass / Penalty); 
-	
 	return result;
 }
 
@@ -1291,16 +1338,18 @@ void ComputeOldVelocitiesAndAccelerations()
 	  noalias(mid_pos_velocity_old)   = (1.00/current_delta_time) * (current_displacement   - olddisplacement);
 
             
-	    array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));  
- 	    array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
+	    array_1d<double,3>& velocity     = (i->FastGetSolutionStepValue(VELOCITY));  
+ 	    array_1d<double,3>& acceleration = (i->FastGetSolutionStepValue(ACCELERATION));
+	    //KRATOS_WATCH(velocity)
 	    
 	    /// X 
-	    if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
-	    {
-	       
-	       velocity[0]      =  inv_sum_delta_time * (displacement[0] - olddisplacement[0]);
-	       acceleration[0]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[0] - mid_neg_velocity[0]);  
-	       
+	    if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+	    { 
+	       //if(velocity[0]==0.00)
+	       {
+	          velocity[0]      =  inv_sum_delta_time * (displacement[0] - olddisplacement[0]);  
+	          acceleration[0]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[0] - mid_neg_velocity[0]);  
+	        }
 	   }
             else
 	    {
@@ -1310,11 +1359,15 @@ void ComputeOldVelocitiesAndAccelerations()
 	       acceleration[0]     =  (1.00 / mid_delta_time ) * (mid_pos_velocity_old[0] - mid_neg_velocity_old[0]);  
 	    }
             
-            /// Y
+
+	    
  	    if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false )
  	    {
+	       //if(velocity[1]==0.00)
+	       {
 	       velocity[1]      =  inv_sum_delta_time * (displacement[1] - olddisplacement[1]);
 	       acceleration[1]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[1] - mid_neg_velocity[1]);  
+	       }
  	    }
              else
  	    {
@@ -1329,8 +1382,11 @@ void ComputeOldVelocitiesAndAccelerations()
 	    if( i->HasDofFor(DISPLACEMENT_Z)){
  	    if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false )
  	    {
+	      //if(velocity[2]==0.00)
+	      {
 	      velocity[2]      =  inv_sum_delta_time * (displacement[2] - olddisplacement[2]);
 	      acceleration[2]  =  (1.00 / mid_delta_time ) * (mid_pos_velocity[2] - mid_neg_velocity[2]);  
+	      }
  	    }
  	    else
  	    {
@@ -1341,6 +1397,8 @@ void ComputeOldVelocitiesAndAccelerations()
  	      
  	    }  
 	  }  
+	  //KRATOS_WATCH(velocity)
+	  //KRATOS_WATCH("-----------------------")
 	  
 // 	  if(i->Id()==374)
 // 	     KRATOS_WATCH(velocity) 
@@ -1546,8 +1604,57 @@ inline double Truncar_Delta_Time(double& num)
 
 void CalculateEnergies()
 {
+  CalculatePotecialEnergy();
   CalculateKineticEnergy(); 
+  //CalculateDeformationEnergy();
+  
 }
+
+void CalculateDeformationEnergy()
+{
+}
+
+
+/// Asumimos que la gravedad esta en direccion Y 
+void CalculatePotecialEnergy()
+{
+
+    KRATOS_TRY
+    ModelPart& r_model_part          = BaseType::GetModelPart();
+    NodesArrayType& pNodes           = r_model_part.Nodes(); 
+      
+    #ifdef _OPENMP
+    int number_of_threads = omp_get_max_threads();
+    #else
+    int number_of_threads = 1;
+    #endif
+
+    vector<unsigned int> node_partition;
+    CreatePartition(number_of_threads, pNodes.size(), node_partition);
+    
+    double h_efe;
+    #pragma omp parallel for  private(h_efe)
+    for(int k=0; k<number_of_threads; k++)
+      {
+	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+	 { 
+	    if(i->Y()>0.00){
+	    double& y_coord              = i->Y0();
+	    const double& displ          = i->FastGetSolutionStepValue(DISPLACEMENT_Y);  
+	    const double& gravity        = i->FastGetSolutionStepValue(GRAVITY_Y); 
+            const double& nodal_mass     = i->FastGetSolutionStepValue(NODAL_MASS);
+	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY); 
+	    potencial_energy             = 0.00;
+	    h_efe                        = y_coord + displ;
+	    potencial_energy             = std::fabs(nodal_mass * gravity * h_efe );
+	    } 
+	  }
+        }
+  KRATOS_CATCH("")
+}
+ 
 
 void CalculateKineticEnergy()
 {
@@ -1572,13 +1679,13 @@ void CalculateKineticEnergy()
 	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	 { 
-//	    double& y_coord              = i->Y0();
-//	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
-//	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
+	    double& y_coord              = i->Y0();
+	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
+	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
 	    array_1d<double,3>& Velocity = i->FastGetSolutionStepValue(VELOCITY); 
 	    double& mass                 = i->FastGetSolutionStepValue(NODAL_MASS);  
 	    double& kinetic_energy       = i->FastGetSolutionStepValue(KINETIC_ENERGY);
-//	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
+	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
 	    vel                          = norm_2(Velocity); 
 	    
 	    /// WARNING = solo valido para matriz de masa diagonal
@@ -1596,85 +1703,97 @@ void CalculateKineticEnergy()
   KRATOS_CATCH("")
 }
 
-unsigned int Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D>::iterator End)
+void Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D>::iterator End)
         {
 	  KRATOS_TRY
-	  double dpefa = 0.63;
-	  double dpefb = 1.8;
-	  double dpefc = 6.0;
-	  double dpefm = 0.0;
-	  double small,sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau;
-	  double e1x,e1y,h,area;
-	  int nfail;
-	  int nsoft;
-          double d1nccx[4];
-	  double d1nccy[4];
-	  
+	 
+	  const double fact_a = 0.63;
+	  const double fact_b = 1.8;
+	  const double fact_c = 6.0;
+	  const double dpefm = 0.0;
+	  const double small = 1E-9;
+	  array_1d<double,4 > coordx;
+	  array_1d<double,4>  coordy; 
+
+	  double sabs        = 0.00;
+	  double o           = 0.00;
+	  double oc          = 0.00;
+	  double sc          = 0.00;  
+	  double s           = 0.00;
+	  double o1          = 0.00;
+	  double o2          = 0.00;  
+	  double s1          = 0.00;
+	  double s2          = 0.00;
+	  double op          = 0.00; 
+	  double sp          = 0.00;
+	  double ot          = 0.00;
+	  double st          = 0.00;
+	  double D           = 0.00;
+	  double z           = 0.00;
+	  double Sigma       = 0.00;
+	  double Tau         = 0.00;
+ 	  double nx          = 0.00;
+	  double ny          = 0.00;
+	  double h           = 0.00;
+	  double area        = 0.00;
+          
 	  ModelPart& r_model_part = BaseType::GetModelPart();
 	  Properties&  prop       = r_model_part.GetProperties(1);
 	  
-	  
-	  const double& dpeft = (prop)[TENSILE_STRENGTH];
-	  const double dpepe  = mpenalty_factor * (prop)[YOUNG_MODULUS];
-	  const double& dpefs = (prop)[SHEAR_STRENGTH];
-	  const double& dpegf = (prop)[FRACTURE_ENERGY];
-	  
-	  small=1E-6; nsoft=0;
-	  
-	  /// WARNING = to be paralelized
-	  #ifdef _OPENMP
-	  int number_of_threads = 1; //omp_get_max_threads();
-	  #else
-	  int number_of_threads = 1;
-	  #endif
-           
-          int size = std::distance(Begin, End); 
-	  vector<unsigned int> node_partition;
-	  CreatePartition(number_of_threads, size, node_partition);
-	  
-	  #pragma omp parallel for  private(sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau, e1x,e1y,h,area, nfail, nsoft, d1nccx, d1nccy)
-	  for(int k=0; k<number_of_threads; k++)
-	  {  
-	    std::vector<Joint2D>::iterator i_begin = Begin  + node_partition[k];
-	    std::vector<Joint2D>::iterator i_end   = Begin  + node_partition[k+1];
-	    for(std::vector<Joint2D>::iterator Joint = i_begin; Joint != i_end; ++Joint) 
+	  const double dpepe      = mpenalty_factor * (prop)[YOUNG_MODULUS];
+	  const double& dpeft     = (prop)[TENSILE_STRENGTH];
+	  const double& dpefs     = (prop)[SHEAR_STRENGTH];
+	  const double& dpegf     = (prop)[FRACTURE_ENERGY];
+	  	  
+	  for(std::vector<Joint2D>::iterator Joint = Begin; Joint != End; ++Joint) 
 	    { 
 	      if((Joint)->IsFail()==false){
 	      array_1d<double,3>& node_rhs_0 =  (*Joint)[0]->FastGetSolutionStepValue(RHS);
 	      array_1d<double,3>& node_rhs_1 =  (*Joint)[1]->FastGetSolutionStepValue(RHS);
 	      array_1d<double,3>& node_rhs_2 =  (*Joint)[2]->FastGetSolutionStepValue(RHS);
 	      array_1d<double,3>& node_rhs_3 =  (*Joint)[3]->FastGetSolutionStepValue(RHS);
+	            
 	      
-	      d1nccx[0] = (*Joint)[0]->X();  
-	      d1nccx[1] = (*Joint)[1]->X();  
-	      d1nccx[2] = (*Joint)[2]->X();  
-	      d1nccx[3] = (*Joint)[3]->X();  
-	      
-	      d1nccy[0] = (*Joint)[0]->Y();  
-	      d1nccy[1] = (*Joint)[1]->Y();  
-	      d1nccy[2] = (*Joint)[2]->Y();  
-	      d1nccy[3] = (*Joint)[3]->Y();  
-	      
-	      e1x=0.50*(d1nccx[1]+d1nccx[2]-d1nccx[0]-d1nccx[3]);
-	      e1y=0.50*(d1nccy[1]+d1nccy[2]-d1nccy[0]-d1nccy[3]);
-	      h=std::sqrt(e1x*e1x+e1y*e1y);
-	      
-	      e1x=e1x/(h+small);
-	      e1y=e1y/(h+small);
-	      s1=(d1nccy[0]-d1nccy[3])*e1y+(d1nccx[0]-d1nccx[3])*e1x;
-	      s2=(d1nccy[1]-d1nccy[2])*e1y+(d1nccx[1]-d1nccx[2])*e1x;
-	      o1=(d1nccy[0]-d1nccy[3])*e1x-(d1nccx[0]-d1nccx[3])*e1y;
-	      o2=(d1nccy[1]-d1nccy[2])*e1x-(d1nccx[1]-d1nccx[2])*e1y;
+	      const double length =(*Joint).Length();
+	      op = 2.00*length*dpeft/dpepe;   /// delta p
+	      sp = 2.00*length*dpefs/dpepe;   /// valor sp
 	      
 	      
-	      op=2.00*h*dpeft/dpepe;
-	      sp=2.00*h*dpefs/dpepe;
-	      ot=std::max((2.00*op),(3.00*dpegf/dpeft));
-	      st=std::max((2.00*sp),(3.00*dpegf/dpefs));
-	      nfail=0;
-	       
-	      for(int integ=0;integ<3;integ++)
-	      {  if(integ==0)
+	      coordx[0] = (*Joint)[0]->X();  
+	      coordx[1] = (*Joint)[1]->X();  
+	      coordx[2] = (*Joint)[2]->X();  
+	      coordx[3] = (*Joint)[3]->X();  
+	      
+	      coordy[0] = (*Joint)[0]->Y();  
+	      coordy[1] = (*Joint)[1]->Y();  
+	      coordy[2] = (*Joint)[2]->Y();  
+	      coordy[3] = (*Joint)[3]->Y();  
+	            
+	      /// restas de los puntos 
+	      nx=0.50*(coordx[1]+coordx[2]-coordx[0]-coordx[3]);
+	      ny=0.50*(coordy[1]+coordy[2]-coordy[0]-coordy[3]);
+	      
+	      h = std::sqrt(nx*nx+ny*ny);
+	      
+	      /// vectores unitarios
+	      nx=nx/(h+small);
+	      ny=ny/(h+small);
+	      
+	      /// mide que tanto se ha separado y deslizado el elemento. the crack opening and sliding
+	      s1=(coordy[0]-coordy[3])*ny+(coordx[0]-coordx[3])*nx;
+	      s2=(coordy[1]-coordy[2])*ny+(coordx[1]-coordx[2])*nx;
+	      o1=(coordy[3]-coordy[0])*nx-(coordx[3]-coordx[0])*ny;
+	      o2=(coordy[2]-coordy[1])*nx-(coordx[2]-coordx[1])*ny;
+	      
+	      /// una formula
+	      ot = std::max((2.00*op),(3.00*dpegf/dpeft));
+	      st = std::max((2.00*sp),(3.00*dpegf/dpefs));
+	      oc = ot + op;
+	      sc = st + sp;
+	      
+	      for(unsigned int integ = 0; integ<3;integ++)
+	      {  
+		if(integ==0)
 	         { o=o1; s=s1;
 	         }
 	         else if(integ==2)
@@ -1682,106 +1801,97 @@ unsigned int Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector
 	         } 
 	         else
 	         { o=0.50*(o1+o2); s=0.50*(s1+s2);
-	         }
+	         }         
 	         
 	         sabs=std::fabs(s);
-	         if((o>op)&&(sabs>sp))
-	         { z=std::sqrt(((o-op)/ot)*((o-op)/ot)+((sabs-sp)/st)*((sabs-sp)/st));
+		 if(o<op && s<sp){D = 0.00;}
+		 else if(o>oc || s>sc){D = 1.00;}
+		 else if(o>op && s>sp && o<oc && s<sc)
+		 { double a = (o-op)/(ot); 
+		   double b = (s-sp)/(st); 
+		   D        = std::sqrt(a*a + b*b);
+		 }
+		 else if(o>op && o<oc){D = (o-op)/(ot);}
+		 else if(s>sp && s<sc){D = (s-sp)/(st);}
+		 else
+		   KRATOS_ERROR(std::logic_error," Value of D bad calculated ","");
+
+	         if(D>=1.00)    
+	         {
+		     D = 1.00;
+		    (Joint)->SetFail();
+	         }
+	         
+	         // D = z en articulo 
+	         z=(1.00 - ((fact_a+fact_b-1.00)/(fact_a+fact_b))*exp(D*(fact_a+fact_c*fact_b)/((fact_a+fact_b)*(1.00-fact_a-fact_b))))*(fact_a*(1.00-D)+fact_b*std::pow((1.00-D),fact_c));        
+	         
+		// Normal Stress  
+		 if(o<0.00)                 
+	         { Sigma=2.00*o*dpeft/op;   
 	         }
 	         else if(o>op)
-	         { z=(o-op)/ot;
-	         }
-	         else if(sabs>sp)
-	         { z=(sabs-sp)/st;
+	         { Sigma= dpeft*z;
 	         }
 	         else
-	         { z=0.00;
-	         }
-	         
-	         if(z>=1.00)    
 	         {
-		   nfail=nfail+1;
-		   if((nfail>1))
-		      (Joint)->SetFail();
-	            z=1.00;
-	         }
-	         
-	         z=(1.00 - ((dpefa+dpefb-1.00)/(dpefa+dpefb))*exp(z*(dpefa+dpefc*dpefb)/((dpefa+dpefb)*(1.00-dpefa-dpefb))))*(dpefa*(1.00-z)+dpefb*pow((1.00-z),dpefc));        
-	        
+		   Sigma=(2.00*o/op-(o/op)*(o/op))*dpeft; 
+		 }
+		 
+		 KRATOS_WATCH(D) 
+		 KRATOS_WATCH(s)
+		 KRATOS_WATCH(sp)
+		 KRATOS_WATCH(sc)
+		 KRATOS_WATCH(o)
+		 KRATOS_WATCH(op)
+		 KRATOS_WATCH(oc)
+		 KRATOS_WATCH(z)
+		 KRATOS_WATCH(Sigma)
+		 KRATOS_WATCH("-------------------")
 
-		if(o<0.00)                 /* normal stress*/ 
-	        { sigma=2.00*o*dpeft/op;   /* sigma=R0; */
-	        }
-	        else if(o>op)
-	        { sigma=dpeft*z; nsoft=nsoft+1;
-	        }
-	        else
-	        { sigma=(2.00*o/op-(o/op)*(o/op))*z*dpeft;
-	        }
-	        if((sigma>0.00)&&(sabs>sp))           /* shear stress */ 
-	        { tau=z*dpefs;
-	        }
-	        else if(sigma>0.00)
-	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
-	        }
-	        else if(sabs>sp)
-	        { tau=z*dpefs-dpefm*sigma;
-	        }
-	        else
-	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*sigma);
-	        }  
-		if(s<0.00)tau=-tau;
+	         //Shear Stress
+		  if( sabs>=0.00 && sabs>sp) 
+ 	          { Tau =Tau=z*dpefs; 
+ 	          }
+ 	          else if(Sigma>0.00)           
+ 	          { Tau= (2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
+ 	          }
+ 	          else if(sabs>sp)
+ 	          { Tau = z*dpefs-dpefm*Sigma;
+ 	          }
+ 	          else
+ 	          { Tau= (2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*Sigma);
+ 	          }
+ 	          
+		if(s<0.00)Tau=-Tau;
 		if(integ==0)  /* nodal forces */
 		{ 
 		  area=h/6.00; /* area=h/6.0; */
-		  (*Joint)[0]->SetLock();
-		  node_rhs_0[0] = node_rhs_0[0] - area*(tau*e1x-sigma*e1y); 
-		  node_rhs_0[1] = node_rhs_0[1] - area*(tau*e1y+sigma*e1x);
-		  (*Joint)[0]->UnSetLock();
-		  (*Joint)[3]-> SetLock();
-		  node_rhs_3[0] = node_rhs_3[0] + area*(tau*e1x-sigma*e1y);
-		  node_rhs_3[1] = node_rhs_3[1] + area*(tau*e1y+sigma*e1x);
-		  (*Joint)[3]->UnSetLock();
+		  node_rhs_0[0] = node_rhs_0[0] - area*(Tau*nx-Sigma*ny); 
+		  node_rhs_3[0] = node_rhs_3[0] + area*(Tau*nx-Sigma*ny);
+		  node_rhs_0[1] = node_rhs_0[1] - area*(Tau*ny+Sigma*nx);
+		  node_rhs_3[1] = node_rhs_3[1] + area*(Tau*ny+Sigma*nx);
 		}
 		else if(integ==1)
 		{ 
 		  area=h/3.00;  /* area=h/3.0; */
-		  
-		  (*Joint)[0]->SetLock();
-		  node_rhs_0[0] = node_rhs_0[0] -area*(tau*e1x-sigma*e1y);
-		  node_rhs_0[1] = node_rhs_0[1]-area*(tau*e1y+sigma*e1x);
-		  (*Joint)[0]->UnSetLock();
-		  
-		  (*Joint)[3]->SetLock();
-		  node_rhs_3[1] = node_rhs_3[1]+area*(tau*e1y+sigma*e1x);
-		  node_rhs_3[0] = node_rhs_3[0] +area*(tau*e1x-sigma*e1y);
-		  (*Joint)[3]->UnSetLock();
-		  
-		  (*Joint)[1]->SetLock();
-		  node_rhs_1[0] = node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
-		  node_rhs_1[1] = node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
-		  (*Joint)[1]->UnSetLock();
-		  
-		  (*Joint)[2]->SetLock();
-		  node_rhs_2[1] = node_rhs_2[1]+area*(tau*e1y+sigma*e1x);
-		  node_rhs_2[0] = node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
-		  (*Joint)[2]->UnSetLock();
+		  node_rhs_0[0] = node_rhs_0[0] -area*(Tau*nx-Sigma*ny);
+		  node_rhs_3[0] = node_rhs_3[0] +area*(Tau*nx-Sigma*ny); 
+		  node_rhs_0[1] = node_rhs_0[1] -area*(Tau*ny+Sigma*nx);
+		  node_rhs_3[1] = node_rhs_3[1] +area*(Tau*ny+Sigma*nx);
+		  node_rhs_1[0] = node_rhs_1[0] -area*(Tau*nx-Sigma*ny);
+                  node_rhs_2[0] = node_rhs_2[0] +area*(Tau*nx-Sigma*ny);    
+		  node_rhs_1[1] = node_rhs_1[1] -area*(Tau*ny+Sigma*nx);
+		  node_rhs_2[1] = node_rhs_2[1] +area*(Tau*ny+Sigma*nx);
 		}
 		else
 		{ 
 		  area=h/6.00; /* area=h/6.0; */
-		  
-		  (*Joint)[1]->SetLock();
-		  node_rhs_1[0]=node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
-		  node_rhs_1[1]=node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
-		  (*Joint)[1]->UnSetLock();
-		  
-		  (*Joint)[2]->SetLock();
-		  node_rhs_2[1]=node_rhs_2[1]+area*(tau*e1y+sigma*e1x); 
-		  node_rhs_2[0]=node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
-		  (*Joint)[2]->UnSetLock();
-	      } } } } }
-	  return 0;
+		  node_rhs_1[0]=node_rhs_1[0]-area*(Tau*nx-Sigma*ny);
+		  node_rhs_2[0]=node_rhs_2[0]+area*(Tau*nx-Sigma*ny);
+		  node_rhs_1[1]=node_rhs_1[1]-area*(Tau*ny+Sigma*nx);
+		  node_rhs_2[1]=node_rhs_2[1]+area*(Tau*ny+Sigma*nx); 
+
+	      } } } } 
 	  KRATOS_CATCH("")
 	}
 
