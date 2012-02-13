@@ -174,6 +174,16 @@ namespace Kratos
             #endif
         }
 
+       static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+       {
+         partitions.resize(number_of_threads+1);
+         int partition_size = number_of_rows / number_of_threads;
+         partitions[0] = 0;
+         partitions[number_of_threads] = number_of_rows;
+         for(unsigned int i = 1; i<number_of_threads; i++)
+            partitions[i] = partitions[i-1] + partition_size ;
+        }
+
         ///@} //Operations
     };
 
