@@ -478,7 +478,8 @@ void ComputeDampingForcesWithMass()
 	    KRATOS_CATCH("")
   
 }
-  
+
+/*
 /// for discontinum Galerking methods  
 void ComputeInterfaceForces()
 {
@@ -513,7 +514,8 @@ void ComputeInterfaceForces()
     
     KRATOS_CATCH("")
 }
-  
+ 
+*/
   
   
 /// Computa las fuerzas viscosas de amortiguamiento alfa * K_elem * Velocidad
@@ -1679,25 +1681,13 @@ void CalculateKineticEnergy()
 	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	 { 
-	    double& y_coord              = i->Y0();
-	    array_1d<double,3>& displ    = i->FastGetSolutionStepValue(DISPLACEMENT);  
-	    array_1d<double,3>& Gravity  = i->FastGetSolutionStepValue(GRAVITY); 
 	    array_1d<double,3>& Velocity = i->FastGetSolutionStepValue(VELOCITY); 
 	    double& mass                 = i->FastGetSolutionStepValue(NODAL_MASS);  
 	    double& kinetic_energy       = i->FastGetSolutionStepValue(KINETIC_ENERGY);
-	    double& potencial_energy     = i->FastGetSolutionStepValue(POTENCIAL_ENERGY);
 	    vel                          = norm_2(Velocity); 
-	    
 	    /// WARNING = solo valido para matriz de masa diagonal
 	    /// Ek = 0.50 * V^t * M * V 
 	    kinetic_energy               = 0.50 * mass * vel * vel; 
-	    /*
-	    /// la direccion de la fravedad en Y
-	    potencial_energy = 0.00;
-	    const double h_efe = y_coord + displ[1];
-	    if(h_efe>0)
-	         potencial_energy = std::fabs(mass * Gravity[1] * (h_efe));
-	    */
 	 }
       }
   KRATOS_CATCH("")
