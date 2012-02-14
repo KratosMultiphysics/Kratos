@@ -25,6 +25,7 @@
 #include "custom_utilities/local_tetrahedra_refine_mesh.h"
 #include "custom_utilities/tetgen_volume_mesher.h"
 #include "custom_utilities/cutting_app.h"
+#include "custom_utilities/cutting_iso_app.h"
 #include "utilities/split_tetrahedra.h"
 
 
@@ -65,18 +66,21 @@ namespace Kratos
             class_<MeshTransfer < 2 > >("MeshTransfer2D", init< >())
                     .def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
                     .def("DirectScalarVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation<double>)
-                    .def("DirectVectorialVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >);
+                    .def("DirectVectorialVarInterpolation", &MeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
+		    ;
 
             class_<MeshTransfer < 3 > >("MeshTransfer3D", init< >())
                     .def("DirectModelPartInterpolation", &MeshTransfer < 3 > ::DirectInterpolation)
                     .def("DirectScalarVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation<double>)
-                    .def("DirectVectorialVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >);
+                    .def("DirectVectorialVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
+		    ;
 
 //            class_<GenerateModelPartUtilities, boost::noncopyable > ("GenerateModelPartUtilities", init< >())
 //                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
 
             class_<ConnectivityPreserveModeler, boost::noncopyable > ("ConnectivityPreserveModeler", init< >())
-                    .def("GenerateModelPart", GenerateModelPart);
+                    .def("GenerateModelPart", GenerateModelPart)
+		    ;
 
             class_<Local_Refine_Triangle_Mesh, boost::noncopyable >
                     ("LocalRefineTriangleMesh", init<ModelPart&>())
@@ -101,9 +105,16 @@ namespace Kratos
                     .def("FindSmallestEdge", &Cutting_Application ::FindSmallestEdge)
                     ;
 
+            class_<Cutting_Isosurface_Application >("Cutting_Isosurface_Application", init< >())
+                    .def("GenerateScalarVarCut", &Cutting_Isosurface_Application::GenerateVariableCut<double>)
+		    .def("GenerateVectorialComponentVarCut", &Cutting_Isosurface_Application::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
+		    .def("GenerateVectorialVarCut", &Cutting_Isosurface_Application::GenerateVariableCut< array_1d < double, 3 > >)
+		    .def("AddModelPartElements", &Cutting_Isosurface_Application::AddModelPartElements)
+		    .def("AddSkinConditions", &Cutting_Isosurface_Application::AddSkinConditions)
+                    .def("UpdateCutData", &Cutting_Isosurface_Application::UpdateCutData)
+		    .def("DeleteCutData", &Cutting_Isosurface_Application::DeleteCutData)
+		    ;
         }
-
-
     } // namespace Python.
 
 } // Namespace Kratos
