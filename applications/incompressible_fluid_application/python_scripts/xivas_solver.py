@@ -23,7 +23,7 @@ def AddVariables(fluid_model_part,particle_model_part):
 
 def AddDofs(fluid_model_part,particle_model_part):
     edgebased_eulerian_solver.AddDofs(fluid_model_part)
-    edgebased_eulerian_solver.AddDofs(particle_model_part)
+    #edgebased_eulerian_solver.AddDofs(particle_model_part)
 
     print "dofs for the xivas solver added correctly"
     
@@ -50,7 +50,7 @@ class XIVASSolver:
 
         #assignation of parameters to be used
 	self.assume_constant_pressure =  True
-	self.stabdt_pressure_factor = 0.01
+	self.stabdt_pressure_factor = 1.0
 	self.use_mass_correction = False
         self.echo_level = 0
 
@@ -93,8 +93,12 @@ class XIVASSolver:
 	self.fluid_solver.Initialize() 
 	
         #(self.fluid_solver).SetEchoLevel(self.echo_level)
+        hmin = (self.fluid_solver.fluid_solver).ComputeMinimum_Havg()
+
+        print "minimum nodal havg found on the mesh = ",hmin
+        #self.node_locator.UpdateSearchDatabase()  
+        self.node_locator.UpdateSearchDatabaseAssignedSize(hmin)
         
-        self.node_locator.UpdateSearchDatabase()  
         
         self.particle_utils.Reseed(self.fluid_model_part,self.particle_model_part)
 
@@ -110,11 +114,11 @@ class XIVASSolver:
 	Dt_check = self.fluid_model_part.ProcessInfo[DELTA_TIME]
 	if(Dt != Dt_check):
 	  raise "error, time step for particle_model_part is not appropriately cloned (not syncronized with fluid_model_part)"
-      
+        
 	(self.fluid_solver.fluid_solver).ComputeViscousForces()
-	
+	print "ccc"
 	self.particle_utils.StreamlineMove(self.bf,self.density,Dt,self.substeps,self.fluid_model_part,self.particle_model_part,self.restart_with_eulerian_vel,self.node_locator)
-
+	
 	self.particle_utils.TransferToEulerianMeshShapeBased(self.fluid_model_part,self.particle_model_part,self.node_locator)
 
         (self.fluid_solver.fluid_solver).ComputePressureStabilization()
