@@ -156,6 +156,17 @@ namespace Kratos
 
       }
      
+     BinsObjectDynamic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, CoordinateType CellSize) 
+           : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
+      {
+        mObjectsSize = SearchUtils::PointerDistance(mObjectsBegin,mObjectsEnd);
+        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
+        CalculateCellSize(CellSize);  // Calculate number of Cells
+        AllocateContainer();              // Allocate cell list
+        GenerateBins();                   // Fill Cells with objects
+
+      }
+     
       BinsObjectDynamic (const PointType& MinPoint, const PointType& MaxPoint, CoordinateType CellSize)
         : mObjectsSize(0), mObjectsBegin(0), mObjectsEnd(0)
       {

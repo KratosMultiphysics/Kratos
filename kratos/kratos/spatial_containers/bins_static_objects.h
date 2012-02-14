@@ -169,6 +169,37 @@ namespace Kratos
 	 
       }
      
+     BinsObjectStatic (IteratorType const& ObjectsBegin, IteratorType const& ObjectsEnd, const SizeType Nx, const SizeType Ny, const SizeType Nz ) 
+           : mObjectsBegin(ObjectsBegin), mObjectsEnd(ObjectsEnd)
+      {
+	
+	 CalculateBoundingBox();
+      
+	mN[0] = Nx;
+	mN[1] = Ny;
+	mN[2] = Nz;
+      
+      double delta[Dimension];
+      double mult_delta = 1.00;
+      SizeType index = 0;
+      for(SizeType i = 0 ; i < Dimension ; i++) {
+         delta[i] = mMaxPoint[i] - mMinPoint[i];
+         if ( delta[i] > delta[index] )
+            index = i;
+         delta[i] = (delta[i] == 0.00) ? 1.00 : delta[i];
+      }
+	  
+	for(SizeType i = 0 ; i < Dimension ; i++){
+	  mCellSize[i] = delta[i] / mN[i];
+	  mInvCellSize[i] = 1.00 / mCellSize[i];
+	}
+	 
+	 
+	 GenerateBins();
+	 	 
+	 
+      }
+     
 
       /// Destructor.
       virtual ~BinsObjectStatic(){}
