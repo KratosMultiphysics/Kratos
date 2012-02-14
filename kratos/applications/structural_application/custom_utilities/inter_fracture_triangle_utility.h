@@ -1030,7 +1030,7 @@ namespace Kratos
 		b = 1; 
 	        Condition::GeometryType& geom_cond      = rcond->GetGeometry();
 	        Element::Pointer relem                  = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
-		int id = rcond->Id();
+//		int id = rcond->Id();
 // 		if(id==1 || id==2 || id==3 || id==4 || id==5 || id==6 || id==7 || id==8)
 // 		{
 // 		  KRATOS_WATCH(rcond->Id())
