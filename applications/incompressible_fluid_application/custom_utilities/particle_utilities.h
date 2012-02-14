@@ -130,7 +130,7 @@ namespace Kratos
             //            node_locator.UpdateSearchDatabase();
 
 //            double density_inverse = 1.0 / density;
-	    double specific_heat_inverse = 1.0 / speficit_heat;
+	    //double specific_heat_inverse = 1.0 / speficit_heat;
 
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
@@ -146,7 +146,7 @@ namespace Kratos
             array_1d<double, 3 > veulerian;
             array_1d<double, 3 > acc_particle;
             array_1d<double, TDim + 1 > N;
-	    double G;
+	    //double G;
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -798,7 +798,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
 	  elem_partition[0] = 0;
 	  elem_partition[number_of_threads] = number_of_rows;
 	  KRATOS_WATCH(elem_partition_size);
-	  for (unsigned int i = 1; i < number_of_threads; i++)
+	  for ( int i = 1; i < number_of_threads; i++)
 	    elem_partition[i] = elem_partition[i - 1] + elem_partition_size;
 	  
 	  typedef Node < 3 > PointType;
@@ -823,7 +823,7 @@ void Back(array_1d<double, 3 > & body_force, const double density, const double 
 	  int local_id=1;
 	    for (ModelPart::ElementsContainerType::iterator el_it = it_begin; el_it != it_end; el_it++)
 	      {
-		int z=el_it->GetValue(YOUNG_MODULUS);
+//		int z=el_it->GetValue(YOUNG_MODULUS);
 		//KRATOS_WATCH(z);
 		//KRATOS_WATCH( min_number_of_particles);
 		if (el_it->GetValue(YOUNG_MODULUS) < 4)
