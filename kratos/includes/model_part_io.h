@@ -731,10 +731,19 @@ namespace Kratos
 
 	while(!mInput.eof())
 	{
-	  ReadWord(variable_name);
-	  if(CheckEndBlock("Table", variable_name))
+	  double x;
+	  double y;
+	  ReadWord(word);
+	  if(CheckEndBlock("Table", word))
 	    break;
+
+	  ExtractValue(word, x);
+	  ReadWord(word);
+	  ExtractValue(word, y);
+	  
+	  temp_table.PushBack(x,y);
 	}
+	KRATOS_WATCH(temp_table);
 
 	KRATOS_CATCH("")
       }
