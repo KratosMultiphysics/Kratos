@@ -116,14 +116,16 @@ namespace Kratos
 	     std::size_t i                    = 0;
 	     
 	     NodesArrayType New_pNodes; 
-	     ModelPart::NodeIterator inode = pNodes.begin() + i;
-	     while(inode!= pNodes.begin() + dis)     
-	     {  
-                WeakPointerVector< Element >& neighb_elems  = inode->GetValue(NEIGHBOUR_ELEMENTS); 
+	     ModelPart::NodeIterator inode = model_part.Nodes().begin() + i;
+	     std::cout<< "DUPLICATING NODES IN MODEL PART"<< std::endl;
+	     while(inode!= model_part.Nodes().begin() + dis)     
+	     { 
+	       KRATOS_WATCH(inode->Id())
+	       WeakPointerVector< Element >& neighb_elems  = inode->GetValue(NEIGHBOUR_ELEMENTS); 
 		if(neighb_elems.size()!=0){
 		for(WeakPointerVector<Element>::iterator ielem = neighb_elems.begin();  ielem!=neighb_elems.end()-1; ielem++){
 		  if(ielem->GetProperties()[IS_DISCRETE]>=1.00){
-		      inode = pNodes.begin() + i;
+		      inode = model_part.Nodes().begin() + i;
 		      Element::GeometryType& geom = ielem->GetGeometry();     
 		      if(geom(0)->Id()==inode->Id()){
 			   New_Id++;
@@ -136,14 +138,13 @@ namespace Kratos
 		      if(geom(2)->Id()==inode->Id()){ 
 			   New_Id++;
 			   Create_New_Node(model_part, New_Id, geom(2));
-		      }	
+		          }
+		        }
+	  	      }
 		    }
-		  }  
-		}
-		i++;
-		inode = pNodes.begin() + i;
-	      }
-	      
+		    i++;
+	       } 
+	     std::cout<< "DUPLICATING NODES IN MODEL PART FINISH" << std::endl; 
     
     vector<unsigned int> element_partition;
     int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -202,37 +203,38 @@ namespace Kratos
 	     ElementsArrayType& pElements  = model_part.Elements();
 	     unsigned int New_Id           = pNodes.size();
 	     NodesArrayType New_pNodes; 
-             NodesArrayType::iterator i_begin = pNodes.begin();
-	     NodesArrayType::iterator i_end   = pNodes.end();
+             NodesArrayType::iterator i_begin =  pNodes.begin();
+	     NodesArrayType::iterator i_end   =  pNodes.end();
 	     const int dis    =  pNodes.end() -  pNodes.begin();
 	     std::size_t i    = 0;
-	     
-	     ModelPart::NodeIterator inode = pNodes.begin() + i;
-	     while(inode!= pNodes.begin() + dis)     
+	     ModelPart::NodeIterator inode = model_part.Nodes().begin() + i;
+	     while(inode!= model_part.Nodes().begin() + dis)     
 	     {  
+	        inode = model_part.Nodes().begin() + i;
                 WeakPointerVector< Element >& neighb_elems  = inode->GetValue(NEIGHBOUR_ELEMENTS); 
 		if(neighb_elems.size()!=0){
 		for(WeakPointerVector<Element>::iterator ielem = neighb_elems.begin();  ielem!=neighb_elems.end()-1; ielem++){
 		  if(ielem->GetProperties()[IS_DISCRETE]>=1.00){
-		      inode = pNodes.begin() + i;
-		      Element::GeometryType& geom = ielem->GetGeometry();     
+		      inode = model_part.Nodes().begin() + i;
+		      Element::GeometryType& geom = ielem->GetGeometry();
 		      if(geom(0)->Id()==inode->Id()){
 			   New_Id++;
 			   Create_New_Node(model_part,New_Id, geom(0));
 		      }
-	              if(geom(1)->Id()==inode->Id()){ 
+	              else if(geom(1)->Id()==inode->Id()){ 
 			   New_Id++;
 			   Create_New_Node(model_part, New_Id, geom(1));
-		      }
-		      if(geom(2)->Id()==inode->Id()){ 
+		       }
+		      else{  //if (geom(2)->Id()==inode->Id()){ 
 			   New_Id++;
 			   Create_New_Node(model_part, New_Id, geom(2));
-		      }	
+		       }
+		      inode = model_part.Nodes().begin() + i;
 		    }
 		  }  
 		}
 		i++;
-		inode = pNodes.begin() + i;
+		inode = model_part.Nodes().begin() + i;
 	      }
 	      
 	      unsigned int count   = 0;
@@ -395,8 +397,8 @@ namespace Kratos
 	  
 	  void CreateJoints(ModelPart& model_part)
 	  {
-	    //Disconnect_Elements(model_part); 
-	    Disconnect_Elements_DG(model_part); 
+            Disconnect_Elements(model_part); 
+	    //Disconnect_Elements_DG(model_part); 
 	  }
 	  
 	  std::vector<Joint2D>::iterator Begin()
