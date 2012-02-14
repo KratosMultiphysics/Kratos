@@ -297,7 +297,30 @@ namespace Kratos {
 	}
 	
 	
+	//***************************************
+	//function to set adequate time step size
 
+	double ComputeMinimum_Havg()
+	{
+	    KRATOS_TRY
+		
+		double hmin_global = 1e10;
+
+	    //*******************
+	    //loop over all nodes
+	    double n_nodes = mvel_n1.size();
+	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
+	    {
+			const double havg_i = mHavg[i_node];
+			const double hmin_i = mHmin[i_node];
+			
+			if(havg_i < hmin_global) hmin_global=havg_i;
+		}
+
+	    return hmin_global;
+
+	    KRATOS_CATCH("")
+	}
 
 	//***************************************
 	//function to set adequate time step size
