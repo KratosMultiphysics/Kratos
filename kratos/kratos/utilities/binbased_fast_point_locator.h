@@ -129,7 +129,23 @@ namespace Kratos
 
             KRATOS_CATCH("")
         }
+        
+        ///function to construct or update the search database
+        void UpdateSearchDatabaseAssignedSize(double CellSize)
+        {
+            KRATOS_TRY
 
+            //copy the elements to a new container, as the list will
+            //be shuffled duringthe construction of the tree
+            ContainerType& rElements = mr_model_part.ElementsArray();
+            IteratorType it_begin = rElements.begin();
+            IteratorType it_end = rElements.end();
+
+            typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end,CellSize));
+            paux.swap(mpBinsObjectDynamic);
+
+            KRATOS_CATCH("")
+        }
         ///this function should find the element into which a given node is located
         ///and return a pointer to the element and the vector containing the
         ///shape functions that define the postion within the element
