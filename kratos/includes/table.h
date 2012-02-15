@@ -467,13 +467,13 @@ namespace Kratos
 	  // This operator gives the result for the nearest value to argument found in table 
 	  result_type const & operator[](argument_type const& X) const
 	  {
-              GetNearestValue(X);
+              return GetNearestValue(X);
 	  }
 
 	  // This operator gives the result for the nearest value to argument found in table 
 	  result_type & operator[](argument_type& X)
 	  {
-              GetNearestValue(X);
+              return GetNearestValue(X);
 	  }
       
       ///@}
