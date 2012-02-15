@@ -547,6 +547,28 @@ namespace Kratos
 		  return mData[size-1].second[0];
         }
 
+	  // Get the nesrest value for the given argument
+	  result_type & GetNearestValue(argument_type const& X)
+	  {
+		  std::size_t size = mData.size();
+
+		  if(size == 0)
+			  KRATOS_ERROR(std::invalid_argument, "Get value from empty table", "");
+
+		  if(size==1) // constant table. Returning the only value we have.
+			  return mData.begin()->second[0];
+
+		  if(X <= mData[0].first)
+			  return mData[0].second[0];
+
+		  for(std::size_t i = 1 ; i < size ; i++)
+			if(X <= mData[i].first)
+			  return ((X - mData[i-1].first) < (mData[i].first - X)) ? mData[i-1].second[0] : mData[i].second[0];
+
+		  // now the x is outside the table and we hae to extrapolate it using last two records of table.
+		  return mData[size-1].second[0];
+        }
+
         result_type& Interpolate(argument_type const& X, argument_type const& X1, result_type const& Y1, argument_type const& X2, result_type const& Y2, result_type& Result) const
         {
             const double epsilon = 1e-12;
