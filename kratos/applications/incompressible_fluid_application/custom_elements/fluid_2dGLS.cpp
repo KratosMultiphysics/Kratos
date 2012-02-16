@@ -105,7 +105,7 @@ namespace Kratos
 
         if (FractionalStepNumber < 3) //first step of the fractional step solution
         {
-            int ComponentIndex = FractionalStepNumber - 1;
+//            int ComponentIndex = FractionalStepNumber - 1;
 
         } else if (FractionalStepNumber == 4)//second step of the fractional step solution
         {
@@ -156,7 +156,7 @@ namespace Kratos
 		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
@@ -166,7 +166,7 @@ namespace Kratos
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
@@ -176,7 +176,7 @@ namespace Kratos
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
 		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
@@ -323,6 +323,7 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,2,2> msGrad_ug = ZeroMatrix(2,2);
 		array_1d<double,6> msStabMomRes = ZeroVector(6); //dimension = number of nodes
 		boost::numeric::ublas::bounded_matrix<double,6,3> msGradOp = ZeroMatrix(6,3);
+		array_1d<double, 2 > vel_gauss;
 		///////////////////////////////////////////////////////////////////////////////////
 		
 		if(rRightHandSideVector.size() != 3)
@@ -337,7 +338,8 @@ namespace Kratos
 		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 		const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
@@ -347,7 +349,8 @@ namespace Kratos
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
 		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
 		const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
@@ -357,7 +360,8 @@ namespace Kratos
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
 		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
-		const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		//const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
+		const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE); 
@@ -392,7 +396,7 @@ namespace Kratos
 		double h = sqrt(2.00*Area);
 		double norm_u = ms_vel_gauss[0]*ms_vel_gauss[0] + ms_vel_gauss[1]*ms_vel_gauss[1];
 		norm_u = sqrt(norm_u);
-		double tau = 1.00 / ( 4.00*nu/(h*h) /*+2.00*norm_u/h*/ + 1.0/dt);
+		double tau = 1.00 / ( 4.00*nu/(h*h) + 2.00*norm_u/h +  1.0/dt);
 		//tau=0.0;
 		
 		//AND NOW WE ADD THE RESPECTIVE CONTRIBUTIONS TO THE RHS AND LHS of THE SECOND FRAC STEP
@@ -430,6 +434,14 @@ namespace Kratos
 		
 		//***************************************************************************
 		
+
+		vel_gauss[0] = msN[0] * proj0[0] + msN[1] * proj1[0] + msN[2] * proj2[0];
+        	vel_gauss[1] = msN[0] * proj0[1] + msN[1] * proj1[1] + msN[2] * proj2[1];
+        	vel_gauss *= tau;
+        	//noalias(rRightHandSideVector) += prod(msDN_DX, vel_gauss)*Area;
+
+
+
 		//here we have the Du_tila term
 		double Gaux;
 		Gaux =  msDN_DX(0,0)*fv0[0] + msDN_DX(0,1)*fv0[1];
@@ -444,13 +456,10 @@ namespace Kratos
 		ms_aux1[0]=msDN_DX(0,0)*ms_aux0[0]+msDN_DX(0,1)*ms_aux0[1];
 		ms_aux1[1]=msDN_DX(1,0)*ms_aux0[0]+msDN_DX(1,1)*ms_aux0[1];
 		ms_aux1[2]=msDN_DX(2,0)*ms_aux0[0]+msDN_DX(2,1)*ms_aux0[1];
-		//KRATOS_WATCH(temp)
-		rRightHandSideVector += tau*density*Area*ms_aux1;
+
+		//rRightHandSideVector += tau*density*Area*ms_aux1;
 		
 		
-		//RHS += -tau*nablaN*du_gausspoint/dt
-			
-		//we reuse ms_vel_gauss to store the accelerations( (u_n - u_n-1)/dt)		
 		
 /*		ms_vel_gauss[0]=0.33333333333*(fv0_old[0]+fv1_old[0]+fv2_old[0]-fv0_n_1[0]-fv1_n_1[0]-fv2_n_1[0])/dt;
 		ms_vel_gauss[1]=0.33333333333*(fv0_old[1]+fv1_old[1]+fv2_old[1]-fv0_n_1[1]-fv1_n_1[1]-fv2_n_1[1])/dt;
@@ -460,16 +469,12 @@ namespace Kratos
 
 
 		
-		//and now we reuse ms_aux1
-
 		ms_aux1=prod(msDN_DX,ms_vel_gauss);
 		
 		noalias(rRightHandSideVector) -= tau*density*Area*ms_aux1;
 		
  
-		//and now the stabilization term referring to the convective operator
-		//RHS+=nablaq*convop (convetcion of the Gauss point vel)
-		
+	
 		//contains d_ug/dx
 		//x-component of u derived with resp to x, remember msAuxVec stores velocity
 		msGrad_ug(0,0)=msDN_DX(0,0)*msAuxVec[0]+msDN_DX(1,0)*msAuxVec[2]+msDN_DX(2,0)*msAuxVec[4];
@@ -484,8 +489,6 @@ namespace Kratos
 		a[0]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(0,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(0,1);
 		a[1]=0.33333333333333*(msAuxVec[0]+msAuxVec[2]+msAuxVec[4])*msGrad_ug(1,0)+0.33333333333333*(msAuxVec[1]+msAuxVec[3]+msAuxVec[5])*msGrad_ug(1,1);
 		
-		//we again reuse ms_aux0
-		//noalias(ms_aux0) = prod(msDN_DX,a);
 		//noalias(rRightHandSideVector) -= tau*density*Area*ms_aux0;
 
 		
@@ -502,7 +505,8 @@ namespace Kratos
     void Fluid2DGLS::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     {
         KRATOS_TRY
-                int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+
+        int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
@@ -517,10 +521,10 @@ namespace Kratos
         //getting data for the given geometry
         double Area;
         GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
+	//KRATOS_ERROR(std::logic_error, "method not implemented", "");
         if (FractionalStepNumber == 5) //calculation of stabilization terms
         {
-
+		//KRATOS_ERROR(std::logic_error, "method not implemented", "");
 		///////////////////////NECESSARY LOCALS///////////////////////////////////////////
 		boost::numeric::ublas::bounded_matrix<double,3,3> msWorkMatrix = ZeroMatrix(3,3);
 		array_1d<double,6> GalerkinRHS = ZeroVector(6); //dimension = number of nodes
@@ -557,6 +561,19 @@ namespace Kratos
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
 		const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
 			
+
+
+
+
+
+
+
+
+
+
+
+
+
 		//====================================================================
 		//calculating viscosity and density
 		double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
