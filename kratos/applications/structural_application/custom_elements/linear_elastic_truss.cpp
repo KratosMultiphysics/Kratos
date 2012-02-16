@@ -477,7 +477,7 @@ namespace Kratos
 
 	noalias(rLeftHandSideMatrix)=(E*A/mLength)*prod(Aux,trans(Aux));
 
-	array_1d<double,3> disp_old = ZeroVector(6);	
+	array_1d<double,6> disp_old = ZeroVector(6);	
 
 	disp_old[0] = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
 	disp_old[1] = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
