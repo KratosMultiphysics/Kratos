@@ -65,6 +65,7 @@
 #include "custom_elements/fluid_3dGLS_expl_comp.h"
 
 #include "custom_conditions/proj_dirichlet_cond.h"
+#include "custom_conditions/proj_dirichlet_cond3D.h"
 
 #include "custom_elements/fluid_2d_split.h"
 
@@ -87,6 +88,7 @@
 #include "custom_elements/explicit_asgs_compressible_3d.h"
 #include "custom_elements/explicit_asgs_comp_pr_dc_3d.h"
 
+#include "custom_elements/asgs_comp_enriched_3d.h"
 namespace Kratos
 {
     ///@addtogroup IncompressibleFluidApplication
@@ -333,6 +335,7 @@ namespace Kratos
         const Fluid3DGLS_expl_comp mFluid3DGLS_expl_comp;
 
         const ProjDirichletCond mProjDirichletCond;
+        const ProjDirichletCond3D mProjDirichletCond3D;
 
         const Fluid2DSplit mFluid2DSplit;
 
@@ -350,6 +353,8 @@ namespace Kratos
 
         const ExplicitASGSCompressible3D mExplicitASGSCompressible3D;
         const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
+
+	const ASGSCompEnriched3D mASGSCompEnriched3D;
 
 
         //const ABC2D mABC2D;

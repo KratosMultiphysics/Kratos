@@ -91,6 +91,7 @@ namespace Kratos
 		mFluid3DGLS_expl_comp(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 
 		mProjDirichletCond(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+		mProjDirichletCond3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 			
 		mFluid2DSplit(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
 
@@ -107,10 +108,11 @@ namespace Kratos
 
 
 		mExplicitASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-		mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+		mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+		mASGSCompEnriched3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 
 		//mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
-
+	
 
 
 
@@ -193,6 +195,7 @@ namespace Kratos
 
 
 		KRATOS_REGISTER_CONDITION("ProjDirichletCond", mProjDirichletCond);
+		KRATOS_REGISTER_CONDITION("ProjDirichletCond3D", mProjDirichletCond3D);
 		KRATOS_REGISTER_CONDITION("NoSlipCondition2D", mNoSlipCondition2D);
 // 		KRATOS_REGISTER_CONDITION("NoSlipFractStep", mNoSlipFractStep);
 
@@ -212,7 +215,10 @@ namespace Kratos
 
 		
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCompressible3D", mExplicitASGSCompressible3D);
- 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC3D", mExplicitASGSCOMPPRDC3D);		
+ 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC3D", mExplicitASGSCOMPPRDC3D);
+
+ 		KRATOS_REGISTER_ELEMENT("ASGSCompEnriched3D", mASGSCompEnriched3D);		
+
 		
 		std::cout << "Initializing KratosIncompressibleFluidApplication...elements succesfully registered " << std::endl;
 	
