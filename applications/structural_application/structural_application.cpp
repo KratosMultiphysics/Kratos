@@ -280,6 +280,7 @@ namespace Kratos
 //  KRATOS_CREATE_VARIABLE(int, ACTIVATION_LEVEL)
 
     KratosStructuralApplication::KratosStructuralApplication():
+            mLinearElasticTruss3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mCrisfieldTrussElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
             mCrisfieldTrussElement3D3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
             mLinearElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -605,6 +606,7 @@ namespace Kratos
 //   KRATOS_REGISTER_VARIABLE(ELASTIC_LEFT_CAUCHY_GREEN_OLD)
 //
 //   KRATOS_REGISTER_VARIABLE(ACTIVATION_LEVEL)
+        KRATOS_REGISTER_ELEMENT( "LinearElasticTruss3D2N", mLinearElasticTruss3D2N )
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D2N", mCrisfieldTrussElement3D2N )
         KRATOS_REGISTER_ELEMENT( "CrisfieldTrussElement3D3N", mCrisfieldTrussElement3D3N )
         KRATOS_REGISTER_ELEMENT( "HypoelasticElement2D3N", mHypoelasticElement2D3N )
