@@ -288,13 +288,11 @@ double Solve()
 	
 	/// Discontinum Mechanics
 	//ComputeInterfaceForces();
+
 	
-	
-	
-	/// Fragmentation and fracture
-	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
+	/// Fragmentation and fracture for DEM
+	Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
-	 
 	//WARNING = To be checked
 	//ComputeDampingForces();
 	
@@ -308,7 +306,7 @@ double Solve()
 	       //const bool rflag = false;
 	       //ResetFlagComputeBoundaryContour(rflag)
 	       //mpBCCU_Pointer->Clear(minitial_conditions_size); //CreateBoundaries(minitial_conditions_size); 
-	       mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size); 
+	       mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size); /// lista de los elementos de contorno 
 	       mpBCCU_Pointer->ComputeContactForce();
 	    }
 	    
@@ -715,10 +713,9 @@ void ComputeIntermedialVelocityAndNewDisplacement()
       }   
     }
     
-    
-    std::cout<< "  OLD TIMESTEP                 = "<< molddelta_time     << "  SECONDS" << std::endl; 
-    std::cout<< "  CURRENT TIMESTEP             = "<< current_delta_time << "  SECONDS" << std::endl; 
-    std::cout<< "  AVERAGE TIMESTEP             = "<< mid_delta_time     << "  SECONDS" << std::endl; 
+    //std::cout<< "  OLD TIMESTEP                 = "<< molddelta_time     << "  SECONDS" << std::endl; 
+    //std::cout<< "  CURRENT TIMESTEP             = "<< current_delta_time << "  SECONDS" << std::endl; 
+    //std::cout<< "  AVERAGE TIMESTEP             = "<< mid_delta_time     << "  SECONDS" << std::endl; 
       
     KRATOS_CATCH("")
 }
@@ -920,7 +917,6 @@ void ComputeCriticalTime()
     }
     
     delta_time_computed = Truncar_Delta_Time(delta_time_computed);
-
     
     
     if(delta_time_computed>mmax_delta_time) {delta_time_computed = mmax_delta_time;}
@@ -1695,46 +1691,28 @@ void CalculateKineticEnergy()
 
 void Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D>::iterator End)
         {
-	  KRATOS_TRY
-	 
-	  const double fact_a = 0.63;
-	  const double fact_b = 1.8;
-	  const double fact_c = 6.0;
-	  const double dpefm = 0.0;
-	  const double small = 1E-9;
-	  array_1d<double,4 > coordx;
-	  array_1d<double,4>  coordy; 
-
-	  double sabs        = 0.00;
-	  double o           = 0.00;
-	  double oc          = 0.00;
-	  double sc          = 0.00;  
-	  double s           = 0.00;
-	  double o1          = 0.00;
-	  double o2          = 0.00;  
-	  double s1          = 0.00;
-	  double s2          = 0.00;
-	  double op          = 0.00; 
-	  double sp          = 0.00;
-	  double ot          = 0.00;
-	  double st          = 0.00;
-	  double D           = 0.00;
-	  double z           = 0.00;
-	  double Sigma       = 0.00;
-	  double Tau         = 0.00;
- 	  double nx          = 0.00;
-	  double ny          = 0.00;
-	  double h           = 0.00;
-	  double area        = 0.00;
-          
+	 KRATOS_TRY
+	  double dpefa = 0.63;
+	  double dpefb = 1.8;
+	  double dpefc = 6.0;
+	  double dpefm = 0.0;
+	  double small,sabs,o,s,o1,o2,s1,s2,op,sp,ot,st,z,sigma,tau;
+	  double e1x,e1y,h,area;
+	  int nfail;
+	  //int nsoft;
+          double d1nccx[4];
+	  double d1nccy[4];
+	  
 	  ModelPart& r_model_part = BaseType::GetModelPart();
 	  Properties&  prop       = r_model_part.GetProperties(1);
 	  
-	  const double dpepe      = mpenalty_factor * (prop)[YOUNG_MODULUS];
-	  const double& dpeft     = (prop)[TENSILE_STRENGTH];
-	  const double& dpefs     = (prop)[SHEAR_STRENGTH];
-	  const double& dpegf     = (prop)[FRACTURE_ENERGY];
-	  	  
+	  
+	  const double& dpeft = (prop)[TENSILE_STRENGTH];
+	  const double dpepe  =  mpenalty_factor * (prop)[YOUNG_MODULUS];
+	  const double& dpefs = (prop)[SHEAR_STRENGTH];
+	  const double& dpegf = (prop)[FRACTURE_ENERGY];
+	  
+	  small=1E-9; //nsoft=0;
 	  for(std::vector<Joint2D>::iterator Joint = Begin; Joint != End; ++Joint) 
 	    { 
 	      if((Joint)->IsFail()==false){
@@ -1742,48 +1720,37 @@ void Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D
 	      array_1d<double,3>& node_rhs_1 =  (*Joint)[1]->FastGetSolutionStepValue(RHS);
 	      array_1d<double,3>& node_rhs_2 =  (*Joint)[2]->FastGetSolutionStepValue(RHS);
 	      array_1d<double,3>& node_rhs_3 =  (*Joint)[3]->FastGetSolutionStepValue(RHS);
-	            
 	      
-	      const double length =(*Joint).Length();
-	      op = 2.00*length*dpeft/dpepe;   /// delta p
-	      sp = 2.00*length*dpefs/dpepe;   /// valor sp
+	      d1nccx[0] = (*Joint)[0]->X();  
+	      d1nccx[1] = (*Joint)[1]->X();  
+	      d1nccx[2] = (*Joint)[2]->X();  
+	      d1nccx[3] = (*Joint)[3]->X();  
+	      
+	      d1nccy[0] = (*Joint)[0]->Y();  
+	      d1nccy[1] = (*Joint)[1]->Y();  
+	      d1nccy[2] = (*Joint)[2]->Y();  
+	      d1nccy[3] = (*Joint)[3]->Y();  
+	      
+	      e1x=0.50*(d1nccx[1]+d1nccx[2]-d1nccx[0]-d1nccx[3]);
+	      e1y=0.50*(d1nccy[1]+d1nccy[2]-d1nccy[0]-d1nccy[3]);
+	      h=std::sqrt(e1x*e1x+e1y*e1y);
+	      
+	      e1x=e1x/(h+small);
+	      e1y=e1y/(h+small);
+	      s1=(d1nccy[0]-d1nccy[3])*e1y+(d1nccx[0]-d1nccx[3])*e1x;
+	      s2=(d1nccy[1]-d1nccy[2])*e1y+(d1nccx[1]-d1nccx[2])*e1x;
+	      o1=(d1nccy[0]-d1nccy[3])*e1x-(d1nccx[0]-d1nccx[3])*e1y;
+	      o2=(d1nccy[1]-d1nccy[2])*e1x-(d1nccx[1]-d1nccx[2])*e1y;
 	      
 	      
-	      coordx[0] = (*Joint)[0]->X();  
-	      coordx[1] = (*Joint)[1]->X();  
-	      coordx[2] = (*Joint)[2]->X();  
-	      coordx[3] = (*Joint)[3]->X();  
-	      
-	      coordy[0] = (*Joint)[0]->Y();  
-	      coordy[1] = (*Joint)[1]->Y();  
-	      coordy[2] = (*Joint)[2]->Y();  
-	      coordy[3] = (*Joint)[3]->Y();  
-	            
-	      /// restas de los puntos 
-	      nx=0.50*(coordx[1]+coordx[2]-coordx[0]-coordx[3]);
-	      ny=0.50*(coordy[1]+coordy[2]-coordy[0]-coordy[3]);
-	      
-	      h = std::sqrt(nx*nx+ny*ny);
-	      
-	      /// vectores unitarios
-	      nx=nx/(h+small);
-	      ny=ny/(h+small);
-	      
-	      /// mide que tanto se ha separado y deslizado el elemento. the crack opening and sliding
-	      s1=(coordy[0]-coordy[3])*ny+(coordx[0]-coordx[3])*nx;
-	      s2=(coordy[1]-coordy[2])*ny+(coordx[1]-coordx[2])*nx;
-	      o1=(coordy[3]-coordy[0])*nx-(coordx[3]-coordx[0])*ny;
-	      o2=(coordy[2]-coordy[1])*nx-(coordx[2]-coordx[1])*ny;
-	      
-	      /// una formula
-	      ot = std::max((2.00*op),(3.00*dpegf/dpeft));
-	      st = std::max((2.00*sp),(3.00*dpegf/dpefs));
-	      oc = ot + op;
-	      sc = st + sp;
-	      
-	      for(unsigned int integ = 0; integ<3;integ++)
-	      {  
-		if(integ==0)
+	      op=2.00*h*dpeft/dpepe;
+	      sp=2.00*h*dpefs/dpepe;
+	      ot=std::max((2.00*op),(3.00*dpegf/dpeft));
+	      st=std::max((2.00*sp),(3.00*dpegf/dpefs));
+	      //nfail=0;
+	       
+	      for(int integ=0;integ<3;integ++)
+	      {  if(integ==0)
 	         { o=o1; s=s1;
 	         }
 	         else if(integ==2)
@@ -1791,96 +1758,82 @@ void Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D
 	         } 
 	         else
 	         { o=0.50*(o1+o2); s=0.50*(s1+s2);
-	         }         
+	         }
 	         
 	         sabs=std::fabs(s);
-		 if(o<op && s<sp){D = 0.00;}
-		 else if(o>oc || s>sc){D = 1.00;}
-		 else if(o>op && s>sp && o<oc && s<sc)
-		 { double a = (o-op)/(ot); 
-		   double b = (s-sp)/(st); 
-		   D        = std::sqrt(a*a + b*b);
-		 }
-		 else if(o>op && o<oc){D = (o-op)/(ot);}
-		 else if(s>sp && s<sc){D = (s-sp)/(st);}
-		 else
-		   KRATOS_ERROR(std::logic_error," Value of D bad calculated ","");
-
-	         if(D>=1.00)    
-	         {
-		     D = 1.00;
-		    (Joint)->SetFail();
-	         }
-	         
-	         // D = z en articulo 
-	         z=(1.00 - ((fact_a+fact_b-1.00)/(fact_a+fact_b))*exp(D*(fact_a+fact_c*fact_b)/((fact_a+fact_b)*(1.00-fact_a-fact_b))))*(fact_a*(1.00-D)+fact_b*std::pow((1.00-D),fact_c));        
-	         
-		// Normal Stress  
-		 if(o<0.00)                 
-	         { Sigma=2.00*o*dpeft/op;   
+	         if((o>op)&&(sabs>sp))
+	         { z=std::sqrt(((o-op)/ot)*((o-op)/ot)+((sabs-sp)/st)*((sabs-sp)/st));
 	         }
 	         else if(o>op)
-	         { Sigma= dpeft*z;
+	         { z=(o-op)/ot;
+	         }
+	         else if(sabs>sp)
+	         { z=(sabs-sp)/st;
 	         }
 	         else
+	         { z=0.00;
+	         }
+	         
+	         if(z>=1.00)    
 	         {
-		   Sigma=(2.00*o/op-(o/op)*(o/op))*dpeft; 
-		 }
-		 
-		 KRATOS_WATCH(D) 
-		 KRATOS_WATCH(s)
-		 KRATOS_WATCH(sp)
-		 KRATOS_WATCH(sc)
-		 KRATOS_WATCH(o)
-		 KRATOS_WATCH(op)
-		 KRATOS_WATCH(oc)
-		 KRATOS_WATCH(z)
-		 KRATOS_WATCH(Sigma)
-		 KRATOS_WATCH("-------------------")
+		   nfail=nfail+1;
+		   if((nfail>1))
+		      (Joint)->SetFail();
+	            z=1.00;
+	         }
+	         
+	         z=(1.00 - ((dpefa+dpefb-1.00)/(dpefa+dpefb))*exp(z*(dpefa+dpefc*dpefb)/((dpefa+dpefb)*(1.00-dpefa-dpefb))))*(dpefa*(1.00-z)+dpefb*pow((1.00-z),dpefc));        
+	        
 
-	         //Shear Stress
-		  if( sabs>=0.00 && sabs>sp) 
- 	          { Tau =Tau=z*dpefs; 
- 	          }
- 	          else if(Sigma>0.00)           
- 	          { Tau= (2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
- 	          }
- 	          else if(sabs>sp)
- 	          { Tau = z*dpefs-dpefm*Sigma;
- 	          }
- 	          else
- 	          { Tau= (2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*Sigma);
- 	          }
- 	          
-		if(s<0.00)Tau=-Tau;
+		if(o<0.00)                 /* normal stress*/ 
+	        { sigma=2.00*o*dpeft/op;   /* sigma=R0; */
+	        }
+	        else if(o>op)
+	        { sigma=dpeft*z; //nsoft=nsoft+1;
+	        }
+	        else
+	        { sigma=(2.00*o/op-(o/op)*(o/op))*z*dpeft;
+	        }
+	        if((sigma>0.00)&&(sabs>sp))           /* shear stress */ 
+	        { tau=z*dpefs;
+	        }
+	        else if(sigma>0.00)
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*z*dpefs;
+	        }
+	        else if(sabs>sp)
+	        { tau=z*dpefs-dpefm*sigma;
+	        }
+	        else
+	        { tau=(2.00*(sabs/sp)-(sabs/sp)*(sabs/sp))*(z*dpefs-dpefm*sigma);
+	        }  
+		if(s<0.00)tau=-tau;
 		if(integ==0)  /* nodal forces */
 		{ 
 		  area=h/6.00; /* area=h/6.0; */
-		  node_rhs_0[0] = node_rhs_0[0] - area*(Tau*nx-Sigma*ny); 
-		  node_rhs_3[0] = node_rhs_3[0] + area*(Tau*nx-Sigma*ny);
-		  node_rhs_0[1] = node_rhs_0[1] - area*(Tau*ny+Sigma*nx);
-		  node_rhs_3[1] = node_rhs_3[1] + area*(Tau*ny+Sigma*nx);
+		  node_rhs_0[0] = node_rhs_0[0] - area*(tau*e1x-sigma*e1y); 
+		  node_rhs_0[1] = node_rhs_0[1] - area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[0] = node_rhs_3[0] + area*(tau*e1x-sigma*e1y);
+		  node_rhs_3[1] = node_rhs_3[1] + area*(tau*e1y+sigma*e1x);
 		}
 		else if(integ==1)
 		{ 
 		  area=h/3.00;  /* area=h/3.0; */
-		  node_rhs_0[0] = node_rhs_0[0] -area*(Tau*nx-Sigma*ny);
-		  node_rhs_3[0] = node_rhs_3[0] +area*(Tau*nx-Sigma*ny); 
-		  node_rhs_0[1] = node_rhs_0[1] -area*(Tau*ny+Sigma*nx);
-		  node_rhs_3[1] = node_rhs_3[1] +area*(Tau*ny+Sigma*nx);
-		  node_rhs_1[0] = node_rhs_1[0] -area*(Tau*nx-Sigma*ny);
-                  node_rhs_2[0] = node_rhs_2[0] +area*(Tau*nx-Sigma*ny);    
-		  node_rhs_1[1] = node_rhs_1[1] -area*(Tau*ny+Sigma*nx);
-		  node_rhs_2[1] = node_rhs_2[1] +area*(Tau*ny+Sigma*nx);
+		  node_rhs_0[0] = node_rhs_0[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_0[1] = node_rhs_0[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[1] = node_rhs_3[1]+area*(tau*e1y+sigma*e1x);
+		  node_rhs_3[0] = node_rhs_3[0]+area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[0] = node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1] = node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[1] = node_rhs_2[1]+area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[0] = node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
 		}
 		else
 		{ 
 		  area=h/6.00; /* area=h/6.0; */
-		  node_rhs_1[0]=node_rhs_1[0]-area*(Tau*nx-Sigma*ny);
-		  node_rhs_2[0]=node_rhs_2[0]+area*(Tau*nx-Sigma*ny);
-		  node_rhs_1[1]=node_rhs_1[1]-area*(Tau*ny+Sigma*nx);
-		  node_rhs_2[1]=node_rhs_2[1]+area*(Tau*ny+Sigma*nx); 
-
+		  node_rhs_1[0]=node_rhs_1[0]-area*(tau*e1x-sigma*e1y);
+		  node_rhs_1[1]=node_rhs_1[1]-area*(tau*e1y+sigma*e1x);
+		  node_rhs_2[1]=node_rhs_2[1]+area*(tau*e1y+sigma*e1x); 
+		  node_rhs_2[0]=node_rhs_2[0]+area*(tau*e1x-sigma*e1y);
 	      } } } } 
 	  KRATOS_CATCH("")
 	}
@@ -1888,6 +1841,6 @@ void Heuristic_Formula(std::vector<Joint2D>::iterator Begin, std::vector<Joint2D
 };  
 
 } /* namespace Kratos.*/
-#endif /* KRATOS_RESIDUALBASED_PREDICTOR_CORRECTOR_BOSSAK_SCHEME  defined */
+#endif /* KRATOS_RESIDUALBASED_CENTRAL_DIFERENCES_STRATEGY */
 
 
