@@ -1,5 +1,5 @@
 /* *********************************************************   
-*          
+          
 *   Last Modified by:    $Author: jmarti $
 *   Date:                $Date: 2008-11-10 14:23:32 $
 *   Revision:            $Revision: 1.12 $
@@ -293,6 +293,8 @@ namespace Kratos
 		for (typename ModelPart::NodesContainerType::iterator it=it_begin; it!=it_end; ++it)
 		  {
 		    it->FastGetSolutionStepValue(FORCE)=ZeroVector(3);
+		    array_1d<double, 3 > & press_proj = (it)->FastGetSolutionStepValue(PRESS_PROJ);
+                    noalias(press_proj) = ZeroVector(3);
 		  }		
 	      }
 	  //allocation of work space
@@ -316,7 +318,7 @@ namespace Kratos
 		  boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX;
 		  array_1d<double,3> N;
 		  Geometry< Node<3> >& geom = i->GetGeometry();
-		  
+		  array_1d<double, 2 > vel_gauss;
 		  double volume;
 		  GeometryUtils::CalculateGeometryData(geom, DN_DX, N, volume);			
 		  
@@ -352,10 +354,41 @@ namespace Kratos
 		  aux[0] = DN_DX(2, 0) * p_avg;
 		  aux[1] = DN_DX(2, 1) * p_avg;
 		  
+		  geom[2].SetLock();
+		  geom[2].FastGetSolutionStepValue(FORCE) += aux;
+		  geom[2].UnSetLock();
+
+		  ////////////
+                  array_1d<double, 3 > & press_proj0 = geom[0].FastGetSolutionStepValue(PRESS_PROJ);
+
+                  array_1d<double, 3 > & press_proj1 = geom[1].FastGetSolutionStepValue(PRESS_PROJ);
+
+                  array_1d<double, 3 > & press_proj2 = geom[2].FastGetSolutionStepValue(PRESS_PROJ);
+
+
+		    //calculation of the pressure gradient (saved in vel_gauss)
+		    //note that here we calculate it "strong"
+		    vel_gauss[0] = DN_DX(0, 0)*(p0) + DN_DX(1, 0)*(p1) + DN_DX(2, 0)*(p2);
+		    vel_gauss[1] = DN_DX(0, 1)*(p0) + DN_DX(1, 1)*(p1) + DN_DX(2, 1)*(p2);
+		    vel_gauss *= volume;
+
+		    //press_proj += G*p
+		    geom[0].SetLock();
+		    press_proj0[0] += N[0] * vel_gauss[0];
+		    press_proj0[1] += N[0] * vel_gauss[1];
+		    geom[0].UnSetLock();
+
+		    geom[1].SetLock();
+		    press_proj1[0] += N[1] * vel_gauss[0];
+		    press_proj1[1] += N[1] * vel_gauss[1];
+		    geom[1].UnSetLock();
+
 		    geom[2].SetLock();
-		    geom[2].FastGetSolutionStepValue(FORCE) += aux;
+		    press_proj2[0] += N[2] * vel_gauss[0];
+		    press_proj2[1] += N[2] * vel_gauss[1];
 		    geom[2].UnSetLock();
-		    
+		    ////////////////
+
 		}
 	    }
 	  //correct the velocities
@@ -371,7 +404,13 @@ namespace Kratos
 		double dt_Minv = (dt / 2.00) / it->FastGetSolutionStepValue(NODAL_MASS);
 		array_1d<double,3>& force_temp = it->FastGetSolutionStepValue(FORCE);
 		force_temp *= dt_Minv;
-		
+
+		array_1d<double, 3 > & press_proj = (it)->FastGetSolutionStepValue(PRESS_PROJ);
+                double A = (it)->FastGetSolutionStepValue(NODAL_MASS);
+
+                double temp = 1.00 / A;
+                press_proj *= temp;
+
 		if(!it->IsFixed(VELOCITY_X))
 		  {
 		    it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0];
@@ -446,24 +485,42 @@ namespace Kratos
                 //first of all set to zero the nodal variables to be updated nodally
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 		  {
+                    /*array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+		      array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
+		      noalias(press_proj) = zero;
+		      noalias(conv_proj) = zero;*/
+                     
+                   
 		    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 		    nodal_mass = 0.0;
 		  }
 	      }
-	    
-	    
+ 
+    
 	    array_1d<double,3> zero = ZeroVector(3);
 	    //set WORK = VELOCITY of the old step
 	    
 	    
 	    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i){
+	      //noalias(i->FastGetSolutionStepValue(AUX_VECTOR)) = i->FastGetSolutionStepValue(VELOCITY,1);	
 	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;	
+ 	      noalias(i->FastGetSolutionStepValue(ACCELERATION)) =    zero;		
 
 	    }
 	    
+            //add the elemental contributions for the calculation of the velocity
+            //and the determination of the nodal area
             ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
             rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
 	    
+	    /* for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
+	      {	
+		KRATOS_WATCH("AQUI ESTOY");
+		(i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
+		
+	      }*/
+	
+
             vector<unsigned int> elem_partition;
             CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
 	    
@@ -479,6 +536,10 @@ namespace Kratos
 	      }
 	    
 	    
+            /*BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_MASS);
+            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(PRESS_PROJ);
+            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(CONV_PROJ);*/
+	    
             //solve nodally for the velocity
 	    
 #pragma omp parallel for schedule(static,1)
@@ -489,11 +550,18 @@ namespace Kratos
 		
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 		  {
+                    //array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
+                    //array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
                     double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+		    //array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
 		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
+		    array_1d<double,3>& acc_temp = i->FastGetSolutionStepValue(ACCELERATION);
 		    force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+		    acc_temp =force_temp;
 		    if(i->IsFixed(VELOCITY_X) == true){
 		      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
+		      noalias(i->FastGetSolutionStepValue(ACCELERATION)) =    zero;
+		      //noalias(i->FastGetSolutionStepValue(VELOCITY)) =    zero;
 		      
 		    }
 		  }
@@ -503,6 +571,8 @@ namespace Kratos
 	    KRATOS_WATCH(time)
 	      
 	      KRATOS_CATCH("");
+	    
+	    
         }
 	
         //******************************************************************************************************
