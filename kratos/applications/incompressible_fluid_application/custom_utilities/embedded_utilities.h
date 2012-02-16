@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author: anonymous $
+//   Last Modified by:    $Author: pavel $
 //   Date:                $Date: 2009-01-15 14:50:24 $
 //   Revision:            $Revision: 1.12 $
 //
@@ -91,11 +91,12 @@ namespace Kratos
 		//separate model part
 		//these elements are distinguished by containing nodes with positive and negative "distances" from the intersection
 		
-		void SaveInterfaceElemsModelPart(ModelPart& reduced_model_part, ModelPart& interface_model_part)
+		/* THIS FUNCTION IS NOT WORKING AND IS NOT NECESSARY.. left it commented just in case-....
+		void SaveInterfaceElemsModelPart(ModelPart& reduced_model_part, ModelPart& model_part)
 		{
-		interface_model_part.Conditions().clear();
-		interface_model_part.Elements().clear();
-		interface_model_part.Nodes().clear();
+		model_part.Conditions().clear();
+		model_part.Elements().clear();
+		model_part.Nodes().clear();
 		double distance=0.0;
 		double distance_aux=0.0;
 		bool intersected_elem=false;
@@ -112,7 +113,7 @@ namespace Kratos
 			      }
 		     	  }
 		     if (intersected_elem==true)
-		       interface_model_part.AddElement(*(im.base()));		  
+		       model_part.AddElement(*(im.base()));		  
 		    }
 		    for(ModelPart::NodesContainerType::iterator in = reduced_model_part.NodesBegin() ; 
 				in != reduced_model_part.NodesEnd() ; ++in)
@@ -127,12 +128,151 @@ namespace Kratos
 				   node_of_intersected_elem=true;
 				}
 				if (node_of_intersected_elem==true)
-				  reduced_model_part.AddNode(*(in.base()));
+				  model_part.AddNode(*(in.base()));
 				  
 				
 		      }
+		KRATOS_WATCH(reduced_model_part)
+		KRATOS_WATCH(model_part)
 		  
 		}
+		*/
+		////////////////////////////////////////////////////////////////////////////////////////
+		void CreateIntersConditions(ModelPart& model_part, ModelPart& interface_conditions_model_part )
+		{
+		KRATOS_TRY
+
+		interface_conditions_model_part.Conditions().clear();
+		interface_conditions_model_part.Elements().clear();
+		interface_conditions_model_part.Nodes().clear();
+		//reset the IS_INTERFACE flag - if the distance is negative (i.e. the fluid node lies inside of the solid object and is fictitious - set 1 otherwise 0
+		for(ModelPart::NodesContainerType::iterator in = model_part.NodesBegin() ;  in != model_part.NodesEnd() ; ++in)
+		{
+		if (in->FastGetSolutionStepValue(DISTANCE)<0.0)
+			in->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
+		else
+			in->FastGetSolutionStepValue(IS_INTERFACE)=0.0;
+		}
+
+		for(ModelPart::ElementsContainerType::iterator im = model_part.ElementsBegin() ;  im != model_part.ElementsEnd() ; ++im)
+		{
+		//intersection Points - at most we shall consider 4 points
+		std::vector<array_1d<double,3> > IntersectionPoints;
+		std::vector<array_1d<double,3> > IntersectionVel;
+
+		IntersectionPoints.reserve(4);
+		IntersectionVel.reserve(4);
+
+		array_1d<double,3> Point;
+		//identify 		
+		int intersection_count=0;
+		//iterating over edges (01 02 03 12 13 23)
+		for (int i=0;i<3;i++)
+			{
+			for (int j=i+1;j<4;j++)
+				{
+				//std::cout<<"edge ij "<<i<<j<<std::endl;	
+				double d0=im->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+				double d1=im->GetGeometry()[j].FastGetSolutionStepValue(DISTANCE);	
+
+				//if the product of distances of two nodes is negative - the edge is crossed
+				if (d0*d1<0.0)
+					{
+					std::cout<<"Intersected edge "<<i<<j<<std::endl;	
+
+					double x0=im->GetGeometry()[i].X();
+					double x1=im->GetGeometry()[j].X();
+					double k=0.0;
+					double b=0.0;
+					double x_inters=0.0;
+					double y_inters=0.0;
+					double z_inters=0.0;
+					if (x1!=x0)
+					  {
+					  k=(d1-d0)/(x1-x0);
+					  b=d0-k*x0;
+					  x_inters=-b/k;
+					  }
+					else 
+					  x_inters=x0;
+
+					double y0=im->GetGeometry()[i].Y();
+					double y1=im->GetGeometry()[j].Y();
+					if (y1!=y0)
+					  {
+					  k=(d1-d0)/(y1-y0);
+					  b=d0-k*y0;
+					  y_inters=-b/k;
+					  }
+					else
+					  y_inters=y0;
+
+					double z0=im->GetGeometry()[i].Z();
+					double z1=im->GetGeometry()[j].Z();
+					if (z1!=z0)
+					  {
+					  k=(d1-d0)/(z1-z0);
+					  b=d0-k*z0;
+ 					  z_inters=-b/k;
+					  }
+					else
+					  z_inters=z0;
+
+					Point[0]=x_inters;
+					Point[1]=y_inters;
+					Point[2]=z_inters;
+		
+					//KRATOS_WATCH(Point)
+
+					IntersectionPoints.push_back(Point);
+					intersection_count++;
+					}
+
+				}
+			}
+		
+		//if the element is intersected by the embedded skin, create condition
+		if (intersection_count!=0)
+			{
+			//the size of array should represent actual intersection number
+			IntersectionPoints.resize(intersection_count);
+			//KRATOS_WATCH(IntersectionPoints.size())
+					
+		
+			//for now we assume zero velocity of the structure TO BE completed later...
+			array_1d<double,3> ZeroVel=ZeroVector(3);
+			for (unsigned int i=0;i<IntersectionVel.size();i++)
+				IntersectionVel.push_back(ZeroVel);
+
+			//////////////////////////////////////////////////////////////////////
+			Geometry< Node<3> >::Pointer geom = im->pGetGeometry();
+			Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);	
+			
+			int id=interface_conditions_model_part.Conditions().size()+1;
+
+			if (IntersectionPoints.size()==3)
+				{
+				Condition::Pointer p_condition(new ProjDirichletCond3D(id, geom,properties, IntersectionPoints[0], IntersectionPoints[1], IntersectionPoints[2], IntersectionVel[0], IntersectionVel[1], IntersectionVel[2]));
+				interface_conditions_model_part.Conditions().push_back(p_condition);
+				}
+			else if (IntersectionPoints.size()==4)
+				{
+				Condition::Pointer p_condition(new ProjDirichletCond3D(id, geom,properties, IntersectionPoints[0], IntersectionPoints[1], IntersectionPoints[2], IntersectionPoints[3], IntersectionVel[0], IntersectionVel[1], 			IntersectionVel[2], IntersectionVel[3]));
+			
+				interface_conditions_model_part.Conditions().push_back(p_condition);
+				}
+			else 		
+				KRATOS_ERROR(std::logic_error,  "Strange number of intersections - neither 3 nor 4 - check  CreateIntersectionConditions function" , "");
+			
+			}
+		//end loop over elements
+		}
+		KRATOS_WATCH(interface_conditions_model_part)
+		KRATOS_CATCH("")
+
+
+		}
+	
 		
 		///////////////////////////////////////////////////////////////////////////
 		////////	SUBDOMAIN DISABLING			//////////////////
@@ -140,6 +280,7 @@ namespace Kratos
 		void DisableSubdomain(ModelPart& full_model_part, ModelPart& reduced_model_part)
 		{
 		KRATOS_TRY
+		/*
 		std::size_t n_int=0;
 		std::size_t n_disabled=0;
 		//clear reduced_model_part
@@ -217,33 +358,165 @@ namespace Kratos
 					//KRATOS_WATCH("ADDING THE NODE FOR WEAK IMPOSITION OF INTERFACE BOUNDARY CONDITION");
 					}
 				//set the velocity at the "interior" node (the one that is completely fictitious) to zero
-				/*
-				else 
-					{
-					in->FastGetSolutionStepValue(VELOCITY_X)=0.0;
-					in->FastGetSolutionStepValue(VELOCITY_Y)=0.0;
-					in->FastGetSolutionStepValue(VELOCITY_Z)=1.0;
-					}
-				*/
+				
+				}
+			*/
+
+		int n_int;
+		int n_disabled;
+		//clear reduced_model_part
+		reduced_model_part.Conditions().clear();
+		reduced_model_part.Elements().clear();
+		reduced_model_part.Nodes().clear();
+
+		reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
+		reduced_model_part.Elements().reserve(full_model_part.Elements().size());
+		reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
+
+		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
+				im != full_model_part.ElementsEnd() ; ++im)
+		{	  
+			
+			
+			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+			n_int+=im->GetGeometry()[3].FastGetSolutionStepValue(IS_INTERFACE);
+			
+			if (n_int==4)
+				{
+				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
+				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
+				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
+				im->GetGeometry()[3].FastGetSolutionStepValue(DISABLE)=true;
 				}
 
 		}
+		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
+				im != full_model_part.ElementsEnd() ; ++im)
+		{	  
+			n_disabled=im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE);
+			n_disabled+=im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE);
+			n_disabled+=im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE);
+			n_disabled+=im->GetGeometry()[3].FastGetSolutionStepValue(DISABLE);
+			
+			if (n_disabled<4)
+				{
+				reduced_model_part.Elements().push_back(*(im.base()));
+				//reduced_model_part.AddNode(im->GetGeometry()[0]);				
+				}
+			
+			//these are the nodes of intersected elements that lie on the fictitious part and are used for applying the Dirichlet boundary conditions
+			if (n_disabled>0 && n_disabled<4)
+				{
+				for (int i=0;i<4;i++)
+					{
+
+					if (im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)==1)
+						{
+						reduced_model_part.Nodes().push_back(im->GetGeometry()(i));	
+						}	
+					}
+				}
+
+		}
+		//and now we add all the nodes of "real" elements
+		for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
+				in != full_model_part.NodesEnd() ; ++in)
+		{	  
+			
+			n_disabled=in->FastGetSolutionStepValue(DISABLE);
+			
+			if (n_disabled==0.0)
+				{
+				reduced_model_part.Nodes().push_back(*(in.base()));
+				}
+			
+
+		}
+
+		reduced_model_part.Nodes().Unique();
 
 		for(ModelPart::PropertiesContainerType::iterator i_properties = full_model_part.PropertiesBegin() ; 
 				i_properties != full_model_part.PropertiesEnd() ; ++i_properties)
 		{	  
-					reduced_model_part.AddProperties(*(i_properties.base()));
-			
+			reduced_model_part.AddProperties(*(i_properties.base()));			
 		}
 
 		for(ModelPart::ConditionsContainerType::iterator i_condition = full_model_part.ConditionsBegin() ; 
 				i_condition != full_model_part.ConditionsEnd() ; ++i_condition)
 		{	  
-					reduced_model_part.AddCondition(*(i_condition.base()));
-			
-		}				
+			reduced_model_part.AddCondition(*(i_condition.base()));			
+		}		
+
+		
+				
 		KRATOS_CATCH("")
 		}
+		//////////////////////////////////////////////////////////////////////////////////////////////////
+		void ApplyProjDirichlet(ModelPart& full_model_part)
+		{
+		KRATOS_TRY
+		unsigned int n_old_int;
+					
+		//first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
+		for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
+				in != full_model_part.NodesEnd() ; ++in)
+		{	
+		n_old_int=in->FastGetSolutionStepValue(IS_INTERFACE,1);
+
+		//make the velocity free at the nodes that are not the "Dangerosu ones"
+		if (n_old_int>0.0 && in->FastGetSolutionStepValue(IS_INTERFACE)!=100.0)
+			{
+			//KRATOS_WATCH("OLD INTERFACEEEEEEEEEEEEEEEE!!!!!!!!!!!!!!!!!!!!!!1")
+			in->FastGetSolutionStepValue(DISABLE)=false;
+			in->Free(VELOCITY_X);
+			in->Free(VELOCITY_Y);
+			in->Free(VELOCITY_Z);
+
+			in->Free(AUX_VEL_X);
+			in->Free(AUX_VEL_Y);
+			in->Free(AUX_VEL_Z);
+
+			in->Free(PRESSURE);
+			}
+		//fix the IS_INt to 1 additionally at the nodes that are too close to the interface
+		if (in->FastGetSolutionStepValue(IS_INTERFACE)==100.0)
+				{
+				in->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
+				KRATOS_WATCH("BAD NODE IS")
+				KRATOS_WATCH(in->GetId())
+				}		
+				
+		}
+
+		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
+					im != full_model_part.ElementsEnd() ; ++im)
+		{
+				double n_int=0.0;
+				//iterate over the of nodes in the element (interface element)
+				for (unsigned int i=0;i<im->GetGeometry().size();i++)
+					{
+					n_int=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
+					// if the node is lying on fictitious side - apply the project Dirichlet condition
+					if (n_int==1.0)
+					//if (((ic->GetGeometry()[i]).GetDof(AUX_VEL_X)).IsFixed())
+						{						
+						im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)=im->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL);
+						im->GetGeometry()[i].Fix(VELOCITY_X);
+						im->GetGeometry()[i].Fix(VELOCITY_Y);
+						im->GetGeometry()[i].Fix(VELOCITY_Z);
+						}
+					}
+	
+		}
+			
+		
+		
+		
+		KRATOS_CATCH("")
+		}
+
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,155 +524,15 @@ namespace Kratos
 		//			AUXILIARY FUNCTIONS								   //
 		//													   //
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		inline void CalculateN_at_Point(Element::GeometryType& geom, const double xc, const double yc, array_1d<double,3>& N_at_c)
-		{
-			//first we calculate the area of the whole triangle			
-			double x10 = geom[1].X() - geom[0].X();
-			double y10 = geom[1].Y() - geom[0].Y();
+		/////////////////////////////////////////////////////////////
 			
-			double x20 = geom[2].X() - geom[0].X();
-			double y20 = geom[2].Y() - geom[0].Y();
-			
-			double detJ = x10 * y20-y10 * x20;
-			double totArea=0.5*detJ;			
-			//and now we calculate the areas of three respective triangle, that (xc,yc) divide the original one into
-			// xc, 0, 1
-			double x0c = geom[0].X() - xc ;
-			double y0c = geom[0].Y() - yc ;
-			
-			double x1c = geom[1].X() - xc;
-			double y1c = geom[1].Y() - yc;
-
-			double x2c = geom[2].X() - xc;
-			double y2c = geom[2].Y() - yc;
-			//xc, 0, 1
-			detJ= x0c * y1c - y0c * x1c;
-			double Area2 = 0.5*detJ;
-			//xc, 0, 2
-			detJ= x0c * y2c - y0c * x2c;
-			double Area1 = 0.5*detJ;
-			//xc, 1, 2
-			detJ= x1c * y2c - y1c * x2c;
-			double Area0 = 0.5*detJ;
-
-			if (totArea<0.00000000000000001)
-				KRATOS_ERROR(std::logic_error,  "Your element Proj DIrichlet Cond has a zero area!!!! " , "");
-			//and now we fill in the array of shape functions values:
-			// 1 0 2
-			N_at_c[0]=fabs(Area0/totArea);
-			N_at_c[1]=fabs(Area1/totArea);
-			N_at_c[2]=fabs(Area2/totArea);
-			if (  (N_at_c[0]<0.05 && N_at_c[1]<0.05) || (N_at_c[0]<0.05 && N_at_c[2]<0.05) || (N_at_c[2]<0.05 && N_at_c[1]<0.05))			
-			KRATOS_WATCH("Dangerous VERTICES!!!")		
-			//KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
-
-	}
-		//////////////////////////////////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////////////////////////////////
-inline double CalculateVol(	const double x0, const double y0,
-						const double x1, const double y1,
-    						const double x2, const double y2
-					  )
-		{
-			return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
-		}
-		//////////////////////////////////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////////////////////////////////
-		inline bool IsAlreadyInList(array_1d<double,3>& current_point, std::vector<array_1d<double,3> >& IntersectionPointsList)
-		{
-		for (unsigned int i=0;i<IntersectionPointsList.size();i++)
-			{
-			//temp=IntersectionPointsList[i];
-			if (std::equal(current_point.begin(), current_point.end(), IntersectionPointsList[i].begin()))
-				{				
-				return true;
-				}
-			}
-		return false;
-	
-		}
-		//////////////////////////////////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////////////////////////////////
-		inline bool CalculatePosition(	const double x0, const double y0,
-						const double x1, const double y1,
-   						const double x2, const double y2,
-						const double xc, const double yc,
-						array_1d<double,3>& N		
-					  )
-		{
-			double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-			double inv_area = 0.0;
-			if(area < 0.000000000001)
-			  {
-				KRATOS_ERROR(std::logic_error,"element with zero area found","");
-			  }
-			else
-			  {
-				inv_area = 1.0 / area;
-			  }
-			
-			  
-			  N[0] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
-			  N[1] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;
-			  N[2] = CalculateVol(x0,y0,x1,y1,xc,yc) * inv_area;
-			  
-/*			  N[0] = CalculateVol(x0,y0,x1,y1,xc,yc) * inv_area;
-			N[1] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
-			N[2] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;*/
-			
-			if(N[0] > 0.0 && N[1] > 0.0 && N[2] > 0.0 && N[0] < 1.0 && N[1] < 1.0 && N[2] < 1.0) //if the xc yc is inside the triangle
-			//if(N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
-				return true;
-			
-			return false;
-		}	
-		//////////////////////////////////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////////////////////////////////
-		inline bool IsOnEdge(	const double x0, const double y0,
-						const double x1, const double y1,
-   						const double x2, const double y2,
-						const double sol_x, const double sol_y,
-						const double x0_orig, const double x1_orig,
-						const double y0_orig, const double y1_orig,
-						array_1d<double,3>& N		
-					  )
-		{
-			double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-			double inv_area = 0.0;
-			if(area < 0.000000000001)
-			  {
-				KRATOS_ERROR(std::logic_error,"element with zero area found","");
-			  }
-			else
-			  {
-				inv_area = 1.0 / area;
-			  }
-			
-			  
-			  N[0] = CalculateVol(x1,y1,x2,y2,sol_x,sol_y) * inv_area;
-			  N[1] = CalculateVol(x2,y2,x0,y0,sol_x,sol_y) * inv_area;
-			  N[2] = CalculateVol(x0,y0,x1,y1,sol_x,sol_y) * inv_area;
-			  
-			//the intersection of the lines should be within the element and also inside the line segment (origin condition) defined by x0_orig, x1_orig	
-			//if ((N[0]==0.0 || N[1]==0.0 || N[2]==0.0) && ( (x1_orig-sol_x)*(sol_x-x0_orig)>0.0 || (y1_orig-sol_y)*(sol_y-y0_orig)>0.0) )
-			//double t1=(x1_orig-sol_x)*(sol_x-x0_orig);		
-			//double t2=(y1_orig-sol_y)*(sol_y-y0_orig);
-			if( (N[0] >= -0.0000000000001 && N[1] >= -0.00000000000001 && N[2] >= -0.0000000000001 && N[0] <= 1.00000000000001 && N[1] <= 1.00000000000001 && N[2] <= 1.00000000000001) && ((x1_orig-sol_x)*(sol_x-x0_orig)>0.0 || (y1_orig-sol_y)*(sol_y-y0_orig)>0.0) )
-				return true;
-						
-			return false;
-		}
 		
 		
 		
 
 	private:
 
-		//aux vars
-		static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-		static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
-		static array_1d<double,3> msc; //center pos
-		static array_1d<double,3> ms_rhs; //center pos
+		
 		
 
 	};
