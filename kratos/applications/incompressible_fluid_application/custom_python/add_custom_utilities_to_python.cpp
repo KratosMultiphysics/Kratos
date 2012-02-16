@@ -107,9 +107,12 @@ namespace Kratos
                     .def("DisableSubdomain", &CoupledEulerianUlfUtils::DisableSubdomain)
                     ;
 
-	    class_<EmbeddedUtils > ("EmbeddedUtils", init<>())	    
-                    .def("SaveInterfaceElemsModelPart", &EmbeddedUtils::SaveInterfaceElemsModelPart)
-                    .def("DisableSubdomain", &EmbeddedUtils::DisableSubdomain)
+	    class_<EmbeddedUtils > ("EmbeddedUtils", init<>())	   
+		   // .def("SaveInterfaceElemsModelPart", &EmbeddedUtils::SaveInterfaceElemsModelPart)
+		    //.def "CreateIntersectionConditions", &EmbeddedUtils::CreateIntersectionConditions)
+                    .def("DisableSubdomain3D", &EmbeddedUtils::DisableSubdomain)
+		.def("CreateIntersConditions", &EmbeddedUtils::CreateIntersConditions)
+		.def("ApplyProjDirichlet", &EmbeddedUtils::ApplyProjDirichlet)
                     ;
 
             class_<CalculateForcesUtils > ("CalculateForcesUtils", init<>())
