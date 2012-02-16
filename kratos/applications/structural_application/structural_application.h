@@ -92,7 +92,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/ebst_vel.h"
 #include "custom_elements/pfem_contact_element3D.h"
 #include "custom_elements/pfem_contact_element3D_vel.h"
-
+#include "custom_elements/linear_elastic_truss.h"
 
 #include "custom_conditions/pointforce3D.h"
 #include "custom_conditions/node_tying_lagrange.h"
@@ -405,6 +405,8 @@ namespace Kratos
         private:
             ///@name Member Variables 
             ///@{ 
+	    const LinearElasticTruss mLinearElasticTruss3D2N;
+
             const CrisfieldTrussElement mCrisfieldTrussElement3D2N;
             const CrisfieldTrussElement mCrisfieldTrussElement3D3N;
             const LinearElement mLinearElement2D3N;
