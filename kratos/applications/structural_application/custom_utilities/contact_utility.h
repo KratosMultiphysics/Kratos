@@ -809,11 +809,11 @@ namespace Kratos
                 }
                 if( friction_coefficient > 0.0 )
                 {
-                    if( ((fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) 
-                          && sqrt(wriggers_crit)/Index < 1e-4)
-                          && ((fabs(absolute_friction/Index) < 1e-3 ||
-                          fabs(ratio_friction/absolute_friction) < 1e-2)
-                          && sqrt(slip)/Index2< 1e-3))
+                    if( (/*fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) 
+                          && */ sqrt(cumulative_penetration/Index) < 1e-5)
+                          /*&& ((fabs(absolute_friction/Index) < 1e-3 ||
+                          fabs(ratio_friction/absolute_friction) < 1e-2)*/
+                          && sqrt(slip)/Index2< 1e-5 )
                     {
                         if( this->mEchoLevel > 0 )
                             std::cout << "Contact condition converged after " << step+1 << " steps" << std::endl;
@@ -827,7 +827,7 @@ namespace Kratos
                 }
                 else
                 {
-                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ /*fabs(wriggers_crit) < 1e-4)*/sqrt(cumulative_penetration/Index) < 1e-4 )
+                    if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ /*fabs(wriggers_crit) < 1e-4)*/sqrt(cumulative_penetration/Index) < 1e-5 )
 //                         sqrt(wriggers_crit)/Index < 3e-4)
                     {
                         if( this->mEchoLevel > 0 )
