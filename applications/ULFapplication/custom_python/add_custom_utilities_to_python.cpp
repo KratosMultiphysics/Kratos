@@ -86,8 +86,9 @@ namespace Python
   void  AddCustomUtilitiesToPython()
   {
 	using namespace boost::python;
-
+ 
 	  class_<UlfUtils>("UlfUtils", init<>())
+		.def ("CalculateFreeSurfaceArea", &UlfUtils::CalculateFreeSurfaceArea)
 		.def("ApplyBoundaryConditions",&UlfUtils::ApplyBoundaryConditions)
 		.def("ApplyMinimalPressureConditions",&UlfUtils::ApplyMinimalPressureConditions)
 		.def("EstimateDeltaTime",&UlfUtils::EstimateDeltaTime)
@@ -112,6 +113,7 @@ namespace Python
 		.def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
 		.def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
 		.def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)		
+
 		 ;
 	  
 	  class_<NistUtils>("NistUtils", init<>())
