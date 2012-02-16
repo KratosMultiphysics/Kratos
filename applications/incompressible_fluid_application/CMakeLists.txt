@@ -16,6 +16,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_edgebased_levelset_solver_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond.cpp		
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/proj_dirichlet_cond3D.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fluid3d_neumann.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/no_slip_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic2d_neumann.cpp
@@ -47,7 +48,8 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_compressible_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_compressible_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_3d.cpp     
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_3d.cpp   
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_comp_enriched_3d.cpp       
 )
 
 ###############################################################
