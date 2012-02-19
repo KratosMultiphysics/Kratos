@@ -252,8 +252,13 @@ namespace Kratos
 	      
 	      for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	      {
+		
 		 WeakPointerVector< Condition >& neighb_cond  = it->GetValue(NEIGHBOUR_CONDITIONS); 
-		 if(neighb_cond.size()!=0){ 
+		 if(it->Id()==2)
+		     KRATOS_WATCH(neighb_cond.size())
+		 
+		 if(neighb_cond.size()!=0){
+		    KRATOS_WATCH(neighb_cond.size()) 
 		   for(WeakPointerVector< Condition >::iterator rcond = neighb_cond.begin(); rcond!=neighb_cond.end(); ++rcond)
 		   {
 		     WeakPointerVector< Element >& neighb_elem_c = rcond->GetValue(NEIGHBOUR_ELEMENTS);
@@ -292,6 +297,7 @@ namespace Kratos
 	     KRATOS_CATCH("")
 	  }
 	 
+	/// Sirve para actulizar los nodos de las condiciones cuando son duplicados 
 	void CheckConditions(ConditionsArrayType::iterator& rcond)
 	{
 	  int a              = 0; 
@@ -300,9 +306,11 @@ namespace Kratos
 	  const double toler = 1E-8;
 	  a = 0;
 	  b = 1; 
+	  int id                              = rcond->Id();
+	  KRATOS_WATCH(id) 
+	  KRATOS_WATCH((rcond->GetValue(NEIGHBOUR_ELEMENTS)).size())
 	  Condition::GeometryType& geom_cond  = rcond->GetGeometry();
 	  Element::Pointer relem              = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
-	  int id                              = rcond->Id();
 	  Element::GeometryType& geom_elem    = relem->GetGeometry();
 	  array_1d<double,3> cond             = geom_cond.GetPoint(1) - geom_cond.GetPoint(0); 
 	  array_1d<double,3> elem;              
