@@ -85,8 +85,9 @@ namespace Kratos
 
 	  public:
 	    	  
-	  typedef ModelPart::ElementsContainerType ElementsArrayType;
-	  typedef ModelPart::NodesContainerType    NodesArrayType;
+	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+	  typedef ModelPart::ElementsContainerType   ElementsArrayType;
+	  typedef ModelPart::NodesContainerType      NodesArrayType;
 	  typedef Joint<4> Joint2D;
 	  
 	  KRATOS_CLASS_POINTER_DEFINITION(Disconnect_Triangle_Utilities);
@@ -174,7 +175,6 @@ namespace Kratos
 		 neighb_nodes(3) = geom_1(0);
 		 neighb_nodes(4) = geom_1(0);
 		 neighb_nodes(5) = geom_1(1);
-		 
 		 WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);  
 		 count_1 = 0; 
 		 count_2 = 0;
@@ -225,7 +225,7 @@ namespace Kratos
 			   New_Id++;
 			   Create_New_Node(model_part, New_Id, geom(1));
 		       }
-		      else{  //if (geom(2)->Id()==inode->Id()){ 
+		     else if (geom(2)->Id()==inode->Id()){ 
 			   New_Id++;
 			   Create_New_Node(model_part, New_Id, geom(2));
 		       }
@@ -237,18 +237,30 @@ namespace Kratos
 		inode = model_part.Nodes().begin() + i;
 	      }
 	      
+	      
 	      unsigned int count   = 0;
 	      unsigned int count_2 = 0;
               Joint2D rJoint;
 	      ElementsArrayType::iterator it_begin=pElements.ptr_begin();
 	      ElementsArrayType::iterator it_end=pElements.ptr_end();
 	      
+	      
+	      /// WARNING = To be paralelized
 	      for(ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	        it->GetValue(IS_INACTIVE) = false;
+	         it->GetValue(IS_INACTIVE) = false;
 	      
 	      
 	      for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	      {
+		 WeakPointerVector< Condition >& neighb_cond  = it->GetValue(NEIGHBOUR_CONDITIONS); 
+		 if(neighb_cond.size()!=0){ 
+		   for(WeakPointerVector< Condition >::iterator rcond = neighb_cond.begin(); rcond!=neighb_cond.end(); ++rcond)
+		   {
+		     WeakPointerVector< Element >& neighb_elem_c = rcond->GetValue(NEIGHBOUR_ELEMENTS);
+		     neighb_elem_c.push_back(*(it.base()));
+		   }
+		 }
+		 
 		 if(it->GetProperties()[IS_DISCRETE]>=1.00){
 		 count = 0;
 		 Element::GeometryType& geom_1 = it->GetGeometry();
@@ -259,8 +271,8 @@ namespace Kratos
 		   {
 		     TheNodes(geom_1, count, 0, 1, rJoint);
 		     Element::GeometryType& geom_2 = neighb->GetGeometry();
-		     const unsigned int& Id = it->Id();
-		     count_2 = SearchEdge(neighb, Id);     
+		     const unsigned int& Id        = it->Id();
+		     count_2                       = SearchEdge(neighb, Id);     
 		     TheNodes(geom_2, count_2, 2, 3, rJoint);
 		     mJointsArray.push_back(rJoint); 
 		     it->GetValue(IS_INACTIVE) = true;
@@ -269,12 +281,48 @@ namespace Kratos
 		 }
 	       }
 	      }
+	     
+	     /// Check the conditions
+	     ConditionsArrayType& pConditions = model_part.Conditions();
+	     for(ConditionsArrayType::iterator rcond = pConditions.begin(); rcond!=pConditions.end(); ++rcond)
+	      {
+		 CheckConditions(rcond);
+	      }
 	      
 	     KRATOS_CATCH("")
-	     
 	  }
-	  
-	  
+	 
+	void CheckConditions(ConditionsArrayType::iterator& rcond)
+	{
+	  int a              = 0; 
+	  int b              = 1;
+	  double check       = 0.00;
+	  const double toler = 1E-8;
+	  a = 0;
+	  b = 1; 
+	  Condition::GeometryType& geom_cond  = rcond->GetGeometry();
+	  Element::Pointer relem              = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
+	  int id                              = rcond->Id();
+	  Element::GeometryType& geom_elem    = relem->GetGeometry();
+	  array_1d<double,3> cond             = geom_cond.GetPoint(1) - geom_cond.GetPoint(0); 
+	  array_1d<double,3> elem;              
+	  noalias(cond) = (1.00/norm_2(cond)) * cond;
+	  for(unsigned int i = 0; i<geom_elem.size(); i++)
+	  {
+	  if(i==2) {b = 0; a = 2;}
+	  elem          = geom_elem.GetPoint(b) - geom_elem.GetPoint(a);
+	  noalias(elem) = (1.00/norm_2(elem)) * elem;
+	  check         = std::fabs(inner_prod(elem, cond));
+	  if( std::fabs(check-1.00)<toler )
+	  break;
+	  b++; a++;
+	  }
+	  /// Las condiciones se nombran contrario a las manecillas del reloj 
+	  geom_cond(0) = geom_elem(b); 
+	  geom_cond(1) = geom_elem(a);
+	}
+	 
+	 
 	int SearchEdge(WeakPointerVector<Element>::iterator& this_elem, const unsigned int& Id)
 	 {
 	    int count = 0;
@@ -319,19 +367,19 @@ namespace Kratos
 	 {
 	      if(count==0)
 	      {
-	        rJoint.InsertNode(i, geom(2));
-	        rJoint.InsertNode(j, geom(1)); 
+	        rJoint.InsertNode(i, geom(1));
+	        rJoint.InsertNode(j, geom(2)); 
 	      }
 	      else if (count==1)
 	      {
-	        rJoint.InsertNode(i, geom(0));
-	        rJoint.InsertNode(j, geom(2)); 
+	        rJoint.InsertNode(i, geom(2));
+	        rJoint.InsertNode(j, geom(0)); 
 	      }
 
 	      else if (count==2)
 	      {
-	        rJoint.InsertNode(i, geom(1));
-	        rJoint.InsertNode(j, geom(0)); 
+	        rJoint.InsertNode(i, geom(0));
+	        rJoint.InsertNode(j, geom(1)); 
 	      }
 	 }
 	  
@@ -383,7 +431,6 @@ namespace Kratos
             array_1d<double, 3 > & vel_old = pNode->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & vel_new = pnode->FastGetSolutionStepValue(VELOCITY);
             vel_new =  vel_old;
-            //vel_old = -vel_old;
 	    
             const array_1d<double, 3 > & accel_old = pNode->FastGetSolutionStepValue(ACCELERATION);
             array_1d<double, 3 > & accel_new = pnode->FastGetSolutionStepValue(ACCELERATION);
