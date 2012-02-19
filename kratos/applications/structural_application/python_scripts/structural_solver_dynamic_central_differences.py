@@ -36,11 +36,30 @@ def AddVariables(model_part):
     
     
 
-def AddDofs(model_part):
-    for node in model_part.Nodes:
-        node.AddDof(DISPLACEMENT_X,REACTION_X);
-        node.AddDof(DISPLACEMENT_Y,REACTION_Y);
-        node.AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+
+def AddDofs(model_part):    
+     for node in model_part.Nodes:
+            node.AddDof(DISPLACEMENT_X,REACTION_X);
+            node.AddDof(DISPLACEMENT_Y,REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z,REACTION_Z);    
+     print "Dofs for the dynamic structural solution added correctly"
+
+
+def AddDofs(model_part, domain_size):
+    
+    if(domain_size==2 ):
+        for node in model_part.Nodes:
+            node.AddDof(DISPLACEMENT_X,REACTION_X);
+            node.AddDof(DISPLACEMENT_Y,REACTION_Y);          
+    elif(domain_size==3):
+        for node in model_part.Nodes:
+            node.AddDof(DISPLACEMENT_X,REACTION_X);
+            node.AddDof(DISPLACEMENT_Y,REACTION_Y);
+            node.AddDof(DISPLACEMENT_Z,REACTION_Z);    
+    else:        
+       x = raw_input(" Bad AddDofs. Please check again the model")
+    
     print "Dofs for the dynamic structural solution added correctly"
 
 
@@ -51,8 +70,8 @@ class DynamicStructuralSolver:
 
         self.model_part               = model_part  
         self.domain_size              = domain_size
-        self.damping_ratio            = 0.3;
-        self.penalty_factor           = 50.00  
+        self.damping_ratio            = 0.05;
+        self.penalty_factor           = 10.00  
         self.max_delta_time           = 0.05;
         self.fraction_delta_time      = 0.90;
         self.CalculateReactionFlag    = True;
