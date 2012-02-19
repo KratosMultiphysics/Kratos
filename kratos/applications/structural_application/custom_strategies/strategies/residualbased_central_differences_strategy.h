@@ -1499,30 +1499,45 @@ void ChangeFractionDeltaTime(const double& new_fraction_delta_time)
 
 void CalculateReaction() 
 {
-  ModelPart& r_model_part = BaseType::GetModelPart();   
-  for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
-     {
-            double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
-            array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
-            array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS));
-            //array_1d<double,3>& rhs_1              = (i->FastGetSolutionStepValue(RHS,2));
-            array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
-            array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));
-            array_1d<double,3> dif                 =  rhs; //- rhs_1;             
+    ModelPart& r_model_part = BaseType::GetModelPart();   
+    NodesArrayType& pNodes  = r_model_part.Nodes(); 
+    
+    #ifdef _OPENMP
+    int number_of_threads = omp_get_max_threads();
+    #else
+    int number_of_threads = 1;
+    #endif
+    vector<unsigned int> node_partition;
+    CreatePartition(number_of_threads, pNodes.size(), node_partition);
+    #pragma omp parallel for 
+    for(int k=0; k<number_of_threads; k++)
+      {
+	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+         //for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
+         {
+	    array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
+            const double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
+            const array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS));
+            const array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
+            const array_1d<double,3>& velocity           = (i->FastGetSolutionStepValue(VELOCITY));
+            //array_1d<double,3> dif                 =  rhs; 
 
             if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
- 		{reaction[0] =  -dif[0] + mass * acceleration[0] + mass * malpha_damp * velocity[0];}
+ 		{reaction[0] =  -rhs[0] + mass * acceleration[0] + mass * malpha_damp * velocity[0];}
                 
             if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == true )
-		{reaction[1] = -dif[1] + mass * acceleration[1] + mass * malpha_damp * velocity[1];}
+		{reaction[1] = -rhs[1] + mass * acceleration[1] + mass * malpha_damp * velocity[1];}
           
             if( i->HasDofFor(DISPLACEMENT_Z))
 	        {
 		if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == true )
-		{reaction[2] = -dif[2] + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
+		{reaction[2] = -rhs[2] + mass * acceleration[2] + mass * malpha_damp * velocity[2];}
                 }
-        }
-}
+            }
+      } 
+ }
 
 
 private:
