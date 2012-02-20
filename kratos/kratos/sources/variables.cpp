@@ -483,6 +483,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double,  PARTICLE_STIFFNESS)
     KRATOS_CREATE_VARIABLE(double,  PARTICLE_COEF_RESTITUTION)
     KRATOS_CREATE_VARIABLE(double,  PARTICLE_ZETA)
+    KRATOS_CREATE_VARIABLE(int,  PARTICLE_MATERIAL) 
 
     //for Vulcan application
     Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
@@ -935,6 +936,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(PARTICLE_STIFFNESS)
         KRATOS_REGISTER_VARIABLE(PARTICLE_COEF_RESTITUTION)
         KRATOS_REGISTER_VARIABLE(PARTICLE_ZETA)
+        KRATOS_REGISTER_VARIABLE(PARTICLE_MATERIAL)
         
         Triangle2D6<Node<3> > Triangle2D6Prototype( Element::GeometryType::PointsArrayType( 6, Node<3>() ) );
         Serializer::Register( "Triangle2D6", Triangle2D6Prototype );
