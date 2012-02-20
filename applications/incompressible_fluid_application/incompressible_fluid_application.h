@@ -88,7 +88,6 @@
 #include "custom_elements/explicit_asgs_compressible_3d.h"
 #include "custom_elements/explicit_asgs_comp_pr_dc_3d.h"
 
-#include "custom_elements/asgs_comp_enriched_3d.h"
 namespace Kratos
 {
     ///@addtogroup IncompressibleFluidApplication
@@ -354,7 +353,7 @@ namespace Kratos
         const ExplicitASGSCompressible3D mExplicitASGSCompressible3D;
         const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
 
-	const ASGSCompEnriched3D mASGSCompEnriched3D;
+	//const ASGSCompEnriched3D mASGSCompEnriched3D;
 
 
         //const ABC2D mABC2D;
