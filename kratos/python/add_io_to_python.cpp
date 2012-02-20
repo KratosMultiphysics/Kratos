@@ -83,6 +83,13 @@ namespace Kratos
             KRATOS_WATCH("writing Node Mesh");
             dummy.WriteNodeMesh( rThisMesh );
         }
+
+        void WriteSphereMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
+        {
+            KRATOS_WATCH("writing Sphere Mesh");
+            dummy.WriteSphereMesh( rThisMesh );
+        }
+        
         
         void WriteMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
         {
@@ -192,6 +199,7 @@ namespace Kratos
                          WriteConditionsFlag>())
                     .def("WriteMesh",WriteMesh)
                     .def("WriteNodeMesh",WriteNodeMesh)
+                    .def("WriteSphereMesh",WriteSphereMesh)
                     
                     .def("InitializeMesh",&GidIO<>::InitializeMesh)
                     .def("FinalizeMesh",&GidIO<>::FinalizeMesh)
