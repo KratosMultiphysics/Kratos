@@ -17,6 +17,11 @@
 
  */
 
+#ifdef WIN32
+#ifndef VISUAL_CPLUSPLUS
+#define VISUAL_CPLUSPLUS
+#endif
+#endif
 
 /* First prepare for the C compiler. */
 
@@ -120,7 +125,7 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #if   defined(__convex__)
 #define           CONVEXFortran
 #endif
-#if   defined(VISUAL_CPLUSPLUS)
+#if   defined(VISUAL_CPLUSPLUS) || defined(__vms)
 #define     PowerStationFortran
 #endif
 #endif /* ...Fortran */

@@ -54,7 +54,7 @@ CLEAN :
 
 F90_PROJ=/compile_only /nologo /warn:nofileopt /module:"Release/" /object:"Release/" 
 F90_OBJS=.\Release/
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I "..\source" /I ".." /D "WIN32" /D "VISUAL_CPLUSPLUS" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\gidpost.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I "..\source" /I ".." /D "WIN32" /D "VISUAL_CPLUSPLUS" /D "NDEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\gidpost.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\gidpost.bsc" 
 BSC32_SBRS= \
@@ -99,7 +99,7 @@ CLEAN :
 
 F90_PROJ=/check:bounds /compile_only /debug:full /nologo /traceback /warn:argument_checking /warn:nofileopt /module:"Debug/" /object:"Debug/" /pdbfile:"Debug/DF60.PDB" 
 F90_OBJS=.\Debug/
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "..\source" /I ".." /D "WIN32" /D "VISUAL_CPLUSPLUS" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\gidpost.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ  /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I "..\source" /I ".." /D "WIN32" /D "VISUAL_CPLUSPLUS" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\gidpost.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ  /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\gidpost.bsc" 
 BSC32_SBRS= \

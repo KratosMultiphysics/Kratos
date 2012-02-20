@@ -18,7 +18,7 @@
 
 #define LINE_SIZE 8192
 
-/*GP_CONST*/ char * GetResultTypeName(GiD_ResultType type, size_t s = 0);
+GP_CONST char * GetResultTypeName(GiD_ResultType type, size_t s = 0);
 void GetResultTypeMinMaxValues(GiD_ResultType type, size_t &min, size_t &max);
 
 class CPostFile
@@ -36,6 +36,8 @@ public:
   virtual int BeginElements();
   virtual int BeginValues();
   virtual int EndValues();
+  virtual int WriteInteger( int i, int op ) = 0;
+  virtual int WriteDouble( double x, int op ) = 0;
   virtual int WriteValues( int id, int n, ... ) = 0;
   virtual int WriteValues(int id, int n, double *) = 0;
   virtual int Write2D( double x, double y );
@@ -74,6 +76,8 @@ public:
   virtual int Flush();
   virtual int IsBinary();
   virtual int WriteString( GP_CONST char * str );
+  virtual int WriteInteger( int i, int op );
+  virtual int WriteDouble( double x, int op );
   virtual int WriteValues( int id, int n, ... );  
   virtual int WriteValues(int id, int n, double *);
   virtual int WriteElement( int id, int n, int nid[] );
@@ -92,6 +96,8 @@ public:
   virtual int Flush();
   virtual int IsBinary();
   virtual int WriteString( GP_CONST char * str );
+  virtual int WriteInteger( int i, int op );
+  virtual int WriteDouble( double x, int op );
   virtual int WriteValues( int id, int n, ... );  
   virtual int WriteValues(int id, int n, double *);
   virtual int WriteElement( int id, int n, int nid[] );
@@ -114,6 +120,8 @@ public:
   virtual int BeginElements();
   virtual int BeginValues();
   virtual int EndValues();
+  virtual int WriteInteger( int i, int op );
+  virtual int WriteDouble( double x, int op );
   virtual int WriteValues( int id, int n, ... );  
   virtual int WriteValues(int id, int n, double *);
   virtual int Write2D( double x, double y );

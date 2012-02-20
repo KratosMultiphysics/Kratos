@@ -1,5 +1,3 @@
-CC = gcc
-
 CFORTRAN_DIR := ..
 SOURCE_DIR := ../source
 EXA_DIR := ../examples
@@ -16,8 +14,8 @@ LDFLAGS  := -g2
 LIB_NAME_SUFFIX := d.a
 else
 OUTPUT_DIR := release
-CFLAGS :=   -O2 -fPIC -funroll-loops ${CFLAGS}
-CXXFLAGS := -O2 -fPIC -funroll-loops ${CXXFLAGS}
+CFLAGS :=   -O2 -W -funroll-loops ${CFLAGS}
+CXXFLAGS := -O2 -W -funroll-loops ${CXXFLAGS}
 LDFLAGS := -O2
 LIB_NAME_SUFFIX := .a
 endif
@@ -56,7 +54,7 @@ testc: $(EXE_NAMEC)
 $(EXE_NAMEC) : ${OUTPUT_DIR}/testpost.o $(LIB_NAME)
 	${CXX} $(LDFLAGS) -o $(EXE_NAMEC) ${OUTPUT_DIR}/testpost.o $(LIB_NAME) -lm
 clean:
-	rm -rf $(OBJS)
+	rm $(OBJS)
 
 clobber:
 	rm $(EXE_NAME) $(LIB_NAME) $(OBJS)

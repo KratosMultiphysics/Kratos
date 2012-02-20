@@ -128,6 +128,30 @@ int CPostAscii::WriteString( GP_CONST char * str )
   return 0;
 }
 
+int CPostAscii::WriteInteger(int i, int op)
+{
+  if (op==1) {
+    fprintf(m_file, " ");
+    fprintf(m_file, "%d", i);
+  } else {
+    fprintf(m_file, "%d", i);
+    if (op==2) {
+      fprintf(m_file, "\n");
+    }
+  }
+  return 0;
+}
+
+int CPostAscii::WriteDouble(double x, int op)
+{
+  assert(op!=0);
+  fprintf(m_file, " %g", x);
+  if (op==2) {
+    fprintf(m_file, "\n");
+  }
+  return 0;
+}
+
 int CPostAscii::WriteValues(int id, int n, ... )
 {
   va_list ap;
@@ -211,6 +235,30 @@ int CPostAsciiZ::IsBinary()
 int CPostAsciiZ::WriteString( GP_CONST char * str )
 {
   gzprintf( m_file, "%s\n", str );
+  return 0;
+}
+
+int CPostAsciiZ::WriteInteger(int i, int op)
+{
+  if (op==1) {
+    gzprintf(m_file, " ");
+    gzprintf(m_file, "%d", i);
+  } else {
+    gzprintf(m_file, "%d", i);
+    if (op==2) {
+      gzprintf(m_file, "\n");
+    }
+  }
+  return 0;
+}
+
+int CPostAsciiZ::WriteDouble(double x, int op)
+{
+  assert(op!=0);
+  gzprintf(m_file, " %g", x);
+  if (op==2) {
+    gzprintf(m_file, "\n");
+  }
   return 0;
 }
 
@@ -341,6 +389,20 @@ int CPostBinary::EndValues()
   if ( gzwrite(m_file, &idxend, sizeof(int)) != sizeof(int) )
     return 1;
   return WriteString("End Values");
+}
+
+int CPostBinary::WriteInteger(int i, int)
+{
+  gzwrite(m_file, &i, sizeof(i));
+  return 0;
+}
+
+int CPostBinary::WriteDouble(double x, int)
+{
+  float v = float(x);
+  
+  gzwrite(m_file, &v, sizeof(v)); 
+  return 0;
 }
 
 int CPostBinary::WriteValues( int id, int n, ... )
