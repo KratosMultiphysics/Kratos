@@ -218,7 +218,8 @@ namespace Kratos
 
 //************************************************************************************
 //************************************************************************************   
-      // Crea las conciones de contacto
+      // Crea las conciones de contacto valid for lagrage multiplier y setea los elementos
+      // que son parte del contorno
       void CreateBoundaries(const unsigned int& initial_conditions_size)
       {
 	KRATOS_TRY 
