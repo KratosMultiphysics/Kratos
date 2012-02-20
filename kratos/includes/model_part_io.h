@@ -1107,7 +1107,11 @@ namespace Kratos
 
 	ReadWord(variable_name);
 
-	if(KratosComponents<Variable<double> >::Has(variable_name))
+	if(KratosComponents<Variable<int> >::Has(variable_name))
+	{
+	  ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+	}
+	else if(KratosComponents<Variable<double> >::Has(variable_name))
 	{
 	  ReadNodalDofVariableData(rThisNodes, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
 	}
