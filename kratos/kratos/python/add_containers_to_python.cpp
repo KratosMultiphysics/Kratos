@@ -485,6 +485,7 @@ namespace Kratos
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_STIFFNESS )
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_COEF_RESTITUTION )
            KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_ZETA )
+           KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_MATERIAL )
             
            
 	    class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
