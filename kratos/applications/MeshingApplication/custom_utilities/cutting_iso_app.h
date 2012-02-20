@@ -1214,7 +1214,14 @@ namespace Kratos
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles; 
 				          
-				for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;     
+				for (int counter=0; counter!=4; ++counter)
+				{
+					TriangleNodesArray[counter]=0;//resetting, just in case
+					Coord_Node_1[counter]=0;//resetting, just in case
+					Coord_Node_2[counter]=0;//resetting, just in case
+					Coord_Node_3[counter]=0;//resetting, just in case
+					Coord_Node_4[counter]=0;//resetting, just in case
+				}
 			}//closing if elems_in_plane==6 (1 triangle)
 			
 			///entering now the if for 2 triangles inside the tetrahedra.
@@ -1356,7 +1363,14 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter_1=0; counter_1 !=4; ++counter_1) TriangleNodesArray[counter_1]=0;//resetting, just in case
+					for (int counter=0; counter !=4; ++counter)
+					{
+						TriangleNodesArray[counter]=0;//resetting, just in case
+						Coord_Node_1[counter]=0;//resetting, just in case
+						Coord_Node_2[counter]=0;//resetting, just in case
+						Coord_Node_3[counter]=0;//resetting, just in case
+						Coord_Node_4[counter]=0;//resetting, just in case
+					}
 					//for (int counter_2=0; counter_2 !=6; ++counter_2) nodes_for_2triang[counter_2]=0;//resetting, just in case
 				}//cierro el index
 			}//closing if elems_in_surface=2
@@ -1384,7 +1398,7 @@ namespace Kratos
 		double control;
 		array_1d<int, 6 > nodes_for_2triang; //to be used when there are 2 triangles
 		array_1d< array_1d<double,3> , 4 > vector_node_value;
-		array_1d<double, 3 > node_value;
+		array_1d<double, 4 > node_value;
 		unsigned int temp_int;
 		unsigned int first_element=0;
 		
@@ -1514,7 +1528,14 @@ namespace Kratos
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles; 
 				
-				for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;
+				for (int counter=0; counter!=4; ++counter)
+				{
+					TriangleNodesArray[counter]=0;//resetting, just in case
+					Coord_Node_1[counter]=0;//resetting, just in case
+					Coord_Node_2[counter]=0;//resetting, just in case
+					Coord_Node_3[counter]=0;//resetting, just in case
+					Coord_Node_4[counter]=0;//resetting, just in case
+				}
 			}//closing if elems_in_plane==6 (1 triangle)
 		
 			///entering now the if for 2 triangles inside the tetrahedra.
@@ -1656,7 +1677,14 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0; //resetting, just in case
+					for (int counter=0; counter!=4; ++counter)
+					{
+						TriangleNodesArray[counter]=0;//resetting, just in case
+						Coord_Node_1[counter]=0;//resetting, just in case
+						Coord_Node_2[counter]=0;//resetting, just in case
+						Coord_Node_3[counter]=0;//resetting, just in case
+						Coord_Node_4[counter]=0;//resetting, just in case
+					}
 				}//cierro el index
 			}//closing if elems_in_surface=2
 		}//closing element loops
@@ -1809,7 +1837,14 @@ namespace Kratos
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
 				          
-					for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;     
+					for (int counter=0; counter!=4; ++counter)
+					{
+						TriangleNodesArray[counter]=0;//resetting, just in case
+						Coord_Node_1[counter]=0;//resetting, just in case
+						Coord_Node_2[counter]=0;//resetting, just in case
+						Coord_Node_3[counter]=0;//resetting, just in case
+						Coord_Node_4[counter]=0;//resetting, just in case
+					}
 			}//closing if elems_in_plane==6 (1 triangle)
 			
 			///entering now the if for 2 triangles inside the tetrahedra.
@@ -1921,7 +1956,14 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter_1=0; counter_1!=4; ++counter_1) TriangleNodesArray[counter_1]=0;//resetting, just in case
+					for (int counter=0; counter!=4; ++counter)
+					{
+						TriangleNodesArray[counter]=0;//resetting, just in case
+						Coord_Node_1[counter]=0;//resetting, just in case
+						Coord_Node_2[counter]=0;//resetting, just in case
+						Coord_Node_3[counter]=0;//resetting, just in case
+						Coord_Node_4[counter]=0;//resetting, just in case
+					}
 					//for (int counter_2=0; counter_2!=6; ++counter_2) nodes_for_2triang[counter_2]=0;//resetting, just in case
 				}//cierro el index
 			}//closing if elems_in_surface=2
