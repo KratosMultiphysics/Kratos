@@ -20,13 +20,6 @@
 #define snprintf _snprintf
 #endif
 
-#define USE_CONST
-#if defined(USE_CONST)
-#define GP_CONST const
-#else
-#define GP_CONST /* empty */
-#endif
-
 /* ---------------------------------------------------------------------------
  *
  *  Global files
@@ -104,17 +97,17 @@ typedef struct {
 } SResultTypeInfo;
 
 static SResultTypeInfo _ResultTypeInfo[] = {
-  {"Scalar",                  1, 0, 0, 0},
-  {"Vector",                  2, 3, 4, 0},
-  {"Matrix",                  3, 6, 0, 0},
-  {"PlainDeformationMatrix",  4, 0, 0, 0},
-  {"MainMatrix",             12, 0, 0, 0},
-  {"LocalAxes",               3, 0, 0, 0}
+  {"Scalar",                  {1,  0, 0, 0}},
+  {"Vector",                  {2,  3, 4, 0}},
+  {"Matrix",                  {3,  6, 0, 0}},
+  {"PlainDeformationMatrix",  {4,  0, 0, 0}},
+  {"MainMatrix",              {12, 0, 0, 0}},
+  {"LocalAxes",               {3,  0, 0, 0}}
 };
 
-/*GP_CONST*/ char * GetResultTypeName(GiD_ResultType type, size_t s)
+GP_CONST char * GetResultTypeName(GiD_ResultType type, size_t s)
 {
-  static /*GP_CONST*/ char buffer[255];
+  static char buffer[255];
   char * ptr;
   int i;
   
@@ -174,7 +167,10 @@ static GP_CONST char * strElementType[]= {
   "Quadrilateral",
   "Tetrahedra",
   "Hexahedra",
-  "Prism"
+  "Prism",
+  "Pyramid",
+  "Sphere",
+  "Circle"
 };
 
 GP_CONST char * GetElementTypeName( GiD_ElementType type )
@@ -197,6 +193,8 @@ static int ValidateConnectivity(GiD_ElementType etype , int NNode)
 
   switch (etype) {
   case GiD_Point:
+  case GiD_Sphere:
+  case GiD_Circle:
     error = (NNode != 1);
     break;
   case GiD_Linear:
@@ -216,6 +214,9 @@ static int ValidateConnectivity(GiD_ElementType etype , int NNode)
     break;
   case GiD_Prism:
     error = (NNode != 6 && NNode != 15);
+    break;
+  case GiD_Pyramid:
+    error = (NNode != 5 && NNode != 13);
     break;
    default:
     printf("invalid type of element code %d", etype);
@@ -272,7 +273,7 @@ int GiD_OpenPostMeshFile(GP_CONST char * FileName, GiD_PostMode Mode )
   }
   /*
   if (MeshFile->WritePostHeader()) {
-    WritePostHeader failed
+    // WritePostHeader failed
     GiD_ClosePostMeshFile();
     return 5;
   }
@@ -412,31 +413,23 @@ int GiD_EndCoordinates()
 
 int GiD_BeginMeshGroup(GP_CONST char* Name)
 {
-    /* original
-  char line[LINE_SIZE];
-
-  snprintf(line, LINE_SIZE-1, "Group \"%s\"", Name);
-  return outputMesh->WriteString(line);
-    */
-    CPostFile * mesh;
-    int fail = 1;
-
-    assert(CheckState(POST_S0,level_mesh));
+  CPostFile * mesh;
+  int fail = 1;
+  
+  assert(CheckState(POST_S0,level_mesh));
+  
+  mesh = GetMeshFile();
+  if (mesh) {
+    char line[LINE_SIZE];
+    char *name = change_quotes( strdup( Name));
     
-    mesh = GetMeshFile();
-    if (mesh) {
-        char line[LINE_SIZE];
-        char *name = change_quotes( strdup( Name));
-
-        snprintf(line, LINE_SIZE-1,
-                 "Group \"%s\"", name);
-        free( name);
-        fail = mesh->WriteString(line);
-//         if ( !(fail = mesh->WriteString(line)) ) 
-//             mesh->SetConnectivity(NNode);
-        level_mesh = POST_S0;
-    }
-    return fail;
+    snprintf(line, LINE_SIZE-1,
+             "Group \"%s\"", name);
+    free( name);
+    fail = mesh->WriteString(line);
+    level_mesh = POST_S0;
+  }
+  return fail;
 }
 
 /*
@@ -526,6 +519,124 @@ int GiD_WriteElementMat( int id, int nid[] )
   return outputMesh->WriteElement(id, outputMesh->GetConnectivity()+1, nid);
 }
 
+/*
+ *  Write an sphere element member at the current Elements Block.
+ *  An sphere element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the sphere element.
+ *  
+ */
+int GiD_WriteSphere( int id, int nid, double r )
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, level_mesh));    
+  /* keep on the same state */
+  outputMesh->WriteInteger(id, 0);
+  outputMesh->WriteInteger(nid,1);
+  outputMesh->WriteDouble (r,  2);
+  if (outputMesh->IsBinary()) {
+    outputMesh->WriteInteger(1,1);    
+  }
+  return 0;
+}
+
+/*
+ *  Write an sphere element member at the current Elements
+ *  Block. Providing also a material identification.
+ *  
+ *  An sphere element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the sphere element.
+ *
+ *     mat: material identification.
+ *  
+ */
+int GiD_WriteSphereMat( int id, int nid, double r, int mat )
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, level_mesh));    
+  /* keep on the same state */
+  outputMesh->WriteInteger(id,  0);
+  outputMesh->WriteInteger(nid, 1);
+  outputMesh->WriteDouble (r,   1);
+  outputMesh->WriteInteger(mat, 2);
+  return 0;
+}
+
+/*
+ *  Write a circle element member at the current Elements Block.
+ *  A circle element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the circle element.      
+ *
+ *     nx, ny, nz : normal to the plane containing the circle.
+ *  
+ */
+int GiD_WriteCircle( int id, int nid, double r,
+                     double nx, double ny, double nz )
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, level_mesh));    
+  /* keep on the same state */
+  outputMesh->WriteInteger(id,  0);
+  outputMesh->WriteInteger(nid, 1);
+  outputMesh->WriteDouble (r,   1);
+  outputMesh->WriteDouble (nx,  1);
+  outputMesh->WriteDouble (ny,  1);
+  outputMesh->WriteDouble (nz,  2);
+  if (outputMesh->IsBinary()) {
+    outputMesh->WriteInteger(1,1);    
+  }
+  return 0;
+}
+
+/*
+ *  Write a circle element member at the current Elements
+ *  Block. Providing also a material identification.
+ *  
+ *  A circle element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the circle element.      
+ *
+ *     nx, ny, nz : normal to the plane containing the circle.
+ *  
+ */
+int GiD_WriteCircleMat( int id, int nid, double r,
+                        double nx, double ny, double nz, int mat )
+{
+  /* state checking */
+  assert(CheckState(POST_MESH_ELEM, level_mesh));    
+  /* keep on the same state */
+  outputMesh->WriteInteger(id,  0);
+  outputMesh->WriteInteger(nid, 1);
+  outputMesh->WriteDouble (r,   1);
+  outputMesh->WriteDouble (nx,  1);
+  outputMesh->WriteDouble (ny,  1);
+  outputMesh->WriteDouble (nz,  1);
+  outputMesh->WriteInteger(mat, 2);
+  return 0;
+}
+
 /* ---------------------------------------------------------------------------
  *
  *  Post Result Interface
@@ -573,25 +684,22 @@ int GiD_OpenPostResultFile(GP_CONST char * FileName, GiD_PostMode Mode )
 int GiD_ClosePostResultFile()
 {
   int fail = 1;
-  
-  if( ResultFile!= NULL )
-  {
-	  assert(ResultFile!=NULL);
-	  assert(CheckState(POST_S0, level_res));    
-	  if (ResultFile) {
-		  delete ResultFile;
-		  fail = CPostFile::fail;
-		  CPostFile::fail = 0;
-		  ResultFile = NULL;
-		  /* reset outputMesh pointer */
-		  GetMeshFile();
-	  }
-	  level_res = POST_UNDEFINED;
-	  if (!MeshFile)
-		  level_mesh = POST_UNDEFINED;
-	  return fail;
+
+  assert(ResultFile!=NULL);
+  assert(CheckState(POST_S0, level_res));    
+
+  if (ResultFile) {
+    delete ResultFile;
+    fail = CPostFile::fail;
+    CPostFile::fail = 0;
+    ResultFile = NULL;
+    /* reset outputMesh pointer */
+    GetMeshFile();
   }
-  return 0;
+  level_res = POST_UNDEFINED;
+  if (!MeshFile)
+    level_mesh = POST_UNDEFINED;
+  return fail;
 }
 
 /*
@@ -1175,19 +1283,22 @@ int GiD_WriteVectorModule( int id, double x, double y, double z, double mod )
 
   /* 4-vectors can not be written on RG-ASCII */
   return flag_isgroup ? buffer_values.WriteValues(GiD_Vector, id, 4, x, y, z, mod) :
-    ResultFile->WriteValues(id, GiD_Vector, 4, x, y, z, mod );
+    ResultFile->WriteValues(id, 4, x, y, z, mod );
 }
 
 int GiD_Write2DMatrix( int id, double Sxx, double Syy, double Sxy )
 {
+  if (ResultFile->IsBinary()) {
+    return GiD_Write3DMatrix(id,
+                             Sxx, Syy,         0.0 /*Szz*/,
+                             Sxy, 0.0 /*Syz*/, 0.0 /*Sxz*/);
+  }
   GiD_EnsureBeginValues();
   /* check state */
   assert(CheckState(POST_RESULT_VALUES, level_res));
-  /* only evailable in ascii format */
-  assert(!ResultFile->IsBinary());
-
-  return flag_isgroup ? buffer_values.WriteValues(GiD_Matrix, id, 3, Sxx, Syy, Sxy) :
-    ResultFile->WriteValues(id, 3, Sxx, Syy, Sxy);
+  return flag_isgroup ?
+    buffer_values.WriteValues(GiD_Matrix, id, 3, Sxx, Syy, Sxy) :
+    ResultFile->WriteValues(              id, 3, Sxx, Syy, Sxy);
 }
 
 int GiD_Write3DMatrix( int id, double Sxx, double Syy, double Szz,
@@ -1204,6 +1315,11 @@ int GiD_Write3DMatrix( int id, double Sxx, double Syy, double Szz,
 
 int GiD_WritePlainDefMatrix( int id, double Sxx, double Syy, double Sxy, double Szz )
 {
+  if (ResultFile->IsBinary()) {
+    return GiD_Write3DMatrix(id,
+                             Sxx, Syy,         Szz,
+                             Sxy, 0.0 /*Syz*/, 0.0 /*Sxz*/);
+  }
   GiD_EnsureBeginValues();
   /* check state */
   assert(CheckState(POST_RESULT_VALUES, level_res));

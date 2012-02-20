@@ -3,7 +3,7 @@
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 #include "zlib.h"
 
@@ -60,7 +60,7 @@ uLong ZEXPORT adler32(adler, buf, len)
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #include "zlib.h" */
 
@@ -131,7 +131,7 @@ int ZEXPORT compress (dest, destLen, source, sourceLen)
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #include "zlib.h" */
 
@@ -302,7 +302,7 @@ uLong ZEXPORT crc32(crc, buf, len)
  * Compile this file with -DNO_DEFLATE to avoid the compression code.
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 #include <stdio.h>
 
@@ -1180,7 +1180,7 @@ const char*  ZEXPORT gzerror (file, errnum)
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #include "zlib.h" */
 
@@ -1285,7 +1285,7 @@ int ZEXPORT uncompress (dest, destLen, source, sourceLen)
  *
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #include "deflate.h" */
 /* deflate.h -- internal compression state
@@ -1298,7 +1298,7 @@ int ZEXPORT uncompress (dest, destLen, source, sourceLen)
    subject to change. Applications should only use zlib.h.
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 #ifndef _DEFLATE_H
 #define _DEFLATE_H
@@ -2938,7 +2938,7 @@ local block_state deflate_slow(s, flush)
  *          Addison-Wesley, 1983. ISBN 0-201-06672-6.
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #define GEN_TREES_H */
 
@@ -4257,7 +4257,7 @@ local void copy_block(s, buf, len, header)
  * For conditions of distribution and use, see copyright notice in zlib.h 
  */
 
-/* @(#) $Id: zlibint1.c,v 1.2 2007-02-07 14:41:07 janosch Exp $ */
+/* @(#) $Id: zlibint1.c,v 1.1 2002/12/02 17:46:44 jsperez Exp $ */
 
 /* #include "zutil.h" */
 

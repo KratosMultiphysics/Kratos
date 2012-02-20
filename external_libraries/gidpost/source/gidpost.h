@@ -62,7 +62,10 @@ typedef enum {
   GiD_Quadrilateral,
   GiD_Tetrahedra,
   GiD_Hexahedra,
-  GiD_Prism
+  GiD_Prism,
+  GiD_Pyramid,
+  GiD_Sphere,
+  GiD_Circle
 } GiD_ElementType;
 
 typedef enum {
@@ -207,6 +210,82 @@ int GiD_WriteElement( int id, int nid[] );
 
 GIDPOST_API
 int GiD_WriteElementMat( int id, int nid[] );
+
+/*
+ *  Write an sphere element member at the current Elements Block.
+ *  An sphere element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the sphere element.
+ *  
+ */
+
+GIDPOST_API
+int GiD_WriteSphere( int id, int nid, double r );
+
+/*
+ *  Write an sphere element member at the current Elements
+ *  Block. Providing also a material identification.
+ *  
+ *  An sphere element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the sphere element.
+ *
+ *     mat: material identification.
+ *  
+ */
+
+GIDPOST_API
+int GiD_WriteSphereMat( int id, int nid, double r, int mat );
+
+/*
+ *  Write a circle element member at the current Elements Block.
+ *  A circle element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the circle element.      
+ *
+ *     nx, ny, nz : normal to the plane containing the circle.
+ *  
+ */
+
+GIDPOST_API
+int GiD_WriteCircle( int id, int nid, double r,
+                     double nx, double ny, double nz );
+
+/*
+ *  Write a circle element member at the current Elements
+ *  Block. Providing also a material identification.
+ *  
+ *  A circle element is defined by:
+ *
+ *     id: element id
+ *
+ *     nid: node center given by the node id specified previously in
+ *          the coordinate block.
+ *
+ *     r : radius of the circle element.      
+ *
+ *     nx, ny, nz : normal to the plane containing the circle.
+ *  
+ */
+
+GIDPOST_API
+int GiD_WriteCircleMat( int id, int nid, double r,
+                        double nx, double ny, double nz, int mat );
 
 /* ---------------------------------------------------------------------------
  *
