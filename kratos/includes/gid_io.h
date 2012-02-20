@@ -840,6 +840,51 @@ public:
         KRATOS_CATCH("")
     }//WriteNodeMesh
 
+    void WriteSphereMesh( MeshType& rThisMesh )
+    {
+        KRATOS_TRY
+
+        Timer::Start("Writing Mesh");
+
+        GiD_BeginMesh("Kratos Mesh",GiD_3D,GiD_Sphere,1);
+        GiD_BeginCoordinates();
+        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            if ( mWriteDeformed == WriteUndeformed )
+                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X0(),
+                                      node_iterator->Y0(), node_iterator->Z0() );
+            else if ( mWriteDeformed == WriteDeformed )
+                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X(),
+                                      node_iterator->Y(), node_iterator->Z() );
+            else
+                KRATOS_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
+        }
+        GiD_EndCoordinates();
+        int nodes_id[1];
+        GiD_BeginElements();
+
+//         mNodeList.clear();
+
+        for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
+                node_iterator != rThisMesh.NodesEnd();
+                ++node_iterator)
+        {
+            nodes_id[0] = node_iterator->Id();
+           GiD_WriteSphereMat(node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+//             mNodeList.push_back(*node_iterator);
+        }
+        GiD_EndElements();
+        GiD_EndMesh();
+
+//         mNodeList.Unique();
+
+        Timer::Stop("Writing Mesh");
+
+        KRATOS_CATCH("")
+    }//WriteSphereMesh
+
 
     /**
      * This is a multi-purpose function that writes arbitrary meshes of elements
