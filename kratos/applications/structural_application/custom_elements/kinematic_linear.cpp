@@ -134,6 +134,7 @@ namespace Kratos
             for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
                 for ( unsigned int i = 0; i < 3; i++ )
                     mInitialDisp( node, i ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT )[i];
+
             return;
         }
 
@@ -1099,6 +1100,19 @@ namespace Kratos
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 mConstitutiveLawVector[i]->SetValue( OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo );
+            }
+        }
+    }
+
+    void KinematicLinear::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+    {
+        mConstitutiveLawVector.clear();
+        if ( rVariable == CONSTITUTIVE_LAW )
+        {
+            for ( unsigned int i = 0; i < rValues.size(); i++ )
+            {
+                mConstitutiveLawVector[i] = rValues[i];
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
             }
         }
     }
