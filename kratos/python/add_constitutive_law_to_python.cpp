@@ -79,9 +79,10 @@ namespace Kratos
         
         void  AddConstitutiveLawToPython()
         {
-            class_< ConstitutiveLaw, boost::noncopyable >
+            class_< ConstitutiveLaw, ConstitutiveLaw::Pointer, boost::noncopyable >
                     ("ConstitutiveLaw",
                      init<>() )
+                    .def("Clone",&ConstitutiveLaw::Clone)
                     ;
             
             class_<Variable<ConstitutiveLawBaseType::Pointer> , bases<VariableData>, boost::noncopyable >("ConstitutiveLawVariable", no_init)
