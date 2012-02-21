@@ -249,6 +249,21 @@ namespace Kratos
             return( values_list );
         }
         
+        void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, boost::python::list values_list, unsigned int len_values_list, const ProcessInfo& rCurrentProcessInfo )
+        {
+            IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints( 
+                    dummy.GetIntegrationMethod() );
+            std::vector<ConstitutiveLaw::Pointer> values( integration_points.size() );
+            for( unsigned int i=0; i<integration_points.size(); i++ )
+            {
+                ConstitutiveLaw::Pointer value_item;
+                boost::python::extract<ConstitutiveLaw::Pointer> x( values_list[i] );
+                values[i] = x();
+            }
+            dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+        }
+
+        
         void  AddMeshToPython()
         {
 //             typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
@@ -313,6 +328,7 @@ namespace Kratos
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsVector)
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix)
                     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector)
+                    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
                     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
                     
                     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
