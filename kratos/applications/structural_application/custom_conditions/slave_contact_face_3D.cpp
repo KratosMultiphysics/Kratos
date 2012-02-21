@@ -193,7 +193,12 @@ namespace Kratos
             if ( rVariable == CONTACT_PENETRATION )
             {
                 //Output[PointNumber]=  this->GetValue(STICK)[PointNumber] ;
-                Output[PointNumber] =  this->GetValue( GAPS )[PointNumber] ;
+                if( this->GetValue( GAPS )[PointNumber] > 0.0 )
+                {
+                    Output[PointNumber] = this->GetValue( GAPS )[PointNumber];
+                }
+                else
+                    Output[PointNumber] =  0.0 ;
             }
         }
     }
