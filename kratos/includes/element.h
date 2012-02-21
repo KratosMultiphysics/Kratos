@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/indexed_object.h"
 
 #include "containers/weak_pointer_vector.h"
+#include "constitutive_law.h"
 
 namespace Kratos
 {
@@ -554,6 +555,12 @@ namespace Kratos
         {
         }
 
+        virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                std::vector<ConstitutiveLaw::Pointer>& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+        }
+
         virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
                 std::vector<double>& rValues,
                 const ProcessInfo& rCurrentProcessInfo)
@@ -583,6 +590,13 @@ namespace Kratos
                 const ProcessInfo& rCurrentProcessInfo)
         {
         }
+
+        virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                std::vector<ConstitutiveLaw::Pointer>& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+        }
+
 
         /**
          * returns the used integration method. In the general case this is the
