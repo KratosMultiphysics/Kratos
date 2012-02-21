@@ -666,7 +666,7 @@ namespace Kratos
 						b = 2 * (aux_value - squared_node_value[i]);
 						c = squared_node_value[i] - squared_isovalue;
 						
-						float tol = 0.0000000000000000000000000000000000001;
+						float tol = 0.00000000000001;
 						
 						if (fabs(a) < tol)
 						{  
@@ -1005,7 +1005,7 @@ namespace Kratos
 			b = 2 * (aux_value - squared_node_value);
 			c = squared_node_value - squared_isovalue;
 			
-			float tol = 0.0000000000000000000000000000000000001;
+			float tol = 0.0000000000000001;
 			
 			if (fabs(a) < tol)
 			{  
@@ -1214,9 +1214,9 @@ namespace Kratos
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles; 
 				          
-				for (int counter=0; counter!=4; ++counter)
+				for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+				for (int counter=0; counter!=3; ++counter)
 				{
-					TriangleNodesArray[counter]=0;//resetting, just in case
 					Coord_Node_1[counter]=0;//resetting, just in case
 					Coord_Node_2[counter]=0;//resetting, just in case
 					Coord_Node_3[counter]=0;//resetting, just in case
@@ -1363,9 +1363,9 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter=0; counter !=4; ++counter)
+					for (int counter=0; counter !=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+					for (int counter=0; counter !=3; ++counter)
 					{
-						TriangleNodesArray[counter]=0;//resetting, just in case
 						Coord_Node_1[counter]=0;//resetting, just in case
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
@@ -1528,9 +1528,9 @@ namespace Kratos
 				new_model_part.Conditions().push_back(p_condition);
 				++number_of_triangles; 
 				
-				for (int counter=0; counter!=4; ++counter)
+				for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+				for (int counter=0; counter!=3; ++counter)
 				{
-					TriangleNodesArray[counter]=0;//resetting, just in case
 					Coord_Node_1[counter]=0;//resetting, just in case
 					Coord_Node_2[counter]=0;//resetting, just in case
 					Coord_Node_3[counter]=0;//resetting, just in case
@@ -1677,9 +1677,9 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter=0; counter!=4; ++counter)
+					for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+					for (int counter=0; counter!=3; ++counter)
 					{
-						TriangleNodesArray[counter]=0;//resetting, just in case
 						Coord_Node_1[counter]=0;//resetting, just in case
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
@@ -1837,9 +1837,9 @@ namespace Kratos
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
 				          
-					for (int counter=0; counter!=4; ++counter)
+					for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+					for (int counter=0; counter!=3; ++counter)
 					{
-						TriangleNodesArray[counter]=0;//resetting, just in case
 						Coord_Node_1[counter]=0;//resetting, just in case
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
@@ -1956,9 +1956,9 @@ namespace Kratos
 					
 					new_model_part.Conditions().push_back(p_condition);
 					++number_of_triangles; 
-					for (int counter=0; counter!=4; ++counter)
+					for (int counter=0; counter!=4; ++counter) TriangleNodesArray[counter]=0;//resetting, just in case
+					for (int counter=0; counter!=3; ++counter)
 					{
-						TriangleNodesArray[counter]=0;//resetting, just in case
 						Coord_Node_1[counter]=0;//resetting, just in case
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
@@ -1982,15 +1982,15 @@ namespace Kratos
      {
 		KRATOS_WATCH("Updating Cut Data");
 		int step_data_size = old_model_part.GetNodalSolutionStepDataSize();
-		
+		array_1d<double, 3 > Coord_Node;
 		//looping the nodes, no data is assigned to elements
 		for (ModelPart::NodesContainerType::iterator it = new_model_part.NodesBegin(); it != new_model_part.NodesEnd(); it++)
-		{	
+		{  
 			double* node0_data = it->GetValue(FATHER_NODES)[0].SolutionStepData().Data(0); //current step only, (since we'll call this every timestep
 			double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
 			double    weight   = it->GetValue(WEIGHT_FATHER_NODES);
 			double* step_data = (it)->SolutionStepData().Data(0);
-				
+			
 			//now we only have to copy the information from node_data to step_data
 			for(int j= 0; j< step_data_size; j++)  //looping all the variables and interpolating using weight
 			{
