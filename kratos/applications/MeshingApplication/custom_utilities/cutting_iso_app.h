@@ -666,21 +666,21 @@ namespace Kratos
 						b = 2 * (aux_value - squared_node_value[i]);
 						c = squared_node_value[i] - squared_isovalue;
 						
-						float tol = 0.00000000000001;
+						float tol = 0.000001;
 						
 						if (fabs(a) < tol)
 						{  
-							if (a < 0) a = tol;
+							if (a > 0) a = tol;
 							if (a < 0) a = -tol;
 						}
 						if (fabs(b) < tol) b = tol;
 						{  
-							if (b < 0) b = tol;
+							if (b > 0) b = tol;
 							if (b < 0) b = -tol;
 						}
 						if (fabs(c) < tol) c = tol;
 						{  
-							if (c < 0) c = tol;
+							if (c > 0) c = tol;
 							if (c < 0) c = -tol;
 						}
 						
@@ -1005,21 +1005,21 @@ namespace Kratos
 			b = 2 * (aux_value - squared_node_value);
 			c = squared_node_value - squared_isovalue;
 			
-			float tol = 0.0000000000000001;
+			float tol = 0.000001;
 			
 			if (fabs(a) < tol)
 			{  
-				if (a < 0) a = tol;
+				if (a > 0) a = tol;
 				if (a < 0) a = -tol;
 			}
 			if (fabs(b) < tol) b = tol;
 			{  
-				if (b < 0) b = tol;
+				if (b > 0) b = tol;
 				if (b < 0) b = -tol;
 			}
 			if (fabs(c) < tol) c = tol;
 			{  
-				if (c < 0) c = tol;
+				if (c > 0) c = tol;
 				if (c < 0) c = -tol;
 			}
 			
