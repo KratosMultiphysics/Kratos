@@ -131,7 +131,7 @@ namespace Python
 		 ;
 	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
 		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
-		   .def("SaveReducedPart1", &SubdomainDisableProcess::SaveReducedPart1)
+		   //.def("SaveReducedPart1", &SubdomainDisableProcess::SaveReducedPart1)
 		 ;
 	/*class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
 		   .def("SaveReducedPart1", &SubdomainDisableProcess::SaveReducedPart1)
