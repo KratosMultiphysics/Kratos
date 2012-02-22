@@ -94,111 +94,225 @@ namespace Kratos
 	  
 	  Disconnect_Triangle_Utilities(){}
 	  
-	  Disconnect_Triangle_Utilities(ModelPart& model_part) 
-	  {
-	    Disconnect_Elements(model_part);
-	  }
+	  Disconnect_Triangle_Utilities(ModelPart& model_part) {}
 	  
 	 ~Disconnect_Triangle_Utilities(){}
 	  
 	  
 	  
 	  
-	  /// Desconecta los elementos para permirtir hacer DG. Solo elementos Triangulares
-	  void Disconnect_Elements_DG(ModelPart& model_part)
+	  //**************************************************************************************
+	  //**************************************************************************************
+	   
+	  std::vector<Joint2D>::iterator Begin()
+	  {
+	    return mJointsArray.begin();
+	  }
+
+	  std::vector<Joint2D>::iterator End()
+	  {
+	    return mJointsArray.end();
+	  }
+	 
+	 
+	  //**************************************************************************************
+	  //**************************************************************************************
+	  
+	  void CreateJoints(ModelPart& model_part, unsigned int& dimension)
+	   {
+             //Disconnect_Elements(model_part, dimension); 
+	      Disconnect_Elements_DG(model_part, dimension); 
+	   }
+	  
+	  
+	  //**************************************************************************************
+	  //**************************************************************************************
+	  
+	  
+	  /// Desconecta los elementos y crea los joints
+	  void Disconnect_Elements(ModelPart& model_part, unsigned int& dimension)
 	  {
 	     KRATOS_TRY
-	     NodesArrayType& pNodes           = model_part.Nodes(); 
-	     ElementsArrayType& pElements     = model_part.Elements();
-	     unsigned int New_Id              = pNodes.size();
-             NodesArrayType::iterator i_begin = pNodes.begin();
-	     NodesArrayType::iterator i_end   = pNodes.end();
-	     std::size_t dis                  = std::distance(pNodes.begin(), pNodes.end());
-	     std::size_t i                    = 0;
+	     Disconnect(model_part);  
 	     
-	     NodesArrayType New_pNodes; 
-	     ModelPart::NodeIterator inode = model_part.Nodes().begin() + i;
-	     std::cout<< "DUPLICATING NODES IN MODEL PART"<< std::endl;
-	     while(inode!= model_part.Nodes().begin() + dis)     
-	     { 
-	       KRATOS_WATCH(inode->Id())
-	       WeakPointerVector< Element >& neighb_elems  = inode->GetValue(NEIGHBOUR_ELEMENTS); 
-		if(neighb_elems.size()!=0){
-		for(WeakPointerVector<Element>::iterator ielem = neighb_elems.begin();  ielem!=neighb_elems.end()-1; ielem++){
-		  if(ielem->GetProperties()[IS_DISCRETE]>=1.00){
-		      inode = model_part.Nodes().begin() + i;
-		      Element::GeometryType& geom = ielem->GetGeometry();     
-		      if(geom(0)->Id()==inode->Id()){
-			   New_Id++;
-			   Create_New_Node(model_part,New_Id, geom(0));
-		      }
-	              if(geom(1)->Id()==inode->Id()){ 
-			   New_Id++;
-			   Create_New_Node(model_part, New_Id, geom(1));
-		      }
-		      if(geom(2)->Id()==inode->Id()){ 
-			   New_Id++;
-			   Create_New_Node(model_part, New_Id, geom(2));
-		          }
-		        }
-	  	      }
-		    }
-		    i++;
-	       } 
-	     std::cout<< "DUPLICATING NODES IN MODEL PART FINISH" << std::endl; 
-    
-    vector<unsigned int> element_partition;
-    int number_of_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition); 
-    int  count_2; 
-    int  count_1;
-    
-    #pragma omp parallel for private(count_2)  
-    for(int k=0; k<number_of_threads; k++){
-    ElementsArrayType::iterator it_begin = pElements.ptr_begin()+element_partition[k];
-    ElementsArrayType::iterator it_end   = pElements.ptr_begin()+element_partition[k+1];
-    for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
-	      //ElementsArrayType::iterator it_begin=pElements.ptr_begin();
-	      //ElementsArrayType::iterator it_end=pElements.ptr_end();      
-	      //for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	      //{
-		 if(it->GetProperties()[IS_DISCRETE]>=1.00){
-		 
-		 WeakPointerVector< Node<3> >& neighb_nodes  = it->GetValue(NEIGHBOUR_NODES); 
-		 neighb_nodes.clear();
-                 neighb_nodes.resize(6);                 
-		 Element::GeometryType& geom_1 = it->GetGeometry();
-		 
-		 neighb_nodes(0) = geom_1(1);
-		 neighb_nodes(1) = geom_1(2);
-		 neighb_nodes(2) = geom_1(2);
-		 neighb_nodes(3) = geom_1(0);
-		 neighb_nodes(4) = geom_1(0);
-		 neighb_nodes(5) = geom_1(1);
-		 WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);  
-		 count_1 = 0; 
-		 count_2 = 0;
-	         for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb){    
-		   if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && it->Id()!= neighb->Id()){
-		       Element::GeometryType& geom_2 = neighb->GetGeometry();  
-		       const int& Id = it->Id();
-		       count_2 = SearchEdge(neighb, Id);
-		       EdgesNodes(geom_2, count_2, count_1, neighb_nodes);
-		     }
-		     count_1++;
-	           }         
+	     if(dimension==2)
+	         CreateJoints2D(model_part);
+	     
+	     KRATOS_CATCH("")
+	  }
+	 
+	 
+	 //**************************************************************************************
+	 //**************************************************************************************
+	 
+	 /// Desconecta los elementos para permirtir hacer DG. Solo elementos Triangulares
+	 void Disconnect_Elements_DG(ModelPart& model_part, unsigned int& dimension)
+	  {
+	     KRATOS_TRY
+	     Disconnect(model_part);  
+	     if(dimension==2)
+	        CalculateNeighbourNodes2D(model_part);
+	     else
+	       CalculateNeighbourNodes3D(model_part);  
+	     KRATOS_CATCH("")
+	  }
+	 //**************************************************************************************
+	 //**************************************************************************************
+	  
+	 
+	  private:
+	    
+	  /// Solo valido para triangulos
+	  void CalculateNeighbourNodes2D(ModelPart& model_part)
+	  {
+	    KRATOS_TRY	    
+	    ElementsArrayType& pElements  = model_part.Elements();
+	    vector<unsigned int> element_partition;
+	    int number_of_threads = OpenMPUtils::GetNumThreads();
+	    OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition); 
+	    int  count_2  = 0; 
+	    int  count_1  = 0;
+	    
+	    #pragma omp parallel for private(count_2, count_1)  
+	    for(int k=0; k<number_of_threads; k++){
+	    ElementsArrayType::iterator it_begin = pElements.ptr_begin()+element_partition[k];
+	    ElementsArrayType::iterator it_end   = pElements.ptr_begin()+element_partition[k+1];
+	    for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
+	    if(it->GetProperties()[IS_DISCRETE]>=1.00){
+		WeakPointerVector< Node<3> >& neighb_nodes  = it->GetValue(NEIGHBOUR_NODES);
+		Element::GeometryType& geom_1 = it->GetGeometry();
+		neighb_nodes.clear();
+		neighb_nodes.resize(6);
+		neighb_nodes(0) = geom_1(1);
+		neighb_nodes(1) = geom_1(2);
+		neighb_nodes(2) = geom_1(2);
+		neighb_nodes(3) = geom_1(0);
+		neighb_nodes(4) = geom_1(0);
+		neighb_nodes(5) = geom_1(1);
+		WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);  
+		count_1 = 0; 
+		count_2 = 0;
+		for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb){    
+	          if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && it->Id()!= neighb->Id()){
+	              Element::GeometryType& geom_2 = neighb->GetGeometry();  
+	              const int& Id = it->Id();
+	              count_2 = SearchEdge(neighb, Id);
+	              EdgesNodes(geom_2, count_2, count_1, neighb_nodes);
+	            }
+	          count_1++;
+	          }         
 	        }
-              }
-            }    
-	   KRATOS_CATCH("")
+	      }
+	    }    
+	    KRATOS_CATCH("")
 	  }
 	  
+	  //**************************************************************************************
+	  //**************************************************************************************
 	  
-	  /// Desconecta todos los elementos creando nuevos nodos en el model part
-	  void Disconnect_Elements(ModelPart& model_part)
+	 
+	  /// Solo valido para tetrahedros
+	  void CalculateNeighbourNodes3D(ModelPart& model_part)
+	  {
+	    KRATOS_TRY	    
+	    ElementsArrayType& pElements  = model_part.Elements();
+	    vector<unsigned int> element_partition;
+	    int number_of_threads = OpenMPUtils::GetNumThreads();
+	    OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition); 
+	    int  count_2  = 0; 
+	    int  count_1  = 0;
+	    
+	    #pragma omp parallel for private(count_2, count_1)  
+	    for(int k=0; k<number_of_threads; k++){
+	    ElementsArrayType::iterator it_begin = pElements.ptr_begin()+element_partition[k];
+	    ElementsArrayType::iterator it_end   = pElements.ptr_begin()+element_partition[k+1];
+	    for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
+	    if(it->GetProperties()[IS_DISCRETE]>=1.00){
+		WeakPointerVector< Node<3> >& neighb_nodes  = it->GetValue(NEIGHBOUR_NODES);
+		Element::GeometryType& geom_1 = it->GetGeometry();
+		neighb_nodes.clear();
+		neighb_nodes.resize(12);
+		
+		//face 1 of neigh in 0
+		neighb_nodes(0) = geom_1(1);
+		neighb_nodes(1) = geom_1(3);
+		neighb_nodes(2) = geom_1(2);
+		
+		//face 2 of neigh in 1
+		neighb_nodes(3) = geom_1(0);
+		neighb_nodes(4) = geom_1(2);
+		neighb_nodes(5) = geom_1(3);
+		
+		//face 3 of neigh in 2
+		neighb_nodes(6) = geom_1(0);
+		neighb_nodes(7) = geom_1(3);
+		neighb_nodes(8) = geom_1(1);
+		
+		//face 4 of neigh in 3
+		neighb_nodes(9) = geom_1(0);
+		neighb_nodes(10) = geom_1(1);
+		neighb_nodes(11) = geom_1(2);
+		
+		
+		WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);  
+		count_1 = 0; 
+		count_2 = 0;
+		for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb){    
+	          if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && it->Id()!= neighb->Id()){
+	              Element::GeometryType& geom_2 = neighb->GetGeometry();  
+	              const int& Id = it->Id();
+	              count_2 = SearchEdge(neighb, Id);
+	              EdgesNodes3D(geom_2, count_2, count_1, neighb_nodes);
+	            }
+	          count_1++;
+	          }
+	          
+	        if(it->Id()==1){
+		    KRATOS_WATCH(it->Id())
+		    unsigned int j = 0; 
+		    for(unsigned int i = 0; i<geom_1.size(); i++){ 
+		     if(i==0)
+		     {
+		      KRATOS_WATCH(geom_1(1)->Id())
+		      KRATOS_WATCH(geom_1(3)->Id())
+		      KRATOS_WATCH(geom_1(2)->Id())
+		     }
+		     else if(i==1){
+		      KRATOS_WATCH(geom_1(2)->Id())
+		      KRATOS_WATCH(geom_1(0)->Id())
+		      KRATOS_WATCH(geom_1(3)->Id())
+		     }
+		     else if(i==2){
+		      KRATOS_WATCH(geom_1(0)->Id())
+		      KRATOS_WATCH(geom_1(1)->Id())
+		      KRATOS_WATCH(geom_1(3)->Id())
+		     }
+		     else{
+		      KRATOS_WATCH(geom_1(0)->Id())
+		      KRATOS_WATCH(geom_1(1)->Id())
+		      KRATOS_WATCH(geom_1(2)->Id())
+		     }
+		     
+		     KRATOS_WATCH((neighb_nodes(i+j).lock())->Id())
+	             KRATOS_WATCH((neighb_nodes(i+j+1).lock())->Id())
+	             KRATOS_WATCH((neighb_nodes(i+j+2).lock())->Id())
+	             j+=2;
+	             KRATOS_WATCH("---------------------")
+		   }   
+		  }
+	        }
+	      }
+	    }    
+	    KRATOS_CATCH("")
+	  }
+	  
+	  //**************************************************************************************
+	  //**************************************************************************************
+	  
+	 /// Separate triangle and tetrahedra elements creating new nodes
+	 void Disconnect(ModelPart& model_part)
 	  {
 	     KRATOS_TRY
-	     
 	     NodesArrayType& pNodes        = model_part.Nodes(); 
 	     ElementsArrayType& pElements  = model_part.Elements();
 	     unsigned int New_Id           = pNodes.size();
@@ -208,57 +322,70 @@ namespace Kratos
 	     const int dis    =  pNodes.end() -  pNodes.begin();
 	     std::size_t i    = 0;
 	     ModelPart::NodeIterator inode = model_part.Nodes().begin() + i;
-	     while(inode!= model_part.Nodes().begin() + dis)     
-	     {  
+	     
+	     std::cout<<std::endl;
+	     std::cout<< "DUPLICATING NODES IN MODEL PART"<< std::endl;
+	     while(inode!= model_part.Nodes().begin() + dis){  
 	        inode = model_part.Nodes().begin() + i;
                 WeakPointerVector< Element >& neighb_elems  = inode->GetValue(NEIGHBOUR_ELEMENTS); 
 		if(neighb_elems.size()!=0){
-		for(WeakPointerVector<Element>::iterator ielem = neighb_elems.begin();  ielem!=neighb_elems.end()-1; ielem++){
-		  if(ielem->GetProperties()[IS_DISCRETE]>=1.00){
-		      inode = model_part.Nodes().begin() + i;
-		      Element::GeometryType& geom = ielem->GetGeometry();
-		      if(geom(0)->Id()==inode->Id()){
-			   New_Id++;
-			   Create_New_Node(model_part,New_Id, geom(0));
-		      }
-	              else if(geom(1)->Id()==inode->Id()){ 
-			   New_Id++;
-			   Create_New_Node(model_part, New_Id, geom(1));
-		       }
-		     else if (geom(2)->Id()==inode->Id()){ 
-			   New_Id++;
-			   Create_New_Node(model_part, New_Id, geom(2));
-		       }
-		      inode = model_part.Nodes().begin() + i;
-		    }
-		  }  
-		}
+		  for(WeakPointerVector<Element>::iterator ielem = neighb_elems.begin();  ielem!=neighb_elems.end()-1; ielem++){
+		     if(ielem->GetProperties()[IS_DISCRETE]>=1.00){
+		        inode = model_part.Nodes().begin() + i;
+		        Element::GeometryType& geom = ielem->GetGeometry();
+		          for(unsigned int j=0; j<geom.size(); j++){
+		             if(geom(j)->Id()==inode->Id()){
+			        New_Id++;
+			        Create_New_Node(model_part,New_Id, geom(j));
+			        break;
+		              } } 
+		       inode = model_part.Nodes().begin() + i;
+		  } } }
 		i++;
 		inode = model_part.Nodes().begin() + i;
-	      }
-	      
-	      
+	     } 
+	     
+	     std::cout<< "DUPLICATING NODES IN MODEL PART FINISH" << std::endl; 
+	     KRATOS_CATCH("")
+	  }
+	  
+	  
+	 
+	 //**************************************************************************************
+	 //**************************************************************************************
+	 
+	 void CreateJoints2D(ModelPart& model_part)
+	 {
+	   KRATOS_TRY
+	      ElementsArrayType& pElements  = model_part.Elements(); 
 	      unsigned int count   = 0;
 	      unsigned int count_2 = 0;
-              Joint2D rJoint;
-	      ElementsArrayType::iterator it_begin=pElements.ptr_begin();
-	      ElementsArrayType::iterator it_end=pElements.ptr_end();
+              
+	      Joint2D rJoint;
+	      vector<unsigned int> element_partition;
+	      
+	      ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+	      ElementsArrayType::iterator it_end   = pElements.ptr_end();
+	      int number_of_threads =  OpenMPUtils::GetNumThreads();
+	      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 	      
 	      
-	      /// WARNING = To be paralelized
-	      for(ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	         it->GetValue(IS_INACTIVE) = false;
 	      
-	      
+	      #pragma omp parallel for
+	      for(int k=0; k<number_of_threads; k++)
+	        {
+	            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	                it->GetValue(IS_INACTIVE) = false;
+		}
+		
+		
 	      for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	      {
 		
 		 WeakPointerVector< Condition >& neighb_cond  = it->GetValue(NEIGHBOUR_CONDITIONS); 
-		 if(it->Id()==2)
-		     KRATOS_WATCH(neighb_cond.size())
-		 
 		 if(neighb_cond.size()!=0){
-		    KRATOS_WATCH(neighb_cond.size()) 
 		   for(WeakPointerVector< Condition >::iterator rcond = neighb_cond.begin(); rcond!=neighb_cond.end(); ++rcond)
 		   {
 		     WeakPointerVector< Element >& neighb_elem_c = rcond->GetValue(NEIGHBOUR_ELEMENTS);
@@ -293,11 +420,15 @@ namespace Kratos
 	      {
 		 CheckConditions(rcond);
 	      }
-	      
-	     KRATOS_CATCH("")
-	  }
+	   
+	   KRATOS_CATCH("")
+	 }
 	 
-	/// Sirve para actulizar los nodos de las condiciones cuando son duplicados 
+	 
+         //**************************************************************************************
+	 //************************************************************************************** 
+	 
+	/// Sirve para actulizar los nodos de las condiciones cuando son duplicados solo en condiciones de linea
 	void CheckConditions(ConditionsArrayType::iterator& rcond)
 	{
 	  int a              = 0; 
@@ -307,8 +438,6 @@ namespace Kratos
 	  a = 0;
 	  b = 1; 
 	  int id                              = rcond->Id();
-	  KRATOS_WATCH(id) 
-	  KRATOS_WATCH((rcond->GetValue(NEIGHBOUR_ELEMENTS)).size())
 	  Condition::GeometryType& geom_cond  = rcond->GetGeometry();
 	  Element::Pointer relem              = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
 	  Element::GeometryType& geom_elem    = relem->GetGeometry();
@@ -331,6 +460,9 @@ namespace Kratos
 	}
 	 
 	 
+        //**************************************************************************************
+	//************************************************************************************** 
+	 
 	int SearchEdge(WeakPointerVector<Element>::iterator& this_elem, const unsigned int& Id)
 	 {
 	    int count = 0;
@@ -345,8 +477,11 @@ namespace Kratos
 	 }
 	  
 	  
+	 //**************************************************************************************
+	 //**************************************************************************************
 	  
-	  void EdgesNodes(const Element::GeometryType& geom, const int& count_2, const int& count_1, WeakPointerVector< Node<3> >& neighb_nodes)
+	 ///Subrutina para tener los nodos correspondientes segun DG en 2D 
+	 void EdgesNodes(const Element::GeometryType& geom, const int& count_2, const int& count_1, WeakPointerVector< Node<3> >& neighb_nodes)
 	 {
 	   
 	      int i, j;
@@ -370,6 +505,48 @@ namespace Kratos
 	        neighb_nodes(j)  =  geom(0); 
 	      }
 	 }  
+	 
+	 //**************************************************************************************
+	 //**************************************************************************************
+	 
+	 ///Subrutina para tener los nodos correspondientes segun DG en 2D
+	 void EdgesNodes3D(const Element::GeometryType& geom, const int& count_2, const int& count_1, WeakPointerVector< Node<3> >& neighb_nodes)
+	 {
+	      int i = 0, j = 0, k = 0;
+	      if(count_1==0)     {i = 0; j = 1; k = 2;}
+	      else if(count_1==1){i = 3; j = 4; k = 5;}
+	      else if(count_1==2){i = 6; j = 7; k = 8;}
+              else               {i = 9; j = 10; k = 11;}
+
+	      if(count_2==0)
+	      {
+	        neighb_nodes(i) =  geom(3);
+	        neighb_nodes(j) =  geom(1); 
+		neighb_nodes(k) =  geom(2); 
+	      }
+	      else if (count_2==1)
+	      {
+	        neighb_nodes(i) =  geom(3);
+	        neighb_nodes(j) =  geom(0); 
+		neighb_nodes(k) =  geom(2); 
+	      }
+	      else if(count_2==2) 
+	      {
+		neighb_nodes(i) =  geom(3);
+	        neighb_nodes(j) =  geom(0); 
+		neighb_nodes(k) =  geom(1);
+	      }
+	      else
+	      {
+	        neighb_nodes(i) =  geom(2);
+	        neighb_nodes(j) =  geom(0); 
+		neighb_nodes(k) =  geom(1);
+	      }      
+	 }  
+	 
+	 
+	 //**************************************************************************************
+	 //**************************************************************************************
 	 
 	 void TheNodes(const Element::GeometryType& geom, const int& count, const int& i, const int& j, Joint2D& rJoint)
 	 {
@@ -448,23 +625,9 @@ namespace Kratos
 	    
         }
 	  
-	  
-	  
-	  void CreateJoints(ModelPart& model_part)
-	  {
-            Disconnect_Elements(model_part); 
-	    //Disconnect_Elements_DG(model_part); 
-	  }
-	  
-	  std::vector<Joint2D>::iterator Begin()
-	  {
-	    return mJointsArray.begin();
-	  }
-	  
-	  std::vector<Joint2D>::iterator End()
-	  {
-	    return mJointsArray.end();
-	  }
+	 
+	 //**************************************************************************************
+	 //**************************************************************************************  
 	  
 	  
 	  private:
