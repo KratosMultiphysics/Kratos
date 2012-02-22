@@ -348,15 +348,16 @@ namespace Kratos
 
             class_<ParticleUtils < 2 > >("ParticleUtils2D", init<>())
                     .def("StreamlineMove", &ParticleUtils < 2 > ::StreamlineMove)
-                    .def("Back", &ParticleUtils < 2 > ::Back)
+//                    .def("Back", &ParticleUtils < 2 > ::Back)
                     .def("Reseed", &ParticleUtils < 2 > ::Reseed)
                     .def("ReseedEmptyElements", &ParticleUtils < 2 > ::ReseedEmptyElements)
                     .def("VisualizationModelPart", &ParticleUtils < 2 > ::VisualizationModelPart)
                     .def("TransferToEulerianMesh", &ParticleUtils < 2 > ::TransferToEulerianMesh)
-                    .def("RestartStep", &ParticleUtils < 2 > ::RestartStep)
+//                    .def("RestartStep", &ParticleUtils < 2 > ::RestartStep)
                     .def("TransferToEulerianMeshShapeBased", &ParticleUtils < 2 > ::TransferToEulerianMeshShapeBased)
                     .def("aa", &ParticleUtils < 2 > ::aa)
-		    .def("StreamlineMove2", &ParticleUtils < 2 > ::StreamlineMove2)
+                    .def("EstimateTime", &ParticleUtils < 2 > ::EstimateTime)
+//		    .def("StreamlineMove2", &ParticleUtils < 2 > ::StreamlineMove2)
                     ;
 
 
