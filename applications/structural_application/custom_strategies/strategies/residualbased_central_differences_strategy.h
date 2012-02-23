@@ -477,7 +477,7 @@ void ComputeDampingForcesWithMass()
   
 }
 
-/*
+
 /// for discontinum Galerking methods  
 void ComputeInterfaceForces()
 {
@@ -513,7 +513,6 @@ void ComputeInterfaceForces()
     KRATOS_CATCH("")
 }
  
-*/
   
   
 /// Computa las fuerzas viscosas de amortiguamiento alfa * K_elem * Velocidad
