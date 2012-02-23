@@ -120,8 +120,8 @@ namespace Kratos
 	  
 	  void CreateJoints(ModelPart& model_part, unsigned int& dimension)
 	   {
-             //Disconnect_Elements(model_part, dimension); 
-	      Disconnect_Elements_DG(model_part, dimension); 
+              Disconnect_Elements(model_part, dimension); 
+	      //Disconnect_Elements_DG(model_part, dimension); 
 	   }
 	  
 	  
@@ -233,6 +233,7 @@ namespace Kratos
 		neighb_nodes.clear();
 		neighb_nodes.resize(12);
 		
+		/// usando regla de mano derecha
 		//face 1 of neigh in 0
 		neighb_nodes(0) = geom_1(1);
 		neighb_nodes(1) = geom_1(3);
@@ -249,7 +250,7 @@ namespace Kratos
 		neighb_nodes(8) = geom_1(1);
 		
 		//face 4 of neigh in 3
-		neighb_nodes(9) = geom_1(0);
+		neighb_nodes(9)  = geom_1(0);
 		neighb_nodes(10) = geom_1(1);
 		neighb_nodes(11) = geom_1(2);
 		
@@ -257,52 +258,18 @@ namespace Kratos
 		WeakPointerVector< Element >& neighb_elems  = it->GetValue(NEIGHBOUR_ELEMENTS);  
 		count_1 = 0; 
 		count_2 = 0;
-		for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb){    
+		for(WeakPointerVector< Element >::iterator neighb = neighb_elems.begin(); neighb!=neighb_elems.end();  ++neighb){
 	          if(neighb->GetProperties()[IS_DISCRETE]>=1.00 && it->Id()!= neighb->Id()){
 	              Element::GeometryType& geom_2 = neighb->GetGeometry();  
 	              const int& Id = it->Id();
 	              count_2 = SearchEdge(neighb, Id);
-	              EdgesNodes3D(geom_2, count_2, count_1, neighb_nodes);
+	              EdgesNodes3D(geom_1, geom_2, count_1, count_2, neighb_nodes);
 	            }
 	          count_1++;
-	          }
-	          
-	        if(it->Id()==1){
-		    KRATOS_WATCH(it->Id())
-		    unsigned int j = 0; 
-		    for(unsigned int i = 0; i<geom_1.size(); i++){ 
-		     if(i==0)
-		     {
-		      KRATOS_WATCH(geom_1(1)->Id())
-		      KRATOS_WATCH(geom_1(3)->Id())
-		      KRATOS_WATCH(geom_1(2)->Id())
-		     }
-		     else if(i==1){
-		      KRATOS_WATCH(geom_1(2)->Id())
-		      KRATOS_WATCH(geom_1(0)->Id())
-		      KRATOS_WATCH(geom_1(3)->Id())
-		     }
-		     else if(i==2){
-		      KRATOS_WATCH(geom_1(0)->Id())
-		      KRATOS_WATCH(geom_1(1)->Id())
-		      KRATOS_WATCH(geom_1(3)->Id())
-		     }
-		     else{
-		      KRATOS_WATCH(geom_1(0)->Id())
-		      KRATOS_WATCH(geom_1(1)->Id())
-		      KRATOS_WATCH(geom_1(2)->Id())
-		     }
-		     
-		     KRATOS_WATCH((neighb_nodes(i+j).lock())->Id())
-	             KRATOS_WATCH((neighb_nodes(i+j+1).lock())->Id())
-	             KRATOS_WATCH((neighb_nodes(i+j+2).lock())->Id())
-	             j+=2;
-	             KRATOS_WATCH("---------------------")
-		   }   
-		  }
+	          }          
 	        }
 	      }
-	    }    
+	    }  
 	    KRATOS_CATCH("")
 	  }
 	  
@@ -314,7 +281,6 @@ namespace Kratos
 	  {
 	     KRATOS_TRY
 	     NodesArrayType& pNodes        = model_part.Nodes(); 
-	     ElementsArrayType& pElements  = model_part.Elements();
 	     unsigned int New_Id           = pNodes.size();
 	     NodesArrayType New_pNodes; 
              NodesArrayType::iterator i_begin =  pNodes.begin();
@@ -374,8 +340,8 @@ namespace Kratos
 	      #pragma omp parallel for
 	      for(int k=0; k<number_of_threads; k++)
 	        {
-	            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-	            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	            ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	            ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 	            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	                it->GetValue(IS_INACTIVE) = false;
 		}
@@ -437,7 +403,6 @@ namespace Kratos
 	  const double toler = 1E-8;
 	  a = 0;
 	  b = 1; 
-	  int id                              = rcond->Id();
 	  Condition::GeometryType& geom_cond  = rcond->GetGeometry();
 	  Element::Pointer relem              = (rcond->GetValue(NEIGHBOUR_ELEMENTS))(0).lock();
 	  Element::GeometryType& geom_elem    = relem->GetGeometry();
@@ -510,37 +475,89 @@ namespace Kratos
 	 //**************************************************************************************
 	 
 	 ///Subrutina para tener los nodos correspondientes segun DG en 2D
-	 void EdgesNodes3D(const Element::GeometryType& geom, const int& count_2, const int& count_1, WeakPointerVector< Node<3> >& neighb_nodes)
+	 void EdgesNodes3D(const Element::GeometryType& geom_1, 
+			   const Element::GeometryType& geom_2, 
+			   const int& count_1, const int& count_2, 
+			   WeakPointerVector< Node<3> >& neighb_nodes)
 	 {
 	      int i = 0, j = 0, k = 0;
-	      if(count_1==0)     {i = 0; j = 1; k = 2;}
-	      else if(count_1==1){i = 3; j = 4; k = 5;}
-	      else if(count_1==2){i = 6; j = 7; k = 8;}
-              else               {i = 9; j = 10; k = 11;}
+	      array_1d<int,3> a;
+	      array_1d<int,3> c;
 
+	      array_1d<double,3> diff = ZeroVector(3);
+	      if(count_1==0)
+	      {
+		i = 0; j = 1; k = 2;
+		c[0] = 1; c[1] = 3; c[2] = 2;
+	      }
+	      else if(count_1==1){
+		i = 3; j = 4; k = 5;
+		c[0] = 0; c[1] = 2; c[2] = 3;
+	      }
+	      else if(count_1==2){
+		i = 6; j = 7; k = 8;
+		c[0] = 0; c[1] = 3; c[2] = 1;
+	      }
+              else {
+		i = 9; j = 10; k = 11;
+		c[0] = 0; c[1] = 1; c[2] = 2;
+	      }
+              
+              array_1d<int,3> b;  b[0] = i; b[1] = j; b[2] = k;     
 	      if(count_2==0)
 	      {
-	        neighb_nodes(i) =  geom(3);
-	        neighb_nodes(j) =  geom(1); 
-		neighb_nodes(k) =  geom(2); 
+		a[0] = 1; 
+		a[1] = 3;
+		a[2] = 2;
+		for(int l = 0; l<3; l++){
+		   for(int m=0; m<3; m++){
+		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
+		    if(std::fabs(inner_prod(diff, diff))<1E-9){
+		       neighb_nodes(b[l]) =  geom_2(a[m]);
+		       break;
+		    } } }
 	      }
 	      else if (count_2==1)
 	      {
-	        neighb_nodes(i) =  geom(3);
-	        neighb_nodes(j) =  geom(0); 
-		neighb_nodes(k) =  geom(2); 
+	        a[0] = 0; 
+		a[1] = 2;
+		a[2] = 3;
+		for(int l = 0; l<3; l++){
+		   for(int m=0; m<3; m++){
+		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
+		    std::fabs(inner_prod(diff, diff));
+		    if(std::fabs(inner_prod(diff, diff))<1E-9){
+		       neighb_nodes(b[l]) =  geom_2(a[m]);
+		       break;
+		    } } }	      
 	      }
 	      else if(count_2==2) 
 	      {
-		neighb_nodes(i) =  geom(3);
-	        neighb_nodes(j) =  geom(0); 
-		neighb_nodes(k) =  geom(1);
+	        a[0] = 0; 
+		a[1] = 3;
+		a[2] = 1;
+		for(int l = 0; l<3; l++){
+		   for(int m=0; m<3; m++){
+		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
+		    std::fabs(inner_prod(diff, diff));
+		    if(std::fabs(inner_prod(diff, diff))<1E-9){
+		       neighb_nodes(b[l]) =  geom_2(a[m]);
+		       break;    
+		    } } }
 	      }
 	      else
 	      {
-	        neighb_nodes(i) =  geom(2);
-	        neighb_nodes(j) =  geom(0); 
-		neighb_nodes(k) =  geom(1);
+	        a[0] = 0; 
+		a[1] = 1;
+		a[2] = 2;
+		for(int l = 0; l<3; l++){
+		   for(int m=0; m<3; m++){
+		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
+		    std::fabs(inner_prod(diff, diff));
+		    if(std::fabs(inner_prod(diff, diff))<1E-9){
+		       neighb_nodes(b[l]) =  geom_2(a[m]);
+		       break;
+		    } } }
 	      }      
 	 }  
 	 
