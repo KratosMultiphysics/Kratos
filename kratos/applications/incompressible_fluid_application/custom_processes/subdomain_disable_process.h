@@ -101,106 +101,67 @@ namespace Kratos
 
 		void SaveReducedPart(ModelPart& full_model_part, ModelPart& reduced_model_part)
 		{
-		KRATOS_TRY
-		int n_int;
-		int n_disabled;
-		//clear reduced_model_part
-		reduced_model_part.Conditions().clear();
-		reduced_model_part.Elements().clear();
-		reduced_model_part.Nodes().clear();
-
-		reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
-		reduced_model_part.Elements().reserve(full_model_part.Elements().size());
-		reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
-
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
-			
-			
-			n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-			
-			if (n_int==3)
-				{
-				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
-				}
-
-		}
-		for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; 
-				im != full_model_part.ElementsEnd() ; ++im)
-		{	  
-			
-			/*n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-			n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-			
-			if (n_int==3)
-				{
-				im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
-				im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
-				}*/
-
-			n_disabled=im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE);
-			n_disabled+=im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE);
-			n_disabled+=im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE);
-			
-			if (n_disabled<3)
-				{
-				reduced_model_part.Elements().push_back(*(im.base()));
-				//reduced_model_part.AddNode(im->GetGeometry()[0]);				
-				}
-			if (n_disabled>3)
-				KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
-
-			if (n_disabled==1 || n_disabled==2)
-				{
-				for (int i=0;i<3;i++)
-					{
-
-					if (im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)==1)
-						{
-						reduced_model_part.Nodes().push_back(im->GetGeometry()(i));				
-
-						}
+		  KRATOS_TRY
 	
-					}
-				}
-
-
-
-		}
-	
+		  reduced_model_part.Conditions().clear();
+		  reduced_model_part.Elements().clear();
+		  reduced_model_part.Nodes().clear();
+		  reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
+		  reduced_model_part.Elements().reserve(full_model_part.Elements().size());
+		  reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
+		  
+		  int n_int=0;
+		  int n_disabled=0;
+		  
+		  for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+		    {	  
+		      in->FastGetSolutionStepValue(DISABLE)=false;
+		    }
+		  for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; im != full_model_part.ElementsEnd() ; ++im)
+		    {	  
+		      n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+		      n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+		      n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+		      if(n_int==3){
+			im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+			im->GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+			im->GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+		      }
+		      if (n_int<3)
+			{
+			  reduced_model_part.Elements().push_back(*(im.base()));
+			}
+		      if (n_int>3)
+			KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+		      if (n_int<3)
+			{
+			  for (int i=0;i<3;i++)
+			    {
+			      im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)=true;
+			    }			
+			}
+		    }
+		  for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
+		      in != full_model_part.NodesEnd() ; ++in)
+		    {	  
+		      n_disabled=in->FastGetSolutionStepValue(DISABLE);
+		      if (n_disabled==1.0)
+			{
+			  reduced_model_part.Nodes().push_back(*(in.base()));
+			}
+		    }
 		
-		for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
-				in != full_model_part.NodesEnd() ; ++in)
-		{	  
-			
-			n_disabled=in->FastGetSolutionStepValue(DISABLE);
-			
-			if (n_disabled==0.0)
-				{
-				reduced_model_part.Nodes().push_back(*(in.base()));
-				}
-			
-
-		}
-
-		reduced_model_part.Nodes().Unique();
-	
 		
-		KRATOS_CATCH("")
-		}
-
-
+		  
+		  
+		  KRATOS_CATCH("")
+		    }
+		
+		
 		///@}
 		///@name Access
 		///@{ 
-
+		
 
 		///@}
 		///@name Inquiry
