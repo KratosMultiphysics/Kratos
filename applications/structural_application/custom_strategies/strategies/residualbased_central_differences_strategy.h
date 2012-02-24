@@ -211,7 +211,7 @@ namespace Kratos
 		mbeta_damp           = 0.00; 
 		mpenalty_factor      = penalty_factor;
 		
-		mDTU.CreateJoints(model_part);
+		mDTU.CreateJoints(model_part,mdimension);
 		
 	      }
 
@@ -287,11 +287,11 @@ double Solve()
 	GetForce();
 	
 	/// Discontinum Mechanics
-	//ComputeInterfaceForces();
+	ComputeInterfaceForces();
 
 	
 	/// Fragmentation and fracture for DEM
-	Heuristic_Formula(mDTU.Begin(), mDTU.End());
+	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
 	//WARNING = To be checked
 	//ComputeDampingForces();
@@ -506,10 +506,11 @@ void ComputeInterfaceForces()
     for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
      {
         KRATOS_WATCH(it->Id())
-        it->Calculate(INTERFACE_FORCES, rRightHandSideVector, CurrentProcessInfo);
+        //it->Calculate(INTERFACE_FORCES, rRightHandSideVector, CurrentProcessInfo);
      }
     }
     
+    KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAA")
     KRATOS_CATCH("")
 }
  
@@ -1037,7 +1038,7 @@ double ComputeTimePenalty()
 	  {
 	    
 	    double& mass = ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
-	    if(mass==0.00) KRATOS_WATCH(i->Id())
+	    if(mass==0.00) KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAA")
 	    Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
 	  }
 	}
