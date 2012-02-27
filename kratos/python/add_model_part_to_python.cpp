@@ -122,7 +122,8 @@ namespace Kratos
             rModelPart.SetNodes(pOtherNodes, ThisIndex);
         }
 
-        // Properties
+
+       // Properties
 
         ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
         {
@@ -298,6 +299,8 @@ namespace Kratos
                     .def("GetNodes", ModelPartGetNodes2)
                     .def("SetNodes", ModelPartSetNodes2)
                     .def("NodesArray", &ModelPart::NodesArray, return_internal_reference<>())
+                    .def("AddTable", &ModelPart::AddTable)
+                    .def("GetTable", &ModelPart::pGetTable)
                     .add_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
                     .def("GetProperties", ModelPartGetProperties1)
                     .def("SetProperties", ModelPartSetProperties1)
