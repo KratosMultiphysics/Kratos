@@ -248,7 +248,7 @@ protected:
     ///@{
 
     void AddMassTerm(MatrixType &rMassMatrix,
-                     const ShapeFunctionsType N,
+                     const ShapeFunctionsType& N,
                      const double Weight);
 
     void AddConvection(MatrixType& rLHS,
@@ -332,8 +332,12 @@ private:
     /// Shape function derivatives at each integration point
     std::vector< ShapeDerivativesType > mDN_DX;
 
-    /// Total elemental area or volume
-    double mElementSize;
+    /// Determinant of the Jacobian.
+    /** Used to calculate the integration weight at each integration point.
+      * Note that we store it once as we are assuming straight-edged elements,
+      * otherwise, the Jacobian is not constant and should be evaluated at each Gauss Point.
+      */
+    double mDetJ;
 
     ///@}
     ///@name Serialization
@@ -345,9 +349,7 @@ private:
     {
         KRATOS_TRY;
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-        enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5,
-                                NumberOfIntegrationMethods
-                           };
+        //enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5,NumberOfIntegrationMethods};
         unsigned int IntMethod = 0;
         switch(mIntegrationMethod)
         {
@@ -372,7 +374,7 @@ private:
         }
         rSerializer.save("IntMethod",IntMethod);
         rSerializer.save("mDN_DX",mDN_DX);
-        rSerializer.save("mElementSize",mElementSize);
+        rSerializer.save("mDetJ",mDetJ);
         KRATOS_CATCH("");
     }
 
@@ -404,7 +406,7 @@ private:
             break;
         }
         rSerializer.load("mDN_DX",mDN_DX);
-        rSerializer.load("mElementSize",mElementSize);
+        rSerializer.load("mDetJ",mDetJ);
         KRATOS_CATCH("");
     }
 

@@ -80,28 +80,21 @@ void SpalartAllmaras::Initialize()
 
     // Initialize member variables
     mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
-    mElementSize = 0.00;
+    mDetJ = 0.00;
 
     GeometryType::JacobiansType J;
     J = GetGeometry().Jacobian( J, mIntegrationMethod );
 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
 
-    // containers for inverse and determinant of J
-    double DetJ; // Jacobian
+    // container for inverse of J
     Matrix InvJ;
 
     //calculating the inverse J
     for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
     {
-        //getting informations for integration
-        double IntegrationWeight = IntegrationPoints[g].Weight();
-
         //calculating and storing inverse of the jacobian and the parameters needed
-        MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
-
-        //calculating the total area
-        mElementSize += DetJ * IntegrationWeight;
+        MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
 
         //calculating the shape function derivatives in global coordinates
         mDN_DX[g].resize(NumNodes,Dim);
@@ -115,44 +108,37 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
-	
-	if (FractionalStepNumber == 1)
-	{
-		const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
-		const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-		const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
+    if (FractionalStepNumber == 1)
+    {
+        const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
+        const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-		// Initialize member variables
-		mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
-		mElementSize = 0.00;
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
 
-		GeometryType::JacobiansType J;
-		J = GetGeometry().Jacobian( J, mIntegrationMethod );
+        // Initialize member variables
+        mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
 
-		const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
+        GeometryType::JacobiansType J;
+        J = GetGeometry().Jacobian( J, mIntegrationMethod );
 
-		// containers for inverse and determinant of J
-		double DetJ; // Jacobian
-		Matrix InvJ;
+        const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
 
-		//calculating the inverse J
-		for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
-		{
-			//getting informations for integration
-			double IntegrationWeight = IntegrationPoints[g].Weight();
+        // containers for inverse of J
+        Matrix InvJ;
 
-			//calculating and storing inverse of the jacobian and the parameters needed
-			MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
+        //calculating the inverse J
+        for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
+        {
 
-			//calculating the total area
-			mElementSize += DetJ * IntegrationWeight;
+            //calculating and storing inverse of the jacobian and the parameters needed
+            MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
 
-			//calculating the shape function derivatives in global coordinates
-			mDN_DX[g].resize(NumNodes,Dim);
-			noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
-		}
-	}
+            //calculating the shape function derivatives in global coordinates
+            mDN_DX[g].resize(NumNodes,Dim);
+            noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
+        }
+    }
     else if (FractionalStepNumber == 2)
     {
         const SizeType NumNodes = this->GetGeometry().PointsNumber();
@@ -168,7 +154,7 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
             const ShapeDerivativesType& DN_DX = mDN_DX[g];
-            const double GaussWeight = mElementSize * IntegrationPoints[g].Weight();
+            const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
 
             // Evaluate convective velocity on integration point
             array_1d<double,3> Velocity(3,0.0);
@@ -230,7 +216,7 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     {
         const ShapeFunctionsType& N = row(NContainer,g);
         const ShapeDerivativesType& DN_DX = mDN_DX[g];
-        const double GaussWeight = mElementSize * IntegrationPoints[g].Weight();
+        const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
 
         // Add contribution to mass matrix
         this->AddMassTerm(MassMatrix,N,GaussWeight);
@@ -334,7 +320,7 @@ void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step)
 
 // Lumped version
 void SpalartAllmaras::AddMassTerm(MatrixType &rMassMatrix,
-                                  const ShapeFunctionsType N,
+                                  const ShapeFunctionsType &N,
                                   const double Weight)
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
