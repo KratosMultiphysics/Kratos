@@ -443,7 +443,7 @@ namespace Kratos
       template<class TMatrixType>
       Table(TMatrixType const& ThisMatrix): mData(), mpXVariable(NULL) , mpYVariable(NULL)
       {
-          for(int i = 0 ; i < ThisMatrix.size1() ; i++)
+          for(unsigned int i = 0 ; i < ThisMatrix.size1() ; i++)
               PushBack(ThisMatrix(i,0), ThisMatrix(i,1));
       }
 
