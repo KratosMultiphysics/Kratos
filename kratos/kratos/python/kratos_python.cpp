@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
 #include "add_serializer_to_python.h"
+#include "add_table_to_python.h"
 
 //#include "add_sparse_vector_to_python.h"
 #include "pointer_vector_set_python_interface.h"
@@ -136,6 +137,7 @@ namespace Python
 	AddProcessInfoToPython();
 	AddConstitutiveLawToPython();
         AddSerializerToPython();
+        AddTableToPython();
 
 	AddParallelStrategiesToPython();
 	AddParallelLinearSolversToPython();
