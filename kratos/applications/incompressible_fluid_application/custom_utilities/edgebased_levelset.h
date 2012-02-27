@@ -2749,7 +2749,7 @@ KRATOS_WATCH(porosity_coefficient)*/
 	  
 // 	  const double nu_i = mViscosity;
 	  if(res_law == 1){
-	  KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Calculating Ergun Darcy coefficients ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+// 	  KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Calculating Ergun Darcy coefficients ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 	    /* if the chosen resistance law is ERGUN calculate Ergun A and B*/
 	  for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
 		    inode != mr_model_part.NodesEnd();
@@ -3345,13 +3345,13 @@ KRATOS_WATCH(porosity_coefficient)*/
 // 		KRATOS_WATCH(eps)
 // 		KRATOS_WATCH(a)	
 // 		KRATOS_WATCH(b)
-                linear = eps * a;
-//                 linear =  a;
+//                 linear = eps * a;
+                linear =  a;
 
 // 		KRATOS_WATCH(linear)
 // 
-                non_linear =  eps * b * vel_norm; 
-//                 non_linear =   b * vel_norm; 
+//                 non_linear =  eps * b * vel_norm;  //check Raquel Juan comparison with teoretical results
+                non_linear =   b * vel_norm; 
 // 		KRATOS_WATCH("non linear			")
 // 		KRATOS_WATCH(non_linear)
 // 	    } else
