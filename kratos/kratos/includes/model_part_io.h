@@ -740,10 +740,11 @@ namespace Kratos
 	  ExtractValue(word, x);
 	  ReadWord(word);
 	  ExtractValue(word, y);
-	  
+
 	  temp_table.PushBack(x,y);
 	}
-	KRATOS_WATCH(temp_table);
+
+        rTables.insert(table_id, temp_table);
 
 	KRATOS_CATCH("")
       }

@@ -696,14 +696,14 @@ namespace Kratos
 
         SizeType NumberOfTables() const
         {
-			return mTables.size();
+		return mTables.size();
         }
 
         /** Inserts a Table
          */
         void AddTable(IndexType TableId, TableType::Pointer pNewTable)
         {
-			mTables.insert(TableId, pNewTable);
+		mTables.insert(TableId, pNewTable);
         }
 
         /** Returns the Table::Pointer  corresponding to it's identifier */
@@ -1190,6 +1190,7 @@ namespace Kratos
         virtual void PrintData(std::ostream& rOStream) const
         {
             rOStream << "    Buffer Size : " << mBufferSize << std::endl;
+            rOStream << "    Number of tables : " << NumberOfTables() << std::endl;
             mpProcessInfo->PrintData(rOStream);
             rOStream << std::endl;
             for (IndexType i = 0; i < mMeshes.size(); i++)

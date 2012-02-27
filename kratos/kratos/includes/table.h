@@ -52,7 +52,7 @@ namespace Kratos
   
   /// This class represents the value of its variable depending to other variable.
   /** Table class stores the value of its second variable respect to the value of its first variable.
-  *   It also provides a piecewise linear interpolator/extrapolator for getting intermediate values.
+  *   It also provides a double to double table with piecewise linear interpolator/extrapolator for getting intermediate values.
   */
   template<class TArgumentType, class TResultType = TArgumentType, std::size_t TResultsColumns = 1>
   class Table
@@ -108,7 +108,7 @@ namespace Kratos
       ///@name Operators 
       ///@{
 
-	  // I want to put operator(i,j) for accessing, operator(i) for first column and operator[i] for getting the complete row
+	  
       
 	  // This operator gives the first column result for the nearest argument found in table
 	  result_type const& operator()(argument_type const& X) const
@@ -432,7 +432,22 @@ namespace Kratos
 	  {
 	  }
 
-      /// Default constructor.
+
+      /// Copy constructor.
+      Table(Table const& rOther): mData(rOther.mData), mpXVariable(rOther.mpXVariable) , mpYVariable(rOther.mpYVariable)
+      {
+
+      }
+
+      /// Matrix constructor. the template parameter must have (i,j) access operator and  size1 methods defined.
+      template<class TMatrixType>
+      Table(TMatrixType const& ThisMatrix): mData(), mpXVariable(NULL) , mpYVariable(NULL)
+      {
+          for(int i = 0 ; i < ThisMatrix.size1() ; i++)
+              PushBack(ThisMatrix(i,0), ThisMatrix(i,1));
+      }
+
+      /// Variable constructor.
       Table(XVariableType const& XVariable, YVariableType const& YVariable) : mData(), mpXVariable(&XVariable) , mpYVariable(&YVariable)
 	  {
 	  }
@@ -658,7 +673,7 @@ namespace Kratos
       /// Turn back information as a string.
       virtual std::string Info() const
 	  {
-		  return "Table";
+		  return "Piecewise Linear Table";
 	  }
       
       /// Print information about this object.
@@ -670,7 +685,7 @@ namespace Kratos
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const
 	  {
-		  for(std::size_t i = 1 ; i < mData.size() ; i++)
+		  for(std::size_t i = 0 ; i < mData.size() ; i++)
 			rOStream << mData[i].first << "\t\t" << mData[i].second[0] << std::endl;
 	  }
             
@@ -719,9 +734,6 @@ namespace Kratos
       ///@}    
       ///@name Un accessible methods 
       ///@{ 
-      
-      /// Copy constructor.
-      Table(Table const& rOther);
 
         
       ///@}    
