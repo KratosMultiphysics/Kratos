@@ -7,6 +7,8 @@ SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
 SCALAR CONDITION DISTANCE     		point line surface volume free  -1.0
 SCALAR CONDITION POROSITY     		point line surface volume free  1.0
 SCALAR CONDITION DIAMETER     		point line surface volume free  0.01
+SCALAR CONDITION LIN_DARCY_COEF     		point line surface volume free  0.0
+SCALAR CONDITION NONLIN_DARCY_COEF     		point line surface volume free  0.0
 
 FACE CONDITION Condition2D line
 FACE CONDITION Condition3D surface 
@@ -44,7 +46,7 @@ PROPERTY stabdt_convection_factor 0.01 stabdt_convection_factor
 PROPERTY tau2_factor 1.0 tau2_factor
 PROPERTY edge_detection_angle 45.0 edge_detection_angle
 PROPERTY assume_constant_pressure False assume_constant_pressure
-
+PROPERTY compute_porous_resistance_law 0 compute_porous_resistance_law
 
 DEFINE MODEL PART FixedVelocity point line surface LOWER
 ADD CONDITION VELOCITY point line surface volume fixed 0.0 0.0 0.0
