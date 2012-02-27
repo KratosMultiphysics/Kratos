@@ -960,9 +960,7 @@ namespace Kratos {
                     array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                     VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                     array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
-					this->Normalize(rN);
-					
-					double diag_value = rLocalMatrix(j,j);
+                    this->Normalize(rN);
 
                     for( size_t i = 0; i < j; ++i) // Skip term (i,j)
                     {
