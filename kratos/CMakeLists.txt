@@ -57,6 +57,7 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_linear_solvers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 
      )
