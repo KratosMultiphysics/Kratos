@@ -14,7 +14,8 @@ def AddVariables(model_part):
 
 #    model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(DIAMETER)
-
+    model_part.AddNodalSolutionStepVariable(LIN_DARCY_COEF)
+    model_part.AddNodalSolutionStepVariable(NONLIN_DARCY_COEF)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
     print "variables for the edgebased incompressible fluid solver added correctly"
@@ -192,6 +193,10 @@ class EdgeBasedLevelSetSolver:
         if (self.extrapolation_layers<3):
             print "insufficient number of extrapolation layers. Minimum is 3"
             raise ValueError
+        
+	self.timer.Start("Calculate Porous Resistance Law")
+        (self.fluid_solver).CalculatePorousResistanceLaw(self.compute_porous_resistance_law)
+	self.timer.Stop("Calculate Porous Resistance Law")
 
 	self.timer.Start("Update Fixed Velocity Values")
         (self.fluid_solver).UpdateFixedVelocityValues()
