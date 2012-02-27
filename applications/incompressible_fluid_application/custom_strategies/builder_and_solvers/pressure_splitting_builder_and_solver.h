@@ -731,7 +731,7 @@ namespace Kratos
 
             // Get elements and conditions
             ElementsArrayType& rElements = rModelPart.Elements();
-            ConditionsArrayType& rConditions = rModelPart.Conditions();
+//            ConditionsArrayType& rConditions = rModelPart.Conditions();
 
             // resetting to zero the vector of reactions
             TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
@@ -772,34 +772,34 @@ namespace Kratos
                 }
             }
 
-            PartitionVector ConditionPartition;
+//            PartitionVector ConditionPartition;
 
-            OpenMPUtils::DivideInPartitions(rConditions.size(),NumThreads,ConditionPartition);
+//            OpenMPUtils::DivideInPartitions(rConditions.size(),NumThreads,ConditionPartition);
 
-            #pragma omp parallel
-            {
-                int k = OpenMPUtils::ThisThread();
+//            #pragma omp parallel
+//            {
+//                int k = OpenMPUtils::ThisThread();
 
-                //contributions to the system
-                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+//                //contributions to the system
+//                LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-                Condition::EquationIdVectorType EquationId;
+//                Condition::EquationIdVectorType EquationId;
 
-                ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+//                ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
-                typename ConditionsArrayType::ptr_iterator CondBegin = rConditions.ptr_begin()+ConditionPartition[k];
-                typename ConditionsArrayType::ptr_iterator CondEnd = rConditions.ptr_begin()+ConditionPartition[k+1];
+//                typename ConditionsArrayType::ptr_iterator CondBegin = rConditions.ptr_begin()+ConditionPartition[k];
+//                typename ConditionsArrayType::ptr_iterator CondEnd = rConditions.ptr_begin()+ConditionPartition[k+1];
 
-                // assemble all conditions
-                for (typename ConditionsArrayType::ptr_iterator pCond = CondBegin; pCond != CondEnd; pCond++)
-                {
-                    //calculate condition contribution
-                    pScheme->Condition_Calculate_RHS_Contribution(*pCond,RHS_Contribution,EquationId,CurrentProcessInfo);
+//                // assemble all conditions
+//                for (typename ConditionsArrayType::ptr_iterator pCond = CondBegin; pCond != CondEnd; pCond++)
+//                {
+//                    //calculate condition contribution
+//                    pScheme->Condition_Calculate_RHS_Contribution(*pCond,RHS_Contribution,EquationId,CurrentProcessInfo);
 
-                    //assemble condition contribution
-                    AssembleRHS(b,RHS_Contribution,EquationId/*,lock_array*/);
-                }
-            }
+//                    //assemble condition contribution
+//                    AssembleRHS(b,RHS_Contribution,EquationId/*,lock_array*/);
+//                }
+//            }
 
             KRATOS_CATCH("");
         }
@@ -1172,8 +1172,8 @@ namespace Kratos
             //refresh RHS to have the correct reactions
             BuildRHS(pScheme, rModelPart, b);
 
-            int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+            int systemsize = BaseType::mEquationSystemSize;
+            TSystemVectorType& rReactionsVector = *BaseType::mpReactionsVector;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector DofPartition;
@@ -1192,7 +1192,12 @@ namespace Kratos
                     if ( (*itDof)->IsFixed() )
                     {
                         i = (*itDof)->EquationId() - systemsize;
-                        (*itDof)->GetSolutionStepReactionValue() = ReactionsVector[i];
+                        (*itDof)->GetSolutionStepReactionValue() = rReactionsVector[i];
+                    }
+                    else
+                    {
+                        i = (*itDof)->EquationId();
+                        (*itDof)->GetSolutionStepReactionValue() = -b[i];
                     }
                 }
             }
@@ -1617,7 +1622,6 @@ namespace Kratos
          * @param b Reference to RHS vector
          * @param RHS_Contribution local RHS contibution
          * @param EquationId Global ids of the local contribution
-         * @param lock_array (only for OpenMP compilations) Vector containing a lock for each row of b
          */
         void AssembleRHS(
                 TSystemVectorType& b,
