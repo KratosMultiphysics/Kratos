@@ -447,7 +447,7 @@ void SpalartAllmaras::EvaluateConvection(Vector &rResult,
     for (SizeType i = 0; i < NumNodes; i++)
     {
         rResult[i] = rConvVel[0]*DN_DX(i,0);
-        for(SizeType k = 0; k < Dim; k++)
+        for(SizeType k = 1; k < Dim; k++)
             rResult[i] += rConvVel[k]*DN_DX(i,k);
     }
 }
