@@ -115,8 +115,45 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
+	
+	if (FractionalStepNumber == 1)
+	{
+		const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
+		const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-    if (FractionalStepNumber == 2)
+		const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
+
+		// Initialize member variables
+		mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
+		mElementSize = 0.00;
+
+		GeometryType::JacobiansType J;
+		J = GetGeometry().Jacobian( J, mIntegrationMethod );
+
+		const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
+
+		// containers for inverse and determinant of J
+		double DetJ; // Jacobian
+		Matrix InvJ;
+
+		//calculating the inverse J
+		for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
+		{
+			//getting informations for integration
+			double IntegrationWeight = IntegrationPoints[g].Weight();
+
+			//calculating and storing inverse of the jacobian and the parameters needed
+			MathUtils<double>::InvertMatrix( J[g], InvJ, DetJ );
+
+			//calculating the total area
+			mElementSize += DetJ * IntegrationWeight;
+
+			//calculating the shape function derivatives in global coordinates
+			mDN_DX[g].resize(NumNodes,Dim);
+			noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
+		}
+	}
+    else if (FractionalStepNumber == 2)
     {
         const SizeType NumNodes = this->GetGeometry().PointsNumber();
         const SizeType NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
