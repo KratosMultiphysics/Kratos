@@ -29,6 +29,7 @@ applications_interface.ImportApplications(kernel, kratos_applications_path)
 ##################################################################
 ##################################################################
 from KratosIncompressibleFluidApplication import *
+##from KratosMKLSolversApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
@@ -98,12 +99,17 @@ viscosity   = edgebased_levelset_var.viscosity
 density     = edgebased_levelset_var.density
 fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fluid_model_part,domain_size,body_force,viscosity,density)
 fluid_solver.redistance_frequency = edgebased_levelset_var.redistance_frequency
-fluid_solver.extrapolation_layers = edgebased_levelset_var.extrapolation_layers
+fluid_solver.extrapolation_layers = int(edgebased_levelset_var.extrapolation_layers)
 fluid_solver.stabdt_pressure_factor = edgebased_levelset_var.stabdt_pressure_factor
 fluid_solver.stabdt_convection_factor = edgebased_levelset_var.stabdt_convection_factor
+fluid_solver.use_mass_correction = edgebased_levelset_var.use_mass_correction
 fluid_solver.tau2_factor = edgebased_levelset_var.tau2_factor
 fluid_solver.edge_detection_angle = edgebased_levelset_var.edge_detection_angle
 fluid_solver.assume_constant_pressure = edgebased_levelset_var.assume_constant_pressure
+fluid_solver.compute_porous_resistance_law = int(edgebased_levelset_var.compute_porous_resistance_law) ##0 = None; 1 = Ergun; 2 = Custom;
+##print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
+#using MKLPardisosolver ----> it has to be compiled in kratos!!
+##fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 fluid_solver.Initialize()
 
@@ -202,9 +208,12 @@ while(time < final_time):
             gid_io.InitializeResults(time, (fluid_model_part).GetMesh());
             
         gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(POROSITY,fluid_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISTANCE,fluid_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESS_PROJ,fluid_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(LIN_DARCY_COEF,fluid_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NONLIN_DARCY_COEF,fluid_model_part.Nodes,time,0)
         gid_io.Flush()
 
         if(edgebased_levelset_var.print_layers == True):
