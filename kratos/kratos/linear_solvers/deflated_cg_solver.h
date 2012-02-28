@@ -368,7 +368,7 @@ namespace Kratos
             // r = rB - r
             TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
 
-            std::cout << "********** ||r|| = " << TSparseSpaceType::TwoNorm(r) << std::endl;
+//             std::cout << "********** ||r|| = " << TSparseSpaceType::TwoNorm(r) << std::endl;
 
             // th = W^T * r -> form reduced problem
             DeflationUtils::ApplyWtranspose(mw, r, th);
@@ -471,7 +471,7 @@ namespace Kratos
                 BaseType::mIterationsNumber++;
 
                 // 	    if (BaseType::mIterationsNumber % 100 == 0)
-                std::cout << "********** iteration = " << BaseType::mIterationsNumber << ", resnorm = " << BaseType::mResidualNorm << std::endl;
+//                 std::cout << "********** iteration = " << BaseType::mIterationsNumber << ", resnorm = " << BaseType::mResidualNorm << std::endl;
 
             } while (BaseType::IterationNeeded() && (fabs(roh0) > 1.0e-30)/*(roh0 != 0.00)*/);
 
