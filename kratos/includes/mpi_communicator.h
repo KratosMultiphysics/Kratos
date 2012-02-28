@@ -465,27 +465,63 @@ namespace Kratos
             return true;
         }
 
+        virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
+        {
+            AssembleThisVariable<int,int>(ThisVariable);
+            return true;
+        }
+
         virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
         {
-            AssembleThisVariable(ThisVariable);
+            AssembleThisVariable<double,double>(ThisVariable);
             return true;
         }
 
         virtual bool AssembleCurrentData(Variable<array_1d<double, 3 > > const& ThisVariable)
         {
-            AssembleThisVariable(ThisVariable);
+            AssembleThisVariable<array_1d<double,3>,double>(ThisVariable);
             return true;
         }
 
         virtual bool AssembleCurrentData(Variable<Vector> const& ThisVariable)
         {
-            AssembleThisVariable(ThisVariable);
+            AssembleThisVariable<Vector,double>(ThisVariable);
             return true;
         }
 
         virtual bool AssembleCurrentData(Variable<Matrix> const& ThisVariable)
         {
-            AssembleThisVariable(ThisVariable);
+            AssembleThisVariable<Matrix,double>(ThisVariable);
+            return true;
+        }
+
+        virtual bool AssembleNonHistoricalData(Variable<int> const& ThisVariable)
+        {
+            AssembleThisNonHistoricalVariable<int,int>(ThisVariable);
+            return true;
+        }
+
+        virtual bool AssembleNonHistoricalData(Variable<double> const& ThisVariable)
+        {
+            AssembleThisNonHistoricalVariable<double,double>(ThisVariable);
+            return true;
+        }
+
+        virtual bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable)
+        {
+            AssembleThisNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
+            return true;
+        }
+
+        virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
+        {
+            AssembleThisNonHistoricalVariable<Vector,double>(ThisVariable);
+            return true;
+        }
+
+        virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable)
+        {
+            AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
             return true;
         }
 
@@ -665,7 +701,7 @@ namespace Kratos
             std::cout << std::endl;
         }
 
-        template<class TDataType>
+        template<class TDataType, class TSendType>
         bool AssembleThisVariable(Variable<TDataType> const& ThisVariable)
         {
             // PrintNodesId();
@@ -680,6 +716,9 @@ namespace Kratos
             std::vector<double*> receive_buffer(neighbours_indices.size());
             std::vector<int> receive_buffer_size(neighbours_indices.size());
 
+            TSendType Value = TSendType();
+            MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
             //first of all gather everything to the owner node
             for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
                 if ((destination = neighbours_indices[i_color]) >= 0)
@@ -689,7 +728,7 @@ namespace Kratos
 
                     // Calculating send and received buffer size
                     // NOTE: This part can be optimized getting the offset from variables list and using pointers.
-                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (double);
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
                     unsigned int local_nodes_size = r_local_nodes.size();
                     unsigned int ghost_nodes_size = r_ghost_nodes.size();
                     unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
@@ -717,8 +756,8 @@ namespace Kratos
                     int send_tag = i_color;
                     int receive_tag = i_color;
 
-                    MPI_Sendrecv(send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag,
-                            receive_buffer[i_color], receive_buffer_size[i_color], MPI_DOUBLE, destination, receive_tag,
+                    MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
+                            receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
                             MPI_COMM_WORLD, &status);
 
                     delete [] send_buffer;
@@ -729,7 +768,7 @@ namespace Kratos
                 {
                     // Updating nodes
                     int position = 0;
-                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (double);
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
                     NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
 
                     for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
@@ -748,7 +787,7 @@ namespace Kratos
 
 
             //SynchronizeNodalSolutionStepsData();
-            SynchronizeVariable(ThisVariable);
+            SynchronizeVariable<TDataType,TSendType>(ThisVariable);
 
 
 
@@ -756,7 +795,7 @@ namespace Kratos
             return true;
         }
 
-        template<class TDataType>
+        template<class TDataType, class TSendType>
         bool SynchronizeVariable(Variable<TDataType> const& ThisVariable)
         {
             int rank;
@@ -766,13 +805,16 @@ namespace Kratos
 
             NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
 
+            TSendType Value = TSendType();
+            MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
             for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
                 if ((destination = neighbours_indices[i_color]) >= 0)
                 {
                     NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                     NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
 
-                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (double);
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
                     unsigned int local_nodes_size = r_local_nodes.size();
                     unsigned int ghost_nodes_size = r_ghost_nodes.size();
                     unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
@@ -797,7 +839,7 @@ namespace Kratos
                     int send_tag = i_color;
                     int receive_tag = i_color;
 
-                    MPI_Sendrecv(send_buffer, send_buffer_size, MPI_DOUBLE, destination, send_tag, receive_buffer, receive_buffer_size, MPI_DOUBLE, destination, receive_tag,
+                    MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag,
                             MPI_COMM_WORLD, &status);
 
                     position = 0;
@@ -817,6 +859,163 @@ namespace Kratos
             return true;
         }
 
+
+        template< class TDataType, class TSendType >
+        bool AssembleThisNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
+        {
+            // PrintNodesId();
+            /*	KRATOS_WATCH("AssembleThisVariable")
+                    KRATOS_WATCH(ThisVariable)*/
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+            int destination = 0;
+
+            NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+            std::vector<double*> receive_buffer(neighbours_indices.size());
+            std::vector<int> receive_buffer_size(neighbours_indices.size());
+
+            TSendType Value = TSendType();
+            MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
+            //first of all gather everything to the owner node
+            for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+                if ((destination = neighbours_indices[i_color]) >= 0)
+                {
+                    NodesContainerType& r_local_nodes = InterfaceMesh(i_color).Nodes();
+                    NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                    // Calculating send and received buffer size
+                    // NOTE: This part can be optimized getting the offset from variables list and using pointers.
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                    unsigned int local_nodes_size = r_local_nodes.size();
+                    unsigned int ghost_nodes_size = r_ghost_nodes.size();
+                    unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
+                    receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
+
+                    if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
+                        continue; // nothing to transfer!
+
+                    unsigned int position = 0;
+                    double* send_buffer = new double[send_buffer_size];
+                    receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
+
+                    // Filling the buffer
+                    for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                    {
+                        *(TDataType*) (send_buffer + position) = i_node->GetValue(ThisVariable);
+                        position += nodal_data_size;
+                    }
+
+                    MPI_Status status;
+
+                    if (position > send_buffer_size)
+                        std::cout << rank << " Error in estimating send buffer size...." << std::endl;
+
+                    int send_tag = i_color;
+                    int receive_tag = i_color;
+
+                    MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
+                            receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
+                            MPI_COMM_WORLD, &status);
+
+                    delete [] send_buffer;
+                }
+
+            for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+                if ((destination = neighbours_indices[i_color]) >= 0)
+                {
+                    // Updating nodes
+                    int position = 0;
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                    NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                    for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                    {
+                        i_node->GetValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
+                        position += nodal_data_size;
+                    }
+
+                    if (position > receive_buffer_size[i_color])
+                        std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                    delete [] receive_buffer[i_color];
+                }
+
+            SynchronizeNonHistoricalVariable<TDataType,TSendType>(ThisVariable);
+
+
+
+
+            return true;
+        }
+
+        template< class TDataType, class TSendType >
+        bool SynchronizeNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
+        {
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+            int destination = 0;
+
+            NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+
+            TSendType Value = TSendType();
+            MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
+            for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+                if ((destination = neighbours_indices[i_color]) >= 0)
+                {
+                    NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
+                    NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+
+                    unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                    unsigned int local_nodes_size = r_local_nodes.size();
+                    unsigned int ghost_nodes_size = r_ghost_nodes.size();
+                    unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
+                    unsigned int receive_buffer_size = ghost_nodes_size * nodal_data_size;
+
+                    if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
+                        continue; // nothing to transfer!
+
+                    unsigned int position = 0;
+                    double* send_buffer = new double[send_buffer_size];
+                    double* receive_buffer = new double[receive_buffer_size];
+
+                    // Filling the send buffer
+                    for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                    {
+                        *(TDataType*) (send_buffer + position) = i_node->GetValue(ThisVariable);
+                        position += nodal_data_size;
+                    }
+
+                    MPI_Status status;
+
+                    int send_tag = i_color;
+                    int receive_tag = i_color;
+
+                    MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag,
+                            MPI_COMM_WORLD, &status);
+
+                    position = 0;
+                    for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                    {
+                        i_node->GetValue(ThisVariable) = *reinterpret_cast<TDataType*> (receive_buffer + position);
+                        position += nodal_data_size;
+                    }
+
+                    if (position > receive_buffer_size)
+                        std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                    delete [] send_buffer;
+                    delete [] receive_buffer;
+                }
+
+            return true;
+        }
+
+        template< class T >
+        inline MPI_Datatype GetMPIDatatype(const T& Value);
 
 
         //       friend class boost::serialization::access;
@@ -879,6 +1078,18 @@ namespace Kratos
         return rOStream;
     }
     ///@}
+
+    template<>
+    inline MPI_Datatype MPICommunicator::GetMPIDatatype<int>(const int& Value)
+    {
+        return MPI_INT;
+    }
+
+    template<>
+    inline MPI_Datatype MPICommunicator::GetMPIDatatype<double>(const double& Value)
+    {
+        return MPI_DOUBLE;
+    }
 
 
 } // namespace Kratos.

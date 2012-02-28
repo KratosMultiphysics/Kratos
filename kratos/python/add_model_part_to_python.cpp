@@ -122,8 +122,7 @@ namespace Kratos
             rModelPart.SetNodes(pOtherNodes, ThisIndex);
         }
 
-
-       // Properties
+        // Properties
 
         ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
         {
@@ -238,6 +237,12 @@ namespace Kratos
             return rCommunicator.AssembleCurrentData(ThisVariable);
         }
 
+        template<class TDataType>
+        bool CommunicatorAssembleNonHistoricalData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+        {
+            return rCommunicator.AssembleNonHistoricalData(ThisVariable);
+        }
+
 
 
         void AddModelPartToPython()
@@ -266,10 +271,16 @@ namespace Kratos
                     .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, return_internal_reference<>() )
                     .def("InterfaceMesh", CommunicatorGetInterfaceMesh, return_internal_reference<>() )
                     .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, return_internal_reference<>() )
+                    .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
                     .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
                     .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
                     .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Vector> )
                     .def("AssembleCurrentData", CommunicatorAssembleCurrentData<Matrix> )
+                    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<int> )
+                    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<double> )
+                    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
+                    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
+                    .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
                    ;
 
 
