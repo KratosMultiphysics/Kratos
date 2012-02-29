@@ -19,6 +19,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 
 #include "custom_utilities/projection.h"
+#include "custom_utilities/binbased_projection.h"
+
 //#include "custom_utilities/GenerateModelPartUtilities.h"
 #include "custom_utilities/connectivity_preserve_modeler.h"
 #include "custom_utilities/local_triangle_refine_mesh.h"
@@ -74,6 +76,24 @@ namespace Kratos
                     .def("DirectScalarVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation<double>)
                     .def("DirectVectorialVarInterpolation", &MeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
 		    ;
+			
+            class_<BinBasedMeshTransfer < 2 > >("BinBasedMeshTransfer2D", init< >())
+                    //.def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
+                    .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation<double>)
+                    .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
+                    .def("TransferFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 2 > ::TransferFromMovingMesh<double>)
+                    .def("TransferFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 2 > ::TransferFromMovingMesh< array_1d < double, 3 > >)
+		    ;
+
+            class_<BinBasedMeshTransfer < 3 > >("BinBasedMeshTransfer3D", init< >())
+                    //.def("DirectModelPartInterpolation", &MeshTransfer < 3 > ::DirectInterpolation)
+                    .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation<double>)
+                    .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
+                    .def("TransferFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 3 > ::TransferFromMovingMesh<double>)
+                    .def("TransferFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 3 > ::TransferFromMovingMesh< array_1d < double, 3 > >)
+		    ;
+			
+			
 
 //            class_<GenerateModelPartUtilities, boost::noncopyable > ("GenerateModelPartUtilities", init< >())
 //                    .def("GenerateModelTemperaturePart", GenerateModelTemperaturePart);
