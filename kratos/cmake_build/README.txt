@@ -98,6 +98,11 @@ OPTIONAL LIBRARIES
 
 		      -DPARMETIS_ROOT_DIR="/home/rrossi/Libraries/ParMetis-3.2.0" 		\
 
+			if you want to prescribe exactly the library to which you wish to link the user should set the following vars:
+			
+		      -DPARMETIS_LIBRARY="/home/rrossi/Libraries/ParMetis-3.2.0" 		\
+			
+			
    TRILINOS LIBRARY: 	-->Needed for MPI
 		    Trilinos provides the basis for kratos mpi-parallel capabilities. 
 		    Installation path is controlled by 
