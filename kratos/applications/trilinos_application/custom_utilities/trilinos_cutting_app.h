@@ -346,6 +346,18 @@ namespace Kratos {
             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
                       
             
+            //we must now create an overlapping fevector with te partition index:
+             boost::shared_ptr<Epetra_FEVector > Partition_overlap(new Epetra_FEVector(*pmy_ov_map,1,false));
+
+            ierr = Partition_overlap->Import(*aux_non_overlapping_graph, importer, Insert);
+            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+
+            double* local_Partition_ov = new double  [nnodes]; //copy in a human readeable format. the FEvector refuses to use the operator []
+            ierr = Partition_overlap->ExtractCopy(local_Partition_ov,nnodes);
+            if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
+            //done
+            
+            
             ///KRATOS_WATCH('line349')
             
                     
@@ -383,6 +395,7 @@ namespace Kratos {
                     pnode->X0() = it_node->X0();    
                     pnode->Y0() = it_node->Y0();    
                     pnode->Z0() = it_node->Z0(); 
+                    pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
                     new_model_part.Nodes().push_back(pnode);
                     //std::cout <<  mrComm.MyPID() << " " << pnode->Id() <<" " << pnode->X0() << " " <<pnode->Y0() <<pnode->Z0() <<std::endl;
                 }
@@ -432,8 +445,8 @@ namespace Kratos {
             
             Clear();
 	    KRATOS_WATCH("Finished copying conditions surfaces")
-            //ParallelFillCommunicator(new_model_part).PrintDebugInfo();
-            //if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+            ParallelFillCommunicator(new_model_part).PrintDebugInfo();
+            if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
             KRATOS_CATCH("")
         }
         
@@ -484,8 +497,8 @@ namespace Kratos {
             if (mrComm.MyPID() == 0) cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << endl;
             
              if (mrComm.MyPID() == 0) {
-             KRATOS_WATCH(List_New_Nodes);
-             KRATOS_WATCH(p_edge_ids);
+             //KRATOS_WATCH(List_New_Nodes);
+             //KRATOS_WATCH(p_edge_ids);
                 }
                      
             GenerateElements(mr_model_part, mr_new_model_part, Elems_In_Plane, p_edge_ids, versor, plane_number, number_of_triangles);
@@ -495,8 +508,8 @@ namespace Kratos {
 
 
             //fill the communicator
-            //ParallelFillCommunicator(new_model_part).Execute();
-            //if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+            ParallelFillCommunicator(mr_new_model_part).Execute();
+            if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
 
             //clean up the data
             Clear();
@@ -1045,7 +1058,7 @@ namespace Kratos {
                 pnode->X0() = weight * (it_node1->X0()) + (1.0 - weight) * it_node2->X0();
                 pnode->Y0() = weight * (it_node1->Y0()) + (1.0 - weight) * it_node2->Y0();
                 pnode->Z0() = weight * (it_node1->Z0()) + (1.0 - weight) * it_node2->Z0();
-                pnode->FastGetSolutionStepValue(PARTITION_INDEX) = (mrComm.MyPID()) ;
+                pnode->FastGetSolutionStepValue(PARTITION_INDEX) =  double(partition_new_nodes[i]) ;
                 new_model_part.Nodes().push_back(pnode);
                 }
                
@@ -1155,7 +1168,7 @@ namespace Kratos {
                             int index_i = geom[i].Id() - 1; //i node id
                             int index_j = geom[j].Id() - 1;
                             int NodeId = GetUpperTriangularMatrixValue(p_edge_ids, index_i, index_j, MaxNumEntries, NumEntries, Indices, id_values);
-                             //if (mrComm.MyPID() == 0 && NodeId>-0.5 ) KRATOS_WATCH(NodeId);
+                             
                             for (unsigned int l = 0; l != 3; ++l) {
                                 if (TriangleNodesArray[l] == NodeId //if we have already saved this node or it has not been cutted, then we have no new node to add (coord(i,j)=-1)
                                         || NodeId < 1)
@@ -1222,7 +1235,7 @@ namespace Kratos {
                             int index_i = geom[i].Id() - 1;
                             int index_j = geom[j].Id() - 1;
                             int NodeId = GetUpperTriangularMatrixValue(p_edge_ids, index_i, index_j, MaxNumEntries, NumEntries, Indices, id_values);
-                            //if (mrComm.MyPID() == 0 && NodeId>-0.5) KRATOS_WATCH(NodeId);
+                          
                             for (unsigned int l = 0; l != 3; ++l) {
                                 if (TriangleNodesArray[l] == NodeId //same as the part with only one triangle (look above)
                                         || NodeId < 1) {
@@ -1360,12 +1373,14 @@ namespace Kratos {
                 double* node1_data = it->GetValue(FATHER_NODES)[1].SolutionStepData().Data(0);
                 double weight = it->GetValue(WEIGHT_FATHER_NODES);
                 double* step_data = (it)->SolutionStepData().Data(0);
-
+                double partition_index= it->FastGetSolutionStepValue(PARTITION_INDEX);
+                
                 //now we only have to copy the information from node_data to step_data
                 for (int j = 0; j < step_data_size; j++) //looping all the variables and interpolating using weight
                 {
                     step_data[j] = weight * node0_data[j] + (1.0 - weight) * node1_data[j];
                 }
+                it->FastGetSolutionStepValue(PARTITION_INDEX)=partition_index;
             }//closing node loop
         }//closing subroutine
 
