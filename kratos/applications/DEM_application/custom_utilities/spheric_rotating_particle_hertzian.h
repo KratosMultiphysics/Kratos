@@ -68,6 +68,7 @@ public:
     /// Default constructor.
     SphericRotatingHertzianParticle():IndexedObject(0){
         mpCenterNode = Node<3>::Pointer(new Node<3>(1,0.0,0.0,0.0));
+        mMaterial = 1; 
         mRadius = 1.0;
         mDensity = 1.0;
         mYoung = 1000.0;
@@ -85,8 +86,9 @@ public:
         mOldPosition = ZeroVector(0);
         };
 
-    SphericRotatingHertzianParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){
+    SphericRotatingHertzianParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){ //CAL FICAR-HO DIRECTAMENT, NO DUPLICAR LA INFO.
         mpCenterNode = center;
+        mMaterial = mpCenterNode->GetSolutionStepValue(PARTICLE_MATERIAL);
         mRadius = mpCenterNode->GetSolutionStepValue(RADIUS);
         mDensity = mpCenterNode->GetSolutionStepValue(PARTICLE_DENSITY);
         mYoung = mpCenterNode->GetSolutionStepValue(YOUNG_MODULUS);
@@ -148,6 +150,7 @@ public:
     ///@{
     double& GetNumberOfNeighbours(){return(mpCenterNode->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));};
     int GetNumberOfContactingNeighbours(){return(mContactingNeighbours.size());};
+    int& GetMaterial(){return (mMaterial);};
     double& GetRadius(){return (mRadius);};
     double& GetMass(){return (mMass);};
     double& GetInertia(){return (mInertia);};
@@ -212,6 +215,7 @@ public:
     SphericRotatingHertzianParticle(const SphericRotatingHertzianParticle& rOtherParticle){
         this->SetId(rOtherParticle.Id());
         this->mpCenterNode = rOtherParticle.mpCenterNode;
+        this->mMaterial = rOtherParticle.mMaterial;
         this->mRadius = rOtherParticle.mRadius;
         this->mMass = rOtherParticle.mMass;
         this->mStaticFriction = rOtherParticle.mStaticFriction;
@@ -276,6 +280,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+    int mMaterial;   //afegim material.
     double mRadius;
     double mMass;
     double mInertia;

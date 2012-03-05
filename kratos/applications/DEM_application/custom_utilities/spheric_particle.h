@@ -61,6 +61,7 @@ public:
     /// Default constructor.
     SphericParticle():IndexedObject(0){
         mpCenterNode = Node<3>::Pointer(new Node<3>(1,0.0,0.0,0.0));
+        mMaterial = 1;
         mRadius = 1.0;
         mDensity = 1.0;
         mStiffness = 1000.0;
@@ -73,6 +74,7 @@ public:
     SphericParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){
         mpCenterNode = center;
         mRadius = mpCenterNode->GetSolutionStepValue(RADIUS);
+        mMaterial = mpCenterNode->GetSolutionStepValue(PARTICLE_MATERIAL);
         mDensity = mpCenterNode->GetSolutionStepValue(PARTICLE_DENSITY);
         mStiffness = mpCenterNode->GetSolutionStepValue(PARTICLE_STIFFNESS);
         mRestitutionCoef = mpCenterNode->GetSolutionStepValue(PARTICLE_COEF_RESTITUTION);
@@ -122,6 +124,7 @@ public:
     ///@name Access
     ///@{
     double& GetNumberOfNeighbours(){return(mpCenterNode->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));};
+    int& GetMaterial(){return (mMaterial);};
     double& GetRadius(){return (mRadius);};
     double& GetMass(){return (mMass);};
     double& GetDensity(){return (mDensity);};
@@ -169,6 +172,7 @@ public:
     SphericParticle(const SphericParticle& rOtherParticle){
         this->SetId(rOtherParticle.Id());
         this->mpCenterNode = rOtherParticle.mpCenterNode;
+        this->mMaterial = rOtherParticle.mMaterial;
         this->mRadius = rOtherParticle.mRadius;
         this->mMass = rOtherParticle.mMass;
         this->mStiffness = rOtherParticle.mStiffness;
@@ -227,12 +231,12 @@ private:
     ///@name Member Variables
     ///@{
     double mRadius;
+    int mMaterial;
     double mMass;
     double mStiffness;
     double mRestitutionCoef;
     double mZeta;
     double mDensity;
-    double mPi;
     double mProximity_Tol;
     Node<3>::Pointer mpCenterNode;
     array_1d<double, 3> mInitialPosition;

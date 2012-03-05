@@ -156,7 +156,8 @@ public:
 
      static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2){
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetPosition() - rObj_2->GetPosition();
-        double distance_2 = rObj_2_to_rObj_1[0] * rObj_2_to_rObj_1[0] + rObj_2_to_rObj_1[1] * rObj_2_to_rObj_1[1] + rObj_2_to_rObj_1[2] * rObj_2_to_rObj_1[2];   //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
+        double distance_2 = rObj_2_to_rObj_1[0] * rObj_2_to_rObj_1[0] + rObj_2_to_rObj_1[1] * rObj_2_to_rObj_1[1] + rObj_2_to_rObj_1[2] * rObj_2_to_rObj_1[2];
+        //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
         double radius_1 = rObj_1->GetRadius();
         double radius_2 = rObj_2->GetRadius();
         double radius_sum = radius_1 + radius_2;

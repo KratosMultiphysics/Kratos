@@ -18,6 +18,14 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/neighbours_calculator.h"
+#include "custom_utilities/circular_particle.h"
+#include "custom_utilities/spheric_particle.h"
+#include "custom_utilities/circular_particle_hertzian.h"
+#include "custom_utilities/spheric_particle_hertzian.h"
+
+#include <fstream>
+#include <iostream>
+
 //Database includes
 
 namespace Kratos {
@@ -122,10 +130,10 @@ public:
         Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch, mProximityTol);
         }
 
-    void Calculate_Forces(double delta_t, array_1d<double, 3 >& gravity){
+    void Calculate_Forces(double delta_t, array_1d<double, 3 > gravity){ 
         KRATOS_TRY
         int size = mListOfParticlePointers.size();
-        #pragma omp parallel for
+       // #pragma omp parallel for
         for (int i = 0; i < size; i++){
             ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
             (*particle_it)->ComputeForcesOnCenterNode(delta_t, gravity);
@@ -133,7 +141,7 @@ public:
         KRATOS_CATCH("")
         }
 
-    void Evolve_Motion(double delta_t, array_1d<double, 3 >& gravity){
+    void Evolve_Motion(double delta_t, array_1d<double, 3 > gravity){ 
         int size = mListOfParticlePointers.size();
 
 //****************************************************************************************************************************************************//

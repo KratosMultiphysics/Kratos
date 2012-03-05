@@ -8,7 +8,7 @@
 #ifndef _SPHERIC_PARTICLE_HERTZIAN_H
 #define	_SPHERIC_PARTICLE_HERTZIAN_H
 
-
+#include "utilities/timer.h"
 // System includes
 #include <math.h>
 // External includes
@@ -63,6 +63,7 @@ public:
     /// Default constructor.
     SphericHertzianParticle():IndexedObject(0){
         mpCenterNode = Node<3>::Pointer(new Node<3>(1,0.0,0.0,0.0));
+        mMaterial = 1;
         mRadius = 1.0;
         mDensity = 1.0;
         mYoung = 1000.0;
@@ -76,6 +77,7 @@ public:
 
     SphericHertzianParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){
         mpCenterNode = center;
+        mMaterial = mpCenterNode->GetSolutionStepValue(PARTICLE_MATERIAL);
         mRadius = mpCenterNode->GetSolutionStepValue(RADIUS);
         mDensity = mpCenterNode->GetSolutionStepValue(PARTICLE_DENSITY);
         mYoung = mpCenterNode->GetSolutionStepValue(YOUNG_MODULUS);
@@ -86,7 +88,7 @@ public:
         else{
             if(mRestitutionCoef > 0.9999){mZeta = 0.0;}
             else{
-                mZeta = -sqrt(5.0) * log(mRestitutionCoef) / (sqrt(log(mRestitutionCoef) * log(mRestitutionCoef)) + M_PI * M_PI);
+                mZeta = -sqrt(5.0) * log(mRestitutionCoef) / (sqrt(log(mRestitutionCoef) * log(mRestitutionCoef) + M_PI * M_PI));
                 }
             }
         mMass = 1.33333333333333333333333 * M_PI * mDensity * mRadius * mRadius * mRadius;
@@ -127,10 +129,11 @@ public:
     ///@name Access
     ///@{
     double& GetRadius(){return (mRadius);};
+    int& GetMaterial(){return (mMaterial);};
     double& GetMass(){return (mMass);};
     double& GetDensity(){return (mDensity);};
     double& GetYoung(){return (mYoung);};
-    double& GetYoungStar(){return (mYoung);};
+    double& GetYoungStar(){return (mYoungStar);};
     double& GetPoisson(){return (mPoisson);};
     double& GetRestitutionCoef(){return (mRestitutionCoef);};
     double& GetZeta(){return (mZeta);};
@@ -175,6 +178,7 @@ public:
     SphericHertzianParticle(const SphericHertzianParticle& rOtherParticle){
         this->SetId(rOtherParticle.Id());
         this->mpCenterNode = rOtherParticle.mpCenterNode;
+        this->mMaterial = rOtherParticle.mMaterial;
         this->mRadius = rOtherParticle.mRadius;
         this->mMass = rOtherParticle.mMass;
         this->mYoung = rOtherParticle.mYoung;
@@ -235,6 +239,7 @@ private:
     ///@name Member Variables
     ///@{
     double mRadius;
+    int mMaterial;
     double mMass;
     double mYoung;
     double mYoungStar;

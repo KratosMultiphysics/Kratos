@@ -8,15 +8,21 @@
 #define STICKING_ALLOWED 0
 // System includes
 #include <algorithm>
+#include <iostream>
+#include <ostream>
+#include "utilities/timer.h"
 
 // External includes 
 
 // Project includes
 #include "custom_utilities/spheric_particle_hertzian.h"
 
+
 namespace Kratos{
 
-void SphericHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >& gravity){
+    void SphericHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >& gravity)
+    {
+
     double mass = mMass;
     double n_exponent = 1.5;
     double radius = mRadius;
@@ -39,6 +45,7 @@ void SphericHertzianParticle::ComputeForcesOnCenterNode(double dt, array_1d<doub
 
         if (aux_1 < 0.0){
             double distance = sqrt(distance_2);
+          //  KRATOS_WATCH(distance);
             double indentation = radius_sum - distance;
             //double indentation_n_exp = exp(n_exponent * log(indentation));
             //double indentation_exp_quarter = exp(0.25 * log(indentation));

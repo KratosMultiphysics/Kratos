@@ -19,6 +19,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ZETA)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
 
     print "variables for the explicit solver added correctly"
 
@@ -30,7 +31,7 @@ class ExplicitSolver:
     def __init__(self, solver_id, Dt, search_radius, n_step_search, prox_tol, model_part):
  
         #data of the problem
-        self.particle_destructor_and_constructor = Spheres_Spring_Creator_Destructor()
+        self.particle_destructor_and_constructor = Spheres_Creator_Destructor() # M: name didn't fit the one on add custom utilities to python
         self.solver_id = solver_id
 	self.step = 0;
         self.time_step = Dt;
