@@ -1,3 +1,5 @@
+#import cProfile
+
 import DEM_explicit_solver_var
 import time as timer
 #import matplotlib
@@ -17,7 +19,7 @@ sys.path.append(kratos_applications_path)
 #importing Kratos main library
 from Kratos import *
 kernel = Kernel()   #defining kernel
-print "aqui hi arribem"
+#print "aqui hi arribem"
 #importing applications
 import applications_interface
 applications_interface.Import_KratosDEMApplication = True
@@ -30,21 +32,25 @@ from KratosDEMApplication import *
 solid_model_part = ModelPart("SolidPart");  
 #############################################
 
-##importing the solvers needed
+##importing the solvers needed & defining rotation cases
+rotation =False #default vaulue, changed on rotation cases.
 contact_type = DEM_explicit_solver_var.ContactType
 if (contact_type == 'spring_circle'):
     import circle_spring_explicit_solver as explicit_solver
 elif (contact_type == 'hertzian_circle'):
     import circle_hertzian_explicit_solver as explicit_solver
 elif (contact_type == 'spring_sphere'):
-    import sphere_hertzian_explicit_solver as explicit_solver
+    import sphere_spring_explicit_solver as explicit_solver
 elif (contact_type == 'hertzian_sphere'):
     import sphere_hertzian_explicit_solver as explicit_solver
 elif (contact_type == 'rotating_spring_sphere'):
     import rotating_sphere_spring_explicit_solver as explicit_solver
+    rotation = True
 elif (contact_type == 'rotating_hertzian_sphere'):
+    rotation = True
     import rotating_sphere_hertzian_explicit_solver as explicit_solver
 
+#cProfile.run(explicit_solver.AddVariables(solid_model_part))
 explicit_solver.AddVariables(solid_model_part)
 #introducing input file name
 input_file_name = DEM_explicit_solver_var.problem_name
@@ -53,18 +59,19 @@ gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
-print "aqui hi arribem1"
+#print "aqui hi arribem1"
 ##selecting output format
+#cProfile.run(gid_io = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions))
 gid_io = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-print "aqui hi arribem2"
+#print "aqui hi arribem2"
 #gid_io.ReadModelPart(solid_model_part) 
 model_part_io_solid = ModelPartIO(input_file_name)
-print "aqui hi arribem3"
+#print "aqui hi arribem3"
 model_part_io_solid.ReadModelPart(solid_model_part)
-print "aqui hi arribem4"
+#print "aqui hi arribem4"
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 solid_model_part.SetBufferSize(2)
-print "aqui hi arribem4"
+#print "aqui hi arribem4"
 
 ##adding dofs
 explicit_solver.AddDofs(solid_model_part)
@@ -81,7 +88,7 @@ elif (solver_strategy == 'runge_kutta_4 '):
     solver_id = 2
 else :
     solver_id = 3
-print "aqui hi arribem5"
+#print "aqui hi arribem5"
 gravity = Vector(3)
 gravity[0] = DEM_explicit_solver_var.gravity_x
 gravity[1] = DEM_explicit_solver_var.gravity_y
@@ -96,16 +103,16 @@ min_dt = DEM_explicit_solver_var.min_time_step
 
 #settings to be changed
 n_step_estimation = 1
-n_step_destroy_distant = 50000       # how many steps between elimination of distant particles?
+n_step_destroy_distant = 1      # how many steps between elimination of distant particles?
 n_step_search = 1
 bounding_box_enlargement_factor = 2.0    # by what factor do we want to enlarge the strict bounding box
 min_risk_factor = 1.0 / safety_factor
 
 #mesh to be printed
-if(DEM_explicit_solver_var.print_layers == False):
+if(DEM_explicit_solver_var.print_layers == False): # true by default
     mesh_name = 0.0
     gid_io.InitializeMesh( mesh_name)
-    gid_io.WriteNodeMesh( solid_model_part.GetMesh() )
+    gid_io.WriteSphereMesh( solid_model_part.GetMesh() )
     gid_io.FinalizeMesh()
     gid_io.Flush()
     gid_io.InitializeResults(mesh_name, (solid_model_part).GetMesh());
@@ -135,24 +142,22 @@ search_radius = 2.5 * max_radius
 prox_tol = 0.000001 * min_radius
 bounding_box_enlargement_factor = max(1.0 + search_radius, bounding_box_enlargement_factor)
 
-print 'The search radius is'
-print search_radius
-print "aqui hi arribem 6"
+print ('The search radius is: ')+str(search_radius)
+#print "aqui hi arribem 6"
 solver = explicit_solver.ExplicitSolver(solver_id, dt, search_radius, n_step_search, prox_tol, solid_model_part)
-print "aqui hi arribem 7"
+#print "aqui hi arribem 7"
 dt = solver.EstimateTimeStep(risk_factor, dt, introduced_max_dt, min_dt)
-print "aqui hi arribem 8"
+#print "aqui hi arribem 8"
 list_of_particles_pointers = solver.GetParticlePointers()
-print "aqui hi arribem 9"
+#print "aqui hi arribem 9"
 solver.Calculate_Model_Surrounding_Bounding_Box(list_of_particles_pointers, solid_model_part, bounding_box_enlargement_factor)
-print 'The initial estimation of the time step is'
-print 'Dt = ', dt
-print "explicit solver created"
+print ('The initial estimation of the time step is: Dt = ')+str(dt)
+#print "explicit solver created"
 solver.EvolveSystem(dt, gravity) #also creates particles
-print 'finished initializing solver and creating particles'
+#print 'finished initializing solver and creating particles'
 current_pr_time = timer.clock()
 current_real_time = timer.time()
-print 'Calculation starts at instant: ' + str(current_pr_time)
+print ('Calculation starts at instant: ') + str(current_pr_time)
 while(time < final_time):
 
     if(step < number_of_inital_steps):
@@ -173,26 +178,29 @@ while(time < final_time):
     solver.Solve(dt, gravity)
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
+    print str(time)
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
         if(DEM_explicit_solver_var.print_layers == True):
             gid_io.InitializeMesh(time);
-            gid_io.WriteNodeMesh(solid_model_part.GetMesh());
+            gid_io.WriteSphereMesh(solid_model_part.GetMesh());
             gid_io.FinalizeMesh();
-            
+        print(time)
         gid_io.InitializeResults(time, solid_model_part.GetMesh());   
         gid_io.WriteNodalResults(VELOCITY, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(FORCE, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(MOMENT, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(RADIUS, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(NUMBER_OF_NEIGHBOURS, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(IS_STRUCTURE, solid_model_part.Nodes, time, 0)
+
+        if (rotation == True):
+            gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(MOMENT, solid_model_part.Nodes, time, 0)
         gid_io.Flush()
         if(DEM_explicit_solver_var.print_layers == True):
-            gid_io.FinalizeResults()
+            gid_io.FinalizeResults()    
 	time_old_print = time
     step += 1
-
+    
 p.close()
 print 'Calculation ends at instant: ' + str(timer.time())
 elapsed_pr_time = timer.clock() - current_pr_time

@@ -63,6 +63,7 @@ public:
     /// Default constructor.
     CircularParticle():IndexedObject(0){
         mpCenterNode = Node<3>::Pointer(new Node<3>(1,0.0,0.0,0.0));
+        mMaterial = 1;
         mRadius = 1.0;
         mDensity = 1.0;
         mStiffness = 1000.0;
@@ -74,6 +75,7 @@ public:
 
     CircularParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){
         mpCenterNode = center;
+        mMaterial = mpCenterNode->GetSolutionStepValue(PARTICLE_MATERIAL);
         mRadius = mpCenterNode->GetSolutionStepValue(RADIUS);
         mDensity = mpCenterNode->GetSolutionStepValue(PARTICLE_DENSITY);
         mStiffness = mpCenterNode->GetSolutionStepValue(PARTICLE_STIFFNESS);
@@ -121,6 +123,7 @@ public:
     ///@name Access
     ///@{
     int& GetNumberOfNeighbours(){return(mNumberOfNeighbours);};
+    int& GetMaterial(){return (mMaterial);};
     double& GetRadius(){return (mRadius);};
     double& GetMass(){return (mMass);};
     double& GetDensity(){return (mDensity);};
@@ -168,6 +171,7 @@ public:
     CircularParticle(const CircularParticle& rOtherParticle){
         this->SetId(rOtherParticle.Id());
         this->mpCenterNode = rOtherParticle.mpCenterNode;
+        this->mMaterial = rOtherParticle.mMaterial;
         this->mRadius = rOtherParticle.mRadius;
         this->mMass = rOtherParticle.mMass;
         this->mStiffness = rOtherParticle.mStiffness;
@@ -226,6 +230,7 @@ private:
     ///@name Member Variables
     ///@{
     int mNumberOfNeighbours;
+    int mMaterial;
     double mRadius;
     double mMass;
     double mStiffness;

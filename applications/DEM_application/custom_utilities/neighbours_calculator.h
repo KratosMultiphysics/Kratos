@@ -5,7 +5,8 @@
 //   Revision:            $Revision: 1.5 $
 //
 //
-//README::::look to the key word "VERSION" if you want to find all the points where you have to change something so that you can pass from a kdtree to a bin data search structure;
+//README::::look to the key word "VERSION" if you want to find all the points where you have to change
+//something so that you can pass from a kdtree to a bin data search structure;
 
 #if !defined(KRATOS_NEIGHBOURS_CALCULATOR )
 #define  KRATOS_NEIGHBOURS_CALCULATOR
@@ -170,7 +171,8 @@ namespace Kratos {
                 //find all of the new particles within the radius
                 //looks which of the new particles is inside the radius around the working particle
 #if KD_TREE == 1
-                (*particle_pointer_it)->GetNumberOfNeighbours() = nodes_tree.SearchInRadius(**particle_pointer_it, radius, Results.begin(), ResultsDistances.begin(), MaximumNumberOfResults);
+                (*particle_pointer_it)->GetNumberOfNeighbours() = nodes_tree.SearchInRadius(**particle_pointer_it, radius, Results.begin(), ResultsDistances.begin(),
+                         MaximumNumberOfResults);
 #endif
 #if KD_TREE == 0
                 typename ConfigureType::ResultIteratorType results_begin = Results.begin();

@@ -8,16 +8,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(ROTATION)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(FORCE)
-    model_part.AddNodalSolutionStepVariable(MOMENT)
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_STATIC_FRICTION_COEF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DYNAMIC_FRICTION_COEF)
     model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
@@ -25,6 +19,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ZETA)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
 
     print "variables for the explicit solver added correctly"
 
@@ -81,8 +76,9 @@ class ExplicitSolver:
 
     def EstimateTimeStep(self, risk_factor, Dt, max_Dt, min_Dt):
         dt = self.explicit_solver_object.Estimate_Time_Step(risk_factor);
-        print 'the computed maximum time step is '
-        print dt
+        #via adding_custom_utilities_to_python.cpp we have defined Estimate_Time_Step as the specific case function (hertzian, sphere, or not..) in the
+        #Explicit_Solver class on explicit_solver.h file.
+        print ('the computed maximum time step is ')+str(dt)
         if(dt < min_Dt):
             dt = min_Dt
             print 'Estimated Dt smaller than min_Dt = ', min_Dt

@@ -25,6 +25,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ZETA)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
 
     print "variables for the explicit solver added correctly"
 
