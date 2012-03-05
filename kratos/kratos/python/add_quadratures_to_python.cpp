@@ -47,6 +47,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes 
 #include <cstddef>
+#include <iostream>
+#include <sstream>
 
 // External includes 
 #include <boost/python.hpp>
@@ -64,8 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	template<std::size_t TDimension>
-  std::stringstream& operator << (std::stringstream& rOStream,
+  template<class TStream, std::size_t TDimension>
+  TStream& operator << (TStream& rOStream,
 				  std::vector<IntegrationPoint<TDimension> > const & rThis)
     { 
  	typename std::vector<IntegrationPoint<TDimension> >::size_type i;
@@ -88,7 +90,7 @@ namespace Python
      class_<TArrayType>(rArrayName.c_str(), init<int>())
 	.def(init<const TArrayType&>())
 	.def(vector_indexing_suite<TArrayType>())
- 	.def(self_ns::str(self))
+        	.def(self_ns::str(self))
 	;
 
   }
