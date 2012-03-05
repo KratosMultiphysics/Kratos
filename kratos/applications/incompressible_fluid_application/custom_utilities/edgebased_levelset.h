@@ -3342,18 +3342,9 @@ KRATOS_WATCH(porosity_coefficient)*/
             double non_linear;
 //             if (eps < 1.0) /*this check has been already done in calculating the resistance law*/
 //             {
-// 		KRATOS_WATCH(eps)
-// 		KRATOS_WATCH(a)	
-// 		KRATOS_WATCH(b)
-//                 linear = eps * a;
-                linear =  a;
 
-// 		KRATOS_WATCH(linear)
-// 
-//                 non_linear =  eps * b * vel_norm;  //check Raquel Juan comparison with teoretical results
-                non_linear =   b * vel_norm; 
-// 		KRATOS_WATCH("non linear			")
-// 		KRATOS_WATCH(non_linear)
+                linear = eps * a;
+                non_linear =  eps * b * vel_norm;  
 // 	    } else
 //             {
 //                 linear = 0.0;
