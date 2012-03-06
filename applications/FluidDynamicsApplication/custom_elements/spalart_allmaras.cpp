@@ -571,16 +571,15 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
 
     Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
     double MinLength = Edge[0]*Edge[0];
-    for (SizeType d = 0; d < Dim; d++)
+    for (SizeType d = 1; d < Dim; d++)
         MinLength += Edge[d]*Edge[d];
-    MinLength = sqrt(MinLength);
 
     for (SizeType i = 2; i < NumNodes; i++)
         for(SizeType j = 0; j < i; j++)
         {
             Edge = rGeom[i].Coordinates() - rGeom[j].Coordinates();
             double Length = Edge[0]*Edge[0];
-            for (SizeType d = 0; d < Dim; d++)
+            for (SizeType d = 1; d < Dim; d++)
                 Length += Edge[d]*Edge[d];
             if (Length < MinLength) MinLength = Length;
         }
