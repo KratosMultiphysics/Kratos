@@ -51,7 +51,7 @@ class EdgeBasedLevelSetSolver:
 	self.timer=Timer()
 
         self.use_parallel_distance_calculation = False
-
+        self.compute_porous_resistance_law = 0
 
         #neighbour search
         number_of_avg_elems = 10
