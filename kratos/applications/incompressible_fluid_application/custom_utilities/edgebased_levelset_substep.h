@@ -445,7 +445,7 @@ namespace Kratos {
             }
             //std::cout << "mdelta_t_avg ="  << mdelta_t_avg <<std::endl;
             //std::cout << "delta_t ="  << delta_t <<std::endl;
-            std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
+            //std::cout << "mnumsubsteps ="  << mnumsubsteps <<std::endl;
             delta_t = delta_t_avg_novisc;
 
 //            delta_t *= CFLNumber;
@@ -2432,13 +2432,15 @@ namespace Kratos {
         void DiscreteVolumeCorrection(double expected_volume, double measured_volume)
         {
 
-            if (measured_volume < expected_volume)
+
+			double volume_error = expected_volume - measured_volume;
+           if (measured_volume < expected_volume)
             {
                 double layer_volume = 0.0;
                 std::vector<unsigned int> first_outside;
                 int n_nodes = mdistances.size();
 
-                //find list of the first nodes outside of the fluid and compute their volume
+                // find list of the first nodes outside of the fluid and compute their volume
                 for (int i_node = 0; i_node < n_nodes; i_node++)
                 {
                     double dist = mdistances[i_node];
@@ -2449,18 +2451,24 @@ namespace Kratos {
                             unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
                             if(mdistances[j_neighbour] <= 0.0)
                             {
-                                first_outside.push_back(i_node);
+								const double nodal_mass = 1.0 / mr_matrix_container.GetInvertedMass()[i_node];
 
-                                const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-                                layer_volume += 1.0/m_inv;
+								if(nodal_mass < volume_error - layer_volume)
+								{
+									first_outside.push_back(i_node);
+									layer_volume += nodal_mass;
+								}
+
+                                //const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+                                //layer_volume += 1.0/m_inv;
                             }
                         }
                     }
                 }
-
-                if (measured_volume + layer_volume <= expected_volume)
+ //				std::cout << ", layer_volume: " << layer_volume  << std::endl;
+ //              if (measured_volume + layer_volume <= expected_volume)
                 {
-                    //mark the nodes in the outside layer with a small negative distance
+                    // mark the nodes in the outside layer with a small negative distance
                     for(unsigned int i=0; i<first_outside.size(); i++)
                     {
                         unsigned int i_node = first_outside[i];
@@ -2470,6 +2478,45 @@ namespace Kratos {
             }
 
             mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
+
+			//if (measured_volume < expected_volume)
+   //         {
+   //             double layer_volume = 0.0;
+   //             std::vector<unsigned int> first_outside;
+   //             int n_nodes = mdistances.size();
+
+   //             //find list of the first nodes outside of the fluid and compute their volume
+   //             for (int i_node = 0; i_node < n_nodes; i_node++)
+   //             {
+   //                 double dist = mdistances[i_node];
+   //                 if (dist > 0.0) //node is outside domain
+   //                 {
+   //                     for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+   //                     {
+   //                         unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+   //                         if(mdistances[j_neighbour] <= 0.0)
+   //                         {
+   //                             first_outside.push_back(i_node);
+
+   //                             const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+   //                             layer_volume += 1.0/m_inv;
+   //                         }
+   //                     }
+   //                 }
+   //             }
+
+   //             if (measured_volume + layer_volume <= expected_volume)
+   //             {
+   //                 //mark the nodes in the outside layer with a small negative distance
+   //                 for(unsigned int i=0; i<first_outside.size(); i++)
+   //                 {
+   //                     unsigned int i_node = first_outside[i];
+   //                     mdistances[i_node] = -mHavg[i_node];
+   //                 }
+   //             }
+   //         }
+
+   //         mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
         
         }
 
