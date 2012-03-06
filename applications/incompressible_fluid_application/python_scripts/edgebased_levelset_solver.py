@@ -121,7 +121,6 @@ class EdgeBasedLevelSetSolver:
         
 #        self.reorder = True
 #        self.distance_tools = BodyDistanceCalculationUtils()
-        print "in 138"
         nneg = 0
         npos = 0
         for node in self.model_part.Nodes:
@@ -134,7 +133,6 @@ class EdgeBasedLevelSetSolver:
         print "npos=",npos
 
         self.fluid_solver.Initialize()
-        print "in 128"
         nneg = 0
         npos = 0
         for node in self.model_part.Nodes:
@@ -217,7 +215,7 @@ class EdgeBasedLevelSetSolver:
             self.Redistance()
  	    self.timer.Stop("Redistance")
             self.step = 0
-            print "redistance was executed"
+            #print "redistance was executed"
         self.step += 1
 
         ##solve fluid
@@ -273,7 +271,19 @@ class EdgeBasedLevelSetSolver:
         if(dt > max_Dt):
             dt = max_Dt
 
-        print dt
+        #print dt
+
+        return dt
+
+    ################################################################
+    ################################################################
+    def EstimateBoundedTimeStep(self,safety_factor,max_Dt):
+        dt = (self.fluid_solver).ComputeBoundedTimeStep(safety_factor,max_Dt);
+
+        if(dt > max_Dt):
+            dt = max_Dt
+
+        #print dt
 
         return dt
 
