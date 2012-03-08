@@ -183,8 +183,8 @@ solver.Initialize()
 
 Dt      = Kratos_Structural_Application_var.Dt
 MaxTime = Kratos_Structural_Application_var.max_time
-Nsteps  = Kratos_Structural_Application_var.nsteps
-solver.max_iter =  Kratos_Structural_Application_var.Max_Iter
+Nsteps  = int(Kratos_Structural_Application_var.nsteps)
+solver.max_iter =  int(Kratos_Structural_Application_var.Max_Iter)
 
 
 gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
