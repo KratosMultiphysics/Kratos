@@ -81,16 +81,20 @@ namespace Kratos
                     //.def("DirectModelPartInterpolation", &MeshTransfer < 2 > ::DirectInterpolation)
                     .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation<double>)
                     .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 2 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
-                    .def("TransferFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 2 > ::TransferFromMovingMesh<double>)
-                    .def("TransferFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 2 > ::TransferFromMovingMesh< array_1d < double, 3 > >)
-		    ;
+                    .def("MappingFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 2 > ::MappingFromMovingMesh<double>)
+                    .def("MappingFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 2 > ::MappingFromMovingMesh< array_1d < double, 3 > >)
+                    .def("MappingFromMovingMesh_VariableMeshes_ScalarVar", &BinBasedMeshTransfer < 2 > ::MappingFromMovingMesh_VariableMeshes<double>)
+                    .def("MappingFromMovingMesh_VariableMeshes_VectorialVar", &BinBasedMeshTransfer < 2 > ::MappingFromMovingMesh_VariableMeshes< array_1d < double, 3 > >)
+                    ;
 
             class_<BinBasedMeshTransfer < 3 > >("BinBasedMeshTransfer3D", init< >())
                     //.def("DirectModelPartInterpolation", &MeshTransfer < 3 > ::DirectInterpolation)
                     .def("DirectScalarVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation<double>)
                     .def("DirectVectorialVarInterpolation", &BinBasedMeshTransfer < 3 > ::DirectVariableInterpolation< array_1d < double, 3 > >)
-                    .def("TransferFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 3 > ::TransferFromMovingMesh<double>)
-                    .def("TransferFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 3 > ::TransferFromMovingMesh< array_1d < double, 3 > >)
+                    .def("MappingFromMovingMesh_ScalarVar", &BinBasedMeshTransfer < 3 > ::MappingFromMovingMesh<double>)
+                    .def("MappingFromMovingMesh_VectorialVar", &BinBasedMeshTransfer < 3 > ::MappingFromMovingMesh< array_1d < double, 3 > >)
+                    .def("MappingFromMovingMesh_VariableMeshes_ScalarVar", &BinBasedMeshTransfer < 3 > ::MappingFromMovingMesh_VariableMeshes<double>)
+                    .def("MappingFromMovingMesh_VariableMeshes_VectorialVar", &BinBasedMeshTransfer < 3 > ::MappingFromMovingMesh_VariableMeshes< array_1d < double, 3 > >)          
 		    ;
 			
 			
