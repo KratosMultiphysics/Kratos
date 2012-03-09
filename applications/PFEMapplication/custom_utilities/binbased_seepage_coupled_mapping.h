@@ -161,7 +161,13 @@ namespace Kratos
 			}
 		    }
 					
-   
+		    for(ModelPart::NodesContainerType::iterator node_it = rMoving_ModelPart.NodesBegin();
+					    node_it != rMoving_ModelPart.NodesEnd(); ++node_it)
+		    {
+			    Node < 3 > ::Pointer pnode = *(node_it.base());
+			    double& water_pressure = pnode->FastGetSolutionStepValue(WATER_PRESSURE);
+			    if(water_pressure < 0.0){water_pressure = 0.0;}			
+		    }	  
 		    
 		    
 		    KRATOS_CATCH("")
