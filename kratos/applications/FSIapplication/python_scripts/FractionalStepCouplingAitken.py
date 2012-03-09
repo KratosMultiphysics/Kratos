@@ -6,15 +6,15 @@ from KratosALEApplication import *
 import math
 
 def AddVariables(fluid_model_part,structure_model_part):
-    import incompressible_fluid_solver
-    incompressible_fluid_solver.AddVariables(fluid_model_part);
+    import fractional_step_solver
+    fractional_step_solver.AddVariables(fluid_model_part);
     fluid_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     structure_model_part.AddNodalSolutionStepVariable(RELAXED_DISP);
     print "variables for FractionalStepCoupling added correctly"
 
 def AddDofs(fluid_model_part,structure_model_part):
-    import incompressible_fluid_solver
-    incompressible_fluid_solver.AddDofs(fluid_model_part);
+    import fractional_step_solver
+    fractional_step_solver.AddDofs(fluid_model_part);
 
 class FractionalStepCoupling:
     
@@ -98,8 +98,8 @@ class FractionalStepCoupling:
         (self.neighbour_search).Execute()
         
 ##        self.fluid_solver = ResidualBasedFluidStrategy(self.fluid_model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
-        solver_configuration = FractionalStepConfiguration(self.fluid_model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form,self.use_dt_in_stabilization )
-        self.fluid_solver = FractionalStepStrategy( self.fluid_model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+        solver_configuration = FractionalStepConfiguration(self.fluid_model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
+        self.fluid_solver = FractionalStepStrategy( self.fluid_model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size, self.predictor_corrector)
 
         (self.fluid_solver).SetEchoLevel(self.echo_level)
         print "finished initialization of the fluid strategy"
@@ -120,7 +120,7 @@ class FractionalStepCoupling:
         iteration = 0
 
         while(	is_converged == False and iteration < self.max_vel_its  ): 
-	    (self.fluid_solver).FractionalVelocityIteration(normDx);
+	    normDx = (self.fluid_solver).FractionalVelocityIteration();
             is_converged = (self.fluid_solver).ConvergenceCheck(normDx,self.vel_toll);
 	    #print iteration,normDx
             iteration = iteration + 1
@@ -265,7 +265,7 @@ class FractionalStepCoupling:
         MaxDecreaseFactor = 0.1
         
         old_residual = 1.0;
-        self.pressure_linear_solver.SetTolerance(full_tolerance)
+        #self.pressure_linear_solver.SetTolerance(full_tolerance)
         self.TolFactor = full_tolerance
         print self.pressure_linear_solver
 
