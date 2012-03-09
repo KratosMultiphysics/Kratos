@@ -185,10 +185,10 @@ namespace Kratos
             BuilderSolverTypePointer pBaS = BuilderSolverTypePointer(
                     new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (rComm,guess_row_size,pNewLinearSolver));
 
-            BaseTurbulenceModelType::mpstep1 = StrategyPointerType(
+            BaseTurbulenceModelType::mpSolutionStrategy = StrategyPointerType(
                     new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> (BaseTurbulenceModelType::mspalart_model_part,pScheme,pNewLinearSolver,pBaS,CalculateReactions,ReformDofSet,CalculateNormDxFlag));
-            BaseTurbulenceModelType::mpstep1->SetEchoLevel(0);
-            BaseTurbulenceModelType::mpstep1->Check();
+            BaseTurbulenceModelType::mpSolutionStrategy->SetEchoLevel(0);
+            BaseTurbulenceModelType::mpSolutionStrategy->Check();
         }
 
         /// Destructor.

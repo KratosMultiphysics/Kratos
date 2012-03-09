@@ -24,9 +24,12 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+//#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+//#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "spaces/ublas_space.h"
 
 // Application includes
@@ -56,8 +59,7 @@ namespace Kratos
     ///@name Kratos Classes
     ///@{
 
-    /// Short class definition.
-
+    /// An impelementation of the Spalart-Allmaras turbulence model for incompressible flows.
     /** Detail class definition.
      */
     template<class TSparseSpace,
@@ -77,34 +79,43 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
-        /// Default constructor.
+        /// Constructor for the Spalart-Allmaras turbulence model.
+        /**
+          * @param rModelPart ModelPart for the flow problem
+          * @param pLinearSolver Pointer to the linear solver to use in the solution of the viscosity transport problem
+          * @param DomainSize Spatial dimension of the problem (2 or 3)
+          * @param NonLinearTol Relative tolerance for the turbulent viscosity transport problem (convergence is checked using the norm of the residual)
+          * @param MaxIter Maximum number of iterations for the solution of the viscosity transport problem
+          * @param ReformDofSet True if the degrees of freedom change during the problem (for example due to remeshing) false otherwise
+          * @param TimeOrder Order for time integration (1 - Backward Euler will be used, 2 - BDF2 method)
+          */
         SpalartAllmarasTurbulenceModel(
-                ModelPart& rmodel_part,
-                typename TLinearSolver::Pointer pNewLinearSolver,
-                unsigned int domain_size,
-                double non_linear_tol,
-                unsigned int max_it,
-                bool reform_dofset,
-                unsigned int time_order)
-        : mr_model_part(rmodel_part), mdomain_size(domain_size), mtol(non_linear_tol), mmax_it(max_it), mtime_order(time_order),madapt_for_fractional_step(false)
+                ModelPart& rModelPart,
+                typename TLinearSolver::Pointer pLinearSolver,
+                unsigned int DomainSize,
+                double NonLinearTol,
+                unsigned int MaxIter,
+                bool ReformDofSet,
+                unsigned int TimeOrder)
+        : mr_model_part(rModelPart), mdomain_size(DomainSize), mtol(NonLinearTol), mmax_it(MaxIter), mtime_order(TimeOrder),madapt_for_fractional_step(false)
         {
             //************************************************************************************************
             //check that the variables needed are in the model part
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", DISTANCE);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VELOCITY);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(MOLECULAR_VISCOSITY)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(MOLECULAR_VISCOSITY)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MOLECULAR_VISCOSITY);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(TURBULENT_VISCOSITY)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(TURBULENT_VISCOSITY)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TURBULENT_VISCOSITY);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MESH_VELOCITY);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(VISCOSITY)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(VISCOSITY)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VISCOSITY);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(NODAL_AREA)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", NODAL_AREA);
-            if (!(rmodel_part.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
+            if (!(rModelPart.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
                 KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
 
             if (mr_model_part.GetBufferSize() < 3)
@@ -118,7 +129,7 @@ namespace Kratos
             mspalart_model_part.SetProperties(mr_model_part.pProperties());
 
             std::string ElementName;
-            if (domain_size == 2)
+            if (DomainSize == 2)
                 ElementName = std::string("SpalartAllmaras2D");
             else
                 ElementName = std::string("SpalartAllmaras3D");
@@ -133,20 +144,30 @@ namespace Kratos
                 mspalart_model_part.Elements().push_back(p_element);
             }
 
-            //initializing fractional velocity solution step
-            typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
-            typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-
-            bool CalculateReactions = false;
-            bool CalculateNormDxFlag = true;
-
+            // pointer types for the solution strategy construcion
+            typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
+            typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
             typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
             typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
-            BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pNewLinearSolver, TURBULENT_VISCOSITY));
-            mpstep1 = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (mspalart_model_part, pscheme, pNewLinearSolver, componentwise_build, CalculateReactions, reform_dofset, CalculateNormDxFlag));
-            mpstep1->SetEchoLevel(0);
-            mpstep1->Check();
+            // Solution scheme: Aitken iterations
+            const double DefaultAitkenOmega = 1.0;
+            SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalAitkenStaticScheme< TSparseSpace, TDenseSpace > (DefaultAitkenOmega) );
+
+            // Convergence criteria
+            const double NearlyZero = 1.0e-20;
+            ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new ResidualCriteria<TSparseSpace,TDenseSpace>(NonLinearTol,NearlyZero) );
+
+            // Builder and solver
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> > (pLinearSolver, TURBULENT_VISCOSITY));
+
+            // Strategy
+            bool CalculateReactions = false;
+            bool MoveMesh = false;
+
+            mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(mspalart_model_part,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+            mpSolutionStrategy->SetEchoLevel(0);
+            mpSolutionStrategy->Check();
         }
 
         void Execute()
@@ -356,7 +377,7 @@ namespace Kratos
         unsigned int mmax_it;
         unsigned int mtime_order;
         bool madapt_for_fractional_step;
-        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpstep1;
+        typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer mpSolutionStrategy;
 
         ///@}
         ///@name Protected Operators
@@ -413,7 +434,7 @@ namespace Kratos
         //*********************************************************************************
         //**********************************************************************
 
-        double AuxSolve()
+        /*double*/ void AuxSolve()
         {
             KRATOS_TRY
 
@@ -443,41 +464,43 @@ namespace Kratos
 
 
 
-            unsigned int iter = 0;
-            double ratio;
-            bool is_converged = false;
-            double dT_norm = 0.0;
-            double T_norm = 0.0;
+//            unsigned int iter = 0;
+//            double ratio;
+//            bool is_converged = false;
+//            double dT_norm = 0.0;
+//            double T_norm = 0.0;
 
-            while (iter++ < mmax_it && is_converged == false)
-            {
-                rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
-                dT_norm = mpstep1->Solve();
-                T_norm = CalculateVarNorm();
-                CalculateProjection();
-//                KRATOS_WATCH(dT_norm)
-//                KRATOS_WATCH(T_norm)
+            mpSolutionStrategy->Solve();
 
-                ratio = 1.00;
-                if (T_norm != 0.00)
-                    ratio = dT_norm / T_norm;
-                else
-                {
-                    std::cout << "Nu norm = " << T_norm << " dNu_norm = " << dT_norm << std::endl;
-                }
+//            while (iter++ < mmax_it && is_converged == false)
+//            {
+//                rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
+//                dT_norm = mpSolutionStrategy->Solve();
+//                T_norm = CalculateVarNorm();
+//                CalculateProjection();
+////                KRATOS_WATCH(dT_norm)
+////                KRATOS_WATCH(T_norm)
 
-                if (dT_norm < 1e-11)
-                    ratio = 0; //converged
+//                ratio = 1.00;
+//                if (T_norm != 0.00)
+//                    ratio = dT_norm / T_norm;
+//                else
+//                {
+//                    std::cout << "Nu norm = " << T_norm << " dNu_norm = " << dT_norm << std::endl;
+//                }
+
+//                if (dT_norm < 1e-11)
+//                    ratio = 0; //converged
 
 
-                if (ratio < mtol)
-                    is_converged = true;
+//                if (ratio < mtol)
+//                    is_converged = true;
 
-                std::cout << "   SA iter = " << iter << " ratio = " << ratio << std::endl;
+//                std::cout << "   SA iter = " << iter << " ratio = " << ratio << std::endl;
 
-            }
+//            }
 
-            return dT_norm;
+//            return dT_norm;
             KRATOS_CATCH("")
         }
 
