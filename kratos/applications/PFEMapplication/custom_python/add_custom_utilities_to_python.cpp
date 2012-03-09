@@ -41,7 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last modified by:    $Author: rrossi $
+//   Last modified by:    $Author: antonia $
 //   Date:                $Date: 2008-03-05 09:39:14 $
 //   Revision:            $Revision: 1.6 $
 //
@@ -65,12 +65,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/nist_utilities.h" 
 #include "custom_utilities/erosion_utilities.h" 
 #include "custom_utilities/drag_utilities.h" 
+#include "custom_utilities/binbased_seepage_coupled_mapping.h"
 //#include "custom_utilities/streamline_utils.h" 
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/lagrangian_euler_solver.h"
 #include "custom_utilities/exact_dt_estimate_utilities.h"
+
 namespace Kratos
 {
 	
@@ -178,6 +180,16 @@ namespace Python
 		.def("CalculateFluidDrag",&DragUtils::CalculateFluidDrag)
 		.def("AddDrag",&DragUtils::AddDrag)
 		;
+		
+            class_<BinBasedSeepageCoupledMapping < 2 > >("BinBasedSeepageCoupledMapping2D", init< >())
+                    .def("InterpolationFromFixedMesh", &BinBasedSeepageCoupledMapping < 2 > ::InterpolationFromFixedMesh)
+                    .def("InterpolationFromMovingMesh", &BinBasedSeepageCoupledMapping < 2 > ::InterpolationFromMovingMesh)
+                    ;
+
+            class_<BinBasedSeepageCoupledMapping < 3 > >("BinBasedSeepageCoupledMapping3D", init< >())
+                    .def("InterpolationFromFixedMesh", &BinBasedSeepageCoupledMapping < 3 > ::InterpolationFromFixedMesh)
+                    .def("InterpolationFromMovingMesh", &BinBasedSeepageCoupledMapping < 3 > ::InterpolationFromMovingMesh)
+		    ;		
 
  //         class_<StreamlineUtils<2>,  boost::noncopyable>  ("StreamlineUtils2D", init< >())
 //		.def("LagrangianMoveBackAndForward",&StreamlineUtils<2>::LagrangianMoveBackAndForward)
