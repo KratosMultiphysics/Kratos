@@ -168,10 +168,10 @@ public:
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
-    }
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+//    {
+//        KRATOS_ERROR(std::logic_error, "SplartAllmaras::CalculateRightHandSide method not implemented", "");
+//    }
 
     /// Fill given array with containing the element's degrees of freedom
     virtual void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);

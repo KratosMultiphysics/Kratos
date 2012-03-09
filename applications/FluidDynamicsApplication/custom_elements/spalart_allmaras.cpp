@@ -279,6 +279,11 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     noalias( rRightHandSideVector ) -= prod(MassMatrix,TimeTerm);
 }
 
+void SpalartAllmaras::CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo)
+{
+    MatrixType TempMatrix;
+    this->CalculateLocalSystem(TempMatrix,rRightHandSideVector,rCurrentProcessInfo);
+}
 
 void SpalartAllmaras::GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &rCurrentProcessInfo)
 {
@@ -380,9 +385,6 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
     const double fv1 = (Xi * Xi * Xi) / (Xi * Xi * Xi + cv1_cube);
     const double fv2 = 1.0 - Xi / (1.0 + Xi * fv1);
 
-//    // Modified strain rate
-//    const double S = this->MeasureOfVorticity(DN_DX);
-//    const double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
     // Modified strain rate (using rotation correction)
     const double Cprod = 2.0;
     double NormS = 0.0;

@@ -167,7 +167,7 @@ namespace Kratos
 		Performing the update of the solution.
 		*/
 		//***************************************************************************
-		void Update(
+                virtual void Update(
 			ModelPart& r_model_part,
 			DofsArrayType& rDofSet,
 			TSystemMatrixType& A,
@@ -225,7 +225,7 @@ namespace Kratos
 		this function calculates at the same time the contribution to the LHS and to the RHS 
 		of the system
 		*/
-		void CalculateSystemContributions(
+                virtual void CalculateSystemContributions(
 			Element::Pointer rCurrentElement,
 			LocalSystemMatrixType& LHS_Contribution,
 			LocalSystemVectorType& RHS_Contribution,
@@ -247,7 +247,7 @@ namespace Kratos
 
 		//***************************************************************************
 		//***************************************************************************
-		void Calculate_RHS_Contribution(
+                virtual void Calculate_RHS_Contribution(
 			Element::Pointer rCurrentElement,
 			LocalSystemVectorType& RHS_Contribution,
 			Element::EquationIdVectorType& EquationId,
@@ -265,7 +265,7 @@ namespace Kratos
 
 		//***************************************************************************
 		//***************************************************************************
-		void Calculate_LHS_Contribution(
+                virtual void Calculate_LHS_Contribution(
 			Element::Pointer rCurrentElement,
 			LocalSystemMatrixType& LHS_Contribution,
 			Element::EquationIdVectorType& EquationId,
