@@ -1,7 +1,10 @@
 #importing the Kratos Library
 from Kratos import *
 from KratosTrilinosApplication import *
-import mpi
+try:
+  import mpi
+except ImportError:
+  import boost.mpi as mpi
 from trilinos_strategy_python import SolvingStrategyPython # Base class
 
 class DecoupledUPStrategyPython(SolvingStrategyPython):

@@ -123,8 +123,7 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
-
-##        self.time_scheme.Check(self.model_part)
+        self.time_scheme.Check(self.model_part)
 
 ##        print "Initialization monolithic solver finished"
 	                     
@@ -132,7 +131,6 @@ class MonolithicSolver:
     def Solve(self):
 ##        print "*****************entering solve?????????????"
         (self.solver).Solve()
-        self.time_scheme.Check(self.model_part)
         print "TIME: ",self.model_part.ProcessInfo[TIME]
         print "BDFs: ",self.model_part.ProcessInfo[BDF_COEFFICIENTS] 
 ##        print "solving step monolithic solver finished"
