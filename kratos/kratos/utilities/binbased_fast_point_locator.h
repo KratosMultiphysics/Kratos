@@ -76,12 +76,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///this class is designed to allow the fast location of MANY points on the top of a 3D mesh.
-    ///the utility relies on the creation of a Bin of objects that allows finding quikly a reduced number
-    ///of element candidates for the location of a point.
-    ///The user should call the function "UpdateSearchDatabase" to mount the bin
-    ///and subsequently locate the points as needed
-    ///REMARK: the location function is threadsafe, and can be used in OpenMP loops
+	///This class is designed to allow the fast location of MANY points on the top of a 3D mesh.
+    	/** @author  Riccardo Rossi <rrossi@cimne.upc.edu>
+	*
+	*The utility relies on the creation of a Bin of objects that allows finding quikly a reduced number
+	*of element candidates for the location of a point.
+	*
+	*The basic idea is to allow finding the element in which a given spatial position sits
+	*    
+	*The user should call the function "UpdateSearchDatabase" to mount the bin
+	*and subsequently locate the points as needed
+	*
+	*REMARK: the location function is threadsafe, and can be used in OpenMP loops
+	*/
+	
     template< unsigned int TDim>
     class BinBasedFastPointLocator
     {
