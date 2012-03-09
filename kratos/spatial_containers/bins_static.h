@@ -109,13 +109,13 @@ class Bins : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType,
 
 	 //************************************************************************
 
-	 Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType BoxSize, SizeType BucketSize = 1 )
+	 Bins( IteratorType const& PointBegin, IteratorType const& PointEnd, CoordinateType CellSize, SizeType BucketSize = 1 )
 	   : mPointBegin(PointBegin), mPointEnd(PointEnd)
 	 {
 	   if(mPointBegin==mPointEnd)
 		 return;
 	   CalculateBoundingBox();
-	   CalculateCellSize(BoxSize);
+	   CalculateCellSize(CellSize);
 	   AllocateCellsContainer();
 	   GenerateBins();
 	 }
