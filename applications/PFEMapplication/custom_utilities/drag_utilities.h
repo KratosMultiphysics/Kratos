@@ -226,10 +226,10 @@ namespace Kratos
 			    bodyforce_drag  = inode->FastGetSolutionStepValue(rSeepageDragVar);
 
 			    ////subtracting buoyancy force
-			    if(inode->FastGetSolutionStepValue(WATER_PRESSURE) >= 0.0) //TO IDENTIFY FLUID NODES...we don't have any information over distance
+			    if(inode->FastGetSolutionStepValue(WATER_PRESSURE) > 0.0) //TO IDENTIFY FLUID NODES...we don't have any information over distance
 			    {
 				noalias(bodyforce_drag) -= (1-porosity) * press_grad / solid_density;
-			    	array_1d<double,3> temp  = (1-porosity) * press_grad / solid_density;
+// 			    	array_1d<double,3> temp  = (1-porosity) * press_grad / solid_density;
 // 			    	KRATOS_WATCH(porosity);
 // 			    	KRATOS_WATCH(press_grad);
 // 			    	KRATOS_WATCH(solid_density);
