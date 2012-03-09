@@ -124,6 +124,7 @@ class DecoupledSolver:
             self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
                                (self.alpha,\
                                 self.move_mesh_strategy,\
+                                self.domain_size,\
                                 self.turbulence_model)
 
         self.time_scheme.Check(self.model_part)
