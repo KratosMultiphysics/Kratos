@@ -572,15 +572,6 @@ namespace Kratos
 
         }
 
-        virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
-        {
-            /*#if defined(KRATOS_USING_MPI )
-                    std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            #endif*/
-            return true;
-
-        }
-
         virtual bool AssembleCurrentData(Variable<double> const& ThisVariable)
         {
             /*#if defined(KRATOS_USING_MPI )
@@ -617,50 +608,8 @@ namespace Kratos
 
         }
 
-        virtual bool AssembleNonHistoricalData(Variable<int> const& ThisVariable)
-        {
-            /*#if defined(KRATOS_USING_MPI )
-                    std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            #endif*/
-            return true;
 
-        }
 
-        virtual bool AssembleNonHistoricalData(Variable<double> const& ThisVariable)
-        {
-            /*#if defined(KRATOS_USING_MPI )
-                    std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            #endif*/
-            return true;
-
-        }
-
-        virtual bool AssembleNonHistoricalData(Variable<array_1d<double, 3 > > const& ThisVariable)
-        {
-            // #if defined(KRATOS_USING_MPI )
-            // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            // #endif
-            return true;
-
-        }
-
-        virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
-        {
-            // #if defined(KRATOS_USING_MPI )
-            // 	std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            // #endif
-            return true;
-
-        }
-
-        virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable)
-        {
-            /*#if defined(KRATOS_USING_MPI )
-                    std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
-            #endif*/
-            return true;
-
-        }
 
         ///@}
         ///@name Access
