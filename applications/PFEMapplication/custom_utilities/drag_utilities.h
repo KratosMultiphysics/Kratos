@@ -173,9 +173,16 @@ namespace Kratos
 				  const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
 				  const double& diameter = inode->FastGetSolutionStepValue(DIAMETER);
 				  //Nodal velocity
-				  const array_1d<double,3>& vel = inode->FastGetSolutionStepValue(VELOCITY);
+				  const array_1d<double,3>& fluid_vel = inode->FastGetSolutionStepValue(VELOCITY);
+				  const array_1d<double,3>& structure_vel = inode->FastGetSolutionStepValue(STRUCTURE_VELOCITY);
 
-				  double vel_norm = norm_2(vel);
+				  double fluid_vel_norm = norm_2(fluid_vel);
+				  double structure_vel_norm = norm_2(structure_vel);
+				  array_1d<double,3> str_fl_vel= ZeroVector(3);
+				  for(unsigned int  k= 0; k < 3; k++){
+				    str_fl_vel[k] = fluid_vel[k] * structure_vel[k];
+				  }
+				
 				  array_1d<double,3>& darcy_term = inode->FastGetSolutionStepValue(rSeepageDragVar);
 // 				  KRATOS_WATCH(inode->Id())
 // 				  KRATOS_WATCH(vel)
@@ -184,7 +191,10 @@ namespace Kratos
 				  //dimensionally accelerations. A, B not multiplied by porosity like in the fluid momentum equation
 				  double lin_coeff = 150 * fluid_nu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
 				  double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*porosity*diameter);
-				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * vel_norm) * vel * fluid_density / solid_density;
+				  //DarcyTerm =  LinC * (uf-us) + NonLinC * (uf-us)^2 -----> LinC * uf + NonLinC * uf^2 - LinC * us - NonLinC * us^2 - 2 * NonLinC * uf * us.
+				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * fluid_vel_norm) * fluid_vel * fluid_density / solid_density;
+				  // subtracting the effect of structural velocity.  -Aus + Bus^2 - 2B us uf
+				  darcy_term += ((-lin_coeff + non_lin_coeff * structure_vel_norm) * structure_vel - 2 * non_lin_coeff * str_fl_vel) ;
 
 			      }
 			}
