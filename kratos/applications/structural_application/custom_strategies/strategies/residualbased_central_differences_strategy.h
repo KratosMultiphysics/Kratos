@@ -369,7 +369,7 @@ void ComputeNonViscousDampingForces()
   KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
-      ElementsArrayType& pNodes        = r_model_part.Nodes(); ///  WARNING
+      //ElementsArrayType& pNodes        = r_model_part.Nodes(); ///  WARNING
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -382,12 +382,14 @@ void ComputeNonViscousDampingForces()
 
       const double damp  = 0.00;
       array_1d<double, 3> DampingForces;
+      
+      typename NodesArrayType::iterator vec_begin = r_model_part.Nodes().ptr_begin()
 
       #pragma omp parallel for private(DampingForces) 
       for(int k=0; k<number_of_threads; k++)
       {
-	typename NodesArrayType::iterator it_begin=pNodes.ptr_begin()+ nodes_partition[k];
-	typename NodesArrayType::iterator it_end=pNodes.ptr_begin()  + nodes_partition[k+1];
+	typename NodesArrayType::iterator it_begin= vec_begin + nodes_partition[k];
+	typename NodesArrayType::iterator it_end= vec_begin  + nodes_partition[k+1];
 	for (NodesArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  {
 	      array_1d<double,3>& rhs = it->FastGetSolutionStepValue(RHS); 
