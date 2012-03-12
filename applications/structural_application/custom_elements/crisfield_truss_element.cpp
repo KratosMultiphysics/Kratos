@@ -142,7 +142,10 @@ namespace Kratos
         unsigned int dof = number_of_nodes * dimension;  
         
         //cross-section mArea
-        mArea = GetProperties()[THICKNESS];
+        if( Has( AREA ) )
+            mArea = GetValue( AREA );
+        else
+            mArea = GetProperties()[THICKNESS];
         
         //length mLength (in ref. config)
         mLength = 0.0;
