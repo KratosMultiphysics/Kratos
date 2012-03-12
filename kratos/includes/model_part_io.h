@@ -1282,7 +1282,11 @@ namespace Kratos
 	{
 	  ReadElementalScalarVariableData(rThisElements, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
 	}
-	else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+	else if(KratosComponents<Variable<int> >::Has(variable_name))
+    {
+      ReadElementalScalarVariableData(rThisElements, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+    }
+    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
 	{
 	  ReadElementalScalarVariableData(rThisElements, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
 	}
@@ -1377,7 +1381,11 @@ namespace Kratos
 	{
 	  ReadConditionalScalarVariableData(rThisConditions, static_cast<Variable<double> const& >(KratosComponents<Variable<double> >::Get(variable_name)));
 	}
-	else if(KratosComponents<array_1d_component_type>::Has(variable_name))
+	else if(KratosComponents<Variable<int> >::Has(variable_name))
+    {
+      ReadConditionalScalarVariableData(rThisConditions, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
+    }
+    else if(KratosComponents<array_1d_component_type>::Has(variable_name))
 	{
 	  ReadConditionalScalarVariableData(rThisConditions, static_cast<array_1d_component_type const& >(KratosComponents<array_1d_component_type>::Get(variable_name)));
 	}
