@@ -139,7 +139,7 @@ namespace Kratos
 					}
 					if (max_id > 10000)
 						std::cout<< "a propery Id > 10000 found. Are u sure you need so many properties?" << std::endl;
-					std::vector<int> elements_per_layer (max_id+1);
+					std::vector<int> elements_per_layer (max_id+1,0);
 					KRATOS_WATCH(max_id);
 					//fill layer list
 					for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -213,18 +213,17 @@ namespace Kratos
 									nodes_id[1] = (it)->GetGeometry() [2].Id();
 									nodes_id[2] = (it)->GetGeometry() [1].Id();
 								}
-								//nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
 								if ( it->Has ( IS_INACTIVE ) )
 								{
-									if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
+									if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
 									{
 										GiD_WriteElement ( (it)->Id(), nodes_id);
 									}
 								}
 								else
 								{
-                                                                    if ( (it)->GetProperties().Id()==current_layer )
-									GiD_WriteElement ( (it)->Id(), nodes_id);
+									if ((it)->GetProperties().Id()==current_layer)
+										GiD_WriteElement ( (it)->Id(), nodes_id);
 								}
 							}
 							delete [] nodes_id;
@@ -246,8 +245,7 @@ namespace Kratos
 					}
 					if (max_id > 10000)
 						std::cout<< "a propery Id > 10000 found. Are u sure you need so many properties?" << std::endl;
-					std::vector<int> conditions_per_layer (max_id+1);
-                                        KRATOS_WATCH(max_id);
+					std::vector<int> conditions_per_layer (max_id+1,0);
 					//fill layer list
 					for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
 					        it != mMeshConditions.end(); ++it )
@@ -258,7 +256,6 @@ namespace Kratos
 					std::cout << "beginning printing conditions" <<std::endl;
 					for (unsigned int current_layer = 0; current_layer < conditions_per_layer.size(); current_layer++)
 					{
-						KRATOS_WATCH(conditions_per_layer[current_layer])
 						if (conditions_per_layer[current_layer] > 0)
 						{
 							std::stringstream current_layer_name (std::stringstream::in | std::stringstream::out);
@@ -315,18 +312,18 @@ namespace Kratos
 									nodes_id[18] = (it)->GetGeometry() [14].Id();
 									nodes_id[19] = (it)->GetGeometry() [15].Id();
 								}
-								nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
+								//nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id();
 								if ( it->Has ( IS_INACTIVE ) )
 								{
-									if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer)
+									if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
 									{
 										GiD_WriteElement ( (it)->Id(), nodes_id);
 									}
 								}
 								else
 								{
-                                                                    if ((it)->GetProperties().Id()==current_layer)
-									GiD_WriteElement ( (it)->Id(), nodes_id);
+									if ((it)->GetProperties().Id()==current_layer)
+										GiD_WriteElement ( (it)->Id(), nodes_id);
 								}
 							}
 							delete [] nodes_id;
