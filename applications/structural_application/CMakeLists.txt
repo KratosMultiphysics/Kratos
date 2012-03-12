@@ -43,7 +43,6 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/external_isotropic_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/drucker_prager_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_planestress_wrinkling.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_3d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hyperelastic_3d.cpp 
@@ -57,7 +56,6 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hypoelastic_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/fluid_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/external_isotropic_3d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/drucker_prager_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hooks_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/drucker_prager.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/casm.cpp 
