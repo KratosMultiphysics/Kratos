@@ -290,7 +290,7 @@ namespace Kratos
             {
                 Vector::const_iterator i = FirstVector.begin();
                 Vector::const_iterator j = SecondVector.begin();
-                TDataType temp();
+                TDataType temp = TDataType();
                 while(i != FirstVector.end())
                     temp += *i++ * *j++;
                 return temp;
