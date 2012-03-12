@@ -383,7 +383,7 @@ void ComputeNonViscousDampingForces()
       const double damp  = 0.00;
       array_1d<double, 3> DampingForces;
       
-      typename NodesArrayType::iterator vec_begin = r_model_part.Nodes().ptr_begin()
+      typename NodesArrayType::iterator vec_begin = r_model_part.Nodes().ptr_begin();
 
       #pragma omp parallel for private(DampingForces) 
       for(int k=0; k<number_of_threads; k++)
