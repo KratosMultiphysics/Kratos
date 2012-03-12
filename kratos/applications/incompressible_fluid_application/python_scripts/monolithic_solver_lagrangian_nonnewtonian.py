@@ -73,12 +73,12 @@ class MonolithicSolver:
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
 #        self.linear_solver = SuperLUSolver()
 ##        self.linear_solver = SuperLUIterativeSolver()
-
-        self.linear_solver = MKLPardisoSolver()
-
-##        pPrecond = DiagonalPreconditioner()
-####        pPrecond = ILU0Preconditioner()
-##        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        if(domain_size == 2):
+            self.linear_solver = MKLPardisoSolver()
+        elif(domain_size == 3):
+##            pPrecond = DiagonalPreconditioner()
+            pPrecond = ILU0Preconditioner()
+            self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 ####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
