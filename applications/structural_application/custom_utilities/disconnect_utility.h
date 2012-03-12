@@ -525,7 +525,7 @@ namespace Kratos
 		for(int l = 0; l<3; l++){
 		   for(int m=0; m<3; m++){
 		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
-		    std::fabs(inner_prod(diff, diff));
+// 		    std::fabs(inner_prod(diff, diff));
 		    if(inner_prod(diff, diff)<1E-9){
 		       neighb_nodes(b[l]) =  geom_2(a[m]);
 		       break;
@@ -539,7 +539,7 @@ namespace Kratos
 		for(int l = 0; l<3; l++){
 		   for(int m=0; m<3; m++){
 		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
-		    std::fabs(inner_prod(diff, diff));
+// 		    std::fabs(inner_prod(diff, diff));
 		    if(inner_prod(diff, diff)<1E-9){
 		       neighb_nodes(b[l]) =  geom_2(a[m]);
 		       break;    
@@ -553,7 +553,7 @@ namespace Kratos
 		for(int l = 0; l<3; l++){
 		   for(int m=0; m<3; m++){
 		    noalias(diff)   =  geom_1[c[l]] - geom_2[a[m]];
-		    std::fabs(inner_prod(diff, diff));
+// 		    std::fabs(inner_prod(diff, diff));
 		    if(inner_prod(diff, diff)<1E-9){
 		       neighb_nodes(b[l]) =  geom_2(a[m]);
 		       break;
