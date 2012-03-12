@@ -962,14 +962,36 @@ namespace Kratos
                 rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
         }
 
-        if ( rVariable == INSITU_STRESS )
+        if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 if ( rValues[i].size() != 6 )
                     rValues[i].resize( 6 );
 
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INSITU_STRESS, rValues[i] );
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
+            }
+        }
+        
+        if ( rVariable == PLASTIC_STRAIN_VECTOR )
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            {
+                if ( rValues[i].size() != 6 )
+                    rValues[i].resize( 6 );
+
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
+            }
+        }
+        
+        if ( rVariable == STRESSES )
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            {
+                if ( rValues[i].size() != 6 )
+                    rValues[i].resize( 6 );
+
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( STRESSES, rValues[i] );
             }
         }
 
@@ -1086,20 +1108,27 @@ namespace Kratos
                         rCurrentProcessInfo );
             }
         }
-
-        if ( rVariable == INSITU_STRESS_SCALE )
+        
+        else if ( rVariable == PRESTRESS_FACTOR )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                mConstitutiveLawVector[i]->SetValue( INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo );
+                mConstitutiveLawVector[i]->SetValue( PRESTRESS_FACTOR, rValues[i], rCurrentProcessInfo );
             }
         }
 
-        if ( rVariable == OVERCONSOLIDATION_RATIO )
+        else if ( rVariable == OVERCONSOLIDATION_RATIO )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 mConstitutiveLawVector[i]->SetValue( OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo );
+            }
+        }
+        else
+        {
+            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+            {
+                mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
             }
         }
     }
@@ -1131,13 +1160,19 @@ namespace Kratos
             std::cout << "error on element -> " << this->Id() << std::endl;
             KRATOS_ERROR( std::logic_error, "Area can not be less than 0", "" )
         }
-
+        int ok = 0;
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
-            return mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+            ok = mConstitutiveLawVector[i]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
+            if( ok != 0 ) break;
+            if( mConstitutiveLawVector[i]->IsIncremental() )
+                KRATOS_ERROR( std::logic_error, "This element does not provide incremental strains!", "" );
+            if( mConstitutiveLawVector[i]->GetStrainMeasure() != ConstitutiveLaw::StrainMeasure_Linear )
+                KRATOS_ERROR( std::logic_error, "This element formulated in linear strain measure", "" );
+            if( mConstitutiveLawVector[i]->GetStressMeasure() != ConstitutiveLaw::StressMeasure_PK1 )
+                KRATOS_ERROR( std::logic_error, "This element is formulated in PK1 stresses", "" );
         }
-
-        return 0;
+        return ok;
 
         KRATOS_CATCH( "" );
 

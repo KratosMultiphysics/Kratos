@@ -335,12 +335,24 @@ void BeamElement::CalculateSectionProperties()
 //        const double b        = GetProperties()[BASE];
 //        const double h        = GetProperties()[HEIGHT];
 
-
-        Matrix& inertia = GetProperties()[INERTIA];
-        mArea = GetProperties()[CROSS_AREA];
-        mInertia_x = inertia(0,0);
-        mInertia_y = inertia(1,1);
-        mInertia_Polar = inertia(2,2);
+        if( GetProperties().Has(CROSS_AREA) )
+            mArea = GetProperties()[CROSS_AREA];
+        else
+            mArea = GetValue(AREA);
+        if( GetProperties().Has(INERTIA) )
+        {
+            Matrix& inertia = GetProperties()[INERTIA];
+            mInertia_x = inertia(0,0);
+            mInertia_y = inertia(1,1);
+            mInertia_Polar = inertia(2,2);
+        }
+        else
+        {
+            Matrix& inertia = GetValue(INERTIA);
+            mInertia_x = inertia(0,0);
+            mInertia_y = inertia(1,1);
+            mInertia_Polar = inertia(2,2);
+        }
 
 //        mInertia_x     = b * h * h * h / 12.0;
 //        mInertia_y     = b * b * b * h / 12.0;
@@ -1146,13 +1158,15 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
         //verify that the area is given by properties
         if (this->GetProperties().Has(CROSS_AREA)==false)
         {
-            KRATOS_ERROR(std::logic_error,"CROSS_AREA not provided for property ",this->GetProperties().Id());
+            if( GetValue(AREA) == 0.0 )
+                KRATOS_ERROR(std::logic_error,"CROSS_AREA not provided for this element",this->Id());
         }
 
         //verify that the inertia is given by properties
         if (this->GetProperties().Has(INERTIA)==false)
         {
-            KRATOS_ERROR(std::logic_error,"INERTIA not provided for property ",this->GetProperties().Id());
+            if( GetValue(INERTIA)(0,0) == 0.0 )
+                KRATOS_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
         }
 
         //Verify that the body force is defined
