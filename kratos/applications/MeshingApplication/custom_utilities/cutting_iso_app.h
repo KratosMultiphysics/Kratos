@@ -1221,6 +1221,9 @@ namespace Kratos
 					Coord_Node_2[counter]=0;//resetting, just in case
 					Coord_Node_3[counter]=0;//resetting, just in case
 					Coord_Node_4[counter]=0;//resetting, just in case
+					vector_max[counter]=0;//resetting, just in case
+					vector_min[counter]=0;//resetting, just in case
+					vector_normal[counter]=0;//resetting, just in case
 				}
 			}//closing if elems_in_plane==6 (1 triangle)
 			
@@ -1370,6 +1373,9 @@ namespace Kratos
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
 						Coord_Node_4[counter]=0;//resetting, just in case
+						vector_max[counter]=0;//resetting, just in case
+						vector_min[counter]=0;//resetting, just in case
+						vector_normal[counter]=0;//resetting, just in case
 					}
 					//for (int counter_2=0; counter_2 !=6; ++counter_2) nodes_for_2triang[counter_2]=0;//resetting, just in case
 				}//cierro el index
@@ -1535,6 +1541,9 @@ namespace Kratos
 					Coord_Node_2[counter]=0;//resetting, just in case
 					Coord_Node_3[counter]=0;//resetting, just in case
 					Coord_Node_4[counter]=0;//resetting, just in case
+					vector_max[counter]=0;//resetting, just in case
+					vector_min[counter]=0;//resetting, just in case
+					vector_normal[counter]=0;//resetting, just in case
 				}
 			}//closing if elems_in_plane==6 (1 triangle)
 		
@@ -1684,6 +1693,9 @@ namespace Kratos
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
 						Coord_Node_4[counter]=0;//resetting, just in case
+						vector_max[counter]=0;//resetting, just in case
+						vector_min[counter]=0;//resetting, just in case
+						vector_normal[counter]=0;//resetting, just in case
 					}
 				}//cierro el index
 			}//closing if elems_in_surface=2
@@ -1844,6 +1856,9 @@ namespace Kratos
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
 						Coord_Node_4[counter]=0;//resetting, just in case
+						vector_max[counter]=0;//resetting, just in case
+						vector_min[counter]=0;//resetting, just in case
+						vector_normal[counter]=0;//resetting, just in case
 					}
 			}//closing if elems_in_plane==6 (1 triangle)
 			
@@ -1963,6 +1978,9 @@ namespace Kratos
 						Coord_Node_2[counter]=0;//resetting, just in case
 						Coord_Node_3[counter]=0;//resetting, just in case
 						Coord_Node_4[counter]=0;//resetting, just in case
+						vector_max[counter]=0;//resetting, just in case
+						vector_min[counter]=0;//resetting, just in case
+						vector_normal[counter]=0;//resetting, just in case
 					}
 					//for (int counter_2=0; counter_2!=6; ++counter_2) nodes_for_2triang[counter_2]=0;//resetting, just in case
 				}//cierro el index
