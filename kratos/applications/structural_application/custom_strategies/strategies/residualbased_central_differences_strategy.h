@@ -378,7 +378,7 @@ void ComputeNonViscousDampingForces()
        #endif
 
       vector<unsigned int> nodes_partition;
-      CreatePartition(number_of_threads, pNodes.size(), nodes_partition);
+      CreatePartition(number_of_threads, r_model_part.Nodes().size(), nodes_partition);
 
       const double damp  = 0.00;
       array_1d<double, 3> DampingForces;
