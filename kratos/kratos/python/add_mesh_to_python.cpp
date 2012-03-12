@@ -170,6 +170,25 @@ namespace Kratos
             return( values_list );
         }
         
+        void SetValuesOnIntegrationPointsDouble( Element& dummy, const Variable<double>& rVariable, boost::python::list values_list,  const ProcessInfo& rCurrentProcessInfo )
+        {
+            IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints( 
+                    dummy.GetIntegrationMethod() );
+            std::vector<double> values( integration_points.size() );
+            for( unsigned int i=0; i<integration_points.size(); i++ )
+            {
+                boost::python::extract<double> x( values_list[i] );
+                if( x.check() )
+                {
+                    values[i] = x();
+                }
+                else
+                    break;
+            }
+            dummy.SetValueOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
+        }
+
+        
         boost::python::list GetValuesOnIntegrationPointsArray1d( Element& dummy,  
                 const Variable<array_1d<double,3> >& rVariable, const ProcessInfo& rCurrentProcessInfo )
         {
@@ -249,7 +268,7 @@ namespace Kratos
             return( values_list );
         }
         
-        void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, boost::python::list values_list, unsigned int len_values_list, const ProcessInfo& rCurrentProcessInfo )
+        void SetValuesOnIntegrationPointsConstitutiveLaw( Element& dummy, const Variable<ConstitutiveLaw::Pointer>& rVariable, boost::python::list values_list, const ProcessInfo& rCurrentProcessInfo )
         {
             IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints( 
                     dummy.GetIntegrationMethod() );
@@ -329,6 +348,7 @@ namespace Kratos
                     .def("GetValuesOnIntegrationPoints", GetValuesOnIntegrationPointsMatrix)
                     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsVector)
                     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
+                    .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble)
                     .def("ResetConstitutiveLaw", &Element::ResetConstitutiveLaw)
                     
                     //.def("__setitem__", SetValueHelperFunction< Element, Variable< VectorComponentAdaptor< array_1d<double, 3>  > > >)
