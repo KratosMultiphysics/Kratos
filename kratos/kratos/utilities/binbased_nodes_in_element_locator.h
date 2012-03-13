@@ -281,8 +281,9 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
-        }
+	//The interpolated node will not be inside an elemente with zero area
+	  return false;        
+	}
         else
         {
             inv_area = 1.0 / area;
@@ -327,8 +328,9 @@ private:
         double inv_vol = 0.0;
         if (vol < 0.0000000000001)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
-        }
+	//The interpolated node will not be inside an elemente with zero area
+	  return false;
+	}
         else
         {
             inv_vol = 1.0 / vol;
