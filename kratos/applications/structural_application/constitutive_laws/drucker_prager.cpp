@@ -1,61 +1,61 @@
 /*
-==============================================================================
-KratosStructuralApplication 
-A library based on:
-Kratos
-A General Purpose Software for Multi-Physics Finite Element Analysis
-Version 1.0 (Released on march 05, 2007).
+ ==============================================================================
+ KratosStructuralApplication
+ A library based on:
+ Kratos
+ A General Purpose Software for Multi-Physics Finite Element Analysis
+ Version 1.0 (Released on march 05, 2007).
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
-rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
-- CIMNE (International Center for Numerical Methods in Engineering),
-Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
+ Copyright 2007
+ Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+ pooyan@cimne.upc.edu
+ rrossi@cimne.upc.edu
+ janosch.stascheit@rub.de
+ nagel@sd.rub.de
+ - CIMNE (International Center for Numerical Methods in Engineering),
+ Gran Capita' s/n, 08034 Barcelona, Spain
+ - Ruhr-University Bochum, Institute for Structural Mechanics, Germany
 
 
-Permission is hereby granted, free  of charge, to any person obtaining
-a  copy  of this  software  and  associated  documentation files  (the
-"Software"), to  deal in  the Software without  restriction, including
-without limitation  the rights to  use, copy, modify,  merge, publish,
-distribute,  sublicense and/or  sell copies  of the  Software,  and to
-permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
+ Permission is hereby granted, free  of charge, to any person obtaining
+ a  copy  of this  software  and  associated  documentation files  (the
+ "Software"), to  deal in  the Software without  restriction, including
+ without limitation  the rights to  use, copy, modify,  merge, publish,
+ distribute,  sublicense and/or  sell copies  of the  Software,  and to
+ permit persons to whom the Software  is furnished to do so, subject to
+ the following condition:
 
-Distribution of this code for  any  commercial purpose  is permissible
-ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+ Distribution of this code for  any  commercial purpose  is permissible
+ ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
 
-The  above  copyright  notice  and  this permission  notice  shall  be
-included in all copies or substantial portions of the Software.
+ The  above  copyright  notice  and  this permission  notice  shall  be
+ included in all copies or substantial portions of the Software.
 
-THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
-EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
-CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
-TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+ EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+ CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-==============================================================================
-*/
-/* *********************************************************   
-*          
-*   Last Modified by:    $Author: hurga $
-*   Date:                $Date: 2009-03-05 12:01:22 $
-*   Revision:            $Revision: 1.6 $
-*
-* ***********************************************************/
+ ==============================================================================
+ */
+/* *********************************************************
+ *
+ *   Last Modified by:    $Author: janosch $
+ *   Date:                $Date: 2009-01-14 17:14:12 $
+ *   Revision:            $Revision: 1.13 $
+ *
+ * ***********************************************************/
 
-// System includes 
+// System includes
 #include <iostream>
 
-// External includes 
+// External includes
 #include<cmath>
 
-// Project includes 
+// Project includes
 
 #include "includes/define.h"
 #include "constitutive_laws/drucker_prager.h"
@@ -63,631 +63,641 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 #include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.h"
 #include "includes/variables.h"
 #include "includes/process_info.h"
 #include "structural_application.h"
+#include "custom_utilities/sd_math_utils.h"
 #include "includes/properties.h"
+#include <math.h>
 
 namespace Kratos
 {
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	DruckerPrager::DruckerPrager() 
-	: ConstitutiveLaw()
-	{
-	}
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	DruckerPrager::~DruckerPrager()
-	{
-	}
-	
-	bool DruckerPrager::Has( const Variable<double>& rThisVariable )
-	{
-		if( rThisVariable == DP_EPSILON )
-			return true;
-		return false;
-	}
-	
-	bool DruckerPrager::Has( const Variable<Vector>& rThisVariable )
-	{
-		if( rThisVariable == INSITU_STRESS )
-			return true;
-		return false;
-                if( rThisVariable == INTERNAL_VARIABLES )
-                        return true;
-	}
-	
-	bool DruckerPrager::Has( const Variable<Matrix>& rThisVariable )
-	{
-		return false;
-	}
-	
-// 	template<class TVariableType> bool DruckerPrager::Has(const TVariableType& rThisVariable)
-// 	{
-// 		if( rThisVariable == DP_EPSILON )
-// 			return true;
-// 		if( rThisVariable == INSITU_STRESS )
-// 			return true;
-// 		return false;
-// 	}
-// 	
-// 	template<class TVariableType> typename TVariableType::Type const& DruckerPrager::GetValue( 
-// 			const Variable<TVariableType>& rThisVariable )
-// 	{
-// 		if( rThisVariable == DP_EPSILON )
-// 			return mEpsilon;
-// 		if( rThisVariable == INSITU_STRESS )
-// 		{
-// 			return mInSituStress;
-// 		}
-// 	}
-	
-	double& DruckerPrager::GetValue( const Variable<double>& rThisVariable, double& rValue )
-	{
-		if( rThisVariable == DP_EPSILON )
-			rValue = mEpsilon;
-        return rValue;
-	}
-	
-	Vector& DruckerPrager::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
-	{
-		if( rThisVariable == INSITU_STRESS )
-		{
-			rValue = mInSituStress;
-		}
-        else if( rThisVariable == INTERNAL_VARIABLES )
-        {
-            rValue = ZeroVector(1);
-            rValue[0] = mEpsilon;
-        }
-        return( rValue );
-	}
-	
-	Matrix& DruckerPrager::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-	{
-        return( rValue );
-	}
-		
-	void DruckerPrager::SetValue( const Variable<double>& rThisVariable, const double& rValue, 
-									 const ProcessInfo& rCurrentProcessInfo )
-	{
-		if( rThisVariable == DP_EPSILON )
-		{
-			mEpsilon = rValue;
-		}
-	}
-	
-	void DruckerPrager::SetValue( const Variable<array_1d<double, 3> >& rThisVariable, 
-									 const array_1d<double, 3>& rValue, const ProcessInfo& rCurrentProcessInfo 
-								   )
-	{
-	}
-	void DruckerPrager::SetValue( const Variable<Vector>& rThisVariable, 
-									 const Vector& rValue, const ProcessInfo& rCurrentProcessInfo 
-								   )
-	{
-		if( rThisVariable == INSITU_STRESS )
-		{
-			mInSituStress = rValue;
-		}
-	}
-	
-	void DruckerPrager::SetValue( const Variable<Matrix>& rThisVariable, 
-									 const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo 
-								   )
-	{
-	}
 
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	void DruckerPrager::InitializeMaterial( const Properties& props,
-			const GeometryType& geom,
-			const Vector& ShapeFunctionsValues )
+    /**
+     * TO BE TESTED!!!
+     */
+    DruckerPrager::DruckerPrager() :
+            ConstitutiveLaw()
     {
-        ResetMaterial( props, geom, ShapeFunctionsValues );
     }
-            
-    void DruckerPrager::ResetMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues )
-	{
-// 		std::cout << "Initialising DruckerPrager" << std::endl;
-		mCurrentStress = ZeroVector(6);
-		mPlasticStrain = ZeroVector(6);
-		mE = props[YOUNG_MODULUS];
-		mNU = props[POISSON_RATIO];
-		mALPHA1 = props[DP_ALPHA1];
-		mK = props[DP_K];
-		mEpsilon = 0.0;
-		mDeltaEpsilon = 0.0;
-		mInSituStress = ZeroVector(6);
-		
-		mCelastic = ZeroMatrix(6,6);
-		mCtangent = ZeroMatrix(6,6);
-		//setting up material matrix
-		double c1 = mE / ((1.00+mNU)*(1-2*mNU));
-		double c2 = c1 * (1-mNU);
-		double c3 = c1 * mNU;
-		double c4 = c1 * 0.5 * (1 - 2*mNU);
-		//filling material matrix
-		mCelastic(0,0) = c2;    mCelastic(0,1) = c3;    mCelastic(0,2) = c3;    mCelastic(0,3) = 0.0;   mCelastic(0,4) = 0.0;   mCelastic(0,5) = 0.0;
-		mCelastic(1,0) = c3;    mCelastic(1,1) = c2;    mCelastic(1,2) = c3;    mCelastic(1,3) = 0.0;   mCelastic(1,4) = 0.0;   mCelastic(1,5) = 0.0;
-		mCelastic(2,0) = c3;    mCelastic(2,1) = c3;    mCelastic(2,2) = c2;    mCelastic(2,3) = 0.0;   mCelastic(2,4) = 0.0;   mCelastic(2,5) = 0.0;
-		mCelastic(3,0) = 0.0;   mCelastic(3,1) = 0.0;   mCelastic(3,2) = 0.0;   mCelastic(3,3) = c4;    mCelastic(3,4) = 0.0;   mCelastic(3,5) = 0.0;
-		mCelastic(4,0) = 0.0;   mCelastic(4,1) = 0.0;   mCelastic(4,2) = 0.0;   mCelastic(4,3) = 0.0;   mCelastic(4,4) = c4;    mCelastic(4,5) = 0.0;
-		mCelastic(5,0) = 0.0;   mCelastic(5,1) = 0.0;   mCelastic(5,2) = 0.0;   mCelastic(5,3) = 0.0;   mCelastic(5,4) = 0.0;   mCelastic(5,5) = c4;
-	}
-	
-	void DruckerPrager::InitializeSolutionStep( const Properties& props,
-			const GeometryType& geom, //this is just to give the array of nodes
-			const Vector& ShapeFunctionsValues ,
-			const ProcessInfo& CurrentProcessInfo)
-	{
-	}
-	
-	void DruckerPrager::FinalizeSolutionStep( const Properties& props,
-			const GeometryType& geom, //this is just to give the array of nodes
-			const Vector& ShapeFunctionsValues ,
-			const ProcessInfo& CurrentProcessInfo)
-	{
-		if( CurrentProcessInfo[CALCULATE_INSITU_STRESS] )
-		{
-			mInSituStress -= mCurrentStress;
-			SetValue( INSITU_STRESS, mInSituStress, CurrentProcessInfo );
-		}
-	}
-	
-	
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	void DruckerPrager::CalculateStress(const Vector& StrainVector, Vector& StressVector)
-	{
-		if( StressVector.size() != 6 )
-		{
-			StressVector.resize(6);
-		}
-		StressVector = mCurrentStress;
-		noalias(StressVector) -= mInSituStress;
-	}
-	
-    void DruckerPrager::Calculate( const Variable<Vector >& rVariable, Vector& rResult, 
-                                   const ProcessInfo& rCurrentProcessInfo )
-	{
-// 		if(rVariable==INSITU_STRESS)
-// 		{
-// 			for( unsigned int i=0; i<rResult.size(); i++ )
-// 			{
-// 				rResult[i] -= ((Vector)rVariable)[i];
-// 			}	
-// 		}
-	}
-	
-	/**
-	 *	TO BE REVIEWED!!!
-	 */
-	void DruckerPrager::CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult)
-	{
-		rResult = mCtangent;
-	}
-	
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	void DruckerPrager::CalculateStressEig(const Vector& StressVector,
-			double& smin, Vector& mineigenvect,
-			double& smid, Vector& mideigenvect,
-			double& smax, Vector& maxeigenvect)
-	{
-		CalculateStressEigNonNormalized( StressVector, 
-				smin, mineigenvect,
-				smid, mideigenvect,
-				smax, maxeigenvect);
-		SD_MathUtils<double>::Normalize( mineigenvect );
-		SD_MathUtils<double>::Normalize( mideigenvect );
-		SD_MathUtils<double>::Normalize( maxeigenvect );
-	}//CalculateStressEig
-	
-	/**
-	 * TO BE TESTED
-	 */
-	void DruckerPrager::CalculateStressEigNonNormalized(const Vector& StressVector,
-			double& smin, Vector& mineigenvect,
-			double& smid, Vector& mideigenvect,
-			double& smax, Vector& maxeigenvect)
-	{
-		Vector Stresses = StressVector;
-		Matrix StressMatrix = MathUtils<double>::StressVectorToTensor( Stresses );
-		Matrix EigenVectors = ZeroMatrix(3,3);
-		double error_tolerance = 1e-10;
-		double zero_tolerance = 1e-10;
-		//calculating eigenvectors
-		SD_MathUtils<double>::EigenVectors( StressMatrix, 
-				EigenVectors, 
-				error_tolerance, 
-				zero_tolerance);
-		//storing eigenvalues and eigenvectors into given variables
-		smin = StressMatrix(0,0);
-		smid = StressMatrix(1,1);
-		smax = StressMatrix(2,2);
-		mineigenvect.resize(3);
-		mideigenvect.resize(3);
-		maxeigenvect.resize(3);
-		for( unsigned int i=0; i<mineigenvect.size(); i++ )
-		{
-			mineigenvect(i) = EigenVectors(0,i);
-			mideigenvect(i) = EigenVectors(1,i);
-			maxeigenvect(i) = EigenVectors(2,i);
-		}
-	}//CalculateStressEigNonNormalized
-	
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	void DruckerPrager::PrincipSTRAIN(const Vector& StrainVector,double& eps1, double& eps2, double& eps3)
-	{
-		Vector Strains = StrainVector;
-		Matrix StrainMatrix = SD_MathUtils<double>::StrainVectorToTensor( Strains );
-		//preparing matrix of eigenvectors
-		Matrix EigenVectors(3,3);
-		//setting up tolerances
-		double error_tolerance = 1e-10;
-		double zero_tolerance = 1e-10;
-		//calculating eigenvalues
-		SD_MathUtils<double>::EigenVectors( StrainMatrix, 
-				EigenVectors, 
-				error_tolerance, 
-				zero_tolerance);
-		eps1 = StrainMatrix(0,0);
-		eps2 = StrainMatrix(1,1);
-		eps3 = StrainMatrix(2,2);
-	}
-	
-	/**
-	 *	TO BE TESTED!!!
-	 */
-	void DruckerPrager::PrincipSTRESS(const Vector& StressVector,double& str1, double& str2, double& str3)
-	{
-		//stress components
-		const double& s1 = StressVector[0];
-		const double& s2 = StressVector[1];
-		const double& s3 = StressVector[2];
-		const double& t12 = StressVector[3];
-		const double& t23 = StressVector[4];
-		const double& t13 = StressVector[5];
-		//invariants
-		const double I1 = s1+s2+s3;
-		const double I2 = s1*s2+s2*s3+s1*s3-t12*t12-t23*t23-t13*t13;
-		const double I3 = s1*s2*s3+2*t12*t23*t13-s1*t23*t23-s2*t13*t13-s3*t12*t12;
-		//iteration parameters
-		int maxIter = 500;
-		double tolerance = 1e-12;
-		double s = I1;
-		//finding first solution of the problem with newton method
-		for( int i=0; i<maxIter; i++ )
-		{
-			s -= (s*s*s-I1*s*s+I2*s-I3)/(3.0*s*s-2.0*I1*s+I2);
-			if( fabs(s*s*s-I1*s*s+I2*s-I3) < tolerance ) break;
-		}
-		//solving principal stresses
-		double a = 3*s-I1;
-		double b = 3*s*s-2*I1*s+I2;
-		double p1 = -a/2+sqrt(fabs((a*a/4)-b));
-		double p2 = -a/2-sqrt(fabs((a*a/4)-b));
-		double sigma1 = p1+s;
-		double sigma2 = p2+s;
-		//sorting stresses
-		str1 = s;
-		if( str1 >= sigma1 )
-		{
-			str2 = str1;
-			str1 = sigma1;
-		}
-		if( str2 >= sigma2 )
-		{
-			str3 = str2;
-			str2 = sigma2;
-			if( str1 >= str2 )
-			{
-				s = str1;
-				str1 = str2;
-				str2 = s;
-			}
-		}
-	}//PrincipSTRESS
-	
-	/**
-	 *	:TODO: TO BE TESTED!!!
-	 *	Tangent matrix equals linear elastic matrix because of linear elastic
-	 *	material definition
-	 */
-	void DruckerPrager::CalculateTangentMatrix(const Vector& StrainVector)
-	{
-		//does nothing but resetting the mEw vector
-		noalias(mEw) = ZeroVector(6);
-	}
-	
-	//**********************************************************************
-	void DruckerPrager::UpdateMaterial( const Vector& StrainVector,
-			const Properties& props,
-			const GeometryType& geom,
-			const Vector& ShapeFunctionsValues ,
-			const ProcessInfo& CurrentProcessInfo)
-	{
-		// setting limits for return-map
-		double tolerance = 1.0e-11;
-		int maxiter = 15;
-		
-		// calculate elastic matrix
-		mCtangent = mCelastic;
-		// calculate trial stresses from current elastic strains and existing plastic strains
-		if ( geom.WorkingSpaceDimension() != 3 )
-		{
-			KRATOS_ERROR(std::logic_error,"This constitutive law is defined for 3D only!" , "");
-		}
-		Vector trialStressVector = ZeroVector(6);
-		noalias(trialStressVector) = prod(mCtangent,(StrainVector-mPlasticStrain));
-// 		KRATOS_WATCH( trialStressVector );
-		//in-situ stress is calculated with elastic loading only
-// 		if( CurrentProcessInfo[CALCULATE_INSITU_STRESS] )
-// 		{
-// 			std::cout << "INSITU_STRESS: only elastic loading is calculated" << std::endl;
-// 			mCurrentStress = trialStressVector;
-// 			return;
-// 		}
-		//subtract insitu-stress from trial stresses
-		trialStressVector -= mInSituStress;
-		// calculation of deviatoric stresses and invariants
-		double I1_tr = trialStressVector[0]+trialStressVector[1]+trialStressVector[2];
-		double J2_tr = 0.0;
-		for( unsigned int i=0; i<3; i++ )
-		{
-			J2_tr += (trialStressVector[i]-I1_tr/3.0)*(trialStressVector[i]-I1_tr/3.0);
-			J2_tr += 2.0*trialStressVector[i+3]*trialStressVector[i+3];
-		}
-		J2_tr = sqrt(J2_tr);
-		// calculate yield strength for deviatoric stress state
-		// not necessary as we leave out the hardening
-		
-		// calculate trial yield functions
-		double f1_tr = mALPHA1*I1_tr + J2_tr - mK;
-		double f2_tr = mALPHA1*I1_tr - mK;
-		
-		// testing if plasticity occurs
-		if( f1_tr >= 0.0 )
-		{
-// 			std::cout << "Yield function1: " << f1_tr << std::endl;
-			//moduli
-			double modK = mE/(3.0*(1.0-2.0*mNU));
-			double modG = mE/(2.0*(1.0+mNU));
-			//deviatoric operator
-			Matrix iDev = ZeroMatrix(6,6);
-			for( int i=0; i<3; i++ )
-			{
-				for( int j=0; j<3; j++ )
-				{
-					if( i == j  ) iDev(i,i) = 2.0/3.0;
-					else iDev(i,j) = -1.0/3.0;
-				}
-				iDev(i+3,i+3) = 0.5;
-			}
-			//consistency parameter gamma
-			double gamma = 0.0;
-			double gamma1 = J2_tr/2.0/modG;
-			double gamma2 = 0.0;
-			double residual = 0.0;
-			for( int iter = 0; iter < maxiter; iter++ )
-			{
-				residual = f1_tr - gamma*(9.0*modK*mALPHA1*mALPHA1 + 2.0*modG);
-				if( fabs( residual ) < tolerance )
-				{
-// 					std::cout << "gamma converged within " << iter << "iterations" << std::endl;
-					break;
-				}
-				//update
-				
-				gamma += residual/(9.0*modK*mALPHA1*mALPHA1+2.0*modG);
-			}
-			//if two yield surfaces are active
-			if( f2_tr >= 0.0 )
-			{
-// 				std::cout << "Yield function2: " << f2_tr << std::endl;
-				residual = 0.0;
-				for( int iter = 0; iter < maxiter; iter++ )
-				{
-					mDeltaEpsilon = gamma1+gamma2/mALPHA1;
-					residual = I1_tr-mK/mALPHA1 - gamma1*9.0*modK*mALPHA1 - gamma2*9.0*modK;
-					if( fabs( residual ) < tolerance )
-					{
-// 						std::cout << "gamma2 converged within " << iter << "iterations" << std::endl;
-						break;
-					}
-					gamma2 += residual/(9.0*modK);
-				}
-				if( gamma < 0.0 ) KRATOS_ERROR(std::logic_error,"Gamma < 0" , "");
-				if( (gamma1 < 0.0) || (gamma2 < 0.0) )
-				{
-					gamma1 = gamma;
-					gamma2 = 0.0;
-					mDeltaEpsilon = gamma;
-				}
-			}
-			else
-			{
-				gamma1 = gamma;
-				gamma2 = 0;
-				mDeltaEpsilon = gamma;
-			}
-			// plastic flow direction
-			Vector plastic_flow_direction = ZeroVector(6);
-			Vector auxDirection = ZeroVector(6);
-			for( unsigned int i=0; i<3; i++ )
-			{
-				auxDirection[i] = (trialStressVector[i]-I1_tr/3.0)/J2_tr;
-				auxDirection[i+3] = trialStressVector[i+3]/J2_tr;
-				plastic_flow_direction[i] = auxDirection[i]+mALPHA1;
-				plastic_flow_direction[i+3] = auxDirection[i+3];
-			}
-			//update incremental plastic strains
-// 			Vector incrementalPlasticStrains = ZeroVector(6);
-// 			for( unsigned int i=0; i<3; i++ )
-// 			{
-// 				incrementalPlasticStrains[i] = gamma1*plastic_flow_direction[i]+gamma2;
-// 				incrementalPlasticStrains[i+3] = 2.0*gamma1*plastic_flow_direction[i+3];
-// 			}
-			
-			
-			// update stresses
-			Vector auxStresses = ZeroVector(6);
-			for( unsigned int i=0; i<3; i++ )
-			{
-				for( unsigned int j=0; j<3; j++ )
-				{
-					auxStresses[i] += mCelastic(i,j)*plastic_flow_direction[j];
-				}
-				auxStresses[i+3] = 2.0*modG*plastic_flow_direction[i+3];
-				mCurrentStress[i] = trialStressVector[i] - 0.9999999*gamma1*auxStresses[i] 
-						- 0.9999999*gamma2*3.0*modK;
-				mCurrentStress[i+3] = trialStressVector[i+3] - 0.9999999*gamma1*auxStresses[i+3];
-			}
-			// calculate tangent material matrix
-			if( gamma2 == 0.0 )
-			{
-				// tangent material matrix for one active yield surface
-				Vector DGammaDe = ZeroVector(6);
-				double edum = 9.0*modK*mALPHA1*mALPHA1 + 2.0*modG;
-				for( unsigned int i=0; i<3; i++ )
-				{
-					DGammaDe[i] = 1.0/(edum)*(3.0*modK*mALPHA1
-							+2.0*modG*auxDirection[i] );
-					DGammaDe[i+3] = 1.0/edum*2.0*modG*auxDirection[i+3];
-				}
-				for( unsigned int i=0; i<6; i++ )
-				{
-					for( unsigned int j=0; j<6; j++ )
-					{
-						mCtangent(i,j) += (-auxStresses[i]*DGammaDe[j]
-								-gamma1*4.0*modG*modG/J2_tr*(iDev(i,j)
-								-auxDirection[i]*auxDirection[j] )
-								  );
-					}
-				}
-			}
-			else //for two active yield surfaces
-			{
-				Vector DGammaDe1 = ZeroVector(6);
-				Vector DGammaDe2 = ZeroVector(6);
-				Vector vk = ZeroVector(6);
-				double edum = 18.0*modK*modG;
-				DGammaDe1 = auxDirection;
-				for( int i=0; i<3; i++ )
-				{
-					DGammaDe2[i] = 6*modG*modK/edum - mALPHA1*auxDirection[i];
-					DGammaDe2[i+3] = -mALPHA1*auxDirection[i+3];
-					vk[i] = 3.0*modK;
-				}
-				for( unsigned int i=0; i<6; i++ )
-				{
-					for( unsigned int j=0; j<6; j++ )
-					{
-						mCtangent(i,j) += (-auxStresses[i]*DGammaDe1[j]
-								-gamma1*4.0*modG*modG/J2_tr
-								*(iDev(i,j)-auxDirection[i]*auxDirection[j])
-								- vk[i]*DGammaDe2[j]
-								  );
-					}
-				}
-			}
-			// calculation of elastic strains
-			Matrix inverseC = ZeroMatrix(6,6);
-			SD_MathUtils<double>::InvertMatrix( mCelastic, inverseC );
-			Vector eps_el = ZeroVector(6);
-			noalias( eps_el ) = prod(inverseC, mCurrentStress );
-			// update strains
-// 			StrainVector += incrementalPlasticStrains;
-			// plastic strains
-			mPlasticStrain = StrainVector - eps_el;
-// 			std::cout << "Difference in stresses:" << std::endl;
-// 			KRATOS_WATCH( mCurrentStress-trialStressVector );
-			
-			//update internal variable
-			mEpsilon += mDeltaEpsilon;
-// 			KRATOS_WATCH( mEpsilon );
-		}
-		else //elastic loading
-		{
-// 			std::cout << "ELASTIC LOADING: no plasticity occured" << std::endl;
-			mCurrentStress = trialStressVector;
-		}
-        
-        //TESTING: adding insitu stress
-        mCurrentStress += mInSituStress;
-        
-// 		KRATOS_WATCH( mPlasticStrain );
-		
-	}
-	
-	/**
-	 *	:TODO: TO BE TESTED!!!
-	 */
-    void DruckerPrager::Calculate(const Variable<Matrix >& rVariable, Matrix& output, 
-                                  const ProcessInfo& rCurrentProcessInfo)
-	{
-		if(rVariable==AUXILIARY_MATRIX_1)
-		{
-			output(0,0) = mEw[0];
-			output(0,1) = mEw[1];
-			output(0,2) = mEw[2];
-			output(0,3) = mEw[3]*0.5;
-			output(0,4) = mEw[4]*0.5;
-			output(0,5) = mEw[5]*0.5;
-		}
-		KRATOS_ERROR(std::logic_error,"Trying to Calculate an inexisting variable" , "");
-	}
-    
-    //**********************************************************************
-	void DruckerPrager::CalculateCauchyStresses(
-			Vector& rCauchy_StressVector,
-			const Matrix& rF,
-			const Vector& rPK2_StressVector,
-			const Vector& rGreenLagrangeStrainVector)
-	{
-		Matrix F = rF;
-		Vector PK2_StressVector = rPK2_StressVector;
-		Matrix S = MathUtils<double>::StressVectorToTensor( PK2_StressVector );
-		S = SD_MathUtils<double>::Mult( F, S );
-		double J = MathUtils<double>::Det3( F );
-		F = SD_MathUtils<double>::Transpose( F );
-		S = SD_MathUtils<double>::Mult( S, F );
-		SD_MathUtils<double>::Mult( S, J );
-	}
-	
-	 //**********************************************************************
-       int DruckerPrager::Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo)
-       {
-	   if(YOUNG_MODULUS.Key() == 0 || props[YOUNG_MODULUS]<= 0.00)
-                KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
-	    const double& nu = props[POISSON_RATIO];
-	    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-	    if(POISSON_RATIO.Key() == 0 || check==true) // props[POISSON_RATIO] == 1.00 || props[POISSON_RATIO] == -1.00)
-                KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
-	  
-	    if(DENSITY.Key() == 0 || props[DENSITY]<0.00)
-                KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
-	    
-	    if(DP_ALPHA1.Key() == 0 || props[DP_ALPHA1]<0.00)
-                 KRATOS_ERROR(std::invalid_argument,"DP_ALPHA1 has Key zero or invalid value ","");
-	
-	    if(DP_K.Key() == 0 || props[DP_K]<0.00)
-                 KRATOS_ERROR(std::invalid_argument,"DP_K has Key zero or invalid value ","");
-	    
-	    return 0;
-	    
-         }
-	
-	
+    /**
+     * TO BE TESTED!!!
+     */
+    DruckerPrager::~DruckerPrager()
+    {
+    }
+
+    bool DruckerPrager::Has( const Variable<double>& rThisVariable )
+    {
+        if ( rThisVariable == PLASTICITY_INDICATOR ) return true;
+
+        if ( rThisVariable == EQUIVALENT_VOLUMETRIC_PLASTIC_STRAIN ) return true;
+
+        if ( rThisVariable == EQUIVALENT_DEVIATORIC_PLASTIC_STRAIN ) return true;
+
+        return false;
+    }
+
+    bool DruckerPrager::Has( const Variable<Vector>& rThisVariable )
+    {
+        if ( rThisVariable == INSITU_STRESS ) return true;
+
+        if ( rThisVariable == PRESTRESS ) return true;
+
+        if ( rThisVariable == STRESSES ) return true;
+
+        if ( rThisVariable == PLASTIC_STRAIN_VECTOR ) return true;
+
+        return false;
+    }
+
+    bool DruckerPrager::Has( const Variable<Matrix>& rThisVariable )
+    {
+        return Kratos::ConstitutiveLaw::Has( rThisVariable );
+    }
+
+    bool DruckerPrager::Has( const Kratos::Variable< Kratos::array_1d< double, 3 > >& rThisVariable )
+    {
+        return Kratos::ConstitutiveLaw::Has( rThisVariable );
+    }
+
+    bool DruckerPrager::Has( const Kratos::Variable< Kratos::array_1d< double, 6 > >& rThisVariable )
+    {
+        return Kratos::ConstitutiveLaw::Has( rThisVariable );
+    }
+
+
+    /**
+     * TODO: check definitions of equivalent strains!!!
+     */
+    double& DruckerPrager::GetValue( const Variable<double>& rThisVariable,
+                                     double& rValue )
+    {
+        if ( rThisVariable == PLASTICITY_INDICATOR )
+        {
+            rValue = norm_2( mCurrentPlasticStrains );
+        }
+
+        if ( rThisVariable == EQUIVALENT_VOLUMETRIC_PLASTIC_STRAIN )
+        {
+            rValue = ( mCurrentPlasticStrains[0] + mCurrentPlasticStrains[1] + mCurrentPlasticStrains[2] ) / 3.0;
+        }
+
+        if ( rThisVariable == EQUIVALENT_DEVIATORIC_PLASTIC_STRAIN )
+        {
+            Vector deviatoric_plastic_strains = mCurrentPlasticStrains;
+            double volumetric_plastic_strains = (( mCurrentPlasticStrains[0] + mCurrentPlasticStrains[1] + mCurrentPlasticStrains[2] ) / 3.0 );
+
+            for ( unsigned int i = 0; i < 3; i++ )
+                deviatoric_plastic_strains[i] -= volumetric_plastic_strains;
+
+            rValue = sqrt( 2.0 / 3.0 * inner_prod( deviatoric_plastic_strains, deviatoric_plastic_strains ) );
+        }
+
+        return( rValue );
+    }
+
+    Vector& DruckerPrager::GetValue( const Variable<Vector>& rThisVariable,
+                                     Vector& rValue )
+    {
+        if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
+        {
+            rValue = mPrestress;
+        }
+
+        if ( rThisVariable == INTERNAL_VARIABLES )
+        {
+            //INTERNAL VARIABLES:
+            // 0 - Plastic strain xx
+            // 1 - Plastic strain yy
+            // 2 - Plastic strain zz
+            // 3 - Plastic strain xy
+            // 4 - Plastic strain yz
+            // 5 - Plastic strain xz
+            // 6 - hardening alpha
+            rValue = ZeroVector( 7 );
+
+            for ( unsigned int i = 0; i < 6; i++ )
+                rValue[i] = mCurrentPlasticStrains[i];
+
+            rValue[6] = mAlpha;
+        }
+
+        if ( rThisVariable == STRESSES )
+        {
+            rValue = mCurrentStress;
+        }
+
+        if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
+        {
+            rValue = mCurrentPlasticStrains;
+        }
+
+        return rValue;
+    }
+
+    Matrix& DruckerPrager::GetValue( const Variable<Matrix>& rThisVariable,
+                                     Matrix& rValue )
+    {
+        return rValue;
+    }
+    
+    Kratos::array_1d< double, 3 >& DruckerPrager::GetValue( const Kratos::Variable< Kratos::array_1d< double, 3 > >& rVariable, Kratos::array_1d< double, 3 >& rValue )
+    {
+        return rValue;
+    }
+    
+    Kratos::array_1d< double, 6 >& DruckerPrager::GetValue( const Kratos::Variable< Kratos::array_1d< double, 6 > >& rVariable, Kratos::array_1d< double, 6 >& rValue )
+    {
+        return rValue;
+    }
+
+    void DruckerPrager::SetValue( const Variable<double>& rThisVariable,
+                                  const double& rValue, const ProcessInfo& rCurrentProcessInfo )
+    {
+    }
+
+    void DruckerPrager::SetValue( const Variable<Vector>& rThisVariable,
+                                  const Vector& rValue, const ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rThisVariable == PRESTRESS || rThisVariable == INSITU_STRESS )
+        {
+            noalias( mPrestress ) = rValue;
+        }
+
+        if ( rThisVariable == INTERNAL_VARIABLES )
+        {
+            //INTERNAL VARIABLES:
+            // 0 - Plastic strain xx
+            // 1 - Plastic strain yy
+            // 2 - Plastic strain zz
+            // 3 - Plastic strain xy
+            // 4 - Plastic strain yz
+            // 5 - Plastic strain xz
+            // 6 - hardening alpha
+            for ( unsigned int i = 0; i < 6; i++ )
+                mCurrentPlasticStrains[i] = rValue[i];
+
+            mAlpha = rValue[6];
+        }
+    }
+
+    void DruckerPrager::SetValue( const Variable<Matrix>& rThisVariable,
+                                  const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo )
+    {
+    }
+
+    void DruckerPrager::SetValue( const Variable<array_1d<double, 3> >& rThisVariable, const array_1d <double, 3 > & rValue,
+                                  const ProcessInfo& rCurrentProcessInfo )
+    {
+    }
+
+
+    void DruckerPrager::SetValue( const Kratos::Variable< Kratos::array_1d< double, 6 > >& rVariable, const Kratos::array_1d< double, 6 >& Value, const Kratos::ProcessInfo& rCurrentProcessInfo )
+    {
+    }
+
+    /**
+     * Input paramters for DruckerPrager:
+     * YOUNG_MODULUS
+     * POISSON_RATIO
+     * COHESION
+     * INTERNAL_FRICTION_ANGLE
+     * ISOTROPIC_HARDENING_MODULUS
+     */
+    bool DruckerPrager::ValidateInput( const Kratos::Properties& props )
+    {
+        if ( props.Has( YOUNG_MODULUS ) && props.Has( POISSON_RATIO ) && props.Has( COHESION ) && props.Has( INTERNAL_FRICTION_ANGLE ) && props.Has( ISOTROPIC_HARDENING_MODULUS ) )
+        {
+            if ( props.GetValue( YOUNG_MODULUS ) > 0.0 && props.GetValue( POISSON_RATIO ) < 0.5 &&  props.GetValue( ISOTROPIC_HARDENING_MODULUS ) >= 0.0 && props.GetValue( INTERNAL_FRICTION_ANGLE ) > 0.0 && props.GetValue( INTERNAL_FRICTION_ANGLE ) < 90.0 && props.GetValue( COHESION ) >= 0.0 )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    int DruckerPrager::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+    {
+        KRATOS_WATCH("checking constitutive law");
+        if( ValidateInput( props ) )
+            return 0;
+        return -1;
+    }
+
+
+    void DruckerPrager::InitializeMaterial( const Properties& props,
+                                            const GeometryType& geom, const Vector& ShapeFunctionsValues )
+    {
+        mOldStress.resize( 6 );
+        mOldStress = ZeroVector( 6 );
+        mCtangent = ZeroMatrix( 6, 6 );
+        mOldStrain.resize( 6 );
+        mOldStrain = ZeroVector( 6 );
+        mCurrentStrain.resize( 6 );
+        mCurrentStrain = ZeroVector( 6 );
+        mCurrentStrainInc.resize( 6 );
+        mCurrentStrainInc = ZeroVector( 6 );
+        mCurrentStress.resize( 6 );
+        mCurrentStress = ZeroVector( 6 );
+        mCurrentPlasticStrains.resize( 6 );
+        mCurrentPlasticStrains = ZeroVector( 6 );
+        mOldSElasticStrain.resize( 6 );
+        mOldSElasticStrain = ZeroVector( 6 );
+        mCurrentElasticStrain.resize( 6 );
+        mCurrentElasticStrain = ZeroVector( 6 );
+        mOldPlasticStrains.resize( 6 );
+        mOldPlasticStrains = ZeroVector( 6 );
+        mPrestress.resize( 6 );
+        mPrestress = ZeroVector( 6 );
+        mConsistentTangent.resize( 6, 6 );
+        mConsistentTangent = ZeroMatrix( 6, 6 );
+
+        mdGamma = 0.0;
+        mAlpha = 0.0;
+        mOldAlpha = 0.0;
+        isYielded = false;
+        
+        ResetMaterial( props, geom, ShapeFunctionsValues );
+
+    }
+
+    void DruckerPrager::ResetMaterial( const Properties& props,
+                                       const GeometryType& geom, const Vector& ShapeFunctionsValues )
+    {
+        
+        mE = props[YOUNG_MODULUS];
+        mNU = props[POISSON_RATIO];
+        mG = mE / ( 2.0 * ( 1.0 + mNU ) );
+        mK = mE / ( 3.0 * ( 1.0 - 2.0 * mNU ) );
+        mCohesion = props[COHESION];
+
+        double tan_phi = tan(( props[INTERNAL_FRICTION_ANGLE] ) * PI / 180 );
+
+        mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+        mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+        mHardening = props[ISOTROPIC_HARDENING_MODULUS];
+
+        CalculateElasticMatrix( mCtangent, mE, mNU );
+
+        CalculateUnit4thSym3D();
+
+        CalculateUnit2nd3D();
+
+    }
+
+    void DruckerPrager::InitializeSolutionStep(
+        const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues,
+        const ProcessInfo& CurrentProcessInfo )
+    {
+    }
+    
+    void DruckerPrager::InitializeNonLinearIteration( const Kratos::Properties& props, const Kratos::ConstitutiveLaw::GeometryType& geom, const Kratos::Vector& ShapeFunctionsValues, const Kratos::ProcessInfo& CurrentProcessInfo )
+    {
+    }
+
+
+    void DruckerPrager::FinalizeSolutionStep(
+        const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues,
+        const ProcessInfo& CurrentProcessInfo )
+    {
+
+        mOldStress = mCurrentStress;
+        mOldStrain = mCurrentStrain;
+        mOldAlpha = mAlpha;
+        mOldPlasticStrains = mCurrentPlasticStrains;
+        mOldSElasticStrain = mCurrentElasticStrain;
+
+    }
+
+    void DruckerPrager::CalculateMaterialResponse( const Vector& StrainVector,
+            const Matrix& DeformationGradient, Vector& StressVector,
+            Matrix& AlgorithmicTangent, const ProcessInfo& CurrentProcessInfo,
+            const Properties& props, const GeometryType& geom,
+            const Vector& ShapeFunctionsValues, bool CalculateStresses,
+            int CalculateTangent, bool SaveInternalVariables )
+    {
+        if ( CalculateStresses )
+            CalculateStress( StrainVector, StressVector );
+
+        if ( CalculateTangent != 0 )
+            CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+    }
+
+    /**
+     * TO BE TESTED!!!
+     */
+    void DruckerPrager::CalculateStress( const Vector& StrainVector, Vector& StressVector )
+    {
+        //KRATOS_WATCH( StrainVector );
+
+        mCurrentStrain = StrainVector;
+        mCurrentElasticStrain = StrainVector;
+        mCurrentStrainInc = StrainVector - mOldStrain;
+
+        StressVector = prod( mCtangent, mCurrentStrainInc );
+        KRATOS_WATCH( StressVector );
+
+        for ( unsigned int i = 0; i < 6; i++ )
+            StressVector( i ) += mOldStress( i );
+
+        mCurrentStress = StressVector;
+
+        isYielded = false;
+
+        mdGamma = 0.0;
+
+        mAlpha = mOldAlpha;
+
+        double pTr = ( mCurrentStress( 0 ) + mCurrentStress( 1 ) + mCurrentStress( 2 ) )
+                     / 3.0;
+
+        Vector deviatoric_Stress_Vector( 6 );
+
+        deviatoric_Stress_Vector( 0 ) = mCurrentStress( 0 ) - pTr;
+
+        deviatoric_Stress_Vector( 1 ) = mCurrentStress( 1 ) - pTr;
+
+        deviatoric_Stress_Vector( 2 ) = mCurrentStress( 2 ) - pTr;
+
+        deviatoric_Stress_Vector( 3 ) = mCurrentStress( 3 );
+
+        deviatoric_Stress_Vector( 4 ) = mCurrentStress( 4 );
+
+        deviatoric_Stress_Vector( 5 ) = mCurrentStress( 5 );
+
+        KRATOS_WATCH( deviatoric_Stress_Vector );
+
+        double J2 = 0.5 * ( deviatoric_Stress_Vector( 0 )
+                            * deviatoric_Stress_Vector( 0 ) + deviatoric_Stress_Vector( 1 )
+                            * deviatoric_Stress_Vector( 1 ) + deviatoric_Stress_Vector( 2 )
+                            * deviatoric_Stress_Vector( 2 ) ) + deviatoric_Stress_Vector( 3 )
+                    * deviatoric_Stress_Vector( 3 ) + deviatoric_Stress_Vector( 4 )
+                    * deviatoric_Stress_Vector( 4 ) + deviatoric_Stress_Vector( 5 )
+                    * deviatoric_Stress_Vector( 5 );
+
+        double sqrtJ2 = sqrt( J2 );
+
+        KRATOS_WATCH( sqrtJ2 );
+
+        KRATOS_WATCH( mEta );
+
+        KRATOS_WATCH( pTr );
+
+        KRATOS_WATCH( mXi );
+
+        KRATOS_WATCH( mCohesion );
+
+        KRATOS_WATCH( mHardening );
+
+        double yield_function = sqrtJ2 + mEta * pTr - mXi * ( mCohesion + mHardening * mAlpha );
+
+        double Tol = 1e-10;
+
+        double dummy = 0.0;
+
+        double df_dGamma = 0.0;
+
+        double dDGamma = 0.0;
+
+        double pTr_n = 0.0;
+
+        KRATOS_WATCH( yield_function );
+
+        if ( yield_function > Tol )
+        {
+            //Plastic regione is activated
+            isYielded = true;
+
+            // returnmap is needed
+
+            for ( int itr = 0; itr < 50; itr++ )
+            {
+
+                df_dGamma = -mG - mK * mEta * mEta - mXi * mXi * mHardening;
+
+                dDGamma = -yield_function / df_dGamma;
+                mdGamma += dDGamma;
+
+                mAlpha += mXi * mdGamma;
+                pTr_n = pTr - mK * mEta * mdGamma;
+
+                yield_function = sqrtJ2 - mG * mdGamma + mEta * pTr_n - mXi
+                                 * ( mCohesion + mHardening * mAlpha );
+
+                if ( fabs( yield_function ) < Tol )
+                {
+                    if (( sqrtJ2 - mG * mdGamma ) > 0.0 )
+                    {
+                        if ( fabs( sqrtJ2 ) < 1e-6 )
+                            dummy = 0.0;
+                        else
+                            dummy = 1.0 - mG * mdGamma / sqrtJ2;
+
+                        break;
+                    }
+                    else
+                    {
+                        // return to Apex is required
+                        break;
+                    }
+                }
+
+            }
+
+            KRATOS_WATCH( yield_function );
+
+            mCurrentStress( 0 ) = dummy * deviatoric_Stress_Vector( 0 ) + pTr_n;
+            mCurrentStress( 1 ) = dummy * deviatoric_Stress_Vector( 1 ) + pTr_n;
+            mCurrentStress( 2 ) = dummy * deviatoric_Stress_Vector( 2 ) + pTr_n;
+            mCurrentStress( 3 ) = dummy * deviatoric_Stress_Vector( 3 );
+            mCurrentStress( 4 ) = dummy * deviatoric_Stress_Vector( 4 );
+            mCurrentStress( 5 ) = dummy * deviatoric_Stress_Vector( 5 );
+
+            StressVector = mCurrentStress;
+
+            mCurrentElasticStrain( 0 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 0 ) + pTr_n / mK;
+            mCurrentElasticStrain( 1 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 1 ) + pTr_n / mK;
+            mCurrentElasticStrain( 2 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 2 ) + pTr_n / mK;
+            mCurrentElasticStrain( 3 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 3 ) * 2.0;
+            mCurrentElasticStrain( 4 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 4 ) * 2.0;
+            mCurrentElasticStrain( 5 ) = dummy / ( 2.0 * mG )
+                                         * deviatoric_Stress_Vector( 5 ) * 2.0;
+
+        }
+        else
+        {
+
+            StressVector = mCurrentStress;
+        }
+
+        mCurrentPlasticStrains = mOldPlasticStrains + mCurrentStrainInc - (mCurrentElasticStrain - mOldSElasticStrain);
+
+        KRATOS_WATCH( StressVector );
+
+    }
+
+
+    /**
+     * TO BE REVIEWED!!!
+     */
+    void DruckerPrager::CalculateConstitutiveMatrix( const Vector& StrainVector,
+            Matrix& rResult )
+    {
+
+        Vector Strain_trial( 6 );
+        Strain_trial = StrainVector;
+
+        if ( isYielded )
+        {
+
+            double StarinVol =
+                ( Strain_trial( 0 ) + Strain_trial( 1 ) + Strain_trial( 2 ) ) / 3.0;
+
+            Vector StrainDev( 6 );
+            StrainDev( 0 ) = Strain_trial( 0 ) - StarinVol;
+            StrainDev( 1 ) = Strain_trial( 1 ) - StarinVol;
+            StrainDev( 2 ) = Strain_trial( 2 ) - StarinVol;
+            StrainDev( 3 ) = Strain_trial( 3 ) / 2.0;
+            StrainDev( 4 ) = Strain_trial( 4 ) / 2.0;
+            StrainDev( 5 ) = Strain_trial( 5 ) / 2.0;
+
+            double StrainDevNorm = sqrt( StrainDev( 0 ) * StrainDev( 0 ) + StrainDev( 1 )
+                                         * StrainDev( 1 ) + StrainDev( 2 ) * StrainDev( 2 ) + 2.0
+                                         * ( StrainDev( 3 ) * StrainDev( 3 ) + StrainDev( 4 ) * StrainDev( 4 )
+                                             + StrainDev( 5 ) * StrainDev( 5 ) ) );
+
+            Vector UnitStrainDev( 6 );
+
+            if ( fabs( StrainDevNorm ) > 1e-8 )
+            {
+                UnitStrainDev = StrainDev / StrainDevNorm;
+            }
+            else
+                UnitStrainDev = ZeroVector( 6 );
+
+            double A_aux = 1.0 / ( mG + mK * mEta * mEta + mXi * mXi * mHardening );
+
+            double B_aux = 2.0 * mG * ( 1.0 - mdGamma / ( sqrt( 2.0 ) * StrainDevNorm ) );
+
+            double C_aux = 2.0 * mG * ( mdGamma / ( sqrt( 2.0 ) * StrainDevNorm ) - mG
+                                        * A_aux );
+
+            double D_aux = sqrt( 2.0 ) * mG * mK * A_aux;
+
+            double E_aux = mK * ( 1 - mK * mEta * mEta * A_aux );
+
+            for ( int i = 0; i < 6; i++ )
+                for ( int j = 0; j < 6; j++ )
+                    mConsistentTangent( i, j ) = B_aux * unit4thSym3D[i][j] + C_aux
+                                                 * UnitStrainDev[i] * UnitStrainDev[j] - D_aux * ( mEta
+                                                         * UnitStrainDev[i] * unit2nd3D[j] + mEta * unit2nd3D[i]
+                                                         * UnitStrainDev[j] ) + ( E_aux - B_aux / 3.0 )
+                                                 * unit2nd3D[i] * unit2nd3D[j];
+
+            rResult = mConsistentTangent;
+
+            KRATOS_WATCH( "line 497 ####################" );
+        }
+        else
+        {
+            rResult = mCtangent;
+            KRATOS_WATCH( "line 502 ####################" );
+        }
+
+        KRATOS_WATCH( "line 504 ####################" );
+    }
+
+
+    void DruckerPrager::CalculateElasticMatrix( Matrix& C, const double E,
+            const double NU )
+    {
+        //setting up material matrix
+        double c1 = E / (( 1.0 + NU ) * ( 1.0 - 2.0 * NU ) );
+        double c2 = c1 * ( 1.0 - NU );
+        double c3 = c1 * NU;
+        double c4 = c1 * 0.5 * ( 1.0 - 2.0 * NU );
+        //filling material matrix
+        C( 0, 0 ) = c2;
+        C( 0, 1 ) = c3;
+        C( 0, 2 ) = c3;
+        C( 0, 3 ) = 0.0;
+        C( 0, 4 ) = 0.0;
+        C( 0, 5 ) = 0.0;
+        C( 1, 0 ) = c3;
+        C( 1, 1 ) = c2;
+        C( 1, 2 ) = c3;
+        C( 1, 3 ) = 0.0;
+        C( 1, 4 ) = 0.0;
+        C( 1, 5 ) = 0.0;
+        C( 2, 0 ) = c3;
+        C( 2, 1 ) = c3;
+        C( 2, 2 ) = c2;
+        C( 2, 3 ) = 0.0;
+        C( 2, 4 ) = 0.0;
+        C( 2, 5 ) = 0.0;
+        C( 3, 0 ) = 0.0;
+        C( 3, 1 ) = 0.0;
+        C( 3, 2 ) = 0.0;
+        C( 3, 3 ) = c4;
+        C( 3, 4 ) = 0.0;
+        C( 3, 5 ) = 0.0;
+        C( 4, 0 ) = 0.0;
+        C( 4, 1 ) = 0.0;
+        C( 4, 2 ) = 0.0;
+        C( 4, 3 ) = 0.0;
+        C( 4, 4 ) = c4;
+        C( 4, 5 ) = 0.0;
+        C( 5, 0 ) = 0.0;
+        C( 5, 1 ) = 0.0;
+        C( 5, 2 ) = 0.0;
+        C( 5, 3 ) = 0.0;
+        C( 5, 4 ) = 0.0;
+        C( 5, 5 ) = c4;
+
+    }
+
+    void DruckerPrager::CalculateUnit4thSym3D()
+    {
+        for ( unsigned int i = 0; i < 6; i++ )
+            for ( unsigned int j = 0; j < 6; j++ )
+                unit4thSym3D[i][j] = 0;
+
+        unit4thSym3D[0][0] = 1.0;
+
+        unit4thSym3D[1][1] = 1.0;
+
+        unit4thSym3D[2][2] = 1.0;
+
+        unit4thSym3D[3][3] = 0.5;
+
+        unit4thSym3D[4][4] = 0.5;
+
+        unit4thSym3D[5][5] = 0.5;
+
+    }
+
+    void DruckerPrager::CalculateUnit2nd3D()
+    {
+        unit2nd3D[0] = 1.0;
+        unit2nd3D[1] = 1.0;
+        unit2nd3D[2] = 1.0;
+        unit2nd3D[3] = 0.0;
+        unit2nd3D[4] = 0.0;
+        unit2nd3D[5] = 0.0;
+
+    }
+
+
 } // Namespace Kratos
