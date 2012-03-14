@@ -200,8 +200,10 @@ namespace Kratos {
 	    mphi_n1.resize(n_nodes); mr_matrix_container.SetToZero(mphi_n1);
 
 	    mEps.resize(n_nodes); mr_matrix_container.SetToZero(mEps);
-	  mD.resize(n_nodes); mr_matrix_container.SetToZero(mD);
-
+	  //mD.resize(n_nodes); mr_matrix_container.SetToZero(mD);
+	    mA.resize(n_nodes); 	mr_matrix_container.SetToZero(mA);
+	    mB.resize(n_nodes); 	mr_matrix_container.SetToZero(mB);
+	    
 	    mdiv_error.resize(n_nodes);
 	    mr_matrix_container.SetToZero(mdiv_error);
 
@@ -356,6 +358,8 @@ namespace Kratos {
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
 
 //            double delta_t_i = delta_t;
@@ -369,12 +373,15 @@ namespace Kratos {
 		const double havg_i = mHavg[i_node];
 		const double hmin_i = mHmin[i_node];
 		const double eps_i = mEps[i_node];
-	      const double d_i = mD[i_node];
+	      //const double d_i = mD[i_node];
 		double nu = mViscosity[i_node];
+			const double lindarcy_i = mA[i_node];
+			const double nonlindarcy_i = mB[i_node];
 
 		double vel_norm = norm_2(v_i);
 
-		double porosity_coefficient = ComputePorosityCoefficient(nu, vel_norm, eps_i, d_i);
+		//double porosity_coefficient = ComputePorosityCoefficient(nu, vel_norm, eps_i, d_i);
+			double porosity_coefficient = ComputePorosityCoefficient( vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
 		vel_norm /= eps_i;
 
 		//use CFL condition to compute time step size
@@ -508,6 +515,8 @@ namespace Kratos {
 	    mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
+	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
 	    //read time step size from Kratos
 	    ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -530,11 +539,14 @@ namespace Kratos {
 		array_1d<double, TDim>& a_i = mvel_n1[i_node];
 		const double nu_i = mViscosity[i_node];
 		const double eps_i = mEps[i_node];
-		const double d_i = mD[i_node];
+		//const double d_i = mD[i_node];
+		const double lindarcy_i = mA[i_node];
+		const double nonlindarcy_i = mB[i_node];
 
 		double vel_norm = norm_2(a_i);
 
-		double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
+		//double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
+		double porosity_coefficient = ComputePorosityCoefficient(vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
 		vel_norm /= eps_i;
 
 		double tau = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_pressure_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
@@ -678,7 +690,9 @@ namespace Kratos {
 		    const array_1d<double, TDim>& pi_i = mPi[i_node];
 		    const double& p_i = pressure[i_node];
 		    const double& eps_i = mEps[i_node];
-		    const double& d_i = mD[i_node];
+// 		    //const double& d_i = mD[i_node];
+		    const double lindarcy_i = mA[i_node];
+		    const double nonlindarcy_i = mB[i_node];
 // KRATOS_WATCH("before");
 // KRATOS_WATCH(d_i);
 		    //const double& tau2_i = mTau2[i_node];
@@ -694,7 +708,8 @@ namespace Kratos {
 			rhs_i[comp] = m_i * eps_i * f_i[comp] ;
 
 		    //applying the effect of the porosity
-		    double porosity_coefficient = ComputePorosityCoefficient(nu_i,norm_2(U_i),eps_i, d_i);
+		    //double porosity_coefficient = ComputePorosityCoefficient(nu_i,norm_2(U_i),eps_i, d_i);
+            double porosity_coefficient = ComputePorosityCoefficient( norm_2(U_i), eps_i, lindarcy_i, nonlindarcy_i);
 // KRATOS_WATCH("after");
 // KRATOS_WATCH(d_i);
 		    for (unsigned int comp = 0; comp < TDim; comp++)
@@ -2027,8 +2042,10 @@ namespace Kratos {
             mphi_n1.clear();
 
             mEps.clear();
-            mD.clear();
-            mdiv_error.clear();
+            //mD.clear();
+             mA.clear();
+            mB.clear();           
+			mdiv_error.clear();
 
             KRATOS_CATCH("")
         }
@@ -2432,7 +2449,7 @@ namespace Kratos {
         void DiscreteVolumeCorrection(double expected_volume, double measured_volume)
         {
 
-
+ 
 			double volume_error = expected_volume - measured_volume;
            if (measured_volume < expected_volume)
             {
@@ -2521,7 +2538,72 @@ namespace Kratos {
         }
 
 
+	void CalculatePorousResistanceLaw(unsigned int res_law)
+	{
+	  
+	    //variables for node based data handling
+// 	    ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
 
+// 	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+// 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
+//  	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
+//  	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
+	  
+// 	  const double nu_i = mViscosity;
+	  if(res_law == 1){
+// 	  KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Calculating Ergun Darcy coefficients ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+	    /* if the chosen resistance law is ERGUN calculate Ergun A and B*/
+	  for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+		    inode != mr_model_part.NodesEnd();
+		    inode++) {
+	      const double eps = inode->FastGetSolutionStepValue(POROSITY);
+// 		KRATOS_WATCH("POROSITY	")
+// 		KRATOS_WATCH(eps)
+	      const double d = inode->FastGetSolutionStepValue(DIAMETER);
+// 		KRATOS_WATCH("DIAMETER	")
+// 		KRATOS_WATCH(d)
+// 	      
+// 		KRATOS_WATCH("VISCOSITY	")
+// 		KRATOS_WATCH(mViscosity)
+	      double& a = inode-> FastGetSolutionStepValue(LIN_DARCY_COEF);
+	      double& b = inode-> FastGetSolutionStepValue(NONLIN_DARCY_COEF);
+	      if(eps < 1.0){
+		double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
+	        a = mViscosity * k_inv;
+	        b = (1.75 / eps) * sqrt(k_inv / (150.0 * eps));
+// 		KRATOS_WATCH("PERMEABILITY	")
+// 		KRATOS_WATCH(k_inv)
+// 		KRATOS_WATCH("LIN DARCY COEFFICIENT	")
+// 		KRATOS_WATCH(a)
+// 		KRATOS_WATCH("NONLIN DARCY COEFFICIENT	")
+// 		KRATOS_WATCH(b)
+	      }
+	      else{
+		a = 0;
+		b = 0;
+	      }
+	    }
+	  }
+	  else{ 
+	  /* whether it is a Custom Resistance law or NO resistance law is present ---> set to zero A and B for non porous nodes*/
+	      for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+			inode != mr_model_part.NodesEnd();
+			inode++) {	 
+		  const double eps = inode->FastGetSolutionStepValue(POROSITY); /*reading from kratos database*/
+		
+		  double& a = inode-> FastGetSolutionStepValue(LIN_DARCY_COEF); /*changing kratos database*/
+		  double& b = inode-> FastGetSolutionStepValue(NONLIN_DARCY_COEF);	/*changing kratos database*/  
+		  if(eps == 1.0){
+		    a = 0;
+		    b = 0;
+		  }
+	      }
+	  }
+	  
+ 	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes()); /*filling edgebased database reading from kratos database*/
+ 	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes()); /*filling edgebased database reading from kratos database*/
+
+	}
 
 
     private:
@@ -2602,7 +2684,9 @@ namespace Kratos {
 
         ValuesVectorType mEps;
         ValuesVectorType mD;
-
+        ValuesVectorType mA;
+        ValuesVectorType mB;
+	
         double mdelta_t_avg;
         double max_dt;
 
