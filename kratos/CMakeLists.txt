@@ -159,15 +159,14 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
-    set(PACKAGING_DIR /opt/kratos)
     #take care: do not indent the lines below
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-kratos_libs=\"${PACKAGING_DIR}/libs\"
-kratos_applications=\"${PACKAGING_DIR}/applications\"
+kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
+kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) ")
 
-    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${PACKAGING_DIR}/libs")
+    file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics ) 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
@@ -188,15 +187,15 @@ sys.path.append(kratos_applications) ")
     #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libblas3gf | libblas.so.3gf | libatlas3gf-base, libc6 (>= 2.7), libgcc1 (>= 1:4.1.1), libgfortran3 (>= 4.6), libgomp1 (>= 4.4), liblapack3gf | liblapack.so.3gf | libatlas3gf-base, libopenmpi1.3, libparmetis3.1, libstdc++6 (>= 4.4.0), ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
 #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
-    Set(CPACK_PACKAGING_INSTALL_PREFIX ${PACKAGING_DIR} )
+    Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
 
     INCLUDE(CPack)
 else(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
-    file(WRITE ${CMAKE_SOURCE_DIR}/KratosMultiphysics/KratosLoader.py "import sys
+    file(WRITE ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics/KratosLoader.py "import sys
 kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
+kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) ")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
