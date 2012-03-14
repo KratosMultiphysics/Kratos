@@ -193,7 +193,7 @@ namespace Kratos {
 	    mphi_n1.resize(n_nodes); mr_matrix_container.SetToZero(mphi_n1);
 
 	    mEps.resize(n_nodes); 	mr_matrix_container.SetToZero(mEps);
-	    mD.resize(n_nodes); 	mr_matrix_container.SetToZero(mD);
+	    //mD.resize(n_nodes); 	mr_matrix_container.SetToZero(mD);
 	    mA.resize(n_nodes); 	mr_matrix_container.SetToZero(mA);
 	    mB.resize(n_nodes); 	mr_matrix_container.SetToZero(mB);
 	    
@@ -347,7 +347,7 @@ namespace Kratos {
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+//	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
@@ -561,7 +561,7 @@ namespace Kratos {
 		array_1d<double, TDim>& a_i = mvel_n1[i_node];
 		const double nu_i = mViscosity;
 		const double eps_i = mEps[i_node];
-// 		const double d_i = mD[i_node];
+// 		//const double d_i = mD[i_node];
 		const double lindarcy_i = mA[i_node];
 		const double nonlindarcy_i = mB[i_node];
 		
@@ -750,7 +750,7 @@ namespace Kratos {
 		    const array_1d<double, TDim>& pi_i = mPi[i_node];
 		    const double& p_i = pressure[i_node];
 		    const double& eps_i = mEps[i_node];
-// 		    const double& d_i = mD[i_node];
+// 		    //const double& d_i = mD[i_node];
 		    const double lindarcy_i = mA[i_node];
 		    const double nonlindarcy_i = mB[i_node];		    
 // KRATOS_WATCH("before");
@@ -2103,7 +2103,7 @@ namespace Kratos {
             mphi_n1.clear();
 
             mEps.clear();
-            mD.clear();
+            //mD.clear();
             mA.clear();
             mB.clear();	
 	    
