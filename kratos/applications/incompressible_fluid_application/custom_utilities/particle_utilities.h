@@ -583,8 +583,8 @@ namespace Kratos
 	    // KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
 	    //initializee dt with max dt
 	    //initialize dt with incredible value
-	    double h, dt, glob_min_dt, nu, dummy;  
-	  
+	    double dt, glob_min_dt, dummy;  
+// 	    double h, nu;
 	  array_1d<double,3> N = ZeroVector(3); 
 	  array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
 	  array_1d<double,3> vel = ZeroVector(3); //dimension = number of nodes
