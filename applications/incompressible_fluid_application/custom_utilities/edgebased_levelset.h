@@ -475,7 +475,7 @@ namespace Kratos {
 	    mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes);
 
 	    mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
-	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+	    //mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
@@ -2635,7 +2635,7 @@ namespace Kratos {
 	    mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+	   // mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
 	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
@@ -2651,7 +2651,7 @@ namespace Kratos {
 			const double havg_i = mHavg[i_node];
 			const double hmin_i = mHmin[i_node];
 			const double eps_i = mEps[i_node];
-			const double d_i = mD[i_node];
+// 			const double d_i = mD[i_node];
 			const double lindarcy_i = mA[i_node];
 			const double nonlindarcy_i = mB[i_node];
 
@@ -2889,7 +2889,7 @@ KRATOS_WATCH(porosity_coefficient)*/
         IndicesVectorType mcorner_nodes;
 
         ValuesVectorType mEps;
-        ValuesVectorType mD;
+       // ValuesVectorType mD;
         ValuesVectorType mA;
         ValuesVectorType mB;
 	
