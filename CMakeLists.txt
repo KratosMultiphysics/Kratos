@@ -48,12 +48,21 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 
 ##*****************************
 #find and include OpenMP if possible
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-endif (OPENMP_FOUND) 
+message(KRATOS_EXCLUDE_OPENMP ${KRATOS_EXCLUDE_OPENMP})
+if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+	message("**********************************************************")
+	message("OpenMP calculation was excluced artificially. Remove the var")
+	message("KRATOS_EXCLUDE_OPENMP from the configuration script or set it to off to include it")
+	message("**********************************************************")
+else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
+	message("OpenMP included")
+	find_package(OpenMP)
+	if (OPENMP_FOUND)
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+	endif (OPENMP_FOUND) 
+endif(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 
 ##*****************************
 #finding and including BOOST library
