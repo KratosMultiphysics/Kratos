@@ -1486,8 +1486,8 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 		    int rId = rConditions.size() + 1;
 	            std::cout << "          Time Creating Linking Conditions   = " << stop - start << std::endl;
 		    for(int k=0; k<number_of_threads; k++){
-			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it ){
-			      (*it.base())->SetId(rId);
+			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it ){				  
+				  (*it)->SetId(rId);
 			      rId++;
 			  }
 		    }

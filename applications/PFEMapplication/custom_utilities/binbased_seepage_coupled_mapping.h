@@ -227,17 +227,18 @@ namespace Kratos
 		    
 		    for(ModelPart::ElementsContainerType::iterator elem_it = rMoving_ModelPart.ElementsBegin(); elem_it != rMoving_ModelPart.ElementsEnd(); ++elem_it)
 		    {
+				
 		      //look for all the fixed nodes in a moving element
 		      unsigned int nfound = bin_of_nodes_fixed.FindNodesInElement(*(elem_it.base()), positions, Nmat, max_results, work_results.begin(), work_distances.begin(), work_point);        			
 			for(unsigned int k=0; k<nfound; k++)
 			{
 			    PointIterator it = work_results.begin() + positions[k];
-			    
-			    
+			    			    
 			    array_1d<double,TDim+1> N = row(Nmat,k);
-			    Interpolate(  *(elem_it.base()),  N, *(it.base()), POROSITY , POROSITY);
-			    Interpolate(  *(elem_it.base()),  N, *(it.base()), DIAMETER , DIAMETER);
-			    Interpolate(  *(elem_it.base()),  N, *(it.base()), VELOCITY , STRUCTURE_VELOCITY);
+				
+			    Interpolate(  *(elem_it.base()),  N, *it, POROSITY , POROSITY);
+			    Interpolate(  *(elem_it.base()),  N, *it, DIAMETER , DIAMETER);
+			    Interpolate(  *(elem_it.base()),  N, *it, VELOCITY , STRUCTURE_VELOCITY);
 			}
 
 		     }
