@@ -283,7 +283,7 @@ KRATOS_WATCH(el_number);
 
 			for (unsigned int el=0; el<el_number; el++)
 			{
-				if( preserved_list1[el] == true )
+				if( static_cast<bool>(preserved_list1[el]) == true )
 				{
 					//saving the list of ONLY preserved triangles, the ones that passed alpha-shape check
 					int new_base = counter*3;

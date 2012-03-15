@@ -345,7 +345,7 @@ namespace Kratos
 			    
 			    
 			    array_1d<double,TDim+1> N = row(Nmat,k);
-			    Interpolate(  *(elem_it.base()),  N, *(it.base()), rMovingDomainVariable , rFixedDomainVariable);
+			    Interpolate(  *(elem_it.base()),  N, *it, rMovingDomainVariable , rFixedDomainVariable);
 			}
 
 		     }
