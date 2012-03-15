@@ -17,6 +17,23 @@ if(${CMAKE_C_COMPILER} MATCHES "icc.*$")
   message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_C_COMPILER} MATCHES "icc.*$") 
 
+if(${MSVC80})
+  message("detected compiler as MSVC80")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC80}) 
+
+if(${MSVC90})
+  message("detected compiler as MSVC90")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC90}) 
+
+if(${MSVC10})
+  message("detected compiler as MSVC10")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc -D_SCL_SECURE_NO_WARNINGS")
+endif(${MSVC10}) 
 
 #tell the linker to give an error if undefined functions are found
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
