@@ -1993,7 +1993,7 @@ namespace Kratos {
                 array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
 
                 //slip condition
-                if (cond_it->GetValue(IS_STRUCTURE) == true)
+                if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
                     {
                         unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
@@ -2032,7 +2032,7 @@ namespace Kratos {
                 array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
 
                 //slip condition
-                if (cond_it->GetValue(IS_STRUCTURE) != true) //the opposite of the loop before
+                if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) != true) //the opposite of the loop before
                     for (unsigned int if_node = 0; if_node < TDim; if_node++)
                     {
                         unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));
