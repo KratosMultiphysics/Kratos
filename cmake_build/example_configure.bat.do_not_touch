@@ -1,3 +1,4 @@
+del CMakeCache.txt
 :: this is an example file...please DO NOT MODIFY if you don't want to do it for everyone
 :: to use it, copy it to another file and run it
 
@@ -6,17 +7,18 @@ cls
 :: you may want to decomment this the first time you compile
 del CMakeCache.txt
 
-cmake.exe -H.. -B. ^
- -DCMAKE_BUILD_TYPE=Release ^
+ cmake.exe  /EHsc ^
+ -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS " ^
  -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  ^
  -DMESHING_APPLICATION=ON  ^
- -DEXTERNAL_SOLVERS_APPLICATION=ON  ^
+ -DEXTERNAL_SOLVERS_APPLICATION=OFF  ^
  -DPFEM_APPLICATION=ON  ^
  -DSTRUCTURAL_APPLICATION=ON  ^
  -DCONVECTION_DIFFUSION_APPLICATION=ON  ^
  -DFLUID_DYNAMICS_APPLICATION=ON  ^
- -DALE_APPLICATION=ON  ^
- -DFSI_APPLICATION=ON  ^
- -DBOOST_ROOT="c:/kratos/external_libraries/boost/boost_1_43_0"  ^
- -DDEM_APPLICATION=OFF  ^
+ -DALE_APPLICATION=OFF  ^
+ -DFSI_APPLICATION=OFF  ^
+ -DBOOST_ROOT="c:/boost_1_44"  ^
+ -DDEM_APPLICATION=OFF -DBLAS_LIBRARIES="c:\ExternalLibs\blas.lib" -DLAPACK_LIBRARIES="c:\ExternalLibs\lapack.lib" ^
 
+ -H.. -B.
