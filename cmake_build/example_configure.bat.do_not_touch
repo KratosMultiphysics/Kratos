@@ -7,7 +7,7 @@ cls
 :: you may want to decomment this the first time you compile
 del CMakeCache.txt
 
- cmake.exe  /EHsc ^
+ cmake.exe   ^
  -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=" -D_SCL_SECURE_NO_WARNINGS " ^
  -DINCOMPRESSIBLE_FLUID_APPLICATION=ON  ^
  -DMESHING_APPLICATION=ON  ^
@@ -19,6 +19,7 @@ del CMakeCache.txt
  -DALE_APPLICATION=OFF  ^
  -DFSI_APPLICATION=OFF  ^
  -DBOOST_ROOT="c:/boost_1_44"  ^
- -DDEM_APPLICATION=OFF -DBLAS_LIBRARIES="c:\ExternalLibs\blas.lib" -DLAPACK_LIBRARIES="c:\ExternalLibs\lapack.lib" ^
-
- -H.. -B.
+ -DDEM_APPLICATION=OFF ^
+ -DBLAS_LIBRARIES="c:\ExternalLibs\blas.lib" ^
+ -DLAPACK_LIBRARIES="c:\ExternalLibs\lapack.lib" ^
+  ..
