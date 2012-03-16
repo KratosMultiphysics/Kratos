@@ -7,7 +7,8 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## generate variables with the sources
 set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/mpi_search_application.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_mpi_search_python_application.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/kratos_mpi_search_python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 )
 
 ###############################################################

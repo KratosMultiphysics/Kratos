@@ -19,12 +19,15 @@ from KratosMultiphysics.MPISearchApplication import *
 
 
 #defining a model part
-model_part = ModelPart("FluidPart");  
+model_part = ModelPart("FluidPart");
+p_model_part = ModelPart("FluidPart");
 
 #providing the variable list to the model part
 import trilinos_fs_fluid_solver
 trilinos_fs_fluid_solver.AddVariables(model_part)
+trilinos_fs_fluid_solver.AddVariables(p_model_part)
 model_part.AddNodalSolutionStepVariable(NORMAL)
+p_model_part.AddNodalSolutionStepVariable(NORMAL)
 
 #reading a model
 gid_mode_flag = GiDPostMode.GiD_PostBinary
@@ -69,6 +72,7 @@ print model_part
 
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
+p_model_part.SetBufferSize(3)
 
 #adding dofs
 trilinos_fs_fluid_solver.AddDofs(model_part)
@@ -76,7 +80,8 @@ for node in model_part.Nodes:
     node.AddDof(DISPLACEMENT_X)
     node.AddDof(DISPLACEMENT_Y)
     node.AddDof(DISPLACEMENT_Z)
-
+    
+trilinos_fs_fluid_solver.AddDofs(p_model_part)
 
 #creating a fluid solver object
 fluid_solver = trilinos_fs_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
@@ -141,10 +146,23 @@ gid_io.WriteMesh((model_part).GetMesh());
 gid_io.FinalizeMesh()
 gid_io.Flush()
 
-
 gid_io.InitializeResults(mesh_name , model_part.GetMesh())
-for step in range(0,nsteps):
 
+BoxSize = 1;
+bins_dynamic_mpi = BinsDynamicMpi(model_part,p_model_part,BoxSize)
+
+Count = 0
+for node in model_part.Nodes:
+    if (Count == 7):
+		print "("+str(mpi.rank)+") ("+str(node.Id)+") ("+ str(node.X)+" "+ str(node.Y)+" "+str(node.Z)+")"
+#        bins_dynamic_mpi.MPI_ExistPoint(node,None,0)
+		bins_dynamic_mpi.MPI_SearchInRadius(node,0.1,None,None,5,0)
+    Count = Count + 1;
+
+catapum_directive
+
+for step in range(0,10):
+    
     time = Dt*step
     model_part.CloneTimeStep(time)
 
@@ -168,6 +186,32 @@ for step in range(0,nsteps):
         gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
         out = 0
     out = out + 1
+
+#for step in range(0,nsteps):
+
+    #time = Dt*step
+    #model_part.CloneTimeStep(time)
+
+    #if(mpi.rank == 0):
+        #print time
+    ##print model_part.ProcessInfo()[TIME]
+
+    ##solving the fluid problem
+    #if(step > 4):
+        #fluid_solver.Solve()
+
+###        for node in model_part.Nodes:
+###            node.SetSolutionStepValue(PRESS_PROJ,0,zero);
+
+
+    ##print the results
+    #if(out == output_step):
+        #gid_io.WriteNodalResults(PARTITION_INDEX,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(NORMAL,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        #out = 0
+    #out = out + 1
     
 gid_io.FinalizeResults()
 
