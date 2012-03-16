@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 #include "includes/define.h"
 #include "mpi_search_application.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
  
 namespace Kratos
@@ -76,6 +77,8 @@ namespace Python
 			  KratosMPISearchApplication::Pointer, 
 			  bases<KratosApplication>, boost::noncopyable >("KratosMPISearchApplication")
 			;
+
+	  AddCustomUtilitiesToPython();
   }
   
   
