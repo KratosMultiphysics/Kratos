@@ -293,6 +293,8 @@ namespace Kratos
 
             class_< WaveGenerator, boost::noncopyable > ("WaveGenerator", init<>())
                     .def("GenerateWaveXYPlane", &WaveGenerator::GenerateWaveXYPlane)
+                    .def("GenerateVolumeWaveXYPlane", &WaveGenerator::GenerateVolumeWaveXYPlane)
+                    .def("GenerateComposedVolumeWaveXYPlane", &WaveGenerator::GenerateComposedVolumeWaveXYPlane)
                     ;
 
             class_< EstimateDtUtil < 2 >, boost::noncopyable > ("EstimateDt2D", init<ModelPart&>())
