@@ -12,6 +12,7 @@ Import_ConstitutiveLawsApplication = False
 Import_ULFApplication = False
 Import_MeshingApplication = False
 Import_KratosMKLSolversApplication = False
+Import_KratosMPISearchApplication = False
 Import_KratosTrilinosApplication = False
 Import_KratosMetisApplication = False
 Import_PoissonApplication = False
@@ -38,7 +39,7 @@ print "Import_ConstitutiveLawsApplication: False"
 print "Import_ULFApplication: False"
 print "Import_MeshingApplication: False"
 print "Import_KratosMKLSolversApplication: False"
-print "Import_KratosMKLSolversApplication: False"
+print "Import_KratosMPISearchApplication: False"
 print "Import_KratosTrilinosApplication: False"
 print "Import_KratosMetisApplication: False"
 print "Import_PoissonApplication: False"  
@@ -71,6 +72,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
     print "Import_ConstitutiveLawsApplication: "+str(Import_ConstitutiveLawsApplication)
     print "Import_ULFApplication: "+str(Import_ULFApplication)
     print "Import_MeshingApplication: "+str(Import_MeshingApplication)
+    print "Import_KratosMPISearchApplication:  "+str(Import_KratosMPISearchApplication)
     print "Import_KratosTrilinosApplication: "+str(Import_KratosTrilinosApplication)
     print "Import_KratosMetisApplication: "+str(Import_KratosMetisApplication)
     print "Import_PoissonApplication: "+str(Import_PoissonApplication)
@@ -184,6 +186,14 @@ def ImportApplications(kernel, applications_path=application_directory ):
         mkl_solvers_application = KratosMKLSolversApplication()
         kernel.AddApplication(mkl_solvers_application)
         print "KratosMKLSolversApplication sucessfully imported"
+        
+    if(Import_KratosMPISearchApplication == True):
+        print "importing KratosMPISearchApplication ..."
+        sys.path.append(applications_path + '/mpi_search_application/python_scripts')
+        from KratosMPISearchApplication import *
+        mpi_search_application = KratosMPISearchApplication()
+        kernel.AddApplication(mpi_search_application)
+        print "KratosMPISearchApplication sucessfully imported"
 
     if(Import_KratosTrilinosApplication == True):
         print "importing KratosTrilinosApplication ..."
@@ -319,6 +329,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
         kernel.InitializeApplication(meshing_application);
     if(Import_KratosMKLSolversApplication == True):
         kernel.InitializeApplication(mkl_solvers_application);
+    if(Import_KratosMPISearchApplication == True):
+        kernel.InitializeApplication(mpi_search_application);
     if(Import_KratosTrilinosApplication == True):
         kernel.InitializeApplication(trilinos_application);
     if(Import_KratosMetisApplication == True):
