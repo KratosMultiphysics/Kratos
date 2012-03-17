@@ -52,9 +52,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <queue>
-
-#include <omp.h>
-
+#include "utilities/openmp_utils.h"
+//#include <omp.h>
 namespace Kratos {
 
 template<  std::size_t TDimension,
