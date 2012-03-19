@@ -57,6 +57,13 @@ REQUIRED LIBRARIES:
   by adding at the beginning of your configuration script (or in your .bashrc)
 
            export BOOST_ROOT=/path/to/your/boost
+	
+  Python library: this library is normally included in the python-dev package and needs to be present as a shared-library (.so or .dll).
+  If more than one library is present in the system, the user can control which one to link to by (for example) setting
+  
+		-DPYTHON_LIBRARY="/usr/lib64/libpython2.6.so"
+		-DPYTHON_INCLUDE_DIR="/usr/include/python2.6"
+   
 
 OPTIONAL LIBRARIES 
    BLAS and LAPACK: 	--> Needed for "External Solvers Application" and for "Trilinos App"
