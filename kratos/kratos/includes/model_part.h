@@ -132,6 +132,9 @@ namespace Kratos
         typedef unsigned int IndexType;
 
         typedef unsigned int SizeType;
+		
+		typedef Dof<double> DofType;
+        typedef PointerVectorSet<DofType, IdentityFunction<DofType> > DofsArrayType;
 
         typedef Node < 3 > NodeType;
         typedef Properties PropertiesType;

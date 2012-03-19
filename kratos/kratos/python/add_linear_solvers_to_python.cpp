@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/mixedup_linear_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -88,6 +89,7 @@ typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
 typedef IterativeSolver<SpaceType,  LocalSpaceType> IterativeSolverType;
 typedef CGSolver<SpaceType,  LocalSpaceType> CGSolverType;
 typedef DeflatedCGSolver<SpaceType,  LocalSpaceType> DeflatedCGSolverType;
+typedef MixedUPLinearSolver<SpaceType,  LocalSpaceType> MixedUPLinearSolverType;
 typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
 typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
 typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
@@ -197,6 +199,10 @@ typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverTy
 		  //.def("",&LinearSolverType::)
 		  .def(self_ns::str(self))
 		  ;
+		  
+		class_<MixedUPLinearSolverType, MixedUPLinearSolverType::Pointer, bases<IterativeSolverType> >("MixedUPLinearSolver",init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
+		    .def(self_ns::str(self))
+		  ;	
 
 //	typedef SuperLUSolver<SparseSpaceType, LocalSpaceType> SuperLUSolverType;
 //	class_<SuperLUSolverType, bases<DirectSolverType>, boost::noncopyable >

@@ -408,8 +408,10 @@ namespace Kratos {
 		    }
 		 }
 		
-		if(max_aux_dist_on_cut < 1e-10)
-		  max_aux_dist_on_cut = 1e-10;
+/*		if(max_aux_dist_on_cut < 1e-10)
+		  max_aux_dist_on_cut = 1e-10;*/
+		if(max_aux_dist_on_cut < 1e-9*max_lenght)
+		  max_aux_dist_on_cut =  1e-9*max_lenght;
 		
                 for (int i = 0; i < number_of_partitions; i++) {
                     //compute enriched shape function values
@@ -426,6 +428,9 @@ namespace Kratos {
                         rPartitionsSign[i] = 1.0;
 
                     NEnriched(i, 0) = 0.5 * (abs_dist - rPartitionsSign[i] * dist);
+		    
+		    //normalizing 
+		    NEnriched(i, 0) /= max_aux_dist_on_cut;
 /*KRATOS_WATCH(abs_dist);
 KRATOS_WATCH(dist);
 KRATOS_WATCH(rPartitionsSign);
@@ -433,18 +438,20 @@ KRATOS_WATCH(abs_distance_gradient);
 KRATOS_WATCH(exact_distance_gradient);*/
                     //compute shape function gradients
                     for (int j = 0; j < 3; j++)
-                        rGradientsValue[i](0, j) = 0.5 * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
+		    {
+                        rGradientsValue[i](0, j) = (0.5/max_aux_dist_on_cut) * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
+		    }
 		    
 
                 }
             }
-//             else
-// 	    {
-// 	      NEnriched(0,0) = 0.0;
-// 	      
-// 	      for (int j = 0; j < 3; j++)
-//                         rGradientsValue[0](0, j) = 0.0;
-// 	    }
+            else
+	    {
+	      NEnriched(0,0) = 0.0;
+	      
+	      for (int j = 0; j < 3; j++)
+                        rGradientsValue[0](0, j) = 0.0;
+	    }
 	    
 // 	    for (unsigned int i=0; i<4; i++)
 // 	    {
