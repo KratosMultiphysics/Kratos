@@ -146,6 +146,33 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+	  /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function tells if the solver requires such data
+     */
+    virtual bool AdditionalPhysicalDataIsNeeded()
+    {
+        return mp_linear_solver->AdditionalPhysicalDataIsNeeded();
+    }
+
+    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function is the place to eventually provide such data
+     */
+    void ProvideAdditionalData(
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart& r_model_part
+    )
+    {
+		mp_linear_solver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
+	}
       
       /** Normal solve method.
 	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 

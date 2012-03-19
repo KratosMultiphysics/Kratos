@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -505,7 +505,10 @@ namespace Kratos
                 norm_b = 0.00;
 
             if (norm_b != 0.00)
+			{		
+				//do solve
                 BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+			}
             else
                 TSparseSpace::SetToZero(Dx);
 
@@ -519,6 +522,46 @@ namespace Kratos
 
         }
 
+        void SystemSolveWithPhysics(
+                TSystemMatrixType& A,
+                TSystemVectorType& Dx,
+                TSystemVectorType& b,
+				ModelPart& r_model_part
+                )
+        {
+            KRATOS_TRY
+
+                    double norm_b;
+            if (TSparseSpace::Size(b) != 0)
+                norm_b = TSparseSpace::TwoNorm(b);
+            else
+                norm_b = 0.00;
+
+            if (norm_b != 0.00)
+			{
+				//provide physical data as needed
+				if(BaseType::mpLinearSystemSolver->AdditionalPhysicalDataIsNeeded() )
+					BaseType::mpLinearSystemSolver->ProvideAdditionalData(A, Dx, b, BaseType::mDofSet, r_model_part);
+				
+				//do solve
+                BaseType::mpLinearSystemSolver->Solve(A, Dx, b);
+			}
+            else
+			{
+                TSparseSpace::SetToZero(Dx);
+				std::cout << "ATTENTION! settign the RHS to zero!" << std::endl;
+			}
+
+            //prints informations about the current time
+            if (this->GetEchoLevel() > 1)
+            {
+                std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
+            }
+
+            KRATOS_CATCH("")
+
+        }
+		
         //**************************************************************************
         //**************************************************************************
 
@@ -561,7 +604,7 @@ namespace Kratos
             // 			boost::timer solve_time;
             Timer::Start("Solve");
 
-            SystemSolve(A, Dx, b);
+            SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
             Timer::Stop("Solve");
 

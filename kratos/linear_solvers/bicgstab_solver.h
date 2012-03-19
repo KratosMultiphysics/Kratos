@@ -359,7 +359,7 @@ namespace Kratos
 	    omega = TSparseSpaceType::Dot(qs,qs);
 
 	    //if(omega == 0.00)
-	    if(fabs(omega) <= 1.0e-30)
+	    if(fabs(omega) <= 1.0e-40)
 	      break;
 // KRATOS_WATCH("ln356");
 	    omega = TSparseSpaceType::Dot(qs,s) / omega;
@@ -371,7 +371,7 @@ namespace Kratos
 	    roh1 = TSparseSpaceType::Dot(r,rs);
 
 	    //if((roh0 == 0.00) || (omega == 0.00))
-	    if((fabs(roh0) <= 1.0e-30) || (fabs(omega) <= 1.0e-30))
+	    if((fabs(roh0) <= 1.0e-40) || (fabs(omega) <= 1.0e-40))
 	      break;
 	    
 	    beta = (roh1 * alpha) / (roh0 * omega);

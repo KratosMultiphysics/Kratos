@@ -141,7 +141,7 @@ namespace Kratos
         //		typedef boost::shared_ptr< Scheme< TSparseSpace,TDenseSpace > > Pointer;
         KRATOS_CLASS_POINTER_DEFINITION(Scheme);
 
-        typedef Dof<TDataType> TDofType;
+        typedef Dof<double> TDofType;
         typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
         /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
         typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;

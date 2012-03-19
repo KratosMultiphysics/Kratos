@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Project includes */
 #include "includes/model_part.h"
 #include "includes/define.h"
+#include "includes/dof.h"
 
 namespace Kratos
 {
@@ -125,7 +126,7 @@ namespace Kratos
         typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
         typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
-        typedef Dof<TDataType> TDofType;
+        typedef Dof<double> TDofType;
         typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
         /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
 

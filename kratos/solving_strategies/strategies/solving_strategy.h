@@ -139,8 +139,10 @@ namespace Kratos
         /** Counted pointer of ClassName */
         KRATOS_CLASS_POINTER_DEFINITION(SolvingStrategy);
 
-        typedef Dof<TDataType> TDofType;
-        typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+		typedef typename ModelPart::DofType TDofType;
+		typedef typename ModelPart::DofsArrayType DofsArrayType;
+        //typedef Dof<TDataType> TDofType;
+        //typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
         /* 		typedef PointerVectorSet<TDofType, IndexedObject> DofsArrayType; */
         typedef typename PointerVectorSet<TDofType, IndexedObject>::iterator DofIterator;
         typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;

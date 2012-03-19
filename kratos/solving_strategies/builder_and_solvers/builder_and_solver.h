@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 
 //default linear solver
-#include "linear_solvers/linear_solver.h"
+//#include "linear_solvers/linear_solver.h"
 
 
 namespace Kratos
@@ -139,8 +139,12 @@ namespace Kratos
 
         typedef Scheme<TSparseSpace, TDenseSpace> TSchemeType;
 
-        typedef Dof<TDataType> TDofType;
-        typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+		typedef ModelPart::DofType TDofType;
+		typedef ModelPart::DofsArrayType DofsArrayType;
+		
+        //typedef Dof<TDataType> TDofType;
+        //typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+		
         typedef typename DofsArrayType::iterator DofIterator;
         typedef typename DofsArrayType::const_iterator DofConstantIterator;
 
