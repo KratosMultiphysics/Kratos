@@ -28,6 +28,7 @@
 
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos {
 

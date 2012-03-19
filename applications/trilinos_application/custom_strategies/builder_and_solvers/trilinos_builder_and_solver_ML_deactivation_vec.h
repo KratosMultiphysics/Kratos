@@ -156,12 +156,12 @@ namespace Kratos
 	class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
 	>
 	class TrilinosBuilderAndSolverMLDeactivation2D 
-		: public  TrilinosBuilderAndSolverMLDeactivation < TSparseSpace,TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace> >
+		: public  TrilinosBuilderAndSolverMLDeactivation < TSparseSpace,TDenseSpace, TLinearSolver >
 
 	{
 	public:
 
-		typedef BuilderAndSolver<TSparseSpace,TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace> > BaseType;
+		typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver > BaseType;
 
 		typedef TSparseSpace SparseSpaceType;
 

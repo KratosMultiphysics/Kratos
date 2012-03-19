@@ -219,7 +219,8 @@ namespace Kratos
                     .def("ViscosityCorrectionStep", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ViscosityCorrectionStep)
                     .def("ComputeViscousForces", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeViscousForces)
                     .def("ComputeReactions", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeReactions)
-                    ;
+                    .def("ComputeMinimum_Havg", &FluidSolver < 2, MatrixContainer < 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeMinimum_Havg)
+                     ;
 
             class_< FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType>, boost::noncopyable > ("FluidSolver3D", init < MatrixContainer < 3, SparseSpaceType>&, ModelPart&, const double, const double, const Vector, bool, double, double, double, double, bool >())
                     .def("Initialize", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::Initialize)
@@ -234,6 +235,7 @@ namespace Kratos
                     .def("ViscosityCorrectionStep", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ViscosityCorrectionStep)
                     .def("ComputeViscousForces", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeViscousForces)
                     .def("ComputeReactions", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeReactions)
+                    .def("ComputeMinimum_Havg", &FluidSolver < 3, MatrixContainer < 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeMinimum_Havg)
                     ;
 
 

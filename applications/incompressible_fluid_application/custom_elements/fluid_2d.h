@@ -252,6 +252,8 @@ namespace Kratos
                 const double& C,
                 const double nu
                 );
+				
+		void AssignConsistentMassMatrixCoefficients(boost::numeric::ublas::bounded_matrix<double, 3,3 >& m);
 
         ///@}
         ///@name Private Operations

@@ -157,7 +157,7 @@ class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
 >
 
 class TrilinosMultiphaseBuilderAndSolver
-            : public BuilderAndSolver< TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace, TDenseSpace> >
+            : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
     /**@name Type Definitions */
@@ -166,7 +166,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( TrilinosMultiphaseBuilderAndSolver );
 
 
-    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, LinearSolver<TSparseSpace, TDenseSpace> > BaseType;
+    typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > BaseType;
 
     typedef TSparseSpace SparseSpaceType;
 
@@ -801,8 +801,8 @@ public:
 
             //verify that the communication graph is correct
             KRATOS_WATCH("checking graph");
-            for (unsigned int i=0; i<num_processors; i++)
-                for (unsigned int j=0; j<max_color_found; j++)
+            for ( int i=0; i<num_processors; i++)
+                for (int j=0; j<max_color_found; j++)
                 {
 
                     int ij_entry = dense_colored_graph(i, j);
@@ -815,7 +815,7 @@ public:
                     }
                     else
                     {
-                        for (unsigned int k=0; k<num_processors;k++)
+                        for (int k=0; k<num_processors;k++)
                         {
                             if (dense_colored_graph(k, j) == i)
                             {

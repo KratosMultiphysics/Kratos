@@ -34,6 +34,7 @@ def ReadRestartFile(FileName,nodes):
    for line in aaa:
        exec(line)
           
+import math
 
 class XIVASSolver:
     
@@ -49,7 +50,7 @@ class XIVASSolver:
 
 
         #assignation of parameters to be used
-	self.assume_constant_pressure =  True
+	self.assume_constant_pressure =  False
 	self.stabdt_pressure_factor = 1.0
 	self.use_mass_correction = False
         self.echo_level = 0
@@ -72,10 +73,22 @@ class XIVASSolver:
 	self.substeps = 2.0
 	self.restart_with_eulerian_vel = False
 	
-	self.max_particles_in_element = 7
-	self.min_particles_in_element = 1
+	self.max_particles_in_element = 7 #7
+	self.min_particles_in_element = 3 #1
 	
 	self.perform_cheap_correction_step = True
+	#self.implicit_viscous_correction = True
+	
+	#assign nodal H
+	aux = CalculateNodalAreaProcess(fluid_model_part,domain_size)
+	aux.Execute()
+	for node in fluid_model_part.Nodes:
+	    a = node.GetSolutionStepValue(NODAL_AREA);
+	    h = math.sqrt(2.0*a);
+	    if(h == 0):
+	      print "node ", node.Id, " has zero h"
+	      raise "error, node found with 0 h"
+	    node.SetSolutionStepValue(NODAL_H,0,h)
         
 
 
@@ -117,9 +130,13 @@ class XIVASSolver:
         
 	(self.fluid_solver.fluid_solver).ComputeViscousForces()
 	print "ccc"
-	self.particle_utils.StreamlineMove(self.bf,self.density,Dt,self.substeps,self.fluid_model_part,self.particle_model_part,self.restart_with_eulerian_vel,self.node_locator)
-	
+	#self.particle_utils.StreamlineMove(self.bf,self.density,Dt,self.substeps,self.fluid_model_part,self.particle_model_part,self.restart_with_eulerian_vel,self.node_locator)
+	self.particle_utils.StreamlineMove(self.bf,self.density,Dt,self.fluid_model_part,self.particle_model_part,self.restart_with_eulerian_vel,self.node_locator)
+		
 	self.particle_utils.TransferToEulerianMeshShapeBased(self.fluid_model_part,self.particle_model_part,self.node_locator)
+	
+	#if(self.implicit_viscous_correction == True):
+	  #(self.fluid_solver.fluid_solver).ViscosityCorrectionStep()
 
         (self.fluid_solver.fluid_solver).ComputePressureStabilization()
 
@@ -138,7 +155,8 @@ class XIVASSolver:
 	self.particle_utils.ReseedEmptyElements(self.fluid_model_part,self.particle_model_part,self.node_locator,self.min_particles_in_element,self.max_particles_in_element)
         
         if(self.compute_reactions == True):
-            (self.fluid_solver.fluid_solver).ComputeReactions()
+	    exclude_convection_terms = True
+            (self.fluid_solver.fluid_solver).ComputeReactions(exclude_convection_terms)
 
     def Clear(self):
         (self.fluid_solver.fluid_solver).Clear()

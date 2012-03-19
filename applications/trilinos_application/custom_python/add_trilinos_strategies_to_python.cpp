@@ -83,7 +83,7 @@
 #include "custom_strategies/strategies/trilinos_fractionalstep_configuration.h"
 #include "incompressible_fluid_application/custom_strategies/strategies/fractional_step_strategy.h"
 #include "incompressible_fluid_application/incompressible_fluid_application.h"
-
+#include "linear_solvers/linear_solver.h"
 
 
 namespace Kratos

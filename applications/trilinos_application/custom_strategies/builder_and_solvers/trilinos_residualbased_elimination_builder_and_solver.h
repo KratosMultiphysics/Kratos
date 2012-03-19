@@ -152,7 +152,7 @@ namespace Kratos
 	class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
 	>
 	class TrilinosResidualBasedEliminationBuilderAndSolver 
-		: public BuilderAndSolver< TSparseSpace,TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace> >
+		: public BuilderAndSolver< TSparseSpace,TDenseSpace, TLinearSolver  >
 	{
 	public:
 		/**@name Type Definitions */       
@@ -161,7 +161,7 @@ namespace Kratos
 		KRATOS_CLASS_POINTER_DEFINITION( TrilinosResidualBasedEliminationBuilderAndSolver );
 
 
-		typedef BuilderAndSolver<TSparseSpace,TDenseSpace, LinearSolver<TSparseSpace,TDenseSpace> > BaseType;
+		typedef BuilderAndSolver<TSparseSpace,TDenseSpace, TLinearSolver > BaseType;
 
 		typedef TSparseSpace SparseSpaceType;
 
