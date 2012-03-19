@@ -446,8 +446,11 @@ namespace Kratos
 			IteratorType j = right;
 			for(;;) 
 			{
-			   while ((**(++i))[CuttingDimension] < value);
-			   while ((**(--j))[CuttingDimension] > value);
+			   while ((**(++i))[CuttingDimension] < value)
+			   ;
+			   
+			   while ((**(--j))[CuttingDimension] > value)
+			   ;
                if (i < j) std::swap(*i,*j); else break;
 			}
 			std::swap(*left,*j);
