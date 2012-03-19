@@ -1344,7 +1344,7 @@ namespace Kratos {
 	    KRATOS_CATCH("")
 	}
 	
-        void ComputeReactions()
+        void ComputeReactions(bool exclude_convection_terms)
 	{
 	    KRATOS_TRY
 
@@ -1374,46 +1374,93 @@ namespace Kratos {
 	    double delta_t = CurrentProcessInfo[DELTA_TIME];
 	    double dt_inv = 1.0/delta_t;
 	    
-	    #pragma omp parallel for private(stab_low,stab_high)
-	    for (int i_node = 0; i_node < n_nodes; i_node++) {
-		    array_1d<double, TDim>& rhs_i = rhs[i_node];
-		    const array_1d<double, TDim>& f_i = mBodyForce;
-		    array_1d<double, TDim> a_i = mvel_n1[i_node];
+		if(exclude_convection_terms == true)
+		{
+			#pragma omp parallel for private(stab_low,stab_high)
+			for (int i_node = 0; i_node < n_nodes; i_node++) {
+				array_1d<double, TDim>& rhs_i = rhs[i_node];
+				const array_1d<double, TDim>& f_i = mBodyForce;
+				array_1d<double, TDim> a_i = mvel_n1[i_node];
 
-		    const array_1d<double, TDim>& U_i = mvel_n1[i_node];
-		    const array_1d<double, TDim>& pi_i = mPi[i_node];
-		    const double& p_i = mPn1[i_node];
+				const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+				const array_1d<double, TDim>& pi_i = mPi[i_node];
+				const double& p_i = mPn1[i_node];
 
-		    double edge_tau = mTauConvection[i_node];
+				double edge_tau = mTauConvection[i_node];
 
-		    //initializing with the external forces (e.g. gravity)
-		    double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
-		    for (unsigned int comp = 0; comp < TDim; comp++)
-			rhs_i[comp] = m_i  * f_i[comp] ;
+				//initializing with the external forces (e.g. gravity)
+				double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+				for (unsigned int comp = 0; comp < TDim; comp++)
+				rhs_i[comp] = m_i  * f_i[comp] ;
 
-		    //convective term
-		    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
-			unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-			    array_1d<double, TDim> a_j = mvel_n1[j_neighbour];
-			    const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
-			    const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
-			    const double& p_j = mPn1[j_neighbour];
+				//convective term
+				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+				unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+					array_1d<double, TDim> a_j = mvel_n1[j_neighbour];
+					const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+					const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
+					const double& p_j = mPn1[j_neighbour];
 
-			    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
-			    edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
-			    
-			    edge_ij.Add_Gp(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-// 			    edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-			    edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
+				    edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
+					
+					edge_ij.Add_Gp(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+	// 			    edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+					edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
 
-			    //add stabilization
-			    edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
-			    edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
+					//add stabilization
+		//		    edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
+			//	    edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
 
-			    edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
-		    }
-	    }
+				//    edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
+				}
+			}
+		}
+		else
+		{
+			#pragma omp parallel for private(stab_low,stab_high)
+			for (int i_node = 0; i_node < n_nodes; i_node++) {
+				array_1d<double, TDim>& rhs_i = rhs[i_node];
+				const array_1d<double, TDim>& f_i = mBodyForce;
+				array_1d<double, TDim> a_i = mvel_n1[i_node];
+
+				const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+				const array_1d<double, TDim>& pi_i = mPi[i_node];
+				const double& p_i = mPn1[i_node];
+
+				double edge_tau = mTauConvection[i_node];
+
+				//initializing with the external forces (e.g. gravity)
+				double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
+				for (unsigned int comp = 0; comp < TDim; comp++)
+				rhs_i[comp] = m_i  * f_i[comp] ;
+
+				//convective term
+				for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++) {
+				unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+					array_1d<double, TDim> a_j = mvel_n1[j_neighbour];
+					const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+					const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
+					const double& p_j = mPn1[j_neighbour];
+
+					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+				    edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
+					
+					edge_ij.Add_Gp(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+	// 			    edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
+					edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
+
+					//add stabilization
+				    edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
+				    edge_ij.CalculateConvectionStabilization_HIGH(stab_high, a_i, pi_i, a_j, pi_j);
+
+				    edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
+				}
+			}
+			
+		}
 	    
 	    //add inertia terms
 	    

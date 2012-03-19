@@ -126,6 +126,9 @@ class IncompressibleFluidSolver:
         self.predictor_corrector = bool(self.predictor_corrector)
         self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
+	self.solver.Check()
+	
+
         self.solver.ApplyFractionalVelocityFixity()
 
         ##generating the slip conditions

@@ -141,6 +141,8 @@ namespace Kratos
             rRightHandSideVector.resize(number_of_points, false); //false says not to preserve existing storage!!
 
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+		//AssignConsistentMassMatrixCoefficients(MassFactors);
+		
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
@@ -566,7 +568,9 @@ namespace Kratos
     {
         KRATOS_TRY
                 int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-        boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+//        boost::numeric::ublas::bounded_matrix<double, 3, 3 > MassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
+//		AssignConsistentMassMatrixCoefficients(MassFactors);
+		
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > WorkMatrix;
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
@@ -1063,6 +1067,15 @@ namespace Kratos
 	
         return h ;
     }
+	
+	void Fluid2D::AssignConsistentMassMatrixCoefficients(boost::numeric::ublas::bounded_matrix<double, 3,3 >& m)
+	{
+		const double one_sixt = 1.0/6.0;
+		const double one_third = 1.0/3.0;
+		m(0,0) = one_third; m(0,1) = one_sixt; m(0,2) = one_sixt;
+		m(1,0) = one_sixt; m(1,1) = one_third; m(1,2) = one_sixt;
+		m(2,0) = one_sixt; m(2,1) = one_sixt; m(2,2) = one_third;
+	}
 
     //#undef GRADPN_FORM
 } // Namespace Kratos

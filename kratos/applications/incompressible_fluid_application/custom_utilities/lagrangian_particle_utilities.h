@@ -504,7 +504,7 @@ namespace Kratos
         //**********************************************************************************************
         //**********************************************************************************************
 
-        void StreamlineMove(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
+        void StreamlineMove(array_1d<double, 3 > & body_force, const double density, const double dt, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
         {
             KRATOS_TRY
 
@@ -545,14 +545,17 @@ namespace Kratos
             const int max_results = 10000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
-            const double small_dt = dt / subdivisions;
 
             const int nparticles = rLagrangianModelPart.Nodes().size();
 //KRATOS_WATCH("551")
 #pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
             for (int i = 0; i < nparticles; i++)
             {
-                for (unsigned int substep = 0; substep < subdivisions; substep++)
+				unsigned int substep = 0;
+				unsigned int subdivisions = 1;
+				double small_dt = dt;
+				
+                while(substep++ < subdivisions)
                 {
                     ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 					(iparticle)->GetValue(ERASE_FLAG) = true;
@@ -571,11 +574,34 @@ namespace Kratos
                         (pparticle)->GetValue(IS_VISITED) = 1;
 
                         Geometry< Node < 3 > >& geom = pelement->GetGeometry();
-
-                        //move according to the streamline
+						
                         noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
                         for (unsigned int k = 1; k < geom.size(); k++)
                             noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
+						
+						//compute adaptive subdivisions 
+						if(substep == 1)
+						{
+							//compute h
+							double h = N[0] * geom[0].FastGetSolutionStepValue(NODAL_H);
+							for (unsigned int k = 1; k < geom.size(); k++)
+								h += N[k] * geom[k].FastGetSolutionStepValue(NODAL_H);
+							
+							//compute number of subdivisions needed
+							const unsigned int min_subdivisions = 3;
+							const unsigned int max_subdivisions = 20;
+							double v = norm_2(veulerian);
+							double subdivisions = double(floor(2*dt*v/h));
+							subdivisions = (subdivisions<min_subdivisions) ? min_subdivisions : (subdivisions>max_subdivisions) ? max_subdivisions : subdivisions;
+
+							//compute subdivisions time step
+							small_dt = dt / subdivisions;
+							
+							//KRATOS_WATCH(subdivisions)
+							
+						}
+
+                        //move according to the streamline
 
                         array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
 
@@ -602,7 +628,7 @@ namespace Kratos
 
                         if (use_eulerian_velocity == true)
                         {
-                            if (substep == 0)
+                            if (substep == 1)
                             {
                                 //                                    noalias((*it_found)->FastGetSolutionStepValue(DISPLACEMENT)) = (*it_found)->FastGetSolutionStepValue(DISPLACEMENT,1);
                                 noalias(vel_particle) = veulerian;
@@ -663,7 +689,7 @@ namespace Kratos
             double density_inverse = 1.0 / density;
 
             array_1d<double, 3 > acc_particle;
-            array_1d<double, TDim + 1 > N;
+            array_1d<double, TDim + 1 > N; 
             const int max_results = 10000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 

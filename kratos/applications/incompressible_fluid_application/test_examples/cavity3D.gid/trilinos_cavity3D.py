@@ -172,8 +172,9 @@ for step in range(0,nsteps):
 
     #print the results
     if(out == output_step):
-        gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        local_nodes = model_part.GetCommunicator().LocalMesh().Nodes
+        gid_io.WriteNodalResults(PRESSURE,local_nodes,time,0)
+        gid_io.WriteNodalResults(VELOCITY,local_nodes,time,0)
         out = 0
     out = out + 1
     
