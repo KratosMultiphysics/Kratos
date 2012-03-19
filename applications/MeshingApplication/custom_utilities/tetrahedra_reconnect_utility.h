@@ -93,7 +93,7 @@ public:
         {
             std::cout << el_it->GetGeometry().Area() << std::endl;
 			
-			Geometry< Node<3> >& geom = it->GetGeometry();
+			Geometry< Node<3> >& geom = el_it->GetGeometry();
 			
 			for(unsigned int i=0; i<geom.size(); i++)
 			{
