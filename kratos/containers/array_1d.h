@@ -145,7 +145,7 @@ namespace Kratos
 		array_1d (size_type size, value_type v):
 			vector_expression<self_type> ()
 			{
-				std::fill (data().begin(), data().begin() + size, value_type());
+				std::fill (data().begin(), data().begin() + size, v);
 		}
 		BOOST_UBLAS_INLINE
 		array_1d (size_type size,	const array_type &data):
