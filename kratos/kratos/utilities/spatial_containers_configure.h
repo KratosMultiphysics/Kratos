@@ -98,17 +98,15 @@ class ContactPair
                 return ( (value[0] == Pair[0]) && (value[1] == Pair[1]) ) ;
 	     }
 	     
-    inline std::ostream& operator << (const ContactPair& Pair)
+    inline std::ostream& operator << (std::ostream& OStream)
          {
-	    std::ostream OStream;
-	    OStream << "Object 1 =  "<<  Pair[0] << "  " << "Object 2 =" << Pair[1] << std::endl;  
+	    OStream << "Object 1 =  "<<  value[0] << "  " << "Object 2 =" << value[1] << std::endl;
 	    return OStream;  
 	 }
 	 
-    inline std::ostream& operator << (const ContactPair& Pair) const
+    inline std::ostream& operator << (std::ostream& OStream) const
          {
-	    std::ostream OStream;
-	    OStream << "Object 1 =  "<<  Pair[0] << "  " << "Object 2 =" << Pair[1] << std::endl; 
+	    OStream << "Object 1 =  "<<  value[0] << "  " << "Object 2 =" << value[1] << std::endl;
 	    return OStream;
 	 }	 
     
@@ -122,7 +120,11 @@ class SpatialContainersConfigure
       ///@name Type Definitions
       ///@{
          
-      enum { Dimension = TDimension };
+      enum { Dimension = TDimension,
+             DIMENSION = TDimension,
+             MAX_LEVEL = 16,
+             MIN_LEVEL = 2
+      };
       typedef Point<Dimension, double>                        PointType;
       typedef std::vector<double>::iterator                   DistanceIteratorType;
       typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
