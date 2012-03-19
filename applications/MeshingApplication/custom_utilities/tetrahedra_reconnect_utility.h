@@ -92,6 +92,17 @@ public:
         for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
         {
             std::cout << el_it->GetGeometry().Area() << std::endl;
+			
+			Geometry< Node<3> >& geom = it->GetGeometry();
+			
+			for(unsigned int i=0; i<geom.size(); i++)
+			{
+				const double x = geom[i].X();
+				const double Y = geom[i].Y();
+				const double z = geom[i].Z();
+				geom[i].Id();
+				array_1d<double,3>& coords = geom[i].Coordinates();
+			}
         }
     }
 
