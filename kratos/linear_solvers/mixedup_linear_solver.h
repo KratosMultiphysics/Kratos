@@ -679,7 +679,7 @@ namespace Kratos
 				if (ru.size() != mother_indices.size() )
 					ru.resize (mother_indices.size(), false);
 				#pragma omp parallel for
-				for (unsigned int i = 0; i<ru.size(); i++)
+				for (int i = 0; i<static_cast<int>(ru.size()); i++)
 					ru[i] = rtot[mother_indices[i]];
 			}
 			
@@ -690,21 +690,21 @@ namespace Kratos
 				if (rp.size() != mpressure_indices.size() )
 					rp.resize (mpressure_indices.size(), false);
 				#pragma omp parallel for
-				for (unsigned int i = 0; i<rp.size(); i++)
+				for (int i = 0; i<static_cast<int>(rp.size()); i++)
 					rp[i] = rtot[mpressure_indices[i]];
 			}
 			
 			void WriteUPart (VectorType& rtot, const VectorType& ru)
 			{
 				#pragma omp parallel for
-				for (unsigned int i = 0; i<ru.size(); i++)
+				for (int i = 0; i< static_cast<int>(ru.size()); i++)
 					rtot[mother_indices[i]] = ru[i];
 			}
 			
 			void WritePPart (VectorType& rtot, const VectorType& rp)
 			{
 				#pragma omp parallel for
-				for (unsigned int i = 0; i<rp.size(); i++)
+				for (int i = 0; i< static_cast<int>(rp.size()); i++)
 					rtot[mpressure_indices[i]] = rp[i];
 			}
 			
@@ -716,7 +716,9 @@ namespace Kratos
 				const std::size_t* index1 = A.index1_data().begin();
 //        const std::size_t* index2 = A.index2_data().begin();
 				const double*	   values = A.value_data().begin();
-				for (unsigned int i=0; i<A.size1(); i++)
+				
+				#pragma omp parallel for
+				for (int i=0; i< static_cast<int>(A.size1()); i++)
 				{
 					unsigned int row_begin = index1[i];
 					unsigned int row_end   = index1[i+1];
@@ -755,8 +757,10 @@ namespace Kratos
 				//do allocation as needed (to be removed)
 				Vector rp (mpressure_indices.size() );
 				Vector ru (mother_indices.size() );
-				Vector p (mpressure_indices.size(),0.0);
-				Vector u (mother_indices.size(),0.0);
+				Vector p (mpressure_indices.size());
+				noalias(p) = ZeroVector(mother_indices.size());
+				Vector u (mother_indices.size());
+				noalias(u)  = ZeroVector(mother_indices.size());
 				Vector uaux (mother_indices.size() );
 				Vector paux (mpressure_indices.size() );
 				//get diagonal of K (to be removed)
@@ -788,7 +792,7 @@ namespace Kratos
 				//u = G*p
 				TSparseSpaceType::Mult (mG,p,uaux);
 				#pragma omp parallel for
-				for (unsigned int i=0; i<u.size(); i++)
+				for (int i=0; i< static_cast<int>(u.size()); i++)
 					u[i] += uaux[i]/diagK[i];
 				/*KRATOS_WATCH(TSparseSpaceType::TwoNorm(rp) );		*/
 				//write back solution
