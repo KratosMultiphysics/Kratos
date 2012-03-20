@@ -136,10 +136,8 @@ namespace Kratos
 			*/
 			virtual void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 			{
-//KRATOS_WATCH(175)
-//        mpsolver_UU_block->Initialize(rA, rX, rB);
-//        mpsolver_PP_block->Initialize(rA, rX, rB);
-//KRATOS_WATCH(177)
+				mpsolver_UU_block->Initialize(rA, rX, rB);
+				mpsolver_PP_block->Initialize(rA, rX, rB);
 				mis_initialized = true;
 			}
 			/** This function is designed to be called every time the coefficients change in the system
@@ -152,7 +150,6 @@ namespace Kratos
 			*/
 			virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 			{
-//KRATOS_WATCH(191)
 				//copy to local matrices
 				if (mBlocksAreAllocated == false)
 				{
@@ -164,11 +161,12 @@ namespace Kratos
 					FillBlockMatrices (false, rA, mK, mG, mD, mS);
 					mBlocksAreAllocated = true;
 				}
-//KRATOS_WATCH(202)
+
 				//initialize solvers
 				mpsolver_UU_block->InitializeSolutionStep (rA, rX, rB);
 				mpsolver_PP_block->InitializeSolutionStep (rA, rX, rB);
 			}
+			
 			/** This function actually performs the solution work, eventually taking advantage of what was done before in the
 			 * Initialize and InitializeSolutionStep functions.
 			@param rA. System matrix
@@ -215,21 +213,20 @@ namespace Kratos
 			guess for iterative linear solvers.
 			 @param rB. Right hand side vector.
 			*/
-			virtual bool Solve (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+			virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 			{
-				//	KRATOS_WATCH(263)
-				//KRATOS_WATCH(264)
 				if (mis_initialized == false)
 					this->Initialize (rA,rX,rB);
-//KRATOS_WATCH(266)
+
 				this->InitializeSolutionStep (rA,rX,rB);
-//KRATOS_WATCH(268)
+
 				this->PerformSolutionStep (rA,rX,rB);
-//KRATOS_WATCH(270)
+
 				this->FinalizeSolutionStep (rA,rX,rB);
-//KRATOS_WATCH(272)
+
 				return false;
 			}
+			
 			/** Multi solve method for solving a set of linear systems with same coefficient matrix.
 			Solves the linear system Ax=b and puts the result on SystemVector& rX.
 			rVectorx is also th initial guess for iterative methods.
@@ -242,12 +239,14 @@ namespace Kratos
 			{
 				return false;
 			}
+			
 			/** Eigenvalue and eigenvector solve method for derived eigensolvers */
 			virtual  void Solve (SparseMatrixType& K,
 			                     SparseMatrixType& M,
 			                     DenseVectorType& Eigenvalues,
 			                     DenseMatrixType& Eigenvectors)
 			{}
+			
 			/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
 			 * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
 			 * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -258,6 +257,7 @@ namespace Kratos
 			{
 				return true;
 			}
+			
 			/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
 			 * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
 			 * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -283,12 +283,11 @@ namespace Kratos
 							n_pressure_dofs += 1;
 					}
 				if (tot_active_dofs != rA.size1() )
-					KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","")
-//KRATOS_WATCH(tot_active_dofs)
-//KRATOS_WATCH(n_pressure_dofs)
+					KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
+
 					//resize arrays as needed
 					mpressure_indices.resize (n_pressure_dofs,false);
-//KRATOS_WATCH(340)
+
 				unsigned int other_dof_size = tot_active_dofs - n_pressure_dofs;
 				mother_indices.resize (other_dof_size,false);
 				mglobal_to_local_indexing.resize (tot_active_dofs,false);
@@ -322,9 +321,6 @@ namespace Kratos
 						global_pos++;
 					}
 				}
-//KRATOS_WATCH(mpressure_indices)
-//KRATOS_WATCH(mother_indices)
-//KRATOS_WATCH(mglobal_to_local_indexing)
 			}
 			///@}
 			///@name Access
@@ -373,11 +369,7 @@ namespace Kratos
 				const std::size_t* index1 = rA.index1_data().begin();
 				const std::size_t* index2 = rA.index2_data().begin();
 				const double*	   values = rA.value_data().begin();
-				/*KRATOS_WATCH(rA.size1());
-				KRATOS_WATCH(rA.size2());
-				KRATOS_WATCH(mother_indices.size());
-				KRATOS_WATCH(mpressure_indices.size());
-				KRATOS_WATCH(mglobal_to_local_indexing.size());*/
+
 				SparseMatrixType L(mpressure_indices.size(),mpressure_indices.size() );
 
 				if (need_allocation == true)
@@ -402,7 +394,7 @@ namespace Kratos
 						unsigned int row_begin = index1[i];
 						unsigned int row_end   = index1[i+1];
 						unsigned int local_row_id = mglobal_to_local_indexing[i];
-//KRATOS_WATCH(aux);
+
 						if ( mis_pressure_block[i] == false) //either K or G
 						{
 							for (unsigned int j=row_begin; j<row_end; j++)
@@ -722,9 +714,11 @@ namespace Kratos
 				{
 					unsigned int row_begin = index1[i];
 					unsigned int row_end   = index1[i+1];
-					diagA[i] = 0.0;
+					double temp = 0.0;
 					for (unsigned int j=row_begin; j<row_end; j++)
-						diagA[i] += values[j];
+						temp += values[j]*values[j];
+						
+					diagA[i] = sqrt(temp);
 				}
 			}
 			
@@ -788,13 +782,14 @@ namespace Kratos
 				//p = S⁻1*rp
 				mpsolver_PP_block->Solve (mS,p,rp);
 				/*KRATOS_WATCH(TSparseSpaceType::TwoNorm(p) );		*/
+				
 				//correct u block
 				//u = G*p
 				TSparseSpaceType::Mult (mG,p,uaux);
 				#pragma omp parallel for
 				for (int i=0; i< static_cast<int>(u.size()); i++)
 					u[i] += uaux[i]/diagK[i];
-				/*KRATOS_WATCH(TSparseSpaceType::TwoNorm(rp) );		*/
+					
 				//write back solution
 				WriteUPart (x,u);
 				WritePPart (x,p);
