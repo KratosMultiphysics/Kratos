@@ -204,7 +204,9 @@ namespace Kratos
 				mBlocksAreAllocated = false;
 				mpsolver_UU_block->Clear();
 				mpsolver_PP_block->Clear();
+				mis_initialized = false;
 			}
+			
 			/** Normal solve method.
 			Solves the linear system Ax=b and puts the result on SystemVector& rX.
 			rVectorx is also th initial guess for iterative methods.
