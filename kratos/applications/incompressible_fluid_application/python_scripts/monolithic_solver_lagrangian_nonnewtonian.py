@@ -71,22 +71,20 @@ class MonolithicSolver:
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
 ##        self.linear_solver =  SkylineLUFactorizationSolver()
-#        self.linear_solver = SuperLUSolver()
+##        self.linear_solver = SuperLUSolver()
 ##        self.linear_solver = SuperLUIterativeSolver()
-        if(domain_size == 2):
-            self.linear_solver = MKLPardisoSolver()
-        elif(domain_size == 3):
+
+        self.linear_solver = MKLPardisoSolver()
+
 ##            pPrecond = DiagonalPreconditioner()
-            pPrecond = ILU0Preconditioner()
-            self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+##            pPrecond = ILU0Preconditioner()
+##            self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 ####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
-        self.conv_criteria = UPCriteria(5e-4,1e-5,5e-3,1e-5)
-##        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
-##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
-       # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
+        self.conv_criteria = VelPrCriteria(5e-4,1e-5,5e-3,1e-5)
+
 
         self.max_iter = 20
 
