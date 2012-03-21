@@ -129,12 +129,12 @@ typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverTy
   class_<LinearSolverType, LinearSolverType::Pointer>("LinearSolver")
 		  .def("Initialize",&LinearSolverType::Initialize)
 		  .def("Solve",pointer_to_solve)
+		  .def("Clear",&LinearSolverType::Clear)
 		  //.def("",&LinearSolverType::)
 		  .def(self_ns::str(self))
 		  ;
 
   class_<IterativeSolverType, IterativeSolverType::Pointer, bases<LinearSolverType> >("IterativeSolver")
-		  //.def("",&LinearSolverType::)
 		  .def(self_ns::str(self))
 		  ;
 
