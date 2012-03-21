@@ -173,6 +173,31 @@ namespace Kratos
     {
 		mp_linear_solver->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
 	}
+	
+	    virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        mp_linear_solver->InitializeSolutionStep(rA,rX,rB);
+    }
+
+    /** This function is designed to be called at the end of the solve step.
+     * for example this is the place to remove any data that we do not want to save for later
+    @param rA. System matrix
+    @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
+    @param rB. Right hand side vector.
+    */
+    virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        mp_linear_solver->FinalizeSolutionStep(rA,rX,rB);
+    }
+	
+    /** This function is designed to clean up all internal data in the solver.
+     * Clear is designed to leave the solver object as if newly created.
+     * After a clear a new Initialize is needed
+     */
+    virtual void Clear()
+    {
+         mp_linear_solver->Clear();
+    }
       
       /** Normal solve method.
 	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
