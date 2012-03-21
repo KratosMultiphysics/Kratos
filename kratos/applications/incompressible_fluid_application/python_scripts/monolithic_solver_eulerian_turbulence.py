@@ -164,7 +164,7 @@ class MonolithicSolver:
         distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
 
         non_linear_tol = 0.001
-        max_it = 3
+        max_it = 10
         reform_dofset = self.ReformDofSetAtEachStep
         time_order = 2
         pPrecond = DiagonalPreconditioner()
