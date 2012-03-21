@@ -292,33 +292,7 @@ namespace Kratos
 		KRATOS_TRY
 		array_1d<double,2> ms_aux_gp;// = ZeroVector(2); 
 		//save original Area
-		mA0 = GeometryUtils::CalculateVolume2D(GetGeometry());
-		array_1d<double,2> ms_vel_gauss;// = ZeroVector(2); 
-		array_1d<double,3> msN;// = ZeroVector(3);
-		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;// = ZeroMatrix(3,2);
-
-		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-		double p2 = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE);
-		
-		array_1d<double,3>& press_proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
-		array_1d<double,3>& press_proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);				
-		array_1d<double,3>& press_proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);			
-		//Saving pressure gradient projection term to be used for stabilization in the contin eq.
-		/////////////////////////////////////////////////////////////////////////////////
-		ms_aux_gp[0] = msDN_DX(0,0)*(p0) + msDN_DX(1,0)*(p1) + msDN_DX(2,0)*(p2);
-		ms_aux_gp[1] = msDN_DX(0,1)*(p0) + msDN_DX(1,1)*(p1) + msDN_DX(2,1)*(p2);
-		ms_vel_gauss *= mA0;
-		//KRATOS_WATCH(msN)
-		//press_proj += G*p
-  		press_proj0[0] += msN[0]*ms_aux_gp[0]; 
- 		press_proj0[1] += msN[0]*ms_aux_gp[1]; 
-
-		press_proj1[0] += msN[1]*ms_aux_gp[0]; 
-		press_proj1[1] += msN[1]*ms_aux_gp[1]; 
-                        
-		press_proj2[0] += msN[2]*ms_aux_gp[0]; 
-		press_proj2[1] += msN[2]*ms_aux_gp[1]; 
+		mA0 = GeometryUtils::CalculateVolume2D(GetGeometry());		
 		
 		KRATOS_CATCH("");
 	}
