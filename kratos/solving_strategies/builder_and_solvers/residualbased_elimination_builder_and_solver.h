@@ -593,7 +593,7 @@ namespace Kratos
             //does nothing...dirichlet conditions are naturally dealt with in defining the residual
             ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-            if (this->GetEchoLevel() == 3)
+	    if (this->GetEchoLevel() == 3)
             {
                 std::cout << "before the solution of the system" << std::endl;
                 std::cout << "System Matrix = " << A << std::endl;
@@ -685,7 +685,7 @@ namespace Kratos
 
             // assemble all conditions
             for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-            {
+            {  
                 //calculate elemental contribution
                 pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -981,6 +981,8 @@ namespace Kratos
                 TSparseSpace::Clear((this->mpReactionsVector));
             // 			this->mReactionsVector = TSystemVectorType();
 
+	    this->mpLinearSystemSolver->Clear();
+ 
             if (this->GetEchoLevel() > 0)
             {
 
