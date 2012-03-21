@@ -416,8 +416,7 @@ namespace Kratos
 							{
 								unsigned int col_index = index2[j];
 								double value = values[j];
-								int col_aux = mglobal_to_local_indexing[col_index];
-								unsigned int local_col_id = fabs (col_aux);
+								unsigned int local_col_id = mglobal_to_local_indexing[col_index];
 								if (mis_pressure_block[col_index] == false) //D block
 									D.push_back ( local_row_id, local_col_id, value);
 								else //S block
