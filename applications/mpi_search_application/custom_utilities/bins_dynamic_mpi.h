@@ -180,7 +180,6 @@ namespace Kratos {
 	    GenerateBins();
 	   
 	    //Set up MPI interface for dynamic bins
-	    //TODO: Separate function as is not inherent par of the bins
 	    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
 	    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 	    
@@ -346,17 +345,10 @@ namespace Kratos {
             mNumPoints++;
          }
          
-        ////////////////////////////////////////////////////////////////////////////
-        //// GLOBAL DOMAIN														////
-        ////////////////////////////////////////////////////////////////////////////
+        //************************************************************************
          
 		void MPI_ExistPoint( PointerType const& ThisPoint, PointerType ResultNearest, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
 		{
-	  
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			// 	DATA PARTITIONING 																		//
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			
 			PointerType Nearest, remoteNearest[mpi_size], resultNearest[mpi_size], remoteThisPoint[mpi_size];
 			CoordinateType Distance, remoteDistance[mpi_size], resultDistance[mpi_size];
 			bool Found, remoteFound[mpi_size], resultFound[mpi_size];
@@ -379,8 +371,8 @@ namespace Kratos {
 			
 			MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
 			
-			char * mpi_send_buffer = new char [(msgRecvSize+1)];
-			char * mpi_recv_buffer = new char [(msgRecvSize+1) * mpi_size];
+			char mpi_send_buffer[(msgRecvSize+1)];
+			char mpi_recv_buffer[(msgRecvSize+1) * mpi_size];
 			
 			strcpy (mpi_send_buffer, serializer_buffer->str().c_str());
 			mpi_send_buffer[msgSendSize] = '\0';
@@ -397,9 +389,9 @@ namespace Kratos {
 					(*serializer_buffer) << mpi_recv_buffer[(msgRecvSize+1)*i+j];
 			  	}
 				  
-			  	remoteThisPoint[i] = new PointType();
-			  	remoteNearest[i] = new PointType();
-			  	remoteDistance[i] = static_cast<CoordinateType>(DBL_MAX);
+			  	remoteThisPoint[i]	= new PointType();
+			  	remoteNearest[i]   	= new PointType();
+			  	remoteDistance[i] 	= static_cast<CoordinateType>(DBL_MAX);
 				  
 				recvParticleSerializer.load("nodes",remoteThisPoint[i]);
 				  
@@ -410,10 +402,6 @@ namespace Kratos {
 				  
 				std::cout << "(" << mpi_rank << ") Found point: (" << remoteThisPoint[i]->X() << " " << remoteThisPoint[i]->Y() << " " << remoteThisPoint[i]->Z() << ") from process(" << i << "): " << (*(remoteNearest[i])) << " with dist: " << remoteDistance[i] << std::endl;
 			}
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			// 	SEND BACK RESULTS 																		//
-			//////////////////////////////////////////////////////////////////////////////////////////////
 
 			std::stringstream * res_serializer_buffer[mpi_size];
 			
@@ -430,8 +418,8 @@ namespace Kratos {
 				MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
 			}
 			
-			char * mpi_res_send_buffer = new char [((msgResRecvSize + 1) * mpi_size)];
-			char * mpi_res_recv_buffer = new char [((msgResRecvSize + 1) * mpi_size)];
+			char mpi_res_send_buffer[((msgResRecvSize + 1) * mpi_size)];
+			char mpi_res_recv_buffer[((msgResRecvSize + 1) * mpi_size)];
 			
 			for(int i = 0; i < mpi_size; i++) 
 			{
@@ -458,12 +446,6 @@ namespace Kratos {
 
 				std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << resultNearest[i]->X() << " " << resultNearest[i]->Y() << " " << resultNearest[i]->Z() << ") with dist: " << resultDistance[i] << std::endl; 
 			}
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			// 	RESULT REDUCTION 																		//
-			//////////////////////////////////////////////////////////////////////////////////////////////
-
-	 	    MPI_Barrier(MPI_COMM_WORLD); //Creo que esto sobra
 
 			Nearest 	= resultNearest[0];
 			Distance 	= resultDistance[0];
@@ -485,23 +467,16 @@ namespace Kratos {
 	 	    	ResultNearest = Nearest;
 		}
 		
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		 void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
+		void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
              DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SizeType const& ResultsNumberOfResults )
-         {
-           CoordinateType Radius2 = Radius * Radius;
-           SizeType NumberOfResults = 0;
-           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocalMpi( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+        {
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
 		   
 //            return NumberOfResults;
-         }
+        }
 
          //************************************************************************
 
@@ -511,8 +486,8 @@ namespace Kratos {
 //            CoordinateType Radius2 = Radius * Radius;
 //            SizeType NumberOfResults = 0;
 //            Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusLocalMpi( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
-//            return NumberOfResults;
+//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+// //            return NumberOfResults;
 //          }
 // 
 //          //************************************************************************
@@ -521,7 +496,7 @@ namespace Kratos {
 //              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
 //          {
 //            SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusLocalMpi( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
 //          }
 // 
 //          //************************************************************************
@@ -530,40 +505,18 @@ namespace Kratos {
 //              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
 //          {
 //            Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusLocalMpi( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
 //          }
-         
-          // Dimension = 1
-         void SearchInRadiusLocalMpi( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
-             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
-         {
-		   std::cout << "D1" << std::endl;
-           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
-             SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
-         }
 
-         // Dimension = 2
-         void SearchInRadiusLocalMpi( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+		void SearchInRadiusMpiWrapper( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
-             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
-         {
-		   std::cout << "D2" << std::endl;
-           for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
-             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
-               SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
-         }
-
-         // Dimension = 3
-        void SearchInRadiusLocalMpi( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
-             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,TDimension>& Box )
 		{  
 			PointType remoteThisPoint[mpi_size];
 			PointerType remoteResults[mpi_size][MaxNumberOfResults], recvResults[mpi_size][MaxNumberOfResults];
-			DistanceIteratorType remoteResultsDistances[mpi_size], recvResultsDistances[mpi_size];
-			SizeType remoteNumberOfResults[mpi_size];
+			double remoteResultsDistances[mpi_size][MaxNumberOfResults], recvResultsDistances[mpi_size][MaxNumberOfResults];
 			int messageSendNumberOfResults[mpi_size], messageRecvNumberOfResults[mpi_size];
+			SizeType remoteNumberOfResults[mpi_size];
 
 			int msgSendSize = 0;
 			int msgRecvSize = 0;
@@ -582,9 +535,9 @@ namespace Kratos {
 			msgSendSize = serializer_buffer->str().size();
 
 			MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-
-			char * mpi_send_buffer = new char [(msgRecvSize+1)];
-			char * mpi_recv_buffer = new char [(msgRecvSize+1) * mpi_size];
+			
+			char mpi_send_buffer[(msgRecvSize+1)];
+			char mpi_recv_buffer[(msgRecvSize+1) * mpi_size];
 
 			strcpy (mpi_send_buffer, serializer_buffer->str().c_str());
 			mpi_send_buffer[msgSendSize] = '\0';
@@ -594,6 +547,7 @@ namespace Kratos {
 			for(int i = 0; i < mpi_size; i++) 
 			{
 				IteratorType remoteResultsPointer = &remoteResults[i][0];
+				double * remoteResultsDistancesPointer = remoteResultsDistances[i];
 				
 				Serializer recvParticleSerializer;
 				serializer_buffer = (std::stringstream *)recvParticleSerializer.pGetBuffer();
@@ -604,9 +558,6 @@ namespace Kratos {
 				}
 
 				remoteNumberOfResults[i] = 0;
-
-				double vectordists[MaxNumberOfResults];
-				remoteResultsDistances[i] = vectordists;
 				
 				std::cout << "Restoring Point" << std::endl;
 
@@ -614,10 +565,7 @@ namespace Kratos {
 					
 				std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ")" << std::endl;
 
-				for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
-				  for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
-					for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
-					  SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),remoteThisPoint[i],Radius2,remoteResultsPointer,remoteResultsDistances[i],remoteNumberOfResults[i],MaxNumberOfResults);
+				SearchInRadiusLocal(remoteThisPoint[i],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i],MaxNumberOfResults,Box);
 
 				std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i] << std::endl;
 
@@ -636,7 +584,7 @@ namespace Kratos {
 			std::stringstream * res_serializer_buffer[mpi_size][MaxNumberOfResults];
 			std::string message[mpi_size][MaxNumberOfResults];
 			int bufferSize[mpi_size][MaxNumberOfResults];
-// 			
+	
 			for(int i = 0; i < mpi_size; i++) 
 			{
 				for(int j = 0; j < remoteNumberOfResults[i]; j++) 
@@ -647,14 +595,12 @@ namespace Kratos {
 					res_serializer_buffer[i][j] = (std::stringstream *)resSerializer.pGetBuffer();
 					message[i][j] = std::string(res_serializer_buffer[i][j]->str().c_str());
 					bufferSize[i][j] = res_serializer_buffer[i][j]->str().size();
-// 					std::cout << "BufferSize: " << bufferSize[i][j] << " " << message[i][j] << std::endl;
 					
 					msgResSendSize = msgResSendSize > bufferSize[i][j] ? msgResSendSize : bufferSize[i][j];
 				}
-				
-				msgResSendSize = msgResSendSize > msgResRecvSize ? msgResSendSize : msgResRecvSize;
-				MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
 			}
+			
+			MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
 			
 			std::cout << "(" << mpi_rank << ") Results Prepared " << std::endl;
 			
@@ -677,6 +623,7 @@ namespace Kratos {
 
 			MPI_Alltoall(mpi_res_send_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,mpi_res_recv_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,MPI_COMM_WORLD);
 			MPI_Alltoall(messageSendNumberOfResults,1,MPI_INT,messageRecvNumberOfResults,1,MPI_INT,MPI_COMM_WORLD);
+			MPI_Alltoall(remoteResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,recvResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,MPI_COMM_WORLD);
 			
 			std::cout << "(" << mpi_rank << ") Number Of Results: " << messageRecvNumberOfResults[0] << " " << messageRecvNumberOfResults[1] << std::endl;
 			
@@ -695,34 +642,13 @@ namespace Kratos {
 					recvResults[i][j] = new PointType();
 					recvResParticleSerializer.load("nodes",recvResults[i][j]);
 
-					std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << recvResults[i][j]->X() << " " << recvResults[i][j]->Y() << " " << recvResults[i][j]->Z() << ") with dist: NOT YET!" << std::endl;
+					std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << recvResults[i][j]->X() << " " << recvResults[i][j]->Y() << " " << recvResults[i][j]->Z() << ") with dist: " << recvResultsDistances[i][j] << std::endl;
 				}
 			}
-// 			
-// 			//////////////////////////////////////////////////////////////////////////////////////////////
-// 			// 	RESULT REDUCTION 																		//
-// 			//////////////////////////////////////////////////////////////////////////////////////////////
-// 
-// 	 	    MPI_Barrier(MPI_COMM_WORLD); //Creo que esto sobra
-// 
-// 			Nearest 	= resultNearest[0];
-// 			Distance 	= resultDistance[0];
-// 			Found 		= resultFound[0];
-// 
-// 			for(int i = 1; i < mpi_size; i++) 
-// 			{
-// 				if(resultFound[i] && resultDistance[i] < Distance) 
-// 				{
-// 					Nearest 	= resultNearest[0];
-// 					Distance 	= resultDistance[0];
-// 					Found 		= resultFound[0];
-// 				}
-// 			}
-// 			
-// 			ResultNearest = this->NullPointer();
-// 
-// 	 	    if(Found)
-// 	 	    	ResultNearest = Nearest;
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////
+			// 	RESULT REDUCTION 																		//
+			//////////////////////////////////////////////////////////////////////////////////////////////
 		   
 		}
          
@@ -732,95 +658,6 @@ namespace Kratos {
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-// 		void MPI_SearchInRadius( PointerType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
-//              DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SizeType NumberOfResults )
-//         {
-// 			//////////////////////////////////////////////////////////////////////////////////////////////
-// 			// 	DATA PARTITIONING 																		//
-// 			//////////////////////////////////////////////////////////////////////////////////////////////
-// 			
-//         	CoordinateType Radius2 = Radius * Radius;
-// 			PointerType remoteThisPoint[mpi_size];
-// 			IteratorType * remoteResults[mpi_size], recvResults[mpi_size];
-// 			DistanceIteratorType remoteResultsDistances[mpi_size], recvResultsDistances[mpi_size];
-//            	SizeType remoteNumberOfResults[mpi_size], recvNumberOfResults[mpi_size];
-// 			
-// 			int msgSendSize = 0;
-// 			int msgRecvSize = 0;
-// 			
-// 			int msgResSendSize = 0;
-// 			int msgResRecvSize = 0;
-// 			
-// 			std::cout << "(" << mpi_rank << ") --- " << (*ThisPoint) << " --- " << std::endl;
-// 			
-// 			Serializer particleSerializer;
-// 			particleSerializer.save("nodes",ThisPoint);  
-// 
-// 			std::stringstream* serializer_buffer;
-// 			
-// 			serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
-// 			msgSendSize = serializer_buffer->str().size();
-// 			
-// 			MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-// 			
-// 			char * mpi_send_buffer = new char [(msgRecvSize+1)];
-// 			char * mpi_recv_buffer = new char [(msgRecvSize+1) * mpi_size];
-// 			
-// 			strcpy (mpi_send_buffer, serializer_buffer->str().c_str());
-// 			mpi_send_buffer[msgSendSize] = '\0';
-// 
-// 			MPI_Allgather(mpi_send_buffer,(msgRecvSize+1),MPI_CHAR,mpi_recv_buffer,(msgRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
-// 
-// 			for(int i = 0; i < mpi_size; i++) 
-// 			{
-// 				Serializer recvParticleSerializer;
-// 			 	serializer_buffer = (std::stringstream *)recvParticleSerializer.pGetBuffer();
-// 		
-// 				for(int j = 0; mpi_recv_buffer[(msgRecvSize+1)*i+j] != '\0'; j++) 
-// 				{
-// 					(*serializer_buffer) << mpi_recv_buffer[(msgRecvSize+1)*i+j];
-// 			  	}
-// 				  
-// 			  	remoteThisPoint[i] = new PointType();
-// 
-// 				remoteNumberOfResults[i] = 0;
-// 				
-// 				PointerType mResults[MaxNumberOfResults];
-// // 				remoteResults[i] = mResults;
-// 				
-// 				
-// 				IteratorType algo = &mResults[0];
-// 
-// 				for(int j = 0; j < MaxNumberOfResults; j++) 
-// 				{
-// 					remoteResultsDistances[i][j] = 0;
-// 				}
-// 
-// 				recvParticleSerializer.load("nodes",remoteThisPoint[i]);
-// 				   
-// 				std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoint[i]->X() << " " << remoteThisPoint[i]->Y() << " " << remoteThisPoint[i]->Z() << ")" << std::endl;
-// 				  
-//            		SearchStructureType Box( CalculateCell((*remoteThisPoint[i]),-Radius), CalculateCell((*remoteThisPoint[i]),Radius), mN );
-//            		SearchInRadiusLocal( (*remoteThisPoint[i]), Radius, Radius2, algo, remoteResultsDistances[i], remoteNumberOfResults[i], MaxNumberOfResults, Box );
-// 				  
-// 				std::cout << "(" << mpi_rank << ") Found point: (" << remoteThisPoint[i]->X() << " " << remoteThisPoint[i]->Y() << " " << remoteThisPoint[i]->Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i] << std::endl;
-// 
-// 				for(int j = 0; j < remoteNumberOfResults[i]; j++)
-// 				{
-// 					std::cout << "(" << mpi_rank << ")\t" << (*mResults[j]) << " " << remoteResultsDistances[i][j] << std::endl;	
-// 				}
-// 
-// 			}
-// 			
-// 			std::cout << "(" << mpi_rank << ") All results calculated
-// 			MPI_Barrier(MPI_COMM_WORLD);
-// 
-// //           	SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-// //           	SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
-// 
-// //           	return NumberOfResults;
-//         }         
 
         ////////////////////////////////////////////////////////////////////////////
         //// LOCAL FUCNTIONS	(own domain)									////
