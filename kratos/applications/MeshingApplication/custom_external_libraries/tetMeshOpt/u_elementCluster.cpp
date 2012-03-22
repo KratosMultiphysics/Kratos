@@ -7,6 +7,7 @@
 
 #define ACCEPTANCE_TOLERANCE 1.0
 
+
 //-----------------------------------------------------------------------------
 ///  calcula los triangulos que forman la superficie
 /// con la regla que si una cara pertenece a un unico elemento es un triangulo superficial
