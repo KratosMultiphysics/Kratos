@@ -4,12 +4,13 @@
 #include <vector>
 #include <stdlib.h>
 #include "u_Types.h"
-#include "u_Render.h"
 #include "u_MeshLoaders.h"
 #include "u_TetraFunctions.h"
 #include "u_elementCluster.h"
 #include "u_ParallelFunctions.h"
 #include "u_ProcessTime.h"
+#include "u_ShowMetrics.h"
+#include "u_qualityMetrics.h"
 
 using namespace std;
 
@@ -23,7 +24,7 @@ int main (int argc, char* argv[])
 
    for (int i=0 ; i<m->vertexes->Count() ; i++)
    {
-	   int index = i;
+	   int index = 1000*i-5000;
 	   if (m->findVertexById(index) == NULL) 
 		     cout << "Error ID "<< index <<"\n";
    }

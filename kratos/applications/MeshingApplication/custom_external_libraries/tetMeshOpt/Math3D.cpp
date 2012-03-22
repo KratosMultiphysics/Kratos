@@ -59,7 +59,7 @@ double Min ( double a, double b )
   return (a<b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version
 }
 
-double Min ( float a, float b )
+float Min ( float a, float b )
 {
   return (a<b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version
 }
@@ -69,7 +69,7 @@ double Max ( double a, double b )
   return (a>b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version
 }
 
-double Max ( float a, float b )
+float Max ( float a, float b )
 {
   return (a>b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version
 }
@@ -129,22 +129,22 @@ float4 Float4(float x,float y, float z)
  float4 max4(float4 a,float4 b)
 {
 	 float4 f;
-	 f.x = max(a.x,b.x);
-	 f.y = max(a.y,b.y);
-	 f.z = max(a.z,b.z);
+	 f.x = Max(a.x,b.x);
+	 f.y = Max(a.y,b.y);
+	 f.z = Max(a.z,b.z);
 	 return f;
 }
 
  BoundBox calcBound(float4 p,float4 s)
 {
   BoundBox result ;
-  result.min.x =min(p.x,p.x+s.x);
-  result.min.y =min(p.y,p.y+s.y);
-  result.min.z =min(p.z,p.z+s.z);
+  result.min.x =Min(p.x,p.x+s.x);
+  result.min.y =Min(p.y,p.y+s.y);
+  result.min.z =Min(p.z,p.z+s.z);
 
-  result.max.x =max(p.x,p.x+s.x);
-  result.max.y =max(p.y,p.y+s.y);
-  result.max.z =max(p.z,p.z+s.z);
+  result.max.x =Max(p.x,p.x+s.x);
+  result.max.y =Max(p.y,p.y+s.y);
+  result.max.z =Max(p.z,p.z+s.z);
 
 	result.size.x = result.max.x-result.min.x;
    result.size.y = result.max.y-result.min.y;
