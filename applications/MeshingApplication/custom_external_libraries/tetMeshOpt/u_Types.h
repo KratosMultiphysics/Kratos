@@ -219,14 +219,15 @@ public:
 		else
 		{
 		  // calculate midpoint to cut set in half
+		  
 		  int imid = (imin + imax) / 2;
 		  if (imid>= vertexes->Count() )
 			   return NULL;
 		  TVertex * v = vertexes->elementAt(imid);
 
 		  if (v == NULL )
-			  return NULL;	
-			
+			  return NULL;		 
+		  
 		  // three-way comparison
 		  if (v->id > key)
 			// key is in lower subset
@@ -298,7 +299,11 @@ public:
 	bool initialized ;
 	TElement() {}
 	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3){};
-	BoundBox calcBound() {};
+	virtual BoundBox CalcBound() 
+	{ 
+		BoundBox b = calcBound(vertexes[0]->fPos, vertexes[1]->fPos); 
+		return  b;
+	};
 };
 
 
