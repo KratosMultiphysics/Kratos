@@ -54,6 +54,11 @@ float4 float4::operator-(float4 v1)
 		   return r;
    }
 
+int Min ( int a, int b )
+{
+  return (a<b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version
+}
+
 double Min ( double a, double b )
 {
   return (a<b)?a:b;     // or: return !comp(b,a)?a:b; for the comp version

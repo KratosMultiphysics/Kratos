@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <math.h>
 
+int Min ( int a, int b );
 double Min ( double a, double b );
 float Min ( float a, float b );
 double Max ( double a, double b );

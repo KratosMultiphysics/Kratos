@@ -43,7 +43,7 @@ public :
      int i;
      TColorValue* befValue;
 	 TColorValue* nValue;
-	 p = (float) Max(0,Min(1,p));
+	 p = (float) Max(0,Min(1.0f,p));
      float prop,distance;
  
       befValue= NULL;
