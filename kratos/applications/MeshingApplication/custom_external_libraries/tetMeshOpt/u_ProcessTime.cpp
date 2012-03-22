@@ -30,21 +30,21 @@ void TTimeSignal::endTime()
 
 void startProcess(char* procName)
 {
-  if (processNames == NULL ) processNames = new TList<TTimeSignal*>();
-  TTimeSignal *newT = findProcess(procName);
-  if (newT == NULL) 
-  {
-	    newT = new TTimeSignal(procName);
+	if (processNames == NULL ) processNames = new TList<TTimeSignal*>();
+	TTimeSignal *newT = findProcess(procName);
+	if (newT == NULL) 
+	{
+		newT = new TTimeSignal(procName);
 		processNames->Add(newT);
-  }
-  newT->startTime();
+	}
+	newT->startTime();
 }
 void endProcess(char* procName)
 {
-  if (processNames == NULL ) return;
-  TTimeSignal *newT = findProcess(procName);
-  if (newT == NULL)  return;
-  newT->endTime();
+	if (processNames == NULL ) return;
+	TTimeSignal *newT = findProcess(procName);
+	if (newT == NULL)  return;
+	newT->endTime();
 }
 
 void showProcessTime()
@@ -68,8 +68,8 @@ TTimeSignal* findProcess(char* procName)
 	{	
 		TTimeSignal *t = (TTimeSignal*)(processNames->elementAt(i));
 		std::string str2 (t->name);
-	    if ( str1.compare( str2) == 0)
-		  return t;
+		if ( str1.compare( str2) == 0)
+			return t;
 	}
 	return NULL;
 }

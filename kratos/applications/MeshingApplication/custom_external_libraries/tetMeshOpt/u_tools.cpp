@@ -10,5 +10,5 @@ void showProgress(int step, int maxStep)
 
 void printMessage(char* message)
 {	 
-  std::cout << message << "\n";	
+	std::cout << message << "\n";	
 };
