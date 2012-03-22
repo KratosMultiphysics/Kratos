@@ -104,10 +104,10 @@ public :
 	  return structure[index];
   }
 
-  void sort(SortFunction sortMethod)
+  void Sort(SortFunction sortMethod)
   {
 	  // using function as comp
-      std::sort (structure.begin(), structure.end(), sortMethod); 	  
+      sort (structure.begin(), structure.end(), sortMethod); 	  
   }
 
   bool contains(T elem)
