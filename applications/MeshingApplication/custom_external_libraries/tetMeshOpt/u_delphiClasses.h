@@ -7,7 +7,7 @@
 
 #define nil  NULL; 
 
-enum listOperations { laAppend, laOr   };
+typedef enum listOperations { laAppend, laOr   };
 
 char* intToStr(int i);
 char* intToStr(int i, char* result);
