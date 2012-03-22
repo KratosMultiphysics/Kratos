@@ -1,4 +1,4 @@
-<<<<<<< .mine
+//
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
@@ -6,7 +6,6 @@
 //   Revision:            $Revision: 1.1.1.1 $
 //
 //
-
 
 #if !defined(KRATOS_TETRAHEDRA_RECONNECT_H_INCLUDED )
 #define  KRATOS_TETRAHEDRA_RECONNECT_H_INCLUDED
@@ -24,10 +23,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "processes/node_erase_process.h"
 
 #include "u_qualityMetrics.h"
 #include "Math3D.h"
-#include "u_types.h"
+#include "u_Types.h"
 #include "u_TetraFunctions.h"
 #include "u_ShowMetrics.h"
 #include "u_ParallelFunctions.h"
@@ -152,52 +152,46 @@ public:
 
 	}
 
-    void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m)
+    void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
 	{
 		std::cout << "Generating nodes for Kratos " << "\n";
-		Element rReferenceElement =  mrModelPart.GetElement(1);		
-		Element::Pointer p_ele=  mrModelPart.pGetElement(1);		
-		if (p_ele ==NULL )
-		{
-			std::cout << "Invalid element access " << "\n";
-			return ;
-		}
 
-		//generate new nodes
-		    mrModelPart.Elements().clear();
-			mrModelPart.Nodes().clear();
-
-            Node < 3 > ::DofsContainerType& reference_dofs = (mrModelPart.NodesBegin())->GetDofs();
+		Element rReferenceElement = mrModelPart.Elements()[1];
+		
+        
+			// Mark elements to delete
+			// 0 Not remove
+			// 1 Remove
             for(int i=0; i< m->vertexes->Count(); i++)
-            {
-                // Get Vertex
-				TVertex* v = m->vertexes->elementAt(i);
-				v->id = i+1;
-                double x = v->fPos.x;
-                double y = v->fPos.y;
-                double z = v->fPos.z;
+            { 
+				m->vertexes->structure[i]->id = i+1;
+				if (m->vertexes->structure[i]->elementsList->Count() == 0)
+				   m->vertexes->elementAt(i)->flag = 1;
+				else
+				   m->vertexes->elementAt(i)->flag = 0;
+			}
 
-                
-				Node<3>::Pointer p_new_node = Node<3>::Pointer(new Node<3>(v->id, x, y, z));
-				// Store Ref to Kratos
-				v->userData =  (object*)( &p_new_node);
+            // Create new Nodes
+			for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
+                 {
 
-                // Giving model part's variables list to the node
-                p_new_node->SetSolutionStepVariablesList(&(mrModelPart.GetNodalSolutionStepVariablesList()));
-                p_new_node->SetBufferSize(mrModelPart.NodesBegin()->GetBufferSize());
-                for (Node < 3 > ::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
-                {
-                    Node < 3 > ::DofType& rDof = *iii;
-                    Node < 3 > ::DofType::Pointer p_new_dof = p_new_node->pAddDof(rDof);
-                    (p_new_dof)->FreeDof(); //the variables are left as free for the internal node
-                }  
-				
-				mrModelPart.Nodes().push_back(p_new_node);
-            }
-		std::cout << "Generating Elements for Kratos " << "\n";
-            //generate new Elements           
-            ModelPart::NodesContainerType::iterator nodes_begin = mrModelPart.NodesBegin();
-            Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(0);
+                        TVertex* v = m->findVertexById(i_node->Id());
+						if (v == NULL)
+						{
+							std::cout << "Error at id "<<i_node->Id() << "\n";
+							continue;
+						}
+						i_node->SetValue(ERASE_FLAG ,v->flag == 1);
+                   }
+   	    std::cout << "Generating Elements for Kratos " << "\n";
+  		//generate new nodes
+		    mrModelPart.Elements().clear();
+
+                     
+		
+			//add preserved elements to the kratos
+			Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);			
+			(mrModelPart.Elements()).reserve(m->elements->Count());
 			
             for(int i=0; i< m->elements->Count() ; i++)
             {
@@ -216,13 +210,21 @@ public:
 								v0,v1,v2,v3                       
 						);
 
-                 Element::Pointer p_element = rReferenceElement.Create(i+1, geom, properties);
+                Element::Pointer p_element = rReferenceElement.Create(i+1, geom, properties);				
 	            (mrModelPart.Elements()).push_back(p_element);
             }
-          std::cout << "Generation OK " << "\n";
+            std::cout << "Generation OK " << "\n";
+			mrModelPart.Elements().Sort();
 
-		  TVolumeMesh *testM = new TVolumeMesh();
-		  innerConvertFromKratos( mrModelPart , testM);
+    	   if (removeFreeVertexes ) 
+		   {
+               std::cout << "Removing free vertexes " << "\n";
+			   (NodeEraseProcess(mrModelPart)).Execute();
+		   }
+
+
+		//  TVolumeMesh *testM = new TVolumeMesh();
+		//  innerConvertFromKratos( mrModelPart , testM);
 
 	}
 
@@ -230,7 +232,8 @@ public:
          * This function performs the meshing optimization by Cluster reconnection. 
          */
 	
-	void EvaluateQuality(ModelPart& r_model_part, bool flag , bool saveToFile, bool removeFreeVertexes )
+	void EvaluateQuality(ModelPart& r_model_part, int iterations , 
+                  bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
     {
 	    std::cout << "Creating mesh" << "\n";
         TVolumeMesh *m = new TVolumeMesh();
@@ -246,31 +249,36 @@ public:
 			}
 
 		std::cout <<"...Optimizing by Face" <<"\n"; 
-		TetQuality *qt = new TetQuality(m);
-   
+		TetQuality *qt = new TetQuality(m);   
 		qt->refresh();   qt->print();
-		std::cout <<"...Parallel Optimizing by Node" <<"\n"; 
-		startProcess("Parallel evaluation");
-		    //ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-            evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-			m->updateIndexes(0);
-		endProcess("Parallel evaluation");
-		qt->refresh();   qt->print();
-		m->validate(true);
+        for (int iter = 0 ; iter< iterations ; iter ++)
+		{
+				std::cout <<"...Parallel Optimizing by Node. Iteration : "<< iter <<"\n"; 
+				startProcess("Parallel evaluation");
+				//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
+                if (processByNode)
+				{
+					evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+					m->updateIndexes(0);
+				}
 
-		std::cout <<"...Parallel Optimizing by Node" <<"\n"; 
-		startProcess("Parallel evaluation");
-		    //ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-			evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-			m->updateIndexes(0);
-		endProcess("Parallel evaluation");
-		qt->refresh();   qt->print();
-		m->validate(true);
+				if (processByFace)
+				{                
+					evaluateClusterByFace(m,500000,vrelaxQuality);
+					m->updateIndexes(0);
+				}
 
-		if (removeFreeVertexes ) 
-			m->removeFreeVertexes();
-
-		showProcessTime();
+				if (processByEdge)
+				{                
+					evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
+					m->updateIndexes(0);
+				}
+				endProcess("Parallel evaluation");
+				qt->refresh();   qt->print();
+				m->validate(true);
+		}
+		
+		//showProcessTime();
 
 		if (saveToFile)
 		{
@@ -281,7 +289,7 @@ public:
 			
 		std::cout <<"...Output to Kratos Format" <<"\n";         
 		// Get back in Kratos
-		innerConvertToKratos(r_model_part , m);
+		innerConvertToKratos(r_model_part , m , removeFreeVertexes);
 		
 		delete m;
     }
