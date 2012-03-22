@@ -7,7 +7,8 @@
 
 #define nil  NULL; 
 
-typedef enum listOperations { laAppend, laOr   };
+#define laAppend 10000
+#define laOr   20000
 
 char* intToStr(int i);
 char* intToStr(int i, char* result);
@@ -137,7 +138,7 @@ public :
 	  structure.assign(f->structure.begin(),f->structure.end());
   }
 
-  void Assign(TList* f, listOperations assignMode  )
+  void Assign(TList* f, int assignMode  )
   { 
 	 if (assignMode == laAppend) 
 	  structure.assign(f->structure.begin(),f->structure.end());
