@@ -205,11 +205,11 @@ public :
 	 void saveToFile(char* filename) 
 	 {
 		 FILE* fMesh;
-		 fopen_s(&fMesh, filename,"wb"); //xx = rb, wb, read and write binary, more 		
+		 fMesh = fopen(filename,"wb"); //xx = rb, wb, read and write binary, more 		
 		 for (unsigned int i=0; i<strings.size(); i++)
 		 { 
 			 std::string st = strings[i];
-			 fprintf_s( fMesh, "%s%s", st.data(),"\n");			 
+			 fprintf( fMesh, "%s%s", st.data(),"\n");			 
 		 }
 		 fclose( fMesh );
 	 }

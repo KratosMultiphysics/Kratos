@@ -1,4 +1,6 @@
 #include "u_delphiClasses.h"
+#include <vector>
+using namespace std;
 
 char* intToStr(int i)
 {

@@ -24,7 +24,7 @@ int main (int argc, char* argv[])
 
    for (int i=0 ; i<m->vertexes->Count() ; i++)
    {
-	   int index = 1000*i-5000;
+	   int index = i+1;
 	   if (m->findVertexById(index) == NULL) 
 		     cout << "Error ID "<< index <<"\n";
    }
