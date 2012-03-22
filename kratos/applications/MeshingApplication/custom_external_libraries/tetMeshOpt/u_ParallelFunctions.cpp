@@ -208,7 +208,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
  char* iter = new char[0];
  TParallelIterator* pi = new TParallelIterator();
  
-  strcat(iter, "Iteracion ");
+  
  ////-- Facil de Paralelizar
  for (iv = 0  ; iv<=Max(20.0f,(vertexesCopy->Count() / nsimCh)-1 ) ; iv++) 
  {
