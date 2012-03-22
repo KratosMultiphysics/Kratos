@@ -43,16 +43,18 @@ double getMinQuality();
 
 } ;
 
-bool improvedCluster(TList<TObject*>* c1,
-                     TList<TObject*>* cRef ,
-					 TElementsCluster* cl,
-					 bool maxEdgeLengthConstrain );
+
 
 void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc) ;
 void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality);
 void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc);
 
 void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc);
+
+bool improvedCluster(TList<TObject*>* c1,
+                     TList<TObject*>* cRef ,
+					 TElementsCluster* cl,
+					 bool maxEdgeLengthConstrain );
 
 /*
 
