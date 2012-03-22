@@ -1,16 +1,12 @@
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
-
 #importing the Kratos Library
-from Kratos import *
-from KratosMetisApplication import *
-from KratosTrilinosApplication import *
-from KratosIncompressibleFluidApplication import *
-from KratosFluidDynamicsApplication import *
-#from KratosStructuralApplication import *
-
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+#from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -46,7 +42,8 @@ def AddVariables(model_part):
 
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX); 
 
-    print "variables for the pressure splitting solver added correctly"
+    if mpi.rank == 0:
+        print "variables for the pressure splitting solver added correctly"
         
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -59,7 +56,8 @@ def AddDofs(model_part):
 
     mpi.world.barrier()
         
-    print "dofs for the pressure splitting solver added correctly"
+    if mpi.rank == 0:
+        print "dofs for the pressure splitting solver added correctly"
 
 class PressureSplittingSolver:
     #######################################################################

@@ -163,6 +163,10 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
 
+if(${MPI_NEEDED} MATCHES ON )
+   add_subdirectory(external_libraries/mpi_python)
+endif(${MPI_NEEDED} MATCHES ON )
+
 #set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
    set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )	

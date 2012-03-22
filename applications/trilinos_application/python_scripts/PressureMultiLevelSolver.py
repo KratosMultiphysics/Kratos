@@ -1,4 +1,7 @@
-from KratosTrilinosApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.TrilinosApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def MultilevelLinearSolver(tolerance, max_iterations):
     #settings for the iterative solver
