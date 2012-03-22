@@ -269,51 +269,6 @@ TElementsCluster::~TElementsCluster()
 }
 
 
-//
-// Metodo de control para verificar si mejora un cluster. Teni}o en cuenta la minima CALIDAD
-//
-bool improvedCluster(TList<TObject*>* c1,
-                     TList<TObject*>* cRef ,
-					 TElementsCluster* cl,
-					 bool maxEdgeLengthConstrain )
-{
-
-  double avgEdgeLength , goodMinQuality, origDAngle ;
-  TVertex* v0, *v1 , *v2, *v3  ;
-  int j;
-  double tempQuality , maxEdgeLength ,minDiedralAngle ;
-
-//Datos ya calculados
-  avgEdgeLength = cl->avgEdgeLength ;
-  goodMinQuality = cl->goodMinQuality;
-  origDAngle = cl->minDAngle;
-  bool result = false;
-
- for (j = 0 ; j<(c1->Count() / 4) ;j++)
- {
-	 v0 =  (TVertex*)(c1->elementAt(4*j));
-     v1 =  (TVertex*)(c1->elementAt(4*j+1));
-     v2 =  (TVertex*)(c1->elementAt(4*j+2));
-     v3 =  (TVertex*)(c1->elementAt(4*j+3));
-
-     tempQuality = vrelaxQuality(v0,v1,v2,v3);
-	 minDiedralAngle = diedralAngle(v0->fPos,v1->fPos,v2->fPos,v3->fPos);
-     //Si la calidad es peor, termino
-     if ( ((tempQuality>=goodMinQuality*ACCEPTANCE_TOLERANCE) && ( minDiedralAngle>origDAngle) ) || (tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) )
-     {
-       maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
-       if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
-	   {
-           return false;
-	   }
-     }
-     else
-      return false;
- }
-
- return true;
-}
-
 
 int TElementsCluster::evaluateSet() 
 {  
@@ -809,6 +764,51 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 }
 
+
+//
+// Metodo de control para verificar si mejora un cluster. Teni}o en cuenta la minima CALIDAD
+//
+bool improvedCluster(TList<TObject*>* c1,
+                     TList<TObject*>* cRef ,
+					 TElementsCluster* cl,
+					 bool maxEdgeLengthConstrain )
+{
+
+  double avgEdgeLength , goodMinQuality, origDAngle ;
+  TVertex* v0, *v1 , *v2, *v3  ;
+  int j;
+  double tempQuality , maxEdgeLength ,minDiedralAngle ;
+
+//Datos ya calculados
+  avgEdgeLength = cl->avgEdgeLength ;
+  goodMinQuality = cl->goodMinQuality;
+  origDAngle = cl->minDAngle;
+  bool result = false;
+
+ for (j = 0 ; j<(c1->Count() / 4) ;j++)
+ {
+	 v0 =  (TVertex*)(c1->elementAt(4*j));
+     v1 =  (TVertex*)(c1->elementAt(4*j+1));
+     v2 =  (TVertex*)(c1->elementAt(4*j+2));
+     v3 =  (TVertex*)(c1->elementAt(4*j+3));
+
+     tempQuality = vrelaxQuality(v0,v1,v2,v3);
+	 minDiedralAngle = diedralAngle(v0->fPos,v1->fPos,v2->fPos,v3->fPos);
+     //Si la calidad es peor, termino
+     if ( ((tempQuality>=goodMinQuality*ACCEPTANCE_TOLERANCE) && ( minDiedralAngle>origDAngle) ) || (tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) )
+     {
+       maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
+       if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
+	   {
+           return false;
+	   }
+     }
+     else
+      return false;
+ }
+
+ return true;
+}
 
 
 
