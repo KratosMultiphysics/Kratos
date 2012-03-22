@@ -2,7 +2,6 @@
 #include "Math3D.h"
 #include <math.h>
 #include <stdio.h>
-#include "stdafx.h"
 #include "u_ShowMetrics.h"
 #include "u_TetraFunctions.h"
 

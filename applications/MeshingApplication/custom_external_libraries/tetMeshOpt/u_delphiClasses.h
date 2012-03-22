@@ -1,5 +1,4 @@
 #pragma once
-#include "stdafx.h"
 #include <vector>
 #include <string>
 #include <iostream>
@@ -172,8 +171,8 @@ public :
 
 	 void splitString(std::string s, std::vector<std::string> sout)
 	 {
-		  char * pch ;
-		  const char *Data = s.data();
+		 // char * pch ;
+		 // const char *Data = s.data();
 
 	 }
 

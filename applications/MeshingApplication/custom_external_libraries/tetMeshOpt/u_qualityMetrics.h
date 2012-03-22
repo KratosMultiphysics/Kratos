@@ -1,9 +1,6 @@
 #include <math.h>
 #include "u_Types.h"
 #include "Math3D.h"
-#include "stdafx.h"
-
-
 
 double calidadxArea(float4 v1,float4 v2,float4 v3);
 double calidadxArea(TVertex* v1,TVertex* v2,TVertex* v3);

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_delphiClasses.h"
 
 char* intToStr(int i)

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_colorScale.h"
 
 float4 TColorToRealColor(int ct)
