@@ -39,413 +39,424 @@
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
-///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-*/
-class TetrahedraReconnectUtility
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    /// Pointer definition of TetrahedraReconnectUtility
-    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraReconnectUtility);
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
-    TetrahedraReconnectUtility() {}
-
-    /// Destructor.
-    virtual ~TetrahedraReconnectUtility() {}
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-    /// this function evaluates the quality of all the tetrahedras within a given model_part
-    void innerConvertFromKratos(ModelPart& r_model_part, TVolumeMesh *m)
-    {
-        std::cout << "Reading nodes"<< "\n";
-        //loop on nodes
-        for (ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
-        {
-            float4 fPos ;
-            fPos.x = it->X();
-            fPos.y = it->Y();
-            fPos.z = it->Z();
-            TVertex *v = new TVertex(fPos);
-            v->id = it->Id();
-
-            m->vertexes->Add(v);
-        }
-        std::cout << "Reading elements"<< "\n";
-        int numVertexes = m->vertexes->Count();
-        for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
-        {
-            Geometry< Node<3> >& geom = el_it->GetGeometry();
-            if (geom.size() != 4)
-            {
-                std::cout << "Invalid element size" <<  el_it->Id();
-                continue;
-            }
-            TVertex *v0 = m->findVertexById(geom[0].Id());
-            if (  v0 == NULL )
-            {
-                std::cout << "Invalid element reference" <<  el_it->Id();
-                continue;
-            }
-            TVertex *v1 = m->findVertexById(geom[1].Id());
-            if (  v1 == NULL )
-            {
-                std::cout << "Invalid element reference" <<  el_it->Id();
-                continue;
-            }
-            TVertex *v2 = m->findVertexById(geom[2].Id());
-            if (  v2 == NULL )
-            {
-                std::cout << "Invalid element reference" <<  el_it->Id();
-                continue;
-            }
-            TVertex *v3 = m->findVertexById(geom[3].Id());
-            if (  v3 == NULL )
-            {
-                std::cout << "Invalid element reference" <<  el_it->Id();
-                continue;
-            }
-
-            TTetra *t = new TTetra(NULL, v0,v1,v2,v3);
-            m->elements->Add(t);
-        }
-
-        std::cout << " Number of vertexes read :"<< m->vertexes->Count() <<"\n";
-        std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
-
-    }
-
-    void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
-    {
-        std::cout << "Generating nodes for Kratos " << "\n";
-
-        Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
-
-        // Mark elements to delete
-        // 0 Not remove
-        // 1 Remove
-        for (int i=0; i< m->vertexes->Count(); i++)
-        {
-            m->vertexes->structure[i]->id = i+1;
-            if (m->vertexes->structure[i]->elementsList->Count() == 0)
-                m->vertexes->elementAt(i)->flag = 1;
-            else
-                m->vertexes->elementAt(i)->flag = 0;
-        }
-
-        // Create new Nodes
-        for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
-        {
-
-            TVertex* v = m->findVertexById(i_node->Id());
-            if (v == NULL)
-            {
-                std::cout << "Error at id "<<i_node->Id() << "\n";
-                continue;
-            }
-            i_node->SetValue(ERASE_FLAG ,v->flag == 1);
-        }
-        std::cout << "Generating Elements for Kratos " << "\n";
-        //generate new nodes
-        mrModelPart.Elements().clear();
-
-
-
-        //add preserved elements to the kratos
-        Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);
-        (mrModelPart.Elements()).reserve(m->elements->Count());
-
-        for (int i=0; i< m->elements->Count() ; i++)
-        {
-
-            TTetra* t = (TTetra*)(m->elements->elementAt(i));
-            Node<3>::Pointer v0 = mrModelPart.pGetNode(t->vertexes[0]->id);
-            Node<3>::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->id);
-            Node<3>::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->id);
-            Node<3>::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->id);
-            if ((v0 == NULL) || (v1==NULL) || (v2 == NULL) || (v3 == NULL))
-            {
-                std::cout << "Invalid vertex access " << t->id <<"\n";
-                continue ;
-            }
-            Tetrahedra3D4<Node<3> > geom(
-                v0,v1,v2,v3
-            );
-
-            Element::Pointer p_element = pReferenceElement->Create(i+1, geom, properties);
-            (mrModelPart.Elements()).push_back(p_element);
-// 	    KRATOS_WATCH(*p_element);
-        }
-        std::cout << "Generation OK " << "\n";
-        mrModelPart.Elements().Sort();
-
-        if (removeFreeVertexes )
-        {
-            std::cout << "Removing free vertexes " << "\n";
-            (NodeEraseProcess(mrModelPart)).Execute();
-        }
-
-
-        //  TVolumeMesh *testM = new TVolumeMesh();
-        //  innerConvertFromKratos( mrModelPart , testM);
-
-    }
-
-    /**
-         * This function performs the meshing optimization by Cluster reconnection.
-         */
-
-    void EvaluateQuality(ModelPart& r_model_part, int iterations ,
-                         bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
-    {
-        std::cout << "Creating mesh" << "\n";
-        TVolumeMesh *m = new TVolumeMesh();
-        // Convert to inner format
-        innerConvertFromKratos(r_model_part , m );
-
-        // Save the mesh as generated from Kratos
-        if (saveToFile)
-        {
-            TMeshLoader* ml2 = new TVMWLoader();
-            ml2->save("D:/out_MeshFromKratos.vwm" , m);
-            delete ml2;
-        }
-
-        std::cout <<"...Optimizing by Face" <<"\n";
-        TetQuality *qt = new TetQuality(m);
-        qt->refresh();
-        qt->print();
-        for (int iter = 0 ; iter< iterations ; iter ++)
-        {
-            std::cout <<"...Parallel Optimizing by Node. Iteration : "<< iter <<"\n";
-            startProcess("Parallel evaluation");
-            //ParallelEvaluateClusterByNode(m,vrelaxQuality);
-            if (processByNode)
-            {
-                evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-                m->updateIndexes(0);
-            }
-
-            if (processByFace)
-            {
-                evaluateClusterByFace(m,500000,vrelaxQuality);
-                m->updateIndexes(0);
-            }
-
-            if (processByEdge)
-            {
-                evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
-                m->updateIndexes(0);
-            }
-            endProcess("Parallel evaluation");
-            qt->refresh();
-            qt->print();
-            m->validate(true);
-        }
-
-        //showProcessTime();
-
-        if (saveToFile)
-        {
-            TMeshLoader* ml2 = new TVMWLoader();
-            ml2->save("D:/out_MeshC.vwm" , m);
-            delete ml2;
-        }
+	///@addtogroup ApplicationNameApplication
+	///@{
+
+	///@name Kratos Globals
+	///@{
+
+	///@}
+	///@name Type Definitions
+	///@{
+
+	///@}
+	///@name  Enum's
+	///@{
+
+	///@}
+	///@name  Functions
+	///@{
+
+	///@}
+	///@name Kratos Classes
+	///@{
+
+	/// Short class definition.
+	/** Detail class definition.
+	*/
+	class TetrahedraReconnectUtility
+	{
+	public:
+		///@name Type Definitions
+		///@{
+
+		/// Pointer definition of TetrahedraReconnectUtility
+		KRATOS_CLASS_POINTER_DEFINITION(TetrahedraReconnectUtility);
+
+		///@}
+		///@name Life Cycle
+		///@{
+
+		/// Default constructor.
+		TetrahedraReconnectUtility() {}
+
+		/// Destructor.
+		virtual ~TetrahedraReconnectUtility() {}
+
+
+		///@}
+		///@name Operators
+		///@{
+
+
+		///@}
+		///@name Operations
+		///@{
+		/// this function evaluates the quality of all the tetrahedras within a given model_part
+		void innerConvertFromKratos(ModelPart& r_model_part, TVolumeMesh *m)
+		{
+			std::cout << "Reading nodes"<< "\n";
+			//loop on nodes
+			for (ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
+			{
+				float4 fPos ;
+				fPos.x = it->X();
+				fPos.y = it->Y();
+				fPos.z = it->Z();
+				TVertex *v = new TVertex(fPos);
+				v->id = it->Id();
+
+				m->vertexes->Add(v);
+			}
+			std::cout << "Reading elements"<< "\n";
+			int numVertexes = m->vertexes->Count();
+			for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
+			{
+				Geometry< Node<3> >& geom = el_it->GetGeometry();
+				if (geom.size() != 4)
+				{
+					std::cout << "Invalid element size" <<  el_it->Id();
+					continue;
+				}
+				TVertex *v0 = m->findVertexById(geom[0].Id());
+				if (  v0 == NULL )
+				{
+					std::cout << "Invalid element reference" <<  el_it->Id();
+					continue;
+				}
+				TVertex *v1 = m->findVertexById(geom[1].Id());
+				if (  v1 == NULL )
+				{
+					std::cout << "Invalid element reference" <<  el_it->Id();
+					continue;
+				}
+				TVertex *v2 = m->findVertexById(geom[2].Id());
+				if (  v2 == NULL )
+				{
+					std::cout << "Invalid element reference" <<  el_it->Id();
+					continue;
+				}
+				TVertex *v3 = m->findVertexById(geom[3].Id());
+				if (  v3 == NULL )
+				{
+					std::cout << "Invalid element reference" <<  el_it->Id();
+					continue;
+				}
+
+				TTetra *t = new TTetra(NULL, v0,v1,v2,v3);
+				m->elements->Add(t);
+			}
+
+			std::cout << " Number of vertexes read :"<< m->vertexes->Count() <<"\n";
+			std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
+			m->updateIndexes(GENERATE_SURFACE);
+			std::cout << " Number of faces read :"<< m->fFaces->Count() << "\n";
+
+		}
+
+		void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
+		{
+			std::cout << "Generating nodes for Kratos " << "\n";
+
+			Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
+
+			// Mark elements to delete
+			// 0 Not remove
+			// 1 Remove
+			for (int i=0; i< m->vertexes->Count(); i++)
+			{
+				m->vertexes->structure[i]->id = i+1;
+				if (m->vertexes->structure[i]->elementsList->Count() == 0)
+					m->vertexes->elementAt(i)->flag = 1;
+				else
+					m->vertexes->elementAt(i)->flag = 0;
+			}
+
+			// Create new Nodes
+			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
+			{
+
+				TVertex* v = m->findVertexById(i_node->Id());
+				if (v == NULL)
+				{
+					std::cout << "Error at id "<<i_node->Id() << "\n";
+					continue;
+				}
+				i_node->SetValue(ERASE_FLAG ,v->flag == 1);
+			}
+			std::cout << "Generating Elements for Kratos " << "\n";
+			//generate new nodes
+			mrModelPart.Elements().clear();
+			//add preserved elements to the kratos
+			Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);
+			(mrModelPart.Elements()).reserve(m->elements->Count());
+
+			for (int i=0; i< m->elements->Count() ; i++)
+			{
+
+				TTetra* t = (TTetra*)(m->elements->elementAt(i));
+				Node<3>::Pointer v0 = mrModelPart.pGetNode(t->vertexes[0]->id);
+				Node<3>::Pointer v1 = mrModelPart.pGetNode(t->vertexes[1]->id);
+				Node<3>::Pointer v2 = mrModelPart.pGetNode(t->vertexes[2]->id);
+				Node<3>::Pointer v3 = mrModelPart.pGetNode(t->vertexes[3]->id);
+				if ((v0 == NULL) || (v1==NULL) || (v2 == NULL) || (v3 == NULL))
+				{
+					std::cout << "Invalid vertex access " << t->id <<"\n";
+					continue ;
+				}
+				Tetrahedra3D4<Node<3> > geom(
+					v0,v1,v2,v3
+					);
+
+				Element::Pointer p_element = pReferenceElement->Create(i+1, geom, properties);
+				(mrModelPart.Elements()).push_back(p_element);
+				// 	    KRATOS_WATCH(*p_element);
+			}
+			std::cout << "Generation OK " << "\n";
+			mrModelPart.Elements().Sort();
+
+			if (removeFreeVertexes )
+			{
+				std::cout << "Removing free vertexes " << "\n";
+				(NodeEraseProcess(mrModelPart)).Execute();
+			}
+
+
+			//  TVolumeMesh *testM = new TVolumeMesh();
+			//  innerConvertFromKratos( mrModelPart , testM);
+
+		}
+
+		/**
+		* This function performs the meshing optimization by Cluster reconnection.
+		*/
+
+		void EvaluateQuality(ModelPart& r_model_part, int iterations ,
+			bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
+		{
+			std::cout << "Creating mesh" << "\n";
+			TVolumeMesh *m = new TVolumeMesh();
+			// Convert to inner format
+			innerConvertFromKratos(r_model_part , m );
+
+			// Save the mesh as generated from Kratos
+			if (saveToFile)
+			{
+				TMeshLoader* ml2 = new TVMWLoader();
+				ml2->save("D:/out_MeshFromKratos.vwm" , m);
+				delete ml2;
+			}
+
+			std::cout <<"...Start Optimization..." <<"\n";
+			TetQuality *qt = new TetQuality(m);
+			qt->refresh();
+			qt->print();
+			for (int iter = 0 ; iter< iterations ; iter ++)
+			{	
+				//ParallelEvaluateClusterByNode(m,vrelaxQuality);
+				if (processByNode)
+				{
+				    std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
+					evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+					m->updateIndexes(GENERATE_SURFACE);
+				}
+
+				if (processByFace)
+				{
+					std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";
+					evaluateClusterByFace(m,500000,vrelaxQuality);
+					m->updateIndexes(GENERATE_SURFACE);
+				}
+
+				if (processByEdge)
+				{
+					std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
+					evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
+					m->updateIndexes(GENERATE_SURFACE);
+				}
+				
+				qt->refresh();
+				qt->print();
+				m->validate(true);				
+				std :: cout<< " Number of faces" << m->fFaces->Count() << "\n";
+				// Save the mesh as generated from Kratos
+				if (saveToFile)
+				{
+					TMeshLoader* ml2 = new TVMWLoader();
+					std::string s("");					
+					s = "D:/out_MeshFromKratos" + intToString(iter)+".vwm";
+					
+					ml2->save(s._Myptr() , m);
+					delete ml2;
+				}
+			}
+
+			//showProcessTime();
+
+			if (saveToFile)
+			{
+				TMeshLoader* ml2 = new TVMWLoader();
+				ml2->save("D:/out_MeshC.vwm" , m);
+				delete ml2;
+			}
+
+			std::cout <<"...Output to Kratos Format" <<"\n";
+			// Get back in Kratos
+			innerConvertToKratos(r_model_part , m , removeFreeVertexes);
+
+			delete m;
+		}
+
+
+		///@}
+		///@name Access
+		///@{
+
+
+		///@}
+		///@name Inquiry
+		///@{
+
+
+		///@}
+		///@name Input and output
+		///@{
+
+		/// Turn back information as a string.
+		virtual std::string Info() const
+		{
+			std::stringstream buffer;
+			buffer << "TetrahedraReconnectUtility" ;
+			return buffer.str();
+		}
+
+		/// Print information about this object.
+		virtual void PrintInfo(std::ostream& rOStream) const
+		{
+			rOStream << "TetrahedraReconnectUtility";
+		}
 
-        std::cout <<"...Output to Kratos Format" <<"\n";
-        // Get back in Kratos
-        innerConvertToKratos(r_model_part , m , removeFreeVertexes);
+		/// Print object's data.
+		virtual void PrintData(std::ostream& rOStream) const {}
 
-        delete m;
-    }
 
+		///@}
+		///@name Friends
+		///@{
 
-    ///@}
-    ///@name Access
-    ///@{
 
+		///@}
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+	protected:
+		///@name Protected static Member Variables
+		///@{
 
 
-    ///@}
-    ///@name Input and output
-    ///@{
+		///@}
+		///@name Protected member Variables
+		///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "TetrahedraReconnectUtility" ;
-        return buffer.str();
-    }
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "TetrahedraReconnectUtility";
-    }
+		///@}
+		///@name Protected Operators
+		///@{
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
 
+		///@}
+		///@name Protected Operations
+		///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
 
+		///@}
+		///@name Protected  Access
+		///@{
 
-    ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-    ///@}
-    ///@name Protected member Variables
-    ///@{
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
+		///@}
 
+	private:
+		///@name Static Member Variables
+		///@{
 
-    ///@}
-    ///@name Protected Operations
-    ///@{
 
+		///@}
+		///@name Member Variables
+		///@{
 
-    ///@}
-    ///@name Protected  Access
-    ///@{
 
+		///@}
+		///@name Private Operators
+		///@{
 
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
 
+		///@}
+		///@name Private Operations
+		///@{
 
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
 
+		///@}
+		///@name Private  Access
+		///@{
 
-    ///@}
 
-private:
-    ///@name Static Member Variables
-    ///@{
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+		///@}
+		///@name Un accessible methods
+		///@{
 
+		/// Assignment operator.
+		TetrahedraReconnectUtility& operator=(TetrahedraReconnectUtility const& rOther) {}
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+		/// Copy constructor.
+		TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther) {}
 
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+		///@}
 
+	}; // Class TetrahedraReconnectUtility
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+	///@}
 
+	///@name Type Definitions
+	///@{
 
-    ///@}
-    ///@name Private Inquiry
-    ///@{
 
+	///@}
+	///@name Input and output
+	///@{
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
-    /// Assignment operator.
-    TetrahedraReconnectUtility& operator=(TetrahedraReconnectUtility const& rOther) {}
+	/// input stream function
+	inline std::istream& operator >> (std::istream& rIStream,
+		TetrahedraReconnectUtility& rThis) {}
 
-    /// Copy constructor.
-    TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther) {}
+	/// output stream function
+	inline std::ostream& operator << (std::ostream& rOStream,
+		const TetrahedraReconnectUtility& rThis)
+	{
+		rThis.PrintInfo(rOStream);
+		rOStream << std::endl;
+		rThis.PrintData(rOStream);
 
+		return rOStream;
+	}
+	///@}
 
-    ///@}
-
-}; // Class TetrahedraReconnectUtility
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  TetrahedraReconnectUtility& rThis) {}
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const TetrahedraReconnectUtility& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-///@}
-
-///@} addtogroup block
+	///@} addtogroup block
 
 }  // namespace Kratos.
 
