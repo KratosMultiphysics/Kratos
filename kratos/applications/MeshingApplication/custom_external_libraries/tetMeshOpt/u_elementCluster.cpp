@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_Types.h"
 #include "u_elementCluster.h"
 #include "u_qualityMetrics.h"

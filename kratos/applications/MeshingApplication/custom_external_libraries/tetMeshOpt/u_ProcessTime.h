@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include <vector>
 #include "u_delphiClasses.h"
 #include <time.h>

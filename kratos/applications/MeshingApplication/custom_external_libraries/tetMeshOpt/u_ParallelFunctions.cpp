@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_ParallelFunctions.h"
 #include "u_elementCluster.h"
 #include "u_ProcessTime.h"
@@ -183,8 +182,6 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
   TList<TObject*> * resultedClusters; 
   TVertex *inspVertex ; 
   
-  TTetra *t;
-
   nsimCh = 2048;
 
   resultedClusters = new TList<TObject*>();

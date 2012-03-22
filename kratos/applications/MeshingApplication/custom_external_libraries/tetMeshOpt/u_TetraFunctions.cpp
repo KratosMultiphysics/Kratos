@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_Types.h"
 #include "u_tools.h"
 #include "u_TetraFunctions.h"
@@ -132,7 +131,6 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TObject*>* surfaceT
   }
   return NULL;
 }
-
 // -----------------------------
 // Remove vertexes that do not have any related element 
 void TVolumeMesh::removeFreeVertexes()
@@ -145,7 +143,6 @@ void TVolumeMesh::removeFreeVertexes()
 
 	vertexes->Pack();
 }
-
 
 TVolumeMesh::TVolumeMesh()
 	{

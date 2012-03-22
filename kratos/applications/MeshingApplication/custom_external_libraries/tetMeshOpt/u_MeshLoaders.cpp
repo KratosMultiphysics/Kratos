@@ -1,5 +1,4 @@
 
-#include "stdafx.h"
 #include <iostream>
 #include <string>
 #include "u_MeshLoaders.h"

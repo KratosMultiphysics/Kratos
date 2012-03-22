@@ -1,5 +1,5 @@
 
-#include "stdafx.h"
+
 #include "Math3D.h"
 
 float4 float4::operator-(float4 v1) 

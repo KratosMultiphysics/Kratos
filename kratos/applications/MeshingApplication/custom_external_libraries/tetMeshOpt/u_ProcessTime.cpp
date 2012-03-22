@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "u_ProcessTime.h"
 #include <string>
 #include <iostream>

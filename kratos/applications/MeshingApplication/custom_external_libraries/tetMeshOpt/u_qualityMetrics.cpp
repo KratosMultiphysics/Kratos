@@ -1,7 +1,6 @@
 
 #include <math.h>
 #include "Math3D.h"
-#include "stdafx.h"
 #include "u_Types.h"
 #include "u_delphiClasses.h"
 #include "u_TetraFunctions.h"
