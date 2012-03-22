@@ -210,7 +210,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
  
   
  ////-- Facil de Paralelizar
- for (iv = 0  ; iv<=Max(20.0f,(vertexesCopy->Count() / nsimCh)-1 ) ; iv++) 
+ for (iv = 0  ; iv<=Max(20.0f,(float)(vertexesCopy->Count() / nsimCh)-1 ) ; iv++) 
  {
      st->Add(iter,intToStr(iv));
 	 vRes->Clear();

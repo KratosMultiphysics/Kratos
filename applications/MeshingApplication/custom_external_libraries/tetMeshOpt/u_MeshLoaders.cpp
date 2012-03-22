@@ -322,13 +322,8 @@
 		
 		while ( true)
 		{
-			float x,y,z;
+			float x = 0,y = 0,z = 0;
 			std::string s = st->strings[i];
-
-			fscanf(fMesh, "%f", &x);
-			fscanf(fMesh, "%f", &x);
-			fscanf(fMesh, "%f", &y);
-			fscanf(fMesh, "%f", &z);			
 
 			TVertex* v = new TVertex(x,y,z);
 			v->id = i;

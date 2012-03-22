@@ -117,7 +117,7 @@ void innercollapseEdges(TVolumeMesh*  aMesh , int  maxSteps,
   int i,j,k,nneg;
   TVertex *vOrig, *vNew;
   TTetra *t ;
-  double oV,nV,nQ,oQ;
+  double oV = 0 ,nV = 0,nQ = 0,oQ = 0;
   TElementsCluster *aCluster  ;
 
   //Elijo los malos elementos
