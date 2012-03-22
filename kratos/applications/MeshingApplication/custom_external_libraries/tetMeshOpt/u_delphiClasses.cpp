@@ -7,8 +7,6 @@ using namespace std;
 #define CEILING_NEG(X) ((X-(int)(X)) < 0 ? (int)(X-1) : (int)(X))
 #define CEILING(X) ( ((X) > 0) ? CEILING_POS(X) : CEILING_NEG(X) )
 
-
-
 char* intToStr(int i)
 {
 	char* result = new char[100];       
