@@ -183,23 +183,21 @@ public :
 	 }
 	 
 	 void Add(char* cc, char* cc2) 
-	 { 
-		  strcat(cc," "); 
-		  strcat(cc,cc2);
+	 { 		
 		  std::string str(cc);
+		  std::string str2(cc2);
 		  
-		  strings.push_back(str); 
+		  strings.push_back(str + " " + str2); 
 	 }
 
 	 void Add(char* cc, char* cc2, char* cc3) 
-	 { 
-		  strcat(cc," "); 
-		  strcat(cc,cc2);
-		  strcat(cc," "); 
-		  strcat(cc,cc3);
+	 { 		  
 		  std::string str(cc);
+		  std::string str2(cc2);
+		  std::string str3(cc3);
 		  
-		  strings.push_back(str); 
+		  strings.push_back(str + " " + str2+ " " + str3); 
+		
 	 }
 
 	 void saveToFile(char* filename) 
