@@ -29,7 +29,7 @@ bool sortByID(TObject* i, TObject* j);
 
 struct  /* __declspec(novtable) */ object
 {
-   virtual ~object() = 0 { /* empty */ }
+   virtual ~object() = 0;
 };
 
 class TValuedObject : public TObject
