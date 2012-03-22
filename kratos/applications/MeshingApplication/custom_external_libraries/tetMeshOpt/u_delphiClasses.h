@@ -148,7 +148,7 @@ public :
 		 //Agregar no repetidos
 		 if (assignMode == laOr)
 		 {
-			 for (int i=0; i<f->structure.size();i++)
+			 for (unsigned int i=0; i<f->structure.size();i++)
 			 { 
 				 if (this->indexOf(f->structure[i])>=0) continue;
 				 this->structure.push_back(f->structure[i]);

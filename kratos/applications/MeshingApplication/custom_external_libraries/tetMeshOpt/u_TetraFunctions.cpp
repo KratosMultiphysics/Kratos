@@ -163,7 +163,7 @@ void TVolumeMesh::updateIndexes(int flag )
        {
           TVertex* v= vertexes->elementAt(i);
 		   if (v==NULL) continue;  
-		   if (flag & KEEP_ORIG_IDS == 0)
+		   if ( (flag & KEEP_ORIG_IDS) == 0)
 				 v->id = i;
 		   fMassCenter = fMassCenter +v->fPos;
 		   if (v->elementsList!=NULL)
