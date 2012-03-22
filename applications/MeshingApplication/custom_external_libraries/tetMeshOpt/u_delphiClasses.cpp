@@ -11,35 +11,35 @@ using namespace std;
 
 std::string intToString(int number)
 {
-   char* c = intToStr(number);
-   
-   return std::string(c);
+	char* c = intToStr(number);
+
+	return std::string(c);
 }
 
 std::string floatToString(float number)
-	{
-   char* c = floatToStr(number);
-   
-   return std::string(c);
+{
+	char* c = floatToStr(number);
+
+	return std::string(c);
 }
 
 char* intToStr(int i)
 {
 	char* result = new char[100];       
-    sprintf( result, "%d", i );
+	sprintf( result, "%d", i );
 	return result ;
 }
 
 char* intToStr(int i, char* result)
 {	
-    sprintf( result, "%d", i );
+	sprintf( result, "%d", i );
 	return result ;
 }
 
 char* floatToStr(float f)
 {
 	char* result = new char[100];       
-    sprintf( result, "%f", f );
+	sprintf( result, "%f", f );
 	return result ;
 }
 
@@ -51,7 +51,7 @@ int dround(double d)
 
 char* floatToStr(float f, char* result)
 {	
-    sprintf( result, "%f", f );
+	sprintf( result, "%f", f );
 	return result ;
 }
 

@@ -5,25 +5,25 @@ typedef void(*TStForLoopElement)(int , int , TObject*);
 
 class TParallelIterator
 {
-  TStForLoopElement innercall;
-  TList<TObject*>* elements;
+	TStForLoopElement innercall;
+	TList<TObject*>* elements;
 public :
 
 	TParallelIterator()
 	{
 	}
-  	
-  TParallelIterator(TStForLoopElement ic,  TList<TObject*>* el) : innercall(ic), elements(el)
-  {  }
-  
-  
-  void forloop(int from, int to, TList<TObject*>* elements,TStForLoopElement call)
-  {
-      #pragma omp parallel for
-	  for (int i=from ; i<=to ; i++)
-		  call(i,0,elements->elementAt(i));
-	  //parallel_for(blocked_range<size_t>(from,to), this );
-  }
+
+	TParallelIterator(TStForLoopElement ic,  TList<TObject*>* el) : innercall(ic), elements(el)
+	{  }
+
+
+	void forloop(int from, int to, TList<TObject*>* elements,TStForLoopElement call)
+	{
+#pragma omp parallel for
+		for (int i=from ; i<=to ; i++)
+			call(i,0,elements->elementAt(i));
+		//parallel_for(blocked_range<size_t>(from,to), this );
+	}
 };
 
 
