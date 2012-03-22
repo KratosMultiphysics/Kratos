@@ -1,0 +1,3 @@
+Kernels in this folder are automatically generated from the command
+$> make kernels
+in the build/ directory
