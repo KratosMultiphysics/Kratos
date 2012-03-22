@@ -144,9 +144,9 @@ void TVolumeMesh::removeFreeVertexes()
 	vertexes->Pack();
 }
 
-TVolumeMesh::TVolumeMesh()
+TVolumeMesh::TVolumeMesh():
+    TMesh()
 	{
-		TMesh::TMesh();
 		elements = new TList<TObject*>();
 		elementsToAdd = new TList<TObject*>();
 		elementsToRemove= new TList<TObject*>();
