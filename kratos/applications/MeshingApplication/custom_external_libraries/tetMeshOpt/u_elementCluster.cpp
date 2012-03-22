@@ -352,7 +352,7 @@ if (testCenter)
     };
       //--- Evaluate Set
    goodMinQuality =minQuality;
-   vertexes->sort(sortByID);
+   vertexes->Sort(sortByID);
    TVertex** vr = new TVertex*[4];
    //---------------------------------------------------
    // Para todos los vertices
