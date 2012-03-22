@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosMeshingApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -212,11 +214,11 @@ class IncompressibleFluidSolver:
         distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
 
         non_linear_tol = 0.001
-        max_it = 3
+        max_it = 10
         reform_dofset = self.ReformDofAtEachIteration
         time_order = self.time_order
         pPrecond = DiagonalPreconditioner()
-        turbulence_linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
         turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
         turbulence_model.AdaptForFractionalStep()
         if(DES==True):

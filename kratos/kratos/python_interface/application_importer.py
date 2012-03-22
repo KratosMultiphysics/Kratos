@@ -12,7 +12,7 @@ def ImportApplication(application,application_name,application_folder,caller):
   # Note that position [0] (a frame instance) could also be used for the check,
   # but can return false if both calls are made from the python interpreter
   if main_caller[1] != caller[1]:
-    msg = "Python file "+str(caller[1])+" requires "+str(application_name)+"\n    Please import it from your main Python script, "+str(main_caller[1])
+    msg = "\n***\n*    Python file "+str(caller[1])+"\n*    requires "+str(application_name)+"\n*    Please import it from your main Python script, "+str(main_caller[1]+'\n***')
     #print caller
     #print main_caller
     raise RuntimeError(msg)

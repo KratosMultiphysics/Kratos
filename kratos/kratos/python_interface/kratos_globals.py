@@ -6,6 +6,7 @@ class KratosGlobals:
     self.__dict__["RequestedApplications"] = dict()
     self.__dict__["AuthorizedCaller"] = ThisCaller
     self.__dict__["ApplicationsRoot"] = ApplicationsRoot
+    self.__dict__["ApplicationsInterfaceIsDeprecated"] = False
 
   def __setattr__(self,name,value):
     if self.__dict__.has_key(name):
@@ -20,3 +21,4 @@ class KratosGlobals:
     print "Main Python script:",self.AuthorizedCaller
     print "Kratos Applications base folder:",self.ApplicationsRoot
     return
+
