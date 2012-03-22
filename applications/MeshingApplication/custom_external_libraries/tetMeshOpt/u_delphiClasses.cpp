@@ -1,11 +1,27 @@
 #include "u_delphiClasses.h"
 #include <algorithm>
 #include <vector>
+
 using namespace std;
 
 #define CEILING_POS(X) ((X-(int)(X)) > 0 ? (int)(X+1) : (int)(X))
 #define CEILING_NEG(X) ((X-(int)(X)) < 0 ? (int)(X-1) : (int)(X))
 #define CEILING(X) ( ((X) > 0) ? CEILING_POS(X) : CEILING_NEG(X) )
+
+
+std::string intToString(int number)
+{
+   char* c = intToStr(number);
+   
+   return std::string(c);
+}
+
+std::string floatToString(float number)
+	{
+   char* c = floatToStr(number);
+   
+   return std::string(c);
+}
 
 char* intToStr(int i)
 {
