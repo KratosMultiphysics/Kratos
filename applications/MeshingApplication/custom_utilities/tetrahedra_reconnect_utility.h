@@ -109,7 +109,7 @@ namespace Kratos
 				m->vertexes->Add(v);
 			}
 			std::cout << "Reading elements"<< "\n";
-			int numVertexes = m->vertexes->Count();
+			
 			for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
 			{
 				Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -243,7 +243,7 @@ namespace Kratos
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
-				ml2->save("D:/out_MeshFromKratos.vwm" , m);
+				ml2->save((char*)("D:/out_MeshFromKratos.vwm") , m);
 				delete ml2;
 			}
 
@@ -284,9 +284,9 @@ namespace Kratos
 				{
 					TMeshLoader* ml2 = new TVMWLoader();
 					std::string s("");					
-					s = "D:/out_MeshFromKratos" + intToString(iter)+".vwm";
-					
-					ml2->save(s._Myptr() , m);
+					s = "D:/out_MeshFromKratos" + intToString(iter)+".vwm";					
+					// BUG Linux/Windows
+					//ml2->save(s._Myptr() , m);
 					delete ml2;
 				}
 			}
@@ -296,7 +296,7 @@ namespace Kratos
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
-				ml2->save("D:/out_MeshC.vwm" , m);
+				ml2->save((char*)("D:/out_MeshC.vwm") , m);
 				delete ml2;
 			}
 
