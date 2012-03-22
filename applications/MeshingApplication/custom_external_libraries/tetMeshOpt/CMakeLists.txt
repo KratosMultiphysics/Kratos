@@ -3,9 +3,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 ##removing optimizations
 
 ## generate variables with the sources
-set( MESH_OPT     
- 	${CMAKE_CURRENT_SOURCE_DIR}/apiPrimitives.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Math3D.cpp
+set( MESH_OPT      	
+    ${CMAKE_CURRENT_SOURCE_DIR}/Math3D.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/u_delphiClasses.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/u_elementCluster.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/u_MeshLoaders.cpp
