@@ -383,7 +383,7 @@ if (testCenter)
 		 vr[3] = v3;		 
 
          tempQuality = fc(vr);
-         actualQuality = min(actualQuality,tempQuality);
+         actualQuality = Min(actualQuality,tempQuality);
 	   }
      // if not improvedClusterByBands(tempTetraList,copyEl,self)
       if (!improvedCluster(tempTetraList,copyEL,this, false))
@@ -587,7 +587,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	   TTetra* _t = (TTetra*)(aMesh->elements->elementAt(i));
 	   _t->isdestroyed = false;
 	   _t->calidad = fc(_t->vertexes);
-	   meshMinQ = min(meshMinQ , _t->calidad);
+	   meshMinQ = Min(meshMinQ , _t->calidad);
    } //Creacion de variables
    aMesh->elementsToRemove->Clear();
    aMesh->selectedElements->Clear();
