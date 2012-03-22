@@ -15,6 +15,9 @@ char* floatToStr(float f);
 char* floatToStr(float f, char* result);
 int dround(double d);
 
+std::string intToString(int number);
+std::string floatToString(float number);
+
 class TObject
 {
 public :	

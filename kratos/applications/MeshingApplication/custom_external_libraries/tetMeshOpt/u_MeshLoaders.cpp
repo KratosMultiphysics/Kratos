@@ -108,22 +108,22 @@
 	    FILE* fMesh;
 		TVolumeMesh* m = new TVolumeMesh();
    
-        fopen_s(&fMesh, aMeshName,"rb"); //xx = rb, wb, read and write binary, more 		
+        fMesh = fopen( aMeshName,"rb"); //xx = rb, wb, read and write binary, more 		
 		
 		char line[200];		
 		int nCoords;		
 		// Read first Line
         fread (line,14,1,fMesh); 
 		// Read coords
-		fscanf_s(fMesh, "%d", &nCoords);	
+		fscanf(fMesh, "%d", &nCoords);	
 		for (int i=0; i<nCoords;i++)
 		{
 			int id;
 			float x,y,z;
-			fscanf_s(fMesh, "%d", &id);
-			fscanf_s(fMesh, "%f", &x);
-			fscanf_s(fMesh, "%f", &y);
-			fscanf_s(fMesh, "%f", &z);			
+			fscanf(fMesh, "%d", &id);
+			fscanf(fMesh, "%f", &x);
+			fscanf(fMesh, "%f", &y);
+			fscanf(fMesh, "%f", &z);			
 
 			TVertex* v = new TVertex(x,y,z);
 			v->id = id;
@@ -134,17 +134,17 @@
 		int elGroups, numElements;
 		
 		fread (line,17,1,fMesh); 
-		fscanf_s(fMesh, "%d", &elGroups);	
-		fscanf_s(fMesh, "%d%d", &elGroups,&numElements);	
+		fscanf(fMesh, "%d", &elGroups);	
+		fscanf(fMesh, "%d%d", &elGroups,&numElements);	
 		fread (line,9,1,fMesh); 
 		fread (line,11,1,fMesh); 
 		for (int i=0; i<numElements;i++)
 		{
 			int iv0,iv1,iv2,iv3;
-			fscanf_s(fMesh, "%d", &iv0);
-			fscanf_s(fMesh, "%d", &iv1);
-			fscanf_s(fMesh, "%d", &iv2);			
-			fscanf_s(fMesh, "%d", &iv3);	
+			fscanf(fMesh, "%d", &iv0);
+			fscanf(fMesh, "%d", &iv1);
+			fscanf(fMesh, "%d", &iv2);			
+			fscanf(fMesh, "%d", &iv3);	
 
 			TVertex* v0 = m->findVertexById(iv0);
 			TVertex* v1 = m->findVertexById(iv1);
@@ -169,7 +169,8 @@
       TTriangle* tr;
       TTetra* t;
       TVolumeMesh *m;
-	  char* s;
+	  std::string s;
+	  std::string s2;
       // s ,fdir, fn : string;
 
 	// ....................
@@ -196,90 +197,82 @@
 
 	
 	// Tetra Vertex Neighbours
-	s = new char[400];	
-	char* s2 = new char[100];	
+	
+	
  
 	for (i = 0 ; i<m->vertexes->Count() ; i++)
 	{
 		v = m->vertexes->elementAt(i);
 		if (v->elementsList == NULL) continue;
-		intToStr(v->id,s);
-		strcat(s, " ");
+		s = intToStr(v->id);
+		s = s + " ";
 				
 		for (j = 0 ; j<v->elementsList->Count() ; j++)
 		{
 			t = (TTetra*)(v->elementsList->elementAt(j));
 			if (!t) continue;
-			intToStr(t->id,s2);
-	        strcat(s, s2);
-			strcat(s, " ");
+			s2= intToStr(t->id);
+	        s = s + s2 + " ";			
 		}
 		st->Add(s);
 	}
 	
 	//delete st;
 	st->Add("FACES");
-    intToStr(m->fFaces->Count(),s);
+    s = intToString(m->fFaces->Count());
     st->Add(s);
     
 	for (i=0 ; i<m->fFaces->Count();i++)
 	{
 		tr = (TTriangle*)(m->fFaces->elementAt(i));
-        intToStr(tr->id,s);
-		strcat(s, " ");
+        s = intToString(tr->id);
+		s = s + " ";
 				
 		for (j = 0 ; j<3 ; j++)
 		{
 			v = tr->vertexes[j];
 			if (!v) continue;
-			intToStr(v->id,s2);
-	        strcat(s, s2);
-			strcat(s, " ");
+			s2 = intToStr(v->id);
+	        s = s + s2 + " ";
 		}
 		st->Add(s);
 	}
 	// VERTEXES
 	st->Add("VERTEXES");
-    intToStr(m->vertexes->Count(),s);
+    s = intToString(m->vertexes->Count());
     st->Add(s);
     
 	for (i=0 ; i<m->vertexes->Count();i++)
 	{
 		v = (TVertex*)(m->vertexes->elementAt(i));
-        intToStr(v->id,s);
-		strcat(s, " ");
+        s = intToString(v->id)+ " " + floatToString(v->fPos.x) + " "  
+			                        + floatToString(v->fPos.y)+ " "  +floatToString(v->fPos.z);
 				
-		floatToStr(v->fPos.x,s2);	    strcat(s, s2); 		strcat(s, " ");
-		floatToStr(v->fPos.y,s2);	    strcat(s, s2); 		strcat(s, " ");
-		floatToStr(v->fPos.z,s2);	    strcat(s, s2); 
-		
 		st->Add(s);
 	}
 	// ELEMENTS
 	st->Add("ELEMENTS");
-	intToStr(m->elements->Count(),s);
+	s = intToString(m->elements->Count());
     st->Add(s);
     
 	for (i=0 ; i<m->elements->Count();i++)
 	{
 		t = (TTetra*)(m->elements->elementAt(i));
-        intToStr(t->id,s);
-		strcat(s, " ");
+        s = intToString(t->id) + " ";
+		
 				
 		for (j = 0 ; j<4 ; j++)
 		{
 			v = t->vertexes[j];
 			if (!v) continue;
-			intToStr(v->id,s2);
-	        strcat(s, s2);
-			strcat(s, " ");
+			s = s + intToString(v->id) +" ";			
 		}
 		st->Add(s);
 	}
 
 	// VERTEXES x VERTEXES ELEMENTS NEIGHBOURS
 	st->Add("VELEMENTS");
-	intToStr(m->vertexes->Count(),s);
+	s = intToString(m->vertexes->Count());
     st->Add(s);
 
 	TList<TObject*> *lneigh = new TList<TObject*>();
@@ -287,18 +280,16 @@
 	for (i=0 ; i<m->vertexes->Count();i++)
 	{
 		v = m->vertexes->elementAt(i);
-        intToStr(v->id,s);
-		strcat(s, " ");
-
+        s = intToString(v->id) + " ";
+		
 		v->getElemNeighbours(lneigh);    
 				
 		for (j = 0 ; j<lneigh->Count() ; j++)
 		{
 			TVertex* v3 = (TVertex*)(lneigh->elementAt(j));
 			if (!v3) continue;
-			intToStr(v3->id,s2);
-	        strcat(s, s2);
-			strcat(s, " ");
+			s2= intToString(v3->id);
+			s = s + s2 + " ";	        
 		}
 		st->Add(s);
 	}
@@ -334,10 +325,10 @@
 			float x,y,z;
 			std::string s = st->strings[i];
 
-			fscanf_s(fMesh, "%f", &x);
-			fscanf_s(fMesh, "%f", &x);
-			fscanf_s(fMesh, "%f", &y);
-			fscanf_s(fMesh, "%f", &z);			
+			fscanf(fMesh, "%f", &x);
+			fscanf(fMesh, "%f", &x);
+			fscanf(fMesh, "%f", &y);
+			fscanf(fMesh, "%f", &z);			
 
 			TVertex* v = new TVertex(x,y,z);
 			v->id = i;
@@ -352,14 +343,14 @@
 		{
 			int iv0,iv1,iv2,iv3;
 			// id element
-			fscanf_s(fMesh, "%d", &iv0);
+			fscanf(fMesh, "%d", &iv0);
 			// other
-			fscanf_s(fMesh, "%d", &iv0);
+			fscanf(fMesh, "%d", &iv0);
 			// elements
-			fscanf_s(fMesh, "%d", &iv0);
-			fscanf_s(fMesh, "%d", &iv1);
-			fscanf_s(fMesh, "%d", &iv2);			
-			fscanf_s(fMesh, "%d", &iv3);	
+			fscanf(fMesh, "%d", &iv0);
+			fscanf(fMesh, "%d", &iv1);
+			fscanf(fMesh, "%d", &iv2);			
+			fscanf(fMesh, "%d", &iv3);	
 
 			TVertex* v0 = m->vertexes->elementAt(iv0-1);
 			TVertex* v1 = m->vertexes->elementAt(iv1-1);
