@@ -159,7 +159,7 @@ namespace Kratos
 
 			std::cout << " Number of vertexes read :"<< m->vertexes->Count() <<"\n";
 			std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
-			m->updateIndexes(GENERATE_SURFACE);
+			m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 			std::cout << " Number of faces read :"<< m->fFaces->Count() << "\n";
 
 		}
@@ -259,7 +259,7 @@ namespace Kratos
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
 		{
-		    
+		    m->vertexes->Sort(sortByID);
 			// Save the mesh as generated from Kratos
 			if (saveToFile)
 			{
@@ -278,21 +278,21 @@ namespace Kratos
 				{
 				    std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
 					evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE);
+					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 
 				if (processByFace)
 				{
 					std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";
 					evaluateClusterByFace(m,500000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE);
+					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 
 				if (processByEdge)
 				{
 					std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
 					evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE);
+					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 				
 				qt->refresh();
