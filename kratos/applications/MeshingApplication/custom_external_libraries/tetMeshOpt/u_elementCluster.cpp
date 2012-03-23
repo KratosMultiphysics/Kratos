@@ -546,7 +546,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 	nFaces = new TList<TObject*>();
 
-	startProcess("evaluateClusterByFace");
+	startProcess((char*)("evaluateClusterByFace"));
 	inspectedElements = new TList<TObject*>();
 	for (iv = 0 ; iv<elements->Count()  ; iv++)
 	{
@@ -598,7 +598,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 	aMesh->updateRefs();
 
-	endProcess("evaluateClusterByFace");
+	endProcess((char*)("evaluateClusterByFace"));
 
 
 	delete aCluster;
@@ -633,8 +633,8 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	vertexesCopy = new TList<TVertex*>();
 	vertexesCopy->Assign(aMesh->vertexes);
 
-	startProcess("evaluateClusterByNode");
-	int numElementsChanged  = 0;
+	startProcess((char*)("evaluateClusterByNode"));
+	
 	////-- Facil de Paralelizar
 	for (iv = 0 ; iv<vertexesCopy->Count() ; iv++)
 	{
@@ -668,7 +668,7 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 	} 
 	((TVolumeMesh*)(aMesh))->updateRefs();
-	endProcess("evaluateClusterByNode");
+	endProcess((char*)("evaluateClusterByNode"));
 	delete (vertexesCopy);
 	delete (aCluster);
 
@@ -694,7 +694,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	aCluster = new TElementsCluster(aMesh,fc);
 	inspElements = new TList<TObject*>();
 	vl = new TList<TObject*>();
-
+	startProcess((char*)("evaluateClusterByEdge"));
 	//--------------------------------------------
 	for (i = 0 ; i<aMesh->vertexes->Count() ; i++)
 	{
@@ -755,7 +755,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		}
 
 	}
-	endProcess("evaluateClusterByEdge");
+	endProcess((char*)("evaluateClusterByEdge"));
 	aMesh->updateRefs();
 	delete aCluster;
 
@@ -780,7 +780,7 @@ bool improvedCluster(TList<TObject*>* c1,
 	avgEdgeLength = cl->avgEdgeLength ;
 	goodMinQuality = cl->goodMinQuality;
 	origDAngle = cl->minDAngle;
-	bool result = false;
+	
 
 	for (j = 0 ; j<(c1->Count() / 4) ;j++)
 	{
