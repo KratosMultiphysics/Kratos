@@ -39,9 +39,10 @@ bool TSurLoader:: save(const char* filename, TMesh* aMesh )
 	for (i = 0 ; i< aMesh->fFaces->Count() ; i++)
 	{
 		tr = (TTriangle*)(  aMesh->fFaces->elementAt(i));
-		sprintf(s, "%d%s%d%s%d",  tr->vertexes[0]->id," ",tr->vertexes[1]->id," ",
-			tr->vertexes[2]->id," ");
-		st->Add(s);
+		std::string s2 = intToString(tr->vertexes[0]->id)+ " "+intToString(tr->vertexes[1]->id)+ " "+
+			             intToString(tr->vertexes[2]->id)+ " "+intToString(tr->vertexes[3]->id);
+			
+		st->Add(s2);
 	}
 
 	st->Add((char*)("*COORDINATES"));	
