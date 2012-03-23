@@ -51,6 +51,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "opencl_common.cl"
 
+
+#ifndef KRATOS_OCL_GENERAL_KERNELS_ONLY
+
+
 // Temporary, to be specified on the compile command line
 #define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS 8
 #define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS 5
@@ -370,11 +374,11 @@ __kernel void InnerProd2(__global ValueType const *X_Values, __global ValueType 
 }
 
 //
-// SPMV_CSR
+// SpMV_CSR
 //
 // Performs sparse matrix vector product in CSR format
 
-__kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices, __global IndexType const *A_ColumnIndices, __global ValueType const *A_Values, __global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
+__kernel void SpMV_CSR(__global IndexType const *A_RowIndices, __global IndexType const *A_ColumnIndices, __global ValueType const *A_Values, __global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
 {
 	const IndexType gid = get_group_id(0);
 	const IndexType tid = get_local_id(0);
@@ -522,6 +526,8 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices,
 	}
 }
 
+#else  // KRATOS_OCL_GENERAL_KERNELS_ONLY
+
 //
 // UpdateVectorWithBackup3
 //
@@ -543,3 +549,31 @@ __kernel void UpdateVectorWithBackup3(__global ValueType *X_Values, __global Val
 		Y_Values[gid] = T;
 	}
 }
+
+//
+// UpdateVectorWithBackup32
+//
+// Updates two vectors with 3 vectors after backing them up in others
+// Note: t1 = x1; x1 = a1 * x1 + b1 * y1 + c1 * z1; y1 = t1; t2 = x2; x2 = a2 * x2 + b2 * y2 + c2 * z2; y2 = t2
+
+__kernel void UpdateVectorWithBackup32(__global ValueType *X_Values1, __global ValueType *Y_Values1, __global const ValueType *Z_Values1, ValueType A1, ValueType B1, ValueType C1, __global ValueType *X_Values2, __global ValueType *Y_Values2, __global const ValueType *Z_Values2, ValueType A2, ValueType B2, ValueType C2, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		ValueType T;
+
+		T = X_Values1[gid];
+		X_Values1[gid] = A1 * X_Values1[gid] + B1 * Y_Values1[gid] + C1 * Z_Values1[gid];
+		Y_Values1[gid] = T;
+
+		T = X_Values2[gid];
+		X_Values2[gid] = A2 * X_Values2[gid] + B2 * Y_Values2[gid] + C2 * Z_Values2[gid];
+		Y_Values2[gid] = T;
+	}
+}
+
+#endif  // KRATOS_OCL_GENERAL_KERNELS_ONLY

@@ -69,6 +69,29 @@ namespace OpenCL
 {
 
 	//
+	// LinearSolverOptimizationParameters
+	//
+	// A class to hold optimized parameters for a linear solver
+
+	class LinearSolverOptimizationParameters
+	{
+	public:
+
+		//
+		// LinearSolverOptimizationParameters
+		//
+		// Constructor
+		LinearSolverOptimizationParameters(DeviceGroup &DeviceGroup): mrDeviceGroup(DeviceGroup)
+		{
+			//
+		}
+
+	private:
+
+		DeviceGroup &mrDeviceGroup;
+	};
+
+	//
 	// LinearSolver
 	//
 	// A class to solve linear systems of equations on OpenCL devices
@@ -83,17 +106,23 @@ namespace OpenCL
 		// Constructor
 		LinearSolver(DeviceGroup &DeviceGroup, cl_int A_RowIndices_Buffer, cl_int A_Column_Indices_Buffer, cl_int A_Values_Buffer, cl_int B_Values_Buffer, unsigned int MaxIterations, double Tolerance):
 			mrDeviceGroup(DeviceGroup),
+			mOptimized(false),
 			mMaxIterations(MaxIterations),
 			mIterationNo(0),
 			mTolerance(Tolerance)
         {
-			//
+
+			// General routines
+			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_GENERAL_KERNELS_ONLY");
+			mkUpdateVectorWithBackup32 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVectorWithBackup32");
         }
 
 	private:
 
 		DeviceGroup &mrDeviceGroup;
-		// cl_uint
+		bool mOptimized;
+		cl_uint mpOpenCLLinearSolverGeneral;
+		cl_uint mkUpdateVectorWithBackup32;
 		unsigned int mMaxIterations;
 		unsigned int mIterationNo;
 		double mTolerance;
