@@ -13,9 +13,25 @@ public :
 	TMeshLoader(){ return; }
 	~TMeshLoader(){return; }
 
-	virtual bool save(char* aMeshName, TMesh* aMesh ){ return false;  }
+	virtual bool save(const char* aMeshName, TMesh* aMesh )
+	{ 
+	    std :: cout << "Abstract save method "<< "\n";
+		return false;  
+	}
+	virtual bool save(std::string aMeshFileName, TMesh* aMesh ) 
+	{ 
+		return save(aMeshFileName.data() , aMesh); 
+	}
 
-	virtual  TMesh* load(char* aMeshName) { return nil; }
+	virtual  TMesh* load(const char* aMeshName) 
+	{ 
+		std :: cout << "Abstract load method "<< "\n";
+		return nil; 
+	}
+	virtual  TMesh* load(std::string aMeshFileName)
+	{ 
+		return load(aMeshFileName.data()); 
+	}
 };
 
 
@@ -26,10 +42,13 @@ private :
 public :
 	TSurLoader(){ return; }
 	~TSurLoader(){return; }
-	virtual bool save(char* filename, TMesh* aMesh );
+	virtual bool save(const char* filename, TMesh* aMesh );
 
-	virtual TMesh* load(char* aMeshName)
-	{ return nil; }
+	virtual TMesh* load(const char* aMeshName)
+	{ 
+		std :: cout << "Sur format Loader not implemented "<< "\n";
+		return nil; 
+	}
 };
 
 class TVMWLoader : public TMeshLoader
@@ -40,17 +59,17 @@ public :
 	TVMWLoader(){ return; }
 	~TVMWLoader(){return; }
 
-	virtual bool save(char* aMeshName, TMesh* aMesh );
+	virtual bool save(const char* aMeshName, TMesh* aMesh );
 
-	virtual TMesh* load(char* aMeshName);
+	virtual TMesh* load(const char* aMeshName);
 
 };
 
 class TElementTetraLoader : public TMeshLoader
 {
 public :
-	virtual TMesh* load(char* aMeshName){ return NULL;};
-	virtual bool save(char* aMeshName, TMesh* aMesh );
+	virtual TMesh* load(const char* aMeshName){ return NULL;};
+	virtual bool save(const char* aMeshName, TMesh* aMesh );
 
 };
 
@@ -62,8 +81,9 @@ public :
 	TGIDLoad(){ return; }
 	~TGIDLoad(){return; }
 
-	virtual bool save(char* aMeshName, TMesh* aMesh );
+	virtual bool save(const char* aMeshName, TMesh* aMesh );
+	
 
-	virtual TMesh* load(char* aMeshName);
+	virtual TMesh* load(const char* aMeshName);
 
 };

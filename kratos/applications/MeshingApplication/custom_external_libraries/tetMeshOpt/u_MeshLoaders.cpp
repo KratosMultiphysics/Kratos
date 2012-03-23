@@ -5,7 +5,7 @@
 #include "u_TetraFunctions.h"
 
 
-bool TSurLoader:: save(char* filename, TMesh* aMesh )
+bool TSurLoader:: save(const char* filename, TMesh* aMesh )
 { 
 	int  i,nG;
 	TTriangle *tr;
@@ -61,7 +61,7 @@ bool TSurLoader:: save(char* filename, TMesh* aMesh )
 
 
 
-bool TVMWLoader::save(char* aMeshName, TMesh* aMesh )
+bool TVMWLoader::save(const char* aMeshName, TMesh* aMesh )
 { 
 	//----------------------------
 	TStringList* F;
@@ -103,7 +103,7 @@ bool TVMWLoader::save(char* aMeshName, TMesh* aMesh )
 
 	return false;  
 }
-TMesh* TVMWLoader::load(char* aMeshName)
+TMesh* TVMWLoader::load(const char* aMeshName)
 { 
 	FILE* fMesh;
 	TVolumeMesh* m = new TVolumeMesh();
@@ -161,7 +161,7 @@ TMesh* TVMWLoader::load(char* aMeshName)
 }
 
 
-bool TElementTetraLoader::save(char* aMeshName, TMesh* aMesh )
+bool TElementTetraLoader::save(const char* aMeshName, TMesh* aMesh )
 {
 	TStringList* st;
 	int i,j;
@@ -302,12 +302,12 @@ bool TElementTetraLoader::save(char* aMeshName, TMesh* aMesh )
 }
 
 
-bool TGIDLoad::save(char* aMeshName, TMesh* aMesh )
+bool TGIDLoad::save(const char* aMeshName, TMesh* aMesh )
 {
 	return false;
 }
 
-TMesh* TGIDLoad::load(char* aMeshName)
+TMesh* TGIDLoad::load(const char* aMeshName)
 {
 	FILE* fMesh;
 	TVolumeMesh* m = new TVolumeMesh();

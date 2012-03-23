@@ -54,5 +54,5 @@ void TetQuality::print()
 	std :: cout << "Min Volume :" <<this->fVolMin <<"\n";
 	std :: cout << "Max Volume :" <<this->fVolMax <<"\n";
 	std :: cout << "Num negative elements :" <<this->nonPositive <<"\n";
-	std :: cout << "Num elements :" <<this->aMesh->elements->Count() <<"\n";
+	std :: cout << "Num elements :" << this->aMesh->elements->Count() <<"\n";
 }
