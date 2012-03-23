@@ -75,16 +75,16 @@ void fastGetSurfaceTriangles(TMesh* aModel)
   
   aModel->fFaces->Clear();
   
-  startProcess("parallelPart");
+  startProcess((char*)("parallelPart"));
     //parallel_for(blocked_range<size_t>(0,numT), TParallelIterator(localProcessI,aModel->elements) );    
      	  #pragma omp parallel for
               for (i = 0; i<numT ; i++)
 					localProcessI(i,0,aModel->elements->elementAt(i));
 		  
 	 
-  endProcess("parallelPart");
+  endProcess((char*)("parallelPart"));
 
-  startProcess("createPart");
+  startProcess((char*)("createPart"));
   for (i = 0 ; i<numT ; i++)
   {
 	t = (TTetra*)( aModel->elements->elementAt(i));
@@ -99,7 +99,7 @@ void fastGetSurfaceTriangles(TMesh* aModel)
 	  aModel->addTriangle(tr);
 	}
   }
-  endProcess("createPart");
+  endProcess((char*)("createPart"));
   delete _faces;
   
 }
@@ -204,7 +204,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	 vertexesCopy->elementAt(i)->isdestroyed = false;
  }
  TStringList* st = new TStringList();
- startProcess("evaluateClustersInParallel");
+ startProcess((char*)("evaluateClustersInParallel"));
  char* iter = new char[0];
  TParallelIterator* pi = new TParallelIterator();
  
@@ -216,9 +216,9 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	 vRes->Clear();
      //Distribuyo la carga
      //assignVertexes(vertexesCopy,vRes,iv+1,nsimCh);
-	  startProcess("assignVertexesAvoidingVisited");
+	  startProcess((char*)("assignVertexesAvoidingVisited"));
         assignVertexesAvoidingVisited(vertexesCopy,vRes,iv+1,nsimCh-1);
-	  endProcess("assignVertexesAvoidingVisited");
+	  endProcess((char*)("assignVertexesAvoidingVisited"));
       if (vRes->Count() == 0 ) break;
       
 	  startProcess("clearVars");
@@ -236,13 +236,13 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
          resC->perturbCenter = 0;
          resC->checkMaxLength = true;        
 	  }
-	  endProcess("clearVars");
+	  endProcess((char*)("clearVars"));
 
-	  startProcess("parallelPart");
+	  startProcess((char*)("parallelPart"));
   	     pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateCluster);      
 
       /* end of parallel section */
-      endProcess("parallelPart");
+      endProcess((char*)("parallelPart"));
 
       for (i = 0 ; i<vRes->Count() ; i++)
 	  {
@@ -256,8 +256,8 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	// aMesh->updateRefs();
 	
  }
-  endProcess("evaluateClustersInParallel");
-  st->saveToFile("d:/clusterAssingmentC.txt");
+  endProcess((char*)("evaluateClustersInParallel"));
+  
   aMesh->updateRefs();
   
 }
