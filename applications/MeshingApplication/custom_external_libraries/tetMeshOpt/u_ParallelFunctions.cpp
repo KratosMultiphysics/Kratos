@@ -221,7 +221,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	  endProcess((char*)("assignVertexesAvoidingVisited"));
       if (vRes->Count() == 0 ) break;
       
-	  startProcess("clearVars");
+	  startProcess((char*)("clearVars"));
     //--Limpio las variables
 	  // por cada vertice, tengo un cluster
 	  for (i = 0 ; i<vRes->Count() ; i++)
