@@ -393,6 +393,7 @@ namespace OpenCL
 
 			KernelList2D Kernels;
 			SizeTList2D WorkGroupSizes;
+			SizeTList2D PreferredWorkGroupSizeMultiples;
 
 			cl_uint DeviceNo;
 			cl_device_type DeviceType;
@@ -1449,6 +1450,7 @@ namespace OpenCL
 
 				KernelList CurrentKernels(DeviceNo);
 				SizeTList CurrentWorkGroupSizes(DeviceNo);
+				SizeTList CurrentPreferredWorkGroupSizeMultiples(DeviceNo);
 
 				for (cl_uint i = 0; i < DeviceNo; i++)
 				{
@@ -1475,7 +1477,7 @@ namespace OpenCL
 #else
 						// For OpenCL 1.0 only
 
-						PreferredWorkGroupSizeMultiple = 32;
+						PreferredWorkGroupSizeMultiple = 64;  // This seems to be a better choice for nVidia GPUs
 
 #endif
 
@@ -1505,12 +1507,14 @@ namespace OpenCL
 					}
 
 					CurrentWorkGroupSizes[i] = WorkGroupSize;
+					CurrentPreferredWorkGroupSizeMultiples[i] = PreferredWorkGroupSizeMultiple;
 				}
 
 				// Append these to the lists
 
 				Kernels.push_back(CurrentKernels);
 				WorkGroupSizes.push_back(CurrentWorkGroupSizes);
+				PreferredWorkGroupSizeMultiples.push_back(CurrentPreferredWorkGroupSizeMultiples);
 
 				return KernelNo;
 			}
