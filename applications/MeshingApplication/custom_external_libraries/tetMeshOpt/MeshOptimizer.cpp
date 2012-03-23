@@ -19,8 +19,13 @@ int main (int argc, char* argv[])
 
 	TMeshLoader* ml = new TVMWLoader();
 	TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/kratosProof.vwm"));   
+	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/out_MeshFromKratos0.vwm"));   
+	
 	//m->normalizeMesh(1000);
 	m->updateIndexes(GENERATE_SURFACE);
+	std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
+
+	
 
 	for (int i=0 ; i<m->vertexes->Count() ; i++)
 	{
@@ -29,7 +34,7 @@ int main (int argc, char* argv[])
 			cout << "Error ID "<< index <<"\n";
 	}
 
-
+	
 	//swapVolumeMesh((TVolumeMesh*)(m));
 	//startProcess("optimize by node");
 	cout <<"...Optimizing by Face" <<"\n"; 
@@ -47,22 +52,32 @@ int main (int argc, char* argv[])
 	startProcess("Parallel evaluation");
 
 	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-	evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-	m->updateIndexes(GENERATE_SURFACE);
-	endProcess("Parallel evaluation");
-	qt->refresh();   qt->print();
-	m->validate(true);
+	for (int i=0 ;i<1 ; i++)
+	{
+		evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+		endProcess("Parallel evaluation");
+		qt->refresh();   qt->print();
+		m->validate(true);
+		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
 
-	cout <<"...Parallel Optimizing by Node" <<"\n"; 
-	startProcess("Parallel evaluation");
-	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-	evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-	m->updateIndexes(GENERATE_SURFACE);
-	endProcess("Parallel evaluation");
-	qt->refresh();   qt->print();
-	m->validate(true);
-	std :: cout<< " Number of faces" << m->fFaces->Count();
+		evaluateClusterByFace( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+		endProcess("Parallel evaluation");
+		qt->refresh();   qt->print();
+		m->validate(true);
+		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
 
+    	evaluateClusterByEdge( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS) ;
+		endProcess("Parallel evaluation");
+		qt->refresh();   qt->print();
+		m->validate(true);
+		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
+
+	}
+
+	m->removeFreeVertexes();
 	showProcessTime();
 
 	/*
@@ -94,7 +109,9 @@ int main (int argc, char* argv[])
 	if ((c == 's' ) || (c == 'S'))
 	{
 		TMeshLoader* ml2 = new TVMWLoader();
-		ml2->save("D:/out_MeshC_Opt.vwm" , m);
+		std::string s("");
+	    s = "D:/out_MeshFromKratos" + intToString(0)+".vwm";
+		ml2->save(s , m);
 		delete ml2;
 	}
 

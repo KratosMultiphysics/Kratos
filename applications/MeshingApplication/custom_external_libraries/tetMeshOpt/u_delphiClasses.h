@@ -48,21 +48,58 @@ template <class T>
 class TList 
 {
 public :
+	bool ommitNULLSwhenAdd ;
+	bool keepOrder ;
 	std::vector<T> structure;
 	T operator[](int v1) const
 	{ 
 		return structure[v1]; 
 	}
 
-	TList()  {  }
+	TList(bool ommitNULLSwhenAdd = true)  
+	{  
+		this->ommitNULLSwhenAdd = ommitNULLSwhenAdd;
+		this->keepOrder = true;
+	}
 	~TList()
 	{
 		this->Clear();
 	}
 
+	void PackKeepingOrder()
+	{
+		int sSize = structure.size();
+		int lIndex =sSize-1;
+		
+		for (int i=0; i<=lIndex ; i++)
+		{
+			if (structure[i] != NULL ) continue;
+			int nextNotNull = -1;
+			for (int j=i+1 ; j<=lIndex ; j++)
+				if (structure[j] != NULL)
+			    {
+					nextNotNull = j;
+					break;
+				}
+			if (nextNotNull >0)
+			{
+				structure[i] = structure[nextNotNull] ;
+				structure[nextNotNull]  = NULL;				
+			}
+		}
+		int lastIndex = 0;
+		for ( lastIndex=0; lastIndex<=lIndex ; lastIndex++)
+		{
+			if (structure[lastIndex] == NULL) 
+				break;
+		}
+		structure.resize(lastIndex);	  
+	}
+
 	void Pack() 
 	{ 
-
+		if (keepOrder)
+		  return PackKeepingOrder();
 		int sSize = structure.size();
 		int lastIndex =sSize-1;
 		while ((lastIndex>0) &&(structure[lastIndex] == NULL)  ) lastIndex--;
@@ -83,7 +120,12 @@ public :
 		structure.resize(lastIndex+1);	  
 	}
 	int Count() { return structure.size(); }
-	void Add(T elem){ structure.push_back(elem); }
+	void Add(T elem)
+	{ 
+		if ((ommitNULLSwhenAdd) && (elem == NULL))
+			return ; 
+		structure.push_back(elem); 
+	}
 	void Remove(T elem) 
 	{ 
 		structure.erase( std::find( structure.begin(), structure.end(), elem ) );
@@ -135,6 +177,7 @@ public :
 
 	void Assign(TList* f)
 	{
+		structure.clear();
 		structure.assign(f->structure.begin(),f->structure.end());
 	}
 
