@@ -213,22 +213,19 @@ void TVolumeMesh::updateRefs()
 {
 	int i;
 
+	elements->Pack();
+	elementsToAdd->Pack();
+	elementsToRemove->Pack();
 	for (i = 0 ; i< elements->Count() ;i++)
 	{
-		TTetra* _t = (TTetra*)(elements->elementAt(i));
-		if (_t == NULL ) continue;
+		TTetra* _t = (TTetra*)(elements->elementAt(i));		
 		_t->flag = 1;
 	}
-	//for (i = 0 ; i< this->fFaces->Count() ;i++)
-	//	((TNeighboured*)(fFaces->elementAt(i)))->flag = 1;
-	//for (i = 0 ; i< vertexes->Count() ;i++)
-	//	((TNeighboured*)(vertexes->elementAt(i)))->flag = 1;
-
+	
 	//-- remuevo duplicados
 	for (i = 0 ; i< elementsToRemove->Count() ; i++)
 	{
-		TNeighboured* _nt = (TNeighboured*)(elementsToRemove->elementAt(i));
-		if (_nt == NULL ) continue;
+		TTetra* _nt = (TTetra*)(elementsToRemove->elementAt(i));		
 		// ya fue marcado
 		if (_nt->flag == 2)
 			elementsToRemove->setElementAt(i,NULL);     
@@ -236,64 +233,37 @@ void TVolumeMesh::updateRefs()
 			_nt->flag = 2;
 	}
 	elementsToRemove->Pack();
+	// Guardo cuantos elementos tengo
+	int origNumElements = elements->Count();
 
 	for (i = 0 ;i<elementsToAdd->Count() ; i++)
 	{
-		TNeighboured* _nt = (TNeighboured*)(elementsToAdd->elementAt(i));
-		if (_nt == NULL ) continue;
+		TTetra* _nt = (TTetra*)(elementsToAdd->elementAt(i));		
 		if (_nt->flag<2) 
 		{
 			_nt->flag = 3;
-
 			if ( (TTetra*)(_nt) ) 
 				this->elements->Add(_nt);
-			//else if ( (TVertex*)(_nt) ) 
-			//	  vertexes->Add( (TVertex*)(_nt));
-			//else if ( (TTriangle*)(_nt) ) 
-			//	  fFaces->Add( (TTriangle*)(_nt));
 		}
 	}
 
 	for (i = 0 ; i< elements->Count() ; i++)
 	{
-		TNeighboured* _nt = (TNeighboured*)(elements->elementAt(i));
-		if (_nt == NULL ) continue;
+		TTetra* _nt = (TTetra*)(elements->elementAt(i));		
 		if ( _nt->flag==2)
 			elements->setElementAt(i,NULL);
 	}
-	/*
-	for (i = 0 ; i< fFaces->Count() ; i++)
-	{
-	if ( ((TNeighboured*)(fFaces->elementAt(i)))->flag==2)
-	fFaces->setElementAt(i,NULL);
-	}
 
-	for (i = 0 ; i< vertexes->Count() ; i++)
-	{
-	if ( ((TNeighboured*)(vertexes->elementAt(i)))->flag==2)
-	vertexes->setElementAt(i,NULL);
-	}
-	*/
-	/*
-	for i := 0 to elementsToRemove.Count - 1 do
-	if (elementsToRemove[i] <>nil) and (TObject(elementsToRemove[i]) is TTetra) then
-	begin
-	TTetra(elementsToRemove[i]).Free();
-	elementsToRemove[i] := nil;
-	end;
-
-	for i := 0 to elementsToRemove.Count - 1 do
-	if (elementsToRemove[i] <>nil) and (TObject(elementsToRemove[i]) is Tvertex) then
-	begin
-	TObject(elementsToRemove[i]).Free();
-	elementsToRemove[i] := nil;
-	end;
-	*/
+	
+	int origNumElementsToRemove = elementsToRemove->Count();
+	int origNumElementsToAdd = elementsToAdd->Count();
 	elementsToAdd->Clear();
-	elementsToRemove->Clear();
+	elementsToRemove->Clear();	
+	elements->Pack(); 	
 
-	elements->Pack(); 
-	elements->Pack(); 
+	if (origNumElements +origNumElementsToAdd - origNumElementsToRemove != elements->Count()) 	
+	   std :: cout << " Invalid update Ref Configuration : "  << "\n";
+
 	vertexes->Pack();
 	fFaces->Pack();
 
@@ -344,15 +314,12 @@ void TVolumeMesh::validate(bool showMessages)
 		tr = (TTriangle*)(fFaces->elementAt(i));
 		for (j=0 ; j<3 ; j++)
 		{
-			tr->vertexes[j]->id = -1;
+			tr->vertexes[j]->flag = -1;
 		}
 	}
 	//- Limpio la estructura
 	ntv = 0;
-	for (i=0  ; i<vertexes->Count() ; i++)
-	{
-		vertexes->elementAt(i)->id = i;
-	}
+	
 	i = 0;
 	while (i<fFaces->Count())
 	{

@@ -235,7 +235,7 @@ TElementsCluster::TElementsCluster(TMesh* aMesh, TVertexesEvaluator functor  )
 	goodTetraList = new TList<TObject*>();   
 	elements2=new TList<TObject*>();
 	inspectedElements = new TList<TObject*>();
-	tempL = NULL;
+	tempL = new TList<TObject*>();
 
 	fc = functor;
 
@@ -250,8 +250,7 @@ double TElementsCluster::getMinQuality()
 
 	for (i = 0 ;i< inspectedElements->Count() ; i++)
 	{
-		t = (TTetra*)( inspectedElements->elementAt(i));
-		if (t == NULL) continue;
+		t = (TTetra*)( inspectedElements->elementAt(i));		
 		t->calidad = fc(t->vertexes);
 		minQuality = Min(minQuality, t->calidad );
 	}
@@ -266,6 +265,7 @@ TElementsCluster::~TElementsCluster()
 	freeAndNil(  copyEL);
 	freeAndNil(  elements2);
 	freeAndNil(  newElements);
+	freeAndNil(  tempL );
 }
 
 
@@ -278,14 +278,13 @@ int TElementsCluster::evaluateSet()
 	float4 cn ;
 
 	copyEL->Assign(inspectedElements);
-
+	
 	vC = NULL;
 
 	acumAbsVolume = 0;
 	for (i = 0 ; i<copyEL->Count() ; i++)
 	{
-		TTetra* _t = (TTetra*)(copyEL->elementAt(i));
-		if ( _t == NULL) continue;
+		TTetra* _t = (TTetra*)(copyEL->elementAt(i));		
 		acumAbsVolume = acumAbsVolume +abs( _t->getVolume());
 	}
 
@@ -343,14 +342,14 @@ int TElementsCluster::evaluateSet()
 		// if not improvedClusterByBands(tempTetraList,copyEl,self)
 		if (!improvedCluster(tempTetraList,copyEL,this, false))
 			tempTetraList->Clear();
-		if (tempTetraList->Count()>0) 
+		else		
 		{
 			goodMinQuality = actualQuality;
 			goodTetraList->Clear();
 			goodTetraList->Assign(tempTetraList);
 			// First found
 			//break;
-		};
+		}
 		tempTetraList->Clear();
 	};
 	elements->Clear();
@@ -401,8 +400,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 		// Extraigo los elementos anteriores
 		for (i = 0 ; i<copyEL->Count() ; i++)
 		{
-			TTetra *_t = (TTetra*)(copyEL->elementAt(i));      
-			if (_t == NULL) continue;
+			TTetra *_t = (TTetra*)(copyEL->elementAt(i));      			
 			_t->isdestroyed = true;
 			_t->removeVertexRef();
 		}
@@ -427,12 +425,11 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 		if (checkIfInvalid)
 		{
 			invalidCOnfig = false;
-			if (tempL == NULL ) tempL = new TList<TObject*>();
+			
 			tempL->Clear();
 			for (i = 0 ; i<newElements->Count() ; i++)
 			{
-				TTetra* _t = (TTetra*)( newElements->elementAt(i));
-				if (_t == NULL) continue;
+				TTetra* _t = (TTetra*)( newElements->elementAt(i));			
 				if (_t->getNeighboursByFace(1 , tempL)->Count()>4)
 				{
 					//---  Invalid!!
@@ -446,8 +443,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 				//remuevo los elementos nuevos
 				for (i = 0 ; i<newElements->Count();i++)
 				{
-					TTetra *_t = (TTetra *)(newElements->elementAt(i));
-					if (t == NULL) continue;
+					TTetra *_t = (TTetra *)(newElements->elementAt(i));					
 					t->removeVertexRef();
 					newElements->setElementAt(i,NULL);
 					delete _t;
@@ -457,8 +453,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 				// recupero los viejos
 				for (i = 0 ; i<copyEL->Count();i++)
 				{
-					TTetra* _t = (TTetra*)( copyEL->elementAt(i));
-					if (_t == NULL) continue;
+					TTetra* _t = (TTetra*)( copyEL->elementAt(i));					
 					_t->isdestroyed = false;
 					_t->updateVertexRef();
 				}
@@ -493,8 +488,9 @@ bool TElementsCluster::generateSubMesh()
 	surfaceT->Clear();
 	copyEL->Clear();
 	vertexes->Clear();
-	this->tempTetraList->Clear();
+	tempTetraList->Clear();
 	goodTetraList->Clear();
+	tempL->Clear();
 	vC = NULL;
 
 	for (i = 0 ; i< inspectedElements->Count() ; i++)
@@ -535,9 +531,6 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	double minQuality ,   meshMinQ;
 	TElementsCluster *aCluster;
 
-
-
-
 	meshMinQ = 50000;
 	for (i = 0 ; i<aMesh->elements->Count() ; i++)
 	{
@@ -568,6 +561,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		for (j = 0  ; j<nFaces->Count() ; j++) 
 		{
 			TTetra *_t2 = (TTetra*)(nFaces->elementAt(j));
+			if (_t2 == NULL) continue;
 			if (_t2->isdestroyed) continue;
 
 			inspectedElements->Clear();
@@ -617,7 +611,7 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc)
 {
 	//declaracion de variables
-	TList<TObject*> *inspectedElements ;
+	
 	TList<TVertex*> *vertexesCopy;
 	int i,iv;
 	TVertex* inspVertex;
@@ -645,10 +639,10 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	for (iv = 0 ; iv<vertexesCopy->Count() ; iv++)
 	{
 		inspVertex =(TVertex*)(vertexesCopy->elementAt(iv));
-		inspectedElements = inspVertex->elementsList;
-		if (inspectedElements== NULL)  continue;
+		if (inspVertex->elementsList== NULL)  continue;
+		inspVertex->elementsList->Pack();
 		//--Limpio las variables
-		aCluster->inspectedElements->Assign( inspectedElements) ;
+		aCluster->inspectedElements->Assign( inspVertex->elementsList) ;
 		aCluster->doRemoveElements = false;
 		aCluster->testCenter = false;
 		aCluster->perturbCenter = 0.0f;
@@ -673,7 +667,6 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		}
 
 	} 
-	printf("%s%d","Num elements changed",numElementsChanged,"\n");
 	((TVolumeMesh*)(aMesh))->updateRefs();
 	endProcess("evaluateClusterByNode");
 	delete (vertexesCopy);

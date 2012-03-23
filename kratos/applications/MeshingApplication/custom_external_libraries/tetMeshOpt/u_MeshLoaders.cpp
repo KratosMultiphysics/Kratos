@@ -77,8 +77,6 @@ bool TVMWLoader::save(const char* aMeshName, TMesh* aMesh )
 	for (i=0; i<m->vertexes->Count() ;i++)
 	{
 		TVertex* v = m->vertexes->elementAt(i);
-		v->id = i+1;
-
 		sprintf(s, "%d%s%f%s%f%s%f",v->id," ", v->fPos.x," ",v->fPos.y," ",v->fPos.z);
 		F->Add(s);
 	}
@@ -179,12 +177,12 @@ bool TElementTetraLoader::save(const char* aMeshName, TMesh* aMesh )
 	st->Add((char*)("NEIGH"));
 	s = intToStr(m->vertexes->Count());
 	st->Add(s);
-
+	/*
 	for (i=0; i<m->elements->Count();i++)
 	{
 		((TTetra*)(m->elements->elementAt(i)))->id = i;
 	}
-
+	*/
 	for (i=0; i<m->vertexes->Count();i++)
 	{
 		((TVertex*)(m->vertexes->elementAt(i)))->id = i;
