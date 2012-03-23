@@ -221,7 +221,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	  endProcess((char*)("assignVertexesAvoidingVisited"));
       if (vRes->Count() == 0 ) break;
       
-	  startProcess((char*)("clearVars"));
+	  startProcess("clearVars");
     //--Limpio las variables
 	  // por cada vertice, tengo un cluster
 	  for (i = 0 ; i<vRes->Count() ; i++)
@@ -232,18 +232,18 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 		 TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));
 		 resC->inspectedElements->Assign( inspectedElements) ;         
          resC->doRemoveElements = false;
-         resC->testCenter = true;
+         resC->testCenter = false;
          resC->perturbCenter = 0;
          resC->checkMaxLength = true;        
 	  }
 	  endProcess((char*)("clearVars"));
 
 	  startProcess((char*)("parallelPart"));
+	  //for (int k = 0; k<vRes->Count() ; k++)
+	 //	  lpEvaluateCluster(k,0,resultedClusters->elementAt(k));
   	     pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateCluster);      
-
-      /* end of parallel section */
       endProcess((char*)("parallelPart"));
-
+      /* end of parallel section */
       for (i = 0 ; i<vRes->Count() ; i++)
 	  {
 		  TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));
