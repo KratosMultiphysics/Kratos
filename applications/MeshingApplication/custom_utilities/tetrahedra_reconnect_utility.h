@@ -76,9 +76,19 @@ namespace Kratos
 		///@}
 		///@name Life Cycle
 		///@{
+		// inner Mesh
+		TVolumeMesh *m ;
+		TetQuality *qt ;
 
 		/// Default constructor.
-		TetrahedraReconnectUtility() {}
+		TetrahedraReconnectUtility(ModelPart& r_model_part) 
+		{
+			std::cout << "Creating mesh" << "\n";
+			m = new TVolumeMesh();
+			// Convert to inner format
+			innerConvertFromKratos(r_model_part , m );
+			qt = new TetQuality(m) ;
+		}
 
 		/// Destructor.
 		virtual ~TetrahedraReconnectUtility() {}
@@ -227,18 +237,22 @@ namespace Kratos
 
 		}
 
+		void EvaluateQuality()
+		{
+			qt->refresh();
+			qt->print();
+		}
+
 		/**
 		* This function performs the meshing optimization by Cluster reconnection.
 		*/
 
-		void EvaluateQuality(ModelPart& r_model_part, int iterations ,
+
+
+		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
 		{
-			std::cout << "Creating mesh" << "\n";
-			TVolumeMesh *m = new TVolumeMesh();
-			// Convert to inner format
-			innerConvertFromKratos(r_model_part , m );
-
+		
 			// Save the mesh as generated from Kratos
 			if (saveToFile)
 			{
@@ -247,10 +261,7 @@ namespace Kratos
 				delete ml2;
 			}
 
-			std::cout <<"...Start Optimization..." <<"\n";
-			TetQuality *qt = new TetQuality(m);
-			qt->refresh();
-			qt->print();
+			std::cout <<"...Start Optimization..." <<"\n";						
 			for (int iter = 0 ; iter< iterations ; iter ++)
 			{	
 				//ParallelEvaluateClusterByNode(m,vrelaxQuality);
@@ -285,8 +296,9 @@ namespace Kratos
 					TMeshLoader* ml2 = new TVMWLoader();
 					std::string s("");					
 					s = "D:/out_MeshFromKratos" + intToString(iter)+".vwm";					
+					
 					// BUG Linux/Windows
-					//ml2->save(s._Myptr() , m);
+					ml2->save(s , m);
 					delete ml2;
 				}
 			}
