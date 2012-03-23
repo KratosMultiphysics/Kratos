@@ -142,6 +142,7 @@ void AddCustomUtilitiesToPython()
 
     class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init<ModelPart&>())
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
+    .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
 	.def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
     ;
 }
