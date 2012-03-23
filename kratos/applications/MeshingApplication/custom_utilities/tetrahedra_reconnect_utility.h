@@ -257,7 +257,9 @@ namespace Kratos
 
 
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
-			bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
+			bool processByNode, bool processByFace, bool processByEdge,  
+			bool saveToFile, bool removeFreeVertexes ,
+			bool evaluateInParallel)
 		{
 		    m->vertexes->Sort(sortByID);
 			// Save the mesh as generated from Kratos
@@ -277,7 +279,10 @@ namespace Kratos
 				if (processByNode)
 				{
 				    std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
-					evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+					if (evaluateInParallel )
+					  ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
+					else
+					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
 					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 
