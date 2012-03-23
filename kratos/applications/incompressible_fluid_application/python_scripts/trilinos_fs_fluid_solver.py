@@ -174,7 +174,7 @@ class IncompressibleFluidSolver:
         self.Comm = CreateCommunicator()
         print self.Comm
 
-        solver_configuration = TrilinosFractionalStepConfiguration(self.Comm,self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
+        solver_configuration = TrilinosFractionalStepConfiguration(self.Comm,self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form,self.use_dt_in_stabilization )
 
         print "solver configuration created correctly"
         self.solver = TrilinosFractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
