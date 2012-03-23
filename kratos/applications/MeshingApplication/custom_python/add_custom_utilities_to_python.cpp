@@ -140,8 +140,9 @@ void AddCustomUtilitiesToPython()
     .def("DeleteCutData", &Cutting_Isosurface_Application::DeleteCutData)
     ;
 
-    class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init< >())
+    class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init<ModelPart&>())
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
+	.def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
     ;
 }
 } // namespace Python.
