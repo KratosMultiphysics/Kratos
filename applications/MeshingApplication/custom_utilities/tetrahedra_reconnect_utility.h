@@ -166,7 +166,7 @@ namespace Kratos
 
 		void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
 		{
-			std::cout << "Generating nodes for Kratos " << "\n";
+			std::cout << "-------------Generating nodes for Kratos----------------" << "\n";
 
 			Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
 
@@ -199,7 +199,7 @@ namespace Kratos
 			mrModelPart.Elements().clear();
 			//add preserved elements to the kratos
 			Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);
-			(mrModelPart.Elements()).reserve(m->elements->Count());
+			//(mrModelPart.Elements()).reserve(m->elements->Count());
 
 			for (int i=0; i< m->elements->Count() ; i++)
 			{
@@ -230,7 +230,7 @@ namespace Kratos
 				std::cout << "Removing free vertexes " << "\n";
 				(NodeEraseProcess(mrModelPart)).Execute();
 			}
-
+			std::cout << "-----------------Generation Finished OK-------------------" << "\n";
 
 			//  TVolumeMesh *testM = new TVolumeMesh();
 			//  innerConvertFromKratos( mrModelPart , testM);
@@ -303,7 +303,7 @@ namespace Kratos
 				qt->refresh();
 				qt->print();
 				m->validate(true);				
-				std :: cout<< " Number of faces" << m->fFaces->Count() << "\n";
+				std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
 				// Save the mesh as generated from Kratos
 				if (saveToFile)
 				{

@@ -7,6 +7,8 @@
 
 #define ACCEPTANCE_TOLERANCE 1.0
 
+#define ELEMENTS_TO_FORCE_UPDATE 10000
+
 
 //-----------------------------------------------------------------------------
 ///  calcula los triangulos que forman la superficie
@@ -665,6 +667,9 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 			if (aCluster->updateMesh(true))
 				aCluster->genElements();
 		}
+
+		if ( aMesh->elementsToRemove->Count() > ELEMENTS_TO_FORCE_UPDATE)
+			((TVolumeMesh*)(aMesh))->updateRefs();
 
 	} 
 	((TVolumeMesh*)(aMesh))->updateRefs();
