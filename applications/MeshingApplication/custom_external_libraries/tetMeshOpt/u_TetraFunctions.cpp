@@ -216,37 +216,29 @@ void TVolumeMesh::updateRefs()
 	elements->Pack();
 	elementsToAdd->Pack();
 	elementsToRemove->Pack();
+	//std :: cout << "elements to update " << elements->Count() << " " << elementsToAdd->Count() << " " << elementsToRemove->Count() << "\n";
 	for (i = 0 ; i< elements->Count() ;i++)
 	{
 		TTetra* _t = (TTetra*)(elements->elementAt(i));		
 		_t->flag = 1;
 	}
-	
+
 	//-- remuevo duplicados
 	for (i = 0 ; i< elementsToRemove->Count() ; i++)
 	{
-		TTetra* _nt = (TTetra*)(elementsToRemove->elementAt(i));		
-		// ya fue marcado
-		if (_nt->flag == 2)
-			elementsToRemove->setElementAt(i,NULL);     
-		else
-			_nt->flag = 2;
+		TTetra* _nt = (TTetra*)(elementsToRemove->elementAt(i));				
+		_nt->flag = 2;
 	}
-	elementsToRemove->Pack();
+	//elementsToRemove->Pack();*/
 	// Guardo cuantos elementos tengo
 	int origNumElements = elements->Count();
 
 	for (i = 0 ;i<elementsToAdd->Count() ; i++)
 	{
 		TTetra* _nt = (TTetra*)(elementsToAdd->elementAt(i));		
-		if (_nt->flag<2) 
-		{
-			_nt->flag = 3;
-			if ( (TTetra*)(_nt) ) 
-				this->elements->Add(_nt);
-		}
+		this->elements->Add(_nt);
 	}
-
+	//std :: cout << "elements to update :Paso 1 " << elements->Count() << " " << elementsToAdd->Count() << " " << elementsToRemove->Count()<< "\n";
 	for (i = 0 ; i< elements->Count() ; i++)
 	{
 		TTetra* _nt = (TTetra*)(elements->elementAt(i));		
@@ -254,15 +246,16 @@ void TVolumeMesh::updateRefs()
 			elements->setElementAt(i,NULL);
 	}
 
-	
+
 	int origNumElementsToRemove = elementsToRemove->Count();
 	int origNumElementsToAdd = elementsToAdd->Count();
+	//std :: cout << "elements to update :Paso 2 " << elements->Count() << " " << elementsToAdd->Count() << " " << elementsToRemove->Count()<< "\n";
 	elementsToAdd->Clear();
 	elementsToRemove->Clear();	
 	elements->Pack(); 	
-
+	//std :: cout << "elements to update :Paso 3 " << elements->Count() << " " << elementsToAdd->Count() << " " << elementsToRemove->Count()<< "\n";
 	if (origNumElements +origNumElementsToAdd - origNumElementsToRemove != elements->Count()) 	
-	   std :: cout << " Invalid update Ref Configuration : "  << "\n";
+		std :: cout << " Invalid update Ref Configuration : "  << "\n";
 
 	vertexes->Pack();
 	fFaces->Pack();
@@ -319,7 +312,7 @@ void TVolumeMesh::validate(bool showMessages)
 	}
 	//- Limpio la estructura
 	ntv = 0;
-	
+
 	i = 0;
 	while (i<fFaces->Count())
 	{
