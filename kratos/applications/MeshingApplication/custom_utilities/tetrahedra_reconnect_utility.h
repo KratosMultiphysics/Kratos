@@ -246,21 +246,30 @@ namespace Kratos
 		/**
 		* This function performs the meshing optimization by Cluster reconnection.
 		*/
-
+		void TestRemovingElements()
+		{
+			for (int i=0 ;i<100 ; i++)
+			{			   
+				m->elementsToRemove->Add( m->elements->elementAt(i));
+			}
+			m->updateRefs();
+		}
 
 
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  bool saveToFile, bool removeFreeVertexes )
 		{
-		
+		    
 			// Save the mesh as generated from Kratos
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
-				ml2->save((char*)("D:/out_MeshFromKratos.vwm") , m);
+				std::string s("out_MeshFromKratos.vwm");				
+				ml2->save( s, m);
 				delete ml2;
 			}
-
+			qt->refresh();
+			qt->print();
 			std::cout <<"...Start Optimization..." <<"\n";						
 			for (int iter = 0 ; iter< iterations ; iter ++)
 			{	
@@ -295,7 +304,7 @@ namespace Kratos
 				{
 					TMeshLoader* ml2 = new TVMWLoader();
 					std::string s("");					
-					s = "D:/out_MeshFromKratos" + intToString(iter)+".vwm";					
+					s = "out_MeshFromKratos" + intToString(iter)+".vwm";					
 					
 					// BUG Linux/Windows
 					ml2->save(s , m);
@@ -308,7 +317,8 @@ namespace Kratos
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
-				ml2->save((char*)("D:/out_MeshC.vwm") , m);
+				std::string s("out_MeshC.vwm");
+				ml2->save(s, m);
 				delete ml2;
 			}
 
