@@ -166,7 +166,7 @@ namespace Kratos
 
 		void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
 		{
-			std::cout << "-------------Generating nodes for Kratos----------------" << "\n";
+			std::cout << "-------------Generating for Kratos----------------" << "\n";
 
 			Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
 
@@ -181,7 +181,7 @@ namespace Kratos
 				else
 					m->vertexes->elementAt(i)->flag = 0;
 			}
-
+			std::cout << " Nodes : Mark elements to remove : " << "\n";
 			// Create new Nodes
 			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
 			{
@@ -194,12 +194,12 @@ namespace Kratos
 				}
 				i_node->SetValue(ERASE_FLAG ,v->flag == 1);
 			}
-			std::cout << "Generating Elements for Kratos " << "\n";
+			std::cout << " Generating Elements for Kratos " << "\n";
 			//generate new nodes
 			mrModelPart.Elements().clear();
 			//add preserved elements to the kratos
 			Properties::Pointer properties = mrModelPart.GetMesh().pGetProperties(1);
-			//(mrModelPart.Elements()).reserve(m->elements->Count());
+			(mrModelPart.Elements()).reserve(m->elements->Count());
 
 			for (int i=0; i< m->elements->Count() ; i++)
 			{
@@ -220,7 +220,7 @@ namespace Kratos
 
 				Element::Pointer p_element = pReferenceElement->Create(i+1, geom, properties);
 				(mrModelPart.Elements()).push_back(p_element);
-				// 	    KRATOS_WATCH(*p_element);
+				//KRATOS_WATCH(*p_element);
 			}
 			std::cout << "Generation OK " << "\n";
 			mrModelPart.Elements().Sort();
@@ -304,6 +304,7 @@ namespace Kratos
 				qt->print();
 				m->validate(true);				
 				std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
+				showProcessTime();
 				// Save the mesh as generated from Kratos
 				if (saveToFile)
 				{
