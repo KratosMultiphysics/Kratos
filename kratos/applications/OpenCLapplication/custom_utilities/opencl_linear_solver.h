@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // System includes
+#include <cmath>
 
 
 // External includes
@@ -203,8 +204,9 @@ namespace OpenCL
 			mOptimizationParameters(OptimizationParameters),
 			mSize(Size),
 			mMaxIterations(MaxIterations),
+			mTolerance(Tolerance),
 			mIterationNo(0),
-			mTolerance(Tolerance)
+			mAchievedTolerance(0.00)
         {
 			// General routines
 			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_GENERAL_KERNELS_ONLY");
@@ -304,18 +306,26 @@ namespace OpenCL
 					rr += mReductionBuffer1[i];
 				}
 
-				#pragma omp parallel for reduction(+:rr)
+				#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
 				}
 
 				Gamma = rr / rAr;
+				mAchievedTolerance = sqrt(rr);
 
 				// Convergence check
 				if (rr < mTolerance * mTolerance)
 				{
-					break;
+					return true;
+				}
+				else
+				{
+					if (mIterationNo > mMaxIterations)
+					{
+						return false;
+					}
 				}
 
 				// If not first iteration, Rho = 1 / (1 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old))
@@ -361,8 +371,9 @@ namespace OpenCL
 		cl_uint mSize;
 		cl_uint mbr, mbAr, mbx_old, mbr_old, mbReductionBuffer1, mbReductionBuffer2;
 		unsigned int mMaxIterations;
-		unsigned int mIterationNo;
 		double mTolerance;
+		unsigned int mIterationNo;
+		double mAchievedTolerance;
 		double *mReductionBuffer1, *mReductionBuffer2;
 	};
 
