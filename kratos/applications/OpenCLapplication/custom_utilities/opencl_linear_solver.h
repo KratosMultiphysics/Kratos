@@ -68,6 +68,19 @@ namespace Kratos
 
 namespace OpenCL
 {
+	//
+	// Timer
+	//
+	// Gives current system time in ns
+
+	int64_t Timer()
+	{
+		struct timespec tp;
+
+		clock_gettime(CLOCK_MONOTONIC, &tp);
+
+		return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
+	}
 
 	//
 	// LinearSolverOptimizationParameters
@@ -86,6 +99,27 @@ namespace OpenCL
 		LinearSolverOptimizationParameters(DeviceGroup &DeviceGroup): mrDeviceGroup(DeviceGroup), mOptimizedSpMVKernel(0), mOptimizedInnerProdKernel(0)
 		{
 			// Nothing to do!
+		}
+
+		//
+		// ~LinearSolverOptimizationParameters
+		//
+		// Destructor
+
+		~LinearSolverOptimizationParameters()
+		{
+			// Nothing to do!
+		}
+
+		//
+		// OptimizeSpMV
+		//
+		// Selects the best SpMV kernel for given system of equations
+		// Note: Use only once, before using the class with a LinearSolver; fills X with A * B
+
+		void OptimizeSpMV(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer, cl_uint Size)
+		{
+
 		}
 
 		//
@@ -382,4 +416,4 @@ namespace OpenCL
 }
 
 
-#endif
+#endif  // KRATOS_OPENCL_LINEAR_SOLVER_H_INCLUDED
