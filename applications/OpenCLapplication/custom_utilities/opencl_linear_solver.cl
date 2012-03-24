@@ -529,12 +529,12 @@ __kernel void SpMV_CSR(__global IndexType const *A_RowIndices, __global IndexTyp
 #else  // KRATOS_OCL_GENERAL_KERNELS_ONLY
 
 //
-// UpdateVectorWithBackup3
+// ZeroVector2Negate
 //
-// Updates a vector with 3 vectors after backing it up in another
-// Note: t = x; x = a * x + b * y + c * z; y = t
+// Zeros three vectors and updates the fourth with negative of another
+// Note: x = 0; y = 0; z = 0; t = -u
 
-__kernel void UpdateVectorWithBackup3(__global ValueType *X_Values, __global ValueType *Y_Values, __global const ValueType *Z_Values, ValueType A, ValueType B, ValueType C, IndexType N)
+__kernel void ZeroVector3Negate(__global ValueType *X_Values, __global ValueType *Y_Values, __global ValueType *Z_Values, __global ValueType *T_Values, __global const ValueType *U_Values, IndexType N)
 {
 	// Get work item index
 	const size_t gid = get_global_id(0);
@@ -542,11 +542,10 @@ __kernel void UpdateVectorWithBackup3(__global ValueType *X_Values, __global Val
 	// Check if we are in the range
 	if (gid < N)
 	{
-		ValueType T;
-
-		T = X_Values[gid];
-		X_Values[gid] = A * X_Values[gid] + B * Y_Values[gid] + C * Z_Values[gid];
-		Y_Values[gid] = T;
+		X_Values[gid] = 0.00;
+		Y_Values[gid] = 0.00;
+		Z_Values[gid] = 0.00;
+		T_Values[gid] = -U_Values[gid];
 	}
 }
 
