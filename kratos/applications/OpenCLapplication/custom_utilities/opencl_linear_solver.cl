@@ -79,7 +79,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Calculates the inner product of two given vectors
 // Note: Final part must be done on host side
 
-__kernel void InnerProd(__global ValueType const *X_Values, __global ValueType const *Y_Values, __global ValueType *Z_Values, IndexType N, __local ValueType *Buffer)
+__kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE, 1, 1))) InnerProd(__global ValueType const *X_Values, __global ValueType const *Y_Values, __global ValueType *Z_Values, IndexType N, __local ValueType *Buffer)
 {
 	IndexType gid = get_global_id(0);
 
@@ -221,7 +221,7 @@ __kernel void InnerProd(__global ValueType const *X_Values, __global ValueType c
 // Calculates the inner product of two given vectors and the first vector with itself
 // Note: Final part must be done on host side
 
-__kernel void InnerProd2(__global ValueType const *X_Values, __global ValueType const *Y_Values, __global ValueType *Z_Values1, __global ValueType *Z_Values2, IndexType N, __local ValueType *Buffer1, __local ValueType *Buffer2)
+__kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE, 1, 1))) InnerProd2(__global ValueType const *X_Values, __global ValueType const *Y_Values, __global ValueType *Z_Values1, __global ValueType *Z_Values2, IndexType N, __local ValueType *Buffer1, __local ValueType *Buffer2)
 {
 	IndexType gid = get_global_id(0);
 
@@ -378,7 +378,7 @@ __kernel void InnerProd2(__global ValueType const *X_Values, __global ValueType 
 //
 // Performs sparse matrix vector product in CSR format
 
-__kernel void SpMV_CSR(__global IndexType const *A_RowIndices, __global IndexType const *A_ColumnIndices, __global ValueType const *A_Values, __global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
+__kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE, 1, 1))) SpMV_CSR(__global IndexType const *A_RowIndices, __global IndexType const *A_ColumnIndices, __global ValueType const *A_Values, __global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local IndexType *Bounds, __local ValueType *Buffer)
 {
 	const IndexType gid = get_group_id(0);
 	const IndexType tid = get_local_id(0);

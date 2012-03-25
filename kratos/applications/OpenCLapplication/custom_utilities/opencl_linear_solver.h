@@ -327,6 +327,7 @@ namespace OpenCL
 
 				mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), mOptimizationParameters.GetOptimizedInnerProdKernelLaunchSize());
 
+
 				// Phase 2 on CPU
 				mrDeviceGroup.CopyBuffer(mbReductionBuffer1, DeviceToHost, VoidPList(1, mReductionBuffer1));
 				mrDeviceGroup.CopyBuffer(mbReductionBuffer2, DeviceToHost, VoidPList(1, mReductionBuffer2));
@@ -388,6 +389,7 @@ namespace OpenCL
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 12, mSize);
 
 				mrDeviceGroup.ExecuteKernel(mkUpdateVectorWithBackup32, mSize);
+
 
 				// Prepare for next iteration
 				rr_old = rr;
