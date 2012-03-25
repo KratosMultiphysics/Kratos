@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "Executing kernel 1..." << std::endl;
 	OCLDeviceGroup.ExecuteKernel(TestKernel1, DataSize / OCLDeviceGroup.DeviceNo);
+	OCLDeviceGroup.Synchronize();
 
 	OCLTimer1 = TIMER() - OCLTimer1;
 
@@ -95,6 +96,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "Executing kernel 2..." << std::endl;
 	OCLDeviceGroup.ExecuteKernel(TestKernel2, DataSize / 2 / OCLDeviceGroup.DeviceNo);
+	OCLDeviceGroup.Synchronize();
 
 	OCLTimer2 = TIMER() - OCLTimer2;
 
