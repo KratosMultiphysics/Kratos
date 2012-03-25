@@ -158,6 +158,7 @@ namespace OpenCL
 			t1 = Timer();
 
 			Device.ExecuteKernel(BenchmarkDeviceKernel1, KRATOS_OCL_BENCHMARK_CHUNKS * Device.WorkGroupSizes[BenchmarkDeviceKernel1][0]);
+			Device.Synchronize();
 
 			t2 = Timer();
 
@@ -203,6 +204,7 @@ namespace OpenCL
 			t1 = Timer();
 
 			Device.ExecuteKernel(BenchmarkDeviceKernel2, KRATOS_OCL_BENCHMARK_ELEMENTS);
+			Device.Synchronize();
 
 			t2 = Timer();
 
@@ -248,6 +250,7 @@ namespace OpenCL
 			t1 = Timer();
 
 			Device.CopyBufferToBuffer(Buffer1, Buffer3);
+			Device.Synchronize();
 
 			t2 = Timer();
 

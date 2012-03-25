@@ -1631,7 +1631,7 @@ namespace OpenCL
 			//
 			// Execute a kernel on all devices
 
-			void ExecuteKernel(cl_uint _KernelIndex, cl_uint _GlobalWorkSize, bool _Asynchronous = true)
+			void ExecuteKernel(cl_uint _KernelIndex, cl_uint _GlobalWorkSize)
 			{
 				if (_GlobalWorkSize != 0)
 				{
@@ -1648,17 +1648,6 @@ namespace OpenCL
 						Err = clEnqueueNDRangeKernel(CommandQueues[i], Kernels[_KernelIndex][i], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][i], 0, NULL, NULL);
 						KRATOS_OCL_CHECK(Err);
 					}
-
-					// Wait for kernels to finish, if asked to do so
-
-					if (!_Asynchronous)
-					{
-						for (cl_uint i = 0; i < DeviceNo; i++)
-						{
-							Err = clFinish(CommandQueues[i]);
-							KRATOS_OCL_CHECK(Err);
-						}
-					}
 				}
 			}
 
@@ -1667,7 +1656,7 @@ namespace OpenCL
 			//
 			// Execute a kernel on a specific device
 
-			void ExecuteKernel(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _GlobalWorkSize, bool _Asynchronous = true)
+			void ExecuteKernel(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _GlobalWorkSize)
 			{
 				if (_GlobalWorkSize != 0)
 				{
@@ -1679,14 +1668,6 @@ namespace OpenCL
 
 					Err = clEnqueueNDRangeKernel(CommandQueues[_DeviceIndex], Kernels[_KernelIndex][_DeviceIndex], 1, NULL, &GlobalWorkSize, &WorkGroupSizes[_KernelIndex][_DeviceIndex], 0, NULL, NULL);
 					KRATOS_OCL_CHECK(Err);
-
-					// Wait for kernel to finish, if asked to do so
-
-					if (!_Asynchronous)
-					{
-						Err = clFinish(CommandQueues[_DeviceIndex]);
-						KRATOS_OCL_CHECK(Err);
-					}
 				}
 			}
 
