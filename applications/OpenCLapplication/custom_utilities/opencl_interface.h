@@ -1670,7 +1670,8 @@ namespace OpenCL
 			void ExecuteKernel(cl_uint _DeviceIndex, cl_uint _KernelIndex, cl_uint _GlobalWorkSize, bool _Asynchronous = true)
 			{
 				if (_GlobalWorkSize != 0)
-					{cl_int Err;
+				{
+					cl_int Err;
 
 					// Enqueue kernel; we may need to use a bigger GlobalWorkSize, to keep it a multiple of preferred size
 
@@ -1687,6 +1688,35 @@ namespace OpenCL
 						KRATOS_OCL_CHECK(Err);
 					}
 				}
+			}
+
+			//
+			// Synchronize
+			//
+			// Synchronizes all devices
+
+			void Synchronize()
+			{
+				cl_int Err;
+
+				for (cl_uint i = 0; i < DeviceNo; i++)
+				{
+					Err = clFinish(CommandQueues[i]);
+					KRATOS_OCL_CHECK(Err);
+				}
+			}
+
+			//
+			// Synchronize
+			//
+			// Synchronizes a specific device
+
+			void Synchronize(cl_uint _DeviceIndex)
+			{
+				cl_int Err;
+
+				Err = clFinish(CommandQueues[_DeviceIndex]);
+				KRATOS_OCL_CHECK(Err);
 			}
 	};
 
