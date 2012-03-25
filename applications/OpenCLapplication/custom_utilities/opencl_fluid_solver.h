@@ -70,7 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/cg.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
-#include "viennacl/linalg/bicgstab_tuned.hpp"
+//#include "viennacl/linalg/bicgstab_tuned.hpp"
 #include "viennacl/linalg/row_scaling.hpp"
 #include "viennacl/linalg/jacobi_precond.hpp"
 #include "viennacl/io/kernel_parameters.hpp"
