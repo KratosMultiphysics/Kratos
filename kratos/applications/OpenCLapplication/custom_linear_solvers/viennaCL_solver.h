@@ -42,8 +42,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_GPU_VIENNACL_SOLVER_H_INCLUDED
 
 //#define  VIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 // System includes 
 
@@ -74,7 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "viennacl/linalg/ilu.hpp"
 #include "viennacl/linalg/cg.hpp"
 #include "viennacl/linalg/bicgstab.hpp"
-#include "viennacl/linalg/bicgstab_tuned.hpp"
+//#include "viennacl/linalg/bicgstab_tuned.hpp"
 #include "viennacl/linalg/gmres.hpp"
 
 
@@ -315,8 +313,8 @@ namespace Kratos
                     if (msolver_type == BiCGStab)
                     {
                         viennacl::linalg::bicgstab_tag custom_solver(tol, maxIter);
-                        gpu_X = solve_tuned(gpu_A, gpu_B, custom_solver);
-//                        gpu_X = solve(gpu_A, gpu_B, custom_solver);
+//                        gpu_X = solve_tuned(gpu_A, gpu_B, custom_solver);
+                        gpu_X = solve(gpu_A, gpu_B, custom_solver);
                        BaseType::mIterationsNumber = custom_solver.iters();
                         BaseType::mResidualNorm = custom_solver.error();
                     }
