@@ -2,7 +2,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -168,13 +167,14 @@ class IncompressibleFluidSolver:
         self.slip_conditions_initialized = True
 
     def AdaptMesh(self):
+        import KratosMultiphysics.MeshingApplication as KMesh
         admissible_ratio = 0.05
         max_levels = 2
-        refinement_utils = RefinementUtilities()
+        refinement_utils = KMesh.RefinementUtilities()
         if(self.domain_size == 2):
             raise "error refine in 2d not yet implemented"
         else:
-            Refine = LocalRefineTetrahedraMesh(self.model_part)
+            Refine = KMesh.LocalRefineTetrahedraMesh(self.model_part)
         (self.model_part).ProcessInfo[FRACTIONAL_STEP]=10; ##just to be sure nothign is done
         refinement_utils.MarkForRefinement(ERROR_RATIO,self.model_part,admissible_ratio,max_levels)
         self.Clear()
@@ -206,7 +206,7 @@ class IncompressibleFluidSolver:
             elem.SetValue(C_SMAGORINSKY,C)
 
     def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-        from KratosFluidDynamicsApplication import *
+        import KratosMultiphysics.FluidDynamicsApplication as KCFD
         for node in wall_nodes:
             node.SetValue(IS_VISITED,1.0)
 
@@ -219,7 +219,7 @@ class IncompressibleFluidSolver:
         time_order = self.time_order
         pPrecond = DiagonalPreconditioner()
         turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
-        turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
+        turbulence_model = KCFD.SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
         turbulence_model.AdaptForFractionalStep()
         if(DES==True):
             turbulence_model.ActivateDES(CDES);
