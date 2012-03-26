@@ -912,7 +912,7 @@ namespace Kratos
 
 
 
-            dp_GPU = viennacl::linalg::solve_tuned(mL_GPU, rhs_GPU, mcustom_solver);
+            dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, mcustom_solver);
 
             std::cout << "No. of iters: " << mcustom_solver.iters() << std::endl;
             std::cout << "Est. error: " << mcustom_solver.error() << std::endl;
