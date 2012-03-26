@@ -155,6 +155,12 @@ namespace OpenCL
 				// Register kernel
 				mkInnerProd = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd");
 
+				if ((1U << i) > mrDeviceGroup.WorkGroupSizes[mkInnerProd][0])
+				{
+					// This kernel will not run
+					break;
+				}
+
 				//X_Values, Y_Values, Z_Values, N, __local ValueType *Buffer)
 				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 0, X_Values_Buffer);
 				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 1, Y_Values_Buffer);
@@ -236,6 +242,12 @@ namespace OpenCL
 
 						// Register kernel
 						mkSpMVCSR = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "SpMV_CSR");
+
+						if ((1U << j) > mrDeviceGroup.WorkGroupSizes[mkSpMVCSR][0])
+						{
+							// This kernel will not run
+							break;
+						}
 
 						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 0, A_RowIndices_Buffer);
 						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 1, A_Column_Indices_Buffer);
@@ -404,7 +416,7 @@ namespace OpenCL
 			mAchievedTolerance(0.00)
         {
 			// General routines
-			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_GENERAL_KERNELS_ONLY");
+			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_NEED_GENERIC_KERNELS");
 			mkUpdateVectorWithBackup32 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVectorWithBackup32");
 			mkZeroVector2Negate = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "ZeroVector3Negate");
 
