@@ -143,7 +143,7 @@ public :
 	void Sort(SortFunction sortMethod)
 	{
 		// using function as comp
-		sort (structure.begin(), structure.end(), sortMethod); 	  
+		std::sort (structure.begin(), structure.end(), sortMethod); 	  
 	}
 
 	bool contains(T elem)
@@ -156,7 +156,7 @@ public :
 
 	int indexOf(T elem)
 	{
-		unsigned int pos = find(structure.begin(), structure.end(), elem) - structure.begin();
+		unsigned int pos = std::find(structure.begin(), structure.end(), elem) - structure.begin();
 		if( pos < structure.size() )
 			return pos;
 		else 
