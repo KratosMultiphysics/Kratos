@@ -100,9 +100,12 @@ namespace Kratos
 
 
 		///@}
-		///@name Operations
 		///@{
-		/// this function evaluates the quality of all the tetrahedras within a given model_part
+		
+		///@brief function innerConvertFromKratos
+		/// This function converts from Kratos format, to the inner structure
+		///@param r_model_part the input mesh
+		///@param m the output mesh
 		void innerConvertFromKratos(ModelPart& r_model_part, TVolumeMesh *m)
 		{
 			std::cout << "Reading nodes"<< "\n";
@@ -164,6 +167,11 @@ namespace Kratos
 
 		}
 
+		///@brief function innerConvertToKratos
+		/// This function converts back to Kratos format
+		///@param m the input mesh
+		///@param mrModelPart the output mesh
+		///@param removeFreeVertexes Free vertexes are not added to the new structure
 		void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
 		{
 			std::cout << "-------------Generating for Kratos----------------" << "\n";
@@ -254,7 +262,16 @@ namespace Kratos
 			}
 			m->updateRefs();
 		}
-
+		///@brief function OptimizeQuality
+		///@param r_model_part the input mesh
+		///@param iterations amount of iterations to optimize
+		///@param processByNode boolean that indicates if processing is done by Node
+		///@param processByFace boolean that indicates if processing is done by Face
+		///@param processByEdge boolean that indicates if processing is done by Edge
+		///@param saveToFile boolean to use as Debug Mode and see intermediate generated meshes
+		///@param removeFreeVertexes boolean Removes vertexes that do not have elements referencing them
+		///@param evaluateInParallel boolean Activate/Deactivate parallel processing mode
+		
 
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
