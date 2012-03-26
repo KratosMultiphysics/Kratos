@@ -43,11 +43,9 @@ public:
 	float4 rColor;
 	object* userData;
 
-	TValuedObject(void) {};
-	~TValuedObject(void){};
-
-	float4 getCenter() { float4 f;
-	return f; }
+	TValuedObject(void) ;
+	~TValuedObject(void);
+	float4 getCenter() ;
 };
 
 class TNeighboured : public TValuedObject{};
@@ -57,8 +55,7 @@ class TTriangle;
 class TPolygon: public TNeighboured
 {
 private : 
-
-
+	
 public :
 	TVertex* vertexes[3];
 	float4 normal;
@@ -74,28 +71,13 @@ public:
 	TList<TObject*>* elementsList;
 	TList<TObject*>* neighV;
 	bool isSurface;
-
-
-	TVertex(float x,float y, float z)
-	{ 
-		fPos.x= x; fPos.y = y; fPos.z = z; 
-		neighTr = new  TList<TObject*>();
-		elementsList = new TList<TObject*>();			 
-	}
-
-	TVertex(float4 v)
-	{ 
-		fPos.x= v.x; fPos.y = v.y; fPos.z = v.z; 
-		neighTr = new  TList<TObject*>();
-		elementsList = new TList<TObject*>();			 
-	}
-
-
-
-
 	float4 normal ;
-	void calcNormal(){};
-	float4 pos(){ return fPos; }
+
+
+	TVertex(float x,float y, float z);
+	TVertex(float4 v);	
+	void calcNormal();
+	float4 pos();
 	TList<TObject*> *getElemNeighbours(TList<TObject*> *toL = NULL);			 
 	TList<TObject*>* getvNeigh(int depth =1 , int mode = 0, TList<TObject*>* toL = NULL);
 };
