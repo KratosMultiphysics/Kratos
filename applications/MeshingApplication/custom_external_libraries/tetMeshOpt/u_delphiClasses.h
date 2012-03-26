@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <cstdio>
 
 #define nil  NULL; 
 

@@ -121,6 +121,7 @@ float4 Float4(float x,float y, float z)
 	f.x = x;
 	f.y = y;
 	f.z = z;
+	f.w = 1.0f;
 	return f;
 }
 
@@ -130,6 +131,7 @@ float4 Float4(double x,double y, double z)
 	f.x = (float)(x);
 	f.y = (float)(y);
 	f.z = (float)(z);
+	f.w = 1.0f;
 	return f;
 }
 
@@ -139,6 +141,7 @@ float4 Float4(float x)
 	f.x = x;
 	f.y = x;
 	f.z = x;
+	f.w = 1.0f;
 	return f;
 }
 
@@ -148,6 +151,7 @@ float4 max4(float4 a,float4 b)
 	f.x = Max(a.x,b.x);
 	f.y = Max(a.y,b.y);
 	f.z = Max(a.z,b.z);
+	f.w = Max(a.w,b.w);
 	return f;
 }
 
@@ -190,6 +194,8 @@ float4 cross(float4 vVector1,float4 vVector2)
 	vNormal.y= ((vVector1.z * vVector2.x) - (vVector1.x * vVector2.z));
 	// The Z value for the vector is:  (V1.x * V2.y) - (V1.y * V2.x)
 	vNormal.z= ((vVector1.x * vVector2.y) - (vVector1.y * vVector2.x));
+
+	vNormal.w = 1.0f;
 	return vNormal;
 }
 
@@ -208,6 +214,7 @@ float4 normalize(float4 vNormal)
 	vNormal.y=vNormal.y / mmagnitude; // Divide the Y value of our normal by it's magnitude
 	vNormal.z=vNormal.z / mmagnitude; // Divide the Z value of our normal by it's magnitude
 	// Finally, return our normalized normal.
+	vNormal.w = 1.0f;
 	return vNormal; // Return the new normal of length 1.
 }
 
@@ -222,6 +229,7 @@ float4 Normal(float4 v0,float4 v1,float4 v2)
 	vVector2.y= v1.y - v0.y;
 	vVector2.z= v1.z - v0.z;
 	vNormal = cross(vVector1, vVector2);
+	vNormal.w = 1.0f;
 	return normalize(vNormal);
 }
 

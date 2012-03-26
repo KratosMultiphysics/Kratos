@@ -447,7 +447,10 @@ namespace Kratos
 		///@{
 
 		/// Assignment operator.
-		TetrahedraReconnectUtility& operator=(TetrahedraReconnectUtility const& rOther) {}
+		TetrahedraReconnectUtility& operator=(TetrahedraReconnectUtility const& rOther) 
+		{
+		   return *this;
+		}
 
 		/// Copy constructor.
 		TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther) {}
