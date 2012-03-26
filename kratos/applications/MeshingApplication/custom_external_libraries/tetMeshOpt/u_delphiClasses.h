@@ -23,25 +23,13 @@ std::string floatToString(float number);
 class TObject
 {
 public :	
-	TObject(){}
-	void free()
-	{
-		delete(this);
-	}
+	TObject();
+	void free();
 };
 
 typedef bool (*SortFunction) (TObject *a, TObject *b);
 
 
-
-
-
-class u_delphiClasses
-{
-public:
-	u_delphiClasses(void){};
-	~u_delphiClasses(void){};
-};
 
 
 
