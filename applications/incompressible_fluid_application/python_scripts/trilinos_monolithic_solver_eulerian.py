@@ -1,15 +1,11 @@
-try:
-  import boost.mpi as mpi
-except ImportError:
-  import mpi
-
-#importing the Kratos Library
-from Kratos import *
-from KratosMetisApplication import *
-from KratosIncompressibleFluidApplication import *
-from KratosTrilinosApplication import *
-from KratosFluidDynamicsApplication import *
-#from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 
 def AddVariables(model_part):
@@ -69,7 +65,7 @@ class MonolithicSolver:
         self.model_part = model_part
         self.domain_size = domain_size
 
-        self.alpha = 0.0 #-0.3
+        self.alpha = -0.3
         self.move_mesh_strategy = 0
 
         self.Comm = CreateCommunicator()
