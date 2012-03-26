@@ -27,7 +27,7 @@ const  int TTetraFaces[] = {0,1,2, // Face 0
 
 bool sortByID(TObject* i, TObject* j);
 
-struct  /* __declspec(novtable) */ object
+struct  object
 {
 	virtual ~object() = 0;
 };

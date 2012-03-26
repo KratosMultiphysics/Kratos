@@ -37,14 +37,14 @@ float4 Float4(float x);
 
 float4 max4(float4 a,float4 b);
 
-typedef  struct 
+struct BoundBox
 {	
 	float4 min;
 	float4 max;
 	float4 size;
 	float4 center;
 
-} BoundBox;
+} ;
 
 BoundBox calcBound(float4 p,float4 s);
 float dot(float4 v1,float4 v2);
