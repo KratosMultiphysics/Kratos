@@ -2,6 +2,7 @@
 #include "u_elementCluster.h"
 #include "u_ProcessTime.h"
 #include "u_qualityMetrics.h"
+#include <cstdio>
 
 bool* _faces;
 
@@ -221,7 +222,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	  endProcess((char*)("assignVertexesAvoidingVisited"));
       if (vRes->Count() == 0 ) break;
       
-	  startProcess("clearVars");
+	  startProcess((char*)("clearVars"));
     //--Limpio las variables
 	  // por cada vertice, tengo un cluster
 	  for (i = 0 ; i<vRes->Count() ; i++)
