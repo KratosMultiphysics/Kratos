@@ -5,7 +5,41 @@ bool sortByID(TObject* i, TObject* j)
 {
 	return ((TValuedObject*)(i))->id < ((TValuedObject*)(j))->id ;
 }
+/// Class TValuedObject
+TValuedObject::TValuedObject(void) 
+{};
+TValuedObject::~TValuedObject(void)
+{};
 
+float4 TValuedObject::getCenter() 
+{ 
+	float4 f;	
+	return f; 
+}
+
+/// Class TVertex
+TVertex::TVertex(float x,float y, float z)
+{ 
+	fPos.x= x; fPos.y = y; fPos.z = z; 
+	neighTr = new  TList<TObject*>();
+	elementsList = new TList<TObject*>();			 
+}
+
+TVertex::TVertex(float4 v)
+{ 
+	fPos.x= v.x; fPos.y = v.y; fPos.z = v.z; 
+	neighTr = new  TList<TObject*>();
+	elementsList = new TList<TObject*>();			 
+}
+
+void TVertex::calcNormal()
+{
+};
+
+float4 TVertex::pos()
+{ 
+	return fPos; 
+}
 TList<TObject*>* TVertex::getvNeigh(int depth , int mode, TList<TObject*>* toL)
 {
 	TList<TObject*>* storeList ;

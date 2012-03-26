@@ -9,14 +9,14 @@ using namespace std;
 #define CEILING_NEG(X) ((X-(int)(X)) < 0 ? (int)(X-1) : (int)(X))
 #define CEILING(X) ( ((X) > 0) ? CEILING_POS(X) : CEILING_NEG(X) )
 
-	TObject::TObject()
-	{
-		// Nothing
-	}
-	void TObject::free()
-	{
-		delete(this);
-	}
+TObject::TObject()
+{
+	// Nothing
+}
+void TObject::free()
+{
+	delete(this);
+}
 
 std::string intToString(int number)
 {
@@ -69,3 +69,4 @@ void freeAndNil(TList<TObject*>* l)
 {	 
 	delete(l);
 }
+
