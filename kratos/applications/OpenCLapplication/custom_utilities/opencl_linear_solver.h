@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <cmath>
+#include <sstream>
 
 
 // External includes
@@ -62,6 +63,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "opencl_interface.h"
+
+
+// InnerProd and SpMV kernel parameters range
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 0
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 10
+
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 0
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 10
+
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 0
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 10
+
+// Kernel optimization iteration count
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 10
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 10
+
 
 namespace Kratos
 {
@@ -96,7 +113,7 @@ namespace OpenCL
 		//
 		// Constructor
 
-		LinearSolverOptimizationParameters(DeviceGroup &DeviceGroup): mrDeviceGroup(DeviceGroup), mOptimizedSpMVKernel(0), mOptimizedInnerProdKernel(0)
+		LinearSolverOptimizationParameters(DeviceGroup &DeviceGroup, cl_uint Size): mrDeviceGroup(DeviceGroup), mSize(Size)
 		{
 			// Nothing to do!
 		}
@@ -112,14 +129,157 @@ namespace OpenCL
 		}
 
 		//
+		// OptimizeInnerProd
+		//
+		// Selects the best InnerProd kernel for given vectors
+		// Note: Use only once, before using the class with a LinearSolver
+
+		void OptimizeInnerProd(cl_uint X_Values_Buffer, cl_uint Y_Values_Buffer, cl_uint Z_Values_Buffer, cl_uint WavefrontSize)
+		{
+			cl_uint mpOpenCLLinearSolver, mkInnerProd;
+			int64_t T0, T1, BestTime;
+
+			BestTime = 0x7FFFFFFFFFFFFFFF;
+
+			for (unsigned int i = KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN; i < KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX; i++)
+			{
+				std::stringstream OptionsBuilder;
+
+				OptionsBuilder <<
+					"-cl-fast-relaxed-math" << " " <<
+					"-DKRATOS_OCL_NEED_INNER_PROD" << " " <<
+					"-DKRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS=" << i;
+
+				mpOpenCLLinearSolver = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", OptionsBuilder.str().c_str());
+
+				// Register kernel
+				mkInnerProd = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd");
+
+				//X_Values, Y_Values, Z_Values, N, __local ValueType *Buffer)
+				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 0, X_Values_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 1, Y_Values_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 2, Z_Values_Buffer);
+				mrDeviceGroup.SetKernelArg(mkInnerProd, 3, mSize);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mkInnerProd, 4, (1 << i) * sizeof(cl_double));
+
+				// Warm-up
+				for (int k = 0; k < KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1; k++)
+				{
+					mrDeviceGroup.ExecuteKernel(mkInnerProd, mSize);
+				}
+
+				mrDeviceGroup.Synchronize();
+
+				T1 = 0;
+
+				// Start timing
+				for (int k = 0; k < KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2; k++)
+				{
+					T0 = Timer();
+
+					mrDeviceGroup.ExecuteKernel(mkInnerProd, mSize);
+					mrDeviceGroup.Synchronize();
+
+					T1 += Timer() - T0;
+				}
+
+				if (T1 < BestTime)
+				{
+					BestTime = T1;
+
+					mOptimizedInnerProdKernel = mkInnerProd;
+					mOptimizedInnerProd2Kernel = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd2");  // With same parameters
+
+					mOptimizedInnerProdKernelLaunchSize = mSize;
+					mOptimizedInnerProdKernelBufferSize1 = ((mSize + (1 << i) - 1) / (1 << i)) * sizeof(cl_double);
+					mOptimizedInnerProdKernelBufferSize2 = (1 << i) * sizeof(cl_double);
+				}
+			}
+		}
+
+		//
 		// OptimizeSpMV
 		//
 		// Selects the best SpMV kernel for given system of equations
 		// Note: Use only once, before using the class with a LinearSolver; fills X with A * B
 
-		void OptimizeSpMV(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer, cl_uint Size)
+		void OptimizeSpMV(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer, cl_uint WavefrontSize)
 		{
+			cl_uint mpOpenCLLinearSolver, mkSpMVCSR;
+			int64_t T0, T1, BestTime;
 
+			BestTime = 0x7FFFFFFFFFFFFFFF;
+
+			for (unsigned int i = KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN; i < KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX; i++)
+			{
+				for (unsigned int j = KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN; j < KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX; j++)
+				{
+					if (j >= i)
+					{
+						std::stringstream OptionsBuilder;
+
+						OptionsBuilder <<
+							"-cl-fast-relaxed-math" << " " <<
+							"-DKRATOS_OCL_NEED_SPMV_CSR" << " " <<
+							"-DKRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS=" << i << " " <<
+							"-DKRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS=" << j;
+
+						// Check if a local mem barrier is needed
+						if (1U << (j - i) > WavefrontSize)
+						{
+							OptionsBuilder <<
+								" " <<
+								"-DKRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER";
+						}
+
+						mpOpenCLLinearSolver = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", OptionsBuilder.str().c_str());
+
+						// Register kernel
+						mkSpMVCSR = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "SpMV_CSR");
+
+						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 0, A_RowIndices_Buffer);
+						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 1, A_Column_Indices_Buffer);
+						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 2, A_Values_Buffer);
+						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 3, B_Values_Buffer);
+						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 4, X_Values_Buffer);
+						mrDeviceGroup.SetKernelArg(mkSpMVCSR, 5, mSize);
+						mrDeviceGroup.SetLocalMemAsKernelArg(mkSpMVCSR, 6, ((1 << i) + 1) * sizeof(cl_uint));  // Note: Change this when IndexType is changed in opencl_common.cl
+						mrDeviceGroup.SetLocalMemAsKernelArg(mkSpMVCSR, 7, (1 << j) * sizeof(cl_double));
+
+						// Warm-up
+						for (int k = 0; k < KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1; k++)
+						{
+							mrDeviceGroup.ExecuteKernel(mkSpMVCSR, mSize * (1 << (j - i)) + 1);
+						}
+
+						mrDeviceGroup.Synchronize();
+
+						T1 = 0;
+
+						// Start timing
+						for (int k = 0; k < KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2; k++)
+						{
+							T0 = Timer();
+
+							mrDeviceGroup.ExecuteKernel(mkSpMVCSR, mSize * (1 << (j - i)) + 1);
+							mrDeviceGroup.Synchronize();
+
+							T1 += Timer() - T0;
+						}
+
+						if (T1 < BestTime)
+						{
+							BestTime = T1;
+
+							mOptimizedSpMVKernel = mkSpMVCSR;
+
+							mOptimizedSpMVKernelLaunchSize = mSize * (1 << (j - i)) + 1;
+							mOptimizedSpMVKernelBufferSize1 = ((1 << i) + 1) * sizeof(cl_uint);  // Note: Change this when IndexType is changed in opencl_common.cl
+							mOptimizedSpMVKernelBufferSize2 = (1 << j) * sizeof(cl_double);
+						}
+					}
+				}
+			}
 		}
 
 		//
@@ -215,6 +375,7 @@ namespace OpenCL
 	private:
 
 		DeviceGroup &mrDeviceGroup;
+		cl_uint mSize;
 		cl_uint mOptimizedSpMVKernel, mOptimizedInnerProdKernel, mOptimizedInnerProd2Kernel;
 		cl_uint mOptimizedSpMVKernelLaunchSize, mOptimizedSpMVKernelBufferSize1, mOptimizedSpMVKernelBufferSize2, mOptimizedInnerProdKernelLaunchSize, mOptimizedInnerProdKernelBufferSize1, mOptimizedInnerProdKernelBufferSize2;
 	};

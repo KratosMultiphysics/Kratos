@@ -52,13 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "opencl_common.cl"
 
 
-#ifndef KRATOS_OCL_GENERAL_KERNELS_ONLY
-
-
 // Temporary, to be specified on the compile command line
-#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS 8
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS 5
-#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS 8
+//#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS 8
+//#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS 5
+//#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS 8
 
 
 #define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE (1 << KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS)
@@ -72,6 +69,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // This should not be needed if LOCAL_WORKGROUP_SIZE matches Warp / Wavefront size of GPU (NVIDIA: 32; AMD: 64); Defining reduces performance!
 //#define KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
+
+#ifdef KRATOS_OCL_NEED_INNER_PROD
 
 //
 // InnerProd
@@ -373,6 +372,12 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_INNER_PROD_WORKGROU
 	}
 }
 
+
+#endif  // KRATOS_OCL_NEED_INNER_PROD
+
+#ifdef KRATOS_OCL_NEED_SPMV_CSR
+
+
 //
 // SpMV_CSR
 //
@@ -526,7 +531,11 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 	}
 }
 
-#else  // KRATOS_OCL_GENERAL_KERNELS_ONLY
+
+#endif  // KRATOS_OCL_NEED_SPMV_CSR
+
+#ifdef KRATOS_OCL_NEED_GENERIC_KERNELS
+
 
 //
 // ZeroVector2Negate
@@ -575,4 +584,4 @@ __kernel void UpdateVectorWithBackup32(__global ValueType *X_Values1, __global V
 	}
 }
 
-#endif  // KRATOS_OCL_GENERAL_KERNELS_ONLY
+#endif  // KRATOS_OCL_NEED_GENERIC_KERNELS
