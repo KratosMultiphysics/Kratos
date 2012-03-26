@@ -153,13 +153,7 @@ namespace OpenCL
 				mpOpenCLLinearSolver = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", OptionsBuilder.str().c_str());
 
 				// Register kernel
-				mkInnerProd = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd");
-
-				if ((1U << i) > mrDeviceGroup.WorkGroupSizes[mkInnerProd][0])
-				{
-					// This kernel will not run
-					break;
-				}
+				mkInnerProd = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd", 1 << i);
 
 				//X_Values, Y_Values, Z_Values, N, __local ValueType *Buffer)
 				mrDeviceGroup.SetBufferAsKernelArg(mkInnerProd, 0, X_Values_Buffer);
@@ -194,7 +188,7 @@ namespace OpenCL
 					BestTime = T1;
 
 					mOptimizedInnerProdKernel = mkInnerProd;
-					mOptimizedInnerProd2Kernel = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd2");  // With same parameters
+					mOptimizedInnerProd2Kernel = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd2", 1 << i);  // With same parameters
 
 					mOptimizedInnerProdKernelLaunchSize = mSize;
 					mOptimizedInnerProdKernelBufferSize1 = ((mSize + (1 << i) - 1) / (1 << i)) * sizeof(cl_double);
@@ -241,13 +235,7 @@ namespace OpenCL
 						mpOpenCLLinearSolver = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", OptionsBuilder.str().c_str());
 
 						// Register kernel
-						mkSpMVCSR = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "SpMV_CSR");
-
-						if ((1U << j) > mrDeviceGroup.WorkGroupSizes[mkSpMVCSR][0])
-						{
-							// This kernel will not run
-							break;
-						}
+						mkSpMVCSR = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "SpMV_CSR", 1 << j);
 
 						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 0, A_RowIndices_Buffer);
 						mrDeviceGroup.SetBufferAsKernelArg(mkSpMVCSR, 1, A_Column_Indices_Buffer);
@@ -574,7 +562,7 @@ namespace OpenCL
 	private:
 
 		DeviceGroup &mrDeviceGroup;
-		LinearSolverOptimizationParameters mOptimizationParameters;
+		LinearSolverOptimizationParameters &mOptimizationParameters;
 		cl_uint mpOpenCLLinearSolverGeneral;
 		cl_uint mkUpdateVectorWithBackup32, mkZeroVector2Negate;
 		cl_uint mSize;
