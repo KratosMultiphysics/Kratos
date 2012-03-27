@@ -28,7 +28,7 @@ BOOST_PYTHON_MODULE(mpipython)
             .def("gather",&PythonMPI::gather<int>)
             .def("allgather",&PythonMPI::allgather<double>)
             .def("allgather",&PythonMPI::allgather<int>)
-            .add_property("world",make_function(&PythonMPI::GetWorld,return_internal_reference<>() ) )
+            .add_property("world",make_function(&PythonMPI::GetWorld,return_internal_reference<1,with_custodian_and_ward_postcall<1,0> >() ) )
             ;
 
     def("GetMPIInterface",&GetMPIInterface,return_value_policy<reference_existing_object>());
