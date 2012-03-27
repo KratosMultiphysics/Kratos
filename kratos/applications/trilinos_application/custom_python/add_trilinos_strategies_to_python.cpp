@@ -418,6 +418,7 @@ namespace Kratos
             .def( "ActOnLonelyNodes", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActOnLonelyNodes )
             .def( "Clear", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Clear )
             .def( "FractionalVelocityIteration", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::FractionalVelocityIteration )
+            .def( "ComputeReactions",&FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ComputeReactions)
             .def( "ConvergenceCheck", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ConvergenceCheck )
             .def( "InitializeFractionalStep", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::InitializeFractionalStep )
             .def( "PredictVelocity", &FractionalStepStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::PredictVelocity )
