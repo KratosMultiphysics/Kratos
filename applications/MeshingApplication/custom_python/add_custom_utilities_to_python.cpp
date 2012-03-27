@@ -144,6 +144,8 @@ void AddCustomUtilitiesToPython()
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
     .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
 	.def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
+	.def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
+	.def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
     ;
 }
 } // namespace Python.
