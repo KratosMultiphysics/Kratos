@@ -79,6 +79,7 @@ namespace Kratos
 		// inner Mesh
 		TVolumeMesh *m ;
 		TetQuality *qt ;
+		ModelPart refMP ;
 
 		/// Default constructor.
 		TetrahedraReconnectUtility(ModelPart& r_model_part) 
@@ -87,6 +88,7 @@ namespace Kratos
 			m = new TVolumeMesh();
 			// Convert to inner format
 			innerConvertFromKratos(r_model_part , m );
+			refMP = r_model_part;
 			qt = new TetQuality(m) ;
 		}
 
@@ -262,6 +264,27 @@ namespace Kratos
 			}
 			m->updateRefs();
 		}
+		
+		///@brief function updateNodesPositions
+		/// Update only nodes positions without regenerating the structure
+		///@param r_model_part the input mesh
+		void updateNodesPositions(ModelPart& r_model_part)
+		{
+			std::cout << "Updating nodes"<< "\n";
+			//loop on nodes
+			for (ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
+			{
+				float4 fPos ;
+				fPos.x = it->X();
+				fPos.y = it->Y();
+				fPos.z = it->Z();
+				
+				int id = it->Id();
+				TVertex *v = m->findVertexById(id);
+				if (v == NULL)
+					 v->fPos = fPos;
+			}
+		}
 		///@brief function OptimizeQuality
 		///@param r_model_part the input mesh
 		///@param iterations amount of iterations to optimize
@@ -271,12 +294,13 @@ namespace Kratos
 		///@param saveToFile boolean to use as Debug Mode and see intermediate generated meshes
 		///@param removeFreeVertexes boolean Removes vertexes that do not have elements referencing them
 		///@param evaluateInParallel boolean Activate/Deactivate parallel processing mode
+		///@param reinsertNodes boolean Activate/Deactivate to try re inserting removed nodes
 		
 
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
 			bool saveToFile, bool removeFreeVertexes ,
-			bool evaluateInParallel)
+			bool evaluateInParallel , bool reinsertNodes)
 		{
 		    m->vertexes->Sort(sortByID);
 			// Save the mesh as generated from Kratos
@@ -345,11 +369,40 @@ namespace Kratos
 				delete ml2;
 			}
 
+			if (reinsertNodes)
+			{
+				std::cout <<"...Trying to reinsert nodes..." <<"\n";
+				tryToReinsertNodes();
+			}
+
 			std::cout <<"...Output to Kratos Format" <<"\n";
 			// Get back in Kratos
-			innerConvertToKratos(r_model_part , m , removeFreeVertexes);
-
+			innerConvertToKratos(refMP , m , removeFreeVertexes);
 			delete m;
+			m = NULL;
+
+		}
+        ///@brief function tryToReinsertNodes
+		/// Reinsert removed nodes into the structure
+		void tryToReinsertNodes()
+		{
+			int vToR =m->vertexesToRemove->Count();
+			int ri = vertexTetraReInsertion(m , m->vertexesToRemove);
+			m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+			std :: cout<< " Reinsert vertexes " << ri << " of " <<  vToR <<"\n";
+			qt->refresh();   qt->print();
+			m->validate(true);
+			std :: cout<< "........................................"<<"\n";
+		}
+		///@brief function FinalizeOptimization
+		/// Destroy the structure
+		void FinalizeOptimization(bool removeFreeVertexes )
+		{
+			std::cout <<"...Output to Kratos Format" <<"\n";
+			// Get back in Kratos
+			innerConvertToKratos(refMP , m , removeFreeVertexes);
+			delete m;
+			m = NULL;
 		}
 
 
