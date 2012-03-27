@@ -22,6 +22,6 @@ set( MESH_OPT
 
 add_library(tetMeshOpt STATIC ${MESH_OPT}  )
 target_link_libraries(tetMeshOpt  )
-install(TARGETS tetMeshOpt DESTINATION libs )
+# install(TARGETS tetMeshOpt DESTINATION libs )
 
 ###############################################################

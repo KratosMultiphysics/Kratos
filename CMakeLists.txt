@@ -105,14 +105,26 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
     find_package(BLAS REQUIRED)
     include_directories(${BLAS_INCLUDE_DIRS})
+    GET_FILENAME_COMPONENT(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES} REALPATH)
+    set(BLAS_LIBRARIES ${BLAS_LIBRARIES_REALPATH} CACHE STRING "exact file of the blas library" FORCE)
+    
+    #linking to the absolute value of the blas
     link_directories(${BLAS_LIBRARIES})
     set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}" CACHE STRING "Linker flags for shared libs" FORCE)
     message("linker flags with blas =" ${BLAS_LINKER_FLAGS})
     message("BLA_VENDOR = " ${BLA_VENDOR})
 
     find_package(LAPACK REQUIRED)
+    message("LAPACK = " ${LAPACK_LIBRARIES})
+    foreach( l ${LAPACK_LIBRARIES})
+        GET_FILENAME_COMPONENT(aux ${l} REALPATH)
+	set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
+    endforeach(l)
+    set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
+    message("LAPACK modified = " ${LAPACK_LIBRARIES})
     include_directories(${LAPACK_INCLUDE_DIRS})
     link_directories(${LAPACK_LIBRARIES})
+
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ##*****************************
@@ -186,6 +198,14 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINAT
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 
+     install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
+     install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+
+     #install blas and lapack
+     message("installed blas = "${BLAS_LIBRARIES})
+     install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+     message("installed lapack = "${LAPACK_LIBRARIES})
+     install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -203,8 +223,15 @@ sys.path.append(kratos_applications) ")
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
 
 
-    install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
-    install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+#      install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
+#      install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+# 
+#      #install blas and lapack
+#      install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+#      GET_FILENAME_COMPONENT(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES} REALPATH)
+#      install(FILES ${BLAS_LIBRARIES_REALPATH} DESTINATION libs)
+
+     install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 
 #    GET_FILENAME_COMPONENT(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES} REALPATH)
 #    install(FILES ${PYTHON_LIBRARIES_REALPATH} DESTINATION libs)
