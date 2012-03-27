@@ -232,7 +232,7 @@ namespace Kratos
 	    {
 	    double tmp0, tmp1, numer, denom;
 
-	    if (s < (0.00)  // region 2
+	    if (s < 0.00)  // region 2
 	    {
 		tmp0 = a01 + b0;
 		tmp1 = a11 + b1;
