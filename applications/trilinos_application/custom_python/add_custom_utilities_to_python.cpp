@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
+#include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 
 namespace Kratos
@@ -91,7 +92,20 @@ namespace Kratos
                     .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
                     .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
                     .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
-            ;
+                    ;
+            
+            class_<TrilinosCuttingIsosurfaceApplication,boost::noncopyable >
+                    ("TrilinosCuttingIsosurfaceApplication",
+                     init< Epetra_MpiComm& >() )
+                    .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
+		    //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
+		    //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
+		    //.def("AddModelPartElements", &TrilinosCuttingIsosurfaceApplication::AddModelPartElements)
+		    .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
+                    .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
+		    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
+		    ;
+             
             
             
             class_<TrilinosRefineMesh, boost::noncopyable >
