@@ -155,13 +155,14 @@ TMesh()
 
 TVolumeMesh::~TVolumeMesh()
 {
+	delete vertexesToRemove;
+
 	for (int i=0 ; i<elements->Count() ; i++)
 	{
 		TTetra *t = (TTetra *)(elements->structure[i]);
 		delete t;
 	}
-	delete elements;
-	
+	delete elements;	
 	delete elementsToAdd;
 	delete elementsToRemove;
 	for (int i=0 ; i<vertexes->Count() ; i++)
@@ -178,8 +179,14 @@ TVolumeMesh::~TVolumeMesh()
 			TTriangle *tr =(TTriangle *)(fFaces->structure[i]);
 			delete tr;
 		}
-		delete fFaces;
+		fFaces->Clear();
+		delete fFaces;		
 	}
+	fFaces = NULL;
+	vertexes = NULL;
+	elements = NULL;
+	vertexesToRemove = NULL;
+	selectedElements = NULL;
 }
 void TVolumeMesh::updateIndexes(int flag )
 {
@@ -217,8 +224,12 @@ void TVolumeMesh::updateIndexes(int flag )
 		}
 	}
 	// Remuevo vertices que no pertenecen a ningun elemento
+	vertexesToRemove->Clear();
 	for (int i=0; i<vertexes->Count();i++)
 	{
+		TVertex *_v = vertexes->elementAt(i);
+		if (_v->elementsList->Count()== 0 )
+			vertexesToRemove->Add(_v);
 	}
 	/*
 	for i:=0 to vertexes.count-1 do
@@ -322,6 +333,19 @@ elements->Pack();
 elementsToAdd->Clear();
 }
 */
+TTetra* TVolumeMesh::isPointInside( float4 pos )
+{
+	int i;
+
+	for ( i=0 ; i<elements->Count() ; i++)
+	{
+		TTetra *t = (TTetra*)(elements->structure[i]);
+		if (t->isInside(pos)) 
+			return t;
+	}
+	return NULL;
+}
+
 void TVolumeMesh::validate(bool showMessages)
 {
 

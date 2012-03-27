@@ -259,6 +259,7 @@ float relaxQuality(TObject* o)
 		return 0.0f;
 }
 
+
 double diedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 {
 	double d[6];
@@ -336,4 +337,9 @@ double diedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 	d[5] = (PI-acos(d[5])) * 180 / PI;
 
 	return MinValue( d,6);
+}
+
+double diedralAngle(TVertex* vertexes[])
+{
+	return diedralAngle(vertexes[0]->fPos,vertexes[1]->fPos,vertexes[2]->fPos,vertexes[3]->fPos);
 }
