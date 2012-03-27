@@ -66,14 +66,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // InnerProd and SpMV kernel parameters range
-#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 0
-#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 10
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 8
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 9
 
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 0
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 10
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 5
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 6
 
-#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 0
-#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 10
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 8
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 9
 
 // Kernel optimization iteration count
 #define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 10
@@ -171,6 +171,8 @@ namespace OpenCL
 				mrDeviceGroup.Synchronize();
 
 				T1 = 0;
+
+				// TODO: Timing should include host-side
 
 				// Start timing
 				for (int k = 0; k < KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2; k++)
@@ -406,7 +408,7 @@ namespace OpenCL
 			// General routines
 			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_NEED_GENERIC_KERNELS");
 			mkUpdateVectorWithBackup32 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVectorWithBackup32");
-			mkZeroVector2Negate = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "ZeroVector3Negate");
+			mkZeroVector3Negate = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "ZeroVector3Negate");
 
 			// Temporary vectors needed on GPU and CPU
 			mbr = mrDeviceGroup.CreateBuffer(mSize * sizeof(cl_double), CL_MEM_READ_WRITE);
@@ -447,14 +449,14 @@ namespace OpenCL
 			// Initialization
 
 			// x = x_old = r_old = 0.00, r = -b
-			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Negate, 0, X_Values_Buffer);
-			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Negate, 1, mbx_old);
-			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Negate, 2, mbr_old);
-			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Negate, 3, mbr);
-			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Negate, 4, B_Values_Buffer);
-			mrDeviceGroup.SetKernelArg(mkZeroVector2Negate, 5, mSize);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector3Negate, 0, X_Values_Buffer);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector3Negate, 1, mbx_old);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector3Negate, 2, mbr_old);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector3Negate, 3, mbr);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector3Negate, 4, B_Values_Buffer);
+			mrDeviceGroup.SetKernelArg(mkZeroVector3Negate, 5, mSize);
 
-			mrDeviceGroup.ExecuteKernel(mkZeroVector2Negate, mSize);
+			mrDeviceGroup.ExecuteKernel(mkZeroVector3Negate, mSize);
 
 
 			mIterationNo = 0;
@@ -496,17 +498,25 @@ namespace OpenCL
 				rr = 0.00;
 				rAr = 0.00;
 
-				#pragma omp parallel for reduction(+:rr)
+				// TODO: Fix this to use OpenMP!
+
+				//#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
+					//std::cout << mReductionBuffer1[i] << " ";
 					rr += mReductionBuffer1[i];
 				}
 
-				#pragma omp parallel for reduction(+:rAr)
+				//std::cout << std::endl; exit(0);
+
+				//#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
 				}
+
+				// Temp
+				std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << std::endl;
 
 				Gamma = rr / rAr;
 				mAchievedTolerance = sqrt(rr);
@@ -564,7 +574,7 @@ namespace OpenCL
 		DeviceGroup &mrDeviceGroup;
 		LinearSolverOptimizationParameters &mOptimizationParameters;
 		cl_uint mpOpenCLLinearSolverGeneral;
-		cl_uint mkUpdateVectorWithBackup32, mkZeroVector2Negate;
+		cl_uint mkUpdateVectorWithBackup32, mkZeroVector3Negate;
 		cl_uint mSize;
 		cl_uint mbr, mbAr, mbx_old, mbr_old, mbReductionBuffer1, mbReductionBuffer2;
 		unsigned int mMaxIterations;
