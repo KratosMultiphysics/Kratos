@@ -8,6 +8,7 @@ public :
 	int numVertices ; 
 	int numElements ; 
     TVolumeMesh();	
+	~TVolumeMesh();
 	void getSurfaceTriangles();
 	void updateRefs();
 	void validate(bool showMessages);	

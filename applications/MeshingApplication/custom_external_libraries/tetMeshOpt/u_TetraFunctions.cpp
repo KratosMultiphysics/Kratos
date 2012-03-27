@@ -153,7 +153,34 @@ TMesh()
 	elementsToRemove= new TList<TObject*>();
 }
 
-
+TVolumeMesh::~TVolumeMesh()
+{
+	for (int i=0 ; i<elements->Count() ; i++)
+	{
+		TTetra *t = (TTetra *)(elements->structure[i]);
+		delete t;
+	}
+	delete elements;
+	
+	freeAndNil( elementsToAdd);
+	freeAndNil( elementsToRemove);
+	for (int i=0 ; i<vertexes->Count() ; i++)
+	{
+	    TVertex *v =vertexes->structure[i];
+		delete v;
+	}
+	delete vertexes;
+	
+	if (fFaces != NULL)
+	{
+		for (int i=0 ; i<fFaces->Count() ; i++)
+		{
+			TTriangle *tr =(TTriangle *)(fFaces->structure[i]);
+			delete tr;
+		}
+		delete fFaces;
+	}
+}
 void TVolumeMesh::updateIndexes(int flag )
 {
 	numVertices = vertexes->Count();
