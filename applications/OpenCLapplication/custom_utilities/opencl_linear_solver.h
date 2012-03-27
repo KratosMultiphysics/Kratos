@@ -514,9 +514,6 @@ namespace OpenCL
 					rAr += mReductionBuffer2[i];
 				}
 
-				// Temp
-				std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << std::endl;
-
 				Gamma = rr / rAr;
 				mAchievedTolerance = sqrt(rr);
 
@@ -539,6 +536,9 @@ namespace OpenCL
 					Rho = 1.00 / (1.00 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old));
 				}
 
+				// Debugging only!
+				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Gamma = " << Gamma << ", Rho = " << Rho << std::endl;
+
 				// Update vectors
 
 				// x = x_old * (1 - Rho) + (x - r * Gamma) * Rho
@@ -549,13 +549,13 @@ namespace OpenCL
 				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 2, mbr);
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 3, Rho);
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 4, 1.00 - Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 5, Rho * Gamma);
+				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 5, -Rho * Gamma);
 				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 6, mbr);
 				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 7, mbr_old);
 				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 8, mbAr);
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 9, Rho);
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 10, 1.00 - Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 11, Rho * Gamma);
+				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 11, -Rho * Gamma);
 				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 12, mSize);
 
 				mrDeviceGroup.ExecuteKernel(mkUpdateVectorWithBackup32, mSize);
