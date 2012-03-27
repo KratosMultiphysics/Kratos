@@ -56,7 +56,7 @@ public:
 	TList<TObject*>* neighV;
 	bool isSurface;
 	float4 normal ;
-	
+
 	TVertex(float x,float y, float z);
 	TVertex(float4 v);	
 	void calcNormal();
@@ -75,7 +75,7 @@ typedef double(*TVertexesEvaluator)(TVertex*[]);
 class TPolygon: public TNeighboured
 {
 private : 
-	
+
 public :
 	TVertex* vertexes[3];
 	float4 normal;
@@ -86,11 +86,11 @@ class TTriangle: public TPolygon
 {
 public :    
 	TTriangle(TVertex* v0,TVertex* v1,TVertex* v2);
-	
+
 	void calcNormal();
-	
+
 	void calcEdges();
-	
+
 	bool verticesEncomun(TTriangle* otherT,TVertex* &v1,TVertex* &v2);
 };
 
@@ -119,7 +119,9 @@ public:
 		scale = Float4(1.0,1.0,1.0);
 
 	};
-	~TMesh(void){};
+	~TMesh(void)
+	{
+	};
 
 	void addTriangle(TPolygon* tr)
 	{
@@ -260,41 +262,41 @@ public :
 
 	int materialID;
 	float4 velocity;
-	
+
 	double getVolume() ;
-	
+
 	double getPerimeter() ;
-	
+
 	double getQuadPerimeter() ;
-	
+
 	double getminEdgeLength() ;
-	
+
 	double getmaxEdgeLength() ;
-	
+
 	double getSurface();
 	void copyFrom(TValuedObject e );
 	TTetra(TObject* owner);
 
 	void Create(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true);
-	
+
 	TTetra(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true) ;
-	
+
 	~TTetra() ;
 	// Obtener el vecino que comparte estos 3 vertices  
 	TTetra* getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2, TList<TObject*>*  tl);
-	
+
 	// Obtener triangulos que sean de la superficie
 	TList<TObject*>* getSurfaceTriangle(bool bmpMode , TList<TObject*>* res, TList<TObject*>* ts);
-	
+
 	// Verificar si comparte esta cara
 	bool hasFace(TVertex* v0,TVertex*  v1,TVertex* v2) 			;
-	
+
 	TVertex* oppositeVertex(TVertex *v0,TVertex *v1,TVertex *v2);
-	
+
 	bool hasEdge(TVertex *v0,TVertex *v1);
-	
+
 	bool hasFace(TTetra* t1 );
-	
+
 	int hasVertex(TTetra t1 );
 	bool hasVertex(TVertex v0 );
 	TTetra* getTetraNeighbour(int faceI ,TVertex v0,TVertex v1,TVertex v2, TList<TObject> *tl) ;
@@ -307,15 +309,15 @@ public :
 	bool isInvalid() ;
 
 	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= NULL ) ;
-	
+
 	TList<TObject>* getNeighbours(int depth) ;
 
 	void removeVertexRef();
-	
+
 	void updateVertexRef();
-	
+
 	void clearVertexRef();
-	
+
 	void update();
 
 	/*
@@ -331,6 +333,19 @@ public :
 	end;
 	*/
 };
+
+class TElementsPool
+{
+public : 
+	TList<TTetra*>* availableElements;
+	TList<TTetra*>* removedElements;
+	TTetra* getInstance();
+	TTetra* getInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3);
+	TElementsPool();
+	void releaseInstance(TTetra *t);
+	void releaseMemmory();
+};
+
 
 
 

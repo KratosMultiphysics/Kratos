@@ -310,7 +310,7 @@ int TElementsCluster::evaluateSet()
 	//--- Evaluate Set
 	goodMinQuality =minQuality;
 	vertexes->Sort(sortByID);
-	TVertex** vr = new TVertex*[4];
+	TVertex* vr[4];
 	//---------------------------------------------------
 	// Para todos los vertices
 	for (i = 0 ; i<vertexes->Count() ; i++)

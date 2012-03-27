@@ -162,8 +162,8 @@ TVolumeMesh::~TVolumeMesh()
 	}
 	delete elements;
 	
-	freeAndNil( elementsToAdd);
-	freeAndNil( elementsToRemove);
+	delete elementsToAdd;
+	delete elementsToRemove;
 	for (int i=0 ; i<vertexes->Count() ; i++)
 	{
 	    TVertex *v =vertexes->structure[i];
@@ -270,7 +270,10 @@ void TVolumeMesh::updateRefs()
 	{
 		TTetra* _nt = (TTetra*)(elements->elementAt(i));		
 		if ( _nt->flag==2)
+		{
 			elements->setElementAt(i,NULL);
+			//delete _nt;
+		}
 	}
 
 

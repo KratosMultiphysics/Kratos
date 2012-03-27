@@ -462,4 +462,56 @@ void TTetra::update()
 
 	}
 
+	/// CLASS TElementsPool
+TElementsPool::TElementsPool()
+{
+	 availableElements = new TList<TTetra*>();
+}
+
+TTetra* TElementsPool::getInstance()
+{
+	if (availableElements->Count() == 0)
+		return new TTetra(NULL);
+	else
+	{
+		TTetra *t = availableElements->structure.back();
+		availableElements->structure.pop_back();
+		return t;
+	}
+}
+
+TTetra* TElementsPool::getInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3)
+{
+	if (availableElements->Count() == 0)
+		return new TTetra(NULL,v0,v1,v2,v3);
+	else
+	{
+		TTetra *t = availableElements->structure.back();
+		availableElements->structure.pop_back();
+		t->vertexes[0] = v0;
+		t->vertexes[1] = v1;
+		t->vertexes[2] = v2;
+		t->vertexes[3] = v3;
+		t->updateVertexRef();
+		return t;
+	}
+}
+
+
+void TElementsPool::releaseInstance(TTetra *t)
+{
+	availableElements->structure.push_back(t);
+}
+
+void TElementsPool::releaseMemmory()
+{
+	for (int i= 0 ; i<availableElements->Count() ; i++)
+	{
+		TTetra *t = availableElements->structure[i];
+		delete t;
+	}
+	availableElements->Clear();
+}
+
+
 
