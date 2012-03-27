@@ -53,6 +53,10 @@ os.chdir(ApplicationsRoot + "ThermoMechanicalApplication/test_examples")
 import ThermoMechanical_benchmarks
 Text += ThermoMechanical_benchmarks.Run()
 
+# Fluid Dynamics application
+os.chdir(ApplicationsRoot + "trilinos_application//test_examples")
+import trilinos_benchmarks
+Text += trilinos_benchmarks.Run()
 # Add other directories here
 
 #print Text
