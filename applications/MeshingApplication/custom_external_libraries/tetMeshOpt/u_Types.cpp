@@ -32,6 +32,15 @@ TVertex::TVertex(float4 v)
 	elementsList = new TList<TObject*>();			 
 }
 
+TVertex::~TVertex()
+{
+	neighTr->Clear();
+	elementsList->Clear();
+	delete neighTr;
+	delete elementsList;
+
+}
+
 void TVertex::calcNormal()
 {
 };

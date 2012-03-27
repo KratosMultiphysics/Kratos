@@ -58,7 +58,8 @@ public:
 	float4 normal ;
 
 	TVertex(float x,float y, float z);
-	TVertex(float4 v);	
+	TVertex(float4 v);
+	~TVertex();
 	void calcNormal();
 	float4 pos();
 	TList<TObject*> *getElemNeighbours(TList<TObject*> *toL = NULL);			 
