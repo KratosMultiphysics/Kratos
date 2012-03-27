@@ -486,6 +486,7 @@ namespace Kratos
             virtual Vector& DeterminantOfJacobian( Vector& rResult, IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return rResult;
             }
 
             /** Determinant of jacobian in specific integration point of
@@ -509,6 +510,7 @@ namespace Kratos
             virtual double DeterminantOfJacobian( IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return 0.0;
             }
 
             /** Determinant of jacobian in given point. This method calculate determinant of jacobian
@@ -526,6 +528,7 @@ namespace Kratos
             virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return 0.0;
             }
 
 
@@ -546,6 +549,7 @@ namespace Kratos
             virtual JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return rResult;
             }
 
             /** Inverse of jacobian in specific integration point of given integration
@@ -568,6 +572,7 @@ namespace Kratos
             virtual Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return rResult;
             }
 
             /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -584,6 +589,7 @@ namespace Kratos
             virtual Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return rResult;
             }
 
 
@@ -615,6 +621,7 @@ namespace Kratos
             virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Jacobian is not square" , "" );
+				return rResult;
             }
 
 

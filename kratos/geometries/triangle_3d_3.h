@@ -717,6 +717,7 @@ namespace Kratos
                                                    IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
+				return rResult;
             }
 
             /**
@@ -745,6 +746,7 @@ namespace Kratos
                                                   IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
+				return 0.0;
             }
 
             /**
@@ -775,6 +777,7 @@ namespace Kratos
             virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::DeterminantOfJacobian", "Jacobian is not square" );
+				return 0.0;
             }
 
             /**
@@ -802,6 +805,7 @@ namespace Kratos
                     IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+				return rResult;
             }
 
             /**
@@ -832,6 +836,7 @@ namespace Kratos
                                                IntegrationMethod ThisMethod ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+				return rResult;
             }
 
             /**
@@ -854,6 +859,7 @@ namespace Kratos
                                                const CoordinatesArrayType& rPoint ) const
             {
                 KRATOS_ERROR( std::logic_error, "Triangle3D::InverseOfJacobian", "Jacobian is not square" );
+				return rResult;
             }
 
             /** This method gives you number of all edges of this
