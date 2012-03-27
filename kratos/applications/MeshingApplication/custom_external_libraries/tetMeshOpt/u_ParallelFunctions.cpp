@@ -73,6 +73,12 @@ void fastGetSurfaceTriangles(TMesh* aModel)
   _faces = new bool[numT * 4];
   for (i = 0 ; i<numT*4 ; i++)
 	   _faces[i] = false;
+
+  for (int i=0;i<aModel->fFaces->Count();i++)
+  {
+	  TTriangle *tr = (TTriangle*)(aModel->fFaces->structure[i]);
+	  delete tr;
+  }
   
   aModel->fFaces->Clear();
   
