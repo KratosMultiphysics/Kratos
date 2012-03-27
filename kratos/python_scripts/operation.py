@@ -11,46 +11,47 @@ class Operation:
 	self.model_part = model_part
 	self.groups = groups
 	self.group_container = group_container
+	self.echo_level = echo_level
 	
-    def PrintInfo():
-       return " Operation Base Class"
+    def PrintInfo(self):
+       raise Exception ("Method PrintInfo Should be implemented on all derived classes")
 
     #this function is designed for being called at the beginning of the computations
     #right after reading the model and the groups 
-    def ExecuteInitialize():
-      if(echo_level > 0):
+    def ExecuteInitialize(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteInitialize for Class",self.PrintInfo()
             
     #this function is designed for being execute once before the solution loop but after all of the 
     #solvers where built
-    def ExecuteBeforeSolutionLoop():
-      if(echo_level > 0):
+    def ExecuteBeforeSolutionLoop(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteBeforeSolutionLoop for Class",self.PrintInfo()
       
     #this function will be executed at every time step BEFORE performing the solve phase
-    def ExecuteInitializeSolutionStep():
-      if(echo_level > 0):
+    def ExecuteInitializeSolutionStep(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteInitializeSolutionStep for Class",self.PrintInfo()
       
     #this function will be executed at every time step AFTER performing the solve phase
-    def ExecuteFinalizeSolutionStep():
-      if(echo_level > 0):
+    def ExecuteFinalizeSolutionStep(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteFinalizeSolutionStep for Class",self.PrintInfo()
 
     #this function will be executed at every time step BEFORE  writing the output
-    def ExecuteBeforeOutputStep():
-      if(echo_level > 0):
+    def ExecuteBeforeOutputStep(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteBeforeOutputStep for Class",self.PrintInfo()
       
     #this function will be executed at every time step AFTER writing the output
-    def ExecuteAfterOutputStep():
-      if(echo_level > 0):
+    def ExecuteAfterOutputStep(self):
+      if(self.echo_level > 0):
 	print "Finished ExecuteAfterOutputStep for Class",self.PrintInfo()
       
     #this function is designed for being called at the beginning of the computations
     #right after reading the model and the groups 
-    def ExecuteFinalize():      
-      if(echo_level > 0):
+    def ExecuteFinalize(self):      
+      if(self.echo_level > 0):
 	print "Finished ExecuteFinalize for Class",self.PrintInfo()
     
 
