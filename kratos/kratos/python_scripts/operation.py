@@ -3,13 +3,19 @@
 #functions should retain the same interface
 class Operation:
   
+    #NOTE: this function is designed with the idea that different derived operations are allowed to have different constructors.
+    #nevertheless for ease of usage, we propose a rather wide range of "default parameters" which should be sufficient 
+    #to implement most user operations
+    #
     #model_part -> model_part to which the operation will be applied
-    #groups -> python array containing the ids of the groups to which the operation should be applied
     #group_container -> container of the groups. Can be queried for the nodes that correspond to a given group Id
+    #group_ids -> python array containing the ids of the groups to which the operation should be applied
+    #table_ids --> python array containing the ids of the tables to be applied
     #echo_level -> level of expected echo for the operation: echo_level=0 implies no echo
-    def __init__(self,model_part,groups,group_container,echo_level=0):
+    def __init__(self,model_part,group_container,group_ids,table_ids,echo_level=0):
 	self.model_part = model_part
-	self.groups = groups
+	self.group_ids = group_ids
+	self.table_ids = table_ids
 	self.group_container = group_container
 	self.echo_level = echo_level
 	
