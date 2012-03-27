@@ -69,7 +69,9 @@ namespace Kratos
 	  
       Plane()
       {
-	 mNormal   = ZeroVector(3);
+	 noalias(mTriangleBary) = ZeroVector(3);
+ 	 noalias(mClosestPoint) = ZeroVector(3);  
+         noalias(mNormal)       = ZeroVector(3);
 	 mConstant = 0.00;
       }
       
@@ -135,21 +137,21 @@ namespace Kratos
 	    double det = std::fabs(a00*a11 - a01*a01);
 	    double s = a01*b1 - a11*b0;
 	    double t = a01*b0 - a00*b1;
-	    double sqrDistance = 0;
+	    double sqrDistance = 0.00;
 
 	    if (s + t <= det)
 	    {
-	    if (s < (double)0)
+	    if (s < 0.00)
 	    {
-		if (t < (double)0)  // region 4
+		if (t < 0.00 )  // region 4
 		{
-		    if (b0 < (double)0)
+		    if (b0 < 0.00)
 		    {
-			t = (double)0;
+			t = 0.00;
 			if (-b0 >= a00)
 			{
-			    s = (double)1;
-			    sqrDistance = a00 + ((double)2)*b0 + c;
+			    s = 1.00;
+			    sqrDistance = a00 + (2.00)*b0 + c;
 			}
 			else
 			{
@@ -159,16 +161,16 @@ namespace Kratos
 		    }
 		    else
 		    {
-			s = (double)0;
-			if (b1 >= (double)0)
+			s = 0.00;
+			if (b1 >= 0.00)
 			{
-			    t = (double)0;
+			    t = 0.00;
 			    sqrDistance = c;
 			}
 			else if (-b1 >= a11)
 			{
-			    t = (double)1;
-			    sqrDistance = a11 + ((double)2)*b1 + c;
+			    t = 1.00;
+			    sqrDistance = a11 + (2.00)*b1 + c;
 			}
 			else
 			{
@@ -179,16 +181,16 @@ namespace Kratos
 		}
 		else  // region 3
 		{
-		    s = (double)0;
-		    if (b1 >= (double)0)
+		    s = 0.00;
+		    if (b1 >= 0.00)
 		    {
-			t = (double)0;
+			t = 0.00;
 			sqrDistance = c;
 		    }
 		    else if (-b1 >= a11)
 		    {
-			t = (double)1;
-			sqrDistance = a11 + ((double)2)*b1 + c;
+			t = 1.00;
+			sqrDistance = a11 + (2.00)*b1 + c;
 		    }
 		    else
 		    {
@@ -197,18 +199,18 @@ namespace Kratos
 		    }
 		}
 	    }
-	    else if (t < (double)0)  // region 5
+	    else if (t < 0.00)  // region 5
 	    {
-		t = (double)0;
-		if (b0 >= (double)0)
+		t = 0.00;
+		if (b0 >= 0.00)
 		{
-		    s = (double)0;
+		    s = 0.00;
 		    sqrDistance = c;
 		}
 		else if (-b0 >= a00)
 		{
-		    s = (double)1;
-		    sqrDistance = a00 + ((double)2)*b0 + c;
+		    s = 1.00;
+		    sqrDistance = a00 + (1.00)*b0 + c;
 		}
 		else
 		{
@@ -219,50 +221,50 @@ namespace Kratos
 	    else  // region 0
 	    {
 		// minimum at interior point
-		double invDet = ((double)1)/det;
+		double invDet = (1.00)/det;
 		s *= invDet;
 		t *= invDet;
-		sqrDistance = s*(a00*s + a01*t + ((double)2)*b0) +
-		    t*(a01*s + a11*t + ((double)2)*b1) + c;
+		sqrDistance = s*(a00*s + a01*t + (1.00)*b0) +
+		    t*(a01*s + a11*t + (2.00)*b1) + c;
 	    }
 	    }
 	    else
 	    {
 	    double tmp0, tmp1, numer, denom;
 
-	    if (s < (double)0)  // region 2
+	    if (s < (0.00)  // region 2
 	    {
 		tmp0 = a01 + b0;
 		tmp1 = a11 + b1;
 		if (tmp1 > tmp0)
 		{
 		    numer = tmp1 - tmp0;
-		    denom = a00 - ((double)2)*a01 + a11;
+		    denom = a00 - (2.00)*a01 + a11;
 		    if (numer >= denom)
 		    {
-			s = (double)1;
-			t = (double)0;
-			sqrDistance = a00 + ((double)2)*b0 + c;
+			s = 1.00;
+			t = 0.00;
+			sqrDistance = a00 + (2.00)*b0 + c;
 		    }
 		    else
 		    {
 			s = numer/denom;
-			t = (double)1 - s;
-			sqrDistance = s*(a00*s + a01*t + ((double)2)*b0) +
-			    t*(a01*s + a11*t + ((double)2)*b1) + c;
+			t = 1.00 - s;
+			sqrDistance = s*(a00*s + a01*t + (2.00)*b0) +
+			    t*(a01*s + a11*t + (2.00)*b1) + c;
 		    }
 		}
 		else
 		{
-		    s = (double)0;
-		    if (tmp1 <= (double)0)
+		    s = 0.00;
+		    if (tmp1 <= 0.00)
 		    {
-			t = (double)1;
-			sqrDistance = a11 + ((double)2)*b1 + c;
+			t = 1.00;
+			sqrDistance = a11 + (2.00)*b1 + c;
 		    }
-		    else if (b1 >= (double)0)
+		    else if (b1 >= 0.00)
 		    {
-			t = (double)0;
+			t = 0.00;
 			sqrDistance = c;
 		    }
 		    else
@@ -272,39 +274,39 @@ namespace Kratos
 		    }
 		}
 	    }
-	    else if (t < (double)0)  // region 6
+	    else if (t < 0.00)  // region 6
 	    {
 		tmp0 = a01 + b1;
 		tmp1 = a00 + b0;
 		if (tmp1 > tmp0)
 		{
 		    numer = tmp1 - tmp0;
-		    denom = a00 - ((double)2)*a01 + a11;
+		    denom = a00 - (2.00)*a01 + a11;
 		    if (numer >= denom)
 		    {
-			t = (double)1;
-			s = (double)0;
-			sqrDistance = a11 + ((double)2)*b1 + c;
+			t = 1.00;
+			s = 0.00;
+			sqrDistance = a11 + (2.00)*b1 + c;
 		    }
 		    else
 		    {
 			t = numer/denom;
-			s = (double)1 - t;
-			sqrDistance = s*(a00*s + a01*t + ((double)2)*b0) +
-			    t*(a01*s + a11*t + ((double)2)*b1) + c;
+			s = 1.00 - t;
+			sqrDistance = s*(a00*s + a01*t + (2.00)*b0) +
+			    t*(a01*s + a11*t + (2.00)*b1) + c;
 		    }
 		}
 		else
 		{
-		    t = (double)0;
-		    if (tmp1 <= (double)0)
+		    t = 0.00;
+		    if (tmp1 <= 0.00)
 		    {
-			s = (double)1;
-			sqrDistance = a00 + ((double)2)*b0 + c;
+			s = 1.00;
+			sqrDistance = a00 + (2.00)*b0 + c;
 		    }
-		    else if (b0 >= (double)0)
+		    else if (b0 >= 0.00)
 		    {
-			s = (double)0;
+			s = 0.00;
 			sqrDistance = c;
 		    }
 		    else
@@ -317,36 +319,36 @@ namespace Kratos
 	    else  // region 1
 	    {
 		numer = a11 + b1 - a01 - b0;
-		if (numer <= (double)0)
+		if (numer <= 0.00)
 		{
-		    s = (double)0;
-		    t = (double)1;
-		    sqrDistance = a11 + ((double)2)*b1 + c;
+		    s = 0.00;
+		    t = 1.00;
+		    sqrDistance = a11 + (2.00)*b1 + c;
 		}
 		else
 		{
-		    denom = a00 - ((double)2)*a01 + a11;
+		    denom = a00 - (2.00)*a01 + a11;
 		    if (numer >= denom)
 		    {
-			s = (double)1;
-			t = (double)0;
-			sqrDistance = a00 + ((double)2)*b0 + c;
+			s = 1.00;
+			t = 0.00;
+			sqrDistance = a00 + (2.00)*b0 + c;
 		    }
 		    else
 		    {
 			s = numer/denom;
-			t = (double)1 - s;
-			sqrDistance = s*(a00*s + a01*t + ((double)2)*b0) +
-			    t*(a01*s + a11*t + ((double)2)*b1) + c;
+			t = 1.00 - s;
+			sqrDistance = s*(a00*s + a01*t + (2.00)*b0) +
+			    t*(a01*s + a11*t + (2.00)*b1) + c;
 		    }
 		}
 	    }
 	    }
 
 	    // Account for numerical round-off error.
-	    if (sqrDistance < (double)0)
+	    if (sqrDistance < 0.00)
 	    {
-	      sqrDistance = (double)0;
+	      sqrDistance = 0.00;
 	    }
 
 	    //mClosestPoint0 = *mPoint;
