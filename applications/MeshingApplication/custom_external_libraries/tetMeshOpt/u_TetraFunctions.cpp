@@ -377,7 +377,7 @@ void TVolumeMesh::validate(bool showMessages)
 	nv = 0;
 	for (i = 0 ; i<vertexes->Count() ; i++ )
 	{
-		TVertex* _v = vertexes->elementAt(i);
+		// TVertex* _v = vertexes->elementAt(i);
 	}
 	// Control de Elementos
 	if (ntv > 0)

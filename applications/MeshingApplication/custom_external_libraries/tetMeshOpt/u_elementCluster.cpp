@@ -391,7 +391,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 
 	int i ;
 	TVertex *v0,*v1,*v2,*v3;
-	TTetra *t ;
+	
 	bool centerUsed,  invalidCOnfig , result;
 
 	centerUsed = false;
@@ -420,7 +420,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 			v2 = (TVertex*)(goodTetraList->elementAt(i+2));
 			v3 = (TVertex*)(goodTetraList->elementAt(i+3));
 
-			t = new TTetra(NULL,v0,v1,v2,v3,true);          
+			TTetra* t = new TTetra(NULL,v0,v1,v2,v3,true);          
 			newElements->Add(t);
 		}
 
@@ -446,7 +446,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 				for (i = 0 ; i<newElements->Count();i++)
 				{
 					TTetra *_t = (TTetra *)(newElements->elementAt(i));					
-					t->removeVertexRef();
+					_t->removeVertexRef();
 					newElements->setElementAt(i,NULL);
 					delete _t;
 				}
