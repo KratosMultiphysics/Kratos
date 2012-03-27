@@ -193,8 +193,8 @@ namespace OpenCL
 					mOptimizedInnerProd2Kernel = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "InnerProd2", 1 << i);  // With same parameters
 
 					mOptimizedInnerProdKernelLaunchSize = mSize;
-					mOptimizedInnerProdKernelBufferSize1 = ((mSize + (1 << i) - 1) / (1 << i)) * sizeof(cl_double);
-					mOptimizedInnerProdKernelBufferSize2 = (1 << i) * sizeof(cl_double);
+					mOptimizedInnerProdKernelBufferSize1 = (mSize + (1 << i) - 1) / (1 << i);
+					mOptimizedInnerProdKernelBufferSize2 = 1 << i;
 				}
 			}
 		}
@@ -276,8 +276,8 @@ namespace OpenCL
 							mOptimizedSpMVKernel = mkSpMVCSR;
 
 							mOptimizedSpMVKernelLaunchSize = mSize * (1 << (j - i)) + 1;
-							mOptimizedSpMVKernelBufferSize1 = ((1 << i) + 1) * sizeof(cl_uint);  // Note: Change this when IndexType is changed in opencl_common.cl
-							mOptimizedSpMVKernelBufferSize2 = (1 << j) * sizeof(cl_double);
+							mOptimizedSpMVKernelBufferSize1 = (1 << i) + 1;
+							mOptimizedSpMVKernelBufferSize2 = 1 << j;
 						}
 					}
 				}
@@ -471,8 +471,8 @@ namespace OpenCL
 				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 3, mbr);
 				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 4, mbAr);
 				mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 5, mSize);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 6, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize1());
-				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 7, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize2());
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 6, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize1() * sizeof(cl_uint));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 7, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize2() * sizeof(cl_double));
 
 				mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedSpMVKernel(), mOptimizationParameters.GetOptimizedSpMVKernelLaunchSize());
 
@@ -485,8 +485,8 @@ namespace OpenCL
 				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 2, mbReductionBuffer1);
 				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 3, mbReductionBuffer2);
 				mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 4, mSize);
-				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 5, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2());
-				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 6, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2());  // Yes, both are of the same size!
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 5, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 6, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));  // Yes, both are of the same size!
 
 				mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), mOptimizationParameters.GetOptimizedInnerProdKernelLaunchSize());
 
