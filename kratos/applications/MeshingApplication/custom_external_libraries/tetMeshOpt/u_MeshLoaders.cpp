@@ -41,7 +41,7 @@ bool TSurLoader:: save(const char* filename, TMesh* aMesh )
 	{
 		tr = (TTriangle*)(  aMesh->fFaces->elementAt(i));
 		std::string s2 = intToString(tr->vertexes[0]->id)+ " "+intToString(tr->vertexes[1]->id)+ " "+
-			             intToString(tr->vertexes[2]->id)+ " "+intToString(tr->vertexes[3]->id);
+			             intToString(tr->vertexes[2]->id);
 			
 		st->Add(s2);
 	}

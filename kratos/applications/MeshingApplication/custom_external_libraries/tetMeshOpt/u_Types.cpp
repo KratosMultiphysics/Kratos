@@ -12,9 +12,8 @@ TValuedObject::~TValuedObject(void)
 {};
 
 float4 TValuedObject::getCenter() 
-{ 
-	float4 f;	
-	return f; 
+{ 	
+	return Float4(0.0f,0.0f,0.0f); 
 }
 
 /// Class TVertex
@@ -206,7 +205,7 @@ int TTetra::isInside(float4 ps )
 {	
 	int i ;
 	TVertex *v0, *v1, *v2;
-	int  result = 0;
+	
 	//The iteration method
 	for (i = 0 ; i<4 ; i++)
 	{
