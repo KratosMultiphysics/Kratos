@@ -419,8 +419,8 @@ namespace OpenCL
 			mbReductionBuffer1 = mrDeviceGroup.CreateBuffer(mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1() * sizeof(cl_double), CL_MEM_READ_WRITE);
 			mbReductionBuffer2 = mrDeviceGroup.CreateBuffer(mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1() * sizeof(cl_double), CL_MEM_READ_WRITE);  // Yes, both are of the same size!
 
-			mReductionBuffer1 = new double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];
-			mReductionBuffer2 = new double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];  // Yes, both are of the same size!
+			mReductionBuffer1 = new cl_double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];
+			mReductionBuffer2 = new cl_double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];  // Yes, both are of the same size!
         }
 
         //
@@ -581,7 +581,7 @@ namespace OpenCL
 		double mTolerance;
 		unsigned int mIterationNo;
 		double mAchievedTolerance;
-		double *mReductionBuffer1, *mReductionBuffer2;
+		cl_double *mReductionBuffer1, *mReductionBuffer2;
 	};
 
 }
