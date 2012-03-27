@@ -7,7 +7,7 @@ class Operation:
     #groups -> python array containing the ids of the groups to which the operation should be applied
     #group_container -> container of the groups. Can be queried for the nodes that correspond to a given group Id
     #echo_level -> level of expected echo for the operation: echo_level=0 implies no echo
-    def __init__(self,model_part,groups,group_container,echo_level):
+    def __init__(self,model_part,groups,group_container,echo_level=0):
 	self.model_part = model_part
 	self.groups = groups
 	self.group_container = group_container
