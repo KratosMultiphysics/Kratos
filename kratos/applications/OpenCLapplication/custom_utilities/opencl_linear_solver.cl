@@ -538,7 +538,7 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 
 //
-// ZeroVector2Negate
+// ZeroVector3Negate
 //
 // Zeros three vectors and updates the fourth with negative of another
 // Note: x = 0; y = 0; z = 0; t = -u
