@@ -107,30 +107,6 @@ public:
         mWorld = PythonMPIComm(MPI_COMM_WORLD);
     }
 
-    /// Constructor accepting Python command line arguments (as given by sys.argv).
-    /** Initialize MPI and define a wrapper for MPI_COMM_WORLD,
-      * which can be accessed by calling GetWorld().
-      */
-    PythonMPI(boost::python::list py_argv)
-    {
-        // Obtain the number of arguments as the length of the Python list
-        mArgc = boost::python::extract<int>( py_argv.attr("__len__")() );
-
-        // Convert the argument list to an array of c strings
-        char* argv_str[mArgc];
-
-        for(int i = 0 ; i < mArgc ; i++)
-            argv_str[i] = boost::python::extract<char*>(py_argv[i]);
-
-        mArgv = argv_str;
-
-        // Initialize MPI
-        //std::cout << "MPI_Init()" << std::endl;
-        MPI_Init(&mArgc,&mArgv);
-
-        mWorld = PythonMPIComm(MPI_COMM_WORLD);
-    }
-
     /// Destructor, finalizes MPI
     ~PythonMPI()
     {
