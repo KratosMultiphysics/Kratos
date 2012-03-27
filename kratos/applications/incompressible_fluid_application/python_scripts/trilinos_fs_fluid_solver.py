@@ -203,6 +203,8 @@ class IncompressibleFluidSolver:
 
         (self.solver).Solve()
 
+        if(self.CalculateReactions == True):
+            self.solver.ComputeReactions(REACTION)
         #(self.solver).ApplyFractionalVelocityFixity()
         #(self.solver).InitializeFractionalStep(self.step, self.time_order);
         #(self.solver).InitializeProjections(self.step,self.projections_are_initialized);
