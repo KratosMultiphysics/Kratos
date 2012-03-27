@@ -67,13 +67,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // InnerProd and SpMV kernel parameters range
 #define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 8
-#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 9
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 8
 
 #define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 5
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 6
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 5
 
 #define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 8
-#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 9
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 8
 
 // Kernel optimization iteration count
 #define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 10
@@ -115,7 +115,11 @@ namespace OpenCL
 
 		LinearSolverOptimizationParameters(DeviceGroup &DeviceGroup, cl_uint Size): mrDeviceGroup(DeviceGroup), mSize(Size)
 		{
-			// Nothing to do!
+			cl_uint mpOpenCLLinearSolver, mkMinimalKernel;
+
+			mpOpenCLLinearSolver = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-DKRATOS_OCL_NEED_GENERIC_KERNELS");
+			mkMinimalKernel = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolver, "MinimalKernel");
+			mWavefrontSize = mrDeviceGroup.PreferredWorkGroupSizeMultiples[mkMinimalKernel][0];
 		}
 
 		//
@@ -134,14 +138,14 @@ namespace OpenCL
 		// Selects the best InnerProd kernel for given vectors
 		// Note: Use only once, before using the class with a LinearSolver
 
-		void OptimizeInnerProd(cl_uint X_Values_Buffer, cl_uint Y_Values_Buffer, cl_uint Z_Values_Buffer, cl_uint WavefrontSize)
+		void OptimizeInnerProd(cl_uint X_Values_Buffer, cl_uint Y_Values_Buffer, cl_uint Z_Values_Buffer)
 		{
 			cl_uint mpOpenCLLinearSolver, mkInnerProd;
 			int64_t T0, T1, BestTime;
 
 			BestTime = 0x7FFFFFFFFFFFFFFF;
 
-			for (unsigned int i = KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN; i < KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX; i++)
+			for (unsigned int i = KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN; i <= KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX; i++)
 			{
 				std::stringstream OptionsBuilder;
 
@@ -205,16 +209,16 @@ namespace OpenCL
 		// Selects the best SpMV kernel for given system of equations
 		// Note: Use only once, before using the class with a LinearSolver; fills X with A * B
 
-		void OptimizeSpMV(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer, cl_uint WavefrontSize)
+		void OptimizeSpMV(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer)
 		{
 			cl_uint mpOpenCLLinearSolver, mkSpMVCSR;
 			int64_t T0, T1, BestTime;
 
 			BestTime = 0x7FFFFFFFFFFFFFFF;
 
-			for (unsigned int i = KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN; i < KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX; i++)
+			for (unsigned int i = KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN; i <= KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX; i++)
 			{
-				for (unsigned int j = KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN; j < KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX; j++)
+				for (unsigned int j = KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN; j <= KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX; j++)
 				{
 					if (j >= i)
 					{
@@ -227,7 +231,7 @@ namespace OpenCL
 							"-DKRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS=" << j;
 
 						// Check if a local mem barrier is needed
-						if (1U << (j - i) > WavefrontSize)
+						if (1U << (j - i) > mWavefrontSize)
 						{
 							OptionsBuilder <<
 								" " <<
@@ -377,7 +381,7 @@ namespace OpenCL
 	private:
 
 		DeviceGroup &mrDeviceGroup;
-		cl_uint mSize;
+		cl_uint mSize, mWavefrontSize;
 		cl_uint mOptimizedSpMVKernel, mOptimizedInnerProdKernel, mOptimizedInnerProd2Kernel;
 		cl_uint mOptimizedSpMVKernelLaunchSize, mOptimizedSpMVKernelBufferSize1, mOptimizedSpMVKernelBufferSize2, mOptimizedInnerProdKernelLaunchSize, mOptimizedInnerProdKernelBufferSize1, mOptimizedInnerProdKernelBufferSize2;
 	};
@@ -498,18 +502,13 @@ namespace OpenCL
 				rr = 0.00;
 				rAr = 0.00;
 
-				// TODO: Fix this to use OpenMP!
-
-				//#pragma omp parallel for reduction(+:rr)
+				#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
-					//std::cout << mReductionBuffer1[i] << " ";
 					rr += mReductionBuffer1[i];
 				}
 
-				//std::cout << std::endl; exit(0);
-
-				//#pragma omp parallel for reduction(+:rAr)
+				#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
@@ -528,7 +527,7 @@ namespace OpenCL
 				}
 				else
 				{
-					if (mIterationNo > mMaxIterations)
+					if (mIterationNo >= mMaxIterations)
 					{
 						return false;
 					}

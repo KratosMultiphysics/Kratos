@@ -584,4 +584,14 @@ __kernel void UpdateVectorWithBackup32(__global ValueType *X_Values1, __global V
 	}
 }
 
+//
+// MinimalKernel
+//
+// A minimal kernel to find out the wavefront size
+
+__kernel void MinimalKernel()
+{
+	// Nothing to do!
+}
+
 #endif  // KRATOS_OCL_NEED_GENERIC_KERNELS
