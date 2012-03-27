@@ -54,14 +54,7 @@ int main (int argc, char* argv[])
 	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
 	for (int i=0 ;i<1 ; i++)
 	{
-		evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
-		endProcess("Parallel evaluation");
-		qt->refresh();   qt->print();
-		m->validate(true);
-		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
-
-		evaluateClusterByFace( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+	/*	evaluateClusterByFace( (TVolumeMesh*)(m),5000000,vrelaxQuality);
 		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 		endProcess("Parallel evaluation");
 		qt->refresh();   qt->print();
@@ -74,12 +67,25 @@ int main (int argc, char* argv[])
 		qt->refresh();   qt->print();
 		m->validate(true);
 		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
-
+		*/
+		evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+		endProcess("Parallel evaluation");
+		qt->refresh();   qt->print();
+		m->validate(true);
+		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
+		int vToR =m->vertexesToRemove->Count();
+		int ri = vertexTetraReInsertion(m , m->vertexesToRemove);
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+		std :: cout<< " Reinsert vertexes " << ri << " of " <<  vToR <<"\n";
+		qt->refresh();   qt->print();
+		m->validate(true);
 	}
 
-	m->removeFreeVertexes();
-	showProcessTime();
-
+	//m->removeFreeVertexes();
+	delete m;
+	
+	return 1;
 	/*
 
 	cout <<"...Optimizing by Edge" <<"\n"; 
@@ -103,6 +109,7 @@ int main (int argc, char* argv[])
 	m->validate(true);
 	*/
 	//endProcess("optimize by node");
+	showProcessTime();
 	char c;
 	std::cout <<"...Input 'S' to save" <<"\n";         
 	cin >> c;

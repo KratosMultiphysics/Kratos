@@ -261,13 +261,13 @@ double TElementsCluster::getMinQuality()
 
 TElementsCluster::~TElementsCluster()
 {
-	freeAndNil(  goodTetraList);
-	freeAndNil(  surfaceT);
-	freeAndNil(  vertexes);
-	freeAndNil(  copyEL);
-	freeAndNil(  elements2);
-	freeAndNil(  newElements);
-	freeAndNil(  tempL );
+	delete(  goodTetraList);
+	delete(  surfaceT);
+	delete(  vertexes);
+	delete(  copyEL);
+	delete(  elements2);
+	delete(  newElements);
+	delete(  tempL );
 }
 
 
@@ -797,7 +797,8 @@ bool improvedCluster(TList<TObject*>* c1,
 		tempQuality = vrelaxQuality(v0,v1,v2,v3);
 		minDiedralAngle = diedralAngle(v0->fPos,v1->fPos,v2->fPos,v3->fPos);
 		//Si la calidad es peor, termino
-		if ( ((tempQuality>=goodMinQuality*ACCEPTANCE_TOLERANCE) && ( minDiedralAngle>origDAngle) ) || (tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) )
+		if ( ((tempQuality>0) && ( minDiedralAngle>origDAngle) ) || 
+			 ( (tempQuality<0) &&(tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) ) )
 		{
 			maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
 			if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
@@ -812,9 +813,89 @@ bool improvedCluster(TList<TObject*>* c1,
 	return true;
 }
 
+double testTetraSplit4(TTetra *t, TVertex* v, TList<TObject*>* lRes , TVertexesEvaluator qualityFunction)
+{
+	TVertex *vs[4];
+	int i;
+	double q;
+	q = 5000000;
+	for (i = 0 ; i<4 ; i++)
+	{
+		vs[0] = t->vertexes[ TTetraFaces[i*3] ];
+		vs[1] = t->vertexes[ TTetraFaces[i*3+1] ];
+		vs[2] = t->vertexes[ TTetraFaces[i*3+2] ];
+		vs[3] = v;
+		q = Min(q , qualityFunction(vs) );
+		if (lRes != NULL )
+		{
+			lRes->Add(vs[0]);
+			lRes->Add(vs[1]);
+			lRes->Add(vs[2]);
+			lRes->Add(vs[3]);
+		}
+	}
+	return q;
+}
 
 
 
+int vertexTetraReInsertion(TMesh *am ,TList<TVertex*>* vertexesList )
+{
+	int i,j,res;
+	TVertex *v;
+	TTetra *t, *tNew ;
+	double minMeshQ,oldQ , newQ;
+	TList<TObject*>* lRes;
+	TVolumeMesh *aMesh = (TVolumeMesh*)(am);
 
+	lRes = new TList<TObject*>();
+	minMeshQ = 50000000;
+	res = 0;
+	for (i = 0 ; i<aMesh->elements->Count() ; i++)
+	{
+		t = (TTetra*)(aMesh->elements->structure[i]);
+		minMeshQ = Min(minMeshQ ,diedralAngle(t->vertexes) );
+	}
+
+
+	for ( i = 0 ; i<vertexesList->Count() ; i++)
+	{
+		v = (TVertex*)(vertexesList->elementAt(i));
+		t = aMesh->isPointInside(v->fPos);
+		// Ningun tetra lo contiene
+		if (t == NULL)  continue;      
+		oldQ = minMeshQ;
+
+		lRes->Clear();
+		//     newQ := testTetraSplit6(aMesh,t,v,lRes, qualityFunction,t2);
+
+		newQ = testTetraSplit4(t,v,lRes,diedralAngle);
+		// No empeora la calidad actual
+		if (newQ>=oldQ)  
+		{
+			//Pude volver a insertar el nodo          
+			vertexesList->setElementAt(i, NULL); 
+			res ++ ;
+			
+			// Create new Tetra!!
+			for (j = 0 ; j<lRes->Count();j=j+4)
+			{
+				tNew = new TTetra(NULL, (TVertex*)(lRes->structure[j]),
+					(TVertex*)(lRes->structure[j+1]),
+					(TVertex*)(lRes->structure[j+2]),
+					(TVertex*)(lRes->structure[j+3]));
+				aMesh->elements->Add(tNew);
+			}
+
+			//Remove old TTetra
+			aMesh->elements->Extract(t);
+			t->removeVertexRef();
+			delete t;
+		}
+	}
+
+	vertexesList->Pack();
+	return res;
+}
 
 

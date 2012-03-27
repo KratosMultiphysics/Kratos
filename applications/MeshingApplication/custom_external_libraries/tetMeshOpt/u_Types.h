@@ -110,6 +110,7 @@ public:
 	TList<TObject*>* selectedElements;
 	TList<TObject*>* elementsToAdd;
 	TList<TObject*>* elementsToRemove;
+	TList<TVertex*>* vertexesToRemove;
 
 	TMesh(void) 
 	{
@@ -117,11 +118,19 @@ public:
 		selectedElements = new TList<TObject*>();
 		vertexes = new TList<TVertex*>();
 		fFaces = new TList<TPolygon*>();
+		vertexesToRemove = new TList<TVertex*>();
+
 		scale = Float4(1.0,1.0,1.0);
 
 	};
 	~TMesh(void)
 	{
+		delete selectedElements;
+		delete vertexes;
+		delete fFaces;
+		delete selectedElements;
+		delete vertexesToRemove;
+
 	};
 
 	void addTriangle(TPolygon* tr)

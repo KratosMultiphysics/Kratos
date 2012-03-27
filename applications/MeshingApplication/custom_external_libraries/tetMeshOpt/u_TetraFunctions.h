@@ -14,6 +14,7 @@ public :
 	void validate(bool showMessages);	
 	void updateIndexes(int flag = 1);	
 	void removeFreeVertexes();
+	TTetra* isPointInside( float4 pos );
 };
 
 //---------------------------------------------------------------------------------------------------------
