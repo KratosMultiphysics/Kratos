@@ -96,4 +96,4 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 ###############################################################
 add_library(superlu STATIC ${DLUSRC} ${ALLAUX} ${LAAUX} ${DLASRC} ${DZLAUX} )
 target_link_libraries(superlu ${BLAS_LIBRARIES} )
-install(TARGETS superlu DESTINATION libs )
+# install(TARGETS superlu DESTINATION libs )
