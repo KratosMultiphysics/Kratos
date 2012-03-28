@@ -1,10 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosTrilinosApplication import *
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+from KratosMultiphysics.TrilinosApplication import *
 
 class SolvingStrategyPython:
     #######################################################################

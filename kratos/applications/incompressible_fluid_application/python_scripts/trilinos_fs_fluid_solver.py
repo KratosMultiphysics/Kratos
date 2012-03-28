@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
-#importing the Kratos Library
-try:
-  import boost.mpi as mpi
-except ImportError:
-  import mpi
-from Kratos import *
-from KratosMetisApplication import *
-from KratosIncompressibleFluidApplication import *
-from KratosTrilinosApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.TrilinosApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
