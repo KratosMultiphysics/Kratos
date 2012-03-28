@@ -524,13 +524,13 @@ namespace OpenCL
 
 				// It seems OpenMP reduction is not economic here, at least for not so large problems
 
-				//#pragma omp parallel for reduction(+:rr)
+				#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rr += mReductionBuffer1[i];
 				}
 
-				//#pragma omp parallel for reduction(+:rAr)
+				#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
