@@ -484,7 +484,7 @@ namespace OpenCL
 
 
 			mIterationNo = 0;
-			double Rho = 1.00, Rho_old = 0.00, Gamma, Gamma_old = 0.00, rr, rr_old = 0.00, rAr;
+			double Rho = 1.00, Rho_old = 0.00, Gamma, Gamma_old = 0.00, rr, rr_old = 0.00, rAr, bb = 0.00;
 
 			while (true)
 			{
@@ -522,42 +522,51 @@ namespace OpenCL
 				rr = 0.00;
 				rAr = 0.00;
 
-				#pragma omp parallel for reduction(+:rr)
+				// It seems OpenMP reduction is not economic here, at least for not so large problems
+
+				//#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rr += mReductionBuffer1[i];
 				}
 
-				#pragma omp parallel for reduction(+:rAr)
+				//#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
 				}
 
 				Gamma = rr / rAr;
-				mAchievedTolerance = sqrt(rr);
-
-				// Convergence check
-				if (rr < mTolerance * mTolerance)
-				{
-					return true;
-				}
-				else
-				{
-					if (mIterationNo >= mMaxIterations)
-					{
-						return false;
-					}
-				}
 
 				// If not first iteration, Rho = 1 / (1 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old))
 				if (mIterationNo++)
 				{
 					Rho = (rr_old * Gamma_old * Rho_old) / (rr_old * Gamma_old * Rho_old - rr * Gamma);
 				}
+				// Else, bb = rr
+				else
+				{
+					bb = rr;
+				}
+
+				mAchievedTolerance = sqrt(rr / bb);
+
+				// Convergence check
+				if (mAchievedTolerance < mTolerance)
+				{
+					return true;
+				}
+				else
+				{
+					if (mIterationNo > mMaxIterations)
+					{
+						mIterationNo--;
+						return false;
+					}
+				}
 
 				// Debugging only!
-				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Gamma = " << Gamma << ", Rho = " << Rho << std::endl;
+				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Gamma = " << Gamma << ", Rho = " << Rho << ", Achieved tolerance: " << mAchievedTolerance << std::endl;
 
 				// Update vectors
 
