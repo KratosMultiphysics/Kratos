@@ -76,8 +76,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 8
 
 // Kernel optimization iteration count
-#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 10
-#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 10
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 1
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 1
 
 
 namespace Kratos
@@ -143,6 +143,9 @@ namespace OpenCL
 			cl_uint mpOpenCLLinearSolver, mkInnerProd;
 			int64_t T0, T1, BestTime;
 
+			// Debugging only!
+			std::cout << "OptimizeInnerProd():" << std::endl << std::endl;
+
 			BestTime = 0x7FFFFFFFFFFFFFFF;
 
 			for (unsigned int i = KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN; i <= KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX; i++)
@@ -189,6 +192,9 @@ namespace OpenCL
 					T1 += Timer() - T0;
 				}
 
+				// Debugging only!
+				std::cout << "WORKGROUP_SIZE = " << (1 << i) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+
 				if (T1 < BestTime)
 				{
 					BestTime = T1;
@@ -201,6 +207,10 @@ namespace OpenCL
 					mOptimizedInnerProdKernelBufferSize2 = 1 << i;
 				}
 			}
+
+			// Debugging only!
+			std::cout << "Best time: " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+
 		}
 
 		//
@@ -215,6 +225,9 @@ namespace OpenCL
 			int64_t T0, T1, BestTime;
 
 			BestTime = 0x7FFFFFFFFFFFFFFF;
+
+			// Debugging only!
+			std::cout << "OptimizeSpMV():" << std::endl << std::endl;
 
 			for (unsigned int i = KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN; i <= KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX; i++)
 			{
@@ -273,6 +286,9 @@ namespace OpenCL
 							T1 += Timer() - T0;
 						}
 
+						// Debugging only!
+						std::cout << "ROWS_PER_WORKGROUP = " << (1 << i) << ", WORKGROUP_SIZE = " << (1 << j) << ", BARRIER = " << (1U << (j - i) > mWavefrontSize) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+
 						if (T1 < BestTime)
 						{
 							BestTime = T1;
@@ -286,6 +302,10 @@ namespace OpenCL
 					}
 				}
 			}
+
+			// Debugging only!
+			std::cout << "Best time: " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+
 		}
 
 		//
@@ -566,6 +586,26 @@ namespace OpenCL
 				Rho_old = Rho;
 				Gamma_old = Gamma;
 			}
+		}
+
+		//
+		// GetIterationNo
+		//
+		// Returns no. of iterations performed
+
+		unsigned int GetIterationNo()
+		{
+			return mIterationNo;
+		}
+
+		//
+		// GetAchievedTolerance
+		//
+		// Returns achieved tolerance
+
+		double GetAchievedTolerance()
+		{
+			return mAchievedTolerance;
 		}
 
 	private:
