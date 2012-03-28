@@ -1,7 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-from KratosTrilinosApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.TrilinosApplication import *
 
 
 def AddVariables(model_part):
