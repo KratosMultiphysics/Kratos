@@ -6,11 +6,12 @@
 #include <stdio.h>
 
 TList<TTimeSignal*>* processNames ; 
+bool TimingIsActive = true ;
 
 double TTimeSignal::elapsedTime()
 {
 	double diffticks=_end-_start;
-	double diffms=(diffticks*10)/CLOCKS_PER_SEC;
+	double diffms=(diffticks*1000)/CLOCKS_PER_SEC;
 	return diffms;
 }
 
@@ -22,7 +23,7 @@ void TTimeSignal::endTime()
 {
 	_end=clock();
 	double diffticks=_end-_start;
-	this->acum += (diffticks*10)/CLOCKS_PER_SEC;
+	this->acum += (diffticks*1000)/CLOCKS_PER_SEC;
 
 
 }
@@ -30,6 +31,7 @@ void TTimeSignal::endTime()
 
 void startProcess(char* procName)
 {
+	if (!TimingIsActive ) return ;
 	if (processNames == NULL ) processNames = new TList<TTimeSignal*>();
 	TTimeSignal *newT = findProcess(procName);
 	if (newT == NULL) 
@@ -41,6 +43,7 @@ void startProcess(char* procName)
 }
 void endProcess(char* procName)
 {
+	if (!TimingIsActive ) return ;
 	if (processNames == NULL ) return;
 	TTimeSignal *newT = findProcess(procName);
 	if (newT == NULL)  return;
@@ -49,6 +52,7 @@ void endProcess(char* procName)
 
 void showProcessTime()
 {
+	if (!TimingIsActive ) return ;
 	for (int i=0; i<processNames->Count();i++)
 	{
 		TTimeSignal *t = (TTimeSignal*)(processNames->elementAt(i));
