@@ -353,7 +353,7 @@ namespace Kratos
 
 	    //mClosestPoint0 = *mPoint;
 	    mClosestPoint = p0 + s*edge0 + t*edge1;
-	    mTriangleBary[0] = (double)1 - s - t;
+	    mTriangleBary[0] = 1.00 - s - t;
 	    mTriangleBary[1] = s;
 	    mTriangleBary[2] = t;
  	    
