@@ -1048,15 +1048,17 @@ namespace Kratos {
             else elements_before-=number_of_triangles;
 
                     
+            
+            array_1d<double, 3 > gradient;
+            for (int j = 0; j < 3; j++) //we reset the value to zero to avoid warnings
+                       gradient(j) = 0.0;
             ///we enter the element loop
             for (ElementsArrayType::iterator it = it_begin_old; it != it_end_old; ++it) {
                 /////////////
-                array_1d<double, 3 > gradient;
                 if (Elems_In_Plane[current_element - 1] != 0) //meaning wi will need this element
                 {
                     for (int j = 0; j < 3; j++) //we reset the value to zero
                        gradient(j) = 0.0;
-                    
                     double Volume;
                     boost::numeric::ublas::bounded_matrix<double, 4, 3> DN_DX;
                     array_1d<double, 4 > N;
