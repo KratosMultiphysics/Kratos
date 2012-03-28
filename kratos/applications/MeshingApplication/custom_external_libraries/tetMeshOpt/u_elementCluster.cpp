@@ -761,9 +761,10 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 	}
 	endProcess((char*)("evaluateClusterByEdge"));
+	startProcess((char*)("updateRefs"));
 	aMesh->updateRefs();
+	endProcess((char*)("updateRefs"));
 	delete aCluster;
-
 }
 
 
