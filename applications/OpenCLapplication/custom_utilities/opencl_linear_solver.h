@@ -407,20 +407,20 @@ namespace OpenCL
 	};
 
 	//
-	// LinearSolver
+	// CGSolver
 	//
 	// A class to solve linear systems of equations on OpenCL devices
 
-	class LinearSolver
+	class CGSolver
 	{
 	public:
 
 		//
-		// LinearSolver
+		// CGSolver
 		//
 		// Constructor
 
-		LinearSolver(DeviceGroup &DeviceGroup, LinearSolverOptimizationParameters &OptimizationParameters, cl_uint Size, unsigned int MaxIterations, double Tolerance):
+		CGSolver(DeviceGroup &DeviceGroup, LinearSolverOptimizationParameters &OptimizationParameters, cl_uint Size, unsigned int MaxIterations, double Tolerance):
 			mrDeviceGroup(DeviceGroup),
 			mOptimizationParameters(OptimizationParameters),
 			mSize(Size),
@@ -448,11 +448,11 @@ namespace OpenCL
         }
 
         //
-        // ~LinearSolver
+        // ~CGSolver
         //
         // Destructor
 
-        ~LinearSolver()
+        ~CGSolver()
         {
 			mrDeviceGroup.DeleteBuffer(mbr);
 			mrDeviceGroup.DeleteBuffer(mbAr);
@@ -524,13 +524,13 @@ namespace OpenCL
 
 				// It seems OpenMP reduction is not economic here, at least for not so large problems
 
-				#pragma omp parallel for reduction(+:rr)
+				//#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rr += mReductionBuffer1[i];
 				}
 
-				#pragma omp parallel for reduction(+:rAr)
+				//#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
