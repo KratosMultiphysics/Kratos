@@ -94,15 +94,25 @@ class PythonMPI
 public:
 
     /// Default constructor.
-    /** Initializes MPI and define a wrapper for MPI_COMM_WORLD,
+    /** Initializes MPI if required and defines a wrapper for MPI_COMM_WORLD,
       * which can be accessed by calling GetWorld().
       */
     PythonMPI()
     {
-        int argc = 0;
-        char** empty_argv;
+        int MpiIsInitialized = 0;
 
-        MPI_Init(&argc,&empty_argv);
+        MPI_Initialized(&MpiIsInitialized);
+
+        if (MpiIsInitialized == 0)
+        {
+            int argc = 0;
+            char* a = new char[0];
+            char** empty_argv = &a;
+
+            MPI_Init(&argc,&empty_argv);
+
+            delete [] a;
+        }
 
         mWorld = PythonMPIComm(MPI_COMM_WORLD);
     }
