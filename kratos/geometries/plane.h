@@ -224,7 +224,7 @@ namespace Kratos
 		double invDet = (1.00)/det;
 		s *= invDet;
 		t *= invDet;
-		sqrDistance = s*(a00*s + a01*t + (1.00)*b0) +
+		sqrDistance = s*(a00*s + a01*t + (2.00)*b0) +
 		    t*(a01*s + a11*t + (2.00)*b1) + c;
 	    }
 	    }
