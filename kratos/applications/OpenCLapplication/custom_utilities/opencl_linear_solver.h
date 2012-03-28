@@ -484,7 +484,7 @@ namespace OpenCL
 
 
 			mIterationNo = 0;
-			double Rho = 1.00, Rho_old, Gamma, Gamma_old, rr, rr_old, rAr;
+			double Rho = 1.00, Rho_old = 0.00, Gamma, Gamma_old = 0.00, rr, rr_old = 0.00, rAr;
 
 			while (true)
 			{
@@ -553,7 +553,7 @@ namespace OpenCL
 				// If not first iteration, Rho = 1 / (1 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old))
 				if (mIterationNo++)
 				{
-					Rho = 1.00 / (1.00 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old));
+					Rho = (rr_old * Gamma_old * Rho_old) / (rr_old * Gamma_old * Rho_old - rr * Gamma);
 				}
 
 				// Debugging only!
