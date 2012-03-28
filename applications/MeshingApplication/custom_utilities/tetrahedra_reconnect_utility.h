@@ -78,7 +78,7 @@ namespace Kratos
 		///@{
 		// inner Mesh
 		TVolumeMesh *m ;
-		TetQuality *qt ;
+		
 		ModelPart refMP ;
 
 		/// Default constructor.
@@ -89,7 +89,7 @@ namespace Kratos
 			// Convert to inner format
 			innerConvertFromKratos(r_model_part , m );
 			refMP = r_model_part;
-			qt = new TetQuality(m) ;
+		
 		}
 
 		/// Destructor.
@@ -249,8 +249,10 @@ namespace Kratos
 
 		void EvaluateQuality()
 		{
+		    TetQuality *qt = new TetQuality(m) ;
 			qt->refresh();
 			qt->print();
+			delete qt;
 		}
 
 		/**
@@ -300,7 +302,7 @@ namespace Kratos
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
 			bool saveToFile, bool removeFreeVertexes ,
-			bool evaluateInParallel , bool reinsertNodes)
+			bool evaluateInParallel , bool reinsertNodes , bool debugMode)
 		{
 		    m->vertexes->Sort(sortByID);
 			// Save the mesh as generated from Kratos
@@ -311,8 +313,9 @@ namespace Kratos
 				ml2->save( s, m);
 				delete ml2;
 			}
-			qt->refresh();
-			qt->print();
+			if (debugMode)
+				EvaluateQuality();
+			
 			std::cout <<"...Start Optimization..." <<"\n";						
 			for (int iter = 0 ; iter< iterations ; iter ++)
 			{	
@@ -324,28 +327,34 @@ namespace Kratos
 					  ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
 					else
 					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+					if (debugMode)
+						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 
 				if (processByFace)
 				{
 					std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";
 					evaluateClusterByFace(m,500000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+					if (debugMode)
+						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 
 				if (processByEdge)
 				{
 					std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
 					evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
-					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+					if (debugMode)
+						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 				
-				qt->refresh();
-				qt->print();
-				m->validate(true);				
-				std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
-				showProcessTime();
+				if (debugMode)
+				{
+					EvaluateQuality();
+					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+					m->validate(true);				
+					std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
+					showProcessTime();
+				}
 				// Save the mesh as generated from Kratos
 				if (saveToFile)
 				{
@@ -360,7 +369,12 @@ namespace Kratos
 			}
 
 			//showProcessTime();
-
+			if (debugMode)
+			{
+				m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+				m->validate(true);				
+				std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
+			}
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
@@ -375,11 +389,7 @@ namespace Kratos
 				tryToReinsertNodes();
 			}
 
-			std::cout <<"...Output to Kratos Format" <<"\n";
-			// Get back in Kratos
-			innerConvertToKratos(refMP , m , removeFreeVertexes);
-			delete m;
-			m = NULL;
+			
 
 		}
         ///@brief function tryToReinsertNodes
@@ -390,7 +400,7 @@ namespace Kratos
 			int ri = vertexTetraReInsertion(m , m->vertexesToRemove);
 			m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 			std :: cout<< " Reinsert vertexes " << ri << " of " <<  vToR <<"\n";
-			qt->refresh();   qt->print();
+			EvaluateQuality();
 			m->validate(true);
 			std :: cout<< "........................................"<<"\n";
 		}
