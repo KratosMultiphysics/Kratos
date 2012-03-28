@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 
 	std::cout << "Solving..." << std::endl;
 
-	Kratos::OpenCL::LinearSolver LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+	Kratos::OpenCL::CGSolver LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
 
 	T0 = Kratos::OpenCL::Timer();
 
