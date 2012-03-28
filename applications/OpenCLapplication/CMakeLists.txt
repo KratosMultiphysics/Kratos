@@ -12,6 +12,10 @@ add_definitions( -DVIENNACL_EXPERIMENTAL_DOUBLE_PRECISION_WITH_STREAM_SDK )
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries )
 
+#include test solvers
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/opencl_linear_solver )
+add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vcl_solver )
+
 # message("OPENCL_INCLUDE_DIRS = ${OPENCL_INCLUDE_DIRS}")
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
