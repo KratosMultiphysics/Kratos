@@ -27,11 +27,9 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices,
 	const IndexType ltid = tid & (LOCAL_WORKGROUP_SIZE - 1);
 
 	const IndexType Row = (gid << ROWS_PER_WORKGROUP_BITS) + lgid;
-	const IndexType stride = LOCAL_WORKGROUP_SIZE;
 
 	if (Row < N)
 	{
-
 		// Read bounds
 		if (tid == WORKGROUP_SIZE - 1)
 		{
@@ -65,6 +63,9 @@ __kernel void CSR_Matrix_Vector_Multiply(__global IndexType const *A_RowIndices,
 		{
 			Buffer[tid] += A_Values[i] * X_Values[A_ColumnIndices[i]];
 		}
+
+		// __local memory barrier
+		barrier(CLK_LOCAL_MEM_FENCE);
 
 		// Reduction of results
 

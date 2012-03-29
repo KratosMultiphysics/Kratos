@@ -62,11 +62,14 @@ int main(int argc, char *argv[])
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 6, (ROWS_PER_WORKGROUP + 1) * sizeof(cl_ulong));
 	DeviceGroup.SetLocalMemAsKernelArg(Kernel, 7, WORKGROUP_SIZE * sizeof(cl_double));
 
+	std::cout << "Launch size: " << A.size1() * LOCAL_WORKGROUP_SIZE + 1 << std::endl;
+
 	for (unsigned int i = 0; i < N; i++)
 	{
 		t1 = Timer();
 
 		DeviceGroup.ExecuteKernel(Kernel, A.size1() * LOCAL_WORKGROUP_SIZE + 1);
+		DeviceGroup.Synchronize();
 
 		t2 = Timer();
 
