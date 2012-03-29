@@ -3,6 +3,7 @@
 #include "u_TetraFunctions.h"
 #include "u_qualityMetrics.h"
 #include "u_ParallelFunctions.h"
+#include "u_ProcessTime.h"
 
 bool swapTetra(TVertex* v0,TVertex*  v1,TVertex*  v2,TVertex*  v3,TVertex* v4)
 {
@@ -66,8 +67,7 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TObject*>* surfaceT
 	TVertex *v0, *v1, *v2;
 	TTetra *t,*t2;  
 	bool faceVisited;
-
-
+	
 	for (i = 0; i<elements->Count() ; i++)
 	{
 		t =(TTetra*)( elements->elementAt(i));
@@ -81,17 +81,20 @@ bool innerGetElementsSurface(TList<TObject*>* elements,TList<TObject*>* surfaceT
 			// Esta cara ya fue visitada
 			for (k = 0 ; k<surfaceT->Count()/3 ; k = k+1)
 			{
-				if( ((surfaceT->elementAt(3*k) == v0)   ||  (surfaceT->elementAt(3*k) == v1)   || (surfaceT->elementAt(3*k) == v2)) &&
-					((surfaceT->elementAt(3*k+1) == v0) ||  (surfaceT->elementAt(3*k+1) == v1) || (surfaceT->elementAt(3*k+1) == v2)) &&
-					((surfaceT->elementAt(3*k+2) == v0) ||  (surfaceT->elementAt(3*k+2) == v1) || (surfaceT->elementAt(3*k+2) == v2)) )
+				TVertex *sv0 = (TVertex*)(surfaceT->elementAt(3*k));
+				TVertex *sv1 = (TVertex*)(surfaceT->elementAt(3*k+1));
+				TVertex *sv2 = (TVertex*)(surfaceT->elementAt(3*k+2));
+
+				if( (( sv0 == v0) ||  ( sv0 == v1) || ( sv0 == v2)) &&
+					(( sv1 == v0) ||  ( sv1 == v1) || ( sv1 == v2)) &&
+					(( sv2 == v0) ||  ( sv2 == v1) || ( sv2 == v2)) )
 				{
 					faceVisited = true;
 					break;
 				}
 			}
 			if (faceVisited) continue;
-
-
+			// Marcar con un flag especial !!!1
 			res = true;
 			for (k = 0 ; k<v0->elementsList->Count() ; k++)
 			{
@@ -192,7 +195,7 @@ void TVolumeMesh::updateIndexes(int flag )
 {
 	numVertices = vertexes->Count();
 	numElements = elements->Count();
-
+	startProcess( (char*)("Re-generating indexes"));
 	fMassCenter = 0.0f;
 	//- Limpio la estructura
 	for (int i=0; i< numVertices; i++)
@@ -240,11 +243,14 @@ void TVolumeMesh::updateIndexes(int flag )
 	end;
 	vertexes.Pack();
 	*/
+	endProcess( (char*)("Re-generating indexes"));
 	numVertices = vertexes->Count();
+	startProcess( (char*)("Re-generating surface"));
 	//--- obtengo los triangulos de la superficie
 	if (flag & GENERATE_SURFACE)
 		//getSurfaceTriangles();
 		fastGetSurfaceTriangles(this);
+	endProcess( (char*)("Re-generating surface"));
 }
 
 void TVolumeMesh::updateRefs()
@@ -444,6 +450,11 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 	TTetra *t0,*t1;
 	TTriangle *tr1;
 	TVertex *v0,* v1,*v2,*v3,*v4;
+
+	v0 = v1 = v2 = v3 = v4 = NULL;
+	t0 = t1 = NULL;
+	tr1 = NULL;
+
 	// aMesh.updateIndexes(0);
 	l   = new TList<TObject*>();
 	l2   = new TList<TObject*>();

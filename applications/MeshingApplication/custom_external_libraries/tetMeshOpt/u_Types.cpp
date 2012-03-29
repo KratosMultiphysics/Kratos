@@ -12,8 +12,9 @@ TValuedObject::~TValuedObject(void)
 {};
 
 float4 TValuedObject::getCenter() 
-{ 	
-	return Float4(0.0f,0.0f,0.0f); 
+{ 
+	float4 f;	
+	return f; 
 }
 
 /// Class TVertex
@@ -48,7 +49,7 @@ float4 TVertex::pos()
 { 
 	return fPos; 
 }
-TList<TObject*>* TVertex::getvNeigh(int depth , int mode, TList<TObject*>* toL)
+TList<TObject*>* TVertex::getVertexNeighboursByTriangle(TList<TObject*>* toL , int depth )
 {
 	TList<TObject*>* storeList ;
 
@@ -61,9 +62,8 @@ TList<TObject*>* TVertex::getvNeigh(int depth , int mode, TList<TObject*>* toL)
 		neighV->Clear();
 		storeList = neighV;
 	}
-	if (mode == 0)
-	{
-		for (int i=0;i< neighTr->Count() ; i++)
+
+	for (int i=0;i< neighTr->Count() ; i++)
 		{
 			TTriangle *t = (TTriangle*)( neighTr->elementAt(i));
 			for (int j= 0; j<3 ;j++)
@@ -73,31 +73,15 @@ TList<TObject*>* TVertex::getvNeigh(int depth , int mode, TList<TObject*>* toL)
 					storeList->Add(t->vertexes[j]);
 			}
 		}
-	}
-	else
-	{
-		for (int i=0;i< elementsList->Count() ; i++)
-		{
-			TTetra *t = (TTetra*)( elementsList->elementAt(i));
-			if (t == NULL) continue;
-			if (t->isdestroyed) continue;
-			for (int j= 0; j<4 ;j++)
-			{
-				if (t->vertexes[j] == this) continue;
-				if (storeList->indexOf( t->vertexes[j])<0)
-					storeList->Add(t->vertexes[j]);
-			}
-		}
-	}
-	return storeList;  
 }
 
-TList<TObject*> *TVertex::getElemNeighbours(TList<TObject*> *toL )
+TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int depth )
 {
 	int j,k;
 	TVertex  *v2;
 	TList<TObject*> *storeList ;
-
+	// Genero un flag interno
+	int innerFlag = rand();
 
 	if (toL == NULL)
 	{
@@ -108,7 +92,6 @@ TList<TObject*> *TVertex::getElemNeighbours(TList<TObject*> *toL )
 		storeList= toL;
 
 	storeList->Clear();			   
-
 	// Compute neighbours
 	for (j = 0 ; j<elementsList->Count() ; j++)
 	{
@@ -118,9 +101,13 @@ TList<TObject*> *TVertex::getElemNeighbours(TList<TObject*> *toL )
 		for (k = 0 ; k<4 ; k++)
 		{
 			v2 =  t->vertexes[k];
-			if (v2 == this) continue;                     
-			if (storeList->indexOf(v2)<0)
-				storeList->Add(v2);
+			if (v2 == this) continue;
+			if (v2->innerFlag == innerFlag) continue;
+			//Deprecated
+			//if (storeList->indexOf(v2)<0)
+			//	storeList->Add(v2);
+			storeList->Add(v2);
+			v2->innerFlag = innerFlag;
 		}
 	}
 	return storeList;
@@ -188,7 +175,8 @@ void TTetra::update()
 
 double TTetra::getVolume() 
 { 
-	return tetraVolume(vertexes[0]->fPos, vertexes[1]->fPos, vertexes[2]->fPos , vertexes[3]->fPos);
+	this->fVolume = tetraVolume(vertexes[0]->fPos, vertexes[1]->fPos, vertexes[2]->fPos , vertexes[3]->fPos);
+	return fVolume;
 }
 
 double TTetra::getPerimeter() 
@@ -205,7 +193,7 @@ int TTetra::isInside(float4 ps )
 {	
 	int i ;
 	TVertex *v0, *v1, *v2;
-	
+	int  result = 0;
 	//The iteration method
 	for (i = 0 ; i<4 ; i++)
 	{
@@ -411,11 +399,12 @@ void TTetra::replaceVertex(TVertex oldV, TVertex newV){}
 
 bool TTetra::isInvalid() {return 0;}
 
-TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL ) 
+TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bool ommitLowerIds ) 
 {
 	int i,j;
 	TTetra* t2;
 	TList<TObject*>* result ;
+	int innerFlag = rand();
 
 	if (nFL )
 	{
@@ -435,13 +424,19 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL )
 		for (j = 0 ; j< vertexes[i]->elementsList->Count() ; j++)
 		{
 			t2 =  (TTetra*)(vertexes[i]->elementsList->elementAt(j));
+			
 			if (t2 == NULL) continue;
 			if  (t2== this) continue;
 			if  (t2->isdestroyed) continue;
-
+			if ((ommitLowerIds ) && (this->id >t2->id) ) continue;
+			if (t2->innerFlag == innerFlag) continue;
+			t2->innerFlag = innerFlag;
 			if (!hasFace(t2)) continue;
-			if ( result->indexOf(t2)<0 ) 
-				result->Add(t2);
+			result->Add(t2);
+			
+			// Deprecated
+			//if ( result->indexOf(t2)<0 ) 
+			//	result->Add(t2);
 
 		}
 	}
@@ -491,9 +486,19 @@ void TTetra::clearVertexRef()
 TElementsPool::TElementsPool()
 {
 	availableElements = new TList<TTetra*>();
+	availableTriangles = new TList<TTriangle*>() ;
+	availableVertexes = new TList<TVertex*>() ;
 }
 
-TTetra* TElementsPool::getInstance()
+TElementsPool::~TElementsPool()
+{
+	this->releaseMemmory();
+	delete availableElements;
+	delete availableTriangles;
+	delete availableVertexes;
+}
+
+TTetra* TElementsPool::getTetraInstance()
 {
 	if (availableElements->Count() == 0)
 		return new TTetra(NULL);
@@ -505,7 +510,7 @@ TTetra* TElementsPool::getInstance()
 	}
 }
 
-TTetra* TElementsPool::getInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3)
+TTetra* TElementsPool::getTetraInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3)
 {
 	if (availableElements->Count() == 0)
 		return new TTetra(NULL,v0,v1,v2,v3);
@@ -522,11 +527,38 @@ TTetra* TElementsPool::getInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *
 	}
 }
 
+TTriangle* TElementsPool::getTriangleInstance(TVertex *v0,TVertex *v1,TVertex *v2)
+{
+	if (availableElements->Count() == 0)
+		return new TTriangle(v0,v1,v2);
+	else
+	{
+		TTriangle *tr = availableTriangles->structure.back();
+		availableTriangles->structure.pop_back();
+		tr->vertexes[0] = v0;
+		tr->vertexes[1] = v1;
+		tr->vertexes[2] = v2;
+				
+		return tr;
+	}
+}
+
 
 void TElementsPool::releaseInstance(TTetra *t)
 {
 	availableElements->structure.push_back(t);
 }
+
+void TElementsPool::releaseInstance(TTriangle *tr)
+{
+	availableTriangles->structure.push_back(tr);
+}
+
+void TElementsPool::releaseInstance(TVertex *v)
+{
+	availableVertexes->structure.push_back(v);
+}
+
 
 void TElementsPool::releaseMemmory()
 {
@@ -536,7 +568,38 @@ void TElementsPool::releaseMemmory()
 		delete t;
 	}
 	availableElements->Clear();
+
+	for (int i= 0 ; i<availableTriangles->Count() ; i++)
+	{
+		TTriangle *tr = availableTriangles->structure[i];
+		delete tr;
+	}
+	availableTriangles->Clear();
+
+	for (int i= 0 ; i<availableVertexes->Count() ; i++)
+	{
+		TVertex *v = availableVertexes->structure[i];
+		delete v;
+	}
+	availableVertexes->Clear();
+
 }
+
+TVertex* TElementsPool::getVertexInstance(float4 fpos)
+{
+	if (availableVertexes->Count() == 0)
+		return new TVertex(fpos);
+	else
+	{
+		TVertex *v = availableVertexes->structure.back();
+		availableVertexes->structure.pop_back();
+		v->fPos = fpos;
+		
+		return v;
+	}
+}
+
+	
 
 
 

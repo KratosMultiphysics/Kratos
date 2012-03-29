@@ -25,6 +25,8 @@ public :
 };
 
 void startProcess(char* procName);
+void stopTimers();
+void startTimers();
 void endProcess(char* procName);
 TTimeSignal* findProcess(char* procName);
 void showProcessTime();

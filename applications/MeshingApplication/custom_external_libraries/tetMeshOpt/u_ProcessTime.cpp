@@ -28,6 +28,15 @@ void TTimeSignal::endTime()
 
 }
 
+void stopTimers()
+{
+	TimingIsActive = false;
+}
+void startTimers()
+{
+	TimingIsActive = true;
+}
+
 
 void startProcess(char* procName)
 {
