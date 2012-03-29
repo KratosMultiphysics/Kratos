@@ -1,5 +1,6 @@
 #include "u_delphiClasses.h"
 #include "u_Types.h"
+#include <omp.h>
 
 typedef void(*TStForLoopElement)(int , int , TObject*);
 //-----------------------------------------
@@ -21,7 +22,7 @@ public :
 	void forloop(int from, int to, TList<TObject*>* elements,TStForLoopElement call)
 	{
         #pragma omp parallel for
-		for (int i=from ; i<=to ; i++)
+		  for (int i=from ; i<=to ; i++)
 			call(i,0,elements->elementAt(i));
 		//parallel_for(blocked_range<size_t>(from,to), this );
 		#pragma omp barrier

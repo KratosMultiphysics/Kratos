@@ -137,7 +137,7 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 {
 	TElementsCluster* aCluster =  (TElementsCluster*)destObject;
 	TList<TObject*>* vl = new TList<TObject*>();
-	int innerFlag = rand();
+	
 	TTetra *t;
 	TVertex *v0,*v1;
 	int j,k;
@@ -146,13 +146,15 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 	// obtengo nuevamente los vecinos de orden 1
 	vl->Clear();
 	v0->getVertexNeighboursByElem(vl,1);
+	
+	int innerFlag = rand();
 	//  Recorro los vertices vecinos
 	for ( j = 0 ; j<vl->Count() ; j++)
 	{
 			v1 = (TVertex*)(vl->elementAt(j));
 			if (v0->id>=v1->id) continue;
 			if (v1->elementsList == NULL) continue;
-			innerFlag = i*1000+j;
+			
 			aCluster->inspectedElements->Clear();
 			//--- Veo los vecinos de arista de ambos vertices
 			//Para el vertice 0
@@ -161,11 +163,12 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 				t = (TTetra*)(v0->elementsList->elementAt(k));
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
-				if (t->flag == innerFlag) continue;
+				if  (!t->hasEdge(v0,v1)) continue;
+				if (aCluster->inspectedElements->indexOf(t)>=0) continue;
 				// InnerFlag
-				t->flag = innerFlag;
-				if  (t->hasEdge(v0,v1))
-					aCluster->inspectedElements->Add(t);
+				//if (t->flag == innerFlag) continue;
+				//t->flag = innerFlag;
+				aCluster->inspectedElements->Add(t);
 			}
 			//Para el vertice 1
 			for (k = 0 ; k<v1->elementsList->Count() ; k++)
@@ -173,10 +176,11 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 				t = (TTetra*)(v1->elementsList->elementAt(k));
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
-				if (t->flag == innerFlag) continue;
-				t->flag = innerFlag;
-				if  (t->hasEdge(v0,v1))
-					aCluster->inspectedElements->Add(t);
+				if  (!t->hasEdge(v0,v1)) continue;
+				if (aCluster->inspectedElements->indexOf(t)>=0) continue;
+				//if (t->flag == innerFlag) continue;
+				//t->flag = innerFlag;
+				aCluster->inspectedElements->Add(t);
 			}
 						
 			aCluster->generateSubMesh( );
@@ -343,7 +347,7 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
 	
-	nsimCh = 256;
+	nsimCh = 512;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));
@@ -365,6 +369,7 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 		vertexesCopy->elementAt(i)->isdestroyed = false;
 	}	
 	TParallelIterator* pi = new TParallelIterator();
+	vertexesCopy->Sort(sortByID);
 	endProcess((char*)("Initialization"));
 	//----------------------------------------	
 	//----------------------------------------
@@ -395,6 +400,8 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 
 		startProcess((char*)("parallelPart"));
 			pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
+		    //for (int vi = 0 ; vi<vRes->Count() ; vi++)
+			//   lpEvaluateClusterByEdge(vi,0,resultedClusters->elementAt(vi));
 		endProcess((char*)("parallelPart"));
 		/* end of parallel section */
 
@@ -408,5 +415,9 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 		endProcess((char*)("Generating new elements"));
 	}
 	endProcess((char*)("evaluateClustersInParallel"));	
+
+	startProcess((char*)("updateRefs"));
+	aMesh->updateRefs();
+	endProcess((char*)("updateRefs"));
 
 }

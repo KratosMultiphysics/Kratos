@@ -240,6 +240,7 @@ TElementsCluster::TElementsCluster(TMesh* aMesh, TVertexesEvaluator functor  )
 	tempL = new TList<TObject*>();
 
 	fc = functor;
+	vC =NULL;
 
 	//avgEdgeLength = aMesh.AvgEdgeLength;
 };

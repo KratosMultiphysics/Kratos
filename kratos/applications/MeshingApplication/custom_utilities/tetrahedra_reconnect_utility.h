@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
+#include <omp.h>
 
 
 // External includes
@@ -317,17 +318,37 @@ namespace Kratos
 			if (debugMode)
 				EvaluateQuality();
 			
-			std::cout <<"...Start Optimization..." <<"\n";						
+			std::cout <<"...Start Optimization..." <<"\n";	
+			if (evaluateInParallel)
+			{
+				std::cout <<"Number of active threads"<< omp_get_num_threads() <<"\n";
+			}
+			if (debugMode)
+			{
+				std::cout <<"Debug mode is Active" <<"\n";
+				startTimers();
+			}
+			else
+			{
+				stopTimers();
+			}
+
 			for (int iter = 0 ; iter< iterations ; iter ++)
 			{	
 				//ParallelEvaluateClusterByNode(m,vrelaxQuality);
 				if (processByNode)
 				{
-				    std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
+				    
 					if (evaluateInParallel )
-					  ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
+					{
+					    std::cout <<"...Parallel optimizing by Node. Iteration : "<< iter <<"\n";
+						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
+					}
 					else
+					{
+					   std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
 					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
@@ -342,17 +363,25 @@ namespace Kratos
 
 				if (processByEdge)
 				{
-					std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
+					
 					if (evaluateInParallel )
+					{
+						std::cout <<"...Parallel optimizing by Edge. Iteration : "<< iter <<"\n";
 						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),vrelaxQuality);  
+						std::cout <<"...End. Iteration : "<< iter <<"\n";
+					}
 					else
+					{
+					    std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
 						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
+					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
 				
 				if (debugMode)
 				{
+					std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
 					EvaluateQuality();
 					m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 					m->validate(true);				
