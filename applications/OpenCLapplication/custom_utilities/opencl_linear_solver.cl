@@ -386,8 +386,9 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 	if (Row < N)
 	{
+		// TODO: There is a BUG here, fix it!
 
-		// Read bounds
+/*		// Read bounds
 		if (tid == KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE - 1)
 		{
 			Bounds[KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP] = A_RowIndices[Row + 1];
@@ -397,7 +398,7 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 		{
 			Bounds[lgid] = A_RowIndices[Row];
 		}
-
+*/
 		// Zero reduction buffer
 		Buffer[tid] = 0.00;
 	}
@@ -410,8 +411,8 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 		// TODO: It seems that this is making Bank Conflict!
 
 		// Read bounds from __local memory
-		const IndexType Start = Bounds[lgid];
-		const IndexType End = Bounds[lgid + 1];
+		const IndexType Start = A_RowIndices[Row];//Bounds[lgid];
+		const IndexType End = A_RowIndices[Row + 1];//Bounds[lgid + 1];
 
 		// TODO: Use images!
 
@@ -425,7 +426,7 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 	// __local memory barrier
 	barrier(CLK_LOCAL_MEM_FENCE);
 
-		// Reduction of results
+	// Reduction of results
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 512
 
