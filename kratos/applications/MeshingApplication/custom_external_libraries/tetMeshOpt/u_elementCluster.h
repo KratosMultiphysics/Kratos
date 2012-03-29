@@ -14,7 +14,7 @@ public :
 	TList<TObject*>* elements ;
 	TList<TObject*>* copyEL ;
 	//TList<TObject*>* origElements ;
-	TVertex* vC;
+	TVertex* vC , *inspVertex;
 
 	TList<TObject*>* tempTetraList;
 	TList<TObject*>* goodTetraList;

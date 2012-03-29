@@ -73,9 +73,10 @@ TList<TObject*>* TVertex::getVertexNeighboursByTriangle(TList<TObject*>* toL , i
 					storeList->Add(t->vertexes[j]);
 			}
 		}
+	return storeList;
 }
 
-TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int depth )
+TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int depth, int avoidLowerIds )
 {
 	int j,k;
 	TVertex  *v2;
@@ -92,23 +93,75 @@ TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int de
 		storeList= toL;
 
 	storeList->Clear();			   
-	// Compute neighbours
-	for (j = 0 ; j<elementsList->Count() ; j++)
+	if (depth == 1)
 	{
-		TTetra *t  = (TTetra*)(elementsList->elementAt(j));
-		if (t == NULL ) continue;
-		if (t->isdestroyed) continue;
-		for (k = 0 ; k<4 ; k++)
+		// Compute neighbours
+		for (j = 0 ; j<elementsList->Count() ; j++)
 		{
-			v2 =  t->vertexes[k];
-			if (v2 == this) continue;
-			if (v2->innerFlag == innerFlag) continue;
-			//Deprecated
-			//if (storeList->indexOf(v2)<0)
-			//	storeList->Add(v2);
-			storeList->Add(v2);
-			v2->innerFlag = innerFlag;
+			TTetra *t  = (TTetra*)(elementsList->elementAt(j));
+			if (t == NULL ) continue;
+			if (t->isdestroyed) continue;
+			for (k = 0 ; k<4 ; k++)
+			{
+				v2 =  t->vertexes[k];
+				if (v2 == this) continue;
+				if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
+				if (v2->innerFlag == innerFlag) continue;
+				//Deprecated
+				//if (storeList->indexOf(v2)<0)
+				//	storeList->Add(v2);
+				storeList->Add(v2);
+				v2->innerFlag = innerFlag;
+			}
 		}
+	}
+	else
+	if (depth == 2)
+	{
+		// Compute neighbours de Orden 1
+		for (j = 0 ; j<elementsList->Count() ; j++)
+		{
+			TTetra *t  = (TTetra*)(elementsList->elementAt(j));
+			if (t == NULL ) continue;
+			if (t->isdestroyed) continue;
+			if (t->innerFlag == innerFlag) continue;
+			t->innerFlag = innerFlag;
+			for (k = 0 ; k<4 ; k++)
+			{
+				v2 =  t->vertexes[k];
+				if (v2 == this) continue;
+				if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
+				if (v2->innerFlag == innerFlag) continue;
+				//Deprecated
+				storeList->Add(v2);
+				v2->innerFlag = innerFlag;
+			}
+		}
+		TList<TObject*> *temp2  = new TList<TObject*>() ;
+		temp2->Assign(storeList);
+		// No go to neighbours order 2
+		for (j = 0 ; j<temp2->Count() ; j++)
+		{
+			TVertex *v = (TVertex*)(storeList->elementAt(j));
+			for (k = 0 ; k<v->elementsList->Count() ; k++)
+			{
+				TTetra *t = (TTetra*)(v->elementsList->elementAt(k));
+				if (t == NULL) continue;
+				if (t->innerFlag == innerFlag) continue;
+				t->innerFlag = innerFlag;
+				for (int l=0;l<4 ; l++)
+				{
+					v2 = t->vertexes[l];
+					if (v2 == this) continue;
+					if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
+					if (v2->innerFlag == innerFlag) continue;
+					//Deprecated
+					storeList->Add(v2);
+					v2->innerFlag = innerFlag;
+				}
+			}
+		}
+		delete temp2;
 	}
 	return storeList;
 }

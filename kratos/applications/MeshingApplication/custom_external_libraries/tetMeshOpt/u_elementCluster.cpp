@@ -716,7 +716,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 
 	int i,j,k ;
 	int innerFlag;
-	TList<TObject*> *inspElements,*vl ; //, elements,vertexes,surfaceT,copyEL,vl: TList;
+	TList<TObject*> *vl ; //, elements,vertexes,surfaceT,copyEL,vl: TList;
 	TVertex *v0, *v1;
 	double meshMinQ;
 	TTetra *t;
@@ -740,7 +740,6 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	aCluster->perturbCenter = 0.0;
 	aCluster->checkMaxLength =  false;
 
-	inspElements = new TList<TObject*>();
 	vl = new TList<TObject*>();
 	startProcess((char*)("evaluateClusterByEdge"));
 	stopTimers();
@@ -750,7 +749,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		v0 =  aMesh->vertexes->elementAt(i);
 		vl->Clear();
 		startProcess((char*)("getvNeigh"));
-		v0->getVertexNeighboursByElem(vl,1);
+		v0->getVertexNeighboursByElem(vl,1,true);
 		endProcess((char*)("getvNeigh"));
 
 		if (vl == NULL) continue;
@@ -764,7 +763,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 			if (v1->elementsList == NULL) continue;
 			innerFlag = i*1000+j;
 			startProcess((char*)("read elements"));
-			inspElements->Clear();
+			aCluster->inspectedElements->Clear();
 			//--- Veo los vecinos de arista de ambos vertices
 			//Para el vertice 0
 			for (k = 0 ; k<v0->elementsList->Count() ; k++)
@@ -778,7 +777,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				//  inspElements->Add(t);
 				t->flag = innerFlag;
 				if  (t->hasEdge(v0,v1))
-					inspElements->Add(t);
+					aCluster->inspectedElements->Add(t);
 			}
 			//Para el vertice 1
 			for (k = 0 ; k<v1->elementsList->Count() ; k++)
@@ -789,12 +788,12 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				if (t->flag == innerFlag) continue;
 				t->flag = innerFlag;
 				if  (t->hasEdge(v0,v1))
-					inspElements->Add(t);
+					aCluster->inspectedElements->Add(t);
 				// Deprecated
 				//if ( (t->hasEdge(v0,v1)) &&  (inspElements->indexOf(t)<0 ) ) 
 				//	inspElements->Add(t);
 			}
-			aCluster->inspectedElements->Assign( inspElements);			
+			
 			endProcess((char*)("read elements"));
 			//-------------------
 			//-- Asigno la superficie

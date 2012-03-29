@@ -62,7 +62,7 @@ public:
 	~TVertex();
 	void calcNormal();
 	float4 pos();
-	TList<TObject*> *getVertexNeighboursByElem(TList<TObject*> *toL = NULL , int depth = 1);			 
+	TList<TObject*> *getVertexNeighboursByElem(TList<TObject*> *toL = NULL , int depth = 1, int avoidLowerIds = false);			 
 	TList<TObject*>* getVertexNeighboursByTriangle(TList<TObject*>* toL = NULL , int depth = 1);
 };
 

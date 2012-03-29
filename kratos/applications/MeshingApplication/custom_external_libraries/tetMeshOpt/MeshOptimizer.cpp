@@ -18,6 +18,7 @@ int main (int argc, char* argv[])
 {
 
 	TMeshLoader* ml = new TVMWLoader();
+	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/cavityMesh_0_01.vwm"));   
 	TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/kratosProof.vwm"));   
 	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/out_MeshFromKratos0.vwm"));   
 	
@@ -53,19 +54,22 @@ int main (int argc, char* argv[])
 	cout <<".............................................." <<"\n"; 
 	
 	startProcess("Mesh evaluation");
-	stopTimers();
+	//stopTimers();
 	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
 	for (int i=0 ;i<2 ; i++)
 	{
 		cout <<"--------- ITERATION "<< i <<"--------------------"<<"\n"; 
+		cout <<"...Parallel Optimizing by Edge" <<"\n"; 
+		ParallelEvaluateClusterByEdge(m,vrelaxQuality);
 		cout <<"...Optimizing by Node" <<"\n"; 
 		//evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
 		cout <<"...Optimizing by Edge" <<"\n"; 
-		evaluateClusterByEdge(m,50000, vrelaxQuality);
+		//evaluateClusterByEdge(m,50000, vrelaxQuality);
 		cout <<"...Optimizing by Face" <<"\n"; 
-		evaluateClusterByFace(m,50000, vrelaxQuality);
+		//evaluateClusterByFace(m,50000, vrelaxQuality);
 		cout <<"...Parallel Optimizing by Node" <<"\n"; 
 		//ParallelEvaluateClusterByNode(m,vrelaxQuality);
+
 
 		qt->refresh();   qt->print();
 		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
