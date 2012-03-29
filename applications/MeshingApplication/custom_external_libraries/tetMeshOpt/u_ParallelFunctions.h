@@ -33,3 +33,4 @@ public :
 void assignVertexesAvoidingVisited(TList<TObject*> *vs, TList<TObject*> *vRes ,int iter, int maxAssignment);
 void fastGetSurfaceTriangles(TMesh* aModel);
 void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc);
+void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc);

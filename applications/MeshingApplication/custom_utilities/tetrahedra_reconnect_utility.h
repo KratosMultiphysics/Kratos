@@ -343,7 +343,10 @@ namespace Kratos
 				if (processByEdge)
 				{
 					std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
-					evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
+					if (evaluateInParallel )
+						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),vrelaxQuality);  
+					else
+						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
