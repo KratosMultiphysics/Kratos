@@ -424,6 +424,66 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 		// Reduction of results
 
+#if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 512
+
+		if (ltid < 512)
+		{
+			Buffer[tid] += Buffer[tid + 512];
+		}
+
+#ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#endif
+
+#if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 256
+
+		if (ltid < 256)
+		{
+			Buffer[tid] += Buffer[tid + 256];
+		}
+
+#ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#endif
+
+#if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 128
+
+		if (ltid < 128)
+		{
+			Buffer[tid] += Buffer[tid + 128];
+		}
+
+#ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#endif
+
+#if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 64
+
+		if (ltid < 64)
+		{
+			Buffer[tid] += Buffer[tid + 64];
+		}
+
+#ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
+
+		barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#endif
+
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 32
 
 		if (ltid < 32)
