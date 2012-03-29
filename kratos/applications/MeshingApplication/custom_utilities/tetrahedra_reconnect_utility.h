@@ -280,6 +280,7 @@ namespace Kratos
 				fPos.x = it->X();
 				fPos.y = it->Y();
 				fPos.z = it->Z();
+				fPos.w = 1.0f;
 				
 				int id = it->Id();
 				TVertex *v = m->findVertexById(id);
@@ -367,14 +368,7 @@ namespace Kratos
 					delete ml2;
 				}
 			}
-
-			//showProcessTime();
-			if (debugMode)
-			{
-				m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
-				m->validate(true);				
-				std :: cout<< "Number of faces:" << m->fFaces->Count() << "\n";
-			}
+						
 			if (saveToFile)
 			{
 				TMeshLoader* ml2 = new TVMWLoader();
@@ -388,9 +382,7 @@ namespace Kratos
 				std::cout <<"...Trying to reinsert nodes..." <<"\n";
 				tryToReinsertNodes();
 			}
-
 			
-
 		}
         ///@brief function tryToReinsertNodes
 		/// Reinsert removed nodes into the structure
@@ -408,6 +400,7 @@ namespace Kratos
 		/// Destroy the structure
 		void FinalizeOptimization(bool removeFreeVertexes )
 		{
+			if (m == NULL ) return ;
 			std::cout <<"...Output to Kratos Format" <<"\n";
 			// Get back in Kratos
 			innerConvertToKratos(refMP , m , removeFreeVertexes);

@@ -33,7 +33,7 @@ class TValuedObject : public TObject
 public:
 	double	fmetrica , sortvalue ,calidad;
 	bool marked, changed ,locked,isdestroyed;
-	int id , groupID,visited,flag;
+	int id , groupID,visited,flag , innerFlag;
 	void* linkSet ;
 	int _color ;
 	float4 rColor;
@@ -62,8 +62,8 @@ public:
 	~TVertex();
 	void calcNormal();
 	float4 pos();
-	TList<TObject*> *getElemNeighbours(TList<TObject*> *toL = NULL);			 
-	TList<TObject*>* getvNeigh(int depth =1 , int mode = 0, TList<TObject*>* toL = NULL);
+	TList<TObject*> *getVertexNeighboursByElem(TList<TObject*> *toL = NULL , int depth = 1);			 
+	TList<TObject*>* getVertexNeighboursByTriangle(TList<TObject*>* toL = NULL , int depth = 1);
 };
 
 class TVertex3D : public TVertex
@@ -97,6 +97,123 @@ public :
 
 
 
+class TElement : public TNeighboured
+{
+public:      
+	TVertex* vertexes[4];
+	float4 normals[4];
+	bool initialized ;
+	TElement();
+	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
+	virtual BoundBox CalcBound() ;	
+};
+
+
+class TTetra : public TElement
+{
+public : 
+	double fVolume,fDiedralAngle, fFaceAngle,fSurface ;
+	int ts[6];
+
+	TTriangle* triangles[4];
+	TList<TObject*>* NeighBourByFace;
+	TList<TValuedObject>* Neighbours;
+
+	int materialID;
+	float4 velocity;
+
+	double getVolume() ;
+
+	double getPerimeter() ;
+
+	double getQuadPerimeter() ;
+
+	double getminEdgeLength() ;
+
+	double getmaxEdgeLength() ;
+
+	double getSurface();
+	void copyFrom(TValuedObject e );
+	TTetra(TObject* owner);
+
+	void Create(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true);
+
+	TTetra(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true) ;
+
+	~TTetra() ;
+	// Obtener el vecino que comparte estos 3 vertices  
+	TTetra* getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2, TList<TObject*>*  tl);
+
+	// Obtener triangulos que sean de la superficie
+	TList<TObject*>* getSurfaceTriangle(bool bmpMode , TList<TObject*>* res, TList<TObject*>* ts);
+
+	// Verificar si comparte esta cara
+	bool hasFace(TVertex* v0,TVertex*  v1,TVertex* v2) 			;
+
+	TVertex* oppositeVertex(TVertex *v0,TVertex *v1,TVertex *v2);
+
+	bool hasEdge(TVertex *v0,TVertex *v1);
+
+	bool hasFace(TTetra* t1 );
+
+	int hasVertex(TTetra t1 );
+	bool hasVertex(TVertex v0 );
+	TTetra* getTetraNeighbour(int faceI ,TVertex v0,TVertex v1,TVertex v2, TList<TObject> *tl) ;
+	void coincidenteFace(TTetra t1,  TList<TObject> *tl);
+
+	void replaceTriangle(TTriangle oldTr,TTriangle newTr ) ;
+	void replaceVertex(TVertex oldV, TVertex newV);
+	int isInside(float4 ps );
+
+	bool isInvalid() ;
+
+	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= NULL , bool ommitLowerIds = false) ;
+
+	TList<TObject>* getNeighbours(int depth) ;
+
+	void removeVertexRef();
+
+	void updateVertexRef();
+
+	void clearVertexRef();
+
+	void update();
+
+	/*
+	property Surface get getSurface set fSurface ;
+	property Volume : double read getVolume write fVolume ;
+	property Perimeter : double read getPerimeter ;
+	property QuadPerimeter : double read getQuadPerimeter ;
+	property diedralAngle : double read fDiedralAngle;
+	property FaceAngle : double read fFaceAngle;
+	property MinEdgeLength : double read getminEdgeLength;
+	property MaxEdgeLength : double read getmaxEdgeLength;
+
+	end;
+	*/
+};
+
+class TElementsPool
+{
+public : 
+	TList<TTetra*>* availableElements;
+	TList<TTriangle*>* availableTriangles;
+	TList<TVertex*>* availableVertexes;
+	
+	TTetra* getTetraInstance();
+	TTetra* getTetraInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3);
+
+	TTriangle* getTriangleInstance(TVertex *v0,TVertex *v1,TVertex *v2);
+	TVertex* getVertexInstance(float4 fpos);
+
+	TElementsPool();
+	~TElementsPool();
+	void releaseInstance(TTetra *t);
+	void releaseInstance(TTriangle *tr);
+	void releaseInstance(TVertex *v);
+	void releaseMemmory();
+};
+
 class TMesh
 {
 public:
@@ -111,6 +228,7 @@ public:
 	TList<TObject*>* elementsToAdd;
 	TList<TObject*>* elementsToRemove;
 	TList<TVertex*>* vertexesToRemove;
+	TElementsPool* memPool;
 
 	TMesh(void) 
 	{
@@ -121,10 +239,12 @@ public:
 		vertexesToRemove = new TList<TVertex*>();
 
 		scale = Float4(1.0,1.0,1.0);
+		memPool = new TElementsPool();
 
 	};
 	~TMesh(void)
 	{
+		delete memPool;
 		delete selectedElements;
 		delete vertexes;
 		delete fFaces;
@@ -246,114 +366,6 @@ public:
 		vertexes->Extract(v);
 		v->isdestroyed = true;
 	};
-};
-
-class TElement : public TNeighboured
-{
-public:      
-	TVertex* vertexes[4];
-	float4 normals[4];
-	bool initialized ;
-	TElement();
-	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
-	virtual BoundBox CalcBound() ;	
-};
-
-
-class TTetra : public TElement
-{
-public : 
-	double fVolume,fDiedralAngle, fFaceAngle,fSurface ;
-	int ts[6];
-
-	TTriangle* triangles[4];
-	TList<TObject*>* NeighBourByFace;
-	TList<TValuedObject>* Neighbours;
-
-	int materialID;
-	float4 velocity;
-
-	double getVolume() ;
-
-	double getPerimeter() ;
-
-	double getQuadPerimeter() ;
-
-	double getminEdgeLength() ;
-
-	double getmaxEdgeLength() ;
-
-	double getSurface();
-	void copyFrom(TValuedObject e );
-	TTetra(TObject* owner);
-
-	void Create(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true);
-
-	TTetra(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish = true) ;
-
-	~TTetra() ;
-	// Obtener el vecino que comparte estos 3 vertices  
-	TTetra* getTetraNeighbour(int faceI, TVertex* v0,TVertex* v1,TVertex* v2, TList<TObject*>*  tl);
-
-	// Obtener triangulos que sean de la superficie
-	TList<TObject*>* getSurfaceTriangle(bool bmpMode , TList<TObject*>* res, TList<TObject*>* ts);
-
-	// Verificar si comparte esta cara
-	bool hasFace(TVertex* v0,TVertex*  v1,TVertex* v2) 			;
-
-	TVertex* oppositeVertex(TVertex *v0,TVertex *v1,TVertex *v2);
-
-	bool hasEdge(TVertex *v0,TVertex *v1);
-
-	bool hasFace(TTetra* t1 );
-
-	int hasVertex(TTetra t1 );
-	bool hasVertex(TVertex v0 );
-	TTetra* getTetraNeighbour(int faceI ,TVertex v0,TVertex v1,TVertex v2, TList<TObject> *tl) ;
-	void coincidenteFace(TTetra t1,  TList<TObject> *tl);
-
-	void replaceTriangle(TTriangle oldTr,TTriangle newTr ) ;
-	void replaceVertex(TVertex oldV, TVertex newV);
-	int isInside(float4 ps );
-
-	bool isInvalid() ;
-
-	TList<TObject*>* getNeighboursByFace(int depth ,TList<TObject*>* nFL= NULL ) ;
-
-	TList<TObject>* getNeighbours(int depth) ;
-
-	void removeVertexRef();
-
-	void updateVertexRef();
-
-	void clearVertexRef();
-
-	void update();
-
-	/*
-	property Surface get getSurface set fSurface ;
-	property Volume : double read getVolume write fVolume ;
-	property Perimeter : double read getPerimeter ;
-	property QuadPerimeter : double read getQuadPerimeter ;
-	property diedralAngle : double read fDiedralAngle;
-	property FaceAngle : double read fFaceAngle;
-	property MinEdgeLength : double read getminEdgeLength;
-	property MaxEdgeLength : double read getmaxEdgeLength;
-
-	end;
-	*/
-};
-
-class TElementsPool
-{
-public : 
-	TList<TTetra*>* availableElements;
-	TList<TTetra*>* removedElements;
-	TTetra* getInstance();
-	TTetra* getInstance(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3);
-	TElementsPool();
-	void releaseInstance(TTetra *t);
-	void releaseMemmory();
 };
 
 

@@ -165,7 +165,7 @@ void innercollapseEdges(TVolumeMesh*  aMesh , int  maxSteps,
 		if ((removeSurface==2) && (vOrig->isSurface)) continue;
 		//Verifico que no lo haya visitado
 		vNeigh->Clear();
-		vOrig->getvNeigh(1,1, vNeigh);
+		vOrig->getVertexNeighboursByElem(vNeigh, 1);
 		for (j = 0 ; j<vNeigh->Count() ; j++)
 		{
 			vNew = (TVertex*)(vNeigh->elementAt(j));
@@ -287,7 +287,10 @@ int TElementsCluster::evaluateSet()
 	for (i = 0 ; i<copyEL->Count() ; i++)
 	{
 		TTetra* _t = (TTetra*)(copyEL->elementAt(i));		
-		acumAbsVolume = acumAbsVolume +abs( _t->getVolume());
+		// Esto ya tenia que estar calculado
+		//acumAbsVolume = acumAbsVolume +abs( _t->getVolume());
+		acumAbsVolume = acumAbsVolume +abs( _t->fVolume);
+
 	}
 
 	if (testCenter) 
@@ -317,6 +320,7 @@ int TElementsCluster::evaluateSet()
 	{
 		actualQuality = 50000;
 		TVertex *_v = (TVertex*)(vertexes->elementAt(i));
+		bool clusterWasImproved = true;
 
 		// Para todas las caras
 		for (j = 0 ; j<(surfaceT->Count() /3) ; j++)
@@ -327,6 +331,11 @@ int TElementsCluster::evaluateSet()
 			v3 =  _v;
 			if ((v3 == v1) || (v3 == v2) || (v3 == v0)) continue;
 
+			if (!improvedTetra(v0,v1,v2,v3,copyEL,this,false) )
+			{
+				clusterWasImproved = false;
+				break;
+			}
 			// Guardo los vertices
 			tempTetraList->Add(v0);
 			tempTetraList->Add(v1);
@@ -340,11 +349,12 @@ int TElementsCluster::evaluateSet()
 
 			tempQuality = fc(vr);
 			actualQuality = Min(actualQuality,tempQuality);
+			
 		}
-		// if not improvedClusterByBands(tempTetraList,copyEl,self)
-		if (!improvedCluster(tempTetraList,copyEL,this, false))
-			tempTetraList->Clear();
-		else		
+		// BUG
+		//if (!improvedCluster(tempTetraList,copyEL,this, false))
+		//	tempTetraList->Clear();
+		if (clusterWasImproved)
 		{
 			goodMinQuality = actualQuality;
 			goodTetraList->Clear();
@@ -421,6 +431,8 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 			v3 = (TVertex*)(goodTetraList->elementAt(i+3));
 
 			TTetra* t = new TTetra(NULL,v0,v1,v2,v3,true);          
+			t->update();       
+			t->calidad = fc(t->vertexes);       
 			newElements->Add(t);
 		}
 
@@ -510,8 +522,9 @@ bool TElementsCluster::generateSubMesh()
 	{
 		TTetra* _t =t = (TTetra*)( elements->elementAt(i));
 		if (_t == NULL) continue;
-		_t->update();       
-		_t->calidad = fc(_t->vertexes);       
+		// Esto ya tiene que estar hecho
+		//_t->update();       
+		//_t->calidad = fc(_t->vertexes);       
 		minQuality = Min(minQuality,_t->calidad );
 		minDAngle = Min(minDAngle,_t->fDiedralAngle);
 	}
@@ -529,62 +542,72 @@ bool TElementsCluster::generateSubMesh()
 void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc)
 {
 	TList<TObject*> *inspectedElements , *elements, *nFaces;
-	int i,iv,j;
+	int ie,j;
 	double minQuality ,   meshMinQ;
 	TElementsCluster *aCluster;
 
 	meshMinQ = 50000;
-	for (i = 0 ; i<aMesh->elements->Count() ; i++)
+	for (int i=0 ; i<aMesh->elements->Count() ; i++)
 	{
-		TTetra* _t = (TTetra*)(aMesh->elements->elementAt(i));
+		TTetra *_t = (TTetra*)(aMesh->elements->structure[i]);
 		_t->isdestroyed = false;
-		_t->calidad = fc(_t->vertexes);
+		_t->update();       
+		_t->calidad = fc(_t->vertexes);       
 		meshMinQ = Min(meshMinQ , _t->calidad);
-	} //Creacion de variables
+	}
+	
+	//Creacion de variables
 	aMesh->elementsToRemove->Clear();
 	aMesh->selectedElements->Clear();
 	aCluster = new TElementsCluster(aMesh,fc);
+	aCluster->doRemoveElements = false;
+	aCluster->testCenter = false;
+	aCluster->perturbCenter = 0.0;
+	aCluster->checkMaxLength =  false;
 	elements = aMesh->elements;
-
 	nFaces = new TList<TObject*>();
-
-	startProcess((char*)("evaluateClusterByFace"));
 	inspectedElements = new TList<TObject*>();
-	for (iv = 0 ; iv<elements->Count()  ; iv++)
+
+	startProcess((char*)("evaluateClusterByFace"));	
+	stopTimers();
+	
+	for (ie = 0 ; ie<elements->Count()  ; ie++)
 	{
-		TTetra *_t = (TTetra*)(elements->elementAt(iv)); 
+		
+		TTetra *_t = (TTetra*)(elements->elementAt(ie)); 
 		if (_t == NULL ) continue;
 		if (_t->isdestroyed) continue;
+		startProcess((char*)("getNeighboursByFace Cluster"));
 		nFaces->Clear();
-		_t->getNeighboursByFace(1,nFaces);
+		// Obtengo los vecinos por cara, pero obligo q tengan un id mayor que el actual
+		_t->getNeighboursByFace(1,nFaces,true);
+		_t->fmetrica = fc(_t->vertexes);
+		endProcess((char*)("getNeighboursByFace Cluster"));
 
 		if (nFaces->Count() == 0) continue;
 
 		for (j = 0  ; j<nFaces->Count() ; j++) 
 		{
-			TTetra *_t2 = (TTetra*)(nFaces->elementAt(j));
+			
+			TTetra *_t2 = (TTetra*)(nFaces->elementAt(j));						
 			if (_t2 == NULL) continue;
 			if (_t2->isdestroyed) continue;
-
-			inspectedElements->Clear();
-			inspectedElements->Add(_t);
-			inspectedElements->Add(_t2);
-
-			aCluster->inspectedElements->Assign(inspectedElements);
-
-			minQuality =aCluster->getMinQuality();
+			startProcess((char*)("Preparing Cluster 0"));
+			minQuality = Min(  _t->fmetrica , fc(_t2->vertexes) );
+			endProcess((char*)("Preparing Cluster 0"));
+			
 			if (minQuality>minExpectedQuality) continue;
+			startProcess((char*)("Preparing Cluster 1"));
+			aCluster->inspectedElements->Clear();
+			aCluster->inspectedElements->Add(_t);
+			aCluster->inspectedElements->Add(_t2);
 			//---------------------
 			//--Limpio las variables
 			//Cluster 1
-
-			aCluster->doRemoveElements = false;
-
-			aCluster->testCenter = false;
-			aCluster->perturbCenter = 0.0;
-			aCluster->checkMaxLength =  false;
 			aCluster->generateSubMesh( );
-
+			endProcess((char*)("Preparing Cluster 1"));
+			
+			startProcess((char*)("Updating Cluster"));
 			if (aCluster->evaluateSet()>0)
 			{
 				if (aCluster->updateMesh(true))
@@ -593,14 +616,20 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				  _t->isdestroyed = true;
 				  _t2->isdestroyed = true;
 				}
+				endProcess((char*)("Updating Cluster"));
 				break;
 			}
+			endProcess((char*)("Updating Cluster"));
 		}
 	}
-
+	
+	startProcess((char*)("updateRefs"));
 	aMesh->updateRefs();
-
+	endProcess((char*)("updateRefs"));
+	startTimers();
 	endProcess((char*)("evaluateClusterByFace"));
+
+	
 
 
 	delete aCluster;
@@ -686,6 +715,7 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 {
 
 	int i,j,k ;
+	int innerFlag;
 	TList<TObject*> *inspElements,*vl ; //, elements,vertexes,surfaceT,copyEL,vl: TList;
 	TVertex *v0, *v1;
 	double meshMinQ;
@@ -696,16 +726,32 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	aMesh->elementsToRemove->Clear();
 	aMesh->selectedElements->Clear();
 
+	for (int i=0 ; i<aMesh->elements->Count() ; i++)
+	{
+		TTetra *_t = (TTetra*)(aMesh->elements->structure[i]);
+		_t->update();       
+		_t->calidad = fc(_t->vertexes);       
+	}
+
 	aCluster = new TElementsCluster(aMesh,fc);
+
+	aCluster->doRemoveElements = false;
+	aCluster->testCenter = false;
+	aCluster->perturbCenter = 0.0;
+	aCluster->checkMaxLength =  false;
+
 	inspElements = new TList<TObject*>();
 	vl = new TList<TObject*>();
 	startProcess((char*)("evaluateClusterByEdge"));
+	stopTimers();
 	//--------------------------------------------
 	for (i = 0 ; i<aMesh->vertexes->Count() ; i++)
 	{
 		v0 =  aMesh->vertexes->elementAt(i);
 		vl->Clear();
-		v0->getvNeigh(1,1,vl);
+		startProcess((char*)("getvNeigh"));
+		v0->getVertexNeighboursByElem(vl,1);
+		endProcess((char*)("getvNeigh"));
 
 		if (vl == NULL) continue;
 		if (vl->Count() == 0 ) continue;
@@ -716,6 +762,8 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 			v1 = (TVertex*)(vl->elementAt(j));
 			if (v0->id>=v1->id) continue;
 			if (v1->elementsList == NULL) continue;
+			innerFlag = i*1000+j;
+			startProcess((char*)("read elements"));
 			inspElements->Clear();
 			//--- Veo los vecinos de arista de ambos vertices
 			//Para el vertice 0
@@ -724,8 +772,12 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				t = (TTetra*)(v0->elementsList->elementAt(k));
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
-
-				if ( (t->hasEdge(v0,v1)) &&  (inspElements->indexOf(t)<0 ) ) 
+				if (t->flag == innerFlag) continue;
+				// InnerFlag
+				//if ( (t->hasEdge(v0,v1)) &&  (inspElements->indexOf(t)<0 ) ) 
+				//  inspElements->Add(t);
+				t->flag = innerFlag;
+				if  (t->hasEdge(v0,v1))
 					inspElements->Add(t);
 			}
 			//Para el vertice 1
@@ -734,32 +786,38 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				t = (TTetra*)(v1->elementsList->elementAt(k));
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
-
-				if ( (t->hasEdge(v0,v1)) &&  (inspElements->indexOf(t)<0 ) ) 
+				if (t->flag == innerFlag) continue;
+				t->flag = innerFlag;
+				if  (t->hasEdge(v0,v1))
 					inspElements->Add(t);
+				// Deprecated
+				//if ( (t->hasEdge(v0,v1)) &&  (inspElements->indexOf(t)<0 ) ) 
+				//	inspElements->Add(t);
 			}
-
+			aCluster->inspectedElements->Assign( inspElements);			
+			endProcess((char*)("read elements"));
 			//-------------------
 			//-- Asigno la superficie
-
-			aCluster->inspectedElements->Assign( inspElements);
-
-			aCluster->doRemoveElements = false;
+			startProcess((char*)("generate subMesh"));
+			
 			aCluster->generateSubMesh( );
+			
+			endProcess((char*)("generate subMesh"));
 
-			aCluster->testCenter = false;
-			aCluster->perturbCenter = 0.0;
-			aCluster->checkMaxLength =  false;
+			startProcess((char*)("evaluate Set"));
 			if (aCluster->evaluateSet()>0) 
 			{
 				if (aCluster->updateMesh(true))
 					aCluster->genElements();
+				endProcess((char*)("evaluate Set"));
 				break;
 			}
+			endProcess((char*)("evaluate Set"));
 
 		}
 
 	}
+	startTimers();
 	endProcess((char*)("evaluateClusterByEdge"));
 	startProcess((char*)("updateRefs"));
 	aMesh->updateRefs();
@@ -771,6 +829,38 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 //
 // Metodo de control para verificar si mejora un cluster. Teni}o en cuenta la minima CALIDAD
 //
+
+bool improvedTetra(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3,
+	                TList<TObject*>* cRef ,
+	               TElementsCluster* cl,
+	                bool maxEdgeLengthConstrain )
+{
+	double avgEdgeLength , goodMinQuality, origDAngle ;	
+	double tempQuality , maxEdgeLength ,minDiedralAngle ;
+
+	//Datos ya calculados
+	avgEdgeLength = cl->avgEdgeLength ;
+	goodMinQuality = cl->goodMinQuality;
+	origDAngle = cl->minDAngle;
+	
+	tempQuality = vrelaxQuality(v0,v1,v2,v3);
+	minDiedralAngle = diedralAngle(v0->fPos,v1->fPos,v2->fPos,v3->fPos);
+	//Si la calidad es peor, termino
+	if ( ((tempQuality>0) && ( minDiedralAngle>origDAngle) ) || 
+		 ( (tempQuality<0) &&(tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) ) )
+	{
+			maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
+			if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
+			{
+				return false;
+			}
+	}
+	else
+		return false;	
+
+	return true;
+}
+
 bool improvedCluster(TList<TObject*>* c1,
 	TList<TObject*>* cRef ,
 	TElementsCluster* cl,

@@ -24,7 +24,6 @@ int main (int argc, char* argv[])
 	//m->normalizeMesh(1000);
 	m->updateIndexes(GENERATE_SURFACE);
 	std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
-
 	
 
 	for (int i=0 ; i<m->vertexes->Count() ; i++)
@@ -37,7 +36,8 @@ int main (int argc, char* argv[])
 	
 	//swapVolumeMesh((TVolumeMesh*)(m));
 	//startProcess("optimize by node");
-	cout <<"...Optimizing by Face" <<"\n"; 
+	cout <<".............................................." <<"\n"; 
+	cout <<"...Preparing optimization" <<"\n"; 
 	TetQuality *qt = new TetQuality(m);
 	/*qt->refresh();   qt->print();
 	evaluateClusterByFace(m,0.5,vrelaxQuality);
@@ -47,30 +47,33 @@ int main (int argc, char* argv[])
 	*/
 	//cout <<"...Optimizing by Node" <<"\n"; 
 	//evaluateClusterByNode( (TVolumeMesh*)(m),0.5,vrelaxQuality);
+	cout <<".............................................." <<"\n"; 
+	cout <<"...Initial Mesh quality" <<"\n"; 
 	qt->refresh();   qt->print();
-	cout <<"...Parallel Optimizing by Node" <<"\n"; 
-	startProcess("Parallel evaluation");
-
+	cout <<".............................................." <<"\n"; 
+	
+	startProcess("Mesh evaluation");
+	stopTimers();
 	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-	for (int i=0 ;i<1 ; i++)
+	for (int i=0 ;i<2 ; i++)
 	{
-	/*	evaluateClusterByFace( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
-		endProcess("Parallel evaluation");
-		qt->refresh();   qt->print();
-		m->validate(true);
-		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
+		cout <<"--------- ITERATION "<< i <<"--------------------"<<"\n"; 
+		cout <<"...Optimizing by Node" <<"\n"; 
+		//evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		cout <<"...Optimizing by Edge" <<"\n"; 
+		evaluateClusterByEdge(m,50000, vrelaxQuality);
+		cout <<"...Optimizing by Face" <<"\n"; 
+		evaluateClusterByFace(m,50000, vrelaxQuality);
+		cout <<"...Parallel Optimizing by Node" <<"\n"; 
+		//ParallelEvaluateClusterByNode(m,vrelaxQuality);
 
-    	evaluateClusterByEdge( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS) ;
-		endProcess("Parallel evaluation");
 		qt->refresh();   qt->print();
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
 		m->validate(true);
 		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
-		*/
-		evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
-		endProcess("Parallel evaluation");
+		/*
+		
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
 		qt->refresh();   qt->print();
 		m->validate(true);
 		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
@@ -80,10 +83,22 @@ int main (int argc, char* argv[])
 		std :: cout<< " Reinsert vertexes " << ri << " of " <<  vToR <<"\n";
 		qt->refresh();   qt->print();
 		m->validate(true);
+		*/
 	}
+	startTimers();
+	endProcess("Mesh evaluation");
+	    showProcessTime();
+		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
+		qt->refresh();   qt->print();
+		m->validate(true);
+		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
 
 	//m->removeFreeVertexes();
 	delete m;
+
+	char cw;
+	std::cout <<"...waiting to finish" <<"\n";         
+	cin >> cw;
 	
 	return 1;
 	/*

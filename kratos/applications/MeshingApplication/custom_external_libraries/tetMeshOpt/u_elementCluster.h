@@ -56,6 +56,10 @@ bool improvedCluster(TList<TObject*>* c1,
 	TElementsCluster* cl,
 	bool maxEdgeLengthConstrain );
 
+bool improvedTetra(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3,
+	                TList<TObject*>* cRef ,
+	               TElementsCluster* cl,
+	                bool maxEdgeLengthConstrain );
 double testTetraSplit4(TTetra *t, TVertex* v, TList<TObject*>* lRes , TVertexesEvaluator qualityFunction) ;
 int vertexTetraReInsertion(TMesh *am ,TList<TVertex*>* vertexesList ) ;
 

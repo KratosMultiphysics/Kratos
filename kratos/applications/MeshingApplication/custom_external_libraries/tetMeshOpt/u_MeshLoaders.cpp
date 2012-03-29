@@ -41,8 +41,8 @@ bool TSurLoader:: save(const char* filename, TMesh* aMesh )
 	{
 		tr = (TTriangle*)(  aMesh->fFaces->elementAt(i));
 		std::string s2 = intToString(tr->vertexes[0]->id)+ " "+intToString(tr->vertexes[1]->id)+ " "+
-			             intToString(tr->vertexes[2]->id);
-			
+			intToString(tr->vertexes[2]->id)+ " "+intToString(tr->vertexes[3]->id);
+
 		st->Add(s2);
 	}
 
@@ -107,23 +107,44 @@ TMesh* TVMWLoader::load(const char* aMeshName)
 { 
 	FILE* fMesh;
 	TVolumeMesh* m = new TVolumeMesh();
-
-	fMesh = fopen( aMeshName,"rb"); //xx = rb, wb, read and write binary, more 		
-
 	char line[200];		
 	int nCoords;		
+	size_t ctrlFlag , lSize;
+
+	fMesh = fopen( aMeshName,"rb"); //xx = rb, wb, read and write binary, more 		
+	if (fMesh==NULL) 
+	{ 
+		std::cout << "Invalid filename " << aMeshName;
+		return NULL;
+	}
+	// obtain file size:
+	fseek (fMesh , 0 , SEEK_END);
+	lSize = ftell (fMesh);
+	rewind (fMesh);
+
+
 	// Read first Line
-	fread (line,14,1,fMesh); 
+	ctrlFlag = fread (line,14,1,fMesh); 
 	// Read coords
-	fscanf(fMesh, "%d", &nCoords);	
+
+	ctrlFlag = fscanf(fMesh, "%d", &nCoords);	
+	if (ctrlFlag == 0) { std::cout << "Invalid read access " << aMeshName; 	return NULL; }
+
 	for (int i=0; i<nCoords;i++)
 	{
 		int id;
 		float x,y,z;
-		fscanf(fMesh, "%d", &id);
-		fscanf(fMesh, "%f", &x);
-		fscanf(fMesh, "%f", &y);
-		fscanf(fMesh, "%f", &z);			
+		ctrlFlag =fscanf(fMesh, "%d", &id);
+		if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	break;			}
+
+		ctrlFlag =fscanf(fMesh, "%f", &x);
+		if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	break;			}
+
+		ctrlFlag =fscanf(fMesh, "%f", &y);
+		if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	break;			}
+
+		ctrlFlag =fscanf(fMesh, "%f", &z);			
+		if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	break;			}
 
 		TVertex* v = new TVertex(x,y,z);
 		v->id = id;
@@ -133,18 +154,35 @@ TMesh* TVMWLoader::load(const char* aMeshName)
 	// Read *ELEMENT GROUPS
 	int elGroups, numElements;
 
-	fread (line,17,1,fMesh); 
-	fscanf(fMesh, "%d", &elGroups);	
-	fscanf(fMesh, "%d%d", &elGroups,&numElements);	
-	fread (line,9,1,fMesh); 
-	fread (line,11,1,fMesh); 
+	ctrlFlag =fread (line,17,1,fMesh); 
+	if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+	ctrlFlag =fscanf(fMesh, "%d", &elGroups);	
+	if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+	ctrlFlag =fscanf(fMesh, "%d%d", &elGroups,&numElements);	
+	if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+	ctrlFlag =fread (line,9,1,fMesh); 
+	if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+	ctrlFlag =fread (line,11,1,fMesh); 
+	if (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
 	for (int i=0; i<numElements;i++)
 	{
 		int iv0,iv1,iv2,iv3;
-		fscanf(fMesh, "%d", &iv0);
-		fscanf(fMesh, "%d", &iv1);
-		fscanf(fMesh, "%d", &iv2);			
-		fscanf(fMesh, "%d", &iv3);	
+		ctrlFlag =fscanf(fMesh, "%d", &iv0);
+		if  (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+		ctrlFlag =fscanf(fMesh, "%d", &iv1);
+		if  (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+		ctrlFlag =fscanf(fMesh, "%d", &iv2);			
+		if  (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
+
+		ctrlFlag =fscanf(fMesh, "%d", &iv3);	
+		if  (ctrlFlag == 0 )  { 		std::cout << "Invalid read access " << aMeshName; 	return NULL;			}
 
 		TVertex* v0 = m->findVertexById(iv0);
 		TVertex* v1 = m->findVertexById(iv1);
@@ -182,7 +220,7 @@ bool TElementTetraLoader::save(const char* aMeshName, TMesh* aMesh )
 	/*
 	for (i=0; i<m->elements->Count();i++)
 	{
-		((TTetra*)(m->elements->elementAt(i)))->id = i;
+	((TTetra*)(m->elements->elementAt(i)))->id = i;
 	}
 	*/
 	for (i=0; i<m->vertexes->Count();i++)
@@ -282,7 +320,7 @@ bool TElementTetraLoader::save(const char* aMeshName, TMesh* aMesh )
 		v = m->vertexes->elementAt(i);
 		s = intToString(v->id) + " ";
 
-		v->getElemNeighbours(lneigh);    
+		v->getVertexNeighboursByElem(lneigh);    
 
 		for (j = 0 ; j<lneigh->Count() ; j++)
 		{
