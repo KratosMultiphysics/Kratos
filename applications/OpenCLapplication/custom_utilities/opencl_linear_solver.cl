@@ -383,7 +383,6 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 	const IndexType ltid = tid & (KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE - 1);
 
 	const IndexType Row = (gid << KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS) + lgid;
-	const IndexType stride = KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE;
 
 	if (Row < N)
 	{
@@ -421,19 +420,26 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 		{
 			Buffer[tid] += A_Values[i] * X_Values[A_ColumnIndices[i]];
 		}
+	}
+
+	// __local memory barrier
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 		// Reduction of results
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 512
 
+	if (Row < N)
+	{
 		if (ltid < 512)
 		{
 			Buffer[tid] += Buffer[tid + 512];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -441,14 +447,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 256
 
+	if (Row < N)
+	{
 		if (ltid < 256)
 		{
 			Buffer[tid] += Buffer[tid + 256];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -456,14 +465,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 128
 
+	if (Row < N)
+	{
 		if (ltid < 128)
 		{
 			Buffer[tid] += Buffer[tid + 128];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -471,14 +483,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 64
 
+	if (Row < N)
+	{
 		if (ltid < 64)
 		{
 			Buffer[tid] += Buffer[tid + 64];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -486,14 +501,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 32
 
+	if (Row < N)
+	{
 		if (ltid < 32)
 		{
 			Buffer[tid] += Buffer[tid + 32];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -501,14 +519,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 16
 
+	if (Row < N)
+	{
 		if (ltid < 16)
 		{
 			Buffer[tid] += Buffer[tid + 16];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -516,14 +537,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 8
 
+	if (Row < N)
+	{
 		if (ltid < 8)
 		{
 			Buffer[tid] += Buffer[tid + 8];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -531,14 +555,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 4
 
+	if (Row < N)
+	{
 		if (ltid < 4)
 		{
 			Buffer[tid] += Buffer[tid + 4];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -546,14 +573,17 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 2
 
+	if (Row < N)
+	{
 		if (ltid < 2)
 		{
 			Buffer[tid] += Buffer[tid + 2];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
@@ -561,19 +591,24 @@ __kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_SPMV_CSR_WORKGROUP_
 
 #if KRATOS_OCL_SPMV_CSR_LOCAL_WORKGROUP_SIZE > 1
 
+	if (Row < N)
+	{
 		if (ltid < 1)
 		{
 			Buffer[tid] += Buffer[tid + 1];
 		}
+	}
 
 #ifdef KRATOS_OCL_SPMV_CSR_USE_LOCAL_MEM_BARRIER
 
-		barrier(CLK_LOCAL_MEM_FENCE);
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 #endif
 
 #endif
 
+	if (Row < N)
+	{
 		// Store final result
 		if (ltid == 0)
 		{
