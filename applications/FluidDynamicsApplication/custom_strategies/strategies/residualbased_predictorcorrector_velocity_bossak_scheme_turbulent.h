@@ -608,6 +608,55 @@ namespace Kratos {
 
             KRATOS_CATCH("")
         }
+
+        void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        {
+            Element::EquationIdVectorType EquationId;
+            LocalSystemVectorType RHS_Contribution;
+            LocalSystemMatrixType LHS_Contribution;
+            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
+            {
+                itNode->FastGetSolutionStepValue(REACTION_X,0) = 0.0;
+                itNode->FastGetSolutionStepValue(REACTION_Y,0) = 0.0;
+                itNode->FastGetSolutionStepValue(REACTION_Z,0) = 0.0;
+            }
+
+            for (ModelPart::ElementsContainerType::ptr_iterator itElem = rModelPart.Elements().ptr_begin(); itElem != rModelPart.Elements().ptr_end(); ++itElem)
+            {
+                (*itElem)->InitializeNonLinearIteration(CurrentProcessInfo);
+                //KRATOS_WATCH(LHS_Contribution);
+                //basic operations for the element considered
+                (*itElem)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+                //std::cout << rCurrentElement->Id() << " RHS = " << RHS_Contribution << std::endl;
+                (*itElem)->MassMatrix(mMass[0], CurrentProcessInfo);
+                (*itElem)->CalculateLocalVelocityContribution(mDamp[0], RHS_Contribution, CurrentProcessInfo);
+
+                (*itElem)->EquationIdVector(EquationId, CurrentProcessInfo);
+
+                //adding the dynamic contributions (statics is already included)
+                AddDynamicsToLHS(LHS_Contribution, mDamp[0], mMass[0], CurrentProcessInfo);
+                AddDynamicsToRHS((*itElem), RHS_Contribution, mDamp[0], mMass[0], CurrentProcessInfo);
+
+                GeometryType& rGeom = (*itElem)->GetGeometry();
+                unsigned int NumNodes = rGeom.PointsNumber();
+                unsigned int Dimension = rGeom.WorkingSpaceDimension();
+                unsigned int index = 0;
+
+                for (unsigned int i = 0; i < NumNodes; i++)
+                {
+                    rGeom[i].FastGetSolutionStepValue(REACTION_X,0) -= RHS_Contribution[index++];
+                    rGeom[i].FastGetSolutionStepValue(REACTION_Y,0) -= RHS_Contribution[index++];
+                    if (Dimension == 3) rGeom[i].FastGetSolutionStepValue(REACTION_Z,0) -= RHS_Contribution[index++];
+                    index++; // skip pressure dof
+                }
+            }
+
+            rModelPart.GetCommunicator().AssembleCurrentData(REACTION);
+        }
+
         //************************************************************************************************
         //************************************************************************************************
 
