@@ -85,7 +85,7 @@ public :
 			TTetra* el = (TTetra*)elList->elementAt(i);
 			double value = fn(el);
 			float4 c =this->getColorValues( (float)((value - minV)/(maxV - minV)));
-			el->rColor = c;
+			//el->rColor = c;
 
 		}
 	}

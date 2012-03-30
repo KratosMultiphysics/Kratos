@@ -6,6 +6,18 @@
 
 bool* _faces;
 
+void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement call)
+{
+	#if !defined(KRATOS)
+	parallel_for(blocked_range<size_t>(from, to), TParallelIterator(call,elements ) );
+    #else if
+		#pragma omp parallel for
+		for (int i=from ; i<=to ; i++)
+			call(i,0,elements->elementAt(i));
+		   
+		#pragma omp barrier
+    #endif
+}
 
 void localProcessI(int i, int thId  ,TObject* destObject)
 {
@@ -147,7 +159,6 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 	vl->Clear();
 	v0->getVertexNeighboursByElem(vl,1);
 	
-	int innerFlag = rand();
 	//  Recorro los vertices vecinos
 	for ( j = 0 ; j<vl->Count() ; j++)
 	{
@@ -256,7 +267,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
 	TVertex *inspVertex ; 
-
+	// Tamaño maximo de procesos simultaneos
 	nsimCh = 2048;
 	//----------------------------------------
 	// Initialization part!
@@ -314,7 +325,9 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 		startProcess((char*)("parallelPart"));
 		//for (int k = 0; k<vRes->Count() ; k++)
 		//	  lpEvaluateCluster(k,0,resultedClusters->elementAt(k));
-		pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateCluster);      
+		//pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateCluster);      
+		parallelFor(0, vRes->Count()-1 , resultedClusters ,lpEvaluateCluster);    
+		  
 		endProcess((char*)("parallelPart"));
 		/* end of parallel section */
 
@@ -327,8 +340,8 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 		}
 		endProcess((char*)("Generating new elements"));
 		//-- Muchos elementos para remover. Limpio las estructuras
-		// if (aMesh->elementsToRemove->Count()>100000 )
-		// aMesh->updateRefs();
+		if (aMesh->elementsToRemove->Count()>ELEMENTS_TO_FORCE_UPDATE )
+		 aMesh->updateRefs();
 
 	}
 	endProcess((char*)("evaluateClustersInParallel"));
@@ -346,8 +359,8 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
-	
-	nsimCh = 512;
+	// Tamaño maximo de procesos simultaneos
+	nsimCh = 2048;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));
@@ -399,7 +412,8 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 		endProcess((char*)("clearVars"));
 
 		startProcess((char*)("parallelPart"));
-			pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
+			//pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
+		    parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);    
 		    //for (int vi = 0 ; vi<vRes->Count() ; vi++)
 			//   lpEvaluateClusterByEdge(vi,0,resultedClusters->elementAt(vi));
 		endProcess((char*)("parallelPart"));
@@ -412,6 +426,9 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 			TVertex* _v = (TVertex*)(vRes->elementAt(i));
 			ec->genElements();		  
 		}
+
+		if (aMesh->elementsToRemove->Count()>ELEMENTS_TO_FORCE_UPDATE )
+				aMesh->updateRefs();
 		endProcess((char*)("Generating new elements"));
 	}
 	endProcess((char*)("evaluateClustersInParallel"));	

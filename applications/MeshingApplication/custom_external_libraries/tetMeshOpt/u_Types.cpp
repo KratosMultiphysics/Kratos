@@ -14,6 +14,7 @@ TValuedObject::~TValuedObject(void)
 float4 TValuedObject::getCenter() 
 { 
 	float4 f;	
+	f.x = f.y = f.z = 0.0f;
 	return f; 
 }
 
@@ -246,7 +247,7 @@ int TTetra::isInside(float4 ps )
 {	
 	int i ;
 	TVertex *v0, *v1, *v2;
-	int  result = 0;
+	
 	//The iteration method
 	for (i = 0 ; i<4 ; i++)
 	{
@@ -287,7 +288,7 @@ TTetra::TTetra(TObject* owner) { this->isdestroyed = false;  return ; }
 
 void TTetra::Create(TObject* owner, TVertex* v0,TVertex* v1,TVertex* v2,TVertex* v3, bool publish )
 {
-	this->rColor = Float4(1.0f);
+	//this->rColor = Float4(1.0f);
 	this->isdestroyed = false; 
 	this->initialized = false;
 	this->NeighBourByFace = NULL;
