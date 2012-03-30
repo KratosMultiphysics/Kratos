@@ -53,8 +53,39 @@
 #include <string.h>
 #include <queue>
 #include "utilities/openmp_utils.h"
+
+
+// Required for QueryPerformanceFrequency 
+#if defined(_WIN64) || defined(_WIN32) || defined(WIN64) 
+   #include <windows.h>
+    #define CLOCK_REALTIME 1
+
+	struct timespec
+	{
+		__int64 tv_sec,tv_nsec ;
+	};
+  
+#endif
+
 //#include <omp.h>
 namespace Kratos {
+#if defined(_WIN64) || defined(_WIN32) 
+	void clock_gettime(int flag, timespec* t  )
+	{
+		LARGE_INTEGER frequency;
+		LARGE_INTEGER start;
+		LARGE_INTEGER end;
+
+		//  Get the frequency
+		QueryPerformanceFrequency(&frequency);
+
+		//  Start timer
+		QueryPerformanceCounter(&start);
+
+		t->tv_sec = start.HighPart;
+		t->tv_nsec = start.LowPart;
+	}
+#endif
 
 template<  std::size_t TDimension,
            class TPointType,
@@ -680,7 +711,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
      
 	void GenerateBins()
 	{ 
-      	    struct timespec begin;
+      	struct timespec begin;
 	    struct timespec end;
 
 	    int ArrayLenght = 1;
@@ -707,7 +738,7 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    OCL_TriangleList   	   = OCLDeviceGroup.CreateBuffer(sizeof(cl_int4)    * mTriangleSize     , CL_MEM_READ_ONLY );
 	    OCL_PointsTriangle     = OCLDeviceGroup.CreateBuffer(sizeof(cl_double4) * mNodeSize         , CL_MEM_READ_ONLY );
 	    
-	    OCL_Scan_Buffer = OCLDeviceGroup.CreateBuffer(sizeof(uint) * ( 64 * ArrayLenght / (4 * OCLDeviceGroup.WorkGroupSizes[OCLScan_Local1][0])), CL_MEM_READ_ONLY );
+	    OCL_Scan_Buffer = OCLDeviceGroup.CreateBuffer(sizeof(unsigned int) * ( 64 * ArrayLenght / (4 * OCLDeviceGroup.WorkGroupSizes[OCLScan_Local1][0])), CL_MEM_READ_ONLY );
 	 
 	    KRATOS_OCL_4_X(MinPoint[0]) = mMinPoint[0];
 	    KRATOS_OCL_4_Y(MinPoint[0]) = mMinPoint[1];
@@ -1021,9 +1052,9 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    
 	}
          
-	void SearchInRadiusOCL(double Radius, uint ConcurrentPoints, uint maxResults) 
+	void SearchInRadiusOCL(double Radius, unsigned int ConcurrentPoints, unsigned int maxResults) 
 	{
-	    uint processed = 0;
+	    unsigned int processed = 0;
 	    
 	    int result = 0;
 	    
@@ -1447,9 +1478,9 @@ class BinsObjectStaticOCL : public TreeNode<TDimension,TPointType, TPointerType,
 	    std::cout << mParticMesh->NumberOfNodes() << std::endl;
 	}
          
-	void SearchNearestOCL(double Radius, uint ConcurrentPoints) 
+	void SearchNearestOCL(double Radius, unsigned int ConcurrentPoints) 
 	{
-	    uint processed = 0;
+	    unsigned int processed = 0;
 	    
 	    int result = 0;
 	    
