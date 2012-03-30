@@ -39,6 +39,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_parallel_strategies_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_fluency_criteria_to_python.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/dummy_constitutive_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/hooks_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/external_isotropic_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_damage_2d.cpp
