@@ -10,7 +10,7 @@ void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement 
 {
 	#if !defined(KRATOS)
 	parallel_for(blocked_range<size_t>(from, to), TParallelIterator(call,elements ) );
-    #else if
+    #else
 		#pragma omp parallel for
 		for (int i=from ; i<=to ; i++)
 			call(i,0,elements->elementAt(i));
