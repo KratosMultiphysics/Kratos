@@ -289,7 +289,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc , int bl
 		vertexesCopy->elementAt(i)->flag = 0;
 		vertexesCopy->elementAt(i)->isdestroyed = false;
 	}	
-	TParallelIterator* pi = new TParallelIterator();
+	
 	endProcess((char*)("Initialization"));
 	//----------------------------------------	
 	//----------------------------------------
@@ -334,8 +334,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc , int bl
 		startProcess((char*)("Generating new elements"));
 		for (i = 0 ; i<vRes->Count() ; i++)
 		{
-			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));
-			TVertex* _v = (TVertex*)(vRes->elementAt(i));
+			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));			
 			ec->genElements();		  
 		}
 		endProcess((char*)("Generating new elements"));
@@ -381,7 +380,7 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc, int blo
 		vertexesCopy->elementAt(i)->flag = 0;
 		vertexesCopy->elementAt(i)->isdestroyed = false;
 	}	
-	TParallelIterator* pi = new TParallelIterator();
+	
 	vertexesCopy->Sort(sortByID);
 	endProcess((char*)("Initialization"));
 	//----------------------------------------	
@@ -422,8 +421,7 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc, int blo
 		startProcess((char*)("Generating new elements"));
 		for (i = 0 ; i<vRes->Count() ; i++)
 		{
-			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));
-			TVertex* _v = (TVertex*)(vRes->elementAt(i));
+			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));			
 			ec->genElements();		  
 		}
 
