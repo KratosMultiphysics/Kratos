@@ -4,6 +4,10 @@
 
 const float cotas[] ={0.0f,0.001f, 0.05f, 1.0f, 5000000000.0f};
 
+#define ACCEPTANCE_TOLERANCE 1.0
+
+#define ELEMENTS_TO_FORCE_UPDATE 10000
+
 class TElementsCluster
 {
 public :

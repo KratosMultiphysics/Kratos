@@ -5,9 +5,7 @@
 #include "u_ProcessTime.h"
 #include "u_TetraFunctions.h"
 
-#define ACCEPTANCE_TOLERANCE 1.0
 
-#define ELEMENTS_TO_FORCE_UPDATE 10000
 
 
 //-----------------------------------------------------------------------------
@@ -795,6 +793,8 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				//	inspElements->Add(t);
 			}
 			
+			//if (aCluster->minQuality>minExpectedQuality) continue;
+
 			endProcess((char*)("read elements"));
 			//-------------------
 			//-- Asigno la superficie
@@ -809,13 +809,14 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 			{
 				if (aCluster->updateMesh(true))
 					aCluster->genElements();
-				endProcess((char*)("evaluate Set"));
+				endProcess((char*)("evaluate Set"));				
 				break;
 			}
 			endProcess((char*)("evaluate Set"));
 
 		}
-
+		if (aMesh->elementsToRemove->Count()>ELEMENTS_TO_FORCE_UPDATE)
+			aMesh->updateRefs();
 	}
 	startTimers();
 	endProcess((char*)("evaluateClusterByEdge"));

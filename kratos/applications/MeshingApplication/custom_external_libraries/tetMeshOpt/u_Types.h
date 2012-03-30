@@ -11,6 +11,8 @@
 #define GENERATE_SURFACE  1
 #define KEEP_ORIG_IDS  2
 
+#define KRATOS
+
 typedef char* String;
 // Solution using a typedef: Define a pointer to a function which is taking
 // two floats and returns a float
@@ -31,12 +33,12 @@ struct  object
 class TValuedObject : public TObject
 {
 public:
-	double	fmetrica , sortvalue ,calidad;
+	double	fmetrica  ,calidad;
 	bool marked, changed ,locked,isdestroyed;
 	int id , groupID,visited,flag , innerFlag;
 	void* linkSet ;
 	int _color ;
-	float4 rColor;
+	//float4 rColor;
 	object* userData;
 
 	TValuedObject(void) ;
@@ -101,7 +103,7 @@ class TElement : public TNeighboured
 {
 public:      
 	TVertex* vertexes[4];
-	float4 normals[4];
+	float4* normals;
 	bool initialized ;
 	TElement();
 	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
@@ -113,15 +115,13 @@ class TTetra : public TElement
 {
 public : 
 	double fVolume,fDiedralAngle, fFaceAngle,fSurface ;
-	int ts[6];
+	//int ts[6];
 
 	TTriangle* triangles[4];
 	TList<TObject*>* NeighBourByFace;
 	TList<TValuedObject>* Neighbours;
-
-	int materialID;
-	float4 velocity;
-
+		
+	
 	double getVolume() ;
 
 	double getPerimeter() ;

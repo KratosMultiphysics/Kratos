@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 TList<TTimeSignal*>* processNames ; 
-bool TimingIsActive = false ;
+bool TimingIsActive = true ;
 
 double TTimeSignal::elapsedTime()
 {
