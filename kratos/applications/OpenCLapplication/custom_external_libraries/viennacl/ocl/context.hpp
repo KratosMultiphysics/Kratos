@@ -372,7 +372,9 @@ namespace viennacl
                                                                   ++iter)
             device_id_array.push_back(iter->id());
             
-          cl_uint device_num = std::max(default_device_num_, device_id_array.size());
+          // deprecated cl_uint device_num = std::max(default_device_num_, device_id_array.size());
+
+		  cl_uint device_num = (default_device_num_>device_id_array.size())? default_device_num_ :device_id_array.size();
           h_ = clCreateContext(0, 
                                device_num,
                                &(device_id_array[0]),
