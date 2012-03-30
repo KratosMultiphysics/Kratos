@@ -15,9 +15,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <omp.h>
-
-
+#include "utilities/openmp_utils.h"
 // External includes
 
 
@@ -319,9 +317,10 @@ namespace Kratos
 				EvaluateQuality();
 			
 			std::cout <<"...Start Optimization..." <<"\n";	
+			OpenMPUtils::SetNumThreads(16);
 			if (evaluateInParallel)
 			{
-				std::cout <<"Number of active threads"<< omp_get_num_threads() <<"\n";
+				std::cout <<"Number of active threads"<< OpenMPUtils::GetNumThreads() <<"\n";
 			}
 			if (debugMode)
 			{
@@ -342,12 +341,12 @@ namespace Kratos
 					if (evaluateInParallel )
 					{
 					    std::cout <<"...Parallel optimizing by Node. Iteration : "<< iter <<"\n";
-						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),diedralAngle);   
+						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
 					}
 					else
 					{
 					   std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
-					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,diedralAngle);
+					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
 					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
@@ -367,13 +366,13 @@ namespace Kratos
 					if (evaluateInParallel )
 					{
 						std::cout <<"...Parallel optimizing by Edge. Iteration : "<< iter <<"\n";
-						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),diedralAngle);  
+						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),vrelaxQuality);  
 						std::cout <<"...End. Iteration : "<< iter <<"\n";
 					}
 					else
 					{
 					    std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
-						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,diedralAngle);
+						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
 					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
@@ -414,7 +413,8 @@ namespace Kratos
 				std::cout <<"...Trying to reinsert nodes..." <<"\n";
 				tryToReinsertNodes();
 			}
-			
+			// Una vez por l omenos muestro la calidad que quedo
+			EvaluateQuality();
 		}
         ///@brief function tryToReinsertNodes
 		/// Reinsert removed nodes into the structure
