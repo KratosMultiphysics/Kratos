@@ -67,49 +67,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/model_part.h"
-#include "viennacl/compressed_matrix.hpp"
-#include "viennacl/linalg/cg.hpp"
-#include "viennacl/linalg/bicgstab.hpp"
-//#include "viennacl/linalg/bicgstab_tuned.hpp"
-#include "viennacl/linalg/row_scaling.hpp"
-#include "viennacl/linalg/jacobi_precond.hpp"
-#include "viennacl/io/kernel_parameters.hpp"
 
-#include "linear_solvers/cg_solver.h"
-#include "spaces/ublas_space.h"
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_sparse.hpp>
+
+#include "opencl_interface.h"
+#include "opencl_linear_solver.h"
 
 
 namespace Kratos
 {
-    //
-    // ViennaCLHelper
-    //
-    // ViennaCL helper class
-
-    class ViennaCLHelper
-    {
-    public:
-
-        //
-        // ViennaCLHelper
-        //
-        // Constructor
-
-        ViennaCLHelper(OpenCL::DeviceGroup &_DeviceGroup)
-        {
-            // Set our own context, device and command queue
-            viennacl::ocl::setup_context(0, _DeviceGroup.Contexts[0], _DeviceGroup.DeviceIDs[0], _DeviceGroup.CommandQueues[0]);
-
-            // Workaround: ViennaCL 'owns' contexts, command queues
-            clRetainContext(_DeviceGroup.Contexts[0]);
-            clRetainCommandQueue(_DeviceGroup.CommandQueues[0]);
-
-            // Loading best set of parameters
-            viennacl::io::read_kernel_parameters <viennacl::vector <double> > ("vector_parameters.xml");
-            viennacl::io::read_kernel_parameters <viennacl::compressed_matrix <double> > ("sparse_parameters.xml");
-        }
-    };
-
     //
     // OpenCLFluidSolver3D
     //
@@ -126,13 +93,8 @@ namespace Kratos
         typedef cl_double3 *CalcVectorType;
         typedef cl_double *ValuesVectorType;
 
-        // TODO: Check for effect of alignment in GPU types while optimizing the performance
-
-        typedef CompressedMatrix HostMatrixType;
-        typedef viennacl::compressed_matrix <double> DeviceMatrixType;
-
-        typedef Vector HostVectorType;
-        typedef viennacl::vector <double> DeviceVectorType;
+        typedef boost::numeric::ublas::vector <cl_double> HostVectorType;
+        typedef boost::numeric::ublas::compressed_matrix <cl_double, boost::numeric::ublas::row_major, 0, boost::numeric::ublas::unbounded_array<cl_uint>, boost::numeric::ublas::unbounded_array<double> >  HostMatrixType;
 
         //
         // OpenCLFluidSolver3D
@@ -151,17 +113,15 @@ namespace Kratos
                 double stabdt_convection_factor,
                 double tau2_factor,
                 bool assume_constant_dp
-                ) :
+                ):
         mrDeviceGroup(matrix_container.GetDeviceGroup()),
         mr_matrix_container(matrix_container),
         mr_model_part(model_part),
-        mViennaCLHelper(matrix_container.GetDeviceGroup()),
         mstabdt_pressure_factor(stabdt_pressure_factor),
         mstabdt_convection_factor(stabdt_convection_factor),
         medge_detection_angle(edge_detection_angle),
         mtau2_factor(tau2_factor),
-        massume_constant_dp(assume_constant_dp),
-        mcustom_solver(1e-3, 1000)
+        massume_constant_dp(assume_constant_dp)
         {
             mViscosity = viscosity;
 
@@ -178,8 +138,7 @@ namespace Kratos
             // Loading OpenCL program and defining appropriate macros
             // TODO: Remove if not needed (also remove in .cl file)
             mpOpenCLFluidSolver = mrDeviceGroup.BuildProgramFromFile(
-                    "opencl_fluid_solver.cl",
-                    "-cl-fast-relaxed-math"
+                    "opencl_fluid_solver.cl", "-cl-fast-relaxed-math"
 
 #ifdef SPLIT_OSS
 
@@ -230,7 +189,9 @@ namespace Kratos
 
         ~OpenCLFluidSolver3D()
         {
-            // Nothing to do!
+            delete mLinearSolverOptimizationParameters;
+			delete mCGSolver;
+
         }
 
         //
@@ -413,10 +374,13 @@ namespace Kratos
             unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
 
             // Allocate memory for variables
-            rhs_GPU.resize(n_nodes);
-            dp_GPU.resize(n_nodes);
+            mLRowIndices = mrDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLColumnIndices = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLValues = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_double), CL_MEM_READ_ONLY);
 
-            mL.resize(n_nodes, n_nodes, n_nonzero_entries);
+            rhs_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+            dp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+            temp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
             // TODO: May we assume that the graph of mL is the same as the graph of mr_matrix_container? What does the flag do?
 
@@ -455,7 +419,15 @@ namespace Kratos
             }
 
             // Copy mL to GPU
-            copy(mL, mL_GPU);
+            mrDeviceGroup.CopyBuffer(mLRowIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index1_data()[0]));
+            mrDeviceGroup.CopyBuffer(mLColumnIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index2_data()[0]));
+            mrDeviceGroup.CopyBuffer(mLValues, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.value_data()[0]));
+
+			mLinearSolverOptimizationParameters = new OpenCL::LinearSolverOptimizationParameters(mrDeviceGroup, n_nodes);
+			mCGSolver = new OpenCL::CGSolver(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
+
+			mLinearSolverOptimizationParameters->OptimizeInnerProd(rhs_GPU, dp_GPU, temp_GPU);
+			mLinearSolverOptimizationParameters->OptimizeSpMV(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
 
             // Compute minimum length of the surrounding edges
             CalculateEdgeLengths(mr_model_part.Nodes());
@@ -827,11 +799,11 @@ namespace Kratos
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 2, mbTauPressure);
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 3, mbPn);
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 4, mbPn1);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 5, mL_GPU.handle1());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 6, mL_GPU.handle2());
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 5, mLRowIndices);  // TODO: Verify
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 6, mLColumnIndices);  // TODO: Verify
             mrDeviceGroup.SetImageAsKernelArg(mkSolveStep2_1, 7, mr_matrix_container.GetEdgeValuesBuffer());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 8, rhs_GPU.handle());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 9, mL_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 8, rhs_GPU);  // TODO: Verify
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 9, mLValues);  // TODO: Verify
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 10, mRho);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 11, delta_t);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 12, n_nodes);
@@ -858,10 +830,10 @@ namespace Kratos
 
             // Setting arguments
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 0, mbPressureOutletList);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 1, mL_GPU.handle1());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 2, mL_GPU.handle2());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 3, mL_GPU.handle());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 4, rhs_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 1, mLRowIndices);
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 2, mLColumnIndices);
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 3, mLValues);
+            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 4, rhs_GPU);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 5, mPressureOutletListLength);
 
 
@@ -874,9 +846,9 @@ namespace Kratos
             // Compute the scaling factors
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 0, mL_GPU.handle1());
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 1, mL_GPU.handle2());
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 2, mL_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 0, mLRowIndices);
+            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 1, mLColumnIndices);
+            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 2, mLValues);
             mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 3, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 4, n_nodes);
             mrDeviceGroup.SetLocalMemAsKernelArg(mkComputeScalingCoefficients, 5, (mrDeviceGroup.WorkGroupSizes[mkComputeScalingCoefficients][0] + 1) * sizeof (cl_uint));
@@ -888,10 +860,10 @@ namespace Kratos
             // Apply scaling
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 0, mL_GPU.handle1());
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 1, mL_GPU.handle2());
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 2, mL_GPU.handle());
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 3, rhs_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkApplyScaling, 0, mLRowIndices);
+            mrDeviceGroup.SetKernelArg(mkApplyScaling, 1, mLColumnIndices);
+            mrDeviceGroup.SetKernelArg(mkApplyScaling, 2, mLValues);
+            mrDeviceGroup.SetKernelArg(mkApplyScaling, 3, rhs_GPU);
             mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 4, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkApplyScaling, 5, n_nodes);
             mrDeviceGroup.SetLocalMemAsKernelArg(mkApplyScaling, 6, (mrDeviceGroup.WorkGroupSizes[mkApplyScaling][0] + 1) * sizeof (cl_uint));
@@ -912,12 +884,11 @@ namespace Kratos
 
 
 
-            dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, mcustom_solver);
+            //dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, mcustom_solver);
 
-            std::cout << "No. of iters: " << mcustom_solver.iters() << std::endl;
-            std::cout << "Est. error: " << mcustom_solver.error() << std::endl;
+			mCGSolver->Solve(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
 
-
+            std::cout << "No. of iters: " << mCGSolver->GetIterationNo() << ", est. error: " << mCGSolver->GetAchievedTolerance() << std::endl;
 
             //                                typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
             //                                typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -943,10 +914,10 @@ namespace Kratos
             //				dp_GPU = viennacl::linalg::solve(mL_GPU, rhs_GPU, viennacl::linalg::bicgstab_tag(1e-3, 1000), precond_GPU);  // TODO: Is this OK to hard-code solver?
 
 
-            // Apply inverse scalign
+            // Apply inverse scaling
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU);
             mrDeviceGroup.SetBufferAsKernelArg(mkApplyInverseScaling, 1, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 2, n_nodes);
 
@@ -960,7 +931,7 @@ namespace Kratos
 
             // Setting arguments
             mrDeviceGroup.SetBufferAsKernelArg(mkAddVectorInplace, 0, mbPn1);
-            mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 1, dp_GPU.handle());
+            mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 1, dp_GPU);
             mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 2, n_nodes);
 
             // Execute OpenCL kernel
@@ -1241,9 +1212,6 @@ namespace Kratos
         // Associated model part
         ModelPart &mr_model_part;
 
-        // ViennaCL helper
-        ViennaCLHelper mViennaCLHelper;
-
         // No. of nodes
         unsigned int n_nodes;
 
@@ -1263,8 +1231,8 @@ namespace Kratos
         double mtau2_factor;
         bool massume_constant_dp;
 
-                                viennacl::linalg::bicgstab_tag mcustom_solver;
-//        viennacl::linalg::cg_tag mcustom_solver;
+		OpenCL::LinearSolverOptimizationParameters *mLinearSolverOptimizationParameters;
+		OpenCL::CGSolver *mCGSolver;
 
         // Nodal values
 
@@ -1311,10 +1279,10 @@ namespace Kratos
 
         // Laplacian matrix
         HostMatrixType mL;
-        DeviceMatrixType mL_GPU;
+		cl_uint mLRowIndices, mLColumnIndices, mLValues;
 
         // Vectors on GPU
-        DeviceVectorType dp_GPU, rhs_GPU;
+        cl_uint dp_GPU, rhs_GPU, temp_GPU;
 
         // Constant variables
         double mRho;
