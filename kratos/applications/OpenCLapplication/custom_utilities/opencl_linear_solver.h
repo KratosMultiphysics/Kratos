@@ -427,7 +427,7 @@ namespace OpenCL
 			mMaxIterations(MaxIterations),
 			mTolerance(Tolerance),
 			mIterationNo(0),
-			mAchievedTolerance(0.00)
+			mEstimatedError(0.00)
         {
 			// General routines
 			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_NEED_GENERIC_KERNELS");
@@ -549,10 +549,10 @@ namespace OpenCL
 					bb = rr;
 				}
 
-				mAchievedTolerance = sqrt(rr / bb);
+				mEstimatedError = sqrt(rr / bb);
 
 				// Convergence check
-				if (mAchievedTolerance < mTolerance)
+				if (mEstimatedError < mTolerance)
 				{
 					return true;
 				}
@@ -566,7 +566,7 @@ namespace OpenCL
 				}
 
 				// Debugging only!
-				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Gamma = " << Gamma << ", Rho = " << Rho << ", Achieved tolerance: " << mAchievedTolerance << std::endl;
+				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Gamma = " << Gamma << ", Rho = " << Rho << ", est. error: " << mEstimatedError << std::endl;
 
 				// Update vectors
 
@@ -608,13 +608,13 @@ namespace OpenCL
 		}
 
 		//
-		// GetAchievedTolerance
+		// GetEstimatedError
 		//
-		// Returns achieved tolerance
+		// Returns estimated error
 
-		double GetAchievedTolerance()
+		double GetEstimatedError()
 		{
-			return mAchievedTolerance;
+			return mEstimatedError;
 		}
 
 	private:
@@ -628,7 +628,7 @@ namespace OpenCL
 		unsigned int mMaxIterations;
 		double mTolerance;
 		unsigned int mIterationNo;
-		double mAchievedTolerance;
+		double mEstimatedError;
 		cl_double *mReductionBuffer1, *mReductionBuffer2;
 	};
 

@@ -888,7 +888,7 @@ namespace Kratos
 
 			mCGSolver->Solve(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
 
-            std::cout << "No. of iters: " << mCGSolver->GetIterationNo() << ", est. error: " << mCGSolver->GetAchievedTolerance() << std::endl;
+            std::cout << "No. of iters: " << mCGSolver->GetIterationNo() << ", est. error: " << mCGSolver->GetEstimatedError() << std::endl;
 
             //                                typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
             //                                typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;

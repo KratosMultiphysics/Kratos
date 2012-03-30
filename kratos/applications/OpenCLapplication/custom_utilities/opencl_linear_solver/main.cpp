@@ -80,11 +80,11 @@ int main(int argc, char *argv[])
 
 	if (Result)
 	{
-		std::cout << "Solver converged! Tolerance achieved: " << LinearSolver.GetAchievedTolerance() << ", no. of iterations: " << LinearSolver.GetIterationNo() << std::endl;
+		std::cout << "Solver converged! Est. error: " << LinearSolver.GetEstimatedError() << ", no. of iterations: " << LinearSolver.GetIterationNo() << std::endl;
 	}
 	else
 	{
-		std::cout << "Solver diverged! Tolerance achieved: " << LinearSolver.GetAchievedTolerance() << ", no. of iterations: " << LinearSolver.GetIterationNo() << std::endl;
+		std::cout << "Solver diverged! Est. error: " << LinearSolver.GetEstimatedError() << ", no. of iterations: " << LinearSolver.GetIterationNo() << std::endl;
 	}
 
 	std::cout << "Solution took " << double(T1) / 1000000000 << "s." << std::endl;
