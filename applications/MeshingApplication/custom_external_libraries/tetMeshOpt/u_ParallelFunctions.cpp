@@ -360,7 +360,7 @@ void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
 	// Tamaño maximo de procesos simultaneos
-	nsimCh = 512;
+	nsimCh = 2048;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));

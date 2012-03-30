@@ -317,7 +317,7 @@ namespace Kratos
 				EvaluateQuality();
 			
 			std::cout <<"...Start Optimization..." <<"\n";	
-			OpenMPUtils::SetNumThreads(16);
+			OpenMPUtils::SetNumThreads(4);
 			if (evaluateInParallel)
 			{
 				std::cout <<"Number of active threads"<< OpenMPUtils::GetNumThreads() <<"\n";
@@ -413,7 +413,7 @@ namespace Kratos
 				std::cout <<"...Trying to reinsert nodes..." <<"\n";
 				tryToReinsertNodes();
 			}
-			// Una vez por l omenos muestro la calidad que quedo
+			// Una vez por lo menos muestro la calidad que quedo
 			EvaluateQuality();
 		}
         ///@brief function tryToReinsertNodes
@@ -558,7 +558,10 @@ namespace Kratos
 		}
 
 		/// Copy constructor.
-		TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther) {}
+		TetrahedraReconnectUtility(TetrahedraReconnectUtility const& rOther) 
+		{
+			return ;
+		}
 
 
 		///@}
