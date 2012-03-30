@@ -89,12 +89,21 @@ namespace Kratos
 
     bool Isotropic3D::Has( const Variable<double>& rThisVariable )
     {
+        if ( rThisVariable == PRESTRESS_FACTOR || rThisVariable == YOUNG_MODULUS || rThisVariable == POISSON_RATIO )
+            return true;
+
         return false;
     }
 
     bool Isotropic3D::Has( const Variable<Vector>& rThisVariable )
     {
         if ( rThisVariable == INSITU_STRESS )
+            return true;
+
+        if ( rThisVariable == PRESTRESS )
+            return true;
+
+        if ( rThisVariable == STRESSES )
             return true;
 
         return false;
@@ -105,10 +114,33 @@ namespace Kratos
         return false;
     }
 
+    double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
+    {
+        if ( rThisVariable == PRESTRESS_FACTOR )
+            return mPrestressFactor;
+        if ( rThisVariable == YOUNG_MODULUS )
+            return mE;
+        if ( rThisVariable == POISSON_RATIO )
+            return mNU;
+
+        KRATOS_ERROR( std::logic_error, "this variable is not supported", "" );
+    }
+
     Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
     {
-        if ( rThisVariable == INSITU_STRESS )
-            return mInSituStress;
+        if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
+        {
+            return mPrestress;
+        }
+
+        if ( rThisVariable == STRESSES )
+            return mCurrentStress;
+
+        if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
+        {
+            rValue = ZeroVector( 6 );
+            return( rValue );
+        }
 
         if ( rThisVariable == INTERNAL_VARIABLES )
         {
@@ -119,7 +151,7 @@ namespace Kratos
         KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
     }
 
-    Matrix Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable )
+    Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
     {
         KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
     }
@@ -127,6 +159,12 @@ namespace Kratos
     void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                                 const ProcessInfo& rCurrentProcessInfo )
     {
+        if ( rThisVariable == PRESTRESS_FACTOR )
+            mPrestressFactor = rValue;
+        if ( rThisVariable == YOUNG_MODULUS )
+            mE = rValue;
+        if ( rThisVariable == POISSON_RATIO )
+            mNU = rValue;
     }
 
     void Isotropic3D::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
@@ -138,13 +176,9 @@ namespace Kratos
     void Isotropic3D::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                                 const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rThisVariable == INSITU_STRESS )
+        if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
         {
-            mInSituStress = rValue;
-        }
-        if( rThisVariable == PRESTRESS )
-        {
-            mInSituStress = rValue;
+            mPrestress = rValue;
         }
     }
 
@@ -154,39 +188,23 @@ namespace Kratos
     }
 
 
-    void Isotropic3D::Calculate( const Variable<double>& rVariable,
-                                 double& Output,
-                                 const ProcessInfo& rCurrentProcessInfo )
-    {
-        Output = sqrt( mE / mDE );
-    }
-
-
-
-    /**
-     * TO BE TESTED!!!
-     */
     void Isotropic3D::InitializeMaterial( const Properties& props,
                                           const GeometryType& geom,
                                           const Vector& ShapeFunctionsValues )
     {
         mCurrentStress = ZeroVector( 6 );
-//   mE = props[YOUNG_MODULUS];
-//   mNU = props[POISSON_RATIO];
-        mCtangent = ZeroMatrix( 6, 6 );
-        mInSituStress = ZeroVector( 6 );
-        CalculateElasticMatrix( mCtangent, props[YOUNG_MODULUS], props[POISSON_RATIO] );
-        mMaterialParameters = props[MATERIAL_PARAMETERS];
-        mE  = props[YOUNG_MODULUS];
+        mPrestress = ZeroVector( 6 );
+        mPrestressFactor = 1.0;
+        mE = props[YOUNG_MODULUS];
         mNU = props[POISSON_RATIO];
-        mDE = props[DENSITY];
     }
 
     void Isotropic3D::ResetMaterial( const Properties& props,
                                      const GeometryType& geom,
                                      const Vector& ShapeFunctionsValues )
     {
-        CalculateElasticMatrix( mCtangent, mMaterialParameters[0], mMaterialParameters[1] );
+        mPrestress = ZeroVector( 6 );
+        mPrestressFactor = 1.0;
     }
 
     void Isotropic3D::InitializeSolutionStep( const Properties& props,
@@ -201,11 +219,6 @@ namespace Kratos
                                             const Vector& ShapeFunctionsValues ,
                                             const ProcessInfo& CurrentProcessInfo )
     {
-        if ( CurrentProcessInfo[CALCULATE_INSITU_STRESS] )
-        {
-            mInSituStress -= mCurrentStress;
-            //SetValue( INSITU_STRESS, mInSituStress, CurrentProcessInfo );
-        }
     }
 
 
@@ -221,8 +234,8 @@ namespace Kratos
             int CalculateTangent,
             bool SaveInternalVariables )
     {
-        CalculateStress( StrainVector, StressVector );
-        CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
+        CalculateElasticMatrix( AlgorithmicTangent, mE, mNU );
+        CalculateStress( StrainVector, AlgorithmicTangent, StressVector );
     }
 
     /**
@@ -248,50 +261,17 @@ namespace Kratos
     /**
      * TO BE TESTED!!!
      */
-    void Isotropic3D::CalculateStress( const Vector& StrainVector, Vector& StressVector )
+    void Isotropic3D::CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& StressVector )
     {
         if ( StressVector.size() != 6 )
         {
             StressVector.resize( 6 );
         }
 
-        noalias( StressVector ) = prod( mCtangent, StrainVector );
+        noalias( StressVector ) = prod( AlgorithmicTangent, StrainVector ) - mPrestressFactor * mPrestress;
 
         mCurrentStress = StressVector;
-//         std::cout << "before:" << std::endl;
-//         KRATOS_WATCH( StressVector );
-        noalias( StressVector ) -= mInSituStress;
-//         std::cout << "after:" << std::endl;
-//         KRATOS_WATCH( StressVector );
-        //KRATOS_WATCH(StrainVector)
-//   double c1 = mE / ((1.00+mNU)*(1-2*mNU));
-//   double c2 = c1 * (1-mNU);
-//   double c3 = c1 * mNU;
-//   double c4 = c1 * 0.5 * (1 - 2*mNU);
-//
-//   StressVector[0] = c2*StrainVector[0] + c3 * (StrainVector[1] + StrainVector[2]) ;
-//   StressVector[1] = c2*StrainVector[1] + c3 * (StrainVector[0] + StrainVector[2]) ;
-//   StressVector[2] = c2*StrainVector[2] + c3 * (StrainVector[0] + StrainVector[1]) ;
-//   StressVector[3] = c4*StrainVector[3];
-//   StressVector[4] = c4*StrainVector[4];
-//   StressVector[5] = c4*StrainVector[5];
     }
-
-    /**
-     * TO BE REVIEWED!!!
-     */
-    void Isotropic3D::CalculateConstitutiveMatrix( const Vector& StrainVector, Matrix& rResult )
-    {
-        rResult = mCtangent;
-    }
-
-    void Isotropic3D::CalculateStressAndTangentMatrix( Vector& StressVector,
-            const Vector& StrainVector,
-            Matrix& algorithmicTangent )
-    {
-        CalculateConstitutiveMatrix( StrainVector, algorithmicTangent );
-    }
-
 
 
     //**********************************************************************
@@ -331,6 +311,12 @@ namespace Kratos
     int Isotropic3D::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
     {
         KRATOS_TRY
+
+        if ( !props.Has( YOUNG_MODULUS ) || !props.Has(POISSON_RATIO) )
+        {
+            KRATOS_ERROR( std::logic_error, "this constitutive law requires YOUNG_MODULUS and POISSON_RATIO given as KRATOS variables", "" );
+        }
+
         double nu = props[POISSON_RATIO];
 
         if ( nu > 0.499 && nu < 0.501 )

@@ -116,8 +116,9 @@ namespace Kratos
             bool Has( const Variable<Vector>& rThisVariable );
             bool Has( const Variable<Matrix>& rThisVariable );
 
+            double& GetValue( const Variable<double>& rThisVariable, double& rValue );
             Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-            Matrix GetValue( const Variable<Matrix>& rThisVariable );
+            Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
             void SetValue( const Variable<double>& rThisVariable, const double& rValue,
                            const ProcessInfo& rCurrentProcessInfo );
@@ -134,21 +135,6 @@ namespace Kratos
             void InitializeMaterial( const Properties& props,
                                      const GeometryType& geom,
                                      const Vector& ShapeFunctionsValues );
-
-            /**
-             * Calculates the constitutive matrix for a given strain vector
-             * @param StrainVector the current vector of strains the constitutive
-             * matrix is to be generated for
-             * @param rResult Matrix the result will be stored in
-             */
-            void CalculateConstitutiveMatrix( const Vector& StrainVector, Matrix& rResult );
-
-            /**
-             * Calculates the stresses for given strain state
-             * @param StrainVector the current vector of strains
-             * @param rResult the stress vector corresponding to the given strains
-             */
-            void CalculateStress( const Vector& StrainVector, Vector& rResult );
 
             /**
              * As this constitutive law describes only linear elastic material properties
@@ -193,14 +179,6 @@ namespace Kratos
             virtual int Check( const Properties& props,
                                const GeometryType& geom,
                                const ProcessInfo& CurrentProcessInfo );
-
-            void CalculateStressAndTangentMatrix( Vector& StressVector,
-                                                  const Vector& StrainVector,
-                                                  Matrix& algorithmicTangent );
-
-            void Calculate( const Variable<double>& rVariable,
-                            double& Output,
-                            const ProcessInfo& rCurrentProcessInfo );
 
             void CalculateMaterialResponse( const Vector& StrainVector,
                                             const Matrix& DeformationGradient,
@@ -261,30 +239,33 @@ namespace Kratos
             virtual void save( Serializer& rSerializer ) const
             {
                 KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
-                rSerializer.save( "E", mE );
-                rSerializer.save( "NU", mNU );
-                rSerializer.save( "DE", mDE );
-                rSerializer.save( "InSituStress", mInSituStress );
-                rSerializer.save( "Ctangent", mCtangent );
+                rSerializer.save( "Prestress", mPrestress );
+                rSerializer.save( "PrestressFactor", mPrestressFactor );
                 rSerializer.save( "CurrentStress", mCurrentStress );
-                rSerializer.save( "MaterialParameters", mMaterialParameters );
+                rSerializer.save( "mE", mE );
+                rSerializer.save( "mNU", mNU );
             }
 
             virtual void load( Serializer& rSerializer )
             {
                 KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
-                rSerializer.load( "E", mE );
-                rSerializer.load( "NU", mNU );
-                rSerializer.load( "DE", mDE );
-                rSerializer.load( "InSituStress", mInSituStress );
-                rSerializer.load( "Ctangent", mCtangent );
+                rSerializer.load( "Prestress", mPrestress );
+                rSerializer.load( "PrestressFactor", mPrestressFactor );
                 rSerializer.load( "CurrentStress", mCurrentStress );
-                rSerializer.load( "MaterialParameters", mMaterialParameters );
+                rSerializer.load( "mE", mE );
+                rSerializer.load( "mNU", mNU );
             }
 
             /**
              * Static Member Variables
              */
+
+            /**
+             * Calculates the stresses for given strain state
+             * @param StrainVector the current vector of strains
+             * @param rResult the stress vector corresponding to the given strains
+             */
+            void CalculateStress( const Vector& StrainVector, Matrix& AlgorithmicTangent, Vector& rResult );
 
             /**
              * calculates the linear elastic constitutive matrix in terms of Young's modulus and
@@ -295,11 +276,10 @@ namespace Kratos
              */
             void CalculateElasticMatrix( Matrix& C, const double E, const double NU );
 
-            double mE, mNU, mDE;
-            Vector mInSituStress;
-            Matrix mCtangent;
+            Vector mPrestress;
+            double mPrestressFactor;
             Vector mCurrentStress;
-            Vector mMaterialParameters;
+            double mE, mNU;
 
             /**
              * Un accessible methods
