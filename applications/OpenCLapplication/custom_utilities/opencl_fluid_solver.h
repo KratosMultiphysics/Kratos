@@ -55,16 +55,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#define SPLIT_OSS
 #define SYMM_PRESS
 
-
 // System includes
 #include <string>
 #include <iostream>
 #include <algorithm>
 
-
 // External includes
-
-
 // Project includes
 #include "includes/model_part.h"
 
@@ -189,7 +185,9 @@ namespace Kratos
 
         ~OpenCLFluidSolver3D()
         {
-			// Nothing to do!
+            delete mLinearSolverOptimizationParameters;
+			delete mCGSolver;
+
         }
 
         //
@@ -201,9 +199,17 @@ namespace Kratos
         {
             KRATOS_TRY
 
+//            for (ModelPart::NodesContainerType::iterator it = mr_model_part.Nodes().begin(); it != mr_model_part.Nodes().end(); it++)
+//            {
+//                std::cout << it->Id() << " " << it->GetValue(NEIGHBOUR_NODES).size() <<std::endl;
+//            }
+
             // Get no. of nodes and edges
             n_nodes = mr_model_part.Nodes().size();
             n_edges = mr_matrix_container.GetNumberEdges();
+
+            dp.resize(n_nodes);
+            rhs.resize(n_nodes);
 
             // TODO: Check if these are all needed
 
@@ -230,11 +236,12 @@ namespace Kratos
             AllocateArray(&mBeta, n_nodes);
             AllocateArray(&mdiv_error, n_nodes);
 
-            // Allocating lists
+            // RHS
+            //AllocateArray(&mrhs, n_nodes);  // TODO: It seems that this is not needed
 
+            // Allocating lists
             // TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
             // TODO: Decide where to copy these lists to GPU
-
             AllocateArray(&mSlipNormal, n_nodes);
 
             AllocateArray(&mSlipBoundaryList, n_nodes);
@@ -243,9 +250,11 @@ namespace Kratos
 
             AllocateArray(&mFixedVelocitiesValuesList, n_nodes);
 
+
             AllocateArray(&medge_nodesList, n_nodes);
             AllocateArray(&medge_nodes_directionList, n_nodes);
             AllocateArray(&mcorner_nodesList, n_nodes);
+
 
             // Allocating buffers on OpenCL device
             mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
@@ -284,6 +293,7 @@ namespace Kratos
 
             mbFixedVelocitiesValuesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
 
+
             mbedge_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_uint), CL_MEM_READ_WRITE);
             mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
             mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_uint), CL_MEM_READ_WRITE);
@@ -298,6 +308,7 @@ namespace Kratos
             medge_nodesListLength = 0;
             medge_nodes_directionListLength = 0;
             mcorner_nodesListLength = 0;
+
 
             mr_matrix_container.SetToZero(mbdiv_error);
 
@@ -332,6 +343,9 @@ namespace Kratos
                         KRATOS_ERROR(std::logic_error, "Velocities can be either all fixed or none fixed", "")
                     }
 
+                    // TODO: Is this OK?
+                    //mFixedVelocities.push_back(index);
+                    //mFixedVelocitiesValues.push_back(mvel_n1[index]);
                     mFixedVelocitiesList[mFixedVelocitiesListLength] = index;
                     mFixedVelocitiesValuesList[mFixedVelocitiesListLength] = mvel_n1[index];
                     mFixedVelocitiesListLength++;
@@ -339,6 +353,8 @@ namespace Kratos
 
                 if (inode -> IsFixed(PRESSURE))
                 {
+                    // TODO: Is this OK?
+                    //mPressureOutletList.push_back(index);
                     mPressureOutletList[mPressureOutletListLength] = index;
                     mPressureOutletListLength++;
                 }
@@ -354,6 +370,15 @@ namespace Kratos
             unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
 
             mL.resize(n_nodes, n_nodes, n_nonzero_entries);
+
+            // Allocate memory for variables
+            mLRowIndices = mrDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLColumnIndices = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLValues = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_double), CL_MEM_READ_ONLY);
+
+            rhs_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+            dp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+            temp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
 
             // TODO: May we assume that the graph of mL is the same as the graph of mr_matrix_container? What does the flag do?
 
@@ -391,15 +416,6 @@ namespace Kratos
                 }
             }
 
-            // Allocate memory for variables
-            mLRowIndices = mrDeviceGroup.CreateBuffer((mL.size1() + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
-            mLColumnIndices = mrDeviceGroup.CreateBuffer(mL.nnz() * sizeof(cl_uint), CL_MEM_READ_ONLY);
-            mLValues = mrDeviceGroup.CreateBuffer(mL.nnz() * sizeof(cl_double), CL_MEM_READ_ONLY);
-
-            rhs_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
-            dp_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
-            temp_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
-
             // Copy mL to GPU
             mrDeviceGroup.CopyBuffer(mLRowIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index1_data()[0]));
             mrDeviceGroup.CopyBuffer(mLColumnIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index2_data()[0]));
@@ -410,7 +426,6 @@ namespace Kratos
 			mLinearSolverOptimizationParameters->OptimizeSpMV(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
 
 			mCGSolver = new OpenCL::CGSolver(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
-
             // Compute minimum length of the surrounding edges
             CalculateEdgeLengths(mr_model_part.Nodes());
 
@@ -517,8 +532,8 @@ namespace Kratos
 
             unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Why firstprivate? //mFixedVelocities.size();
 
-#pragma omp parallel for firstprivate(fixed_size)
-            for (unsigned int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
+		#pragma omp parallel for firstprivate(fixed_size)
+            for ( int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
             {
                 unsigned int i_node = mFixedVelocitiesList[i_velocity];
                 mFixedVelocitiesValuesList[i_velocity] = mvel_n1[i_node];
@@ -1161,10 +1176,7 @@ namespace Kratos
 
             mBeta.clear();
 
-            mdiv_error.clear();
-
-            delete mLinearSolverOptimizationParameters;
-			delete mCGSolver;*/
+            mdiv_error.clear();*/
 
             KRATOS_CATCH("")
         }
@@ -1189,7 +1201,7 @@ namespace Kratos
         cl_uint mkComputeScalingCoefficients, mkApplyScaling, mkApplyInverseScaling;
         cl_double mbscaling_factors;
 
-        //Vector rhs, dp;
+        Vector rhs, dp;
 
         // Matrix container
         OpenCLMatrixContainer &mr_matrix_container;
