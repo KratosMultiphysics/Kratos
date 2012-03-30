@@ -14,7 +14,6 @@ mossaiby@yahoo.com
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
 
-
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
 "Software"), to  deal in  the Software without  restriction, including
@@ -47,8 +46,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 1.00 $
 //
 //
-
-
 #if !defined(KRATOS_OPENCL_EDGE_DATA_H_INCLUDED)
 #define KRATOS_OPENCL_EDGE_DATA_H_INCLUDED
 
