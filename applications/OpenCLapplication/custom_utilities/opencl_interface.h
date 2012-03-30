@@ -85,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // Path handling stuff
 
-#if defined(WINDOWS)
+#if defined(_WIN64) || defined(_WIN32) || defined(WIN64) 
 	#include <direct.h>
 	#define GETCWD _getcwd
 	#define PATH_SEPARATOR '\\'
