@@ -342,12 +342,12 @@ namespace Kratos
 					if (evaluateInParallel )
 					{
 					    std::cout <<"...Parallel optimizing by Node. Iteration : "<< iter <<"\n";
-						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
+						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),diedralAngle);   
 					}
 					else
 					{
 					   std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
-					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,diedralAngle);
 					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
@@ -367,13 +367,13 @@ namespace Kratos
 					if (evaluateInParallel )
 					{
 						std::cout <<"...Parallel optimizing by Edge. Iteration : "<< iter <<"\n";
-						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),vrelaxQuality);  
+						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),diedralAngle);  
 						std::cout <<"...End. Iteration : "<< iter <<"\n";
 					}
 					else
 					{
 					    std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
-						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
+						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,diedralAngle);
 					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
