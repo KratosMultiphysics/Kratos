@@ -68,7 +68,8 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-
+		int maxNumThreads ;
+		int blockSize ;
 		/// Pointer definition of TetrahedraReconnectUtility
 		KRATOS_CLASS_POINTER_DEFINITION(TetrahedraReconnectUtility);
 
@@ -88,6 +89,9 @@ namespace Kratos
 			// Convert to inner format
 			innerConvertFromKratos(r_model_part , m );
 			refMP = r_model_part;
+
+			maxNumThreads = 16;
+			blockSize = 2048;
 		
 		}
 
@@ -298,7 +302,15 @@ namespace Kratos
 		///@param evaluateInParallel boolean Activate/Deactivate parallel processing mode
 		///@param reinsertNodes boolean Activate/Deactivate to try re inserting removed nodes
 		
+		void setMaxNumThreads(int mxTh)
+		{
+			maxNumThreads = mxTh;
+		}
 
+		void setBlockSize(int bs)
+		{
+			maxNumThreads = bs;
+		}
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
 			bool saveToFile, bool removeFreeVertexes ,
@@ -317,7 +329,7 @@ namespace Kratos
 				EvaluateQuality();
 			
 			std::cout <<"...Start Optimization..." <<"\n";	
-			OpenMPUtils::SetNumThreads(4);
+			OpenMPUtils::SetNumThreads(maxNumThreads);
 			if (evaluateInParallel)
 			{
 				std::cout <<"Number of active threads"<< OpenMPUtils::GetNumThreads() <<"\n";
@@ -581,7 +593,10 @@ namespace Kratos
 
 	/// input stream function
 	inline std::istream& operator >> (std::istream& rIStream,
-		TetrahedraReconnectUtility& rThis) {}
+		TetrahedraReconnectUtility& rThis) 
+	{
+	   return rIStream;
+	}
 
 	/// output stream function
 	inline std::ostream& operator << (std::ostream& rOStream,

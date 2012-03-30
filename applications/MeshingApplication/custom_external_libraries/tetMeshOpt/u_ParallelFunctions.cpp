@@ -260,7 +260,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
 }
 
 
-void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
+void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc , int blockSize)
 {  
 	int	iv ,i ,nsimCh;
 	TList<TObject*> *inspectedElements, *vRes;
@@ -268,7 +268,7 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	TList<TObject*> * resultedClusters; 
 	TVertex *inspVertex ; 
 	// Tamaño maximo de procesos simultaneos
-	nsimCh = 2048;
+	nsimCh = blockSize;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));
@@ -353,14 +353,14 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 }
 
 
-void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
+void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc, int blockSize )
 {  
 	int	iv ,i ,nsimCh;
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
 	// Tamaño maximo de procesos simultaneos
-	nsimCh = 2048;
+	nsimCh = blockSize;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));

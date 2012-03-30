@@ -146,6 +146,8 @@ void AddCustomUtilitiesToPython()
 	.def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
 	.def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
 	.def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
+	.def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
+	.def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
     ;
 }
 } // namespace Python.
