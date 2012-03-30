@@ -78,21 +78,6 @@ namespace Kratos
 
 namespace OpenCL
 {
-
-	//
-	// Timer
-	//
-	// Returns system timer in nano-seconds
-
-	int64_t Timer()
-	{
-		struct timespec tp;
-
-		clock_gettime(CLOCK_MONOTONIC, &tp);
-
-		return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
-	}
-
 	//
 	// BenchmarkDevice
 	//
