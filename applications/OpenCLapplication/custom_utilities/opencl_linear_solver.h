@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "opencl_interface.h"
 
+
 #if defined(_WIN64) || defined(_WIN32) || defined(WIN64) 
    #include <windows.h>
    typedef  __int64 int64_t;
