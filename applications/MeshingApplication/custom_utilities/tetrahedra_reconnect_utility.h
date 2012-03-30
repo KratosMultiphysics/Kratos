@@ -309,7 +309,7 @@ namespace Kratos
 
 		void setBlockSize(int bs)
 		{
-			maxNumThreads = bs;
+			blockSize = bs;
 		}
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
