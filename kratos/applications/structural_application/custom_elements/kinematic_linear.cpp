@@ -557,8 +557,14 @@ namespace Kratos
             rMassMatrix.resize( MatSize, MatSize, false );
 
         rMassMatrix = ZeroMatrix( MatSize, MatSize );
-
-        double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];;
+        
+        double TotalMass = 0.0;
+        if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
+        {
+            TotalMass = mTotalDomainInitialSize * GetValue(DENSITY);
+        }
+        else
+            TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 
         if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
@@ -756,10 +762,18 @@ namespace Kratos
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
         Vector gravity( dim );
-
-        noalias( gravity ) = GetProperties()[GRAVITY];
-
-        double density = GetProperties()[DENSITY];
+        
+        double density = 0.0;
+        if( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            noalias( gravity ) = GetValue(GRAVITY);
+            density = GetValue(DENSITY);
+        }
+        else
+        {
+            noalias( gravity ) = GetProperties()[GRAVITY];
+            density = GetProperties()[DENSITY];
+        }
 
         for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
         {
@@ -1135,7 +1149,6 @@ namespace Kratos
 
     void KinematicLinear::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
     {
-        mConstitutiveLawVector.clear();
         if ( rVariable == CONSTITUTIVE_LAW )
         {
             for ( unsigned int i = 0; i < rValues.size(); i++ )
