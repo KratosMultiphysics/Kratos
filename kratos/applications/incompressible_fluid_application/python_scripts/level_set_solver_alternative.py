@@ -1,7 +1,7 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosConvectionDiffusionApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
+CheckForPreviousImport()
 
 def AddVariables(base_model_part):
     base_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

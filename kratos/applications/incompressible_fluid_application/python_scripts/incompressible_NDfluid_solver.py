@@ -1,6 +1,7 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.MeshingApplication import *
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
