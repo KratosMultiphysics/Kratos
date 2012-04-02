@@ -3,6 +3,7 @@
 #include <iostream>
 #include <vector>
 #include <stdlib.h>
+#include <omp.h>
 #include "u_Types.h"
 #include "u_MeshLoaders.h"
 #include "u_TetraFunctions.h"
@@ -18,7 +19,9 @@ int main (int argc, char* argv[])
 {
 
 	TMeshLoader* ml = new TVMWLoader();
-	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/cavityMesh_0_01.vwm"));   
+	
+	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/f1_tetgen_mesh.vwm"));   
+	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/cavityMesh_0_00_600k.vwm"));   
 	TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/posDoc/kratosProof.vwm"));   
 	//TVolumeMesh* m = (TVolumeMesh*)(ml->load("d:/out_MeshFromKratos0.vwm"));   
 	
@@ -52,29 +55,34 @@ int main (int argc, char* argv[])
 	cout <<"...Initial Mesh quality" <<"\n"; 
 	qt->refresh();   qt->print();
 	cout <<".............................................." <<"\n"; 
-	
+	omp_set_num_threads(16);
 	startProcess("Mesh evaluation");
-	//stopTimers();
+	stopTimers();
 	//ParallelEvaluateClusterByNode(m,vrelaxQuality);   
-	for (int i=0 ;i<2 ; i++)
+	for (int i=0 ;i<3 ; i++)
 	{
 		cout <<"--------- ITERATION "<< i <<"--------------------"<<"\n"; 
-		cout <<"...Parallel Optimizing by Edge" <<"\n"; 
-		ParallelEvaluateClusterByEdge(m,vrelaxQuality);
-		cout <<"...Optimizing by Node" <<"\n"; 
-		//evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
-		cout <<"...Optimizing by Edge" <<"\n"; 
-		//evaluateClusterByEdge(m,50000, vrelaxQuality);
-		cout <<"...Optimizing by Face" <<"\n"; 
-		//evaluateClusterByFace(m,50000, vrelaxQuality);
 		cout <<"...Parallel Optimizing by Node" <<"\n"; 
 		//ParallelEvaluateClusterByNode(m,vrelaxQuality);
 
+		cout <<"...Parallel Optimizing by Face" <<"\n"; 
+		//ParallelEvaluateClusterByFace(m,vrelaxQuality);
 
-		qt->refresh();   qt->print();
-		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
-		m->validate(true);
-		std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
+		cout <<"...Parallel Optimizing by Edge" <<"\n"; 
+		//ParallelEvaluateClusterByEdge(m,vrelaxQuality);
+		cout <<"...Optimizing by Node" <<"\n"; 
+		evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
+		cout <<"...Optimizing by Edge" <<"\n"; 
+		evaluateClusterByEdge(m,50000, vrelaxQuality);
+		cout <<"...Optimizing by Face" <<"\n"; 
+		evaluateClusterByFace(m,50000, vrelaxQuality);
+		
+		
+
+		//qt->refresh();   qt->print();
+		//m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		
+		//m->validate(true);
+		//std :: cout<< " Number of faces" << m->fFaces->Count()<<"\n";
 		/*
 		
 		m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);		

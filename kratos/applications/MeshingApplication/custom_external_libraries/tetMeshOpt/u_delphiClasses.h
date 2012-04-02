@@ -25,6 +25,7 @@ class TObject
 public :	
 	TObject();
 	void free();
+	~TObject();
 };
 
 typedef bool (*SortFunction) (TObject *a, TObject *b);
@@ -48,11 +49,13 @@ public :
 	TList(bool ommitNULLSwhenAdd = true)  
 	{  
 		this->ommitNULLSwhenAdd = ommitNULLSwhenAdd;
-		this->keepOrder = true;
+		this->keepOrder = false;
 	}
 	~TList()
 	{
+		
 		this->Clear();
+		
 	}
 
 	void PackKeepingOrder()

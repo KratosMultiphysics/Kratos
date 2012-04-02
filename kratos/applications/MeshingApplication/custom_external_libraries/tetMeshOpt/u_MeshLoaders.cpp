@@ -320,7 +320,7 @@ bool TElementTetraLoader::save(const char* aMeshName, TMesh* aMesh )
 		v = m->vertexes->elementAt(i);
 		s = intToString(v->id) + " ";
 
-		v->getVertexNeighboursByElem(lneigh);    
+		//v->getVertexNeighboursByElem(lneigh);    
 
 		for (j = 0 ; j<lneigh->Count() ; j++)
 		{

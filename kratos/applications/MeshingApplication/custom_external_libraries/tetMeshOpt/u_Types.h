@@ -12,7 +12,6 @@
 #define KEEP_ORIG_IDS  2
 
 #define KRATOS
-
 typedef char* String;
 // Solution using a typedef: Define a pointer to a function which is taking
 // two floats and returns a float
@@ -24,6 +23,7 @@ const  int TTetraFaces[] = {0,1,2, // Face 0
 	1,3,2 }; // Face 3]
 
 bool sortByID(TObject* i, TObject* j);
+bool sortByQuality(TObject* i, TObject* j);
 
 struct  object
 {
@@ -65,6 +65,7 @@ public:
 	void calcNormal();
 	float4 pos();
 	TList<TObject*> *getVertexNeighboursByElem(TList<TObject*> *toL = NULL , int depth = 1, int avoidLowerIds = false);			 
+
 	TList<TObject*>* getVertexNeighboursByTriangle(TList<TObject*>* toL = NULL , int depth = 1);
 };
 
@@ -213,6 +214,7 @@ public :
 	void releaseInstance(TVertex *v);
 	void releaseMemmory();
 };
+
 
 class TMesh
 {
@@ -367,9 +369,4 @@ public:
 		v->isdestroyed = true;
 	};
 };
-
-
-
-
-
 

@@ -339,7 +339,21 @@ double diedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 	return MinValue( d,6);
 }
 
+
+double signeddiedralAngle(TVertex* vertexes[])
+{
+	double di = diedralAngle(vertexes[0]->fPos,vertexes[1]->fPos,vertexes[2]->fPos,vertexes[3]->fPos);
+	double v = tetraVolume(vertexes[0]->fPos,vertexes[1]->fPos,vertexes[2]->fPos,vertexes[3]->fPos);
+	if (v<0) 
+	  return -di;
+	else
+		return di;
+
+}
+
 double diedralAngle(TVertex* vertexes[])
 {
-	return diedralAngle(vertexes[0]->fPos,vertexes[1]->fPos,vertexes[2]->fPos,vertexes[3]->fPos);
+	double di = diedralAngle(vertexes[0]->fPos,vertexes[1]->fPos,vertexes[2]->fPos,vertexes[3]->fPos);
+	return di;
+
 }
