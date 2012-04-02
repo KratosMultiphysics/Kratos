@@ -3,8 +3,6 @@
 #import the configuration data as read from the GiD
 import ProjectParameters
 
-
-
 def PrintResults(model_part):
     print "Writing results. Please run Gid for viewing results of analysis."
     for variable_name in ProjectParameters.nodal_results:
@@ -24,40 +22,18 @@ def BenchmarkCheck(time, node1, node2):
     benchmarking.Output(node2.GetSolutionStepValue(VELOCITY_X), "Test node 2 velocity x", None, 0.01)
 
 ##################################################################
-##################################################################
-#setting the domain size for the problem to be solved
 domain_size = ProjectParameters.domain_size
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
-kratos_benchmarking_path    = ProjectParameters.kratos_path + '/benchmarking' ##kratos_root/benchmarking
+kratos_path = '../../../..'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
-applications_interface.Import_FluidDynamicsApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
-from KratosFluidDynamicsApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 import benchmarking
 
