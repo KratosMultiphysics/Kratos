@@ -1,7 +1,12 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplicatio import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
+#from Kratos import *
+#from KratosIncompressibleFluidApplication import *
+#from KratosPFEMApplication import *
 ##from KratosExternalSolversApplication import *
 #from KratosStructuralApplication import *
 
@@ -95,7 +100,7 @@ class MonolithicSolver:
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
         #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
-        self.max_iter = 5
+        self.max_iter = 10
                             
         #default settings
         self.echo_level = 0
