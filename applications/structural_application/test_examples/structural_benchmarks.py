@@ -11,69 +11,69 @@ def Run():
 
         ################################################################
 
-	Text += "Patch_Test_Total_Lagrangian_3D_8N: "
-	os.chdir("Patch_Test_Total_Lagrangian_3D_8N.gid")
-	sys.path.append(os.getcwd())
+	#Text += "Patch_Test_Total_Lagrangian_3D_8N: "
+	#os.chdir("Patch_Test_Total_Lagrangian_3D_8N.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Running Patch_Test_Total_Lagrangian_3D_8N..."
-	Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py", "Patch_Test_Total_Lagrangian_3D_8N.txt")	
+	#print "Running Patch_Test_Total_Lagrangian_3D_8N..."
+	#Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py", "Patch_Test_Total_Lagrangian_3D_8N.txt")	
 	
-	if (Msg == True):
-		Text += "OK\n"
-		print "Patch_Test_Total_Lagrangian_3D_8N_benchmarking example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "Patch_Test_Total_Lagrangian_3D_8N_benchmarking example succesful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "Patch_Test_Total_Lagrangian_3D_8N_benchmarking.py example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 	
 
         ################################################################
 
 
-	Text += "Patch_Test_Total_Lagrangian_4N: "
-	os.chdir("Patch_Test_Total_Lagrangian_4N.gid")
-	sys.path.append(os.getcwd())
+	#Text += "Patch_Test_Total_Lagrangian_4N: "
+	#os.chdir("Patch_Test_Total_Lagrangian_4N.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Running Patch_Test_Total_Lagrangian_4N..."
-	Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_4N_benchmarking.py", "Patch_Test_Total_Lagrangian_4N.txt")	
+	#print "Running Patch_Test_Total_Lagrangian_4N..."
+	#Msg = benchmarking.RunBenchmark("Patch_Test_Total_Lagrangian_4N_benchmarking.py", "Patch_Test_Total_Lagrangian_4N.txt")	
 	
-	if (Msg == True):
-		Text += "OK\n"
-		print "Patch_Test_Total_Lagrangian_4N_benchmarking example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "Patch_Test_Total_Lagrangian_4N_benchmarking.py example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "Patch_Test_Total_Lagrangian_4N_benchmarking example succesful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "Patch_Test_Total_Lagrangian_4N_benchmarking.py example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 
         
         ################################################################
 
 
-	Text += "cantilever2dstatic_superlu: "
-	os.chdir("cantilever2d.gid")
-	sys.path.append(os.getcwd())
+	#Text += "cantilever2dstatic_superlu: "
+	#os.chdir("cantilever2d.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Running cantilever2dstatic_superlu..."
-	Msg = benchmarking.RunBenchmark("cantilever2dstatic_superlu_benchmarking.py", "cantilever2dstatic_superlu.txt")	
+	#print "Running cantilever2dstatic_superlu..."
+	#Msg = benchmarking.RunBenchmark("cantilever2dstatic_superlu_benchmarking.py", "cantilever2dstatic_superlu.txt")	
 	
-	if (Msg == True):
-		Text += "OK\n"
-		print "cantilever2dstatic_superlu example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "cantilever2dstatic_superlu example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "cantilever2dstatic_superlu example succesful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "cantilever2dstatic_superlu example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 
         ################################################################
@@ -99,66 +99,66 @@ def Run():
 
         ################################################################
 
-	Text += "cantilever2dstatic_parallel_pardiso: "
-	os.chdir("cantilever2d.gid")
-	sys.path.append(os.getcwd())
+	#Text += "cantilever2dstatic_parallel_pardiso: "
+	#os.chdir("cantilever2d.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Running cantilever2dstatic_parallel_pardiso..."
-	Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_pardiso_benchmarking.py", "cantilever2dstatic_superlu.txt")	
+	#print "Running cantilever2dstatic_parallel_pardiso..."
+	#Msg = benchmarking.RunBenchmark("cantilever2dstatic_parallel_pardiso_benchmarking.py", "cantilever2dstatic_superlu.txt")	
 	
-	if (Msg == True):
-		Text += "OK\n"
-		print "cantilever2dstatic_parallel_pardiso example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "cantilever2dstatic_parallel example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "cantilever2dstatic_parallel_pardiso example succesful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "cantilever2dstatic_parallel example FAILED"
 
-	os.chdir("..")
-
-
-        ################################################################
-
-	Text += "balken contact benchmark: "
-	os.chdir("balken.gid")
-	sys.path.append(os.getcwd())
-
-	print "Running balken contact benchmark..."
-	Msg = benchmarking.RunBenchmark("balken_benchmarking.py","balken_ref.txt")
-
-	if (Msg == True):
-		Text += "OK\n"
-		print "balken contact benchmark example successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "balken contact benchmark example FAILED"
-
-	os.chdir("..")
+	#os.chdir("..")
 
 
         ################################################################
 
+	#Text += "balken contact benchmark: "
+	#os.chdir("balken.gid")
+	#sys.path.append(os.getcwd())
 
-	Text += "arc length desplacement benchmark: "
-	os.chdir("arc_length_des.gid")
-	sys.path.append(os.getcwd())
+	#print "Running balken contact benchmark..."
+	#Msg = benchmarking.RunBenchmark("balken_benchmarking.py","balken_ref.txt")
 
-	print "Running arc length desplacement  benchmark..."
-	Msg = benchmarking.RunBenchmark("arc_length_des_benchmarking.py","arc_length_des_benchmarking.txt")
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "balken contact benchmark example successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "balken contact benchmark example FAILED"
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "arc_length_des benchmark example successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "arc_length_des benchmark example FAILED"
+	#os.chdir("..")
 
-	os.chdir("..")
+
+        ################################################################
+
+
+	#Text += "arc length desplacement benchmark: "
+	#os.chdir("arc_length_des.gid")
+	#sys.path.append(os.getcwd())
+
+	#print "Running arc length desplacement  benchmark..."
+	#Msg = benchmarking.RunBenchmark("arc_length_des_benchmarking.py","arc_length_des_benchmarking.txt")
+
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "arc_length_des benchmark example successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "arc_length_des benchmark example FAILED"
+
+	#os.chdir("..")
 
 
         ################################################################
@@ -185,80 +185,80 @@ def Run():
 
         ################################################################
 
-	Text += "Pendulo Kratos Length benchmark: "
-	os.chdir("Pendulo_Kratos.gid")
-	sys.path.append(os.getcwd())
+	#Text += "Pendulo Kratos Length benchmark: "
+	#os.chdir("Pendulo_Kratos.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Pendulo Kratos Length benchmark..."
-	Msg = benchmarking.RunBenchmark("Pendulo_Kratos_benchmarking.py","Pendulo_Kratos_benchmarking.txt")
+	#print "Pendulo Kratos Length benchmark..."
+	#Msg = benchmarking.RunBenchmark("Pendulo_Kratos_benchmarking.py","Pendulo_Kratos_benchmarking.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "Pendulo Kratos benchmark example successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "Pendulo Kratos benchmark example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "Pendulo Kratos benchmark example successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "Pendulo Kratos benchmark example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 
         ################################################################
 
-	Text += "PlasticitJ2 with EBST collection benchmarks: "
-	os.chdir("plasticJ2.gid")
-	sys.path.append(os.getcwd())
+	#Text += "PlasticitJ2 with EBST collection benchmarks: "
+	#os.chdir("plasticJ2.gid")
+	#sys.path.append(os.getcwd())
 
-	print "PlasticitJ2 with EBST TENSION benchmarks..."
-	Msg = benchmarking.RunBenchmark("tension.py","tension_ref.txt")
+	#print "PlasticitJ2 with EBST TENSION benchmarks..."
+	#Msg = benchmarking.RunBenchmark("tension.py","tension_ref.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "PlasticitJ2 with EBST TENSION benchmarks successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "PlasticitJ2 with EBST TENSION benchmarks FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "PlasticitJ2 with EBST TENSION benchmarks successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "PlasticitJ2 with EBST TENSION benchmarks FAILED"
 
-	print "PlasticitJ2 with EBST TORSION benchmarks..."
-	Msg = benchmarking.RunBenchmark("torsion.py","torsion_ref.txt")
+	#print "PlasticitJ2 with EBST TORSION benchmarks..."
+	#Msg = benchmarking.RunBenchmark("torsion.py","torsion_ref.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "PlasticitJ2 with EBST TORSION benchmarks successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "PlasticitJ2 with EBST TORSION benchmarks FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "PlasticitJ2 with EBST TORSION benchmarks successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "PlasticitJ2 with EBST TORSION benchmarks FAILED"
 
-	print "PlasticitJ2 with EBST VERTICAL benchmarks..."
-	Msg = benchmarking.RunBenchmark("vertical.py","vertical_ref.txt")
+	#print "PlasticitJ2 with EBST VERTICAL benchmarks..."
+	#Msg = benchmarking.RunBenchmark("vertical.py","vertical_ref.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "PlasticitJ2 with EBST VERTICAL benchmarks successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "PlasticitJ2 with EBST VERTICAL benchmarks FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "PlasticitJ2 with EBST VERTICAL benchmarks successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "PlasticitJ2 with EBST VERTICAL benchmarks FAILED"
 
-	print "PlasticitJ2 with EBST FORCE benchmarks..."
-	Msg = benchmarking.RunBenchmark("force.py","force_ref.txt")
+	#print "PlasticitJ2 with EBST FORCE benchmarks..."
+	#Msg = benchmarking.RunBenchmark("force.py","force_ref.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "PlasticitJ2 with EBST FORCE benchmarks successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "PlasticitJ2 with EBST FORCE benchmarks FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "PlasticitJ2 with EBST FORCE benchmarks successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "PlasticitJ2 with EBST FORCE benchmarks FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
         ################################################################
 
