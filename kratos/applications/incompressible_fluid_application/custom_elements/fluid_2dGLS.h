@@ -235,7 +235,9 @@ namespace Kratos
         ///@}
         ///@name Member Variables
         ///@{
-
+	IntegrationMethod mThisIntegrationMethod;
+        std::vector< Matrix > mInvJ0;
+        Vector mDetJ0;
 
 
         ///@}
