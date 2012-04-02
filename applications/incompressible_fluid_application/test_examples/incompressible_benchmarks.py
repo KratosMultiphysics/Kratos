@@ -228,6 +228,49 @@ def Run():
 
 	os.chdir("..")
 
+	################################################################
+	# StillWater_Edgebased
+
+	Text += "StillWater_Edgebased: "
+	os.chdir("StillWater_Edgebased.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running StillWater_Edgebased..."
+	Msg = benchmarking.RunBenchmark("StillWater_Edgebased_script.py", "StillWater_Edgebased_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "StillWater_Edgebased example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "StillWater_Edgebased example FAILED"
+
+	os.chdir("..")
+
+	################################################################
+	# StillWater_Edgebased_halfPorous
+
+	Text += "StillWater_Edgebased_halfPorous: "
+	os.chdir("StillWater_Edgebased_halfPorous.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running StillWater_Edgebased_halfPorous..."
+	Msg = benchmarking.RunBenchmark("StillWater_Edgebased_halfPorous_script.py", "StillWater_Edgebased_halfPorous_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "StillWater_Edgebased_halfPorous example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "StillWater_Edgebased_halfPorous example FAILED"
+
+	os.chdir("..")
+
+
         ################################################################
 	# cylinder
 
