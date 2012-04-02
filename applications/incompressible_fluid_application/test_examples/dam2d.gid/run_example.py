@@ -144,8 +144,6 @@ print back_node
 ###############################################################
 time = 0.0
 for step in range(0,nsteps):
-    print "line49"
-
     new_Dt = solver.EstimateDeltaTime(min_dt,max_dt)
 
     time = time + new_Dt*safety_factor
