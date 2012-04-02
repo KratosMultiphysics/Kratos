@@ -106,6 +106,8 @@ namespace Kratos
 	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
 	  typedef typename BaseType::TDataType TDataType;
+	  
+	  typedef TSparseSpace SparseSpaceType;
 
 	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 	  
@@ -171,14 +173,18 @@ namespace Kratos
 		        const double     penalty_factor, 
 			const bool       CalculateReactions,
 			const bool       ComputeContactConditions,
-			const bool       MoveMeshFlag
+			const bool       MoveMeshFlag,
+			typename         TLinearSolver::Pointer pNewLinearSolver,
+			typename         TSchemeType::Pointer pScheme,
+			typename         TBuilderAndSolverType::Pointer pNewBuilderAndSolver
 			)
+			
 	  : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 	      {
 		
-	        std::cout <<"DYNAMIC SOLVER ANALYSIS FOR COMBINED FINITE AND DISCRET ELEMENT METHODS "<< std::endl;
-                std::cout <<"TIME INTEGRATION METHOD  =  CENTRAL DIFFERENCES    "<< std::endl;
-                std::cout <<"IMPLEMENTED BY           =  ING. NELSON LAFONTAINE "<< std::endl;
+	        std::cout <<"DYNAMIC SOLVER ANALYSIS FOR FINITE ELEMENT METHODS"<< std::endl;
+                std::cout <<"TIME INTEGRATION METHOD  =  Central Differences    "<< std::endl;
+                std::cout <<"IMPLEMENTED BY           =  Ing. Nelson Lafontaine "<< std::endl;
 		
 		
 	        mdimension                 = dimension; 
@@ -191,10 +197,10 @@ namespace Kratos
                 mInitialConditions         = false;
                 mCalculateOldTime          = false;  
 	        mSolutionStepIsInitialized = false;
-		mSolutionStepIsInitialized = false;
 		mInitializeWasPerformed    = false;
 		mClearContactConditions    = false;
 		mLocalSearchInitialize     = false;
+		mComputeTime               = false;
 		minitial_conditions_size   = 0;
 		mcontact_conditions_size   = 0; 
 		mtimestep                  = 0.00;
@@ -204,15 +210,21 @@ namespace Kratos
 		if(mCE==Lagrange_Multiplier_Methods){
 		 mpLagrangianMultiplier     = typename ForwardIncrementLagrangeMultiplierScheme::Pointer (new ForwardIncrementLagrangeMultiplierScheme(model_part, mdimension) ); 
 		}
-	
+		
+		
+		mpLinearSolver       = pNewLinearSolver;
+		mpBuilderAndSolver   = pNewBuilderAndSolver;
+		mpScheme             = pScheme;
+		
+		
+		mpBuilderAndSolver->SetReshapeMatrixFlag(false);
+		
+		
 		mdamping_coeficients = false;
 		mdamping_ratio       = damping_ratio;
 		malpha_damp          = 0.00;
 		mbeta_damp           = 0.00; 
 		mpenalty_factor      = penalty_factor;
-		
-		mDTU.CreateJoints(model_part,mdimension);
-		
 	      }
 
 	  virtual ~ResidualBasedCentralDiferencesStrategy () {}
@@ -224,44 +236,68 @@ namespace Kratos
 double Solve() 
       {
 	KRATOS_TRY
-        std::cout<<std::fixed<<std::scientific<<std::setprecision(6);
+        std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
+        ModelPart& r_model_part              = BaseType::GetModelPart();
+	ConditionsArrayType& pConditions     = r_model_part.Conditions();
+	NodesArrayType& pNodes               = r_model_part.Nodes();
+	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
 	
 	#ifdef _OPENMP
 	double start_prod = omp_get_wtime();   
 	#endif
+	
+        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+        std::cout<<"                 KRATOS STRUCTURAL APPLICATION. TIME STEPS = "           << CurrentProcessInfo[TIME_STEPS]     <<std::endl;                                                    
+	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	std::cout<<"INITIALIZE SOLVE"<<std::endl;
 	
-	ModelPart& r_model_part              = BaseType::GetModelPart();
-	ConditionsArrayType& pConditions     = r_model_part.Conditions();
-
 	
-	
-	///Initializa los elementos y condiciones
+	///Inicializa los elementos y condiciones. Crea los elementos del Boundary y los Joints para Heuristic o DG
 	if(mInitializeWasPerformed == false){
-	  
-	  Initialize();
+	  DofsArrayType& rDofSet   = mpBuilderAndSolver->GetDofSet();    
 	  minitial_conditions_size = pConditions.size();
+	  mDTU.CreateJoints(r_model_part,mdimension);
+	  Initialize();
+	  mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size);
+          /*
+	  /// inicializndo la matrzi A
+	  int size                       =  pNodes.size() * mdimension;
+	  mpBuilderAndSolver->SetUpDofSet(mpScheme, BaseType::GetModelPart()); 
+	  mpBuilderAndSolver->SetUpSystem(BaseType::GetModelPart());
+	  TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
+          mpA.swap(pNewA);
+	  TSystemMatrixType& mA          = *mpA;
+	  mA.resize(size, size, false);	  
+	  /// Solo se crea una sola vez
+	  mpBuilderAndSolver->BuildLHS_Complete(mpScheme, r_model_part, mA); 
+	  */
 	}
-	
 	
 	
 	///Initialize solution step
-	if(mSolutionStepIsInitialized==false)
-	   InitializeSolutionStep();
+	InitializeSolutionStep();
+	
  
 	///Computa el tiempo critico 
-	ComputeCriticalTime();
-
+	/// poner t const
+	if(mComputeTime==false){
+	    ComputeCriticalTime();
+	    //mComputeTime = true;
+	}
+	
+        ///General Information of the model
+	//Infomation();
+	
 	if(mInitialConditions==false){
-	   minitial_conditions_size = pConditions.size();
 	   ComputeInitialConditions();
 	   GetForce();
 	}
+	
         /// Predict displacements
 	/// Computa el nuevo desplazamiento a partir de los pasos anteriores en n+1
 	ComputeIntermedialVelocityAndNewDisplacement();
 	
-
+         
 	
 	/// Computa los valores del paso de las velocidades y aceleraciones	
        ComputeOldVelocitiesAndAccelerations();
@@ -286,15 +322,17 @@ double Solve()
         ///Computing The new internal and external forces  for n+1 step
 	GetForce();
 	
+	
+	
 	/// Discontinum Mechanics
-	ComputeInterfaceForces();
+	//ComputeInterfaceForces();
 
 	
 	/// Fragmentation and fracture for DEM
 	//Heuristic_Formula(mDTU.Begin(), mDTU.End());
         
-	//WARNING = To be checked
-	//ComputeDampingForces();
+	///damping forces
+	ComputeDampingForces();
 	
 	/// Compute contact force and displacements correcions
 	/// realizando el bounding box
@@ -306,12 +344,13 @@ double Solve()
 	       //const bool rflag = false;
 	       //ResetFlagComputeBoundaryContour(rflag)
 	       //mpBCCU_Pointer->Clear(minitial_conditions_size); //CreateBoundaries(minitial_conditions_size); 
-	       mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size); /// lista de los elementos de contorno 
+	       //mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size); /// lista de los elementos de contorno 
 	       mpBCCU_Pointer->ComputeContactForce();
 	    }
 	    
 	    if(mCE==Lagrange_Multiplier_Methods)  
 	    {
+	    
  	    ConditionsContainerIterator end_previos;   
             ConditionsContainerIterator end_actual;
             mpBCCU_Pointer->CreateBoundaries(minitial_conditions_size);                                        /// Crea las superficies de contacto
@@ -323,8 +362,6 @@ double Solve()
  	       Update(end_previos,end_actual);  
 	    }
 	  }
-	  
-	FinalizeSolutionStep();
 	
 	if(mComputeContactConditions==true){   
 	    if(mCE==Lagrange_Multiplier_Methods)  
@@ -335,30 +372,49 @@ double Solve()
 	}
 	
 	
-	/// Computing energies
+	
+        ///Finalize solution step
+	FinalizeSolutionStep();
+	
+	///Computing energies
 	CalculateEnergies();
 
 	
 	#ifdef _OPENMP
 	double stop_prod = omp_get_wtime();
-	std::cout << "TIME SOLVING                   = "<<   stop_prod - start_prod    << "  SECONDS" << std::endl; 
+	std::cout << "  Time solving                                 = "<<   stop_prod - start_prod    << "  seconds" << std::endl; 
 	#endif
-	std::cout << "FINISHED SOLVE"<<std::endl;
+	std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
-	
 	KRATOS_CATCH("")
       }
 
 
 
+void Clear()
+{
+    KRATOS_TRY
+    TSystemVectorType& mDx = *mpDx;
+    SparseSpaceType::Clear(mpDx);
+    SparseSpaceType::Resize(mDx, 0);
+    
+    TSystemVectorType& mFint = *mpFint;
+    SparseSpaceType::Clear(mpFint);
+    SparseSpaceType::Resize(mFint, 0);
+    
+    //setting to zero the internal flag to ensure that the dof sets are recalculated
+    mpBuilderAndSolver->SetDofSetIsInitializedFlag(false);
+    KRATOS_CATCH("");
+}
+
 void ComputeDampingForces()
 {
    ComputeViscousDampingForces();
+   ComputeNonViscousDampingForces();
 }
 
 void ComputeViscousDampingForces()
 {
-   ComputeDampingForcesWithMass();
    ComputeDampingForcesWithStiffness();
 }
 
@@ -369,7 +425,7 @@ void ComputeNonViscousDampingForces()
   KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
-      //ElementsArrayType& pNodes        = r_model_part.Nodes(); ///  WARNING
+      NodesArrayType& pNodes           = r_model_part.Nodes(); 
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -378,108 +434,28 @@ void ComputeNonViscousDampingForces()
        #endif
 
       vector<unsigned int> nodes_partition;
-      CreatePartition(number_of_threads, r_model_part.Nodes().size(), nodes_partition);
+      CreatePartition(number_of_threads, pNodes.size(), nodes_partition);
 
-      const double damp  = 0.00;
+      const double damp  = mdamping_ratio;
       array_1d<double, 3> DampingForces;
-      
-      typename NodesArrayType::iterator vec_begin = r_model_part.Nodes().ptr_begin();
-
-      #pragma omp parallel for private(DampingForces) 
+      array_1d<double,3>  rhs_aux;
+      #pragma omp parallel for private(rhs_aux,DampingForces) 
       for(int k=0; k<number_of_threads; k++)
       {
-	typename NodesArrayType::iterator it_begin= vec_begin + nodes_partition[k];
-	typename NodesArrayType::iterator it_end= vec_begin  + nodes_partition[k+1];
+	typename NodesArrayType::iterator it_begin=pNodes.ptr_begin()+ nodes_partition[k];
+	typename NodesArrayType::iterator it_end=pNodes.ptr_begin()  + nodes_partition[k+1];
 	for (NodesArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  {
-	      array_1d<double,3>& rhs = it->FastGetSolutionStepValue(RHS); 
-	      array_1d<double,3>& Vel = it->FastGetSolutionStepValue(VELOCITY); 
-	      noalias(DampingForces)  = -(damp * norm_2(rhs) / norm_2(Vel) ) * Vel;
-              noalias(rhs) += DampingForces;
+	      rhs_aux                       = it->FastGetSolutionStepValue(RHS);
+	      array_1d<double,3> rhs        = it->FastGetSolutionStepValue(RHS);
+	      const array_1d<double,3>& Vel = it->FastGetSolutionStepValue(VELOCITY); 
+	      noalias(DampingForces)        = (damp * norm_2(rhs_aux) / norm_2(Vel) ) * Vel;
+	      noalias(rhs)                  = rhs_aux + DampingForces;
 	  }  
 	}
 	    KRATOS_CATCH("")
     }
  
-
-
-
-void ComputeDampingForcesWithMass()
-{
-  
-    KRATOS_TRY
-      ModelPart& r_model_part          = BaseType::GetModelPart();
-      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
-      ElementsArrayType& pElements     = r_model_part.Elements(); 
-
-      #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-      #else
-      int number_of_threads = 1;
-       #endif
-
-      vector<unsigned int> element_partition;
-      CreatePartition(number_of_threads, pElements.size(), element_partition);
-
-      unsigned int index = 0; 
-      unsigned int dim_2 = 0; 
-      Matrix rLeftHandSideMatrix;
-      Vector rRightHandSideVector;
-      Vector Velocities;
-      
-      #pragma omp parallel for private(index, dim_2, rLeftHandSideMatrix,Velocities, rRightHandSideVector) 
-      for(int k=0; k<number_of_threads; k++)
-      {
-	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	  {
-	    /// Las fuerzas de contacto a los elementos que estan en contacto
-	    if((it)->GetValue(IS_TARGET)==true)
-	    {
-		it->MassMatrix(rLeftHandSideMatrix, CurrentProcessInfo);
-		Element::GeometryType& geom         = it->GetGeometry();
-		const unsigned int& dim             = geom.WorkingSpaceDimension();
-		const unsigned int& number_of_nodes = geom.size();
-		index                               = 0;
-		dim_2                               =  dim * number_of_nodes;
-		Velocities.resize(dim_2);
-		rRightHandSideVector.resize(dim_2);
-		for (unsigned int i = 0; i <geom.size(); i++)
-		  {
-		      array_1d<double,3>& Vel = geom[i].FastGetSolutionStepValue(VELOCITY); 
-		      Velocities[index]       = Vel[0];
-		      Velocities[index+1]     = Vel[1];
-		      if(dim==2){
-		           index = index + 2;
-		           }
-		      else{
-			  Velocities[index+2]  = Vel[2];
-			  index = index + 3;
-		        }
-		  }
-		  
-		  noalias(rRightHandSideVector) = -malpha_damp * prod(rLeftHandSideMatrix, Velocities);
-		  for (unsigned int i = 0; i <geom.size(); i++){
-		      array_1d<double,3>& rhs = geom[i].FastGetSolutionStepValue(RHS); 
-		      geom[i].SetLock();
-		      index  = i*dim;
-		      rhs[0] = rhs[0] + rRightHandSideVector[index];
-		      rhs[1] = rhs[1] + rRightHandSideVector[index+1];
-		      rhs[2] = 0.00; 
-		      if(dim==3)
-			rhs[2]=  rhs[2] + rRightHandSideVector[index+2];
-		      geom[i].UnSetLock();
-		  }
-		  
-	      }
-	}
-      }
-	    KRATOS_CATCH("")
-  
-}
-
-
 /// for discontinum Galerking methods  
 void ComputeInterfaceForces()
 {
@@ -497,7 +473,7 @@ void ComputeInterfaceForces()
     vector<unsigned int> element_partition;
     CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-    Vector rRightHandSideVector;
+    array_1d<double, 3> rRightHandSideVector;
     
     
     #pragma omp parallel for private(rRightHandSideVector)
@@ -507,12 +483,12 @@ void ComputeInterfaceForces()
     typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
     for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
      {
-        KRATOS_WATCH(it->Id())
-        //it->Calculate(INTERFACE_FORCES, rRightHandSideVector, CurrentProcessInfo);
+        if(it->GetProperties()[IS_DISCRETE]>=1.00){
+           it->Calculate(INTERFACE_FORCES, rRightHandSideVector, CurrentProcessInfo);
+	}
      }
     }
     
-    KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAA")
     KRATOS_CATCH("")
 }
  
@@ -680,7 +656,6 @@ void ComputeIntermedialVelocityAndNewDisplacement()
 	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-
 	{
 	  /// Nota = Se ha agregado a la ecuacion la velocidad. Antes no habia  actual_velocity;   
 	  //array_1d<double,3>& actual_velocity       = i->FastGetSolutionStepValue(VELOCITY);        /// Estamos en paso  T(n+1)
@@ -743,6 +718,52 @@ void Initialize()
    
 }
 
+
+//***************************************************************************
+//***************************************************************************
+
+void CalculateNodalMass()
+{
+      KRATOS_TRY
+      ModelPart& r_model_part          = BaseType::GetModelPart();
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ElementsArrayType& pElements     = r_model_part.Elements(); 
+
+      Matrix MassMatrix;
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+       #endif
+
+      vector<unsigned int> element_partition;
+      CreatePartition(number_of_threads, pElements.size(), element_partition);
+      unsigned int index = 0;
+      
+      #pragma omp parallel for private(index, MassMatrix)
+      for(int k=0; k<number_of_threads; k++)
+      {
+	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	    Element::GeometryType& geom = it->GetGeometry(); // Nodos del elemento
+	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+	    const unsigned int& dim   = geom.WorkingSpaceDimension();
+	    index = 0;
+	    for (unsigned int i = 0; i <geom.size(); i++)
+	     {
+	        double& mass = geom(i)->FastGetSolutionStepValue(NODAL_MASS);
+		geom(i)->SetLock();
+		index = i*dim;
+		mass  = mass + MassMatrix(index,index);
+		geom(i)->UnSetLock();
+	     }
+	 }
+      }
+     KRATOS_CATCH("")  
+  
+}
 
 //***************************************************************************
 //***************************************************************************
@@ -913,7 +934,7 @@ void ComputeCriticalTime()
    }
     
     
-    if(mCE==Penalty_Methods){
+    if(mCE==Penalty_Methods || mComputeContactConditions==true){
       double time_penalty =  ComputeTimePenalty();
       delta_time_computed = (delta_time_computed<time_penalty) ? delta_time_computed:time_penalty;
     }
@@ -935,14 +956,34 @@ void ComputeCriticalTime()
 	mCalculateOldTime = true;
     }
     
-    std::cout<< "  BETA_DAMPING FOR STIFFNESS   = "<< mbeta_damp             << "         " << std::endl;
-    std::cout<< "  ALPHA_DAMPING FOR MASS       = "<< malpha_damp            << "         " << std::endl;
-    std::cout<< "  TIME STEPS                   = "<< step                   << "         " << std::endl;
-    std::cout<< "  FACTOR DELTA CRITICAL TIME   = "<< mfraction_delta_time   << "         "  << std::endl;
-    std::cout<< "  DELTA CRITICAL TIME COMPUTED = "<< delta_time_computed    << "  SECONDS" << std::endl; 
-    std::cout<< "  DELTA TIME USED              = "<< delta_time_used        << "  SECONDS" << std::endl;
-    std::cout<< "  CURRENT TIME                 = "<< time                   << "  SECONDS" << std::endl;  
+    std::cout<< "  Time step                                    = "<< step                   << "         " << std::endl;
+    std::cout<< "  Factor damping for stiffness matrix (Beta)   = "<< mbeta_damp             << "         " << std::endl;
+    std::cout<< "  Factor damping for mass matrix (Alpha)       = "<< malpha_damp            << "         " << std::endl;
+    std::cout<< "  Safe factor for incremental critical time    = "<< mfraction_delta_time   << "         "  << std::endl;
+    std::cout<< "  Incremental critical time computed           = "<< delta_time_computed    << "  seconds" << std::endl; 
+    std::cout<< "  incremental time used in analysis            = "<< delta_time_used        << "  seconds" << std::endl;
+    std::cout<< "  Current time                                 = "<< time                   << "  seconds" << std::endl;  
     KRATOS_CATCH("")
+
+}
+
+//***************************************************************************
+//***************************************************************************
+
+void Infomation()
+{
+    ModelPart& r_model_part          = BaseType::GetModelPart();
+    ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
+    const int step                   = CurrentProcessInfo[TIME_STEPS];  
+    const double time                = CurrentProcessInfo[TIME];
+    const double delta_time_used     = CurrentProcessInfo[DELTA_TIME]; 
+    
+    std::cout<< "  Time step                                    = "<< step                   << "         " << std::endl;
+    std::cout<< "  Factor damping for stiffness matrix (Beta)   = "<< mbeta_damp             << "         " << std::endl;
+    std::cout<< "  Factor damping for mass matrix (Alpha)       = "<< malpha_damp            << "         " << std::endl;
+    std::cout<< "  Safe factor for incremental critical time    = "<< mfraction_delta_time   << "         "  << std::endl;
+    std::cout<< "  incremental time used in analysis            = "<< delta_time_used        << "  seconds" << std::endl;
+    std::cout<< "  Current time                                 = "<< time                   << "  seconds" << std::endl;  
 
 }
 
@@ -982,7 +1023,7 @@ double ComputeTime()
     typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
     typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
     for(ElementsArrayType::iterator it=it_begin; it!= it_end; it++){
-	  it-> Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
+	  it->Calculate(DELTA_TIME, delta_time_a, CurrentProcessInfo);
 	  if(delta_time_a>0.00) 
 	     if(delta_time_a < dts[k])
 	        dts[k] = delta_time_a;
@@ -1040,7 +1081,11 @@ double ComputeTimePenalty()
 	  {
 	    
 	    double& mass = ((i)->FastGetSolutionStepValue(NODAL_MASS)); 
-	    if(mass==0.00) KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAA")
+	    if(mass==0.00) 
+	    {
+	      KRATOS_WATCH(i-> Id())
+	      KRATOS_ERROR(std::logic_error,"Detected Nodal Mass with zero value. Please check if the model is created correctly for the current model part","");
+	    }
 	    Min_Mass_Nodal[k] =  (Min_Mass_Nodal[k] < mass) ? Min_Mass_Nodal[k] : mass;
 	  }
 	}
@@ -1089,8 +1134,7 @@ void ComputeInitialConditions()
 	    const array_1d<double,3>& CurrentDisplacement  =  (i->FastGetSolutionStepValue(DISPLACEMENT));
 	    const array_1d<double,3>& CurrentVelocity      =  (i->FastGetSolutionStepValue(VELOCITY));
 	    const array_1d<double,3>& CurrentAcceleration  =  (i->FastGetSolutionStepValue(ACCELERATION)) + (i->FastGetSolutionStepValue(GRAVITY)); 
-	    array_1d<double,3>&       OldDisplacement      =  (i->FastGetSolutionStepValue(DISPLACEMENT,2));
-	  
+	    array_1d<double,3>&       OldDisplacement      =  (i->FastGetSolutionStepValue(DISPLACEMENT,2));     
 	    /// D_1 7.145 Libro de ""Estructuras Sometiadas a Acciones Sismicas"   
 	    noalias(OldDisplacement) =  0.5*DeltaTime*DeltaTime*CurrentAcceleration - DeltaTime*CurrentVelocity + CurrentDisplacement;  
 	  }
@@ -1114,8 +1158,14 @@ void GetForce()
       /// Compute the global external nodal force.
       Calculate_Conditions_RHS_and_Add();
       
-      /// Compute the stress and body force of the element.
+      /// Compute the stress and body force of the element. ( No lineal analysis)
       Calculate_Elements_RHS_and_Add();
+      
+      ///Calcula las fuerzas internas haciendo K*u por cada elemento
+      //CalculateLHSElement();
+      
+      ///Calcula la fuerza interna usando la matriz global
+      //CalculateRHSusingGlobalLHS();
       
       KRATOS_CATCH("")
 
@@ -1127,7 +1177,6 @@ void GetForce()
 void SetToZeroRHS()
 
     {
-
       KRATOS_TRY
       
       ModelPart& r_model_part  = BaseType::GetModelPart();
@@ -1149,21 +1198,116 @@ void SetToZeroRHS()
 	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 
           for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-
 	  {
 	    array_1d<double,3>& normal    = (i->FastGetSolutionStepValue(NORMAL));
-            //array_1d<double,3>& reaction  = (i->FastGetSolutionStepValue(REACTION));
 	    array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(RHS)); 
-	    
-	    noalias(normal)   = ZeroVector(3);
-	    //noalias(reaction) = ZeroVector(3);
-	    noalias(node_rhs) = ZeroVector(3);
-	    
+	    noalias(normal)               = ZeroVector(3);
+	    noalias(node_rhs)             = ZeroVector(3);
 	  }
 	}
-                        
-               
+                             
      KRATOS_CATCH("")
+}
+
+
+//***************************************************************************
+//***************************************************************************
+
+
+void  CalculateRHSusingGlobalLHS()
+{ 
+  KRATOS_TRY
+  
+          typedef Dof<double> TDofType;
+          typedef PointerVectorSet<TDofType, IdentityFunction<TDofType> > DofsArrayType;
+	  typedef std::vector<std::size_t> EquationIdVectorType;
+	  ModelPart& r_model_part  = BaseType::GetModelPart();
+          NodesArrayType& pNodes   = r_model_part.Nodes(); 
+  	  DofsArrayType& rDofSet   = mpBuilderAndSolver->GetDofSet();    
+	  TSystemMatrixType& mA    = *mpA;
+	
+	  
+	 
+	  const int& size = mA.size1(); 
+	  TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
+          TSystemVectorPointerType pFnew  = TSystemVectorPointerType(new TSystemVectorType(0));
+	  mpFint.swap(pFnew);
+	  mpDx.swap(pNewDx);
+	  
+	  TSystemVectorType& mDx   = *mpDx;
+	  TSystemVectorType& mFint = *mpFint;
+          
+	  mFint.resize(size, false); 
+	  mDx.resize(size, false); 
+	  
+	  
+	  #ifdef _OPENMP
+	  int number_of_threads = omp_get_max_threads();
+	  #else
+	  int number_of_threads = 1;
+	  #endif
+
+	  vector<unsigned int> dof_partition;
+	  CreatePartition(number_of_threads, rDofSet.size(), dof_partition);
+
+	  
+	  #pragma omp parallel for 
+	  for(int k=0; k<number_of_threads; k++)
+	  {
+	    DofsArrayType::iterator i_begin = rDofSet.begin()+dof_partition[k];
+	    DofsArrayType::iterator i_end   = rDofSet.begin()+dof_partition[k+1];
+	    for(DofsArrayType::iterator i_dof =i_begin; i_dof!= i_end; ++i_dof){
+	      //for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+	       mDx[i_dof->EquationId()] = i_dof->GetSolutionStepValue();
+	       }
+	  }
+	   
+	  
+          
+          
+	  TSparseSpace::Mult(mA, mDx, mFint);
+	  vector<unsigned int> node_partition;
+	  CreatePartition(number_of_threads, pNodes.size(), node_partition);
+	  EquationIdVectorType rResult(mdimension); 
+	  
+	 if(mdimension==2){
+         #pragma omp parallel for firstprivate(rResult) shared(mFint)
+         for(int k=0; k<number_of_threads; k++)
+	 {
+	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+          for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i){
+	      array_1d<double,3>& node_rhs = (i)->FastGetSolutionStepValue(RHS);  
+	      rResult[0]  = (i->pGetDof(DISPLACEMENT_X))->EquationId();
+	      rResult[1]  = (i->pGetDof(DISPLACEMENT_Y))->EquationId();
+	      node_rhs[0]-= mFint[rResult[0]];
+	      node_rhs[1]-= mFint[rResult[1]];
+	      } } }
+	  else
+	  {
+	    KRATOS_ERROR(std::logic_error, "CalculateRHSusingGlobalLHS() in Central Differences ", "");
+	    /*
+	    #pragma omp parallel for private(rResult) shared(mFint)
+	    for(int k=0; k<number_of_threads; k++)
+	    {
+	    typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	    typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i){
+	      array_1d<double,3>& node_rhs = (i->FastGetSolutionStepValue(RHS));    
+              rResult[0]  = i->GetDof(DISPLACEMENT_X ).EquationId();
+              rResult[1]  = i->GetDof( DISPLACEMENT_Y ).EquationId();
+	      rResult[2]  = i->GetDof( DISPLACEMENT_Z ).EquationId();
+	      node_rhs[0]-= mFint[rResult[0]];
+	      node_rhs[1]-= mFint[rResult[1]];
+	      node_rhs[1]-= mFint[rResult[2]];
+	     }
+	    }
+	    */
+	  }
+	  
+	  Clear();
+	  
+   KRATOS_CATCH("")
 }
 
 
@@ -1214,6 +1358,58 @@ void Calculate_Conditions_RHS_and_Add()
 	KRATOS_CATCH("")
 }
 
+
+//***************************************************************************
+//***************************************************************************
+void CalculateLHSElement()
+{
+      KRATOS_TRY  
+      ModelPart& r_model_part = BaseType::GetModelPart();	
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ElementsArrayType& pElements     = r_model_part.Elements();    
+
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+      #endif
+
+      vector<unsigned int> element_partition;
+      CreatePartition(number_of_threads, pElements.size(), element_partition);
+      Matrix lhs_elem;
+      Vector disp;
+      Vector rhs_elem;
+      unsigned int index; 
+      #pragma omp parallel for private (index, disp, rhs_elem, lhs_elem)
+      for(int k=0; k<number_of_threads; k++)
+      {
+        typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+         for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+         {
+	  Element::GeometryType& geom = it->GetGeometry();
+	  const unsigned int& dim = it->GetGeometry().WorkingSpaceDimension();
+	  it->CalculateLeftHandSide(lhs_elem, CurrentProcessInfo); 
+	  it->GetValuesVector(disp, 0);
+	  rhs_elem.resize(disp.size(), false);
+	  TSparseSpace::Mult(lhs_elem, disp, rhs_elem); 
+	  for(unsigned int i = 0; i <geom.size(); i++)
+	     {
+		index = i*dim;
+		array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
+		for(unsigned int kk=0; kk<dim; kk++)
+		    { geom(i)->SetLock();      
+		      node_rhs[kk] -= rhs_elem[index+kk];
+                      geom(i)->UnSetLock();
+		  }
+	       }
+	    }
+         }
+       
+     KRATOS_CATCH("")
+  }
+
+
 //***************************************************************************
 //***************************************************************************
 
@@ -1225,7 +1421,7 @@ void Calculate_Elements_RHS_and_Add()
       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
       ElementsArrayType& pElements     = r_model_part.Elements();    
 
-      Vector rhs_elem;
+      
 
       #ifdef _OPENMP
       int number_of_threads = omp_get_max_threads();
@@ -1235,7 +1431,7 @@ void Calculate_Elements_RHS_and_Add()
 
       vector<unsigned int> element_partition;
       CreatePartition(number_of_threads, pElements.size(), element_partition);
-
+      Vector rhs_elem;
       unsigned int index; 
       #pragma omp parallel for private (index, rhs_elem)
       for(int k=0; k<number_of_threads; k++)
@@ -1253,7 +1449,7 @@ void Calculate_Elements_RHS_and_Add()
 		array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(RHS);
 		for(unsigned int kk=0; kk<dim; kk++)
 		    { geom(i)->SetLock();      
-		      node_rhs[kk] = node_rhs[kk] + rhs_elem[index+kk];
+		      node_rhs[kk] += /*node_rhs[kk]+*/ rhs_elem[index+kk];
                       geom(i)->UnSetLock();
 		    }
 
@@ -1265,25 +1461,6 @@ void Calculate_Elements_RHS_and_Add()
 }
 
 
-//***************************************************************************
-//***************************************************************************
-
-/*
-void Calculate_Final_Force_Contribution(ModelPart::NodeIterator& i)  
-{
-        KRATOS_TRY
-        array_1d<double,3> Final_Force; 
-        const double nodal_damping         =  malpha_damp*((i)->FastGetSolutionStepValue(NODAL_MASS)); 
-        array_1d<double,3>& node_rhs       =  i->FastGetSolutionStepValue(RHS);    
-	const array_1d<double,3>& velocity =  i->FastGetSolutionStepValue(VELOCITY);
-	noalias(Final_Force)               =  nodal_damping * velocity;    
-	for(unsigned int i=0; i<3; i++)
- 	        node_rhs[i] = node_rhs[i]-Final_Force[i];  
-	
-	KRATOS_CATCH("")
-}
-
-*/
 
 //***************************************************************************
 //***************************************************************************
@@ -1415,7 +1592,11 @@ void Update(const ConditionsContainerIterator& end_previos,
             const ConditionsContainerIterator& end_actual)
 {
    KRATOS_TRY
-   mpLagrangianMultiplier->CalculateContactForceAndDisplacementCorrections(end_previos, end_actual); 
+   ModelPart& r_model_part           = BaseType::GetModelPart();
+   ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();   
+   const double current_delta_time  = CurrentProcessInfo[DELTA_TIME];
+   double midtimestep = 0.50*(molddelta_time +  current_delta_time);  
+   mpLagrangianMultiplier->CalculateContactForceAndDisplacementCorrections(malpha_damp, midtimestep, end_previos, end_actual); 
    KRATOS_CATCH("")
    return;
 }
@@ -1519,7 +1700,7 @@ void CalculateReaction()
 	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
          //for(ModelPart::NodeIterator i = r_model_part.NodesBegin() ; i != r_model_part.NodesEnd() ; ++i)
          {
-	    array_1d<double,3>& reaction           = (i->FastGetSolutionStepValue(REACTION));
+	    array_1d<double,3>& reaction                 = (i->FastGetSolutionStepValue(REACTION));
             const double& mass                           = (i->FastGetSolutionStepValue(NODAL_MASS));
             const array_1d<double,3>& rhs                = (i->FastGetSolutionStepValue(RHS));
             const array_1d<double,3>& acceleration       = (i->FastGetSolutionStepValue(ACCELERATION));
@@ -1561,6 +1742,7 @@ bool   mSolutionStepIsInitialized;
 bool   mClearContactConditions;
 bool   mLocalSearchInitialize;
 bool   mdamping_coeficients;
+bool   mComputeTime;
 double mdamping_ratio;
 double malpha_damp;
 double mbeta_damp; 
@@ -1573,10 +1755,16 @@ Constraint_Enforcement mCE;
 Disconnect_Triangle_Utilities mDTU;
 
 
+TSystemMatrixPointerType mpA;
+TSystemVectorPointerType mpDx;
+TSystemVectorPointerType mpFint;
+
 /// Contact Condition Iterations
-//typename ProofType::Pointer mProof;
 typename BoundaryAndContactType::Pointer mpBCCU_Pointer;
 typename LagrangeMultiplierType::Pointer mpLagrangianMultiplier;
+typename TBuilderAndSolverType::Pointer mpBuilderAndSolver;
+typename TLinearSolver::Pointer mpLinearSolver;
+typename TSchemeType::Pointer mpScheme;
 
 
 
