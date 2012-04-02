@@ -49,7 +49,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_compressible_3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/explicit_asgs_comp_pr_dc_3d.cpp   	
->>>>>>> .r4644
+
 )
 
 ###############################################################
