@@ -1,10 +1,10 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosThermoMechanicalApplication import *
-from KratosIncompressibleFluidApplication import *
-##from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
-##from KratosMKLSolversApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -25,6 +25,7 @@ def AddVariables(model_part,settings):
     print "variables for the THERMAL_SOLVER added correctly"
         
 def AddDofs(model_part,settings):
+    print "KKKKKKKKKKKKKKKKKKK............................................................nnnnnnnnnnnnnnnnnnnnnnn"
     for node in model_part.Nodes:
 	    node.AddDof(settings.GetUnknownVariable());
         
@@ -81,9 +82,8 @@ class Solver:
         (self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-        #self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
-        #self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
-        (self.duplicate_and_create_conditions).Execute()
+
+        #(self.duplicate_and_create_conditions).Execute()
 	#a = Matrix(2,3)
 
 	#a[0,0] = 3
@@ -103,6 +103,7 @@ class Solver:
     #######################################################################   
     def Solve(self):        
         print "*****************entering solve?????????????"
+        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)        
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
        
