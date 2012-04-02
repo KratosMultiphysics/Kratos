@@ -15,25 +15,8 @@ sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 
 print "before importing kratos"
-
-#importing Kratos main library
-from Kratos import *
-print "Kratos library imported"
-kernel = Kernel()   #defining kernel
-print "kernel created"
-#importing applications
-import applications_interface
-applications_interface.Import_ConvectionDiffusionApplication = True
-
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-
-from KratosConvectionDiffusionApplication import *
-
-##x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
+from KratosMultiphysics import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
 
 #defining a model part
 model_part = ModelPart("FluidPart");  
@@ -54,14 +37,15 @@ thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
 import nonlinear_convection_diffusion_solver
 nonlinear_convection_diffusion_solver.AddVariables(model_part,thermal_settings)
 
-#reading a model
-#reading a model
+input_file_name = "face_heat"
+#reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
-gid_io = GidIO("face_heat",gid_mode,multifile,deformed_mesh_flag, write_conditions)
-gid_io.ReadModelPart(model_part)
+gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+model_part_io_fluid = ModelPartIO(input_file_name)
+model_part_io_fluid.ReadModelPart(model_part)
 
 mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
@@ -89,10 +73,12 @@ solver.Initialize()
 conductivity = 0.25;
 density = 900.0;
 specific_heat = 2400.0;
+temperature = 298.0;
 for node in model_part.Nodes:
     node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
     node.SetSolutionStepValue(DENSITY,0,density);
     node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
+    node.SetSolutionStepValue(TEMPERATURE,0,temperature);
 
 model_part.Properties[1][EMISSIVITY] = 1.0
 model_part.Properties[1][AMBIENT_TEMPERATURE] = 25.0
@@ -102,7 +88,7 @@ model_part.Properties[1][CONVECTION_COEFFICIENT] = 8.0
 #applying a temperature of 100
 for node in model_part.Nodes:
     if(node.Y > 0.499):
-         node.SetSolutionStepValue(FACE_HEAT_FLUX,0,10000.0);
+         node.SetSolutionStepValue(FACE_HEAT_FLUX,0,1000.0);
 
  
 
