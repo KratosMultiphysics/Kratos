@@ -1,0 +1,40 @@
+BeginZE /home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/cavity3D.gid/cavity3D.vv
+   x -1.47421 1.47421
+   y 0.866027 -0.866027
+   z -2.59808 2.59808
+   e 0.866025
+   v -0.617122 0.114524 0.153958
+   r -0.763113
+   m 0.926362 0.0936236 -0.364811 0 -0.376325 0.190915 -0.906604 0 -0.0152314 0.977132 0.212089 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector -21.2479 70.2726 129.025 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 0
+   OGLShadow(FBOSize) 1024
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.08
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/cavity3D.gid/cavity3D.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+BeginInfo
+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
+EndInfo
