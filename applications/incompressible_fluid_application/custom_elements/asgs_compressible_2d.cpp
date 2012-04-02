@@ -588,7 +588,7 @@ namespace Kratos
         double advvel_norm = ms_adv_vel[0] * ms_adv_vel[0] + ms_adv_vel[1] * ms_adv_vel[1];
         advvel_norm = sqrt(advvel_norm);
 
-        double ele_length = 2.0 * sqrt(area / 3.00);
+//         double ele_length = 2.0 * sqrt(area / 3.00);
 
         double mu;
         //const double mu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -601,7 +601,7 @@ namespace Kratos
 
         double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
-	double vc = sqrt(VC2);
+// 	double vc = sqrt(VC2);
     
 // 	double int_time = ele_length/vc;
 // 
