@@ -7,34 +7,20 @@ domain_size = fluid_only_var.domain_size
 
 ##################################################################
 ##################################################################
-## ATTENTION: here the order is important
-
 #including kratos path
-kratos_libs_path            = fluid_only_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = fluid_only_var.kratos_path + '/applications' ##kratos_root/applications
 kratos_benchmarking_path = fluid_only_var.kratos_path +'/benchmarking' ##kratos_root/benchmarking
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-sys.path.append(kratos_benchmarking_path)
 
+import sys
+sys.path.append(fluid_only_var.kratos_path)
+sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
+ # importing kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 
 ##################################################################
