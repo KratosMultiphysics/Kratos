@@ -14,14 +14,8 @@ import sys
 sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_ConvectionDiffusionApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+from KratosMultiphysics import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
 
 
 #defining a model part
@@ -32,7 +26,7 @@ model_part = ModelPart("FluidPart");
 ##################################################################
 ##################################################################
 
-from KratosConvectionDiffusionApplication import *
+##from KratosConvectionDiffusionApplication import *
 
 ##########################################################
 thermal_settings = ConvectionDiffusionSettings()
@@ -49,22 +43,25 @@ import convection_diffusion_solver
 convection_diffusion_solver.AddVariables(model_part,thermal_settings)
 
 
+#introducing input file name
+input_file_name = "square"
 
-
-#adding of Variables to Model Part should be here when the "very fix container will be ready"
-#reading a model
+#reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
-gid_io = GidIO("square",gid_mode,multifile,deformed_mesh_flag, write_conditions)
-gid_io.ReadModelPart(model_part)
+gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+model_part_io_fluid = ModelPartIO(input_file_name)
+model_part_io_fluid.ReadModelPart(model_part)
 
 mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
 gid_io.WriteMesh((model_part).GetMesh());
 gid_io.FinalizeMesh()
 print model_part
+
+
 
 
 #the buffer size should be set up here after the mesh is read for the first time
