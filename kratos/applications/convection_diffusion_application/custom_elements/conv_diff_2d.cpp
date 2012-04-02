@@ -144,13 +144,13 @@ namespace Kratos
         const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
         //const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
-
+	const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
         double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
         double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
         double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
         double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-        double proj = GetGeometry()[0].FastGetSolutionStepValue(TEMP_CONV_PROJ);
+        double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
         const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
         const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
@@ -164,8 +164,8 @@ namespace Kratos
             density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
             heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
-            proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
-
+            //proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
+	    proj += GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable);
             const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < TDim; j++)
@@ -302,7 +302,7 @@ namespace Kratos
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
-
+	const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
         if (FractionalStepNumber == 2) //calculation of temperature convective projection
         {
@@ -336,7 +336,8 @@ namespace Kratos
             for (unsigned int i = 0; i < number_of_points; i++)
             {
                 GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += lumping_factor*Area;
-                GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += lumping_factor*temp_conv;
+                //GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += lumping_factor*temp_conv;
+		GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable) += lumping_factor*temp_conv;
             }
         }
         KRATOS_CATCH("");
