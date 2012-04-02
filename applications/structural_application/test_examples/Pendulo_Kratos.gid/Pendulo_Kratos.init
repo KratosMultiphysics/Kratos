@@ -1,4 +1,0 @@
-// Fixing degrees of freedom in nodes
-
-NODES[328](DISPLACEMENT_X,0) = 0.000000;
-NODES[328](DISPLACEMENT_Y,0) = 0.000000;
