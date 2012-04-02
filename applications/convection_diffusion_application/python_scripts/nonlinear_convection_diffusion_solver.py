@@ -1,13 +1,15 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosConvectionDiffusionApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
+CheckForPreviousImport()
+
 
 def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable());
     model_part.AddNodalSolutionStepVariable(settings.GetUnknownVariable());
-    model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ);
+    model_part.AddNodalSolutionStepVariable(settings.GetProjectionVariable());
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
     model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable());
@@ -52,8 +54,6 @@ class ConvectionDiffusionSolver:
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         self.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        pILUPrecond = ILU0Preconditioner()
-##        self.linear_solver =  BICGSTABSolver(1e-8, 5000,pILUPrecond)
 
 
     def Initialize(self):
