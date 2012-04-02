@@ -1,5 +1,5 @@
-BeginZE /home/antonia/Desktop/EXAMPLES/ELEMBASED/testConvection.gid/testConvection.vv
-   x -1.02147 6.02147
+BeginZE /home/jmarti/KRATOS/dev1/kratos/applications/convection_diffusion_application/test_examples/testConvection.gid/testConvection.vv
+   x -1.52183 6.52183
    y 3.81859 -1.81859
    z -8.45577 8.45577
    e 2.81859
@@ -15,5 +15,19 @@ BeginZE /home/antonia/Desktop/EXAMPLES/ELEMBASED/testConvection.gid/testConvecti
    NowUse 1
    DrawingType 0
    LightVector 90 90 150 0
-EndZE /home/antonia/Desktop/EXAMPLES/ELEMBASED/testConvection.gid/testConvection.vv
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 0
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/jmarti/KRATOS/dev1/kratos/applications/convection_diffusion_application/test_examples/testConvection.gid/testConvection.vv
 
