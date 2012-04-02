@@ -52,46 +52,84 @@ def Run():
 
         ################################################################
 
-	Text += "ProjectionTest_2D: "
-	os.chdir("Moving_Circle.gid")
+	Text += "Mapping_2d: "
+	os.chdir("Mapping_2d.gid")
 	sys.path.append(os.getcwd())
 
-	print "Running Moving_Circle benchmark..."
+	print "Running Mapping_2d benchmark..."
 	Msg = benchmarking.RunBenchmark("ProjectionTest_2D_benchmarking.py", "ProjectionTest_2D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
-		print "Moving_Circle benchmarking example succesful"
+		print "Mapping_2d benchmarking example succesful"
 	else:
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "Moving_Circle benchmarking example FAILED"
+		print "Mapping_2d benchmarking example FAILED"
 
 	os.chdir("..")
 	
 
         ################################################################
 
-	Text += "ProjectionTest_3D: "
-	os.chdir("Moving_Sphere.gid")
+	Text += "Mapping_3d: "
+	os.chdir("Mapping_3d.gid")
 	sys.path.append(os.getcwd())
 
-	print "Running Moving_Sphere benchmark..."
+	print "Running Mapping_3d benchmark..."
 	Msg = benchmarking.RunBenchmark("ProjectionTest_3D_benchmarking.py", "ProjectionTest_3D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
-		print "Moving_Sphere benchmarking example succesful"
+		print "Mapping_3d benchmarking example succesful"
 	else:
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "Moving_Sphere benchmarking example FAILED"
+		print "Mapping_3d benchmarking example FAILED"
 
 	os.chdir("..")
 	
+        ################################################################
 
+	Text += "Mapping_2d_BinBased: "
+	os.chdir("Mapping_2d_BinBased.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running Mapping_2d_BinBased benchmark..."
+	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_benchmarking.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "Mapping_2d_BinBased benchmarking example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Mapping_2d_BinBased benchmarking example FAILED"
+
+	os.chdir("..")
+	
+       ################################################################
+
+	Text += "Mapping_3d_BinBased: "
+	os.chdir("Mapping_3d_BinBased.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running Mapping_3d_BinBased benchmark..."
+	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_3D_benchmarking.py", "ProjectionTestBinBased_3D_benchmarking_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "Mapping_3d_BinBased benchmarking example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Mapping_3d_BinBased benchmarking example FAILED"
+
+	os.chdir("..")
         ################################################################
         ################################################################
 
