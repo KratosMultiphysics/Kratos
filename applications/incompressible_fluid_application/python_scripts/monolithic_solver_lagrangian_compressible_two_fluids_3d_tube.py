@@ -1,11 +1,9 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
-#from KratosExternalSolversApplication import *
-#from KratosULFApplication import *
-#from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingApplication import *
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);

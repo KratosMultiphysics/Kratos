@@ -1,9 +1,9 @@
-#importing Kratos main library
-from Kratos import *
-from KratosConvectionDiffusionApplication import *
-from KratosIncompressibleFluidApplication import *
-import math
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
+CheckForPreviousImport()
 
+import math
 import monolithic_solver_eulerian
 
 def AddVariables(model_part):

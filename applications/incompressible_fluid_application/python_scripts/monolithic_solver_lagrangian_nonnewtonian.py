@@ -1,10 +1,11 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
-##from KratosExternalSolversApplication import *
-from KratosMKLSolversApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MKLSolversApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
+
 import math
 
 def AddVariables(model_part):
