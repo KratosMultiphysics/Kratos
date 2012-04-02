@@ -1,5 +1,0 @@
-// Reading Elements
-
-ElementsGroup = structural_group;
-
-ELEMENTS[1] = CrisfieldTrussElement3D2N([2,1],1);
