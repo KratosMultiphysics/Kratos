@@ -1,6 +1,9 @@
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosMeshingApplication import *
+#importing the Kratos Library
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 class AdaptiveRemeshing:
     """ This class allows refining the problem mesh at run time.
