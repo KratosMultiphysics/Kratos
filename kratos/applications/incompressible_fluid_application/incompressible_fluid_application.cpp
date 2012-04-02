@@ -108,11 +108,12 @@ namespace Kratos
 
 
 		mExplicitASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-		mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+		mExplicitASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 		
 
 		//mABC2D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
-	
+		//mExplicitHydro2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+
 
 
 
@@ -217,6 +218,8 @@ namespace Kratos
 		KRATOS_REGISTER_ELEMENT("ExplicitASGSCompressible3D", mExplicitASGSCompressible3D);
  		KRATOS_REGISTER_ELEMENT("ExplicitASGSCOMPPRDC3D", mExplicitASGSCOMPPRDC3D);
  		
+		
+		//KRATOS_REGISTER_ELEMENT("ExplicitHydro2D", mExplicitHydro2D);		
 		
 		std::cout << "Initializing KratosIncompressibleFluidApplication...elements succesfully registered " << std::endl;
 	
