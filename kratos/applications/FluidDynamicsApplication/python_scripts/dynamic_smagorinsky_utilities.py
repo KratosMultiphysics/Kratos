@@ -1,6 +1,8 @@
-from Kratos import *
-from KratosFluidDynamicsApplication import *
-from KratosMeshingApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 class DynamicSmagorinsky:
 
