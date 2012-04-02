@@ -146,7 +146,6 @@ if(${MPI_NEEDED} MATCHES ON )
 
     #note that this will be included in the compilation of the kratos core, so that it is not needed to include it somewhere else
     include_directories(${MPI_INCLUDE_PATH})
-    find_package(Boost COMPONENTS mpi serialization REQUIRED)
 #    find_package(Boost COMPONENTS mpi_python REQUIRED)
 endif(${MPI_NEEDED} MATCHES ON )
 
@@ -224,23 +223,6 @@ sys.path.append(kratos_applications) ")
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics ) 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
-
-
-#      install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
-#      install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
-# 
-#      #install blas and lapack
-#      install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
-#      GET_FILENAME_COMPONENT(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES} REALPATH)
-#      install(FILES ${BLAS_LIBRARIES_REALPATH} DESTINATION libs)
-
-     install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
-
-#    GET_FILENAME_COMPONENT(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES} REALPATH)
-#    install(FILES ${PYTHON_LIBRARIES_REALPATH} DESTINATION libs)
-#    install(FILES ${PYTHON_LIBRARIES} DESTINATION libs)
-
-
 
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
