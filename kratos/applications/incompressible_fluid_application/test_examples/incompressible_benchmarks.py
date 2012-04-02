@@ -231,31 +231,52 @@ def Run():
         ################################################################
 	# cylinder
 
-	Text += "cylinder_3d: "
-	os.chdir("cylinder_3d.gid")
+	#Text += "cylinder_3d: "
+	#os.chdir("cylinder_3d.gid")
+	#sys.path.append(os.getcwd())
+
+	##import column_benchmark
+	##Msg = column_benchmark.Run()
+
+	#print "Running cylinder_3d.py..."
+	#Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_3d_ref.txt")	
+	
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "cylinder_3d example succesful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "cylinder_3d example FAILED"
+
+	#os.chdir("..")
+
+
+	
+        ################################################################
+	# cavityMonolithic2D
+
+	Text += "cavity_monolithic_3d: "
+	os.chdir("CavityMonolithic3D.gid")
 	sys.path.append(os.getcwd())
 
 	#import column_benchmark
 	#Msg = column_benchmark.Run()
 
-	print "Running cylinder_3d.py..."
-	Msg = benchmarking.RunBenchmark("run_example.py", "cylinder_3d_ref.txt")	
+	print "Running script.py..."
+	Msg = benchmarking.RunBenchmark("script.py", "cavity_monolithic_3d_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
-		print "cylinder_3d example succesful"
+		print "cavity_monolithic_3d example succesful"
 	else:
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "cylinder_3d example FAILED"
+		print "cavity_monolithic_3d example FAILED"
 
 	os.chdir("..")
-
-
-	
-        ################################################################
-
 
 	# Add other examples here
         ################################################################
