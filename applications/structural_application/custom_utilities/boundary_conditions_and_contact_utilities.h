@@ -115,7 +115,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  //template<std::size_t TDim>
   class BoundaryConditionsAndContactUtilities
 	{
 	public:
@@ -223,16 +222,16 @@ namespace Kratos
       void CreateBoundaries(const unsigned int& initial_conditions_size)
       {
 	KRATOS_TRY 
-	  Clear(initial_conditions_size);
+          Clear(initial_conditions_size);     
 	  if(mcompute_boundary_contour){
-	    std::cout<<"  CREATING MASTER SURFACES " << std::endl; 
+	    std::cout<<"CREATING MASTER SURFACES"<< std::endl; 
 	    if(mrdimension==2)
 	       CalculateBoundaryContour2D(mMasterConditionsArray);  
 	    else
 	       CalculateBoundaryContour3D(mMasterConditionsArray);  
 	  mcompute_boundary_contour = false;
 	  }
-	  
+	  return;
 	KRATOS_CATCH("")
       }
 
@@ -271,38 +270,38 @@ void ComputeContactForce()
  
     vector<unsigned int> partition;
     CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
-    ContactPairType it_pair;
-    std::vector<ResultContainerType>  Result(number_of_threads);
+    //ContactPairType it_pair;
+    ResultContainerType  Result(MaxNumberOfResults);
     
-    for(int k=0; k<number_of_threads; k++)  
-      Result[k].resize(1000);
     
-    std::cout<<"     PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl; 
+    std::cout<<"        PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl; 
     if(mrdimension==2)
     {
-    #pragma omp parallel for private(NumberOfResults, begin)
+    #pragma omp parallel for firstprivate(NumberOfResults,Result)  private(begin)  
     for(int k=0; k<number_of_threads; k++)          
     {
     IteratorType it_begin = mBoundaryElements.begin() + partition[k];
     IteratorType it_end   = mBoundaryElements.begin() + partition[k+1];
     for(IteratorType it =it_begin; it!=it_end; ++it)
       { 
-	//Result[k].clear();
-	//Result[k].reserve(100);
-	//rBins->SearchObjectsInner(*it, Result[k]); 
-	begin = Result[k].begin();
+	begin = Result.begin();
 	NumberOfResults = rBins->SearchObjects(*it, begin, MaxNumberOfResults);         
-	//if(Result[k].size()!=0)
-	if(NumberOfResults!=0)
-	    for(ResultIteratorType rthis = Result[k].begin();  rthis!= Result[k].begin() + NumberOfResults /* rthis!=Result[k].end()*/; rthis++)
-	         if((*it)->Id()!=(*rthis)->Id())
-	            ComputeContactForce2D(*it, *rthis);
-        } } } 
- 
-    
+	if(NumberOfResults!=0){
+	    for(ResultIteratorType rthis = Result.begin();  rthis!= Result.begin() + NumberOfResults; rthis++){
+	      if((*rthis)->GetValue(IS_TARGET)== false && (*it)->Id()!=(*rthis)->Id() && FiltratePairContacts(*it, *rthis)==true){
+	            ComputeContactForce2D(*it, *rthis); 
+		    ComputeContactDampingForces(*it, *rthis);
+	       } } 
+            (*it)->GetValue(IS_TARGET) = true; 
+        } } } } 
+        
     else
     { 
-     #pragma omp parallel for private(NumberOfResults, begin)
+     #ifdef _OPENMP
+     double start_prod = omp_get_wtime();
+     #endif
+     
+     #pragma omp parallel for firstprivate(NumberOfResults,Result)  private(begin) 
      for(int k=0; k<number_of_threads; k++)          
      {
      IteratorType it_begin = mBoundaryElements.begin() + partition[k];
@@ -312,20 +311,88 @@ void ComputeContactForce()
 	//Result[k].clear();
 	//Result[k].reserve(100);
 	//rBinsObjectDynamic.SearchObjectsInner(*it, Result[k]);
-	begin = Result[k].begin();
+	begin = Result.begin();
 	NumberOfResults = rBins->SearchObjects(*it, begin, MaxNumberOfResults);
 	//if(Result[k].size()!=0){
 	if(NumberOfResults!=0)
-	   for(ResultIteratorType rthis = Result[k].begin(); rthis!= Result[k].begin() + NumberOfResults /*rthis!=Result[k].end()*/ ; rthis++)
-	     if((*it)->Id()!=(*rthis)->Id())
-	        ComputeContactForce3D(*it, *rthis);
-	  } } }     
+	   for(ResultIteratorType rthis = Result.begin(); rthis!= Result.begin() + NumberOfResults /*rthis!=Result[k].end()*/ ; rthis++){
+	     if((*rthis)->GetValue(IS_TARGET)== false && (*it)->Id()!=(*rthis)->Id() && FiltratePairContacts(*it, *rthis)==true){
+	         ComputeContactForce3D(*it, *rthis);
+	  } }
+	  (*it)->GetValue(IS_TARGET) = true; 
+      } }
+     
+      #ifdef _OPENMP
+      double stop_prod = omp_get_wtime();
+      std::cout <<"          Time Calculating Forces Contact = " << stop_prod - start_prod << std::endl;
+      #endif
+    }     
 	
-    std::cout<<"     FINISHING COMPUTE CONTACT CONDITIONS  " << std::endl; 
+    std::cout<<"        FINISHING COMPUTE CONTACT CONDITIONS  " << std::endl; 
     KRATOS_CATCH("")
  }
+
+
+void ComputeContactDampingForces(const PointerType& Target, const PointerType& Contactor)
+{
+ KRATOS_TRY
  
+ typedef Element::GeometryType::Pointer    GeometryPointer; 
+ double dampT                              = (Target->GetProperties()[DAMPING_RATIO]);
+ double dampC                              = (Contactor->GetProperties()[DAMPING_RATIO]);
+ double damp                               = std::max(dampT, dampC);
+ const GeometryPointer& GTarget            = (Target)->pGetGeometry();
+ const GeometryPointer& GContactor         = (Contactor)->pGetGeometry();
+ double  pen_vec_tar                       = mpenalty_factor * (Target->GetProperties()[YOUNG_MODULUS]);
+ double  pen_vec_con                       = mpenalty_factor * (Contactor->GetProperties()[YOUNG_MODULUS]);
+ double pen                                = std::min(pen_vec_tar, pen_vec_con); 
+ double massC                              = 0.00;
+ double massT                              = 0.00;
+ 
+ array_1d<double ,3> vel_T = ZeroVector(3);
+ array_1d<double ,3> vel_C = ZeroVector(3);
+ array_1d<double ,3> vel   = ZeroVector(3);
+ 
+ for(unsigned int i = 0; i<(*GTarget).size(); i++){
+      massT+= (*GTarget)(i)->FastGetSolutionStepValue(NODAL_MASS);
+      noalias(vel_T) += (*GTarget)(i)->FastGetSolutionStepValue(VELOCITY); 
+ }
+  for(unsigned int i = 0; i<(*GContactor).size(); i++){
+      massC+=  (*GContactor)(i)->FastGetSolutionStepValue(NODAL_MASS);
+      noalias(vel_C) += (*GContactor)(i)->FastGetSolutionStepValue(VELOCITY); 
+  }
+  
+ 
+ double fact                  =  (massT * massC * pen)/(massT + massC);    
+ double Ccr                   =  2.00 * std::sqrt(fact);
+ array_1d<double ,3> normal_T = ZeroVector(3);
+ array_1d<double ,3> normal_C = ZeroVector(3);
+ array_1d<double ,3> Center_T = (GTarget)->Center();
+ array_1d<double ,3> Center_C = (GContactor)->Center();
+ noalias(normal_T)            = Center_C - Center_T;
+ noalias(normal_C)            = Center_T - Center_C;
+ noalias(normal_T)            = (1.00/norm_2(normal_T)) * normal_T; 
+ noalias(vel)                 = vel_T - vel_C;  
+ 
+ double vrn                   = inner_prod(vel, normal_T); 
+ double fnd                   = std::fabs(damp * Ccr * vrn);
+  
+  for(unsigned int i = 0; i<(*GTarget).size(); i++){
+      array_1d<double, 3>& rhs = (*GTarget)(i)->FastGetSolutionStepValue(RHS); 
+      noalias(rhs)  = 0.33333333333333 * fnd * normal_T;
+  } 
+ 
+  for(unsigned int i = 0; i<(*GContactor).size(); i++){
+      array_1d<double, 3>& rhs = (*GContactor)(i)->FastGetSolutionStepValue(RHS); 
+      noalias(rhs) = 0.33333333333333 * fnd * normal_C; 
+  }
+    
+ KRATOS_CATCH("")
+}
+
+
 /* Triangle to Triangle */
+//Compute the normal contact force 
 void ComputeContactForce2D(const PointerType& Target, const PointerType& Contactor)
 {
   
@@ -337,27 +404,27 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
   const double RP5  = 0.50;
   const double RP15 = 1.50;
   
-  long icontact, it,jt,in,jn,ie,je,ip,jp,np;
+  int icontact = 0; 
+  int np = 0;
   double a0,a1,a2,b0,b1,b2,c0,c1,c2,n0,n1,n2,fn,fna,fnb;
   double pen,tmp,dmin2,smin,smax;
   double small =  EPSILON;
   double nsmall= -EPSILON;
   double big   =  BEPSILON;
-  double p[10];
-  double s[10];
-  double fx[3];
-  double fy[3];
-  double vol[2];
-  double rx[2][3];
-  double ry[2][3];
-  double nx[2][3];
-  double ny[2][3];
-  double d[2][3][3];
+  array_1d<double,10> p;
+  array_1d<double,10> s;
+  array_1d<double,3>  fx;
+  array_1d<double,3>  fy;
+  array_1d<double,2>  vol;
+  array_1d<array_1d<double,3>,2> rx;
+  array_1d<array_1d<double,3>,2> ry;
+  array_1d<array_1d<double,3>,2> nx;
+  array_1d<array_1d<double,3>,2> ny;
+  array_1d<array_1d<array_1d<double,3>,3>,2> d;
  
+  double  vol2        = 0.00;
   double  pen_vec_tar = mpenalty_factor * (Target->GetProperties()[YOUNG_MODULUS]);
   double  pen_vec_con = mpenalty_factor * (Contactor->GetProperties()[YOUNG_MODULUS]);
-  
-  //Target->GetValue(IS_TARGET) = true;
   
   pen = std::min(pen_vec_tar, pen_vec_con); ///penalty term 
   //Element::GeometryType& Tgeom = Target->GetGeometry();
@@ -366,43 +433,45 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
   Geom[0] = Contactor->pGetGeometry();
   Geom[1] = Target->pGetGeometry();
   
-      for(it=0;it<2;it++)
-      { for(in=0;in<3;in++)
-	{ rx[it][in] = ((*Geom[it])(in))->X();  
-	  ry[it][in] = ((*Geom[it])(in))->Y();
+      for(unsigned int i=0;i<2;i++){ 
+        for(unsigned int j=0;j<3; j++){
+	  rx[i][j] = ((*Geom[i])(j))->X();  
+	  ry[i][j] = ((*Geom[i])(j))->Y();
       } }
       
-      for(it=0;it<2;it++)
-      { vol[it]=(rx[it][1]-rx[it][0])*(ry[it][2]-ry[it][0])-
-		(ry[it][1]-ry[it][0])*(rx[it][2]-rx[it][0]);
-	for(ie=0;ie<3;ie++)
-	{ je=ie+1; if(je>2)je=0;
-	  nx[it][ie]=ry[it][je]-ry[it][ie];
-	  ny[it][ie]=rx[it][ie]-rx[it][je];
+      for(unsigned int i=0; i<2; i++){ 
+	vol[i]=(rx[i][1]-rx[i][0])*(ry[i][2]-ry[i][0])- (ry[i][1]-ry[i][0])*(rx[i][2]-rx[i][0]);
+        //normales salientes  no unitarias  de las aristas de los elementos 
+        unsigned int k = 0;
+        for(unsigned int j=0; j<3; j++){
+	  k= j+1; if(k>2) k=0;
+	  nx[i][j]=ry[i][k]-ry[i][j];
+	  ny[i][j]=rx[i][j]-rx[i][k];
       } }
-      for(it=0;it<2;it++)
-      { jt=it+1; if(jt>1)jt=0;
-	for(in=0;in<3;in++)
-	{ for(ie=0;ie<3;ie++)
-	  { d[it][in][ie]=((rx[jt][ie]-rx[it][in])*nx[jt][ie]+
-	    (ry[jt][ie]-ry[it][in])*ny[jt][ie])/vol[jt];
+      
+      //computing the tranformation of nodal coordinate to the local coordinate
+      for(unsigned int i=0; i<2; i++){
+        unsigned int j = i+1; if(j>1) j=0;
+	for(unsigned int k=0; k<3; k++){
+	   for(unsigned int l=0; l<3; l++){
+	     d[i][k][l]=((rx[j][l]-rx[i][k])*nx[j][l]+ (ry[j][l]-ry[i][k])*ny[j][l])/vol[j];
       } } }
+      
+      
       dmin2=big;
 
       /* main loop */
-      for(it=0;it<2;it++)
-      { jt=it+1; if(jt>1)jt=0;
-	for(in=0;in<3;in++)
-	{ fx[in]=R0; fy[in]=R0;
-	}
-	n0=(nx[jt][0]*nx[jt][0]+ny[jt][0]*ny[jt][0])/
-	    (vol[jt]*vol[jt]);
-	n1=(nx[jt][1]*nx[jt][1]+ny[jt][1]*ny[jt][1])/
-	    (vol[jt]*vol[jt]);
-	n2=(nx[jt][2]*nx[jt][2]+ny[jt][2]*ny[jt][2])/
-	    (vol[jt]*vol[jt]);
-	for(in=0;in<3;in++)
-	{ jn=in+1; if(jn>2)jn=0;
+      for(unsigned int it=0; it<2; it++)
+      { 
+	unsigned int jt=it+1; if(jt>1)jt=0;
+	noalias(fx) = ZeroVector(3);
+	noalias(fy) = ZeroVector(3); 
+	vol2        = vol[jt]*vol[jt];
+	n0          = (nx[jt][0]*nx[jt][0]+ny[jt][0]*ny[jt][0])/(vol2);
+	n1          = (nx[jt][1]*nx[jt][1]+ny[jt][1]*ny[jt][1])/(vol2);
+	n2          = (nx[jt][2]*nx[jt][2]+ny[jt][2]*ny[jt][2])/(vol2);
+	for(unsigned int in=0;in<3;in++)
+	{ unsigned int jn=in+1; if(jn>2)jn=0;
 	  a0=d[it][in][0];
 	  a1=d[it][in][1];
 	  a2=d[it][in][2];
@@ -412,6 +481,7 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
 	  c0=d[jt][0][in];
 	  c1=d[jt][1][in];
 	  c2=d[jt][2][in];
+	  
 	  /* check if contact */
 	  if((((c0>nsmall)&&(c1>nsmall)&&(c2>nsmall))||
 	      ((c0<small)&&(c1<small)&&(c2<small)))||
@@ -426,8 +496,8 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
 	    else
 	    { dmin2=std::min(dmin2,(a2*a2/n2));
 	    }
-	  }
-              else
+	   }
+              else            
               { icontact=it;
                 /* domain of contact  */
                 smin=R0; smax=R1;
@@ -475,8 +545,8 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
                   p[np]=std::min(p[np],(a2+smax*(b2-a2)));
                   np=np+1;
                   /* order intermediate points */
-                  for(ip=0;ip<(np-1);ip++)
-                  { for(jp=(ip+1);jp<np;jp++)
+                  for(unsigned ip=0;ip<(np-1);ip++)
+                  { for(unsigned int jp=(ip+1);jp<np;jp++)
                     { if(s[ip]>s[jp])
                       { tmp=s[jp]; s[jp]=s[ip]; s[ip]=tmp;
                         tmp=p[jp]; p[jp]=p[ip]; p[ip]=tmp;
@@ -485,7 +555,7 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
                   fn=p[0]*(s[1]-s[0])+p[np-1]*(s[np-1]-s[np-2]);
                   fnb=p[0]*(s[1]-s[0])*(s[1]+R2*s[0])+
                       p[np-1]*(s[np-1]-s[np-2])*(s[np-2]+R2*s[np-1]);
-                  for(ip=1;ip<(np-1);ip++)
+                  for(unsigned int ip=1;ip<(np-1);ip++)
                   { fn=fn+p[ip]*(s[ip+1]-s[ip-1]);
                     fnb=fnb+p[ip]*(
                     (s[ip]-s[ip-1])*(s[ip-1]+R2*s[ip])+
@@ -505,64 +575,26 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
             { 
 	      Element::GeometryType& this_geom_1 = (*Geom[it]);
 	      Element::GeometryType& this_geom_2 = (*Geom[jt]);
-	      /*
-	      std::vector<array_1d<double,3> > Values(6);
-	      for(in=0;in<6;in++)
-                 Values[in] = ZeroVector(3);
-		
-	      for(in=0;in<3;in++)
-              { 
-		Values[in][0] += 0.50 * fx[in];
-                Values[in][1] += 0.50 * fy[in];
-		Values[in][2] = 0.00;
-		ie=in+1; if(ie>2)ie=0;
-                for(jn=0;jn<3;jn++)
-                { 
-		  Values[jn+3][0] -= 0.50 * fx[jn]*d[it][jn][ie];
-                  Values[jn+3][1] -= 0.50 * fy[jn]*d[it][jn][ie];
-		  Values[jn+3][2] = 0.00;
-                } } 
-               
-              for(in=0;in<3;in++)
-               { 
-		array_1d<double,3>& node_rhs_1 = this_geom_1(in)->FastGetSolutionStepValue(RHS);
-		this_geom_1[in].SetLock();
-		node_rhs_1[0] += Values[in][0]; 
-                node_rhs_1[1] += Values[in][1]; 
-		node_rhs_1[2] += Values[in][2];
-		this_geom_1[in].UnSetLock();
-	       } 
-	       
-	       for(in=0;in<3;in++)
-               { 
-		array_1d<double,3>& node_rhs_2 = this_geom_2(in)->FastGetSolutionStepValue(RHS);
-		this_geom_2[in].SetLock();
-		node_rhs_2[0] += Values[3+in][0]; 
-                node_rhs_2[1] += Values[3+in][1]; 
-		node_rhs_2[2] += Values[3+in][1];
-		this_geom_2[in].UnSetLock();
-	       }
-	       */
-	      for(in=0;in<3;in++)
+	      for(unsigned int in=0;in<3;in++)
               { 
 		array_1d<double,3>& node_rhs_1 = this_geom_1(in)->FastGetSolutionStepValue(RHS);
-		array_1d<double,3>& normal_1  = this_geom_1(in)->FastGetSolutionStepValue(NORMAL);
+		array_1d<double,3>& normal_1   = this_geom_1(in)->FastGetSolutionStepValue(NORMAL);
 		this_geom_1[in].SetLock();
-		node_rhs_1[0] = node_rhs_1[0] + 0.50 * fx[in];
-                node_rhs_1[1] = node_rhs_1[1] + 0.50 * fy[in];
-		node_rhs_1[2] =  0.00;
+		node_rhs_1[0] += 0.50 * fx[in];
+                node_rhs_1[1] += 0.50 * fy[in];
+		node_rhs_1[2]  =  0.00;
 		normal_1[0]   += 0.50 * fx[in]; 
 		normal_1[1]   += 0.50 * fy[in]; 
 		normal_1[2]    = 0.00; 
 		this_geom_1[in].UnSetLock();
-                ie=in+1; if(ie>2)ie=0;
-                for(jn=0;jn<3;jn++)
+                unsigned int ie=in+1; if(ie>2)ie=0;
+                for(unsigned int jn=0;jn<3;jn++)
                 { 
 		  array_1d<double,3>& node_rhs_2 = this_geom_2(in)->FastGetSolutionStepValue(RHS);
 		  array_1d<double,3>& normal_2   = this_geom_2(in)->FastGetSolutionStepValue(NORMAL);
 		  this_geom_2[jn].SetLock();
-		  node_rhs_2[0] = node_rhs_2[0]-0.50 * fx[jn]*d[it][jn][ie];
-                  node_rhs_2[1] = node_rhs_2[1]-0.50 * fy[jn]*d[it][jn][ie];
+		  node_rhs_2[0] -= 0.50 * fx[jn]*d[it][jn][ie];
+                  node_rhs_2[1] -= 0.50 * fy[jn]*d[it][jn][ie];
 		  node_rhs_2[2] = 0.00;
 		  normal_2[0]   -= 0.50 * fx[jn]*d[it][jn][ie];
 	 	  normal_2[1]   -= 0.50 * fy[jn]*d[it][jn][ie];
@@ -576,6 +608,437 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
 /* tetrahedra to tetrahedra */
 void ComputeContactForce3D(const PointerType& Target, const PointerType& Contactor)
 {
+  
+	const double R0   = 0.00;
+	const double R1   = 1.00;
+	const double R2   = 2.00;
+	const double R5   = 5.00;
+	const double RP1  = 0.10;
+	const double RP25 = 0.25; 
+        const double RP5  = 0.50;
+	
+	
+	double tmp,theigh,penetr,peneto,penetu,penetv,penalty;
+	double force,forco,uforc,vforc,factor,fact0,facti,fact1;
+	double xorig,yorig,zorig,xe[2],ye[2],ze[2],dct[4];
+	double dsc[6][3],dcs[3][6],us[6],vs[6],ub[10],vb[10],anb[10],penetb[10];
+	double xt[4],yt[4],zt[4],ut[4],vt[4],ft[4],xcent,ycent,zcent,xnt,ynt,znt; 
+	double xc[4],yc[4],zc[4],uc[4],vc[4],fc[4],xcenc,ycenc,zcenc,xnc,ync,znc;
+	double /*zone2,dmin2,*/factor1;
+
+	long /*kprop,icontact,ielem,jelem,icoup,jcoup,*/fnonzero;
+	long i,j,k,inext,jnext,itars,icons;
+	long nspoin,ninerc,niners,nbpoin,innerc[3],inners[6];
+	//long itarth,iconth;
+	long iptn[4],ipcn[4];
+	long iptn1[4],ipcn1[4],m;
+
+	NodePointerType ipt[4], ipc[4];
+
+	double  pen_vec_tar =  50.00 * (Target->GetProperties()[YOUNG_MODULUS]);
+	double  pen_vec_con =  50.00 * (Contactor->GetProperties()[YOUNG_MODULUS]);
+	Target->GetValue(IS_TARGET) = true;
+	penalty = std::min(pen_vec_tar, pen_vec_con); ///penalty term
+	Element::GeometryType& Tgeom = Target->GetGeometry();
+	Element::GeometryType& Cgeom = Contactor->GetGeometry();
+	//std::vector<Element::GeometryType::Pointer> Geom(2);
+	//Geom[0] = Target->pGetGeometry();
+	//Geom[1] = Contactor->pGetGeometry();
+	  
+        /*set centres of contactor and target object */
+	xcent=R0; ycent=R0; zcent=R0; xcenc=R0; ycenc=R0; zcenc=R0;
+	for(i=0;i<4;i++)
+	{     xcenc=xcenc+RP25*(Cgeom(i)->X()); 
+	      ycenc=ycenc+RP25*(Cgeom(i)->Y());
+	      zcenc=zcenc+RP25*(Cgeom(i)->Z());
+	      xcent=xcent+RP25*(Tgeom(i)->X());
+	      ycent=ycent+RP25*(Tgeom(i)->Y());
+	      zcent=zcent+RP25*(Tgeom(i)->Z());
+	}
+	
+	/*********************************************************/     
+	/*                loop over target surfaces              */
+	/*********************************************************/
+	//ipt->Guarda las conectividades del elemento
+	for(itars=0;itars<4;itars++)
+	{ 
+	  ipt[0]  = Tgeom(itars);      //i2elto[itars][itarth];
+	  iptn1[0]= itars;
+	  ipt[1]  = Tgeom(1);          //i2elto[1][itarth];
+	  iptn1[1]= 1;
+	  ipt[2]  = Tgeom(2);          //i2elto[2][itarth];
+	  iptn1[2]= 2;
+	  if(itars>0)
+	  { 
+	    ipt[3]  = Tgeom(itars-1);   //i2elto[itars-1][itarth];
+	    iptn1[3]= itars-1;
+	  }
+	  else
+	  { 
+	    ipt[3]  = Tgeom(3);          //i2elto[3][itarth];
+	    iptn1[3]= 3;
+	  }    
+	  if((itars==1)||(itars==2))
+	  {
+	    ipt[1] = Tgeom(3);         //i2elto[3][itarth];
+	    iptn1[1]=3;
+	  }
+	  if(itars>1)
+	  {
+	    ipt[2] = Tgeom(0);         //i2elto[0][itarth];
+	    iptn1[2]= 0; 
+	  }
+	  
+	/*****************************************************/ 
+	/*           loop over contactor surfaces            */
+	/*****************************************************/ 
+	
+	for(icons=0;icons<4;icons++)
+	{ 
+	 ipc[0]   = Cgeom(icons);            //i2elto[icons][iconth];
+	 ipcn1[0] = icons;
+	 ipc[1]   = Cgeom(1);                //i2elto[1][iconth];
+	 ipcn1[1] = 1;
+	 ipc[2]   = Cgeom(2);                //i2elto[2][iconth];
+	 ipcn1[2] = 2;
+	 if(icons>0)
+	 { 
+	  ipc[3]   = Cgeom(icons-1);        //i2elto[icons-1][iconth];
+	  ipcn1[3] = icons-1;
+	 }
+	 else
+	 { 
+	  ipc[3]   = Cgeom(3);              //i2elto[3][iconth];
+	  ipcn1[3] = 3;
+	 }
+	if((icons==1)||(icons==2))
+	 {
+	  ipc[1]  = Cgeom(3);               //i2elto[3][iconth];
+	  ipcn1[1]= 3;
+	 }
+	if(icons>1)
+	{
+	  ipc[2]   = Cgeom(0);               //i2elto[0][iconth];
+	  ipcn1[2] = 0;
+	}
+
+	for(m=0;m<4;m++)
+	{
+	  iptn[iptn1[m]]=m;
+	  ipcn[ipcn1[m]]=m;
+	}
+	
+	/* set nodal coordinates */
+	for(i=0;i<3;i++)
+	{ 
+	  xt[i] = ipt[i]->X();
+	  yt[i] = ipt[i]->Y();
+	  zt[i] = ipt[i]->Z();
+	  xc[i] = ipc[i]->X();
+	  yc[i] = ipc[i]->Y();
+	  zc[i] = ipc[i]->Z();
+	}
+	
+	xt[3]=xcent; yt[3]=ycent; zt[3]=zcent;
+	xc[3]=xcenc; yc[3]=ycenc; zc[3]=zcenc;
+	xorig=xc[0]; yorig=yc[0]; zorig=zc[0];
+
+	for(i=0;i<4;i++)
+	{ 
+	  xt[i]=xt[i]-xorig; yt[i]=yt[i]-yorig; zt[i]=zt[i]-zorig;
+	  xc[i]=xc[i]-xorig; yc[i]=yc[i]-yorig; zc[i]=zc[i]-zorig; 
+	} 
+	
+	/* contactor normal, e-base and target points in e-base */
+	V3DCro(xnc,ync,znc,xc[1],yc[1],zc[1],xc[2],yc[2],zc[2]);
+	V3DNor(xe[0],xnc,ync,znc);
+	
+	
+	xe[0]=xc[1]; ye[0]=yc[1]; ze[0]=zc[1];
+	V3DNor(xe[1],xe[0],ye[0],ze[0]); 
+	V3DCro(xe[1],ye[1],ze[1],xnc,ync,znc,xe[0],ye[0],ze[0]);
+	for(i=0;i<4;i++)
+	{ 
+	  V3DDot(dct[i],xnc,ync,znc,xt[i],yt[i],zt[i]);
+	  V3DDot(ut[i],xt[i],yt[i],zt[i],xe[0],ye[0],ze[0]);
+	  V3DDot(vt[i],xt[i],yt[i],zt[i],xe[1],ye[1],ze[1]);
+	}
+	
+	/* u,v coordinates of S-points and C-points   */
+	nspoin=0;
+	for(i=0;i<3;i++)
+	 { 
+	   for(j=0;j<2;j++)
+	    { 
+	      inext=i+1; if(inext>2)inext=0; if(j==0)inext=3;
+	      if(((dct[i]>EPSILON)&&(dct[inext]<NEPSILON))|| ((dct[i]<NEPSILON)&&(dct[inext]>EPSILON)))
+	      //Modified by JXiang
+	       { 
+		 factor=std::fabs(dct[i]-dct[inext]);          
+	         if(factor>EPSILON)
+	         { 
+		   factor=std::fabs(dct[i]/factor);
+	           us[nspoin]=factor*ut[inext]+(R1-factor)*ut[i];
+	           vs[nspoin]=factor*vt[inext]+(R1-factor)*vt[i];
+	           inners[nspoin]=0;
+	           nspoin=nspoin+1;
+	
+		 } 
+	       } 
+	    } 
+	 }
+	 
+	if((nspoin<3)||(nspoin>4))continue;
+	
+	/* check odering of S-points  */
+	if(((us[1]-us[0])*(vs[2]-vs[0])-(vs[1]-vs[0])*(us[2]-us[0]))<R0)
+	{ 
+	  i=0; j=nspoin-1;
+	  while(i<j)
+	  { 
+	   k=inners[i]; inners[i]=inners[j]; inners[j]=k;
+	   tmp=us[i];   us[i]=us[j];         us[j]=tmp;
+	   tmp=vs[i];   vs[i]=vs[j];         vs[j]=tmp;
+	   i++; j--;
+	
+	  } 
+	}
+	
+	for(i=0;i<3;i++)
+	{ 
+	  V3DDot(uc[i],xc[i],yc[i],zc[i],xe[0],ye[0],ze[0]);
+	  V3DDot(vc[i],xc[i],yc[i],zc[i],xe[1],ye[1],ze[1]);
+	  innerc[i]=0;
+	}
+	
+	/* distances of C-points from S edges */
+	niners=0; ninerc=0;
+	for(i=0;i<nspoin;i++)
+	{ 
+	  inext=i+1;
+	  if(inext>=nspoin)inext=0;
+	  for(j=0;j<3;j++) 
+	  { 
+	    jnext=j+1;
+	    if(jnext>2)jnext=0;
+	    dcs[j][i]=(uc[jnext]-uc[j])*(vs[i]-vc[j])-(vc[jnext]-vc[j])*(us[i]-uc[j]);
+	    dsc[i][j]=(us[inext]-us[i])*(vc[j]-vs[i])-(vs[inext]-vs[i])*(uc[j]-us[i]);
+	    if(dsc[i][j]>=R0)
+	    { 
+	      innerc[j]=innerc[j]+1;
+  	      if(innerc[j]==nspoin) ninerc=ninerc+1;
+	    }
+	    if(dcs[j][i]>=R0)
+	   { 
+	     inners[i]=inners[i]+1;
+	     if(inners[i]==3) niners = niners+1;
+	
+	   } 
+	  } 
+	}
+	
+	/* B-points   */
+	if(ninerc==3)           /* triangle inside poligon      */
+	{ 
+	  nbpoin=3;
+	  for(i=0;i<nbpoin;i++)
+	  { 
+	    ub[i]=uc[i]; vb[i]=vc[i];
+	  } 
+	}
+	else if(niners==nspoin) /* poligon inside triangle */     
+	{ 
+	  nbpoin=nspoin;
+	  for(i=0;i<nbpoin;i++)
+	  { 
+	    ub[i]=us[i]; vb[i]=vs[i];
+	  } 
+	}
+	else            /* intersection points poligon triangle */
+	{ 
+	  nbpoin=0;
+	  for(i=0;i<nspoin;i++)
+	   { 
+	     if(inners[i]==3)
+	     { 
+	       ub[nbpoin]=us[i]; vb[nbpoin]=vs[i]; nbpoin++; 
+	
+	     } 
+	   }
+	   for(i=0;i<3;i++)  /* grab inner C-points */ 
+	   { 
+	     if(innerc[i]==nspoin)  
+	     { 
+	     ub[nbpoin]=uc[i]; vb[nbpoin]=vc[i]; nbpoin++;       
+	
+	     } 
+	   }       
+	for(i=0;i<nspoin;i++)        /* intersection points */   
+	{ 
+	  inext=i+1; if(inext>=nspoin)inext=0;
+	  for(j=0;j<3;j++)
+	  {
+	    jnext=j+1; if(jnext>2)jnext=0;
+	   if((((dsc[i][j]>EPSILON)&&(dsc[i][jnext]<NEPSILON))||
+	   ((dsc[i][j]<NEPSILON)&&(dsc[i][jnext]>EPSILON)))&&
+	   (((dcs[j][i]>EPSILON)&&(dcs[j][inext]<NEPSILON))||
+ 	   ((dcs[j][i]<NEPSILON)&&(dcs[j][inext]>EPSILON))))
+	    //modified by JXiang
+	    { 
+	     factor=std::fabs(dsc[i][j]-dsc[i][jnext]);
+	     if(factor<EPSILON){ factor=RP5;}
+	     else{factor=std::fabs(dsc[i][j]/factor);}
+	     ub[nbpoin]=(R1-factor)*uc[j]+factor*uc[jnext];
+	     vb[nbpoin]=(R1-factor)*vc[j]+factor*vc[jnext];
+	     nbpoin++;
+	 
+	    } 
+	  } 
+	}
+	
+	for(i=1;i<nbpoin;i++)
+	{ 
+	  if(vb[i]<vb[0])
+	   { 
+	     tmp=vb[i]; vb[i]=vb[0]; vb[0]=tmp;
+	     tmp=ub[i]; ub[i]=ub[0]; ub[0]=tmp;
+	
+	   } 
+	}
+	
+	for(i=1;i<nbpoin;i++)
+	{ 
+	  tmp=ub[i]-ub[0];				 
+	   if((tmp<R0)&&(tmp>(-EPSILON)))
+	   { 
+	     tmp=tmp-EPSILON;
+	   }
+	else if((tmp>=R0)&&(tmp<EPSILON))
+	 { 
+	   tmp=tmp+EPSILON;
+	 }
+	  anb[i]=(vb[i]-vb[0]+EPSILON)/tmp;
+	}
+	
+	for(i=1;i<nbpoin;i++)  /* sort B-points */
+	{ 
+	  for(j=i+1;j<nbpoin;j++)
+	  { 
+	    if(((anb[i]>=R0)&&(anb[j]>=R0)&&(anb[j]<anb[i]))||
+	    ((anb[i]<R0)&&((anb[j]>=R0)||(anb[j]<anb[i]))))
+	     { 
+	      tmp=vb[i];  vb[i]=vb[j];   vb[j]=tmp;
+	      tmp=ub[i];  ub[i]=ub[j];   ub[j]=tmp;
+	      tmp=anb[i]; anb[i]=anb[j]; anb[j]=tmp;
+	
+	      } 
+	    } 
+	  } 
+	}
+	
+	if(nbpoin<3)continue; 
+	/* Target-plain normal and penetration at B-points      */      
+	V3DCro(xnt,ynt,znt,xt[1]-xt[0],yt[1]-yt[0],zt[1]-zt[0],xt[2]-xt[0],yt[2]-yt[0],zt[2]-zt[0]); 
+	V3DDot(theigh,xt[3]-xt[0],yt[3]-yt[0],zt[3]-zt[0],xnt,ynt,znt); 
+	/* penetration at origin of the e-base and dp/du dp/dv; */
+	V3DDot(peneto,xc[0]-xt[0],yc[0]-yt[0],zc[0]-zt[0],xnt,ynt,znt); 
+	V3DDot(penetu,xe[0],ye[0],ze[0],xnt,ynt,znt);
+	V3DDot(penetv,xe[1],ye[1],ze[1],xnt,ynt,znt);
+	peneto=peneto/theigh; 
+	penetu=penetu/theigh; 
+	penetv=penetv/theigh;
+	for(i=0;i<nbpoin;i++)
+	{ 
+	  penetb[i]=peneto+ub[i]*penetu+vb[i]*penetv;
+	}
+	/* force and center of force */
+	forco=R0; uforc=R0; vforc=R0;   
+	for(i=1;i<(nbpoin-1);i++)
+	{ 
+	  penetr=penetb[0]+penetb[i]+penetb[i+1];
+	  if(penetr>EPSILON){
+	  force=((ub[i]-ub[0])*(vb[i+1]-vb[0])-(vb[i]-vb[0])*(ub[i+1]-ub[0]))*penetr*penalty;
+	  fact0=(RP5*penetb[0]+RP25*(penetb[i]+penetb[i+1]))/penetr;
+	  facti=(RP5*penetb[i]+RP25*(penetb[0]+
+	  penetb[i+1]))/penetr;
+	  fact1=R1-fact0-facti;
+	  if(std::fabs(force+forco)>EPSILON)
+	  { 
+	    uforc=(forco*uforc+force*(fact0*ub[0]+
+	    facti*ub[i]+fact1*ub[i+1]))/(forco+force); 
+	    vforc=(forco*vforc+force*(fact0*vb[0]+
+	    facti*vb[i]+fact1*vb[i+1]))/(forco+force);
+	    forco=forco+force;
+	
+	   } 
+	  } 
+	} 
+	
+	/*resultant at C-points */
+	for(i=0;i<4;i++)
+	{ 
+	  fc[i]=R0; ft[i]=R0;
+	}
+	
+	tmp=((uc[1]-uc[0])*(vc[2]-vc[0])-
+	(vc[1]-vc[0])*(uc[2]-uc[0]));
+	for(i=0;i<3;i++)
+	{ j=i+1; if(j>2)j=0; k=j+1; if(k>2)k=0;
+	fc[k]=forco*(((uc[j]-uc[i])*(vforc-vc[i])-
+	(vc[j]-vc[i])*(uforc-uc[i]))/tmp); 
+	}
+	
+	/*resultant at T-points*/
+	
+	tmp=((ut[1]-ut[0])*(vt[2]-vt[0])-(vt[1]-vt[0])*(ut[2]-ut[0]));
+	inext=-1;
+	if(std::fabs(tmp)<RP1*theigh)
+	{ 
+	  inext=0; tmp=std::fabs(ut[1]-ut[0])+std::fabs(vt[1]-vt[0]); 
+	  for(i=0;i<3;i++)
+	  { 
+	    j=i+1; if(j>2)j=0;
+ 	    if(tmp>(std::fabs(ut[j]-ut[i])+std::fabs(vt[j]-vt[i])))
+	    { 
+	      tmp=std::fabs(ut[j]-ut[i])+std::fabs(vt[j]-vt[i]);  inext=i;
+	    }
+	  }
+	  j=inext+1; if(j>2)j=0;
+	  if(std::fabs(zt[j])>std::fabs(zt[inext]))inext=j;
+	  j=inext+1; if(j>2)j=0;  k=j+1;  if(k>2)k=0;  
+	  tmp=(ut[k]-ut[j])*(vt[3]-vt[j])-
+	  (vt[k]-vt[j])*(ut[3]-ut[j]);
+	}
+	
+	for(jnext=0;jnext<3;jnext++)
+	{ i=jnext; j=i+1; if(j>2)j=0; k=j+1; if(k>2)k=0;
+	if(i==inext)i=3; if(j==inext)j=3; if(k==inext)k=3; 
+	ft[k]=forco*(((ut[j]-ut[i])*(vforc-vt[i])-
+	(vt[j]-vt[i])*(uforc-ut[i]))/tmp);                 
+	}
+	ft[3]=RP25*ft[3];
+	for(i=0;i<3;i++)
+	{ ft[i]=ft[i]+ft[3];
+	}
+	
+	/* add forces into global vector    */
+	factor1=R2/R5;
+	fnonzero=1;
+	
+	for(i=0;i<4;i++)
+	{ 
+	  array_1d<double,3>& node_rhs_1 = (ipc[i])->FastGetSolutionStepValue(RHS);
+	  array_1d<double,3>& node_rhs_2 = (ipt[i])->FastGetSolutionStepValue(RHS);
+	  
+	  node_rhs_1[0] += fc[i]*xnc*factor1;
+	  node_rhs_1[1] += fc[i]*ync*factor1;
+	  node_rhs_1[2] += fc[i]*znc*factor1;
+	  node_rhs_2[0] -= ft[i]*xnc*factor1;
+	  node_rhs_2[1] -= ft[i]*ync*factor1;
+	  node_rhs_2[2] -= ft[i]*znc*factor1;
+	}
+     }
+  }
 }
   
 
@@ -641,8 +1104,44 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	    
 	    KRATOS_CATCH("")
 	 }
-	    
+	 
+	 
+ 
+  //************************************************************************************
+  //************************************************************************************ 
+
+  void ResetValues()
+  {
     
+    	   KRATOS_TRY
+           NodesArrayType& pNodes           =  mr_model_part.Nodes();
+	   #ifdef _OPENMP
+           int number_of_threads = omp_get_max_threads();
+           #else
+           int number_of_threads = 1;
+           #endif
+
+           vector<unsigned int> node_partition;
+           CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+           #pragma omp parallel for 
+           for(int k=0; k<number_of_threads; k++)
+             {
+	        NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	        NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	        for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+	          {  
+	 	      i->GetValue(IS_CONTACT_SLAVE)  = 0;
+		      i->GetValue(IS_CONTACT_MASTER) = 0;
+		      i->GetValue(NODAL_VALUES)      = 0;
+		      i->GetValue(DISTANCE)          = DBL_MAX;
+	          }
+	     }
+	     
+	     KRATOS_CATCH("")  
+  }
+
+
   //************************************************************************************
   //************************************************************************************ 
 
@@ -654,7 +1153,7 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	   ElementsArrayType& pElements     =  mr_model_part.Elements(); 
 	   ConditionsArrayType& pConditions =  mr_model_part.Conditions(); 
 	   //ProcessInfo& CurrentProcessInfo  =  mr_model_part.GetProcessInfo();
-	   mPairContacts.clear(); 
+	   
 	   
 	   #ifdef _OPENMP
            int number_of_threads = omp_get_max_threads();
@@ -676,12 +1175,12 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 		      i->GetValue(IS_CONTACT_MASTER) = 0;
 		      i->GetValue(NODAL_VALUES)      = 0;
 		      i->GetValue(DISTANCE)          = DBL_MAX;
-		      //i->GetValue(NEAR_NODE)         = i->lock();  
+		      i->GetValue(NEAR_NODE)         = *(i.base());
 	          }
 	     }
-	   
-
-	   // no se han producido nuevas condiciones de contorno
+	     
+	     
+	   //No se han producido nuevas condiciones de contorno
            if(mcompute_boundary_contour==true)
 	   {
 	      /// Borro las condiciones masters
@@ -701,7 +1200,6 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	      ElementosVecinos.Execute();
 	      NodosVecinos.Execute();
 	      CondicionesVecinas.Execute();
-	      
 	      
 	      vector<unsigned int> condition_partition;
 	      CreatePartition(number_of_threads, pConditions.size(), condition_partition);
@@ -733,6 +1231,7 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 		  }
 	      }
 	      
+	      mPairContacts.clear(); 
 	      mBoundaryElements.clear();
 	      mMasterConditionsArray.clear();
 	   }  
@@ -776,15 +1275,15 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	    
 	    unsigned int Id                        = rConditions.size() + 1;
 	    unsigned int properties_index          = mr_model_part.NumberOfProperties();	    
-	    PropertiesType::Pointer tempProperties = PropertiesType::Pointer(new PropertiesType(properties_index+1) );
-	    mr_model_part.AddProperties(tempProperties);
+	    PropertiesType::Pointer tempProperties = PropertiesType::Pointer(new PropertiesType(properties_index+1));
+	    //mr_model_part.AddProperties(tempProperties);
  
 	    int  Case                   =  0;    
 	    unsigned int  master        =  0;
 	    unsigned int  slave         =  1;    
 	    bool is_repited             =  false;
 	    bool corner                 =  false; 
-	    bool Change                 =  true; 	    
+	    bool Change                 =  true;    
             Near_Node  Near             =  no_near; 
             Exist_Node Exist            =  no_nodes;
 	    
@@ -796,8 +1295,10 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
             int number_of_threads = 1;
 	    #endif
 	    
-            std::vector<ResultContainerType> Result(number_of_threads);
+            //std::vector<ResultContainerType> Result(number_of_threads);
+            ResultContainerType Result;
  
+	    
             /// creando bins de objetos
 	    BinsObjectDynamic<Configure>  rBinsObjectDynamic(mBoundaryElements.begin(), mBoundaryElements.end()); 
 	    
@@ -814,129 +1315,90 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
             LinkingConditions.resize(number_of_threads); 
             vector<unsigned int> partition;
             CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
-	    ContactPairType it_pair;
+	    ContactPairType it_pair;  
 	    
-	    std::cout<<"  PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl; 
-	    /// WARNING = to be corrected for correct Id
-	    #pragma omp parallel for private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near,  Exist)
+	    std::cout<<"     PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl; 
+	    std::cout<<"     NUMBER OF INITIAL CONDITIONS            = " << initial_conditions_size <<  std::endl;
+            std::cout<<"     NUMBER OF MASTER SURFACES CONDITIONS    = " << rConditions.size()-initial_conditions_size <<  std::endl;
+	    
+	    #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
 	    for(int k=0; k<number_of_threads; k++)          
 	     {
 	       IteratorType it_begin = mBoundaryElements.begin() + partition[k];
 	       IteratorType it_end   = mBoundaryElements.begin() + partition[k+1];
 	       for(IteratorType it =it_begin; it!=it_end; it++)
 	         { 
-		   Result[k].clear();
-		   Result[k].reserve(100);
-		   rBinsObjectDynamic.SearchObjectsInner(*it, Result[k]);
-		   if(Result[k].size()!=0){
-		   for(ResultIteratorType rthis = Result[k].begin(); rthis!=Result[k].end(); rthis++)
-		      { 
+		   Result.clear();
+		   Result.reserve(100);
+		   (*it)->GetValue(IS_TARGET)=true;
+		   rBinsObjectDynamic.SearchObjectsInner(*it, Result);      
+		   if(Result.size()!=0){    
+		   for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); ++rthis){ 
 			 if(FiltratePairContacts(*it, *rthis)==true)
-			 {  
-			    master = 0;
-			    slave  = 1;
-			    it_pair[master] = (*rthis); 
-			    it_pair[slave]  = (*it); 
-			    NodeInside((it_pair)[master], (it_pair)[slave], InsideNodes);   
-			    if(InsideNodes.size()==0){
-			      master = 1;
-			      slave  = 0;
-			      NodeInside( (it_pair)[master], (it_pair)[slave], InsideNodes);   
-			    }
-		           else if (InsideNodes.size()!=0){
-		              Exist = yes_nodes; 
-		              if(InsideNodes.size()==1) 
-		                 is_repited = bool((InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1);
-		              else
-		                 is_repited = bool( (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1 && (InsideNodes[1])->GetValue(IS_CONTACT_SLAVE)==1);
-		             }
-		          else
-			      Exist = no_nodes; 
- 
+			 {    
+			    Exist            =  no_nodes;
+			    Case             =  0;       
+			    master           =  0;
+			    slave            =  1;
+			    (it_pair)[master] = (*rthis); 
+			    (it_pair)[slave]  = (*it); 
+			    Ids_2.clear();
+			    InsideNodes.clear(); 
+			    NodeInside((it_pair)[0], (it_pair)[1], InsideNodes);  
+			    if(InsideNodes.size()==0)
+			    {
+			      InsideNodes.clear();
+			      ContactPairType it_pair_2;
+			      (it_pair_2)[master] = (*it); 
+			      (it_pair_2)[slave]  = (*rthis); 
+			      NodeInside((it_pair_2)[0], (it_pair_2)[1], InsideNodes);  
+			      if(InsideNodes.size()==0)
+			         { Exist = no_nodes;} 
+		              else{
+		                 Exist = yes_nodes;
+				 continue;
+			        }
+			     }
+			   else
+			      Exist = yes_nodes; 
+			  
 			   
-			 if(is_repited==false)
-			  {
 			    switch(Exist)
 			    {
-			    case(yes_nodes):
-			       { 
-
- 				//std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl; 
+			      case(yes_nodes):
+			        {  
 				Case = IntersectTriangles.LocateCaseItersection(Id_Node_Case_5, Change, InsideNodes, (it_pair)[master], (it_pair)[slave]);
-				//KRATOS_WATCH(Case)
 				switch(Case)  
-				{
+				{ 
+				  /*
 				  case 1: /// un solo nodo dentro
 				  {  
 				      Near = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids);
-				      //Ids[slave]  = InsideNodes[0];
-				      //Ids[master] = InsideNodes[0]->GetValue(NEAR_NODE);
 				      if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){
-					 //InsideNodes[0]->GetValue(IS_CONTACT_SLAVE) = 1;
-// 					const int& i = InsideNodes[0]->Id();
-// 					if(i==876 || i==877 || i==926 || i==927 || i==910 || i==919 || i==905){
-// 					  KRATOS_WATCH(i)
-// 					  KRATOS_WATCH(InsideNodes[0]->GetValue(CONTACT_LINK_MASTER)->Id())
-// 					}
-                                        //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-				        //std::cout<< "     Case = " << Case << std::endl;
 					Id++;
 				      }
 				      break;
 				  }
-				  case 2:  /// dos nodos dentro
+				  */
+				  case 1 : case 2:  /// dos nodos dentro
 				  {
 				  for(unsigned int in = 0; in<InsideNodes.size(); in++){
-				      if(InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)==0) {
+				          {
 					   Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
-					   //Ids[slave]  = InsideNodes[in];
-				           //Ids[master] = InsideNodes[in]->GetValue(NEAR_NODE);
 					   if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){ 
-					     //InsideNodes[in]->GetValue(IS_CONTACT_SLAVE) = 1;
-					     //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-					     //std::cout<< "     Case = " << Case << std::endl;
 					     Id++;
 				            }
-				           }
-// 				         const int& i = InsideNodes[in]->Id();  
-// 				         if(i==876 || i==877 || i==926 || i==927 || i==910 || i==919 || i==905){
-// 					     KRATOS_WATCH(i)
-// 					     KRATOS_WATCH(InsideNodes[0]->GetValue(CONTACT_LINK_MASTER)->Id())
-// 					 }
-				           
+				           }				           
 				         }
 				         break;
 				  }
 				  case 3:
 				  {
-				    //Near = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids);
-				    //(Ids[slave])->GetValue(IS_CONTACT_SLAVE) = 1;
-				    //CreatePointLinkingConditions(master, slave, Ids, it_pair, tempProperties, Id, LinkingConditions[k]);
-				    //Id++;
 				    break;
 				  }  
-				  
-				  
+
 				  case 5:
-				  {
-				    /*
-				    Near = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids); 
-				    if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){
-				      //InsideNodes[0]->GetValue(IS_CONTACT_SLAVE) = 1;
-				      Id++;
-				    }
-				    //WARNING = SPECIAL CASE
-				    Exist              =  no_nodes;
-				    //unsigned int& id_2 =  Id_Node_Case_5;
-				    if(Id_Node_Case_5->GetValue(IS_CONTACT_SLAVE) == 0){
-				      
-				      Near               = CheckNearNodes(slave, master, Id_Node_Case_5, (it_pair)[slave], Ids);
-				      if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){
-				       Id_Node_Case_5->GetValue(IS_CONTACT_SLAVE) = 1;  
-				       Id++;
-				      }
-				    }
-				    */
+				   {
 				    break;
 				  }
 				  
@@ -946,200 +1408,35 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 			      }
 
 			      case(no_nodes):
-			      {   
+			      { 
+				ComputeContactForce2D(((it_pair)[slave]), ((it_pair)[master]));
+				/*
 				///Penalty
-				//std::cout<< "     No Nodes" << std::endl;
-  				//std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-                                ComputeContactForce2D(((it_pair)[slave]), ((it_pair)[master]));
-			        /* 
-				unsigned int size_slave  =   ((it_pair)[slave])->GetValue(NEIGHBOUR_CONDITIONS).size();
 				unsigned int size_master =   ((it_pair)[master])->GetValue(NEIGHBOUR_CONDITIONS).size();
-				if(size_slave>=2 || size_master>=2)
-				{
-				  
-  				//std::cout<< "     No Nodes" << std::endl;
-  				//std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-                                CheckNearNodes(master, slave, (it_pair)[slave], (it_pair)[master], Ids_2, Is_Near);//  				  
-				for(unsigned int i = 0; i<Ids_2.size(); i++){  
-				  if( (Ids_2[i][slave])->GetValue(IS_BOUNDARY)==1 && (Ids_2[i][master])->GetValue(IS_BOUNDARY)==1){
-				    //if(Is_Near[i]==no_near){
-				      if((Ids_2[i][slave])->GetValue(IS_CONTACT_SLAVE)==0 && (Ids_2[i][master])->GetValue(IS_CONTACT_SLAVE)==0){
-				        VerifyCorrectSlaveNode(master, slave, Ids_2[i]);
-				        if(CreateLinkingConditions(Id,  master, slave, Ids_2[i], it_pair, tempProperties, Exist, LinkingConditions[k])){
-					  //(Ids_2[i][slave])->GetValue(IS_CONTACT_SLAVE)  = 1;
-				          //(Ids_2[i][master])->GetValue(IS_CONTACT_SLAVE) = 1;  
-					   Id++;
-				      //  }
-				      }
+				unsigned int size_slave  =   ((it_pair)[slave])->GetValue(NEIGHBOUR_CONDITIONS).size();
+				if(size_master==1 && size_slave==1)
+				 {
+				   //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
+				   CheckNearNodes(master, slave, (it_pair)[slave], (it_pair)[master], Ids_2, Is_Near);
+				   //KRATOS_WATCH(Ids_2.size())
+				   if(CreateLinkingConditions(Id,  master, slave, Ids_2[0], it_pair, tempProperties, Exist, LinkingConditions[k])){ 
+				     Id++; 
 				    }
-				  }
-				}
-			      } 
-			      */
+				 }
+				else if(size_master>1 || size_slave>1)
+				 {
+				   ComputeContactForce2D(((it_pair)[slave]), ((it_pair)[master]));
+				 }
+				 */
 			      break;
+			       }
 			    }
-			    }
-			  }
-			    
-			  //intercambiando master por slave y viceversa 
-			  if(master==0 && Change==true)
-			  { 
-			    Exist            =  no_nodes;
-			    Near             =  no_near;
-			    corner           =  false; 
-			    Change           =  true; 
-			    is_repited       =  false;
-			    Case             =  0;       
-			    //Id_Node_Case_5   =  0;
-			    Ids_2.clear();
-			    Is_Near.clear();
-			    InsideNodes.clear(); 
-			    master = 1;
-			    slave  = 0; 
-			    NodeInside( (it_pair)[master], (it_pair)[slave], InsideNodes);   
-			    if(InsideNodes.size()!=0)
-			    { 
-			      Exist = yes_nodes; 
-			      if(InsideNodes.size()==1) 
-				{
-				  is_repited =  bool(InsideNodes[0]->GetValue(IS_CONTACT_SLAVE)==1);
-				}
-				if(InsideNodes.size()==2)
-				{  
-				  is_repited = bool( (InsideNodes[0]->GetValue(IS_CONTACT_SLAVE)==1) && 
-						     (InsideNodes[1]->GetValue(IS_CONTACT_SLAVE)==1));
-				}
-			    }
-			  
-			  if(is_repited==false)
-			  {
-			    switch(Exist)
-			    {
-			    case(yes_nodes):
-			      {
-				 //std::cout<< "     Changing"<< std::endl;
-                                 //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-                                 Case = IntersectTriangles.LocateCaseItersection(Id_Node_Case_5, Change, InsideNodes, (it_pair)[master], (it_pair)[slave]);
-				 //KRATOS_WATCH(Case)
-				 
-				switch(Case) 
-				{
-				  case 1 : 
-				  {
-				 
-				  Near              = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids);
-				  //Ids[slave]  = InsideNodes[0];
-				  //Ids[master] = InsideNodes[0]->GetValue(NEAR_NODE);
-				  if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){
-				     //InsideNodes[0]->GetValue(IS_CONTACT_SLAVE) = 1;
-				     //const int& i = InsideNodes[0]->Id();  
-// 				     if(i==876 || i==877 || i==926 || i==927 || i==910 || i==919 || i==905){
-// 				       KRATOS_WATCH(i)
-// 			               KRATOS_WATCH(InsideNodes[0]->GetValue(CONTACT_LINK_MASTER)->Id())
-// 				     }
-                                     //std::cout<< "     Changing"<< std::endl;
-                                     //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-				     //std::cout<< "     Case = " << Case << std::endl;
-				     Id++;
-				    }
-				  break;
-				  }
-				  
-				  case 2 :
-				  {
-				  for(unsigned int in = 0; in<InsideNodes.size(); in++){
-				      if(InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)==0)
-				      {
-					Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
-					//Ids[slave]  = InsideNodes[in];
-				        //Ids[master] = InsideNodes[in]->GetValue(NEAR_NODE);
-					if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])){
-					 //InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)=1; 
-				        // const int& i = InsideNodes[in]->Id();  
-// 				         if(i==876 || i==877 || i==926 || i==927 || i==910 || i==919 || i==905){
-// 					     KRATOS_WATCH(i)
-// 					     KRATOS_WATCH(InsideNodes[0]->GetValue(CONTACT_LINK_MASTER)->Id())
-// 					 }
-			                  //std::cout<< "     Changing"<< std::endl;
-                                          //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-					  //std::cout<< "     Case = " << Case << std::endl;
-					  Id++;
-				        }
-				      }
-				    }
-				  break;
-				  }
-				  
-				  case 3:
-				  {
-				    //Near              = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids);
-				    //(Ids[slave])->GetValue(IS_CONTACT_SLAVE) = 1;
-				    //CreatePointLinkingConditions(master, slave, Ids, it_pair, tempProperties, Id, LinkingConditions[k]);
-				    //Id++;
-				    break;
-				  }  
-				  
-				  case 5:
-				  {
-				    /*
-				     Near              = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids); 
-				     if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k])) { 
-				     //InsideNodes[0]->GetValue(IS_CONTACT_SLAVE) = 1;
-				     Id++;
-				    }
-				    //WARNING = SPECIAL CASE
-				    Exist              =  no_nodes;
-				    //unsigned int& id_2 =  Id_Node_Case_5;
-				    if(Id_Node_Case_5->GetValue(IS_CONTACT_SLAVE) == 0){
-				      Near               = CheckNearNodes(slave, master,  Id_Node_Case_5, (it_pair)[slave], Ids);
-				      if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k] )){
-				        Id_Node_Case_5->GetValue(IS_CONTACT_SLAVE) = 1;
-					Id++;
-				      }
-				    }
-				    */
-				    break;
-				  }
-				}
-				
-				break;
-				}
-			      
-			      case(no_nodes):
-			      {
-				///Penalty
-				//std::cout<< "     No Nodes" << std::endl;
-  				//std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-                                ComputeContactForce2D(((it_pair)[slave]), ((it_pair)[master]));
-				break;
-			      }
-			      }
-			    }
-			    
-			  }
-			  
-			  }
-		   
-		          
-			  Exist            =  no_nodes;
-			  Near             =  no_near;
-			  corner           =  false; 
-			  Change           =  true; 
-			  is_repited       =  false;
-			  Case             =  0;       
-			  //Id_Node_Case_5   =  0;
-			  master           =  0;
-			  slave            =  1;
-			  Ids_2.clear();
-			  Is_Near.clear();
-			  InsideNodes.clear();
+		         }
+		       }
 		    }
-		 }
-	      }
-           }
+	        }
+             }
  
-		    std::cout<<"     NUMBER OF INITIAL CONDITIONS            = " << initial_conditions_size <<  std::endl;
-		    std::cout<<"     NUMBER OF MASTER SURFACES CONDITIONS    = " << rConditions.size()-initial_conditions_size <<  std::endl;
 		    unsigned int size = 0;
 		    //adding linking to model_part
 		    for(int k=0; k<number_of_threads; k++){
@@ -1162,22 +1459,26 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 	 {
 	   
 	    KRATOS_TRY
-                  
-            //NodesContainerType& rNodes       =  mr_model_part.NodesArray();     
+            #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+            #else
+            int number_of_threads = 1;
+	    #endif
+            
             ConditionsArrayType& rConditions = mr_model_part.Conditions();
   
 	    array_1d<NodePointerType, 2 >            Ids;      
 	    std::vector<NodePointerType>             InsideNodes;
 	    std::vector<array_1d<unsigned int, 2 > > Ids_2;
 	    std::vector<Near_Node>                   Is_Near;
-	    std::vector<ConditionsArrayType>         LinkingConditions;
+	    std::vector<ConditionsArrayType>         LinkingConditions(number_of_threads);
 	       
 	    
 	    
 	    unsigned int Id                        = rConditions.size() + 1;
 	    unsigned int properties_index          = mr_model_part.NumberOfProperties();	    
 	    PropertiesType::Pointer tempProperties = PropertiesType::Pointer(new PropertiesType(properties_index+1) );
-	    mr_model_part.AddProperties(tempProperties);
+	    //mr_model_part.AddProperties(tempProperties);
  
 	    int  Case                   =  0;    
 	    unsigned int Id_Node_Case_5 =  0;
@@ -1191,46 +1492,30 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 	    ResultContainerType         Result;
 	    
 	    #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-            #else
-            int number_of_threads = 1;
+	    double start_prod = omp_get_wtime();   
 	    #endif
- 
-             
-            /// creando bins
-	    std::cout<<"     CREATING BINS FOR POTENCIAL CONTACTS   "<< std::endl;
-	    //#ifdef _OPENMP
-	    //double start_prod = omp_get_wtime();   
-	    //#endif
 	    BinsObjectDynamic<Configure>  rBinsObjectDynamic(mBoundaryElements.begin(), mBoundaryElements.end()); 
-	    //#ifdef _OPENMP
-	    //double stop_prod = omp_get_wtime();
-	    //std::cout << "      TIME CREATING BINS  = " << stop_prod - start_prod << std::endl;
-	    //#endif
-	    
+	    #ifdef _OPENMP
+	    double stop_prod  =  omp_get_wtime();
+	    std::cout << "        Time creating bins                     = " << stop_prod - start_prod << "  seconds"  <<std::endl;
+	    #endif
 	    
 	    LocalSearch3D(rBinsObjectDynamic, mBoundaryElements.begin(), mBoundaryElements.end()); 
-	      
-	    
-// 	    for(NodesIteratorType inode =  rNodes.begin(); inode!=rNodes.end(); ++inode)
-// 	           if((*inode)->GetValue(IS_BOUNDARY) == 1.00){
-// 		      std::cout<< (*inode)->Id() << std::endl;
-		      //KRATOS_WATCH(( (*inode)->GetValue(CONTACT_LINK_MASTER)))
-		      //std::cout<<std::endl;
-//		   }
-	    
-            LinkingConditions.resize(number_of_threads); 
+
             vector<unsigned int> partition;
             CreatePartition(number_of_threads, mBoundaryElements.size(), partition);
 	    ContactPairType it_pair;
 	    
 	    
-	    std::cout<<"     PARTITION COMPUTING CONTACT CONDITIONS  = " << number_of_threads << std::endl; 
+	    std::cout<<"        Number of threads used for contact     = " << number_of_threads << std::endl; 
+	    std::cout<<"        Number of initial conditions           = " << initial_conditions_size <<  std::endl;
+            std::cout<<"        Number of master surface conditions    = " << rConditions.size()-initial_conditions_size <<  std::endl;
+	    
 	    #ifdef _OPENMP
 	    double start = omp_get_wtime();   
 	    #endif
 	    
-	    #pragma omp parallel for private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near,  Exist, Result) //shared(Id,tempProperties,  LinkingConditions)
+	    #pragma omp parallel for  shared(LinkingConditions)  private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near,  Exist, Result) 
 	    for(int k=0; k<number_of_threads; k++)          
 	     {
 	       IteratorType it_begin = mBoundaryElements.begin() + partition[k];
@@ -1241,51 +1526,37 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 		   Result.reserve(100);
 		   rBinsObjectDynamic.SearchObjectsInner(*it, Result);
 		   if(Result.size()!=0){
-		   /// UNA FUNCION QUE CHEKEA SI EL MISMO NODO TIENE MAS INTERSECCIONES  
 		   for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++)
 		      {
 			 if(FiltratePairContacts(*it, *rthis)==true)
 			 {
-			  master = 0;
-			  slave  = 1;
-			  it_pair[master] = (*rthis); 
-			  it_pair[slave]  = (*it); 
-			  //std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-			  NodeInside((it_pair)[master], (it_pair)[slave], InsideNodes);   
-			  if(InsideNodes.size()==0) 
-		            { 
-		              master = 1;
-		              slave  = 0;
-		              NodeInside( (it_pair)[master], (it_pair)[slave], InsideNodes);   
-		            }
-			  
-		        if(InsideNodes.size()!=0)
-		        {
-		          Exist = yes_nodes; 
-		          if(InsideNodes.size()==1) 
-		            {   
-		               is_repited = bool((InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1);
-		            }
-		          if(InsideNodes.size()==2)
-		            { 
-		              is_repited = bool(
-		                          (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1 && 
-		                          (InsideNodes[1])->GetValue(IS_CONTACT_SLAVE)==1);
-		            }  
-		            
-		          if(InsideNodes.size()==3)
-		            { 
-		              is_repited = bool(
-		                          (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1  && 
-		                          (InsideNodes[1])->GetValue(IS_CONTACT_SLAVE)==1  &&
-		                          (InsideNodes[2])->GetValue(IS_CONTACT_SLAVE)==1 );
-			    }
-		        }
-		        
-		          
-			  if(is_repited==false)
-			  {
-			    switch(Exist)
+			    Exist            =  no_nodes;
+			    Case             =  0;       
+			    master           =  0;
+			    slave            =  1;
+			    (it_pair)[master] = (*rthis); 
+			    (it_pair)[slave]  = (*it); 
+			    Ids_2.clear();
+			    InsideNodes.clear(); 
+			    NodeInside((it_pair)[0], (it_pair)[1], InsideNodes);  
+			    if(InsideNodes.size()==0)
+			     {
+			       InsideNodes.clear();
+			       ContactPairType it_pair_2;
+			       (it_pair_2)[master] = (*it); 
+			       (it_pair_2)[slave]  = (*rthis); 
+			       NodeInside((it_pair_2)[0], (it_pair_2)[1], InsideNodes);  
+			       if(InsideNodes.size()==0)
+			        { Exist = no_nodes;} 
+			        else{
+			          Exist = yes_nodes;
+			          continue;
+			          }
+			      }
+			    else
+			       Exist = yes_nodes;
+
+			  switch(Exist)
 			    {
 			    case(yes_nodes):
 			    {
@@ -1295,6 +1566,7 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 				
 				switch(Case) 
 				{
+				  /*
 				  case 1: // un solo nodo dentro
 				  {  
 				      (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE) = 1;
@@ -1304,8 +1576,8 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 				       break;
 				       
 				  }
-				  
-				  case 2: case 3:
+				  */
+				  case 1: case 2: case 3:
 				  {
 				  for(unsigned int in = 0; in<InsideNodes.size(); in++){  
 				      if(InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)==0)
@@ -1315,155 +1587,25 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 					CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k] );  
 					Id++;
 				      }
-				  }
+				    }
 				  break;
 				  }
-				   
-				  /*
+				  
 				  case 5:
-				  {
-				    unsigned int& id  = InsideNodes[0];  
-				    Ids[master]       = 0;
-				    Ids[slave]        = 0;
-				    mr_model_part.Nodes()(id)->GetValue(IS_CONTACT_SLAVE) = 1;
-				    Near              = CheckNearNodes(master, slave, mr_model_part.Nodes()(id), (it_pair)[master], Ids); 
-				    CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k]); 
-				    Id++;
-				    //WARNING = SPECIAL CASE
-				    Exist              =  no_nodes;
-				    unsigned int& id_2 =  Id_Node_Case_5;
-				    if(mr_model_part.Nodes()(id_2)->GetValue(IS_CONTACT_SLAVE) == 0){
-				      mr_model_part.Nodes()(id_2)->GetValue(IS_CONTACT_SLAVE) = 1;
-				      Near               = CheckNearNodes(slave, master,  mr_model_part.Nodes()(id_2), (it_pair)[slave], Ids);
-				      CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k] ); 
-				      Id++;
-				    }
-				    
+				  {  
 				    break;
 				  }
-				  */
+				  
 				}
 				break;
 			      }
 
 			      case(no_nodes):
 			      {   
-				/*
-				unsigned int size_slave  =   ((it_pair)[slave])->GetValue(NEIGHBOUR_CONDITIONS).size();
-				unsigned int size_master =   ((it_pair)[master])->GetValue(NEIGHBOUR_CONDITIONS).size();
-				if(size_slave>=2 || size_master>=2)
-				{
-				std::cout<< "No Nodes" << std::endl;
-				//std::cout<< "     MASTER OBJECT =  " <<  (it_pair)[master]->Id() <<"   SLAVE OBJECT = " << (it_pair)[slave]->Id() << std::endl;
-				CheckNearNodes(master, slave, (it_pair)[slave], (it_pair)[master], Ids_2, Is_Near);
-				for(unsigned int i = 0; i<Ids_2.size(); i++){  
-				  if(mr_model_part.Nodes()(Ids_2[i][slave])->GetValue(IS_BOUNDARY)==1.00 && mr_model_part.Nodes()(Ids_2[i][master])->GetValue(IS_BOUNDARY)==1.00){
-				    if(Is_Near[i]==no_near){
-				      if(mr_model_part.Nodes()(Ids_2[i][slave])->GetValue(IS_CONTACT_SLAVE)==0 && mr_model_part.Nodes()(Ids_2[i][master])->GetValue(IS_CONTACT_SLAVE)==0){
-				      VerifyCorrectSlaveNode(master, slave, Ids_2[i]);
-				      mr_model_part.Nodes()(Ids_2[i][slave])->GetValue(IS_CONTACT_SLAVE)  = 1;
-				      mr_model_part.Nodes()(Ids_2[i][master])->GetValue(IS_CONTACT_SLAVE) = 1;
-				      CreateLinkingConditions(Id,  master, slave, Ids_2[i], it_pair, tempProperties, Exist, LinkingConditions[k] ); 
-				      
-				    }
-				  }
-				}
-				}
-			      } 
-			      */
-			      break;
-			    }
-			    }
-			  }
-			    
-			   
-			  //intercambiando master por slave y viceversa 
-			  if(master==0 && Change==true)
-			  { 
-			    Exist            =  no_nodes;
-			    Near             =  no_near;
-			    corner           =  false; 
-			    Change           =  true; 
-			    is_repited       =  false;
-			    Case             =  0;       
-			    Id_Node_Case_5   =  0;
-			    Ids_2.clear();
-			    Is_Near.clear();
-			    InsideNodes.clear(); 
-			    master = 1;
-			    slave  = 0;  
-			    NodeInside((it_pair)[master], (it_pair)[slave], InsideNodes);   
-			    if(InsideNodes.size()!=0)
-			    {
-			      Exist = yes_nodes; 
-			      if(InsideNodes.size()==1) 
-				{   
-				    is_repited = bool((InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1);
-				}
-			      if(InsideNodes.size()==2)
-				{ 
-				  is_repited = bool(
-					      (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1 && 
-					      (InsideNodes[1])->GetValue(IS_CONTACT_SLAVE)==1);
-				}  
-				
-			      if(InsideNodes.size()==3)
-				{ 
-				  is_repited = bool(
-					      (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE)==1  && 
-					      (InsideNodes[1])->GetValue(IS_CONTACT_SLAVE)==1  &&
-					      (InsideNodes[2])->GetValue(IS_CONTACT_SLAVE)==1 );
-				}
-			    }
-			    
-			  if(is_repited==false)
-			  {
-			    switch(Exist)
-			    {
-			    case(yes_nodes):
-			      {
-				Case = InsideNodes.size(); 
-				switch(Case) 
-				{
-				 
-				  case 1: // un solo nodo dentro
-				  {  
-				      (InsideNodes[0])->GetValue(IS_CONTACT_SLAVE) = 1;
-				       Near              = CheckNearNodes(master, slave, InsideNodes[0], (it_pair)[master], Ids);
-				       CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k]);  
-				       Id++;
-				       break;
-				       
-				  }
-				  
-				  case 2: case 3:
-				  {
-				  for(unsigned int in = 0; in<InsideNodes.size(); in++){  
-				      if(InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)==0)
-				      {
-					InsideNodes[in]->GetValue(IS_CONTACT_SLAVE) = 1;
-					Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
-					CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k] );  
-					Id++;
-				      }
-				  }
-				  break;
-				  }
-				  
-				}
-				break;
-				}
-			      
-			      case(no_nodes):
-			      {
-				break;
+			        break;
 			      }
-			      }
-			    }
 			  }
-			  }
-		   
-		          
+			  
 			  Exist            =  no_nodes;
 			  Near             =  no_near;
 			  corner           =  false; 
@@ -1476,27 +1618,27 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 			  Ids_2.clear();
 			  Is_Near.clear();
 			  InsideNodes.clear();
+		     }
 		    }
-		 }
-	      }
-           }
+	          }
+                }
+	       } 
  
                     #ifdef _OPENMP
 	            double stop = omp_get_wtime();
+	            std::cout << "        Time Creating Linking Conditions       = " << stop - start << "  seconds" << std::endl;
+		    #endif
+		    
 		    int rId = rConditions.size() + 1;
-	            std::cout << "          Time Creating Linking Conditions   = " << stop - start << std::endl;
 		    for(int k=0; k<number_of_threads; k++){
-			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it ){				  
-				  (*it)->SetId(rId);
+			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it ){
+			      (*it.base())->SetId(rId);
 			      rId++;
 			  }
 		    }
-	            #endif
+	           
 		   
-		    std::cout<<"     NUMBER OF INITIAL CONDITIONS            = " << initial_conditions_size <<  std::endl;
-		    std::cout<<"     NUMBER OF MASTER SURFACES CONDITIONS    = " << rConditions.size()-initial_conditions_size <<  std::endl;
 		    unsigned int size = 0;
-		    //adding linking to model_part
 		    for(int k=0; k<number_of_threads; k++){
 			  size+=LinkingConditions[k].size(); 
 			  for(ConditionsArrayType::ptr_iterator it=LinkingConditions[k].ptr_begin(); it!= LinkingConditions[k].ptr_end(); ++it )
@@ -1504,8 +1646,8 @@ void CreateLinkingConditionsBasedOnLocalSearch3D(const unsigned int&  initial_co
 		    }
 
 
-		    std::cout<<"     NUMBER OF LINKING CONTACT CONDITIONS    = " << size               <<  std::endl; 
-		    std::cout<<"     TOTAL NUMBER CONDITIONS                 = " << rConditions.size() <<  std::endl; 
+		    std::cout<<"        Number of linking conditions           = " << size               <<  std::endl; 
+		    std::cout<<"        Total number of conditions             = " << rConditions.size() <<  std::endl; 
 
 		    LinkingConditions.clear();
 		KRATOS_CATCH("")
@@ -1673,11 +1815,21 @@ void CreatePointLinkingConditions(
 	       }
 	    }
 	    
+	    const double min   = (*std::min_element(Distance.begin(), Distance.end() ) );
+	    it                 = std::find(Distance.begin(), Distance.end(), min);
+	    const int position = int(it-Distance.begin());
+	    Id[master]         = geom_0(M[position]);   
+	    Id[slave]          = geom_1(S[position]);
+	    Ids.push_back(Id); 
+	    Is_Near.push_back(no_near);
+	    
+	    /*
 	    //Check si dos corner chocan
 	    std::vector<NodePointerType> nodes;
 	    const bool test_one = VerifyToCornerIntersect(nodes, SlaveObject, MasterObject);  
 	    if( test_one==false &&  nodes.size()!=0) 
-	    {  
+	    {   
+	        KRATOS_WATCH("BBBBBBBBBBB")
 	        if(nodes.size()==2)
 		{
 		Id[master]         = nodes[0]; 
@@ -1698,7 +1850,7 @@ void CreatePointLinkingConditions(
 		Is_Near.push_back(no_near);
 	     }
 	     
-	     /*
+	     
 	    //NO VALIDO PARA ELEMTOS CON MAL RATIO
 	    else
 	    {
@@ -1966,16 +2118,15 @@ void CreatePointLinkingConditions(
 	    array_1d<double,3 > GL;
 	    ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo(); 
 	    
-	    
-	    const  bool exist_segment        =  LocateMasterSegment( Ids[slave], 
-								    Ids[master], 
-								    (it_pair)[master],
-								    (it_pair)[slave],
-								    MasterFace,
-								    Exist);
-	   
+	   if(Exist==yes_nodes){
+	   const  bool exist_segment        =  LocateMasterSegment( Ids[slave], 
+							    Ids[master], 
+							    (it_pair)[master],
+							    (it_pair)[slave],
+							    MasterFace,
+							    Exist);
 	   if(exist_segment==true){
-	   const double zero                   = -1.00E-10;  
+	   const double zero                   =  1.00E-6;  
 	   Condition::GeometryType& geom       =  MasterFace->GetGeometry();                  
 	   array_1d<double, 3>& point_slave    =  Ids[slave]->Coordinates();  
 	   array_1d<double, 3>& point_left     =  geom.GetPoint(0);
@@ -1984,14 +2135,17 @@ void CreatePointLinkingConditions(
 	   MasterFace->Calculate(NORMAL, Normal_r, CurrentProcessInfo);   
 	   //const double distance = norm_2(seg);
 	   //const double gat      = inner_prod(GL, (1.00/distance)*seg) ;
-	   const double gap      = inner_prod(GL, Normal_r); 
- 
-	   if(gap<zero) // && gat>zero && gat<distance)
+	   const double gap = inner_prod(GL, Normal_r); 
+	   bool is_repited  = bool(Ids[slave]->GetValue(IS_CONTACT_SLAVE)==0);
+	   if(gap<zero && is_repited==true) // && gat>zero && gat<distance)
 	    {   
+	        Ids[slave]->GetValue(IS_CONTACT_SLAVE)    =  1;
 	        Point2D<Node<3> >::Pointer point_geom     =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(Ids[slave]));
 		Condition::Pointer SlaveNode              =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) );  
 		Condition::GeometryType& Mgeom            =  MasterFace->GetGeometry();
-		Condition::GeometryType& Sgeom            =  SlaveNode->GetGeometry();   
+		Condition::GeometryType& Sgeom            =  SlaveNode->GetGeometry();
+		//std::cout<<"Master = "<< (it_pair)[master]->Id() <<"   Slave = " << (it_pair)[slave]->Id() <<std::endl; 
+		//std::cout<<"        Node (Y) =  " << Ids[slave]->Id() << " Master Face = " << MasterFace->Id() << std::endl;
 		Triangle2D3<Node<3> >::Pointer Lgeom      =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
 		Condition::Pointer newLink                =  Condition::Pointer( new PointSegmentContactLink(Id,
 													     Lgeom,
@@ -2001,10 +2155,35 @@ void CreatePointLinkingConditions(
 	
 		LinkingConditions.push_back( newLink );   
 		return exist_segment;
+	         }
+	       }
+	     }
+	     
+	     else if(Exist==no_nodes)
+	      {
+		//KRATOS_WATCH(Ids[slave]->Id()) 
+	        Point2D<Node<3> >::Pointer point_geom     =  Point2D<Node<3> >::Pointer( new Point2D<Node<3> >(Ids[slave]));
+		Condition::Pointer SlaveNode              =  Condition::Pointer(new SlaveContactPointType(Id, point_geom) ); 
+		//KRATOS_WATCH((it_pair)[master]->Id())
+		//KRATOS_WATCH((it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS).size())
+		MasterFace                                = ((it_pair)[master]->GetValue(NEIGHBOUR_CONDITIONS)(0)).lock();
+		//std::cout<<"        Master   =  " << (it_pair)[master]->Id() <<"   Slave = " << (it_pair)[slave]->Id() <<std::endl; 
+		//std::cout<<"        Node (N) =  " << Ids[slave]->Id() << " Master Face = " << MasterFace->Id() << std::endl;
+		Condition::GeometryType& Mgeom            =  MasterFace->GetGeometry();
+		Condition::GeometryType& Sgeom            =  SlaveNode->GetGeometry();   
+		Triangle2D3<Node<3> >::Pointer Lgeom      =  Triangle2D3<Node<3> >::Pointer( new Triangle2D3<Node<3> >( Sgeom(0), Mgeom(0), Mgeom(1) ) );
+		Condition::Pointer newLink                =  Condition::Pointer( new PointSegmentContactLink(Id,
+													     Lgeom,
+													     tempProperties,
+													     MasterFace, 
+													     SlaveNode));
+		LinkingConditions.push_back( newLink );   
+		return true;
 	      }
-	   }
+	      else
+		return false;
 	      
-	       return false;
+	      return false;
 	      KRATOS_CATCH("")
 	    }   
 	 
@@ -2026,6 +2205,9 @@ void CreatePointLinkingConditions(
 	 {
 	    KRATOS_TRY 
 	    
+	    //bool is_repited  = bool(Ids[slave]->GetValue(IS_CONTACT_SLAVE)==0)
+	    //if(is_repited==true)
+	    {
 	    Point<3> MasterContactLocalPoint;
 	    Point<3> SlaveContactLocalPoint;
 	    int SlaveIntegrationPointIndex = 0;
@@ -2051,9 +2233,8 @@ void CreatePointLinkingConditions(
 		
     
 	      LinkingConditions.push_back( newLink );    
+	     }
 	    
-	    
-            
 	     KRATOS_CATCH("")
 	  }   
 
@@ -2073,18 +2254,27 @@ bool LocateMasterSegment( const NodePointerType& SlaveNode,
 	   
 
 	     WeakPointerVector<Condition>& neighb_cond = MasterObject->GetValue(NEIGHBOUR_CONDITIONS);     
-	    
+	     if(neighb_cond.size()!=0){
 	     switch(Exist)
 	     {
 	       case(yes_nodes):
 	         {  
-	          if(neighb_cond.size()<=1){
+	          if(neighb_cond.size()==1){
 		    
 		     Condition::Pointer rCond_2;
 		     Condition::Pointer& rCond_1 =  SlaveNode->GetValue(CONTACT_LINK_MASTER);
 		     
+		     //problema. Los Elementos internos no tienen master face
+		     //KRATOS_WATCH(SlaveNode->Id())
+		     //KRATOS_WATCH(rCond_1->Id())
 		     const bool test_2 = Test_Four(SlaveNode, MasterObject, rCond_2);
+		     //KRATOS_WATCH(MasterObject->Id())
+		     //KRATOS_WATCH(SlaveNode->Id())
+		     //KRATOS_WATCH(rCond_1->Id())
 		     const bool test_3 = bool(neighb_cond(0).lock()->Id()==rCond_1->Id());
+		     //KRATOS_WATCH("-----------------")
+		     
+		     
 		     if(test_2==true){
 		        if(rCond_1->Id()==rCond_2->Id())
 			    MasterFace = rCond_1;
@@ -2096,7 +2286,8 @@ bool LocateMasterSegment( const NodePointerType& SlaveNode,
 		       MasterFace = rCond_1;
 		     }
 		     else
-		       MasterFace = neighb_cond(0).lock();
+		       if(neighb_cond.size()!=0)
+		          MasterFace = neighb_cond(0).lock();
 		     
 		     return true; 
 		  }
@@ -2215,8 +2406,11 @@ bool LocateMasterSegment( const NodePointerType& SlaveNode,
 	       }  
 	     }
 	     
-            return false;
-
+              return false;
+	     }
+	     
+	    MasterFace = SlaveNode->GetValue(CONTACT_LINK_MASTER);  // no estaba: Si no funciona comenatr y poner return false.
+	    return true; // false
 	    KRATOS_CATCH("")
    }
    
@@ -3100,12 +3294,9 @@ bool Test_Five( const NodePointerType& SlaveNode,
 //************************************************************************************ 
 void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 	 {   
-	      
-	   
-	     KRATOS_TRY
-	   
-	      std::cout<< std::endl; 
-	      std::cout<<"  CALCULATING CONTOURS " <<  std::endl; 
+	      KRATOS_TRY
+	      //std::cout<< std::endl; 
+	      std::cout<<"  CALCULATING CONTOURS 2D" <<  std::endl; 
 	     
 	      typedef WeakPointerVector< Element >::iterator  ElementIteratorType; 
 	      ContainerType& rElements           =  mr_model_part.ElementsArray();
@@ -3138,7 +3329,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					Pair[0]   =  geom_1(1);
 					Pair[1]   =  geom_1(2);
-					//CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 		                        geom_1[1].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					geom_1[2].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					Id++; 
@@ -3148,7 +3339,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					 Pair[0] =   geom_1(2);
 					 Pair[1] =   geom_1(0);
-					 //CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					 CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 					 geom_1[2].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 geom_1[0].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 Id++; 
@@ -3158,7 +3349,7 @@ void CalculateBoundaryContour2D(ConditionsArrayType& MasterConditions)
 				      {
 					 Pair[0] =   geom_1(0);
 					 Pair[1] =   geom_1(1);
-					 //CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
+					 CreateMasterConditions2D(Pair, elem, Id, MasterConditions);
 					 geom_1[0].GetValue(IS_BOUNDARY) = 1; //FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 geom_1[1].GetValue(IS_BOUNDARY) = 1; // FastGetSolutionStepValue(IS_BOUNDARY) = 1.00;
 					 Id++; 
@@ -3206,8 +3397,8 @@ void CalculateBoundaryContour3D(ConditionsArrayType& MasterConditions)
 {
       KRATOS_TRY
 
-      std::cout<< std::endl; 
-      std::cout<<"  CALCULATING CONTOURS 3D  " <<  std::endl; 
+      //std::cout<< std::endl; 
+      std::cout<<"CALCULATING CONTOURS 3D"<<  std::endl; 
 
       typedef WeakPointerVector< Element >::iterator  ElementIteratorType; 
       ContainerType& rElements           =  mr_model_part.ElementsArray();
@@ -3432,13 +3623,14 @@ bool FiltratePairContacts(const PointerType& elem1, const PointerType& elem2)
       const bool test_1 = SearchCommonNode(elem1, elem2, id);   
       if(test_1){ 
 	/// Se localiza que comparte dos nodos en comun
-	if(id.size()!=2 || (SearchInsideNode(elem1, elem2, id[0])==true ) ) 
-	    return true;  
+	if(id.size()==2)
+	  return false;
+	else if(id.size()!=2 && (SearchInsideNode(elem1, elem2, id[0])==true)) 
+	    return true; 
       }
       else 
 	return true; 
       
-      return false;
     }
     else
     {
@@ -3449,6 +3641,7 @@ bool FiltratePairContacts(const PointerType& elem1, const PointerType& elem2)
 	 return true;
          }
     }
+  return false;  
   KRATOS_CATCH("")
 }
 
@@ -3518,7 +3711,7 @@ bool SearchInsideNode(const PointerType& elem1, const PointerType& elem2, const 
 //*****************************************************************************************************
 //*****************************************************************************************************
 
-void NodeInside(PointerType& MasterObject, PointerType& SlaveObject,  std::vector<NodePointerType>& InsideNodes)
+void NodeInside(const PointerType& MasterObject, const PointerType& SlaveObject,  std::vector<NodePointerType>& InsideNodes)
          {
 	   
 	   KRATOS_TRY
@@ -3540,12 +3733,12 @@ void NodeInside(PointerType& MasterObject, PointerType& SlaveObject,  std::vecto
 	          if(commun==false)
 		     Nodes.push_back(i);
 	     }
-	     
+	  
 	   array_1d<double, 3> result;
 	   for (unsigned int i = 0; i<Nodes.size(); i++ ){
 	       if(geom_master.IsInside(geom_slave[Nodes[i]], result)){
-		      InsideNodes.push_back(geom_slave(Nodes[i])); }   
-	   }
+		     InsideNodes.push_back(geom_slave(Nodes[i])); }   
+	        }
 	   
 	   
 	   KRATOS_CATCH("")
@@ -3575,12 +3768,12 @@ void NodeInside(PointerType& MasterObject, PointerType& SlaveObject,  std::vecto
 //*****************************************************************************************************
 //*****************************************************************************************************
 
-
+/// WARNING = To be parallel
 void IdentifyMasterSegment2D()
 {
   KRATOS_TRY
   
-  std::cout<< "     IDENTIFYING THE MASTER SEGMENT         " <<std::endl; 
+  std::cout<< "     IDENTIFYING THE MASTER 2D SEGMENT         " <<std::endl; 
   NodesArrayType& pNodes           = mr_model_part.Nodes();
   ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo(); 
 
@@ -3630,8 +3823,7 @@ void IdentifyMasterSegment2D()
     NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
     NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
     for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i){
-       if(i->GetValue(IS_BOUNDARY)==1){
-	  
+       if(i->GetValue(IS_BOUNDARY)==1){ 
 	 WeakPointerVector<Condition>& neighb_cond       = ((i)->GetValue(NEAR_NODE))->GetValue(NEIGHBOUR_CONDITIONS);
 	 WeakPointerVector<Condition>& neighb_cond_slave = (i)->GetValue(NEIGHBOUR_CONDITIONS);
 	 
@@ -3753,6 +3945,9 @@ void IdentifyMasterSegment2D()
 		       i->GetValue(CONTACT_LINK_MASTER) = first;
 	       }
 	   }
+	   
+
+
 //  	  if( i->Id()==44) //|| i->Id()==68 || i->Id()==49) //|| i->Id()==189) //(i->Id()==926 || i->Id()==927 || i->Id()==910 || i->Id()==919 || i->Id()==905 || i->Id()==904 )
 //  	    {
 //  	      KRATOS_WATCH(i->Id())
@@ -3791,12 +3986,11 @@ void IdentifyMasterSegment2D()
 
 //*****************************************************************************************************
 //*****************************************************************************************************
-    
-   
-   template<class TConfigure>
+
+       template<class TConfigure>
        void LocalSearch2D( BinsObjectDynamic<TConfigure>& rBins,
-			 const IteratorType& it_begin,
-			 const IteratorType& it_end)
+			   const IteratorType& it_begin,
+			   const IteratorType& it_end)
        {
 	  std::cout<< "     LOCAL SEARCH ALGORITHM         " <<std::endl; 
 	  unsigned int I                    = 0; 
@@ -3806,12 +4000,12 @@ void IdentifyMasterSegment2D()
 	  array_1d<double, 3>               Normal    = ZeroVector(3);
 	  array_1d<double, 3>               Mid_Point = ZeroVector(3);
 	  array_1d<double, 3>               Vect      = ZeroVector(3);
-	  
-	  
+	   
 	  Segment2D rSegment;
 	  for(IteratorType it = it_begin; it!=it_end; it++)
 	  { 
-	    rBins.SearchObjectsInner(*it, Result);
+	    std::size_t size = rBins.SearchObjectsInner(*it, Result);
+	    
 	    if(Result.size()!=0){
 	    Element::GeometryType& geom = (*it)->GetGeometry();
 	    for(unsigned int i = 0; i<geom.size(); i++){       
@@ -3820,10 +4014,12 @@ void IdentifyMasterSegment2D()
 		  double& distance   = geom(i)->GetValue(DISTANCE); 
 	          for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++){            
 		    I = 0;
-		    WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);
+		    WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);  
 		    if(neighb_cond.size()!=0){ 
 		    for(WeakPointerVector<Condition>::iterator neighb = neighb_cond.begin();  neighb!= neighb_cond.end(); neighb++){
-		       if(neighb->GetValue(NODAL_VALUES) == 0){
+		      //if(geom(i)->Id()==3)
+		      //   KRATOS_WATCH(neighb->Id()) 
+		      if(neighb->GetValue(NODAL_VALUES) == 0){
 			neighb->GetValue(NODAL_VALUES)  = 1;
 		        Condition::GeometryType& geom_2 = (neighb)->GetGeometry();
 			//(neighb)->Calculate(NORMAL, Normal, CurrentProcessInfo);
@@ -3842,6 +4038,11 @@ void IdentifyMasterSegment2D()
 		       }
 		      }
 		     }
+		    
+		    //if(geom(i)->Id()==3){
+		    //KRATOS_WATCH(geom(i)->GetValue(CONTACT_LINK_MASTER)->Id())
+		    //KRATOS_WATCH("--------------------------")
+		    //}
 		    /// Reseting the values 
 		    for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++){            
 		       WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);
@@ -3866,7 +4067,7 @@ void IdentifyMasterSegment2D()
   
    KRATOS_TRY
    
-   std::cout<< "     SEARCHING NEAR NODE  " <<std::endl; 
+   std::cout<< "     SEARCHING NEAR NODE " <<std::endl; 
    #ifdef _OPENMP
    int number_of_threads = omp_get_max_threads();
    #else
@@ -3882,6 +4083,7 @@ void IdentifyMasterSegment2D()
        NodesIteratorType it_begin = mBoundaryNodes.begin() + node_partition[k];
        NodesIteratorType it_end   = mBoundaryNodes.begin() + node_partition[k+1];
        for(NodesIteratorType inode = it_begin; inode!=it_end; inode++){
+	  
           (*inode)->GetValue(NEAR_NODE) = BinsPoint.SearchNearestPoint(**inode);
 	  KRATOS_WATCH((*inode)->Id()) 
 	  KRATOS_WATCH((*inode)->GetValue(NEAR_NODE)->Id()) 
@@ -3890,9 +4092,7 @@ void IdentifyMasterSegment2D()
       }
    KRATOS_CATCH("")
  }
-
-
-      
+   
 //*****************************************************************************************************
 //*****************************************************************************************************
 
@@ -3903,29 +4103,27 @@ void IdentifyMasterSegment2D()
        {
 	 
 	  KRATOS_TRY
-	  std::cout<< "     SEARCHING NEAR NODE  " <<std::endl; 
+	  std::cout<< "     SEARCHING NEAR NODE 2D  " <<std::endl; 
 	  //ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo(); 
 	  
 	  unsigned int I                    = 0; 
 	  double compare_distance           = 0.00;
 	  ResultContainerType               Result;
           
-	  
-	  
 	  array_1d<double, 3> Vect = ZeroVector(3);  
 	  for(IteratorType it = it_begin; it!=it_end; it++)
 	  { 
 	    Result.clear();
-	    //rBins.SearchAroundObjectsInner(*it, Result); //SearchObjectsInner(*it, Result);
+	    rBins.SearchObjectsInner(*it, Result); ///SearchAroundObjectsInner(*it, Result); poner el cmentario para 2D
 	    if(Result.size()!=0){
 	    Element::GeometryType& geom = (*it)->GetGeometry();
-	    for(unsigned int i = 0; i<geom.size(); i++){       
-	      if(geom(i)->GetValue(IS_BOUNDARY) == 1){
+	    for(unsigned int i = 0; i<geom.size(); i++){
+	      if(geom(i)->GetValue(IS_BOUNDARY) == 1){ 
 		  array_1d<double, 3>& Points0 = geom.GetPoint(i);   
 		  double& distance             = geom(i)->GetValue(DISTANCE); 
 	          for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++){            
 		    I = 0;
-		    WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);		      
+		    WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);      
 		    if(neighb_cond.size()!=0){ 
 		    for(WeakPointerVector<Condition>::iterator neighb = neighb_cond.begin();  neighb!= neighb_cond.end(); neighb++){
 		       if(neighb->GetValue(NODAL_VALUES) == 0){
@@ -3938,7 +4136,7 @@ void IdentifyMasterSegment2D()
 			    noalias(Vect)                  = Points1 - Points0;
 			    compare_distance               = norm_2(Vect); 
 	                    if(compare_distance<distance)
-			     {
+			     { 
 			       distance = compare_distance;
 			       geom(i)->GetValue(NEAR_NODE) =  geom_2(k);
 			     }
@@ -4110,10 +4308,10 @@ void IdentifyMasterSegment2D()
 	   
 	  }
 	   
-	   std::cout<< "     LOCAL SEARCH ALGORITHM   " <<std::endl; 
+	   //std::cout<< "     LOCAL SEARCH ALGORITHM   " <<std::endl; 
 	   #ifdef _OPENMP
 	   double stop_prod = omp_get_wtime();
-	   std::cout << "          Time Searching  Masters Surfaces   = " << stop_prod - start_prod << std::endl;
+	   std::cout << "        Time Searching  Masters Surfaces       = " << stop_prod - start_prod << "  seconds " << std::endl;
 	   #endif
 	   
 	   
