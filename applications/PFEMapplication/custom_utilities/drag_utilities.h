@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,10 +38,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: antonia $
 *   Date:                $Date: 2009-10-19 12:12:16 $
 *   Revision:            $Revision: 0.1 $
@@ -54,8 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* System includes */
 #include <string>
-#include <iostream> 
-#include <algorithm> 
+#include <iostream>
+#include <algorithm>
 
 /* External includes */
 
@@ -75,253 +75,253 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
-	///@name Kratos Globals 
-	///@{
-	
-	
-	///@} 
-	///@name Type Definitions       
-	///@{
-	
-	
-	///@}
-	
-	
-	///@name  Enum's */       
-	///@{
-	
-	
-	///@}
-	///@name  Functions */       
-	///@{
-	
-	
-	///@}
-	///@name Kratos Classes */
-	///@{
-	
-	/// This class allows the calculation of the seepage drag that the fluid transmits to the solid porous matrix.
-	  /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
-	  * 
-	  * This class includes some usefull utilities for the calculation of the drag that water
-	  * makes on the solid porous matrix in a coupled problem.
-	  * This utilities are used in the pfem_nonnewtonian_coupled gid problem type 
-	  * where an edgebased model is used for the calculation of evolution of the fluid @see edgebased_levelset.h
-	  * and it is coupled with a pfem non newtonian visco rigid model is used to avaluate the structural response  @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
-	  */
-	
-	class DragUtils
-         {
-          public:
-		///@name Type Definitions      
-		///@{ 
-		typedef ModelPart::NodesContainerType NodesArrayType; 
-		typedef ModelPart::ElementsContainerType ElementsArrayType;
-		///@} 
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
-		
-		/** Constructor.
-		*/
-		
-		
-		/** Destructor.
-		*/
-		
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
-		
-		
-		/*@} */
-		/**@name Operations */
-		/*@{ */
 
-		
-		
-		/// Provides the global indices for each one of this element's local rows
-		/**
-		* Seepage drag is evaluated in the fluid edgebased model part. Ready to be projected to the structural pfem mesh.
-		* 
-		* @param rFluid_ModelPart: The fluid model part where Seepage drag has been evaluated for the current time step @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
-		* @param rSeepageDragVar: The seepage drag vector that is evaluated in the fluid model part
-		* @param mu: Fluid viscosity
-		* @param fluid_density: Fluid density
-		* @param solid_density: Solid density
+///@name Kratos Globals
+///@{
 
-		*/
-		void CalculateFluidDrag(
-			ModelPart& rFluid_ModelPart,
-			Variable< array_1d<double,3> >& rSeepageDragVar,
-			const double & fluid_nu ,
-			const double & fluid_density,
-			const double & solid_density
-			)
- 		{
 
-			KRATOS_TRY
+///@}
+///@name Type Definitions
+///@{
 
-			for( ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin();
-				   inode != rFluid_ModelPart.NodesEnd();
-				   inode++)	
-			{
-			      if(inode->FastGetSolutionStepValue(DISTANCE) < 0.0)
-			      {
-				  const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
-				  const double& diameter = inode->FastGetSolutionStepValue(DIAMETER);
-				  //Nodal velocity
-				  const array_1d<double,3>& fluid_vel = inode->FastGetSolutionStepValue(VELOCITY);
-				  const array_1d<double,3>& structure_vel = inode->FastGetSolutionStepValue(STRUCTURE_VELOCITY);
 
-				  double fluid_vel_norm = norm_2(fluid_vel);
-				  double structure_vel_norm = norm_2(structure_vel);
-				  array_1d<double,3> str_fl_vel= ZeroVector(3);
-				  for(unsigned int  k= 0; k < 3; k++){
-				    str_fl_vel[k] = fluid_vel[k] * structure_vel[k];
-				  }
-				
-				  array_1d<double,3>& darcy_term = inode->FastGetSolutionStepValue(rSeepageDragVar);
+///@}
+
+
+///@name  Enum's */
+///@{
+
+
+///@}
+///@name  Functions */
+///@{
+
+
+///@}
+///@name Kratos Classes */
+///@{
+
+/// This class allows the calculation of the seepage drag that the fluid transmits to the solid porous matrix.
+/** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+*
+* This class includes some usefull utilities for the calculation of the drag that water
+* makes on the solid porous matrix in a coupled problem.
+* This utilities are used in the pfem_nonnewtonian_coupled gid problem type
+* where an edgebased model is used for the calculation of evolution of the fluid @see edgebased_levelset.h
+* and it is coupled with a pfem non newtonian visco rigid model is used to avaluate the structural response  @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
+*/
+
+class DragUtils
+{
+public:
+    ///@name Type Definitions
+    ///@{
+    typedef ModelPart::NodesContainerType NodesArrayType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    ///@}
+    /**@name Life Cycle
+    */
+    /*@{ */
+
+    /** Constructor.
+    */
+
+
+    /** Destructor.
+    */
+
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
+
+
+    /// Provides the global indices for each one of this element's local rows
+    /**
+    * Seepage drag is evaluated in the fluid edgebased model part. Ready to be projected to the structural pfem mesh.
+    *
+    * @param rFluid_ModelPart: The fluid model part where Seepage drag has been evaluated for the current time step @see nonewtonian_asgs_2d.h, nonewtonian_asgs_3d.h
+    * @param rSeepageDragVar: The seepage drag vector that is evaluated in the fluid model part
+    * @param mu: Fluid viscosity
+    * @param fluid_density: Fluid density
+    * @param solid_density: Solid density
+
+    */
+    void CalculateFluidDrag(
+        ModelPart& rFluid_ModelPart,
+        Variable< array_1d<double,3> >& rSeepageDragVar,
+        const double & fluid_nu ,
+        const double & fluid_density,
+        const double & solid_density
+    )
+    {
+
+        KRATOS_TRY
+
+        for ( ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin();
+                inode != rFluid_ModelPart.NodesEnd();
+                inode++)
+        {
+            if (inode->FastGetSolutionStepValue(DISTANCE) < 0.0)
+            {
+                const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
+                const double& diameter = inode->FastGetSolutionStepValue(DIAMETER);
+                //Nodal velocity
+                const array_1d<double,3>& fluid_vel = inode->FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double,3>& structure_vel = inode->FastGetSolutionStepValue(STRUCTURE_VELOCITY);
+
+                double fluid_vel_norm = norm_2(fluid_vel);
+                double structure_vel_norm = norm_2(structure_vel);
+                array_1d<double,3> str_fl_vel= ZeroVector(3);
+                for (unsigned int  k= 0; k < 3; k++) {
+                    str_fl_vel[k] = fluid_vel[k] * structure_vel[k];
+                }
+
+                array_1d<double,3>& darcy_term = inode->FastGetSolutionStepValue(rSeepageDragVar);
 // 				  KRATOS_WATCH(inode->Id())
 // 				  KRATOS_WATCH(vel)
 // 				  KRATOS_WATCH(vel_norm)
-				  
-				  //dimensionally accelerations. A, B not multiplied by porosity like in the fluid momentum equation
-				  double lin_coeff = 150 * fluid_nu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
-				  double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*porosity*diameter);
-				  //DarcyTerm =  LinC * (uf-us) + NonLinC * (uf-us)^2 -----> LinC * uf + NonLinC * uf^2 - LinC * us - NonLinC * us^2 - 2 * NonLinC * uf * us.
-				  noalias(darcy_term) = (lin_coeff + non_lin_coeff * fluid_vel_norm) * fluid_vel * fluid_density / solid_density;
-				  // subtracting the effect of structural velocity.  -Aus + Bus^2 - 2B us uf
-				  darcy_term += ((-lin_coeff + non_lin_coeff * structure_vel_norm) * structure_vel - 2 * non_lin_coeff * str_fl_vel) ;
 
-			      }
-			}
+                //dimensionally accelerations. A, B not multiplied by porosity like in the fluid momentum equation
+                double lin_coeff = 150 * fluid_nu * (1-porosity)*(1-porosity)/(porosity*porosity*porosity*diameter*diameter);
+                double non_lin_coeff = 1.75 * (1-porosity)/(porosity*porosity*porosity*diameter);
+                //DarcyTerm =  LinC * (uf-us) + NonLinC * (uf-us)^2 -----> LinC * uf + NonLinC * uf^2 - LinC * us - NonLinC * us^2 - 2 * NonLinC * uf * us.
+                noalias(darcy_term) = (lin_coeff + non_lin_coeff * fluid_vel_norm) * fluid_vel * fluid_density / solid_density;
+                // subtracting the effect of structural velocity.  -Aus + Bus^2 - 2B us uf
+                darcy_term += (((-lin_coeff + non_lin_coeff * structure_vel_norm) * structure_vel - 2 * non_lin_coeff * str_fl_vel)) * fluid_density / solid_density;
 
-			KRATOS_CATCH("")
+            }
+        }
 
-		}
+        KRATOS_CATCH("")
 
-		/// Adds the drag to the body force vector of the structural model
-		/**
-		* After projecting the seepage drag on the structural pfem mesh
-		* body force vector of the structural model part is constructed with the gravity  and the seepage_drag contributions 
-		* 
-		* @param rStructural_ModelPart: The structural model part
-		* @param rSeepageDragVar: the seepage drag nodal vector
-		* @param rBodyForce: the body force vector that will be reset and calculated as the sum of the gravity contribution and the seepage drag contribution	
-		* @param rGravityAcc: the gravity acceleration vector
-		*/
-		void AddDrag(
-			ModelPart& rStructural_ModelPart,
-			const Variable< array_1d<double,3> >& rSeepageDragVar,
-			Variable< array_1d<double,3> >& rBodyForce,
-			const array_1d<double,3>& rGravityAcc
-			)
- 		{
+    }
 
-			KRATOS_TRY
-			for( ModelPart::NodesContainerType::iterator inode = rStructural_ModelPart.NodesBegin();
-				   inode != rStructural_ModelPart.NodesEnd();
-				   inode++)	
-			{
+    /// Adds the drag to the body force vector of the structural model
+    /**
+    * After projecting the seepage drag on the structural pfem mesh
+    * body force vector of the structural model part is constructed with the gravity  and the seepage_drag contributions
+    *
+    * @param rStructural_ModelPart: The structural model part
+    * @param rSeepageDragVar: the seepage drag nodal vector
+    * @param rBodyForce: the body force vector that will be reset and calculated as the sum of the gravity contribution and the seepage drag contribution
+    * @param rGravityAcc: the gravity acceleration vector
+    */
+    void AddDrag(
+        ModelPart& rStructural_ModelPart,
+        const Variable< array_1d<double,3> >& rSeepageDragVar,
+        Variable< array_1d<double,3> >& rBodyForce,
+        const array_1d<double,3>& rGravityAcc
+    )
+    {
+
+        KRATOS_TRY
+        for ( ModelPart::NodesContainerType::iterator inode = rStructural_ModelPart.NodesBegin();
+                inode != rStructural_ModelPart.NodesEnd();
+                inode++)
+        {
 // 			  if(inode->FastGetSolutionStepValue(IS_STRUCTURE) == 0)
 // 			  {
-			    const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
-			    const array_1d<double,3>& press_grad = inode->FastGetSolutionStepValue(PRESS_PROJ);
-			    const double& solid_density = inode->FastGetSolutionStepValue(DENSITY);
+            const double& porosity = inode->FastGetSolutionStepValue(POROSITY);
+            const array_1d<double,3>& press_grad = inode->FastGetSolutionStepValue(PRESS_PROJ);
+            const double& solid_density = inode->FastGetSolutionStepValue(DENSITY);
 
-  			    array_1d<double,3>& bodyforce_drag = inode->FastGetSolutionStepValue(rBodyForce);
-			    bodyforce_drag  = inode->FastGetSolutionStepValue(rSeepageDragVar);
+            array_1d<double,3>& bodyforce_drag = inode->FastGetSolutionStepValue(rBodyForce);
+            bodyforce_drag  = inode->FastGetSolutionStepValue(rSeepageDragVar);
 
-			    ////subtracting buoyancy force
-			    if(inode->FastGetSolutionStepValue(WATER_PRESSURE) > 0.0) //TO IDENTIFY FLUID NODES...we don't have any information over distance
-			    {
-				noalias(bodyforce_drag) -= (1-porosity) * press_grad / solid_density;
+            ////subtracting buoyancy force
+            if (inode->FastGetSolutionStepValue(WATER_PRESSURE) > 0.0) //TO IDENTIFY FLUID NODES...we don't have any information over distance
+            {
+                noalias(bodyforce_drag) -= (1-porosity) * press_grad / solid_density;
 // 			    	array_1d<double,3> temp  = (1-porosity) * press_grad / solid_density;
 // 			    	KRATOS_WATCH(porosity);
 // 			    	KRATOS_WATCH(press_grad);
 // 			    	KRATOS_WATCH(solid_density);
-			    }
-			    
-			    bodyforce_drag  +=  rGravityAcc;
+            }
+
+            bodyforce_drag  +=  rGravityAcc;
 // 			    KRATOS_WATCH(bodyforce_drag)
-// 			  } 
-			}
-			  
-			KRATOS_CATCH("")
+// 			  }
+        }
 
-		}
+        KRATOS_CATCH("")
 
-
+    }
 
 
-	
-			/*@} */  
-		/**@name Acces */
-		/*@{ */
-		
-		
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
-		
-		
-		/*@} */      
-		/**@name Friends */
-		/*@{ */
-		
-		
-		/*@} */
-		
-	private:
-		///@name Static Member rVariables 
-		///@{ 
 
 
-		///@} 
-		///@name Member rVariables 
-		///@{ 
-			
 
-		///@} 
-		///@name Private Operators*/
-		///@{ 
-			
+    /*@} */
+    /**@name Acces */
+    /*@{ */
 
-		///@} 
-		///@name Private Operations*/
-		///@{ 
-			
 
-		///@} 
-		///@name Private  Acces */
-		///@{ 
-			
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
 
-		///@}     
-		///@name Private Inquiry */
-		///@{ 
-			
 
-		///@}   
-		///@name Un accessible methods */
-		///@{ 
-			
+    /*@} */
+    /**@name Friends */
+    /*@{ */
 
-		///@}   
-		
-    }; /* Class ClassName */
-	
-	///@} 
-	
-	/**@name Type Definitions */       
-	///@{ 
-	
-	
-	///@}
-	
+
+    /*@} */
+
+private:
+    ///@name Static Member rVariables
+    ///@{
+
+
+    ///@}
+    ///@name Member rVariables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators*/
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations*/
+    ///@{
+
+
+    ///@}
+    ///@name Private  Acces */
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry */
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods */
+    ///@{
+
+
+    ///@}
+
+}; /* Class ClassName */
+
+///@}
+
+/**@name Type Definitions */
+///@{
+
+
+///@}
+
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_DRAG_UTILS  defined */
