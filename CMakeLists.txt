@@ -198,7 +198,8 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINAT
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 
-install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
+message("boost python lib used = "${Boost_PYTHON_LIBRARY_RELEASE})
+install(FILES ${Boost_PYTHON_LIBRARY_RELEASE} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
 #install blas and lapack
