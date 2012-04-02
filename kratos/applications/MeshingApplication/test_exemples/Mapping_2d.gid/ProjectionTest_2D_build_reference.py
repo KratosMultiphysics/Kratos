@@ -4,4 +4,4 @@ sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
 print "Building reference data for Mapping 2d..."
-benchmarking.BuildReferenceData("ProjectionTest_2D_benchmarking.py", "ProjectionTest_2D_benchmarking_ref.txt")
+benchmarking.BuildReferenceData("ProjectionTest_2D_script.py", "ProjectionTest_2D_benchmarking_ref.txt")
