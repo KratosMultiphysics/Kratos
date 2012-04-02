@@ -93,21 +93,23 @@ namespace Kratos
       
       
       void CalculateContactForceAndDisplacementCorrections(
+         const double& alfa_damp,
+	 const double& mid_time_step,   
          const ConditionsContainerIterator& end_previos,   
          const ConditionsContainerIterator& end_actual 
       )
       {
-      
-	  std::cout<< "         Simultaneous Jacobi Iteration Method" << std::endl; 
+	  std::cout<<std::endl;
+	  std::cout<< "        Simultaneous Jacobi Iteration Method" << std::endl; 
 	  ProcessInfo& CurrentProcessInfo      =  mr_model_part.GetProcessInfo();
 	  //ConditionsContainerType& pConditions =  mr_model_part.ConditionsArray();   
 	  //const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
-	  const unsigned int   max             =  25;  
+	  const unsigned int   max             =  200;  
 	  unsigned int   iter                  =  0;  
 	  
 
 	  #ifdef _OPENMP
-	  int number_of_threads = 1; //omp_get_max_threads();
+	  int number_of_threads = omp_get_max_threads();
 	  #else
 	  int number_of_threads = 1;
 	  #endif
@@ -124,7 +126,8 @@ namespace Kratos
 	  bool   is_converged   = false;
 	  bool   is_converged_1 = false;
 	  bool   is_converged_2 = false;
-	  const double EPS      = 1E-5;
+	  const double EPS      = 1E-9;
+	  const double ERROR    = 1E-6; 
 	  
 	  Rigth_Term      = 0.00; 
 	  Left_Term       = 0.00;
@@ -138,18 +141,15 @@ namespace Kratos
 	  while(is_converged ==false &&   ++iter < max )
 	  {                    
  	      //STEP1
-	      #pragma omp parallel for
+	      #pragma omp parallel for shared(alfa_damp, mid_time_step, CurrentProcessInfo)
 	      for(int k=0; k<number_of_threads; k++)
 	      {
 		ConditionsContainerType::iterator it_begin = end_previos + condition_partition[k];
-		ConditionsContainerType::iterator it_end   = end_previos+condition_partition[k+1];
-
+		ConditionsContainerType::iterator it_end   = end_previos + condition_partition[k+1];
 		for(ConditionsContainerType::iterator it= it_begin; it!=it_end; ++it)
-		{
-		  JacobiIteration(*it, CurrentProcessInfo);  
-		}
-		
+		    JacobiIteration(alfa_damp, mid_time_step, *it, CurrentProcessInfo);  
 	      }
+	      
 	      //STEP2 
 	      UpadateDisplacement();
 		
@@ -158,23 +158,20 @@ namespace Kratos
 	      Old_Rigth_Term      = Rigth_Term;
 	      Rigth_Term          = 0.00; 
 	      Left_Term           = 0.00;
+	      
 	      #pragma omp parallel for reduction(+:Rigth_Term)  reduction(+:Left_Term)
 	      for(int k=0; k<number_of_threads; k++)
 	          {
 		   ConditionsContainerType::iterator it_begin=end_previos + condition_partition[k];
 		   ConditionsContainerType::iterator it_end=end_previos+condition_partition[k+1];
-		
 	            for (ConditionsContainerType::iterator it= it_begin; it!=it_end; ++it)
-		    { 
-		    CkeckConvergence(*it, Rigth_Term, Left_Term);
-		    }
-
-	      }
+		       CkeckConvergence(*it, Rigth_Term, Left_Term);
+	           }
 	      
 
 	      Rigth_Term     = std::sqrt(Rigth_Term);
 	      Left_Term      = std::sqrt(Left_Term);
-	      
+	      	      
 	      
 	      if(Left_Term!=0.00)
 	         relative_error1 =  std::fabs((Left_Term  -  Old_Left_Term ) / ( Left_Term)); 
@@ -186,10 +183,9 @@ namespace Kratos
 	      else
 	         relative_error2 = 0.00;
 	      
-	      relative_error  =  relative_error1 + relative_error2;
-	      
+	      relative_error  = relative_error1 + relative_error2;      
 	      is_converged_1  = IsConverged(EPS, Rigth_Term, Left_Term);
-	      is_converged_2  = (relative_error < EPS);     
+	      is_converged_2  = (relative_error < ERROR);     
 	       
 	      if( is_converged_1==true || is_converged_2==true)
 		  is_converged    =  true;
@@ -203,18 +199,19 @@ namespace Kratos
 	      std::cout << "            Required  Tolerance   =  " << EPS*Rigth_Term  << std::endl;
 	      std::cout << "            Achieved  Tolerance   =  " << Left_Term       << std::endl;
 	      std::cout << "            Relative Error        =  " << relative_error  << std::endl;
-	       
 	     
               if (iter==max) 
-	      {
-		std::cout<< "         NOT CONVERGENCE FOR CONTACT!!!!!!!!" << std::endl;
-	      }
+		  std::cout<< "         NOT CONVERGENCE FOR CONTACT!!!!!!!!" << std::endl;
+	      
+	      std::cout<< std::endl;
               
       }
       
       
       /// Compute Lamdas and Contact Dislplacement
-      void JacobiIteration(const ConditionsPointerType& rCond, ProcessInfo& CurrentProcessInfo)
+      void JacobiIteration( const double& alfa_damp,
+	                    const double& mid_time_step, 
+                            const ConditionsPointerType& rCond, ProcessInfo& CurrentProcessInfo)
       {
 	
 	        const double current_delta_time      =  CurrentProcessInfo[DELTA_TIME]; 
@@ -234,36 +231,44 @@ namespace Kratos
 		
 		
 		ComputeConstraintVector(rCond,  Constraint);
-		Constraint_Matrix = ZeroMatrix(1, Constraint.size());
+		Constraint_Matrix.resize(1, Constraint.size());
+		noalias(Constraint_Matrix) = ZeroMatrix(1, Constraint.size());
                 for(unsigned int i = 0; i<Constraint.size(); i++ )
 		   Constraint_Matrix(0,i) = Constraint[i];
  
 		
 	
 		rCond->MassMatrix(Mass, CurrentProcessInfo);
-		InvertDiagonalMatrix(Mass , InvMass);
+		double auxmass = 0.00;
+		for(unsigned int i = 0; i<Mass.size1(); i++){
+		    auxmass   = Mass(i,i);
+		    Mass(i,i) = ((1.00/mid_time_step) + (alfa_damp*current_delta_time)/(2.00 * mid_time_step))*auxmass;   
+		}
 		
+		InvertDiagonalMatrix(Mass , InvMass);
+		Aux.resize(Constraint_Matrix.size1(), Constraint_Matrix.size1(), false);
 		Aux           = ZeroMatrix(Constraint_Matrix.size1(), Constraint_Matrix.size1());
 	        noalias(Aux)  = prod(Matrix(prod(Constraint_Matrix,InvMass)), (trans(Constraint_Matrix)));
 		
+		InvAux.resize(Aux.size1(), Aux.size1(),false); 
 		InvAux        = ZeroMatrix(Aux.size1(), Aux.size1());
 		SD_MathUtils<double>::InvertMatrix(Aux,InvAux);
-		
+
 		GetNodeDisplacement(rCond, Displ); 
-		noalias(delta_lambdas) = (1.00/(current_delta_time * current_delta_time))  * prod(InvAux, Vector( prod(Constraint_Matrix, Displ) ) );
-		lamda_old              = lambdas[0]; 
-		noalias(lambdas)       += delta_lambdas;  
 		
-		//WARNING
+		noalias(delta_lambdas) = (1.00/(current_delta_time))  * prod(InvAux, Vector( prod(Constraint_Matrix, Displ) ) );
+		lamda_old              = lambdas[0]; 
+		
+		for(unsigned int i = 0; i<lambdas.size(); i++)
+		      lambdas[i] = lambdas[i] + delta_lambdas[i];  
+	
 		if (lambdas[0] > 0.00) 
 		{
 		  lambdas[0]       = 0.00;
-		  delta_lambdas[0] = lamda_old;
-		  
+		  delta_lambdas[0] = -lamda_old;  
 		}
-
-                
-		CalculateContactDisplacement(rCond, delta_lambdas, Constraint, InvMass);
+                if(lambdas[0] < 1E-6)  
+		   CalculateContactDisplacement(rCond, delta_lambdas, Constraint, InvMass);
 		
       }
       
@@ -281,13 +286,15 @@ namespace Kratos
       }
       
       bool IsConverged(const double& EPS, const double& Rigth_Term,  const double& Left_Term)
-      {
+      { 
 	return (Left_Term <= EPS*Rigth_Term);
       }
       
       void InvertDiagonalMatrix(const Matrix& rMatrix   ,Matrix& rResult)
       {
-	rResult = ZeroMatrix(rMatrix.size1(), rMatrix.size1());
+	int size = rMatrix.size1();
+	rResult.resize(size, size, false);
+	rResult = ZeroMatrix(size, size);
 	for (unsigned int i = 0; i<rMatrix.size1(); i++ )
 	   rResult(i,i) = 1.00 / rMatrix(i,i);   
 	
@@ -308,16 +315,23 @@ namespace Kratos
 	Condition::GeometryType& geom       = rCond->GetGeometry(); 
 	const unsigned int dimension        = geom.WorkingSpaceDimension();
         const unsigned int dim2             = geom.size()*dimension;
-	Displ                               = ZeroVector(dim2);
+	Displ.resize(dim2, false);
+	noalias(Displ)                      = ZeroVector(dim2);
 	unsigned int count                  = 0;
-	for(unsigned int i = 0; i<geom.size(); i++){
-	   Displ[count]   =  geom[i].X0() + geom[i].GetSolutionStepValue(DISPLACEMENT_X);   // geom[i].X();    // actual_displacement[0];
-	   Displ[count+1] =  geom[i].Y0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Y);   // geom[i].Y();   // actual_displacement[1];
-	   count = count + 2;
-	   if(dimension==3){
-	        Displ[count+2]  =  geom[i].Z0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Z);
-		count +=3;
-	        }
+	if(dimension==2){
+	   for(unsigned int i = 0; i<geom.size(); i++){
+	      Displ[count]    =  geom[i].X0() + geom[i].GetSolutionStepValue(DISPLACEMENT_X);   // geom[i].X();    // actual_displacement[0];
+	      Displ[count+1]  =  geom[i].Y0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Y);   // geom[i].Y();   // actual_displacement[1];
+	      count += 2;
+	   }
+	}
+	else{
+	   for(unsigned int i = 0; i<geom.size(); i++){
+	      Displ[count]    =  geom[i].X0() + geom[i].GetSolutionStepValue(DISPLACEMENT_X);   // geom[i].X();    // actual_displacement[0];
+	      Displ[count+1]  =  geom[i].Y0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Y);   // geom[i].Y();   // actual_displacement[1];
+	      Displ[count+2]  =  geom[i].Z0() + geom[i].GetSolutionStepValue(DISPLACEMENT_Z);
+              count +=3;
+	   }
 	}
 	return;
       }
@@ -335,23 +349,34 @@ namespace Kratos
         const unsigned int dim2             =  geom.size()*dimension;
 	const double current_delta_time     =  CurrentProcessInfo[DELTA_TIME];
 	
-	Vector Displ                        =  ZeroVector(dim2); 
-	noalias(Displ)                      =  -current_delta_time * current_delta_time * delta_lambdas[0] * prod(InvMass, Constraint);
-	
-	unsigned int count                  = 0;
-	for(unsigned int i = 0; i<geom.size(); i++){
-	   geom[i].SetLock();
-	   array_1d<double,3>&  Contact_Displ  =  geom[i].FastGetSolutionStepValue(DISPLACEMENT_OLD); /// WARNING CONTACT DISPLACEMENT
-	   Contact_Displ[0]  +=     Displ[0+count];
-	   Contact_Displ[1]  +=     Displ[1+count];
-	   Contact_Displ[2]  +=     0.00;
-	   count             +=     2;
-	   if(dim2==3){
-	        Contact_Displ[2]  +=  Displ[2+count];
-		count +=3;
+	Vector Displ; Displ.resize(dim2, false);                       
+	noalias(Displ) =  ZeroVector(dim2); 
+	noalias(Displ)                      =  -current_delta_time * delta_lambdas[0] * prod(InvMass, Constraint);
+	unsigned int count                  = 0; 
+	if(dimension==2)
+	{
+	  for(unsigned int i = 0; i<geom.size(); i++)
+	  {
+	    geom[i].SetLock();
+	    array_1d<double,3>&  Contact_Displ  =  geom[i].FastGetSolutionStepValue(DISPLACEMENT_OLD); ///CONTACT DISPLACEMENT
+	    Contact_Displ[0]  =  Contact_Displ[0] + Displ[0+count];
+	    Contact_Displ[1]  =  Contact_Displ[1] + Displ[1+count];
+	    Contact_Displ[2]  =  0.00;
+	    count             =  count + 2;
+	    geom[i].UnSetLock();
+	  }
+	}
+	else
+	{
+	   for(unsigned int i = 0; i<geom.size(); i++){
+		geom[i].SetLock();
+		array_1d<double,3>&  Contact_Displ  =  geom[i].FastGetSolutionStepValue(DISPLACEMENT_OLD); /// CONTACT DISPLACEMENT
+		Contact_Displ[0]  = Contact_Displ[0] + Displ[0+count];
+		Contact_Displ[1]  = Contact_Displ[1] + Displ[1+count];
+	        Contact_Displ[2]  = Contact_Displ[2] + Displ[2+count];
+		count             = count + 3;
+		geom[i].UnSetLock();
 	        }
-	  geom[i].UnSetLock();   
-	          
 	}
 	return;
       }
@@ -362,9 +387,10 @@ namespace Kratos
 	Condition::GeometryType& geom       = rCond->GetGeometry(); 
         const unsigned int dimension        = geom.WorkingSpaceDimension();
         const unsigned int dim2             = geom.size()*dimension;
-	ProcessInfo& CurrentProcessInfo     =  mr_model_part.GetProcessInfo();
+	ProcessInfo& CurrentProcessInfo     = mr_model_part.GetProcessInfo();
         
-	Constraint = ZeroVector(dim2);
+	Constraint.resize(dim2, false);
+	noalias(Constraint) = ZeroVector(dim2);
 	rCond->Calculate(CONSTRAINT_VECTOR, Constraint, CurrentProcessInfo);
       }
       
@@ -381,19 +407,19 @@ namespace Kratos
 	 array_1d<double,3>&  actual_displacement   =  i->FastGetSolutionStepValue(DISPLACEMENT);
 	 if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == false )
 	    { 
-	      actual_displacement[0]+=Contact_Displ[0];
+	      actual_displacement[0] =  actual_displacement[0] + Contact_Displ[0];
 	    }
 	 
 	 if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() == false )
 	    { 
-	      actual_displacement[1]+=Contact_Displ[1];
+	      actual_displacement[1] = actual_displacement[1] + Contact_Displ[1];
 	    }
 	 
 	 if (mrdimension==3)
 	     {  
 	       if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() == false )
 	        { 
-	           actual_displacement[2]+=Contact_Displ[2];
+	           actual_displacement[2] = actual_displacement[2] + Contact_Displ[2];
 	        }
 	     }
 	         
@@ -405,8 +431,9 @@ namespace Kratos
 	}
       
       
+       
+       /// WARNING = To be parallel
        void MoveMeshAgain()
-      
       {
 	KRATOS_TRY
 	
