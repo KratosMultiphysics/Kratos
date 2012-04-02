@@ -198,14 +198,16 @@ install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINAT
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 
-     install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
-     install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${Boost_PYTHON_LIBRARIES} DESTINATION libs)
+install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
 
-     #install blas and lapack
-     message("installed blas = "${BLAS_LIBRARIES})
-     install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
-     message("installed lapack = "${LAPACK_LIBRARIES})
-     install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+#install blas and lapack
+if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
+	message("installed blas = "${BLAS_LIBRARIES})
+	install(FILES ${BLAS_LIBRARIES} DESTINATION libs)
+	message("installed lapack = "${LAPACK_LIBRARIES})
+	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
+endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
