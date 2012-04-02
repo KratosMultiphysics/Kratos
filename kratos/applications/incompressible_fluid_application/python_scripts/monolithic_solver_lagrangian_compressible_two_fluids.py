@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-#importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
-from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 
 def AddVariables(model_part):
@@ -49,9 +48,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
     model_part.AddNodalSolutionStepVariable(AUX_INDEX);
+    model_part.AddNodalSolutionStepVariable(NORMAL);
+    model_part.AddNodalSolutionStepVariable(INTERNAL_ENERGY);  
+    model_part.AddNodalSolutionStepVariable(NODAL_MAUX);     
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);         
 
-
-    print "variables for monolithic solver lagrangian compressible solution added correctly"
+    print "variables for monolithic solver lagrangian compressible *************** solution added correctly"
         
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -59,8 +61,8 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_X,REACTION_X);
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
-        node.AddDof(WATER_PRESSURE,REACTION_WATER_PRESSURE);
-	node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
+        node.AddDof(WATER_PRESSURE);
+	node.AddDof(AIR_PRESSURE);
         
     print "dofs for the monolithic solver lagrangian compressible added correctly"
 
@@ -70,22 +72,25 @@ class MonolithicSolver:
 
         self.model_part = model_part
 
-        self.alpha = -0.1
+        self.alpha = -0.0
         self.move_mesh_strategy = 2
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
         #self.linear_solver =  SkylineLUFactorizationSolver()
-        self.linear_solver =SuperLUSolver()
+        #self.linear_solver =SuperLUSolver()
 
-      #  pPrecond = DiagonalPreconditioner()
+
+
+        pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-      #  self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
         #definition of the convergence criteria
       # self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
         self.conv_criteria = UPCriteria(1e-5,1e-6,1e-5,1e-6)
 
-        self.max_iter = 30
+        self.max_iter = 15
+        self.domain_size = domain_size
 
         self.SetDivided = ElemBasedBCUtilities(model_part)
         self.ChooseElement = ChooseElementProcess(model_part, 2, "ASGSCOMPPRDC2D", "ASGSCompressible2D")       
@@ -102,8 +107,9 @@ class MonolithicSolver:
         self.PfemUtils = PfemUtils()
 	self.MeshMover= MoveMeshProcess(self.model_part);
         self.node_erase_process = NodeEraseProcess(self.model_part);
+	self.EstimateUtils = ExactDtEstimateUtilities()
         
-##        self.Mesher = TriGenPFEMModeler()
+        #self.Mesher = TriGenPFEMModeler()
 ##        self.Mesher = MSuitePFEMModeler()
         self.Mesher = TriGenPFEMSegment()
 
@@ -111,17 +117,17 @@ class MonolithicSolver:
         self.elem_neighbor_finder = FindElementalNeighboursProcess(model_part, 2, 10)
 
         
-        self.alpha_shape = 10000.0
+        self.alpha_shape = 100000000.0
 	self.h_factor = 0.5
 	
         #assign IS_FLUID to all nodes
-##	for node in self.model_part.Nodes:
-##            node.SetSolutionStepValue(IS_FLUID,0,1.0)
+	for node in self.model_part.Nodes:
+           node.SetSolutionStepValue(IS_FLUID,0,1.0)
 
         #detecting free_surface to all nodes
-        for node in self.model_part.Nodes:
-            if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
-                node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
+        #for node in self.model_part.Nodes:
+            #if (node.GetSolutionStepValue(IS_BOUNDARY)==1 and node.GetSolutionStepValue(IS_STRUCTURE)!=1):
+                #node.SetSolutionStepValue(IS_FREE_SURFACE,0,1.0)
 
         #U NEED IT FOR ALPHA-shape
         (self.neigh_finder).Execute(); 
@@ -150,9 +156,10 @@ class MonolithicSolver:
 #        (self.neigh_finder).Execute();
 
 	###### FIND NEIGHBOUR ELEMENTS AND COLORing
-##        (self.elem_neighbor_finder).ClearNeighbours()
-##        (self.elem_neighbor_finder).Execute()
-##        (self.PfemUtils).ColourAirWaterElement(self.model_part,2)    
+        (self.PfemUtils).ColourAirWaterElement(self.model_part,2)    
+        (self.elem_neighbor_finder).ClearNeighbours()
+        (self.elem_neighbor_finder).Execute()        
+        (self.PfemUtils).InterfaceDetecting(self.model_part,2, .9)        
                  
     #######################################################################   
     def Solve(self,time,gid_io):
@@ -174,7 +181,10 @@ class MonolithicSolver:
 
         #(self.solver).Predict()2
         self.DistToH()
+        (self.PfemUtils).ColourAirWaterElement(self.model_part,2)
+
         self.Remesh()
+        print "NO REMESH"        
         (self.solver).Solve()
         print "@@@@@@@@@@@@@@@@@@@ end solve @@@@@@@@@@@@@@@@@@@@@"
         
@@ -185,12 +195,13 @@ class MonolithicSolver:
     def EstimateDeltaTime(self,min_dt,max_dt):
         print "Estimating delta time"
        # calc_dt=(self.PfemUtils).EstimateDeltaTime(min_dt,max_dt,self.model_part)
-	cfl_dt=(self.PfemUtils).CFLdeltaT(1.0,max_dt,self.model_part)
-	max_dt = cfl_dt
-	print"CFL_CHOICE",cfl_dt
-	calc_dt=(self.PfemUtils).ExactDtEstimate(max_dt,self.model_part)
+	#cfl_dt=(self.PfemUtils).CFLdeltaT(1.0,max_dt,self.model_part)
+	#max_dt = 10.0*cfl_dt
+	#print"CFL_CHOICE",cfl_dt
+        #calc_dt=(self.PfemUtils).ExactDtEstimate(max_dt,self.model_part)
+        calc_dt=(self.EstimateUtils).CubicExactDt(max_dt,self.model_part,self.domain_size)
 
-       # print "calculated dt"
+        print calc_dt
         return calc_dt
 
 #    def EstimateDeltaTime(self,min_dt,max_dt):
@@ -220,8 +231,8 @@ class MonolithicSolver:
             (self.PfemUtils).MoveLonelyNodes(self.model_part)
             #(self.MeshMover).Execute();
             print self.box_corner1
-            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes )
-            (self.PfemUtils).MarkNodesTouchingWall(self.model_part,2, .05)   
+            #(self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes )
+            #(self.PfemUtils).MarkNodesTouchingWall(self.model_part,2, .05)   
             (self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, 0.5)
             (self.PfemUtils).MarkNodesTouchingInterface(self.model_part,2, .1)
 
@@ -309,7 +320,7 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(IS_INTERFACE, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(VELOCITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(MESH_VELOCITY, (self.model_part).Nodes, time, 0);
-            gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
+            #gid_io.WriteNodalResults(DENSITY, (self.model_part).Nodes, time, 0);
 	    gid_io.WriteNodalResults(AIR_PRESSURE,(self.model_part).Nodes,time,0);
 	    gid_io.WriteNodalResults(WATER_PRESSURE,(self.model_part).Nodes,time,0);	    
        	    gid_io.WriteNodalResults(DENSITY_AIR,(self.model_part).Nodes,time,0)
@@ -320,12 +331,20 @@ class MonolithicSolver:
             gid_io.WriteNodalResults(IS_WATER, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(NODAL_H, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(DISTANCE, (self.model_part).Nodes, time, 0);
-            gid_io.WriteNodalResults(DISPLACEMENT, (self.model_part).Nodes, time, 0);
-            gid_io.WriteNodalResults(IS_VISITED, (self.model_part).Nodes, time, 0);
-            gid_io.WriteNodalResults(AUX_INDEX, (self.model_part).Nodes, time, 0);
+            #gid_io.WriteNodalResults(DISPLACEMENT, (self.model_part).Nodes, time, 0);
+            #gid_io.WriteNodalResults(IS_VISITED, (self.model_part).Nodes, time, 0);
+            #gid_io.WriteNodalResults(NORMAL, (self.model_part).Nodes, time, 0);
+            #gid_io.WriteNodalResults(AUX_INDEX, (self.model_part).Nodes, time, 0);
             gid_io.PrintOnGaussPoints(IS_WATER_ELEMENT, self.model_part, time);
+            gid_io.PrintOnGaussPoints(VEL_ART_VISC, self.model_part, time);
+            gid_io.PrintOnGaussPoints(PR_ART_VISC, self.model_part, time);             
+            gid_io.WriteNodalResults(VISCOSITY_AIR, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(VISCOSITY_WATER, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(BODY_FORCE, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(NODAL_AREA, (self.model_part).Nodes, time, 0);
+            gid_io.WriteNodalResults(NODAL_PAUX, (self.model_part).Nodes, time, 0);            
+            gid_io.WriteNodalResults(NODAL_MAUX, (self.model_part).Nodes, time, 0);
             
-
             gid_io.Flush()
             gid_io.FinalizeResults()        
         
@@ -396,7 +415,8 @@ class MonolithicSolver:
          max_H = .02
          ref_dist = 10*min_H
          sec_ref_dist = 50*min_H
-         third_ref_dist = 200*min_H
+         third_ref_dist =300*min_H
+         
 
          slope = (sec_min_H - min_H)/(sec_ref_dist-ref_dist)
 
