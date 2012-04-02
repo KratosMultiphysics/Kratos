@@ -301,13 +301,20 @@ namespace Kratos
 
             ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
+	    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+
+            const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
+
             //first of all set to zero the nodal variables to be updated nodally
             for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
                     i != BaseType::GetModelPart().NodesEnd(); ++i)
             {
                 if ((i->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0)
                 {
-                    (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
+			
+
+		    (i)->FastGetSolutionStepValue(rProjectionVariable) = 0.00;
+                   // (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
                     (i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
                 } else
                 {
@@ -328,7 +335,7 @@ namespace Kratos
             for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
                     i != BaseType::GetModelPart().NodesEnd(); ++i)
             {
-                double& conv_proj = (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ);
+                double& conv_proj = (i)->FastGetSolutionStepValue(rProjectionVariable);
                 double temp = 1.00 / (i)->FastGetSolutionStepValue(NODAL_AREA);
                 conv_proj *= temp;
             }
