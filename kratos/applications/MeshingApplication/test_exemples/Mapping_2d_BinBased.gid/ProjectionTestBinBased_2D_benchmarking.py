@@ -10,29 +10,17 @@ domain_size = pfem_var.domain_size
 ##################################################################
 ## ATTENTION: here the order is important
 
-#including kratos path
-kratos_libs_path            = pfem_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = pfem_var.kratos_path + '/applications' ##kratos_root/applications
 kratos_benchmarking_path    = pfem_var.kratos_path + '/benchmarking' ##kratos_root/benchmarking
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(pfem_var.kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
 
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_PFEMApplication = True
-applications_interface.Import_MeshingApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
+#importing kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingApplication import *
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -163,41 +151,41 @@ while (time < tmax):
 
     Projection.DirectScalarVarInterpolation(fixed_model_part,pfem_model_part, TEMPERATURE, TEMPERATURE, node_locator)
     BenchmarkCheckPfem(time, pfem_model_part)  
-
-    output = time - output_Dt_old
-
-    if(output >= output_Dt):
-        ##a change in the output name is needed!!!!
-        res_name1 = str(name_fixed)
-        gid_io.ChangeOutputName(res_name1)
-        gid_io.InitializeMesh( time );
-        gid_io.WriteMesh(fixed_model_part.GetMesh() )
-        gid_io.FinalizeMesh();
-
-        gid_io.InitializeResults( time, fixed_model_part.GetMesh() )
-        gid_io.WriteNodalResults(DISTANCE,fixed_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TEMPERATURE,fixed_model_part.Nodes,time,0)
-
-        gid_io.Flush()
-        gid_io.FinalizeResults()
-
-        res_name2 = str(name_pfem)
-        gid_io.ChangeOutputName(res_name2)
-        gid_io.InitializeMesh( time );
-        gid_io.WriteMesh(pfem_model_part.GetMesh() )
-        gid_io.FinalizeMesh();
-
-        gid_io.InitializeResults( time, pfem_model_part.GetMesh() )
-        gid_io.WriteNodalResults(DISTANCE,pfem_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TEMPERATURE,pfem_model_part.Nodes,time,0)
-
-        gid_io.Flush()
-        gid_io.FinalizeResults()
-
-
-        output_Dt_old = time
-    
-        print "output step finished"
+### Commented out to save time
+##    output = time - output_Dt_old
+##
+##    if(output >= output_Dt):
+##        ##a change in the output name is needed!!!!
+##        res_name1 = str(name_fixed)
+##        gid_io.ChangeOutputName(res_name1)
+##        gid_io.InitializeMesh( time );
+##        gid_io.WriteMesh(fixed_model_part.GetMesh() )
+##        gid_io.FinalizeMesh();
+##
+##        gid_io.InitializeResults( time, fixed_model_part.GetMesh() )
+##        gid_io.WriteNodalResults(DISTANCE,fixed_model_part.Nodes,time,0)
+##        gid_io.WriteNodalResults(TEMPERATURE,fixed_model_part.Nodes,time,0)
+##
+##        gid_io.Flush()
+##        gid_io.FinalizeResults()
+##
+##        res_name2 = str(name_pfem)
+##        gid_io.ChangeOutputName(res_name2)
+##        gid_io.InitializeMesh( time );
+##        gid_io.WriteMesh(pfem_model_part.GetMesh() )
+##        gid_io.FinalizeMesh();
+##
+##        gid_io.InitializeResults( time, pfem_model_part.GetMesh() )
+##        gid_io.WriteNodalResults(DISTANCE,pfem_model_part.Nodes,time,0)
+##        gid_io.WriteNodalResults(TEMPERATURE,pfem_model_part.Nodes,time,0)
+##
+##        gid_io.Flush()
+##        gid_io.FinalizeResults()
+##
+##
+##        output_Dt_old = time
+##    
+##        print "output step finished"
     for node in pfem_model_part.Nodes:
         node.X = node.X + Dt;
         
