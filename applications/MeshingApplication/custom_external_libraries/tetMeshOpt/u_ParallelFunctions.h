@@ -54,6 +54,7 @@ public :
 
 void assignVertexesAvoidingVisited(TList<TObject*> *vs, TList<TObject*> *vRes ,int iter, int maxAssignment);
 void fastGetSurfaceTriangles(TMesh* aModel);
-void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc , int blockSize = 2048);
-void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc , int blockSize = 2048);
+void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc);
+void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc);
+void ParallelEvaluateClusterByFace(TMesh *aMesh , TVertexesEvaluator fc);
 void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement call);

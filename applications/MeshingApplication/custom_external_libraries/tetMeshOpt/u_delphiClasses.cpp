@@ -18,6 +18,10 @@ void TObject::free()
 	delete(this);
 }
 
+TObject::~TObject()
+{
+}
+
 std::string intToString(int number)
 {
 	char* c = intToStr(number);
@@ -67,6 +71,11 @@ char* floatToStr(float f, char* result)
 
 void freeAndNil(TList<TObject*>* l)
 {	 
+	for (int i=0 ; i<l->Count() ; i++)
+	{
+		TObject *o = l->structure[i];
+		delete o;
+	}
 	delete(l);
 }
 

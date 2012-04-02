@@ -5,6 +5,10 @@ bool sortByID(TObject* i, TObject* j)
 {
 	return ((TValuedObject*)(i))->id < ((TValuedObject*)(j))->id ;
 }
+bool sortByQuality(TObject* i, TObject* j)
+{
+	return ((TValuedObject*)(i))->calidad< ((TValuedObject*)(j))->calidad ;
+}
 /// Class TValuedObject
 TValuedObject::TValuedObject(void) 
 {};
@@ -14,7 +18,7 @@ TValuedObject::~TValuedObject(void)
 float4 TValuedObject::getCenter() 
 { 
 	float4 f;	
-	f.x = f.y = f.z = 0.0f;
+	f.x = f.y = f.z = f.w = 0.0f;
 	return f; 
 }
 
@@ -63,8 +67,7 @@ TList<TObject*>* TVertex::getVertexNeighboursByTriangle(TList<TObject*>* toL , i
 		neighV->Clear();
 		storeList = neighV;
 	}
-
-	for (int i=0;i< neighTr->Count() ; i++)
+		for (int i=0;i< neighTr->Count() ; i++)
 		{
 			TTriangle *t = (TTriangle*)( neighTr->elementAt(i));
 			for (int j= 0; j<3 ;j++)
@@ -74,16 +77,16 @@ TList<TObject*>* TVertex::getVertexNeighboursByTriangle(TList<TObject*>* toL , i
 					storeList->Add(t->vertexes[j]);
 			}
 		}
-	return storeList;
+
+	return storeList;  
 }
 
-TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int depth, int avoidLowerIds )
+TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL ,int depth , int avoidLowerIds  )
 {
 	int j,k;
 	TVertex  *v2;
 	TList<TObject*> *storeList ;
-	// Genero un flag interno
-	int innerFlag = rand();
+
 
 	if (toL == NULL)
 	{
@@ -94,75 +97,21 @@ TList<TObject*> *TVertex::getVertexNeighboursByElem(TList<TObject*> *toL, int de
 		storeList= toL;
 
 	storeList->Clear();			   
-	if (depth == 1)
+
+	// Compute neighbours
+	for (j = 0 ; j<elementsList->Count() ; j++)
 	{
-		// Compute neighbours
-		for (j = 0 ; j<elementsList->Count() ; j++)
+		TTetra *t  = (TTetra*)(elementsList->elementAt(j));
+		if (t == NULL ) continue;
+		if (t->isdestroyed) continue;
+		for (k = 0 ; k<4 ; k++)
 		{
-			TTetra *t  = (TTetra*)(elementsList->elementAt(j));
-			if (t == NULL ) continue;
-			if (t->isdestroyed) continue;
-			for (k = 0 ; k<4 ; k++)
-			{
-				v2 =  t->vertexes[k];
-				if (v2 == this) continue;
-				if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
-				if (v2->innerFlag == innerFlag) continue;
-				//Deprecated
-				//if (storeList->indexOf(v2)<0)
-				//	storeList->Add(v2);
+			v2 =  t->vertexes[k];
+			if (v2 == this) continue;                     
+			if ((avoidLowerIds) && (this->id >=v2->id)) continue;
+			if (storeList->indexOf(v2)<0)
 				storeList->Add(v2);
-				v2->innerFlag = innerFlag;
-			}
 		}
-	}
-	else
-	if (depth == 2)
-	{
-		// Compute neighbours de Orden 1
-		for (j = 0 ; j<elementsList->Count() ; j++)
-		{
-			TTetra *t  = (TTetra*)(elementsList->elementAt(j));
-			if (t == NULL ) continue;
-			if (t->isdestroyed) continue;
-			if (t->innerFlag == innerFlag) continue;
-			t->innerFlag = innerFlag;
-			for (k = 0 ; k<4 ; k++)
-			{
-				v2 =  t->vertexes[k];
-				if (v2 == this) continue;
-				if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
-				if (v2->innerFlag == innerFlag) continue;
-				//Deprecated
-				storeList->Add(v2);
-				v2->innerFlag = innerFlag;
-			}
-		}
-		TList<TObject*> *temp2  = new TList<TObject*>() ;
-		temp2->Assign(storeList);
-		// No go to neighbours order 2
-		for (j = 0 ; j<temp2->Count() ; j++)
-		{
-			TVertex *v = (TVertex*)(storeList->elementAt(j));
-			for (k = 0 ; k<v->elementsList->Count() ; k++)
-			{
-				TTetra *t = (TTetra*)(v->elementsList->elementAt(k));
-				if (t == NULL) continue;
-				if (t->innerFlag == innerFlag) continue;
-				t->innerFlag = innerFlag;
-				for (int l=0;l<4 ; l++)
-				{
-					v2 = t->vertexes[l];
-					if (v2 == this) continue;
-					if ( (avoidLowerIds) && (v2->id<this->id) ) continue;
-					if (v2->innerFlag == innerFlag) continue;
-					//Deprecated
-					storeList->Add(v2);
-					v2->innerFlag = innerFlag;
-				}
-			}
-		}
-		delete temp2;
 	}
 	return storeList;
 }
@@ -218,7 +167,8 @@ BoundBox TElement::CalcBound()
 // Class TTetra
 void TTetra::update()
 {
-	double f, c, v;
+	if (this == NULL ) return;
+	double f, c, v;	
 	CalcAng(vertexes[0]->fPos, vertexes[1]->fPos, vertexes[2]->fPos , vertexes[3]->fPos,&f,&c,&v);
 	fDiedralAngle = f;
 	fFaceAngle = c;
@@ -247,7 +197,7 @@ int TTetra::isInside(float4 ps )
 {	
 	int i ;
 	TVertex *v0, *v1, *v2;
-	
+
 	//The iteration method
 	for (i = 0 ; i<4 ; i++)
 	{
@@ -458,7 +408,6 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bo
 	int i,j;
 	TTetra* t2;
 	TList<TObject*>* result ;
-	int innerFlag = rand();
 
 	if (nFL )
 	{
@@ -478,19 +427,14 @@ TList<TObject*>* TTetra::getNeighboursByFace(int depth ,TList<TObject*>* nFL, bo
 		for (j = 0 ; j< vertexes[i]->elementsList->Count() ; j++)
 		{
 			t2 =  (TTetra*)(vertexes[i]->elementsList->elementAt(j));
-			
 			if (t2 == NULL) continue;
 			if  (t2== this) continue;
 			if  (t2->isdestroyed) continue;
+
 			if ((ommitLowerIds ) && (this->id >t2->id) ) continue;
-			if (t2->innerFlag == innerFlag) continue;
-			t2->innerFlag = innerFlag;
 			if (!hasFace(t2)) continue;
-			result->Add(t2);
-			
-			// Deprecated
-			//if ( result->indexOf(t2)<0 ) 
-			//	result->Add(t2);
+			if ( result->indexOf(t2)<0 ) 
+				result->Add(t2);
 
 		}
 	}
@@ -654,6 +598,5 @@ TVertex* TElementsPool::getVertexInstance(float4 fpos)
 }
 
 	
-
 
 

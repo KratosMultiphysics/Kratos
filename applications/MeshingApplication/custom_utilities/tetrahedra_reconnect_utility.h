@@ -365,9 +365,19 @@ namespace Kratos
 				}
 
 				if (processByFace)
-				{
-					std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";
-					evaluateClusterByFace(m,500000,vrelaxQuality);
+				{					
+					if (evaluateInParallel )
+					{
+						std::cout <<"...Parallel optimizing by Face. Iteration : "<< iter <<"\n";
+						ParallelEvaluateClusterByFace((TVolumeMesh*)(m),vrelaxQuality);  
+						std::cout <<"...End. Iteration : "<< iter <<"\n";
+					}
+					else
+					{
+					    std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";						
+						evaluateClusterByFace(m,500000,vrelaxQuality);
+						std::cout <<"...End. Iteration : "<< iter <<"\n";
+					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
 				}
