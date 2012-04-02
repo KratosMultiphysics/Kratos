@@ -117,11 +117,15 @@ public:
         mWorld = PythonMPIComm(MPI_COMM_WORLD);
     }
 
-    /// Destructor, finalizes MPI
+    /// Destructor, finalizes MPI in necessary
     ~PythonMPI()
     {
-        //std::cout << "MPI_Finalize()" << std::endl;
-        MPI_Finalize();
+        int MpiIsFinalized = 0;
+
+        MPI_Finalized(&MpiIsFinalized);
+
+        if (MpiIsFinalized == 0)
+            MPI_Finalize();
     }
 
     /**
