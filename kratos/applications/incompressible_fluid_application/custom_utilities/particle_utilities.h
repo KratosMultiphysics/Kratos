@@ -116,30 +116,31 @@ namespace Kratos
 
         void StreamlineMove(array_1d<double, 3 > & body_force, const double density, const double speficit_heat, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
         {
-            KRATOS_TRY
-		
-
-		Timer time;
-		Timer::Start("StreamlineMove");
-
-
+	  KRATOS_TRY
+	    
+	    
+	    Timer time;
+	  Timer::Start("StreamlineMove");
+	  
+	  
             if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
-                KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
-
-
+	      KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+	    
+	    
             //reset particle position to the beginning of the step
             for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
-                    node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
-            {
+		 node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+	      {
                 Node < 3 > ::Pointer pnode = *(node_it.base());
-
+		
                 pnode->GetValue(ERASE_FLAG) = true;
                 node_it->GetValue(IS_VISITED) = 0;
-
-            }
+		
+	      }
             //            KRATOS_WATCH("539")
             array_1d<double, 3 > veulerian;
             array_1d<double, 3 > acc_particle;
+ 	    array_1d<double, 3 > acc_particle1;
             array_1d<double, TDim + 1 > N;
 	    //double G;
             const int max_results = 1000;
@@ -154,6 +155,7 @@ namespace Kratos
             {
 		ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 		double subdivisions = (iparticle)->FastGetSolutionStepValue(LAMBDA);
+		subdivisions=10.0;
 		const double small_dt = dt / subdivisions;
 		//KRATOS_WATCH(subdivisions);
 		//KRATOS_WATCH(small_dt);
@@ -188,20 +190,26 @@ namespace Kratos
                         (pparticle)->GetValue(ERASE_FLAG) = false;
 
 			noalias(acc_particle) = ZeroVector(3);
+			noalias(acc_particle1) = ZeroVector(3);
 			//G = 0.0;
                         for (unsigned int k = 0; k < geom.size(); k++)
                         {
                             noalias(acc_particle) += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
-                            //G += N[k] * geom[k].FastGetSolutionStepValue(a) * specific_heat_inverse;
+
+ 			    noalias(acc_particle1) += N[k] * geom[k].FastGetSolutionStepValue(ANGULAR_ACCELERATION) /** density_inverse*/;
 			                        
 			}
 
 
                         array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
-                        //double & temperature_particle = (pparticle)->FastGetSolutionStepValue(TEMPERATURE);
 
-                        noalias(vel_particle) += small_dt*acc_particle;
-                        //temperature_particle += small_dt*G;
+			double density_inverse_1 = 1.0 / (pparticle)->FastGetSolutionStepValue(DENSITY);
+
+			//double density_inverse_1 =1.0;
+
+                        noalias(vel_particle) += small_dt*acc_particle;// * density_inverse_1;
+                        //noalias(vel_particle) += small_dt*acc_particle1;//* density_inverse_1 ;
+                        
 
                         //update position
                         noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
@@ -228,12 +236,12 @@ namespace Kratos
 
                  if(norm_delta_disp*3.0 < norm_v*dt )
                      it->GetValue(ERASE_FLAG) = true;
-                 if(norm_delta_disp*0.333333333333333 >  norm_v*dt )
+                 if(norm_delta_disp* (0.333333333333333*0.001) >  norm_v*dt )
                      it->GetValue(ERASE_FLAG) = true;
                  }
 
             //perform the erase
-            NodeEraseProcess(rLagrangianModelPart).Execute();
+         //NodeEraseProcess(rLagrangianModelPart).Execute();
 
 	Timer::Stop("StreamlineMove");
 	KRATOS_WATCH(time)
@@ -318,10 +326,11 @@ namespace Kratos
 			}
 
 
+			double density_inverse = 1.0 / (pparticle)->FastGetSolutionStepValue(DENSITY);
                         array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
 
                         
-			noalias(vel_particle) += /*(dt/2.0) **/ acc_particle;
+			noalias(vel_particle) += acc_particle;// * density_inverse;
 
                     }
 
@@ -344,7 +353,7 @@ namespace Kratos
             unsigned int id = (rEulerianModelPart.Nodes().end() - 1)->Id() + 1;
             rLagrangianModelPart.Nodes().clear();
 
-            for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
+          for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
                     node_it != rEulerianModelPart.NodesEnd(); node_it++)
             {
                 int node_id = id++;
@@ -356,7 +365,7 @@ namespace Kratos
                 pnode->FastGetSolutionStepValue(VELOCITY) = node_it->FastGetSolutionStepValue(VELOCITY);
             }
 
-#ifdef USE_FEW_PARTICLES
+	   #ifdef USE_FEW_PARTICLES
                                     boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
                                     boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > N;
 #else
@@ -390,11 +399,150 @@ namespace Kratos
             KRATOS_CATCH("");
         }
 
+   void ReseedEmptyElements(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+            KRATOS_TRY;
+		int max_number_of_particles=14;
+	int min_number_of_particles= 4;
+			int ninitial_particles = rLagrangianModelPart.Nodes().size();
+
+            //generate a tree with the position of the lagrangian nodes
+            typedef Node < 3 > PointType;
+            typedef Node < 3 > ::Pointer PointTypePointer;
+
+            //unsigned int min_number_of_particles = 1;
+
+            int id;
+            if (rLagrangianModelPart.Nodes().size() != 0)
+                id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+            else
+                id = 1;
+
+            for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
+                    el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+            {
+                el_it->SetValue(YOUNG_MODULUS,0.0);
+            }
+            for (ModelPart::NodesContainerType::iterator pparticle = rLagrangianModelPart.NodesBegin();
+                    pparticle != rLagrangianModelPart.NodesEnd(); pparticle++)
+            {
+                pparticle->SetValue(ERASE_FLAG,false);;
+            }
+			
+            //count particles that fall within an element
+             array_1d<double, TDim + 1 > N;
+            const int max_results = 10000;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+             const int nparticles = rLagrangianModelPart.Nodes().size();
+
+            //count particles within an element
+            #pragma omp parallel for firstprivate(results,N)
+            for (int i = 0; i < nparticles; i++)
+            {
+                ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+
+                Node < 3 > ::Pointer pparticle = *(iparticle.base());
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                Element::Pointer pelement;
+
+                bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+
+                if (is_found == true)
+                {
+                    double& counter = pelement->GetValue(YOUNG_MODULUS);
+                    #pragma omp atomic
+                    counter += 1.0;
+                }
+
+            }
+
+            //erase particles within elements for which reseeding is needed
+             #pragma omp parallel for firstprivate(results,N)
+            for (int i = 0; i < nparticles; i++)
+            {
+                ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+
+                Node < 3 > ::Pointer pparticle = *(iparticle.base());
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                Element::Pointer pelement;
+
+                bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+
+                if (is_found == true)
+                {
+                    double& counter = pelement->GetValue(YOUNG_MODULUS);
+
+                    if(counter < min_number_of_particles)
+                        pparticle->SetValue(ERASE_FLAG,true);
+					else if(counter > max_number_of_particles) //delete if there are too many
+					{
+						#pragma omp atomic
+						counter -= 1;
+						
+						pparticle->SetValue(ERASE_FLAG,true);
+					}
+                }
+
+            }
+             //perform the erase
+            NodeEraseProcess(rLagrangianModelPart).Execute();
+			
+			int nafter_erase_particles = rLagrangianModelPart.Nodes().size();			
+			std::cout << "n particles erased during reseed =" << nafter_erase_particles - ninitial_particles <<std::endl;
+
+            //now do reseed
+#ifdef USE_FEW_PARTICLES
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
+                                    boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > Nnew;
+#else
+            boost::numeric::ublas::bounded_matrix<double, 16, 3 > pos;
+            boost::numeric::ublas::bounded_matrix<double, 16, 3 > Nnew;
+#endif
+            //if there are less than the number of particles we decide, reseed the element
+            for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
+                    el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+            {
+                if (el_it->GetValue(YOUNG_MODULUS) < min_number_of_particles)
+                {
+                    Geometry< Node<3> >& geom = el_it->GetGeometry();
+                    
+                    ComputeGaussPointPositions(geom, pos, Nnew);
+
+                    for (unsigned int i = 0; i < pos.size1(); i++)
+                    {
+                        int node_id = id++;
+                        Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, pos(i, 0), pos(i, 1), pos(i, 2));
+
+                        array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
+                        noalias(vel) = ZeroVector(3);
+                        for (unsigned int j = 0; j < TDim + 1; j++)
+                            noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
+
+                        array_1d<double, 3 > & vel_old = pnode->FastGetSolutionStepValue(VELOCITY, 1);
+                        noalias(vel_old) = ZeroVector(3);
+                        for (unsigned int j = 0; j < TDim + 1; j++)
+                            noalias(vel_old) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY, 1);
+
+			pnode->GetSolutionStepValue(FLAG_VARIABLE)=1.0;
+                    }
+                }
+            }
+			
+			int nfinal_particles = rLagrangianModelPart.Nodes().size();
+			
+			std::cout << "n particles added during reseed =" << nfinal_particles - ninitial_particles <<std::endl;
+
+            KRATOS_CATCH("");
+        }
+
+
         //**********************************************************************************************
         //**********************************************************************************************
         //function to seed a list of new nodes
 
-        void ReseedEmptyElements(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+ /*       void ReseedEmptyElements(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
         {
 	  KRATOS_TRY;
 	  
@@ -431,53 +579,54 @@ namespace Kratos
 	  for (int i = 0; i < nparticles; i++)
             {
 	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-
-                Node < 3 > ::Pointer pparticle = *(iparticle.base());
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelement;
-
-                bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-
+	      
+	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	      
+	      Element::Pointer pelement;
+	      
+	      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	      
                 if (is_found == true)
-                {
+		  {
                     double& counter = pelement->GetValue(YOUNG_MODULUS);
-                    #pragma omp atomic
+#pragma omp atomic
                     counter += 1.0;
-                }
-
+		  }
+		
             }
-
-            //erase particles within elements for which reseeding is needed
+	  
+	  //erase particles within elements for which reseeding is needed
 #pragma omp parallel for firstprivate(results,N)
-            for (int i = 0; i < nparticles; i++)
+	  for (int i = 0; i < nparticles; i++)
             {
-                ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-
-                Node < 3 > ::Pointer pparticle = *(iparticle.base());
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelement;
-
-                bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-
-                if (is_found == true)
-                {
-                    /*const*/ double& counter = pelement->GetValue(YOUNG_MODULUS);
-
-		  //if(counter  < 4){
-		    if(counter  > 14){  //14
-                        pparticle->SetValue(ERASE_FLAG,true);
-			#pragma omp atomic
-			counter -=1.0;
-			}
-			
-                }
-
+	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	      
+	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	      
+	      Element::Pointer pelement;
+	      
+	      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	      
+	      if (is_found == true)
+		{
+		 double& counter = pelement->GetValue(YOUNG_MODULUS);
+		  double densi_ty = pelement->GetValue(DENSITY);
+		  
+		  //if(densi_ty!=500.0){
+		  if(counter  > 14){  //14
+		    pparticle->SetValue(ERASE_FLAG,true);
+#pragma omp atomic
+		    counter -=1.0;
+		    //}
+		  }
+		}
+	      
             }
-             //perform the erase
-            NodeEraseProcess(rLagrangianModelPart).Execute();
-
+	  //perform the erase
+	  //NodeEraseProcess(rLagrangianModelPart).Execute();
+	  
 	  
 	  
 	  int number_of_threads = OpenMPUtils::GetNumThreads();
@@ -487,7 +636,7 @@ namespace Kratos
 	  int number_of_rows=rEulerianModelPart.Elements().size();
 	  KRATOS_WATCH(number_of_threads);
 	  //KRATOS_ERROR(std::logic_error, "Add  ----NODAL_H---- variable!!!!!! ERROR", "");
-
+	  
 	  elem_partition.resize(number_of_threads + 1);
 	  int elem_partition_size = number_of_rows / number_of_threads;
 	  elem_partition[0] = 0;
@@ -499,8 +648,8 @@ namespace Kratos
 	  typedef Node < 3 > PointType;
 	  std::vector<ModelPart::NodesContainerType> aux;// aux;
 	  aux.resize(number_of_threads);
-
-
+	  
+	  
 #pragma omp parallel firstprivate(elem_partition)
 	  {
 	    int k = OpenMPUtils::ThisThread();
@@ -510,19 +659,26 @@ namespace Kratos
 	    //ModelPart::NodesContainerType local_list=aux[k];
 	    PointerVectorSet<Node<3>, IndexedObject> & list=aux[k];
 	    //KRATOS_WATCH(k);
-
-	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
-	  boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
-
-
-	  int local_id=1;
+	    
+	    boost::numeric::ublas::bounded_matrix<double, 4, 3 > pos;
+	    boost::numeric::ublas::bounded_matrix<double, 4, 3 > Nnew;
+	    
+	    
+	    
+	    int local_id=1;
 	    for (ModelPart::ElementsContainerType::iterator el_it = it_begin; el_it != it_end; el_it++)
 	      {
-
-		if (el_it->GetValue(YOUNG_MODULUS) < 4)
+		
+		if (el_it->GetValue(YOUNG_MODULUS) < 4.0)
 		  {
 		    Geometry< Node<3> >& geom = el_it->GetGeometry();
 		    
+		    //if(el_it->GetValue(DENSITY)==1.0 or el_it->GetValue(DENSITY)==1000.0 ){			
+	
+		    //KRATOS_WATCH("INSERTO PUNTOS");
+		    //KRATOS_WATCH("INSERTO PUNTOS");
+		    //KRATOS_WATCH("INSERTO PUNTOS");
+		    double dens=el_it->GetValue(DENSITY);
 		    ComputeGaussPointPositions(geom, pos, Nnew);
 		    
                     for (unsigned int i = 0; i < pos.size1(); i++)
@@ -533,50 +689,600 @@ namespace Kratos
 			
 			pnode->SetSolutionStepVariablesList(&(rEulerianModelPart.GetNodalSolutionStepVariablesList()));
 			pnode->SetBufferSize(3);
-
-		       array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
-		       
-		       array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
-		       noalias(disp) = ZeroVector(3);
-		       
-                       noalias(vel) = ZeroVector(3);
-		
-                        for (unsigned int j = 0; j < 3; j++){
 			
+			array_1d<double, 3 > & vel = pnode->FastGetSolutionStepValue(VELOCITY);
+			
+			array_1d<double, 3 > & disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
+			noalias(disp) = ZeroVector(3);
+			
+			noalias(vel) = ZeroVector(3);
+			
+                        for (unsigned int j = 0; j < 3; j++){
+			  
 			  noalias(vel) += Nnew(i, j) * geom[j].FastGetSolutionStepValue(VELOCITY);
 			  
 			}
+			pnode->GetSolutionStepValue(FLAG_VARIABLE)=1.0;
+			//pnode->FastGetSolutionStepValue(DENSITY)=dens;
 			(list).push_back(pnode);
 		      }
-
+		    
+		   
 		  }
-	    
+		
 	      }
 	  }
-
+	  
 	  for(int k=0;k<number_of_threads; k++){
 	    PointerVectorSet<Node<3>, IndexedObject> & list=aux[k];
 	    for(PointerVectorSet<Node<3>, IndexedObject>::ptr_iterator it =  list.ptr_begin(); it!=list.ptr_end(); it++){
 	      //rLagrangianModelPart.AddNode(*it);
 	      rLagrangianModelPart.Nodes().push_back(*it);
 	      //KRATOS_WATCH(k);
-	       int node_id=last_id++;//last_id++;
-	       (*it)->SetId(node_id);
-	       //KRATOS_WATCH(rLagrangianModelPart.Nodes().size());
+	      int node_id=last_id++;//last_id++;
+	      (*it)->SetId(node_id);
+	      //KRATOS_WATCH(rLagrangianModelPart.Nodes().size());
 	    }
 	  }
 
-
-	   Timer::Stop("Puntos");
+	  
+	  Timer::Stop("Puntos");
 	   KRATOS_WATCH(time);
 	   
 	   KRATOS_CATCH("");
+	}*/
+	
+        //**********************************************************************************************
+        //**********************************************************************************************
+        //**********************************************************************************************
+	void Back(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+	  
+	  KRATOS_TRY
+	    
+            if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
+	      KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+	  
+	  //should be done outside!!!
+	  //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
+	  //            node_locator.UpdateSearchDatabase();
+	  
+	  double density_inverse = 1.0 / density;
+	  
+	  //reset particle position to the beginning of the step
+	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+            {
+	      Node < 3 > ::Pointer pnode = *(node_it.base());
+	      
+	      //pnode->GetValue(ERASE_FLAG) = true;
+	      node_it->GetValue(IS_VISITED) = 0;
+	      
+            }
+	  //            KRATOS_WATCH("539")
+	  array_1d<double, 3 > veulerian;
+	  array_1d<double, 3 > acc_particle;
+	  array_1d<double, TDim + 1 > N;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  //subdivisions=10.0;
+	  const double small_dt = dt / subdivisions;
+	  
+	  const int nparticles = rLagrangianModelPart.Nodes().size();
+	  
+	  //#pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
+	  for (int i = 0; i < nparticles; i++)
+            {
+	      for (unsigned int substep = 0; substep < subdivisions; substep++)
+                {
+		  ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+		  
+		  Node < 3 > ::Pointer pparticle = *(iparticle.base());
+		  
+		  if((iparticle)->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0){
+		    
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+		    
+                    Element::Pointer pelement;
+		    
+                    bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+		    if(is_found==false){  pparticle->SetValue(ERASE_FLAG,true);  }
+                    if (is_found == true)
+		      {
+                        (pparticle)->GetValue(IS_VISITED) = 1;
+			
+                        Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+			
+                        //move according to the streamline
+                        noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY);
+                        for (unsigned int k = 1; k < geom.size(); k++)
+			  noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY);
+			//KRATOS_WATCH(veulerian);
+                        array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
+			
+                        noalias(disp) -= small_dt*veulerian;
+			//KRATOS_WATCH(disp);
+			
+			///////////////
+                        array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
+			
+			noalias(vel_particle) = veulerian;
+			////////////////////
+			
+			
+                        //(pparticle)->GetValue(ERASE_FLAG) = false;
+			double pp=(iparticle)->X();
+			double pp1=(iparticle)->Y();
+			double pp2=(iparticle)->Z();
+			//KRATOS_WATCH(pp);// + old_disp[0];
+			//KRATOS_WATCH(pp1);// + old_disp[1];
+			//KRATOS_WATCH(pp2);// + old_disp[2];
+
+                        //update position
+                        noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
+                        noalias(iparticle->Coordinates()) += iparticle->FastGetSolutionStepValue(DISPLACEMENT);
+                        (iparticle)->GetValue(IS_VISITED) = 0;
+
+			double pp_1=(iparticle)->X();
+			double pp1_1=(iparticle)->Y();
+			double pp2_1=(iparticle)->Z();
+			//KRATOS_WATCH(pp_1);// + old_disp[0];
+			//KRATOS_WATCH(pp1_1);// + old_disp[1];
+			//KRATOS_WATCH(pp2_1);// + old_disp[2];
+
+
+			//KRATOS_WATCH((iparticle)->X());// + old_disp[0];
+			//KRATOS_WATCH((iparticle)->Y());// + old_disp[1];
+			//KRATOS_WATCH((iparticle)->Z());// + old_disp[2];
+
+			
+		      }
+		  }
+                }
+	      
+	      
+
+            }
+	  
+	  // NodeEraseProcess(rLagrangianModelPart).Execute();
+	  
+            KRATOS_CATCH("")
+	      }
+	
+        //**********************************************************************************************
+	void Back1(array_1d<double, 3 > & body_force, const double density, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+	  
+	  KRATOS_TRY
+	    
+            if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
+	      KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+	  
+	  //should be done outside!!!
+	  //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
+	  //            node_locator.UpdateSearchDatabase();
+	  
+	  double density_inverse = 1.0 / density;
+	  
+	  //reset particle position to the beginning of the step
+	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+            {
+	      Node < 3 > ::Pointer pnode = *(node_it.base());
+	      
+	      //pnode->GetValue(ERASE_FLAG) = true;
+	      node_it->GetValue(IS_VISITED) = 0;
+	      
+            }
+	  //            KRATOS_WATCH("539")
+	  array_1d<double, 3 > veulerian;
+	  array_1d<double, 3 > acc_particle;
+	  array_1d<double, TDim + 1 > N;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  //subdivisions=10.0;
+	  const double small_dt = dt / subdivisions;
+	  
+	  const int nparticles = rLagrangianModelPart.Nodes().size();
+	  
+//#pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
+	  for (int i = 0; i < nparticles; i++)
+            {
+	      for (unsigned int substep = 0; substep < subdivisions; substep++)
+                {
+		  ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+		  
+		  Node < 3 > ::Pointer pparticle = *(iparticle.base());
+		  
+		  if((iparticle)->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0){
+		    
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+		    
+                    Element::Pointer pelement;
+		    
+                    bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+		    if(is_found==false){  pparticle->SetValue(ERASE_FLAG,true);  }
+                    if (is_found == true)
+		      {
+                        (pparticle)->GetValue(IS_VISITED) = 1;
+			
+                        Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+			
+                        //move according to the streamline
+                        noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY);
+                        for (unsigned int k = 1; k < geom.size(); k++)
+			  noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY);
+			//KRATOS_WATCH(veulerian);
+                        array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
+
+
+		
+
+			//KRATOS_WATCH((iparticle)->X());// + old_disp[0];
+			//KRATOS_WATCH((iparticle)->Y());// + old_disp[1];
+			//KRATOS_WATCH((iparticle)->Z());// + old_disp[2];
+
+			
+                        noalias(disp) += small_dt*veulerian;
+			//KRATOS_WATCH(disp);
+			
+			///////////////
+                        array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
+			
+			noalias(vel_particle) = veulerian;
+			////////////////////
+			
+			
+                        //(pparticle)->GetValue(ERASE_FLAG) = false;
+			double pp=(iparticle)->X();
+			double pp1=(iparticle)->Y();
+			double pp2=(iparticle)->Z();
+			//KRATOS_WATCH(pp);// + old_disp[0];
+			//KRATOS_WATCH(pp1);// + old_disp[1];
+			//KRATOS_WATCH(pp2);// + old_disp[2];
+
+
+                        //update position
+                        noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
+                        noalias(iparticle->Coordinates()) += iparticle->FastGetSolutionStepValue(DISPLACEMENT);
+                        (iparticle)->GetValue(IS_VISITED) = 0;
+
+			double pp_1=(iparticle)->X();
+			double pp1_1=(iparticle)->Y();
+			double pp2_1=(iparticle)->Z();
+			//KRATOS_WATCH(pp_1);// + old_disp[0];
+			//KRATOS_WATCH(pp1_1);// + old_disp[1];
+			//KRATOS_WATCH(pp2_1);// + old_disp[2];
+			//KRATOS_WATCH((iparticle)->X());// + old_disp[0];
+			//KRATOS_WATCH((iparticle)->Y());// + old_disp[1];
+			//KRATOS_WATCH((iparticle)->Z());// + old_disp[2];
+
+			
+		      }
+		  }
+                }
+	      
+            }
+	  
+	  
+	  // NodeEraseProcess(rLagrangianModelPart).Execute();
+            KRATOS_CATCH("")
+	      }
+	
+        //**********************************************************************************************
+        //**********************************************************************************************
+	void StreamlineMove2(array_1d<double, 3 > & body_force, const double density, const double speficit_heat, const double dt, const double subdivisions, ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, bool use_eulerian_velocity, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+	  KRATOS_TRY
+	    
+	    
+	    Timer time;
+	  Timer::Start("StreamlineMove");
+	  
+	  
+	  if (rEulerianModelPart.NodesBegin()->SolutionStepsDataHas(FORCE) == false)
+	    KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
+	  
+	  
+	  //reset particle position to the beginning of the step
+	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
+	       node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
+	    {
+	      Node < 3 > ::Pointer pnode = *(node_it.base());
+	      pnode->GetValue(ERASE_FLAG) = true;
+	      node_it->GetValue(IS_VISITED) = 0;
+	      
+	    }
+	  //            KRATOS_WATCH("539")
+	  array_1d<double, 3 > veulerian;
+	  array_1d<double, 3 > acc_particle;
+	  array_1d<double, 3 > acc_particle1;
+	  array_1d<double, TDim + 1 > N;
+	  //double G;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  
+	  //const double small_dt = dt / subdivisions;
+	  
+	  const int nparticles = rLagrangianModelPart.Nodes().size();
+	  
+#pragma omp parallel for firstprivate(results,N,veulerian,acc_particle)
+	  for (int i = 0; i < nparticles; i++)
+	    {
+	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	      double subdivisions = (iparticle)->FastGetSolutionStepValue(LAMBDA);
+		subdivisions=10.0;
+		const double small_dt = dt / subdivisions;
+		
+                for (unsigned int substep = 0; substep < subdivisions; substep++)
+		  {
+		    
+                    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+		    
+		    if((iparticle)->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0){	
+		      
+		      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+		      
+		      Element::Pointer pelement;
+		      
+		      
+		      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+		      
+		      
+		      if (is_found == true)
+                    	{
+			  (pparticle)->GetValue(IS_VISITED) = 1;
+			  
+			  Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+			  
+			  //move according to the streamline
+			  noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
+			  for (unsigned int k = 1; k < geom.size(); k++)
+			    noalias(veulerian) += N[k] * geom[k].FastGetSolutionStepValue(VELOCITY, 1);
+			  
+			  array_1d<double, 3 > & disp = (iparticle)->FastGetSolutionStepValue(DISPLACEMENT);
+			  
+			  noalias(disp) += small_dt*veulerian;
+			  
+			  (pparticle)->GetValue(ERASE_FLAG) = false;
+			  
+			  noalias(acc_particle) = ZeroVector(3);
+			  noalias(acc_particle1) = ZeroVector(3);
+			  //G = 0.0;
+			  for (unsigned int k = 0; k < geom.size(); k++)
+			    {
+			      noalias(acc_particle) += N[k] * geom[k].FastGetSolutionStepValue(FORCE) /** density_inverse*/;
+			      
+			      //  noalias(acc_particle1) += N[k] * geom[k].FastGetSolutionStepValue(ANGULAR_ACCELERATION) /** density_inverse*/;
+			      
+			    }
+			  
+			  
+			  array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
+			  
+			  double density_inverse_1 = 1.0 / (pparticle)->FastGetSolutionStepValue(DENSITY);
+			  
+			  //double density_inverse_1 =1.0;
+			  
+			  noalias(vel_particle) += small_dt*acc_particle;// * density_inverse_1;
+			  //noalias(vel_particle) += small_dt*acc_particle1;//* density_inverse_1 ;
+			  
+			  
+			  //update position
+			  noalias(iparticle->Coordinates()) = iparticle->GetInitialPosition();
+			  noalias(iparticle->Coordinates()) += iparticle->FastGetSolutionStepValue(DISPLACEMENT);
+			  (iparticle)->GetValue(IS_VISITED) = 0;
+			}
+                    }
+		    
+		  }
+		
+	    }
+	  
+	    //erase nodes whose velocity is far inconsistent with the displacement increment (typically nodes that get stuck to the wall)
+	    
+	    
+	    Timer::Stop("StreamlineMove");
+	    KRATOS_WATCH(time)
+	      
+	      KRATOS_CATCH("")
+	      }
+        //**********************************************************************************************
+	
+        //function to seed a list of new nodes
+	
+        void Density(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+	  KRATOS_TRY;
+	  
+	  Timer time;
+	  Timer::Start("Puntos");
+	  
+	  //generate a tree with the position of the lagrangian nodes
+	  typedef Node < 3 > PointType;
+	  typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node<3> NodeType;
+	  
+	  unsigned int min_number_of_particles = 4  ;
+	  
+	  int id;
+	  if (rLagrangianModelPart.Nodes().size() != 0)
+	    id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+	  else
+	    id = 1;
+	  
+	  for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
+	       el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+            {
+	      //                el_it->SetValue(DENSITY,0.0);
+	      el_it->SetValue(YOUNG_MODULUS,0.0);
+	      el_it->SetValue(POISSON_RATIO,0.0);
+            }
+	  
+	  int last_id=id;
+	  //count particles that fall within an element
+	  array_1d<double, TDim + 1 > N;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  int nparticles = rLagrangianModelPart.Nodes().size();
+	  //double density=0.0;
+	  //int number=0.0;
+	  
+	  //count particles within an element
+	  //#pragma omp parallel for firstprivate(results,N)
+	  for (int i = 0; i < nparticles; i++)
+            {
+	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	      
+	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+	      
+	      Element::Pointer pelement;
+	      
+	      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+	      
+	      if (is_found == true)
+                {
+		  double density = (pparticle)->FastGetSolutionStepValue(DENSITY);
+		  double& counter_min = pelement->GetValue(YOUNG_MODULUS);
+		  double& counter_max = pelement->GetValue(POISSON_RATIO);
+		  
+		  if(density==1.0){
+		    counter_min +=1.0;
+		  }
+
+		  if(density==1000.0){
+		    counter_max +=1.0;
+		  }
+		}
+	    }
+	  
+	  
+	  for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin(); el_it != rEulerianModelPart.ElementsEnd(); el_it++)
+            {
+	      double& dens = el_it->GetValue(DENSITY);
+ 	        double counter_min = el_it->GetValue(YOUNG_MODULUS);
+		double counter_max = el_it->GetValue(POISSON_RATIO);
+		if(counter_min==0.0 && counter_max>0.0) {
+			dens=1000.0;
+		}
+		
+		if(counter_min>0.0 && counter_max==0.0) {
+		  dens=1.0;
+		}
+		if(counter_min>0.0 && counter_max>0.0) {
+		  dens=500.0;
+		}
+
+		if(counter_min==0.0 &&  counter_max==0.0){
+		  //dens=1.0;
+		  
+		  KRATOS_WATCH(dens);
+		  //KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
+		  }
+		
+		//KRATOS_WATCH(dens);
+		
+	    }
+	  
+	  
+	  
+	  KRATOS_CATCH("");
+	}
+	
+        //**********************************************************************************************
+	void Density1(ModelPart& rEulerianModelPart, ModelPart& rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
+        {
+	  KRATOS_TRY;
+	  
+	  Timer time;
+	  Timer::Start("Puntos");
+	  
+	  //generate a tree with the position of the lagrangian nodes
+	  typedef Node < 3 > PointType;
+	  typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node<3> NodeType;
+
+	  unsigned int min_number_of_particles = 4  ;
+	  
+	  int id;
+	  
+	  if (rLagrangianModelPart.Nodes().size() != 0)
+	    id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+	  else
+	    id = 1;
+	  
+	  int last_id=id;
+	  //count particles that fall within an element
+	  array_1d<double, TDim + 1 > N;
+	  const int max_results = 1000;
+	  typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+	  int nparticles = rLagrangianModelPart.Nodes().size();
+	  
+	  //count particles within an element
+	  //#pragma omp parallel for firstprivate(results,N)
+	  for (int i = 0; i < nparticles; i++)
+            {
+	      ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
+	      
+	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      
+	      if((iparticle)->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0)
+		{
+		  
+		  typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+		  
+		  Element::Pointer pelement;
+		  
+		  bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+		  
+		  if (is_found == true)
+		    {
+
+		      Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+		      
+		      double& density = (pparticle)->FastGetSolutionStepValue(DENSITY);
+		      
+		      double density_element = pelement->GetValue(DENSITY);
+		      double density_node;
+
+
+		      if(N(0)>0.5) {
+			density_node= geom[0].FastGetSolutionStepValue(DENSITY);
+		if(density_node<500.0) density=1.0;
+			else
+			  density=1000.0;
+			
+		      }
+		      else if(N(1)>0.5) {
+			density_node= geom[1].FastGetSolutionStepValue(DENSITY);
+			if(density_node<500.0) density=1.0;
+			else
+			  density=1000.0;
+
+		      }
+		      else if(N(2)>0.5) {
+			
+			density_node= geom[2].FastGetSolutionStepValue(DENSITY);
+			if(density_node<500.0) density=1.0;
+			else
+			  density=1000.0;
+			
+		      }
+		      else { density=1.0;}
+			
+		      /*if( density_element ==1.00 )density=1.0;
+		      else if(density_element >1.00 and density_element<500){density=1.0; pparticle->GetValue(ERASE_FLAG) = true;}
+		      else if( density_element >=500.00 and density_element<1000) {density=1000.0;  pparticle->GetValue(ERASE_FLAG) = true;}
+		      else if(density_element=1000.0) density=1000.0;*/
+		    }
+		}	
+	    }
+	  
+	  //NodeEraseProcess(rLagrangianModelPart).Execute();
+	  KRATOS_CATCH("");
 	}
 	
         //**********************************************************************************************
         //**********************************************************************************************
-
-
 	void EstimateTime(ModelPart& rEulerianModelPart,const double max_dt)
 	{
 	  KRATOS_TRY
@@ -824,41 +1530,49 @@ namespace Kratos
             for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
                     node_it != rEulerianModelPart.NodesEnd(); node_it++)
             {
+		(node_it)->GetValue(POISSON_RATIO) = 0.0;
+		(node_it)->FastGetSolutionStepValue(DENSITY) = 0.0;
+		//(node_it)->FastGetSolutionStepValue(FLAG_VARIABLE) = 0.0;
                 if (node_it->IsFixed(VELOCITY_X) == false)
                 {
                     (node_it)->FastGetSolutionStepValue(VELOCITY) = ZeroVector(3);
                     (node_it)->GetValue(YOUNG_MODULUS) = 0.0;
+		}
+	    }
 
-                }
-		
-
-
-            }
-
-             array_1d<double, TDim + 1 > N;
+	    array_1d<double, TDim + 1 > N;
             const int max_results = 1000;
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-             const int nparticles = rLagrangianModelPart.Nodes().size();
-
+	    const int nparticles = rLagrangianModelPart.Nodes().size();
+	    
 #pragma omp parallel for firstprivate(results,N)
             for (int i = 0; i < nparticles; i++)
-            {
+	      {
                 ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-
+		
                 Node < 3 > ::Pointer pparticle = *(iparticle.base());
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
+		
                 Element::Pointer pelement;
-
+		
                 bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
 
                 if (is_found == true)
-                {
+		  {
                     Geometry<Node<3> >& geom = pelement->GetGeometry();
                     const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
-
+		    double density_particle = (iparticle)->FastGetSolutionStepValue(DENSITY);
+		    //double flag_variable_particle = (iparticle)->FastGetSolutionStepValue(FLAG_VARIABLE);
                     for (unsigned int k = 0; k < geom.size(); k++)
                     {
+
+                            geom[k].SetLock();
+                            geom[k].FastGetSolutionStepValue(DENSITY) += N[k] * density_particle;
+			    //geom[k].FastGetSolutionStepValue(FLAG_VARIABLE) += N[k] * flag_variable_particle; 
+                            geom[k].GetValue(POISSON_RATIO) += N[k];
+                            geom[k].UnSetLock();
+
+
                         if (geom[k].IsFixed(VELOCITY_X) == false)
                         {
                             geom[k].SetLock();
@@ -875,6 +1589,20 @@ namespace Kratos
             for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
                     node_it != rEulerianModelPart.NodesEnd(); node_it++)
             {
+
+                    const double NN1 = (node_it)->GetValue(POISSON_RATIO);
+                    if (NN1 != 0.0)
+                    {
+			double pepe;
+                        (node_it)->FastGetSolutionStepValue(DENSITY) /= NN1;
+			//(node_it)->FastGetSolutionStepValue(FLAG_VARIABLE) /= NN1;
+                    } else
+                    {
+                        std::cout << node_it->Id() << " coeff = " << NN1 << std::endl;
+                    }
+
+
+
                 if (node_it->IsFixed(VELOCITY_X) == false)
                 {
                     const double NN = (node_it)->GetValue(YOUNG_MODULUS);
@@ -891,7 +1619,7 @@ namespace Kratos
 
 
 	Timer::Stop("Interpolacion");
-	KRATOS_WATCH(time)
+	//KRATOS_WATCH(time)
 
             KRATOS_CATCH("")
         }
@@ -1137,15 +1865,15 @@ namespace Kratos
             N(2, 1) = two_third;
             N(2, 2) = one_sixt;
             N(3, 0) = one_third;
-            N(3, 1) = one_third;
-            N(3, 2) = one_third;
-
+	    N(3, 1) = one_third;
+	    N(3, 2) = one_third;
+	    
 
             //first
             pos(0, 0) = one_sixt * geom[0].X() + one_sixt * geom[1].X() + two_third * geom[2].X();
             pos(0, 1) = one_sixt * geom[0].Y() + one_sixt * geom[1].Y() + two_third * geom[2].Y();
             pos(0, 2) = one_sixt * geom[0].Z() + one_sixt * geom[1].Z() + two_third * geom[2].Z();
-
+	    
             //second
             pos(1, 0) = two_third * geom[0].X() + one_sixt * geom[1].X() + one_sixt * geom[2].X();
             pos(1, 1) = two_third * geom[0].Y() + one_sixt * geom[1].Y() + one_sixt * geom[2].Y();
@@ -1157,7 +1885,7 @@ namespace Kratos
             pos(2, 2) = one_sixt * geom[0].Z() + two_third * geom[1].Z() + one_sixt * geom[2].Z();
 
             //fourth
-            pos(3, 0) = one_third * geom[0].X() + one_third * geom[1].X() + one_third * geom[2].X();
+	    pos(3, 0) = one_third * geom[0].X() + one_third * geom[1].X() + one_third * geom[2].X();
             pos(3, 1) = one_third * geom[0].Y() + one_third * geom[1].Y() + one_third * geom[2].Y();
             pos(3, 2) = one_third * geom[0].Z() + one_third * geom[1].Z() + one_third * geom[2].Z();
 
