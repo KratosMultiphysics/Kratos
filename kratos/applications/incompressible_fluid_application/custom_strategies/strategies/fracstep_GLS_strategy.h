@@ -297,9 +297,6 @@ namespace Kratos
                     noalias(press_proj) = ZeroVector(3);
 		  }		
 	      }
-	  //allocation of work space
-	  
-	  
 	 
 	  
 	  
@@ -406,22 +403,30 @@ namespace Kratos
 		force_temp *= dt_Minv;
 
 		array_1d<double, 3 > & press_proj = (it)->FastGetSolutionStepValue(PRESS_PROJ);
-                double A = (it)->FastGetSolutionStepValue(NODAL_MASS);
+                //double A = (it)->FastGetSolutionStepValue(NODAL_MASS);
+		double A = (it)->FastGetSolutionStepValue(NODAL_AREA);
+
+		double density_inverse = 1.0 / it->FastGetSolutionStepValue(DENSITY);
 
                 double temp = 1.00 / A;
                 press_proj *= temp;
 
+
+		//press_proj *= density_inverse ;
+		
+
+
 		if(!it->IsFixed(VELOCITY_X))
 		  {
-		    it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0];
+		    it->FastGetSolutionStepValue(VELOCITY_X)+=force_temp[0] ; //* density_inverse;
 		  }
 		if(!it->IsFixed(VELOCITY_Y))
 		  {
-		    it->FastGetSolutionStepValue(VELOCITY_Y)+=force_temp[1];						
+		    it->FastGetSolutionStepValue(VELOCITY_Y)+=force_temp[1] ; //* density_inverse;						
 		  }
 		if(!it->IsFixed(VELOCITY_Z))
 		  {
-		    it->FastGetSolutionStepValue(VELOCITY_Z)+=force_temp[2];						
+		    it->FastGetSolutionStepValue(VELOCITY_Z)+=force_temp[2] ; //* density_inverse;						
 		  }
 	      }
 	    }
@@ -485,14 +490,13 @@ namespace Kratos
                 //first of all set to zero the nodal variables to be updated nodally
                 for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 		  {
-                    /*array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
-		      array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
-		      noalias(press_proj) = zero;
-		      noalias(conv_proj) = zero;*/
-                     
-                   
 		    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 		    nodal_mass = 0.0;
+		    double & particle_mass = (i)->FastGetSolutionStepValue(PARTICLE_MASS);
+		    particle_mass = 0.0;
+
+ 		    double & nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
+		    nodal_area = 0.0;
 		  }
 	      }
  
@@ -502,9 +506,9 @@ namespace Kratos
 	    
 	    
 	    for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin(); i != BaseType::GetModelPart().NodesEnd(); ++i){
-	      //noalias(i->FastGetSolutionStepValue(AUX_VECTOR)) = i->FastGetSolutionStepValue(VELOCITY,1);	
-	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;	
- 	      noalias(i->FastGetSolutionStepValue(ACCELERATION)) =    zero;		
+	      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
+	      noalias(i->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) =    zero;
+	      noalias(i->FastGetSolutionStepValue(ACCELERATION)) =    zero;		
 
 	    }
 	    
@@ -513,12 +517,6 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
             rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
 	    
-	    /* for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
-	      {	
-		KRATOS_WATCH("AQUI ESTOY");
-		(i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
-		
-	      }*/
 	
 
             vector<unsigned int> elem_partition;
@@ -536,11 +534,6 @@ namespace Kratos
 	      }
 	    
 	    
-            /*BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(NODAL_MASS);
-            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(PRESS_PROJ);
-            BaseType::GetModelPart().GetCommunicator().AssembleCurrentData(CONV_PROJ);*/
-	    
-            //solve nodally for the velocity
 	    
 #pragma omp parallel for schedule(static,1)
             for (int k = 0; k < number_of_threads; k++)
@@ -554,14 +547,26 @@ namespace Kratos
                     //array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
                     double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
 		    //array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
+
 		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
-		    array_1d<double,3>& acc_temp = i->FastGetSolutionStepValue(ACCELERATION);
+
 		    force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+		    //force_temp *=(1.0/ i->FastGetSolutionStepValue(PARTICLE_MASS));
+
+		    //array_1d<double,3>& force_temp_g = i->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+ 		    //force_temp_g *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
+		    //force_temp_g *=(1.0/ i->FastGetSolutionStepValue(PARTICLE_MASS));
+
+		    array_1d<double,3>& acc_temp = i->FastGetSolutionStepValue(ACCELERATION);
+
+			
+
 		    acc_temp =force_temp;
 		    if(i->IsFixed(VELOCITY_X) == true){
 		      noalias(i->FastGetSolutionStepValue(FORCE)) =    zero;
+		      noalias(i->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) =    zero;
+
 		      noalias(i->FastGetSolutionStepValue(ACCELERATION)) =    zero;
-		      //noalias(i->FastGetSolutionStepValue(VELOCITY)) =    zero;
 		      
 		    }
 		  }
