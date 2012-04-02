@@ -23,15 +23,9 @@ sys.path.append(kratos_benchmarking_path)
 from Kratos import *
 kernel = Kernel()   #defining kernel
 
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosIncompressibleFluidApplication import *
 import benchmarking
 
 #defining a model part for the fluid and one for the structure
