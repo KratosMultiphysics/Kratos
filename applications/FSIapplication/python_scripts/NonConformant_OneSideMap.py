@@ -1,6 +1,9 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosFSIApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.FSIApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
+
 
 def AddVariables(fluid_model_part,structure_model_part):
     fluid_model_part.AddNodalSolutionStepVariable(NODAL_MAUX)# Stores Nodal Area
