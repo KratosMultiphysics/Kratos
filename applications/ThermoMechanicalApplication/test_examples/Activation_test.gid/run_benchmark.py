@@ -18,6 +18,7 @@ import benchmarking
  # importing kratos
 from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 
 #defining a model part
