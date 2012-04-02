@@ -8,10 +8,11 @@ domain_size = fluid_only_var.domain_size
 ##################################################################
 ##################################################################
 #including kratos path
-kratos_benchmarking_path = fluid_only_var.kratos_path +'/benchmarking' ##kratos_root/benchmarking
+kratos_path = '../../../..'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 
 import sys
-sys.path.append(fluid_only_var.kratos_path)
+sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
