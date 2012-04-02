@@ -10,7 +10,7 @@ domain_size = pfem_var.domain_size
 ##################################################################
 ## ATTENTION: here the order is important
 
-kratos_benchmarking_path    = pfem_var.kratos_path + '/benchmarking' ##kratos_root/benchmarking
+kratos_benchmarking_path    = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
 sys.path.append(pfem_var.kratos_path)
 sys.path.append(kratos_benchmarking_path)
