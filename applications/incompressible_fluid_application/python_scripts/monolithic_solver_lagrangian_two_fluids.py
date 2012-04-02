@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-#importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
-from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
-
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -96,7 +95,7 @@ class MonolithicSolver:
 	self.increase_factor = 1.15
 	self.num_of_cycles = 3;
         self.SetDivided = ElemBasedBCUtilities(model_part)
-        self.ChooseElement = ChooseElementProcess(model_part, 2, "ASGSPRDC2D", "ASGS2D")       
+        self.ChooseElement = ChooseElementProcess(model_part, 2, "ASGS2D", "ASGSPRDC2D")       
     #    self.ChooseElement = ChooseElementProcess(model_part, 2)                 
         #default settings
         self.echo_level = 1
@@ -112,7 +111,7 @@ class MonolithicSolver:
         self.node_erase_process = NodeEraseProcess(self.model_part);
 	self.EstimateUtils = ExactDtEstimateUtilities()
         
-##        self.Mesher = TriGenPFEMModeler()
+        #self.Mesher = TriGenPFEMModeler()
 ##        self.Mesher = MSuitePFEMModeler()
         self.Mesher = TriGenPFEMSegment()
 
@@ -149,8 +148,8 @@ class MonolithicSolver:
     def Initialize(self,output_time_increment):
         #creating the solution strategy
         
-        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
-        self.solver = AdaptiveResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.min_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag, self.reduction_factor,self.increase_factor,self.num_of_cycles )   
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+        #self.solver = AdaptiveResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.min_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag, self.reduction_factor,self.increase_factor,self.num_of_cycles )   
         
 	(self.solver).SetEchoLevel(self.echo_level)
         
