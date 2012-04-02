@@ -57,7 +57,7 @@ def Run():
 	sys.path.append(os.getcwd())
 
 	print "Running Mapping_2d benchmark..."
-	Msg = benchmarking.RunBenchmark("ProjectionTest_2D_benchmarking.py", "ProjectionTest_2D_benchmarking_ref.txt")	
+	Msg = benchmarking.RunBenchmark("ProjectionTest_2D_script.py", "ProjectionTest_2D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
@@ -78,7 +78,7 @@ def Run():
 	sys.path.append(os.getcwd())
 
 	print "Running Mapping_3d benchmark..."
-	Msg = benchmarking.RunBenchmark("ProjectionTest_3D_benchmarking.py", "ProjectionTest_3D_benchmarking_ref.txt")	
+	Msg = benchmarking.RunBenchmark("ProjectionTest_3D_script.py", "ProjectionTest_3D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
@@ -98,7 +98,7 @@ def Run():
 	sys.path.append(os.getcwd())
 
 	print "Running Mapping_2d_BinBased benchmark..."
-	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_benchmarking.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")	
+	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_script.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
@@ -118,7 +118,7 @@ def Run():
 	sys.path.append(os.getcwd())
 
 	print "Running Mapping_3d_BinBased benchmark..."
-	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_3D_benchmarking.py", "ProjectionTestBinBased_3D_benchmarking_ref.txt")	
+	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_3D_script.py", "ProjectionTestBinBased_3D_benchmarking_ref.txt")	
 	
 	if (Msg == True):
 		Text += "OK\n"
