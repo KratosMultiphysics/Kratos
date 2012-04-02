@@ -5,8 +5,10 @@ import mesh_only_var
 #setting the domain size for the problem to be solved
 domain_size = mesh_only_var.domain_size
 
-kratos_benchmarking_path    = '../../../../benchmarking' ##kratos_root/benchmarking
+kratos_path = '../../../..'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
+sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 
 from KratosMultiphysics import *
