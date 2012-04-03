@@ -1,11 +1,10 @@
-Dt = 0.001
+nrefinements = 0
+Dt = 0.01
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size =3
-
-
+domain_size = 3
 import time 
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -19,17 +18,13 @@ import fractional_step_solver
 fractional_step_solver.AddVariables(model_part)
 model_part.AddNodalSolutionStepVariable(REACTION)
 
-#introducing input file name
-input_file_name = "cavity3D"
-
-#reading the fluid part
-gid_mode = GiDPostMode.GiD_PostBinary
-multifile = MultiFileFlag.MultipleFiles
-deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-write_conditions = WriteConditionsFlag.WriteElementsOnly
-gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
-model_part_io_fluid = ModelPartIO(input_file_name)
-model_part_io_fluid.ReadModelPart(model_part)
+#reading a model
+gid_mode_flag = GiDPostMode.GiD_PostAscii
+use_multifile = MultiFileFlag.MultipleFiles
+deformed_print_flag = WriteDeformedMeshFlag.WriteDeformed
+write_conditions = WriteConditionsFlag.WriteConditions
+gid_io = GidIO("cavity3D", gid_mode_flag, use_multifile, deformed_print_flag, write_conditions)
+gid_io.ReadModelPart(model_part)
 
 print model_part
 
@@ -39,6 +34,29 @@ model_part.SetBufferSize(3)
 #adding dofs
 fractional_step_solver.AddDofs(model_part)
 
+
+for i in range(0,nrefinements):
+    for elem in model_part.Elements:
+        elem.SetValue(SPLIT_ELEMENT,True)
+	
+    ###compute the nodal neighbours on the initial mesh
+    number_of_avg_elems = 20
+    number_of_avg_nodes = 20
+    nodal_neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+    nodal_neighbour_search.Execute()
+
+    ###perform the refinement
+    Refine = LocalRefineTetrahedraMesh(model_part)
+    refine_on_reference = False;
+    interpolate_internal_variables = False;
+    Refine.LocalRefineMesh(refine_on_reference,interpolate_internal_variables)    
+
+    ###recompute the neighbours since they changed due to the creation of new nodes
+    nodal_neighbour_search.ClearNeighbours()
+    nodal_neighbour_search.Execute()
+    
+    print "finished refinement number ",i
+    print model_part
 
 
 #creating a fluid solver object
@@ -116,24 +134,22 @@ nsteps = 100
 ##zero[1] = 0.0;
 ##zero[2] = 0.0;
 for step in range(0,50):
-	print "line49"
+	print "trying to optimize quality"
 
 	timeX = Dt*step
 	model_part.CloneTimeStep(timeX)
-	
-	reconnector = TetrahedraReconnectUtility(model_part)
-	
+
 	print timeX
     #print model_part.ProcessInfo()[TIME]
-
+	reconnector = TetrahedraReconnectUtility(model_part)
     #solving the fluid problem
 	substeps = 10
 	MoveNodes(model_part.Nodes,Dt,substeps,1)
-
+	
     #do mesh improvement
 	start = time.time()
-	print "trying to obtain quality"
 	
+		
     #Parameters ModelPart& r_model_part, 
     #						int iterations , 
     #                        bool processByNode, 
@@ -146,44 +162,30 @@ for step in range(0,50):
 	#						bool debugMode
 	ProcessByFace=1
 	ProcessByEdge=1
-	ProcessByNode=1
+	ProcessByNode=0
 	reInsertNodes = 0
-	numOptIterations = 3
+	numOptIterations = 2
 	debugMode = 0
 	saveToFile = 0
-	doInParallel = 0
+	doInParallel = 1
 	reInsertNodes = 0
 	removeFreeVertexes = 0
 	start2 = time.time()
-	reconnector.setMaxNumThreads(16)
-	reconnector.setBlockSize(16)
+	reconnector.setMaxNumThreads(4)
+	reconnector.setBlockSize(2048)
 	reconnector.OptimizeQuality(model_part , numOptIterations ,ProcessByNode,ProcessByFace,ProcessByEdge, saveToFile, removeFreeVertexes,doInParallel,reInsertNodes,debugMode)
 	elapsed2 = (time.time() - start2)
-	meshIsValid =reconnector.EvaluateQuality()	 
+	meshIsValid = reconnector.EvaluateQuality()
 	start3 = time.time()
         reconnector.FinalizeOptimization(removeFreeVertexes)
 	elapsed3 = (time.time() - start3)
 	
-	
-	
 	elapsed = (time.time() - start)
 	print "*************************************************"
-	print "Elapsed time.Total:"+ '{0:2f} '.format(elapsed)+ " Reconnect"+'{0:2f} '.format(elapsed2)+ " Del:"+'{0:2f} '.format(elapsed3)
+	print "Elapsed time.Total"+ '{0:2f} '.format(elapsed)+ " Reconnect"+'{0:2f} '.format(elapsed2)+ " Del:"+'{0:2f} '.format(elapsed3)
 	
 	print "*************************************************"
 	mesh_name = timeX #if we want the mesh to change at each time step then ****mesh_name = time****
-	gid_io.InitializeMesh( mesh_name)
-	gid_io.WriteMesh( model_part.GetMesh() )
-	gid_io.FinalizeMesh()
-	gid_io.InitializeResults(mesh_name , model_part.GetMesh())
-
-
-	#print the results
-	gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,timeX,0)
-	gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,timeX,0)
-	gid_io.WriteNodalResults(REACTION,model_part.Nodes,timeX,0)
-
-	gid_io.FinalizeResults()
 	
 	if not meshIsValid:
 		print 'Mesh has negative elements. Reached iteration' , step
