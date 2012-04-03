@@ -299,7 +299,29 @@ def Run():
 
 	    os.chdir("..")
 
+	################################################################
+	# StillWater_Elembased_halfPorous
+	try:
+	    Text += "StillWater_Elembased_halfPorous: "
+	    os.chdir("StillWater_Elembased_halfPorous.gid")
+	    sys.path.append(os.getcwd())
+	except OSError:
+	    print "StillWater_Elembased_halfPorous test: directory does not exist"
+	    Text += "FAILED: directory not found\n"
+	else:	
+	    print "Running StillWater_Elembased_halfPorous..."
+	    Msg = benchmarking.RunBenchmark("StillWater_Elembased_halfPorous_script.py", "StillWater_Elembased_halfPorous_ref.txt")	
+	    
+	    if (Msg == True):
+		    Text += "OK\n"
+		    print "StillWater_Elembased_halfPorous example succesful"
+	    else:
+		    Text += "FAILED\n"
+		    Text += Msg
+		    Text += "\n\n"
+		    print "StillWater_Elembased_halfPorous example FAILED"
 
+	    os.chdir("..")
         ################################################################
 	# cylinder
 
