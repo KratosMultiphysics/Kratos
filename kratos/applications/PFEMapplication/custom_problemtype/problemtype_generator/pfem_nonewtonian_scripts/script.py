@@ -91,6 +91,9 @@ solver.oss_switch = int(pfem_nonewtonian_var.use_oss) #OSS = 1; ASGS = 0;
 solver.dynamic_tau = pfem_nonewtonian_var.dynamic_tau 
 solver.regularization_coef = pfem_nonewtonian_var.m_coef #m regularization coefficient in the exponential law of viscosity
 solver.echo_level = 2
+
+solver.max_iter = 8
+print "max iterations non-newtonian solver = 8"
 #Initializing the solver
 solver.Initialize(output_Dt)
 
