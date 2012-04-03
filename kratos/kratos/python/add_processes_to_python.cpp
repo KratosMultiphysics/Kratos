@@ -55,6 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "python/add_processes_to_python.h"
+#include "processes/find_nodal_h.h"
 #include "processes/find_nodal_neighbours_process.h"
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
@@ -76,6 +77,9 @@ namespace Python
 		  .def(self_ns::str(self))
 		  ;
 
+	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
+		   .def("Execute",&FindNodalHProcess::Execute)
+		 ;
 	  class_<FindNodalNeighboursProcess, bases<Process> >("FindNodalNeighboursProcess",
 		 init<ModelPart&, int, int>())
 		  .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
