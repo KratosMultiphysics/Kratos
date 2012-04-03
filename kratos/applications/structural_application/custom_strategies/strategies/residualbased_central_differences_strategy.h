@@ -460,6 +460,7 @@ void ComputeNonViscousDampingForces()
 void ComputeInterfaceForces()
 {
     KRATOS_TRY
+    /* 
     ModelPart& r_model_part          = BaseType::GetModelPart();
     ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
     ElementsArrayType& pElements     = r_model_part.Elements(); 
@@ -488,7 +489,7 @@ void ComputeInterfaceForces()
 	}
      }
     }
-    
+    */
     KRATOS_CATCH("")
 }
  
