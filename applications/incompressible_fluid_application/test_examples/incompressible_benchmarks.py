@@ -248,29 +248,7 @@ def Run():
 		    print "dam2d example FAILED"
 
 	    os.chdir("..")
-	################################################################
-	# QuietWater_LevelSet
-	try:
-	    Text += "QuietWater_LevelSet: "
-	    os.chdir("QuietWater_LevelSet.gid")
-	    sys.path.append(os.getcwd())
-	except OSError:
-	    print "QuietWater_LevelSet test: directory does not exist"
-	    Text += "FAILED: directory not found\n"
-	else:	
-	    print "Running QuietWater_LevelSet..."
-	    Msg = benchmarking.RunBenchmark("split_level_set_QuietWater.py", "QuietWater_LS_ref.txt")	
-	    
-	    if (Msg == True):
-		    Text += "OK\n"
-		    print "QuietWater_LevelSet example succesful"
-	    else:
-		    Text += "FAILED\n"
-		    Text += Msg
-		    Text += "\n\n"
-		    print "QuietWater_LevelSet example FAILED"
 
-	    os.chdir("..")
 
 	################################################################
 	# StillWater_Edgebased
