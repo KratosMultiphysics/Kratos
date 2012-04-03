@@ -330,7 +330,7 @@ namespace Kratos
 		boost::numeric::ublas::bounded_matrix<double,3,3> Tres = ZeroMatrix(3,3);
 		boost::numeric::ublas::bounded_matrix<double,3,3> msResta = IdentityMatrix(3,3);
 
-		unsigned int TDim = 2;
+		//unsigned int TDim = 2;
 
  		//const double Cs = this->GetValue(C_SMAGORINSKY);
 	
@@ -343,9 +343,9 @@ namespace Kratos
 
 
 
-		const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+		//const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
-		const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);//GetGeometry().CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1);
+		//const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);//GetGeometry().CalculateShapeFunctionsIntegrationPointsValues(GeometryData::GI_GAUSS_1);
 		///////////////////////////////////////////////////////////////////////////////////
 		
 		if(rRightHandSideVector.size() != 3)
@@ -359,7 +359,7 @@ namespace Kratos
 		//fract. vel, that is calculated in the first Fractional Step.. but is saved inside the "VELOCITY" VARIABLE
 		//so, u_n os VELOCITY, 1 and u_n-1 VELOCITY,2 
 		const array_1d<double,3>& fv0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
+		//const array_1d<double,3>& fv0_old = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv0_n_1 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY,2);
 		const array_1d<double, 3 > & proj0 = GetGeometry()[0].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu0 = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
@@ -367,10 +367,10 @@ namespace Kratos
 		double p0 = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
 		//double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_OLD_IT);
 		double p0_old = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
-		const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
+		//const array_1d<double,3>& ff0 = GetGeometry()[0].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
-		const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
+		//const array_1d<double,3>& fv1_old = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv1_n_1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY,2);
 		const array_1d<double, 3 > & proj1 = GetGeometry()[1].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(VISCOSITY);
@@ -378,10 +378,10 @@ namespace Kratos
 		double p1 = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE); 
 		//double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
 		double p1_old = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
-		const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
+		//const array_1d<double,3>& ff1 = GetGeometry()[1].FastGetSolutionStepValue(BODY_FORCE);	
 
 		const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);	
-		const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
+		//const array_1d<double,3>& fv2_old = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,1);
 		//const array_1d<double,3>& fv2_n_1 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY,2);
 		const array_1d<double, 3 > & proj2 = GetGeometry()[2].FastGetSolutionStepValue(PRESS_PROJ);
 		const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(VISCOSITY);
@@ -390,12 +390,12 @@ namespace Kratos
 		double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE,1); 	 	 	 	
 		//old iteration can be used if we want to iterate between 1st and 2nd fractional steps
 		//double p2_old = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE_OLD_IT); 	 	
-		const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
+		//const array_1d<double,3>& ff2 = GetGeometry()[2].FastGetSolutionStepValue(BODY_FORCE);	
 
-		int counti=0.0;
+		//int counti=0.0;
 //		double density = 0.0;
 
-		const unsigned int number_of_points = GetGeometry().size();
+		//const unsigned int number_of_points = GetGeometry().size();
 		
 		
 		//KRATOS_WATCH(counti);
@@ -431,11 +431,11 @@ namespace Kratos
 		norm_u = sqrt(norm_u);
 
 
-		double rho_gauss=0.0;
+		//double rho_gauss=0.0;
 
 
-		int countip=0.0;
-		int countipp=0.0;
+		//int countip=0.0;
+		//int countipp=0.0;
 
 
 		//for(unsigned int i = 0; i < 3.0 ; i++) 
@@ -536,7 +536,7 @@ namespace Kratos
 		//mInvJ0.resize(integration_points.size());
 		//mDetJ0.resize(integration_points.size(),false);
 		//KRATOS_WATCH("ACAAAAAAAAAAA");
-		double total_density=0.0;
+		//double total_density=0.0;
  		//const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 		//GeometryType::JacobiansType J0;
@@ -781,9 +781,9 @@ namespace Kratos
 		double nu = 0.333333333333333333333333*(nu0 + nu1 + nu2 );
 		double density = 0.3333333333333333333333*(rho0 + rho1 + rho2 );
 
-		int counti=0.0;
+		//int counti=0.0;
 		int countip=0.0;
-		int countipp=0.0;
+		//int countipp=0.0;
 
 
 
