@@ -90,6 +90,13 @@ public :
 
 	void Pack() 
 	{ 
+		if (structure.size() == 0) return;
+		if (structure.size() == 1)
+		{
+			if (structure[0] == NULL)
+				structure.resize(0);	  
+			return ;
+		}
 		if (keepOrder)
 		  return PackKeepingOrder();
 		int sSize = structure.size();
