@@ -4,6 +4,7 @@
 #include "u_Types.h"
 #include "u_delphiClasses.h"
 #include "u_TetraFunctions.h"
+#include "u_qualityMetrics.h"
 
 #define PI 3.1416
 #define PRECISSION 1024*1024*8

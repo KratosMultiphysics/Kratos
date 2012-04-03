@@ -352,8 +352,8 @@ void TVolumeMesh::validate(bool showMessages)
 	int i,j,nv,ne,ntv, result;
 	TTriangle *tr;
 	TList<TObject*>* nfList;
-
-	result = 0;
+	nv = ne = ntv = result = 0;
+	
 	nfList = new TList<TObject*>();
 	//---------
 	for (i=0 ; i<fFaces->Count() ; i++)
