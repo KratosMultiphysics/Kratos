@@ -500,7 +500,7 @@ namespace Kratos
 	vc2 = alpha*pow(mean_rho_w/mean_old_rho_w, K2-1.0);*/
 
 
-	 double mean_vc2=0.0;
+//	 double mean_vc2=0.0;
 	 double mean_vc=0.0;
 		for(int ii = 0; ii<3; ii++)
 		    {

@@ -530,7 +530,7 @@ namespace Kratos
             ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
-            unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Why firstprivate? //mFixedVelocities.size();
+            int fixed_size = mFixedVelocitiesListLength; // TODO: Why firstprivate? //mFixedVelocities.size();
 
 		#pragma omp parallel for firstprivate(fixed_size)
             for ( int i_velocity = 0; i_velocity < fixed_size; i_velocity++)

@@ -273,7 +273,7 @@ namespace Kratos
     {
         KRATOS_TRY
         
-	const double& density = GetProperties()[DENSITY];
+//	const double& density = GetProperties()[DENSITY];
 	//lumped
 	unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 	unsigned int NumberOfNodes = GetGeometry().size();
@@ -460,7 +460,7 @@ namespace Kratos
 	double A=thickness*thickness;
 
 	Matrix Aux(MatSize,1);
-	for (int i=0; i<MatSize; i++)
+	for (unsigned int i=0; i<MatSize; i++)
 		{
 		//Aux(i,0)=msX[i];
 		Aux(0,0)=msX[0]-msX[3];

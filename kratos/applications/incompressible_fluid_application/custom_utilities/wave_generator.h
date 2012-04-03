@@ -149,7 +149,7 @@ namespace Kratos
         }
 
         void GenerateComposedVolumeWaveXYPlane(ModelPart::NodesContainerType& rNodes, const double d, const Vector& HVector, const Vector& TVector, const Vector& PhaseVector, const double Z0, const double X0, const double t, const double Length) {
-            int number_of_waves;
+            unsigned int number_of_waves;
             if (HVector.size() <= TVector.size())
                 number_of_waves = HVector.size();
             else

@@ -312,7 +312,7 @@ namespace Kratos {
 	    for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
 	    {
 			const double havg_i = mHavg[i_node];
-			const double hmin_i = mHmin[i_node];
+			//const double hmin_i = mHmin[i_node];
 			
 			if(havg_i < hmin_global) hmin_global=havg_i;
 		}
@@ -1383,10 +1383,10 @@ namespace Kratos {
 				array_1d<double, TDim> a_i = mvel_n1[i_node];
 
 				const array_1d<double, TDim>& U_i = mvel_n1[i_node];
-				const array_1d<double, TDim>& pi_i = mPi[i_node];
+				//const array_1d<double, TDim>& pi_i = mPi[i_node];
 				const double& p_i = mPn1[i_node];
 
-				double edge_tau = mTauConvection[i_node];
+				//double edge_tau = mTauConvection[i_node];
 
 				//initializing with the external forces (e.g. gravity)
 				double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
@@ -1398,7 +1398,7 @@ namespace Kratos {
 				unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
 					array_1d<double, TDim> a_j = mvel_n1[j_neighbour];
 					const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
-					const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
+					//const array_1d<double, TDim>& pi_j = mPi[j_neighbour];
 					const double& p_j = mPn1[j_neighbour];
 
 					CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];

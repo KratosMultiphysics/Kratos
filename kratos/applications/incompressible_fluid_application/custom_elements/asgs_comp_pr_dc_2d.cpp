@@ -466,7 +466,7 @@ namespace Kratos
         calculatedensity(GetGeometry(), density, mu);
 	double VC2;
 	CalculateSoundVelocity(GetGeometry(), VC2);
-	double vc_factor = sqrt(VC2);
+//	double vc_factor = sqrt(VC2);
 	 
 	 if( div_vel < 0.0)
 	    {

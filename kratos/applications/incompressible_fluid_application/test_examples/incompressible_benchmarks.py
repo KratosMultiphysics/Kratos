@@ -137,6 +137,26 @@ def Run():
 
         os.chdir("..")
     
+        ###############################################################################
+	# cavity2D
+
+	Text += "cavity3D: "
+	os.chdir("cavity3D.gid")
+	sys.path.append(os.getcwd())
+
+        print "verifying  test_fractstep_cont_laplacian.py...3D"
+        Msg = benchmarking.RunBenchmark("test_fractstep_cont_laplacian.py", "fractstep_cont_laplacian_benchmarking_ref.txt")
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "test_fractstep_cont_laplacian 3D example succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "test_fractstep_cont_laplacian 3D example FAILED"
+
+        
         ################################################################
 	# cylinder
 
