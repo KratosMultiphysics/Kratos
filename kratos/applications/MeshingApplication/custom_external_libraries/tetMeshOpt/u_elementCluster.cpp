@@ -5,9 +5,7 @@
 #include "u_ProcessTime.h"
 #include "u_TetraFunctions.h"
 
-#define ACCEPTANCE_TOLERANCE 1.0
 
-#define ELEMENTS_TO_FORCE_UPDATE 100000
 
 
 //-----------------------------------------------------------------------------
@@ -833,11 +831,7 @@ bool improvedCluster(TList<TObject*>* c1,
 		if ( ((tempQuality>0) && ( minDiedralAngle>origDAngle) ) || 
 			 ( (tempQuality<0) &&(tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) ) )
 		{
-			maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
-			if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
-			{
-				return false;
-			}
+			return true;
 		}
 		else
 			return false;
