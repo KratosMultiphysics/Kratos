@@ -7,8 +7,12 @@ SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
 SCALAR CONDITION DISTANCE     		point line surface volume free  -1.0
 SCALAR CONDITION POROSITY     		point line surface volume free  1.0
 SCALAR CONDITION DIAMETER     		point line surface volume free  0.01
+<<<<<<< .mine
+SCALAR CONDITION FLAG_VARIABLE		point line surface volume free  1.0
+=======
 SCALAR CONDITION LIN_DARCY_COEF     		point line surface volume free  0.0
 SCALAR CONDITION NONLIN_DARCY_COEF     		point line surface volume free  0.0
+>>>>>>> .r4566
 
 FACE CONDITION Condition2D line
 FACE CONDITION Condition3D surface 
