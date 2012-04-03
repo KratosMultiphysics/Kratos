@@ -153,7 +153,7 @@ namespace Kratos
         double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
         const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
         const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
-
+	double nu = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);	
 
         for (unsigned int j = 0; j < TDim; j++)
             ms_vel_gauss[j] = v[j] - w[j];
@@ -166,6 +166,7 @@ namespace Kratos
             heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
             //proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
 	    proj += GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable);
+	    nu += GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
             const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < TDim; j++)
@@ -178,6 +179,10 @@ namespace Kratos
         heat_flux *= lumping_factor;
         proj *= lumping_factor;
         ms_vel_gauss *= lumping_factor;
+	nu *= lumping_factor;
+
+
+
         double c1 = 4.00;
         double c2 = 2.00;
         double h = sqrt(2.00 * Area);
@@ -203,6 +208,13 @@ namespace Kratos
         double k_aux = fabs(res) / (norm_grad + 1e-6);
         k_aux *= 0.707;
 
+	double Schmidt_Prandl=1.0;
+	double nu_turbulent = 0.0;
+	const double Cs = this->GetValue(C_SMAGORINSKY);
+	if (Cs != 0.0){
+        	nu_turbulent = ComputeSmagorinskyViscosity(msDN_DX, h, Cs, nu);
+	}
+
 
         noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
         First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
@@ -224,6 +236,7 @@ namespace Kratos
         //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
         noalias(rLeftHandSideMatrix) += (conductivity * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third));
 
+	noalias(rLeftHandSideMatrix) += density * (nu_turbulent /Schmidt_Prandl ) * prod(msDN_DX,trans(msDN_DX));
         //filling the mass factors
         //        msMassFactors(0, 0) = 1/6.0; 1.00 / 3.00;
         //        msMassFactors(0, 1) = 0.00;
@@ -375,6 +388,39 @@ namespace Kratos
             ElementalDofList[i] = GetGeometry()[i].pGetDof(rUnknownVar);
 
     }
+ 
+    //************************************************************************************
+    //************************************************************************************
+	double ConvDiff2D::ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const double& h, const double& C, const double nu )
+  {
+    boost::numeric::ublas::bounded_matrix<double, 2, 2 > dv_dx = ZeroMatrix(2, 2);
+    
+    // Compute Symmetric Grad(u). Note that only the lower half of the matrix is filled
+    for (unsigned int k = 0; k < 3; ++k)
+        {
+	  const array_1d< double, 3 > & rNodeVel = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY);
+	  for (unsigned int i = 0; i < 2; ++i)
+            {
+	      for (unsigned int j = 0; j < i; ++j) // Off-diagonal
+		dv_dx(i, j) += 0.5 * (DN_DX(k, j) * rNodeVel[i] + DN_DX(k, i) * rNodeVel[j]);
+	      dv_dx(i, i) += DN_DX(k, i) * rNodeVel[i]; // Diagonal
+            }
+        }
+    
+    // Norm[ Grad(u) ]
+    double NormS(0.0);
+    for (unsigned int i = 0; i < 2; ++i)
+      {
+	for (unsigned int j = 0; j < i; ++j)
+	  NormS += 2.0 * dv_dx(i, j) * dv_dx(i, j); // Using symmetry, lower half terms of the matrix are added twice
+            NormS += dv_dx(i, i) * dv_dx(i, i); // Diagonal terms
+      }
+    
+    NormS = sqrt(NormS);
+    
+    return 2.0 * C * C * h * h * NormS;
+  }
+
 
 } // Namespace Kratos
 
