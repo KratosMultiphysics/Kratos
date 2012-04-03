@@ -1,6 +1,6 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 import math
 
 def SelectSolidNodes(model_part,solid_nodes):
