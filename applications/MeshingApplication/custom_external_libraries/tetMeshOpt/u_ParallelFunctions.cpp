@@ -153,11 +153,12 @@ void lpEvaluateClusterByFace(int i, int thId  ,TObject* destObject)
 	TList<TObject*>* vl ;	
 	TVertex *v0, *v1, *v2, *vi;
 	TTetra *t0 , *t1;
+	bool wasCreated = false;
 	// obtengo nuevamente los vecinos del nodo
 	vi = aCluster->inspVertex;
 	vl = vi->elementsList;
 	// Para todos las caras de los elementos q contienen este nodo
-	for (int ie = 0; ie< vl->Count() ; ie ++)
+	for (int ie = 0; (ie< vl->Count()) && (!wasCreated) ; ie ++)
 	{
 		 t0 =(TTetra*)( vl->elementAt(ie));
 		 // Si es el nodo con el ID mas chico del elemento, sigo
@@ -167,7 +168,7 @@ void lpEvaluateClusterByFace(int i, int thId  ,TObject* destObject)
 			  (vi->id <= t0->vertexes[3]->id) )
 		 {			 
 			 // Para todas las caras de los elementos
-			 for (int iface = 0 ; iface<4 ; iface++)
+			 for (int iface = 0 ; (iface<4) && (!wasCreated); iface++)
 			 {
 				v0 = t0->vertexes[TTetraFaces[iface*3]];
 				v1 = t0->vertexes[TTetraFaces[iface*3+1]];
@@ -186,6 +187,8 @@ void lpEvaluateClusterByFace(int i, int thId  ,TObject* destObject)
 				if (aCluster->evaluateSet()>0) 
 				{
 					aCluster->updateMesh(true);
+					wasCreated = true;
+					break;
 				}
 			 }
 		 }
@@ -355,7 +358,7 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
   delete lneigh;
 }
 
-void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
+void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, bool sort)
 {
 	int	iv ,i ,nsimCh;
 	TList<TObject*> *vRes;
@@ -377,25 +380,28 @@ void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
 	vRes = new TList<TObject*>();
 
 	vertexesCopy->Assign(aMesh->vertexes);
-	double minQ;
-	for (i = 0 ;i<vertexesCopy->Count() ; i++)
+	if (sort)
 	{
-		TVertex *v = vertexesCopy->elementAt(i);
-		v->visited = 0;
-		v->flag = 0;
-		v->isdestroyed = false;
-		minQ =  50000;
-		v->elementsList->Pack();
-		for (int j = 0; j<v->elementsList->Count();j++)
+		double minQ;
+		for (i = 0 ;i<vertexesCopy->Count() ; i++)
 		{
-			TTetra *t = (TTetra*)(v->elementsList->elementAt(j));
-			t->calidad = diedralAngle(t->vertexes);
-			minQ = Min( minQ , t->calidad);
+			TVertex *v = vertexesCopy->elementAt(i);
+			v->visited = 0;
+			v->flag = 0;
+			v->isdestroyed = false;
+			minQ =  50000;
+			v->elementsList->Pack();
+			for (int j = 0; j<v->elementsList->Count();j++)
+			{
+				TTetra *t = (TTetra*)(v->elementsList->elementAt(j));
+				t->calidad = diedralAngle(t->vertexes);
+				minQ = Min( minQ , t->calidad);
+			}
+			v->calidad = minQ ; 
 		}
-		v->calidad = minQ ; 
-	}
 	
-	vertexesCopy->Sort(sortByQuality);
+		vertexesCopy->Sort(sortByQuality);
+	}
 	endProcess((char*)("Initialization"));
 	//----------------------------------------	
 	//----------------------------------------
@@ -410,12 +416,12 @@ void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
 		endProcess((char*)("assignVertexesAvoidingVisited"));
 		if (vRes->Count() == 0 ) break;
 
-		if (!validateAssignment(vertexesCopy, vRes))			
+		/*if (!validateAssignment(vertexesCopy, vRes))			
 		{
 			std::cout << "Invalid Assignment"<< "\n";
 			break;
 		}
-
+		*/
 		startProcess((char*)("clearVars"));
 		//--Limpio las variables
 		// por cada vertice, tengo un cluster
@@ -462,18 +468,18 @@ void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
 
 void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	ParallelEvaluateCluster(aMesh,fc,0);
-	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
+	ParallelEvaluateCluster(aMesh,fc,0,true);
+	//aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
 }
 
 void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	ParallelEvaluateCluster(aMesh,fc,1);
-	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
+	ParallelEvaluateCluster(aMesh,fc,1,true);
+	//aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
 }
 
 void ParallelEvaluateClusterByFace(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	ParallelEvaluateCluster(aMesh,fc,2);
-	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);	
+	ParallelEvaluateCluster(aMesh,fc,2,true);
+	//aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);	
 }
