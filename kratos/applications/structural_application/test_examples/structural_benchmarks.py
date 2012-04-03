@@ -164,23 +164,23 @@ def Run():
         ################################################################
 
 
-	Text += "arc length benchmark: "
-	os.chdir("arc_length.gid")
-	sys.path.append(os.getcwd())
+	#Text += "arc length benchmark: "
+	#os.chdir("arc_length.gid")
+	#sys.path.append(os.getcwd())
 
-	print "Running arc length  benchmark..."
-	Msg = benchmarking.RunBenchmark("arc_length_benchmarking.py","arc_length_benchmarking.txt")
+	#print "Running arc length  benchmark..."
+	#Msg = benchmarking.RunBenchmark("arc_length_benchmarking.py","arc_length_benchmarking.txt")
 
-	if (Msg == True):
-		Text += "OK\n"
-		print "arc_length benchmark example successful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "arc_length benchmark example FAILED"
+	#if (Msg == True):
+		#Text += "OK\n"
+		#print "arc_length benchmark example successful"
+	#else:
+		#Text += "FAILED\n"
+		#Text += Msg
+		#Text += "\n\n"
+		#print "arc_length benchmark example FAILED"
 
-	os.chdir("..")
+	#os.chdir("..")
 
 
         ################################################################
