@@ -831,7 +831,11 @@ bool improvedCluster(TList<TObject*>* c1,
 		if ( ((tempQuality>0) && ( minDiedralAngle>origDAngle) ) || 
 			 ( (tempQuality<0) &&(tempQuality>goodMinQuality*ACCEPTANCE_TOLERANCE) ) )
 		{
-			return true;
+			maxEdgeLength = getmaxEdgeLength(v0,v1,v2,v3);
+			if ((maxEdgeLengthConstrain) && (maxEdgeLength/avgEdgeLength>4))
+			{
+				return false;
+			}
 		}
 		else
 			return false;
