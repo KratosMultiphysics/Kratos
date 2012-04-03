@@ -1,0 +1,48 @@
+PROBLEM DATA
+BOOK: Default Elements
+QUESTION: 2D_Boundary_Condition#CB#(Condition2D,Fluid2DNeumann,Monolithic2DNeumann)
+VALUE: Condition2D
+QUESTION: 3D_Boundary_Condition#CB#(Condition3D,Fluid3DNeumann,Monolithic3DNeumann)
+VALUE: Condition3D
+QUESTION: 2D_Body_Element#CB#(Fluid2D,Fluid2DCoupled,VMS2D,ASGS2D,ASGSCompressible2D,NoNewtonianASGS2D,BinghamNonNewtonianASGS2D,ASGSCOMPPRDC2D,EbstVel3D3N)
+VALUE: Fluid2D
+QUESTION: 3D_Body_Element#CB#(Fluid3D,Fluid3DCoupled,VMS3D,ASGS3D,ASGSCompressible3D,ASGSCOMPPRDC3D,NoNewtonianASGS3D,BinghamNonNewtonianASGS3D)
+VALUE: Fluid3D
+BOOK: Problem Parameters
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+VALUE: Use_Default
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+QUESTION: Python_file
+VALUE: script.py
+TKWIDGET: TkwidgetFilePath
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,#CURRENT#)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 2
+STATE: HIDDEN
+QUESTION: Time_step
+VALUE: 0.01
+QUESTION: max_time
+VALUE: 1.0
+QUESTION: SolverType#CB#(fractional_step,pressure_splitting,monolithic_solver_eulerian,monolithic_solver_lagrangian_compressible_two_fluids_3d)
+VALUE: fractional_step
+QUESTION: laplacian_form
+VALUE: 1
+QUESTION: output_step
+VALUE: 1
+QUESTION: predictor_corrector
+VALUE: False
+QUESTION: max_press_its
+VALUE: 3
+QUESTION: use_oss
+VALUE: 0
+QUESTION: dynamic_tau
+VALUE: 1.0
+QUESTION: m_coef
+VALUE: 1000.0
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
