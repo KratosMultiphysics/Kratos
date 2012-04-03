@@ -60,7 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_processes_to_python.h"
 
 #include "custom_processes/act_on_walls_nodal_process.h" 
-#include "custom_processes/find_nodal_h_process.h" 
 #include "custom_processes/find_nodal_h_respecting_distance_process.h"
 #include "custom_processes/coordinate_laplacian_smoother_process.h" 
 #include "custom_processes/move_mesh_process.h" 
@@ -68,6 +67,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/ulf_time_step_dec_process.h" 
 //#include "custom_processes/lagrangian_inlet_process.h" 
 #include "includes/node.h"
+#include "custom_processes/create_internal_nodes_process.h" 
+#include "custom_processes/particle_to_node_projection_process.h" 
+#include "custom_processes/Lagrangian_move_process.h" 
+#include "custom_processes/ptn_pressure_projection_process.h" 
+#include "custom_processes/ptn_velocity_projection_process.h" 
+#include "custom_processes/find_poor_element_process.h" 
 
 
 
@@ -80,9 +85,9 @@ namespace Python
   {
 	using namespace boost::python;
 
-	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
-		 init<ModelPart&>())
-		 ;
+// 	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
+// 		 init<ModelPart&>())
+// 		 ;
 
 	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
 		 init<ModelPart&>())
@@ -107,9 +112,36 @@ namespace Python
 		.def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
 		;
 
-	  class_<FindNodalHRespectingDistanceProcess, bases<Process> >("FindNodalHRespectingDistanceProcess",
-		 init<ModelPart&>())
-		 ;
+
+// 	  class_<CreateInternalNodesProcess, bases<Process> >("CreateInternalNodesProcess",
+// 		 init<ModelPart&, ModelPart::ElementsContainerType&, int>())
+// 		 ;
+// 
+// 	  class_<ParticleToNodeProjectionProcess, bases<Process> >("ParticleToNodeProjectionProcess",
+// 		 init<ModelPart&, double>())
+// 		 ;
+// 
+// // 	  class_<MoveParticlesProcess, bases<Process> >("MoveParticlesProcess",
+// // 		 init<ModelPart&>())
+// // 		 ;
+// 
+// 	  class_<LagrangianMoveProcess, bases<Process> >("LagrangianMoveProcess",
+// 		 init<ModelPart&, int, double>())
+// 		 ;
+// 
+// 	  class_<PtNPressureProjectionProcess, bases<Process> >("PtNPressureProjectionProcess",
+// 		 init<ModelPart&, double>())
+// 		 ;
+// 
+// 
+// 	  class_<PtNVelocityProjectionProcess, bases<Process> >("PtNVelocityProjectionProcess",
+// 		 init<ModelPart&, double>())
+// 		 ;
+// 
+// 	  class_<FindPoorElementProcess, bases<Process> >("FindPoorElementProcess",
+// 		 init<ModelPart::ElementsContainerType&, ModelPart&, int,  double, int>())
+// 		 ;
+
   }
 	
 }  // namespace Python.
