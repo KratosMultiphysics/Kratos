@@ -133,10 +133,14 @@ namespace Kratos
       ///Provides the global indices for each one of this element's local rows. @see NoNewtonianASGS2D 
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 	
-///Returns a list of the element's Dofs. @see NoNewtonianASGS2D 	  
-void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-/// Calculates the temperature convective projection 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+      ///Returns a list of the element's Dofs. @see NoNewtonianASGS2D 	  
+      void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+      /// Calculates the temperature convective projection 
+      void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+      double ComputeSmagorinskyViscosity(const boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,const double& h,const double& C, const double nu);
+
+
 
       ///@}
       ///@name Access
