@@ -19,15 +19,7 @@ import benchmarking
 from KratosMultiphysics import *
 
 #loading meshing application
-sys.path.append(kratos_applications_path + 'meshing_application/python_scripts') 
 from KratosMultiphysics.MeshingApplication import *
-meshing_application = KratosMeshingApplication()
-kernel.AddApplication(meshing_application)
-
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-#loading meshing application
-kernel.InitializeApplication(meshing_application);
 
 ## from now on the order is not anymore crucial
 ##################################################################
