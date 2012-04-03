@@ -155,7 +155,7 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 	return True
 
 def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
-	os.system("mpirun --np 2 python " + ExamplePath + " --benchmarking | grep \"" + Header + "\" > BenchTemp.txt")
+	os.system("mpirun -np 2 python " + ExamplePath + " --benchmarking | grep \"" + Header + "\" > BenchTemp.txt")
 
 	f = open("BenchTemp.txt", "r")
 	t = f.readlines()
