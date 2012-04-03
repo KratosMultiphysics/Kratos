@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
 // #include "custom_processes/set_h_map_process.h" 
-#include "custom_processes/find_nodal_h_process.h" 
+//#include "custom_processes/find_nodal_h_process.h" 
 // #include "custom_processes/embedded_mesh_locator_process.h" 
 
 #include "includes/node.h"
@@ -81,9 +81,9 @@ namespace Python
 // 	  class_<EmbeddedMeshLocatorProcess, bases<Process> >("EmbeddedMeshLocatorProcess",init<ModelPart&>())
 // 		   .def("Locate",&EmbeddedMeshLocatorProcess::Locate)
 // 		 ;
-	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
-		   .def("Execute",&FindNodalHProcess::Execute)
-		 ;
+//	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
+//		   .def("Execute",&FindNodalHProcess::Execute)
+//		 ;
   }
 	
 }  // namespace Python.
