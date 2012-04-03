@@ -1,4 +1,4 @@
-Dt = 0.0005
+Dt = 0.001
 
 ##################################################################
 ##################################################################
@@ -146,7 +146,7 @@ for step in range(0,50):
 	#						bool debugMode
 	ProcessByFace=1
 	ProcessByEdge=1
-	ProcessByNode=0
+	ProcessByNode=1
 	reInsertNodes = 0
 	numOptIterations = 3
 	debugMode = 0
