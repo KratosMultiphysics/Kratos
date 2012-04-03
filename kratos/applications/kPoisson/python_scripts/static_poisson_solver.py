@@ -1,6 +1,6 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosR1PoissonApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.PoissonApplication import *
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DUMMY_UNKNOWN);
