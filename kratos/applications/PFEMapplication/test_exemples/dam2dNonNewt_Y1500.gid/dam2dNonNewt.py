@@ -11,30 +11,22 @@ domain_size = pfem_nonewtonian_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = '../../../../libs' ##kratos_root/libs
-kratos_applications_path    = '../../../../applications' ##kratos_root/applications
+kratos_path            = '../../../../' ##kratos_root/
 kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
+import benchmarking
 
 #importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
+from KratosMultiphysics import *
 
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_PFEMApplication = True
-applications_interface.Import_MeshingApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+##from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingFluidApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
-from KratosStructuralApplication import *
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
-
-import benchmarking
 
 ## from now on the order is not anymore crucial
 ##################################################################
