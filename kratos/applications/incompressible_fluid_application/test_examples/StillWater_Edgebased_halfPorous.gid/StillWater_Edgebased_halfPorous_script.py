@@ -25,6 +25,7 @@ import benchmarking
 ##################################################################
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
 ##################################################################
 ##################################################################
