@@ -53,7 +53,27 @@ def Run():
 	os.chdir("..")
         # Add other examples here
 
+	################################################################
+	# testPureConvection
 
+	Text += "pure_convection: "
+	os.chdir("testPureConvection.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running testPureConvection.py..."
+	Msg = benchmarking.RunBenchmark("test_pureconvectionsolver_benchmarking.py", "test_pureconvectionsolver_benchmarking_ref.txt")
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "testPureConvection example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "testPureConvection example FAILED"
+
+	os.chdir("..")
+        # Add other examples here
         
         ################################################################
         print "resume of all of the examples for the fluid application :"
