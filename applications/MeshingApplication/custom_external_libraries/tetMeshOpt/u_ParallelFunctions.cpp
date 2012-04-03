@@ -462,19 +462,18 @@ void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
 
 void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
 	ParallelEvaluateCluster(aMesh,fc,0);
-	
+	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
 }
 
 void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 {  
 	ParallelEvaluateCluster(aMesh,fc,1);
-	
+	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
 }
 
 void ParallelEvaluateClusterByFace(TMesh *aMesh , TVertexesEvaluator fc)
 {  
 	ParallelEvaluateCluster(aMesh,fc,2);
-	
+	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);	
 }
