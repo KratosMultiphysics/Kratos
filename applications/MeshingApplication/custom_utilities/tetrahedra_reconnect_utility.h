@@ -70,6 +70,7 @@ namespace Kratos
 		///@{
 		int maxNumThreads ;
 		int blockSize ;
+		bool debugMode;
 		/// Pointer definition of TetrahedraReconnectUtility
 		KRATOS_CLASS_POINTER_DEFINITION(TetrahedraReconnectUtility);
 
@@ -113,7 +114,7 @@ namespace Kratos
 		///@param m the output mesh
 		void innerConvertFromKratos(ModelPart& r_model_part, TVolumeMesh *m)
 		{
-			std::cout << "Reading nodes"<< "\n";
+			if (debugMode) std::cout << "Reading nodes"<< "\n";
 			//loop on nodes
 			for (ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
 			{
@@ -126,7 +127,7 @@ namespace Kratos
 
 				m->vertexes->Add(v);
 			}
-			std::cout << "Reading elements"<< "\n";
+			if (debugMode) std::cout << "Reading elements"<< "\n";
 			
 			for (ModelPart::ElementsContainerType::iterator el_it=r_model_part.ElementsBegin(); el_it!=r_model_part.ElementsEnd(); el_it++)
 			{
@@ -165,10 +166,10 @@ namespace Kratos
 				m->elements->Add(t);
 			}
 
-			std::cout << " Number of vertexes read :"<< m->vertexes->Count() <<"\n";
-			std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
+			if (debugMode) std::cout << " Number of vertexes read :"<< m->vertexes->Count() <<"\n";
+			if (debugMode) std::cout << " Number of elements read :"<< m->elements->Count() << "\n";
 			m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
-			std::cout << " Number of faces read :"<< m->fFaces->Count() << "\n";
+			if (debugMode) std::cout << " Number of faces read :"<< m->fFaces->Count() << "\n";
 
 		}
 
@@ -179,7 +180,7 @@ namespace Kratos
 		///@param removeFreeVertexes Free vertexes are not added to the new structure
 		void innerConvertToKratos(ModelPart& mrModelPart , TVolumeMesh *m, bool removeFreeVertexes)
 		{
-			std::cout << "-------------Generating for Kratos----------------" << "\n";
+			if (debugMode) std::cout << "-------------Generating for Kratos----------------" << "\n";
 
 			Element::Pointer pReferenceElement = *(mrModelPart.Elements().begin()).base();
 
@@ -194,7 +195,7 @@ namespace Kratos
 				else
 					m->vertexes->elementAt(i)->flag = 0;
 			}
-			std::cout << " Nodes : Mark elements to remove : " << "\n";
+			if (debugMode) std::cout << " Nodes : Mark elements to remove : " << "\n";
 			// Create new Nodes
 			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.Nodes().begin() ; i_node != mrModelPart.Nodes().end() ; i_node++)
 			{
@@ -207,7 +208,7 @@ namespace Kratos
 				}
 				i_node->SetValue(ERASE_FLAG ,v->flag == 1);
 			}
-			std::cout << " Generating Elements for Kratos " << "\n";
+			if (debugMode) std::cout << " Generating Elements for Kratos " << "\n";
 			//generate new nodes
 			mrModelPart.Elements().clear();
 			//add preserved elements to the kratos
@@ -235,7 +236,7 @@ namespace Kratos
 				(mrModelPart.Elements()).push_back(p_element);
 				//KRATOS_WATCH(*p_element);
 			}
-			std::cout << "Generation OK " << "\n";
+			if (debugMode) std::cout << "Generation OK " << "\n";
 			mrModelPart.Elements().Sort();
 
 			if (removeFreeVertexes )
@@ -243,19 +244,21 @@ namespace Kratos
 				std::cout << "Removing free vertexes " << "\n";
 				(NodeEraseProcess(mrModelPart)).Execute();
 			}
-			std::cout << "-----------------Generation Finished OK-------------------" << "\n";
-
+			if (debugMode) std::cout << "-----------------Generation Finished OK-------------------" << "\n";
+ 
 			//  TVolumeMesh *testM = new TVolumeMesh();
 			//  innerConvertFromKratos( mrModelPart , testM);
 
 		}
 
-		void EvaluateQuality()
+		bool EvaluateQuality()
 		{
 		    TetQuality *qt = new TetQuality(m) ;
 			qt->refresh();
 			qt->print();
+			int numNegElements = qt->nonPositive;
 			delete qt;
+			return numNegElements == 0;
 		}
 
 		/**
@@ -311,11 +314,21 @@ namespace Kratos
 		{
 			blockSize = bs;
 		}
+
+		bool isaValidMesh()
+		{
+			TetQuality *qt = new TetQuality(m) ;
+			qt->refresh();
+			int numNegElements = qt->nonPositive;
+			delete qt;
+			return numNegElements == 0;
+		}
 		void OptimizeQuality(ModelPart& r_model_part, int iterations ,
 			bool processByNode, bool processByFace, bool processByEdge,  
 			bool saveToFile, bool removeFreeVertexes ,
 			bool evaluateInParallel , bool reinsertNodes , bool debugMode)
 		{
+			this->debugMode = debugMode;
 		    m->vertexes->Sort(sortByID);
 			// Save the mesh as generated from Kratos
 			if (saveToFile)
@@ -328,14 +341,12 @@ namespace Kratos
 			if (debugMode)
 				EvaluateQuality();
 			
-			std::cout <<"...Start Optimization..." <<"\n";	
+			if (debugMode) std::cout <<"...Start Optimization..." <<"\n";	
 			OpenMPUtils::SetNumThreads(maxNumThreads);
-			if (evaluateInParallel)
-			{
-				std::cout <<"Number of active threads"<< OpenMPUtils::GetNumThreads() <<"\n";
-			}
+			
 			if (debugMode)
 			{
+				std::cout <<"Number of active threads"<< OpenMPUtils::GetNumThreads() <<"\n";
 				std::cout <<"Debug mode is Active" <<"\n";
 				startTimers();
 			}
@@ -352,12 +363,12 @@ namespace Kratos
 				    
 					if (evaluateInParallel )
 					{
-					    std::cout <<"...Parallel optimizing by Node. Iteration : "<< iter <<"\n";
+					    if (debugMode) std::cout <<"...Parallel optimizing by Node. Iteration : "<< iter <<"\n";
 						ParallelEvaluateClusterByNode((TVolumeMesh*)(m),vrelaxQuality);   
 					}
 					else
 					{
-					   std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
+					   if (debugMode)  std::cout <<"...Optimizing by Node. Iteration : "<< iter <<"\n";
 					   evaluateClusterByNode( (TVolumeMesh*)(m),5000000,vrelaxQuality);
 					}
 					if (debugMode)
@@ -368,15 +379,15 @@ namespace Kratos
 				{					
 					if (evaluateInParallel )
 					{
-						std::cout <<"...Parallel optimizing by Face. Iteration : "<< iter <<"\n";
+						if (debugMode)  std::cout <<"...Parallel optimizing by Face. Iteration : "<< iter <<"\n";
 						ParallelEvaluateClusterByFace((TVolumeMesh*)(m),vrelaxQuality);  
-						std::cout <<"...End. Iteration : "<< iter <<"\n";
+						if (debugMode)  std::cout <<"...End. Iteration : "<< iter <<"\n";
 					}
 					else
 					{
-					    std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";						
+					    if (debugMode)  std::cout <<"...Optimizing by Face. Iteration : "<< iter <<"\n";						
 						evaluateClusterByFace(m,500000,vrelaxQuality);
-						std::cout <<"...End. Iteration : "<< iter <<"\n";
+						if (debugMode)  std::cout <<"...End. Iteration : "<< iter <<"\n";
 					}
 					if (debugMode)
 						m->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
@@ -387,13 +398,13 @@ namespace Kratos
 					
 					if (evaluateInParallel )
 					{
-						std::cout <<"...Parallel optimizing by Edge. Iteration : "<< iter <<"\n";
+						if (debugMode)  std::cout <<"...Parallel optimizing by Edge. Iteration : "<< iter <<"\n";
 						ParallelEvaluateClusterByEdge((TVolumeMesh*)(m),vrelaxQuality);  
-						std::cout <<"...End. Iteration : "<< iter <<"\n";
+						if (debugMode)  std::cout <<"...End. Iteration : "<< iter <<"\n";
 					}
 					else
 					{
-					    std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
+					    if (debugMode)  std::cout <<"...Optimizing by Edge. Iteration : "<< iter <<"\n";
 						evaluateClusterByEdge( (TVolumeMesh*)(m),50000,vrelaxQuality);
 					}
 					if (debugMode)
@@ -432,11 +443,10 @@ namespace Kratos
 
 			if (reinsertNodes)
 			{
-				std::cout <<"...Trying to reinsert nodes..." <<"\n";
+				if (debugMode)  std::cout <<"...Trying to reinsert nodes..." <<"\n";
 				tryToReinsertNodes();
 			}
-			// Una vez por lo menos muestro la calidad que quedo
-			EvaluateQuality();
+			
 		}
         ///@brief function tryToReinsertNodes
 		/// Reinsert removed nodes into the structure
@@ -455,7 +465,7 @@ namespace Kratos
 		void FinalizeOptimization(bool removeFreeVertexes )
 		{
 			if (m == NULL ) return ;
-			std::cout <<"...Output to Kratos Format" <<"\n";
+			if (debugMode)  std::cout <<"...Output to Kratos Format" <<"\n";
 			// Get back in Kratos
 			innerConvertToKratos(refMP , m , removeFreeVertexes);
 			delete m;
