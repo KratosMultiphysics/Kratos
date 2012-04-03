@@ -80,4 +80,6 @@ def Run():
         print Text
 	return Text
 
-Run();
+if __name__=='__main__':
+  Run();
+
