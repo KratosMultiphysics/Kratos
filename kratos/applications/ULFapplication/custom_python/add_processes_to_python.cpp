@@ -60,8 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_processes_to_python.h"
 
-#include "custom_processes/find_nodal_h_process.h" 
-//#include "custom_processes/node_erase_process.h" 
+
 #include "custom_processes/pressure_calculate_process.h"
 #include "custom_processes/mass_calculate_process.h"  
 #include "custom_processes/ulf_apply_bc_process.h" 
@@ -86,9 +85,10 @@ namespace Python
   {
 	using namespace boost::python;
 
-	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
+/*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
 		 init<ModelPart&>())
 		 ;
+*/
 /*
 	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
 		 init<ModelPart&>())
