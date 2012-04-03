@@ -1,0 +1,45 @@
+PROBLEM DATA
+BOOK: Problem Parameters
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+VALUE: Use_Default
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+QUESTION: Python_file
+VALUE: script.py
+TKWIDGET: TkwidgetFilePath
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
+VALUE: 1
+DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,#CURRENT#)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 2
+STATE: HIDDEN
+QUESTION: max_time
+VALUE: 10.0
+QUESTION: time_step
+VALUE: 0.05
+QUESTION: output_dt
+VALUE: 1.0
+QUESTION: density
+VALUE: 1000.0
+QUESTION: viscosity
+VALUE: 0.000001
+QUESTION: body_force_x
+VALUE: 0.0
+QUESTION: body_force_y
+VALUE: -9.81
+QUESTION: body_force_z
+VALUE: 0.0
+QUESTION: print_layers
+VALUE: True
+QUESTION: use_mass_correction
+VALUE: True
+QUESTION: redistance_frequency
+VALUE: 5
+QUESTION: extrapolation_layers
+VALUE: 5
+QUESTION: delta_time_coefficient
+VALUE: 1000
+END PROBLEM DATA
+INTERVAL DATA
+END INTERVAL DATA
