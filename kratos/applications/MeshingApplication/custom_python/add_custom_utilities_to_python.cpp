@@ -148,6 +148,7 @@ void AddCustomUtilitiesToPython()
 	.def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
 	.def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
 	.def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
+	.def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
     ;
 }
 } // namespace Python.
