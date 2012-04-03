@@ -20,7 +20,6 @@ import benchmarking
 from KratosMultiphysics import *
 
 #loading meshing application
-sys.path.append(kratos_applications_path + 'meshing_application/python_scripts') 
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
