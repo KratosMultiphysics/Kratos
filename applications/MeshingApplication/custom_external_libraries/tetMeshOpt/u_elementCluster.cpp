@@ -7,7 +7,7 @@
 
 #define ACCEPTANCE_TOLERANCE 1.0
 
-#define ELEMENTS_TO_FORCE_UPDATE 10000
+#define ELEMENTS_TO_FORCE_UPDATE 100000
 
 
 //-----------------------------------------------------------------------------
