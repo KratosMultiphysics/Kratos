@@ -1,0 +1,122 @@
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ConstitutiveLawsApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosMPISearchApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Import_MagnetostaticApplication: False
+Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
+Import_LevelSetApplication: False
+Import_FluidDynamicsApplication: False
+Import_KratosDEMApplication: False
+Import_KratosMixedElementApplication: False
+Import_ThermoMechanicalApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: True
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: True
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ConstitutiveLawsApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMPISearchApplication:  False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Import_MagnetostaticApplication: False
+Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
+Import_LevelSetApplication:False
+Import_FluidDynamicsApplication: False
+Import_KratosMixedElementApplication: False
+Import_KratosDEMApplication:  False
+Import_ThermoMechanicalApplication: False
+importing KratosIncompressibleFluidApplication ...
+KratosIncompressibleFluidApplication lib loaded
+KratosIncompressibleFluidApplication application created
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosIncompressibleFluidApplication Succesfully imported
+importing KratosConvectionDiffusionApplication ...
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosConvectionDiffusionApplication... 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosConvectionDiffusionApplication Succesfully imported
+Importing KratosIncompressibleFluidApplication
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+Initializing  KratosIncompressibleFluidApplication
+
+
+ WARNING: It appears that you are still using applications_interface
+ to import Kratos. This will soon be OBSOLETED.
+ See the following message for details:
+
+
+***
+* KratosMultiphysics was imported from the first time from
+* /home/antonia/kratos/applications/incompressible_fluid_application/python_scripts/monolithic_solver_eulerian.py
+* This file defines auxiliary Python tools and assumes that the 
+* KratosMultiphysics module and all required applications will be
+* first imported from a "main" Python script. Please import
+* them before importing this file.
+*
+* A commmon cause of this error is the use of the DEPRECATED
+* applications_interface to import Kratos. To solve it please 
+* remove the old import system and COMPLETELY replace it with
+* KratosMultiphysics modules in your main script
+***
+
+variables for the MONOLITHIC_SOLVER_EULERIAN added correctly
+variables for the level set solver added correctly
+StillWater_Elembased_halfPorous opened for io
+StillWater_Elembased_halfPorous.node opened for io
+StillWater_Elembased_halfPorous.prop opened for io
+StillWater_Elembased_halfPorous.elem opened for io
+StillWater_Elembased_halfPorous.cond opened for io
+StillWater_Elembased_halfPorous.init opened for io
+initializing result files
+Reading Nodes : 63 nodes read
+	Reading Elements : 96 Fluid2DSplit read
+lines read : 258
+dofs for the monolithic solver added correctly
+dofs for the levelset solver added correctly
+Traceback (most recent call last):
+  File "/home/antonia/kratos/applications/incompressible_fluid_application/test_examples/StillWater_Elembased_halfPorous.gid/script.py", line 89, in <module>
+    raise "ERROR. At least one node has to be initialized with a distance lesser than 0"
+TypeError: exceptions must be old-style classes or derived from BaseException, not str
