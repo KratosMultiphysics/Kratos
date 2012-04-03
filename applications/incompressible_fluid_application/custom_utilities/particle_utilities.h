@@ -538,7 +538,7 @@ namespace Kratos
 		    //KRATOS_WATCH("INSERTO PUNTOS");
 		    //KRATOS_WATCH("INSERTO PUNTOS");
 		    //KRATOS_WATCH("INSERTO PUNTOS");
-		    double dens=el_it->GetValue(DENSITY);
+//		    double dens=el_it->GetValue(DENSITY);
 		    ComputeGaussPointPositions(geom, pos, Nnew);
 		    
                     for (unsigned int i = 0; i < pos.size1(); i++)
@@ -607,7 +607,7 @@ namespace Kratos
 	  //            BinBasedFastPointLocator<TDim> node_locator(rEulerianModelPart);
 	  //            node_locator.UpdateSearchDatabase();
 	  
-	  double density_inverse = 1.0 / density;
+//	  double density_inverse = 1.0 / density;
 	  
 	  //reset particle position to the beginning of the step
 	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();node_it != rLagrangianModelPart.NodesEnd(); ++node_it)
@@ -918,7 +918,7 @@ namespace Kratos
 			  
 			  array_1d<double, 3 > & vel_particle = (pparticle)->FastGetSolutionStepValue(VELOCITY);
 			  
-			  double density_inverse_1 = 1.0 / (pparticle)->FastGetSolutionStepValue(DENSITY);
+//			  double density_inverse_1 = 1.0 / (pparticle)->FastGetSolutionStepValue(DENSITY);
 			  
 			  //double density_inverse_1 =1.0;
 			  

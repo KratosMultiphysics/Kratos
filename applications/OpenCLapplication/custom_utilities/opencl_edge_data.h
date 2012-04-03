@@ -753,7 +753,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin)
 				for( int i = 0; i < n_nodes; i++)
@@ -790,7 +790,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
  				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				//int64_t t0 = timeNanos();
@@ -837,7 +837,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
@@ -878,7 +878,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
@@ -916,7 +916,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
@@ -960,7 +960,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)
@@ -1000,7 +1000,7 @@ namespace Kratos
 
 				// Loop over all nodes
 				ModelPart::NodesContainerType::iterator it_begin = rNodes.begin();
-				unsigned int n_nodes = rNodes.size();
+				int n_nodes = rNodes.size();
 				unsigned int var_pos = it_begin -> pGetVariablesList() -> Index(rVariable);
 
 				#pragma omp parallel for firstprivate(n_nodes, it_begin, var_pos)

@@ -102,23 +102,26 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
         include(FortranCInterface) 
 	FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_")
     endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-
-    find_package(BLAS REQUIRED)
-    include_directories(${BLAS_INCLUDE_DIRS})
-    GET_FILENAME_COMPONENT(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES} REALPATH)
-    set(BLAS_LIBRARIES ${BLAS_LIBRARIES_REALPATH} CACHE STRING "exact file of the blas library" FORCE)
-    
+   
     #linking to the absolute value of the blas
+    find_package(BLAS REQUIRED)
+    include_directories(${BLAS_INCLUDE_DIRS})	
+	foreach( l ${BLAS_LIBRARIES})
+        GET_FILENAME_COMPONENT(aaa ${l} REALPATH)
+		set(BLAS_LIBRARIES_REALPATH ${BLAS_LIBRARIES_REALPATH} ${aaa})
+    endforeach(l)
+    set(BLAS_LIBRARIES ${BLAS_LIBRARIES_REALPATH} CACHE STRING "exact file of the blas library" FORCE)
     link_directories(${BLAS_LIBRARIES})
     set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${BLAS_LINKER_FLAGS}" CACHE STRING "Linker flags for shared libs" FORCE)
     message("linker flags with blas =" ${BLAS_LINKER_FLAGS})
     message("BLA_VENDOR = " ${BLA_VENDOR})
 
+	#linking to the absolute value of the lapack
     find_package(LAPACK REQUIRED)
     message("LAPACK = " ${LAPACK_LIBRARIES})
     foreach( l ${LAPACK_LIBRARIES})
         GET_FILENAME_COMPONENT(aux ${l} REALPATH)
-	set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
+		set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
     endforeach(l)
     set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
     message("LAPACK modified = " ${LAPACK_LIBRARIES})

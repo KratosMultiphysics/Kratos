@@ -935,7 +935,7 @@ public:
                 {
                     for( int j = 0; j < recv_size; j++ )
                     {
-                        if( dofs_key_recv_buffer[j] == jt->GetVariable().Key() )
+                        if( dofs_key_recv_buffer[j] == static_cast<int>(jt->GetVariable().Key() ) )
                         {
                             Doftemp.push_back( *jt );
 //                             KRATOS_WATCH( dofs_index_recv_buffer[j] );
