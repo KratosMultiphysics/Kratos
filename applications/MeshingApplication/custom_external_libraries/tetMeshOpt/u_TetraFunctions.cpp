@@ -374,11 +374,7 @@ void TVolumeMesh::validate(bool showMessages)
 		tr->calcEdges();
 		i++;
 	}
-	nv = 0;
-	for (i = 0 ; i<vertexes->Count() ; i++ )
-	{
-		TVertex* _v = vertexes->elementAt(i);
-	}
+	
 	// Control de Elementos
 	if (ntv > 0)
 	{
@@ -444,6 +440,10 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 	TTetra *t0,*t1;
 	TTriangle *tr1;
 	TVertex *v0,* v1,*v2,*v3,*v4;
+
+	v0 = v1 = v2 = v3 = v4 = NULL;
+	t0 = t1 = NULL;
+	tr1 = NULL;
 	// aMesh.updateIndexes(0);
 	l   = new TList<TObject*>();
 	l2   = new TList<TObject*>();

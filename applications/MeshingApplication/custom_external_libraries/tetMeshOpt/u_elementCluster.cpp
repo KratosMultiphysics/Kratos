@@ -396,7 +396,7 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 
 	int i ;
 	TVertex *v0,*v1,*v2,*v3;
-	TTetra *t ;
+	TTetra *t = NULL;
 	bool centerUsed,  invalidCOnfig , result;
 
 	centerUsed = false;
@@ -653,8 +653,9 @@ void evaluateClusterByNode(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 		inspVertex =(TVertex*)(vertexesCopy->elementAt(iv));
 		if (inspVertex->elementsList== NULL)  continue;
 		inspVertex->elementsList->Pack();
+		if (inspVertex->elementsList->Count() == 0) continue;
 		//--Limpio las variables
-		aCluster->inspectedElements->Assign( inspVertex->elementsList) ;
+		aCluster->inspectedElements->Assign( inspVertex->elementsList) ;		
 
 		minQuality =aCluster->getMinQuality();
 		if (minQuality>minExpectedQuality) continue;
@@ -736,8 +737,9 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
 				if (!t->hasEdge(v0,v1)) continue;
-				if ( inspElements->indexOf(t)<0  ) 
-					inspElements->Add(t);
+				if (t->innerFlag == i*1000+j) continue;
+				t->innerFlag = i*1000+j;
+				inspElements->Add(t);
 			}
 			//Para el vertice 1
 			for (k = 0 ; k<v1->elementsList->Count() ; k++)
@@ -746,16 +748,15 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 				if (t == NULL) continue;
 				if (t->isdestroyed) continue;
 				if (!t->hasEdge(v0,v1)) continue;
-				if ( inspElements->indexOf(t)<0  ) 
-					inspElements->Add(t);
+				if (t->innerFlag == i*1000+j) continue;
+				t->innerFlag = i*1000+j;
+				inspElements->Add(t);
 			}
 
 			//-------------------
 			//-- Asigno la superficie
 
 			aCluster->inspectedElements->Assign( inspElements);
-
-			
 			aCluster->generateSubMesh( );
 
 			

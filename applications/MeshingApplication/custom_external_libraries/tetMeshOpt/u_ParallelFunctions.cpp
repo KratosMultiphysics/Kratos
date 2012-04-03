@@ -6,7 +6,7 @@
 
 bool* _faces;
 
-//#define KRATOS
+
 void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement call)
 {
 	#if !defined(KRATOS)
@@ -249,6 +249,8 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 				break;
 			}
 	}
+
+	delete vl;
 }
 
 
@@ -258,6 +260,7 @@ void lpEvaluateClusterByNode(int i, int thId  ,TObject* destObject)
 	TVertex *v0;
 	v0 = aCluster->inspVertex;
 	v0->elementsList->Pack();
+	if (v0->elementsList->Count() == 0) return;
 	aCluster->inspectedElements->Clear();
 	aCluster->inspectedElements->Assign(v0->elementsList);
 	// obtengo nuevamente los vecinos de orden 1	
@@ -267,6 +270,33 @@ void lpEvaluateClusterByNode(int i, int thId  ,TObject* destObject)
 	{
 		aCluster->updateMesh(true) ;			
 	}
+}
+
+bool validateAssignment(TList<TVertex*> *vs,TList<TObject*> *vRes)
+{
+	TList<TObject*>  *lneigh;
+	lneigh = new TList<TObject*>();
+	for (int i = 0 ; i<vs->Count() ; i++)
+	{
+     TVertex *v = (TVertex*)(vs->elementAt(i));
+	 v->innerFlag = 0;
+	}
+	
+	
+	for (int i=0; i<vRes->Count(); i++)
+	{
+		TVertex *v = (TVertex*)(vRes->elementAt(i));
+
+		lneigh->Clear();
+		v->getVertexNeighboursByElem(lneigh);    	 
+		for (int j=0; j<lneigh->Count() ;j++)
+		{
+			TVertex *v2 = (TVertex*)(lneigh->elementAt(j));
+			if (v2->innerFlag == 1) return false;
+			v2->innerFlag = 1;
+		}
+	}
+	return true;
 }
 
 
@@ -325,10 +355,9 @@ void assignVertexesAvoidingVisited(TList<TVertex*> *vs, TList<TObject*> *vRes ,i
   delete lneigh;
 }
 
-
-void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
-{  
-  int	iv ,i ,nsimCh;
+void ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode)
+{
+	int	iv ,i ,nsimCh;
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
@@ -381,6 +410,12 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 		endProcess((char*)("assignVertexesAvoidingVisited"));
 		if (vRes->Count() == 0 ) break;
 
+		if (!validateAssignment(vertexesCopy, vRes))			
+		{
+			std::cout << "Invalid Assignment"<< "\n";
+			break;
+		}
+
 		startProcess((char*)("clearVars"));
 		//--Limpio las variables
 		// por cada vertice, tengo un cluster
@@ -396,10 +431,14 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 		endProcess((char*)("clearVars"));
 
 		startProcess((char*)("parallelPart"));
+		  if (mode ==0) 
+			  parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByNode);    
+		  else
+			  if (mode ==1) 
+				parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);    
+			  else
+				  parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByFace);    
 			//pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
-		    parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByNode);    
-		    //for (int vi = 0 ; vi<vRes->Count() ; vi++)
-			 //  lpEvaluateClusterByEdge(vi,0,resultedClusters->elementAt(vi));
 		endProcess((char*)("parallelPart"));
 		/* end of parallel section */
 
@@ -417,201 +456,25 @@ void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
 	endProcess((char*)("evaluateClustersInParallel"));	
 
 	startProcess((char*)("updateRefs"));
-	aMesh->updateRefs();
-	aMesh->updateIndexes(GENERATE_SURFACE | KEEP_ORIG_IDS);
+	aMesh->updateRefs();	
 	endProcess((char*)("updateRefs"));
+}
+
+void ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc)
+{  
+	aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);
+	ParallelEvaluateCluster(aMesh,fc,0);
+	
 }
 
 void ParallelEvaluateClusterByEdge(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	int	iv ,i ,nsimCh;
-	TList<TObject*> *vRes;
-	TList<TVertex*> *vertexesCopy;
-	TList<TObject*> * resultedClusters; 
-	// Tamaño maximo de procesos simultaneos
-	nsimCh = 2048;
-	//----------------------------------------
-	// Initialization part!
-	startProcess((char*)("Initialization"));
-	resultedClusters = new TList<TObject*>();	
-	for (i = 0 ; i<nsimCh ; i++)
-	{
-		TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
-		resultedClusters->Add( (TObject*)(e));
-	}
-
-	vertexesCopy = new TList<TVertex*>();
-	vRes = new TList<TObject*>();
-
-	vertexesCopy->Assign(aMesh->vertexes);
-	double minQ;
-	for (i = 0 ;i<vertexesCopy->Count() ; i++)
-	{
-		TVertex *v = vertexesCopy->elementAt(i);
-		v->visited = 0;
-		v->flag = 0;
-		v->isdestroyed = false;
-		minQ =  50000;
-		v->elementsList->Pack();
-		for (int j = 0; j<v->elementsList->Count();j++)
-		{
-			TTetra *t = (TTetra*)(v->elementsList->elementAt(j));
-			t->calidad = diedralAngle(t->vertexes);
-			minQ = Min( minQ , t->calidad);
-		}
-		v->calidad = minQ ; 
-	}
+	ParallelEvaluateCluster(aMesh,fc,1);
 	
-	vertexesCopy->Sort(sortByQuality);
-	endProcess((char*)("Initialization"));
-	//----------------------------------------	
-	//----------------------------------------
-	////-- Facil de Paralelizar
-	startProcess((char*)("evaluateClustersInParallel"));
-	for (iv = 0  ; iv<=Max(20.0f,(float)(vertexesCopy->Count() / nsimCh)-1 ) ; iv++) 
-	{
-		vRes->Clear();
-		//Distribuyo la carga por Arista		
-		startProcess((char*)("assignVertexesAvoidingVisited"));
-				assignVertexesAvoidingVisited(vertexesCopy,vRes,iv+1,nsimCh-1);  		
-		endProcess((char*)("assignVertexesAvoidingVisited"));
-		if (vRes->Count() == 0 ) break;
-
-		startProcess((char*)("clearVars"));
-		//--Limpio las variables
-		// por cada vertice, tengo un cluster
-		for (i = 0 ; i<vRes->Count() ; i++)
-		{
-			TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
-			resC->inspVertex = (TVertex*)(vRes->elementAt(i));
-			resC->doRemoveElements = false;
-			resC->testCenter = false;
-			resC->perturbCenter = 0;
-			resC->checkMaxLength = true;        
-		}
-		endProcess((char*)("clearVars"));
-
-		startProcess((char*)("parallelPart"));
-			//pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
-		    parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);    
-		    //for (int vi = 0 ; vi<vRes->Count() ; vi++)
-			 //  lpEvaluateClusterByEdge(vi,0,resultedClusters->elementAt(vi));
-		endProcess((char*)("parallelPart"));
-		/* end of parallel section */
-
-		startProcess((char*)("Generating new elements"));
-		for (i = 0 ; i<vRes->Count() ; i++)
-		{
-			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));			
-			ec->genElements();		  
-		}
-
-		if (aMesh->elementsToRemove->Count()>ELEMENTS_TO_FORCE_UPDATE )
-				aMesh->updateRefs();
-		endProcess((char*)("Generating new elements"));
-	}
-	endProcess((char*)("evaluateClustersInParallel"));	
-
-	startProcess((char*)("updateRefs"));
-	aMesh->updateRefs();
-	aMesh->updateIndexes( KEEP_ORIG_IDS);
-	endProcess((char*)("updateRefs"));
-
 }
 
 void ParallelEvaluateClusterByFace(TMesh *aMesh , TVertexesEvaluator fc)
 {  
-	int	iv ,i ,nsimCh;
-	TList<TObject*> *vRes;
-	TList<TVertex*> *vertexesCopy;
-	TList<TObject*> * resultedClusters; 
-	// Tamaño maximo de procesos simultaneos
-	nsimCh = 2048;
-	//----------------------------------------
-	// Initialization part!
-	startProcess((char*)("Initialization"));
-	resultedClusters = new TList<TObject*>();	
-	for (i = 0 ; i<nsimCh ; i++)
-	{
-		TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
-		resultedClusters->Add( (TObject*)(e));
-	}
-
-	vertexesCopy = new TList<TVertex*>();
-	vRes = new TList<TObject*>();
-
-	vertexesCopy->Assign(aMesh->vertexes);
-	double minQ;
-	for (i = 0 ;i<vertexesCopy->Count() ; i++)
-	{
-		TVertex *v = vertexesCopy->elementAt(i);
-		v->visited = 0;
-		v->flag = 0;
-		v->isdestroyed = false;
-		minQ =  50000;
-		v->elementsList->Pack();
-		for (int j = 0; j<v->elementsList->Count();j++)
-		{
-			TTetra *t = (TTetra*)(v->elementsList->elementAt(j));
-			t->calidad = diedralAngle(t->vertexes);
-			minQ = Min( minQ , t->calidad);
-		}
-		v->calidad = minQ ; 
-	}
+	ParallelEvaluateCluster(aMesh,fc,2);
 	
-	vertexesCopy->Sort(sortByQuality);
-	endProcess((char*)("Initialization"));
-	//----------------------------------------	
-	//----------------------------------------
-	////-- Facil de Paralelizar
-	startProcess((char*)("evaluateClustersInParallel"));
-	for (iv = 0  ; iv<=Max(20.0f,(float)(vertexesCopy->Count() / nsimCh)-1 ) ; iv++) 
-	{
-		vRes->Clear();
-		//Distribuyo la carga por Arista		
-		startProcess((char*)("assignVertexesAvoidingVisited"));
-			assignVertexesAvoidingVisited(vertexesCopy,vRes,iv+1,nsimCh-1);  		
-		endProcess((char*)("assignVertexesAvoidingVisited"));
-		if (vRes->Count() == 0 ) break;
-
-		startProcess((char*)("clearVars"));
-		//--Limpio las variables
-		// por cada vertice, tengo un cluster
-		for (i = 0 ; i<vRes->Count() ; i++)
-		{
-			TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
-			resC->inspVertex = (TVertex*)(vRes->elementAt(i));
-			resC->doRemoveElements = false;
-			resC->testCenter = false;
-			resC->perturbCenter = 0;
-			resC->checkMaxLength = true;        
-		}
-		endProcess((char*)("clearVars"));
-
-		startProcess((char*)("parallelPart"));
-			//pi->forloop(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByEdge);      
-		    parallelFor(0,vRes->Count()-1,resultedClusters, lpEvaluateClusterByFace);    
-		    //for (int vi = 0 ; vi<vRes->Count() ; vi++)
-			 //  lpEvaluateClusterByFace(vi,0,resultedClusters->elementAt(vi));
-		endProcess((char*)("parallelPart"));
-		/* end of parallel section */
-
-		startProcess((char*)("Generating new elements"));
-		for (i = 0 ; i<vRes->Count() ; i++)
-		{
-			TElementsCluster* ec = (TElementsCluster*)( resultedClusters->elementAt(i));			
-			ec->genElements();		  
-		}
-
-		if (aMesh->elementsToRemove->Count()>ELEMENTS_TO_FORCE_UPDATE )
-				aMesh->updateRefs();
-		endProcess((char*)("Generating new elements"));
-	}
-	endProcess((char*)("evaluateClustersInParallel"));	
-
-	startProcess((char*)("updateRefs"));
-	aMesh->updateRefs();
-		aMesh->updateIndexes( KEEP_ORIG_IDS);
-	endProcess((char*)("updateRefs"));
-
 }
