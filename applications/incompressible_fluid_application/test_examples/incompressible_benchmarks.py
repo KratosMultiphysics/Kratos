@@ -207,26 +207,6 @@ def Run():
 		print "dam2d example FAILED"
 
 	os.chdir("..")
-	################################################################
-	# QuietWater_LevelSet
-
-	Text += "QuietWater_LevelSet: "
-	os.chdir("QuietWater_LevelSet.gid")
-	sys.path.append(os.getcwd())
-
-	print "Running QuietWater_LevelSet..."
-	Msg = benchmarking.RunBenchmark("split_level_set_QuietWater.py", "QuietWater_LS_ref.txt")	
-	
-	if (Msg == True):
-		Text += "OK\n"
-		print "QuietWater_LevelSet example succesful"
-	else:
-		Text += "FAILED\n"
-		Text += Msg
-		Text += "\n\n"
-		print "QuietWater_LevelSet example FAILED"
-
-	os.chdir("..")
 
 	################################################################
 	# StillWater_Edgebased
@@ -270,6 +250,26 @@ def Run():
 
 	os.chdir("..")
 
+	################################################################
+	# StillWater_Elembased_halfPorous
+
+	Text += "StillWater_Elembased_halfPorous: "
+	os.chdir("StillWater_Elembased_halfPorous.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running StillWater_Elembased_halfPorous..."
+	Msg = benchmarking.RunBenchmark("StillWater_Elembased_halfPorous_script.py", "StillWater_Elembased_halfPorous_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "StillWater_Elembased_halfPorous example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "StillWater_Elembased_halfPorous example FAILED"
+
+	os.chdir("..")
 
         ################################################################
 	# cylinder
