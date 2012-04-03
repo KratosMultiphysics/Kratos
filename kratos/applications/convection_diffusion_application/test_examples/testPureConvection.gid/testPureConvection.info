@@ -1,0 +1,113 @@
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: False
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ConstitutiveLawsApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMKLSolversApplication: False
+Import_KratosMPISearchApplication: False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Import_MagnetostaticApplication: False
+Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
+Import_LevelSetApplication: False
+Import_FluidDynamicsApplication: False
+Import_KratosDEMApplication: False
+Import_KratosMixedElementApplication: False
+Import_ThermoMechanicalApplication: False
+Applications Available:
+Import_ALEApplication: False
+Import_IncompressibleFluidApplication: True
+Import_StructuralApplication: False
+Import_ConvectionDiffusionApplication: False
+Import_FSIApplication: False
+Import_ExternalSolversApplication: False
+Import_ConstitutiveLawsApplication: False
+Import_ULFApplication: False
+Import_MeshingApplication: False
+Import_KratosMPISearchApplication:  False
+Import_KratosTrilinosApplication: False
+Import_KratosMetisApplication: False
+Import_PoissonApplication: False
+Import_ElectrostaticApplication: False
+Import_MagnetostaticApplication: False
+Import_DamApplication: False
+Import_TestApplication: False
+Import_OpenCLApplication: False
+Import_PodApplication: False
+Import_LevelSetApplication:False
+Import_FluidDynamicsApplication: False
+Import_KratosMixedElementApplication: False
+Import_KratosDEMApplication:  False
+Import_ThermoMechanicalApplication: False
+importing KratosIncompressibleFluidApplication ...
+KratosIncompressibleFluidApplication lib loaded
+KratosIncompressibleFluidApplication application created
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+KratosIncompressibleFluidApplication Succesfully imported
+Importing KratosIncompressibleFluidApplication
+"kerneal entered in AddApplication" : kerneal entered in AddApplication
+Initializing KratosIncompressibleFluidApplication... 
+Initializing KratosIncompressibleFluidApplication...Register completed 
+Initializing KratosIncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosIncompressibleFluidApplication...elements succesfully registered 
+"Application Registered" : Application Registered
+"Variables Registered" : Variables Registered
+"Elements Registered" : Elements Registered
+"Conditions Registered" : Conditions Registered
+Initializing  KratosIncompressibleFluidApplication
+
+
+ WARNING: It appears that you are still using applications_interface
+ to import Kratos. This will soon be OBSOLETED.
+ See the following message for details:
+
+
+***
+* KratosMultiphysics was imported from the first time from
+* /home/antonia/kratos/applications/incompressible_fluid_application/python_scripts/fractional_step_solver.py
+* This file defines auxiliary Python tools and assumes that the 
+* KratosMultiphysics module and all required applications will be
+* first imported from a "main" Python script. Please import
+* them before importing this file.
+*
+* A commmon cause of this error is the use of the DEPRECATED
+* applications_interface to import Kratos. To solve it please 
+* remove the old import system and COMPLETELY replace it with
+* KratosMultiphysics modules in your main script
+***
+
+variables for the incompressible fluid solver added correctly
+testPureConvection opened for io
+testPureConvection.node opened for io
+testPureConvection.prop opened for io
+testPureConvection.elem opened for io
+testPureConvection.cond opened for io
+testPureConvection.init opened for io
+initializing result files
+Reading Nodes : 169 nodes read
+	Reading Elements : 284 Fluid2D read
+lines read : 692
+dofs for the incompressible fluid solver added correctly
+node  1  has zero density!
+Traceback (most recent call last):
+  File "/home/antonia/kratos/applications/convection_diffusion_application/test_examples/testPureConvection.gid/script.py", line 97, in <module>
+    raise 'node with zero density found'
+TypeError: exceptions must be old-style classes or derived from BaseException, not str
