@@ -107,19 +107,22 @@ namespace Kratos {
 
         
         
+        /// ADDSKINCONDITIONS: THIS FUNCTION ADDS TO THE NEW MODEL PART THE DATA OF THE CONDITIONS BELONGING TO THE OLD MODEL PART, THE NODES COORDINATES ALREADY EXIST. WE ONLY NEED TO COPY THEM INTO THE NEW MODEL PART.
+		/** this function adds the skin condtion. 
+		    WARNING: They have to be triangles and it CAN'T be empty, otherwise a segmentation fault will appear
+		 * @param mr_model_part . original model part
+		 * @param mr__new_model_part . destinantion model part
+		 * @param plane_number . layer to add the conditions (integer)
+		 **/
         
-        
-        
-              
-        
-        // this function copies the conditions from the origin model part into the destination model part
         void AddSkinConditions(ModelPart& mr_model_part, ModelPart& mr_new_model_part, int plane_number )
         {
             ModelPart& this_model_part = mr_model_part;
             ModelPart& new_model_part = mr_new_model_part;
-			
+	    if (mrComm.MyPID() == 0) {	
             KRATOS_WATCH("Adding Skin Conditions to the new model part, added in layer:")
             KRATOS_WATCH(plane_number)
+            }
             KRATOS_TRY
             
                     
@@ -259,19 +262,10 @@ namespace Kratos {
                 }
             }
             
-            
-            
-            
-            //local_non_ov = new double  [nlocal_nodes]; //a human readeable copy of the FEvector
-            //ierr = IDs_non_overlapping_graph->ExtractCopy(local_non_ov,nlocal_nodes);
-            //if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-            
-            
             ierr = -1;
             ierr = IDs_non_overlapping_graph->GlobalAssemble(Insert,true); //Epetra_CombineMode mode=Add);
             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 249", "");
-            
-                 
+      
             //KRATOS_WATCH('line333')
             
             //NOW WE MUST CREATE THE VECTOR CONTAINING BOTH OWNED AND NOT OWNED NODES.
@@ -286,8 +280,7 @@ namespace Kratos {
             double* local_IDs_ov = new double  [nnodes]; //copy in a human readeable format. the FEvector refuses to use the operator []
             ierr = IDs_overlap->ExtractCopy(local_IDs_ov,nnodes);
             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-                      
-            
+                                  
             //we must now create an overlapping fevector with te partition index:
              boost::shared_ptr<Epetra_FEVector > Partition_overlap(new Epetra_FEVector(*pmy_ov_map,1,false));
 
@@ -297,12 +290,9 @@ namespace Kratos {
             double* local_Partition_ov = new double  [nnodes]; //copy in a human readeable format. the FEvector refuses to use the operator []
             ierr = Partition_overlap->ExtractCopy(local_Partition_ov,nnodes);
             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure", "");
-            //done
-            
-
-                    
-            
-              
+                     
+            ///KRATOS_WATCH('line349')
+  
             for (int index=0; index!=nnodes; ++index){ //now we have to save the nodes!.
                     // KRATOS_WATCH(auxiliar);
                 if (used_nodes[index]==true){
@@ -329,11 +319,12 @@ namespace Kratos {
                 }
             }
             new_model_part.Nodes().Sort();
-
-            new_model_part.Nodes().Unique();
-                    
             
-                          //now to the conditions!
+            new_model_part.Nodes().Unique();
+
+            //KRATOS_WATCH('line404')
+            
+            //NOW WE MUST COPY THE CONDITIONS
             int triangle_ID = number_of_old_conditions + conditions_before;
             vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
             Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
@@ -361,31 +352,30 @@ namespace Kratos {
              }
             
             Clear();
-	    KRATOS_WATCH("Finished copying conditions surfaces")
-            ParallelFillCommunicator(new_model_part).PrintDebugInfo();
-            if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
+            ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+            if (mrComm.MyPID() == 0) cout << "copyng conditions and recalculation plan have been completed" << endl;
             KRATOS_CATCH("")
         }
+        
         
         
                 
                 
         template <class TDataType>    
-        
-        //this is the function to create isosurfaces from a scalar variable. the others will be added later.
+        //this is the function to create isosurfaces from a scalar variable. the other (a component from a vectorial variable).
         void GenerateVariableCut(ModelPart& mr_model_part, ModelPart& mr_new_model_part, Variable<TDataType>& variable, double isovalue, int plane_number, float tolerance) {
             KRATOS_TRY
-            KRATOS_WATCH("Generating Isosurface with the following data:");
-            KRATOS_WATCH(variable);
-            KRATOS_WATCH(isovalue);
+            if (mrComm.MyPID() == 0) {
+                cout <<"Generating Isosurface with the following data:"<<endl;
+                KRATOS_WATCH(variable);
+                KRATOS_WATCH(isovalue);
+            }
 		
-
             ModelPart& this_model_part = mr_model_part;
             //ModelPart& new_model_part = mr_new_model_part;
 
             vector<int> Elems_In_Plane(this_model_part.Elements().size()); //our (int) vector, where we write 1 when the element is cut by the cutting plane. when it is 2, it means we have 2 triangles (4 cutting points)
             int number_of_triangles = 0;
-            //double tolerance = tolerance_factor*smallest_edge; //if Find_Smallest_Edge is not run , then the tolerance is absolute
 
             boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids; //helper matrix to assign ids to the edges to be  refined
             boost::shared_ptr<Epetra_FECrsMatrix> p_partition_ids; //helper matrix to assign a partition to the edges
@@ -394,7 +384,6 @@ namespace Kratos {
             boost::numeric::ublas::vector<array_1d<int, 2 > > father_node_ids; ///* edges where are the news nodes
             boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node; ///* the coordinate of the new nodes
             boost::shared_ptr<Epetra_FECrsMatrix> used_nodes_matrix;
-            
             
             PointerVector< Element > New_Elements;
             PointerVector< Condition > New_Conditions;
@@ -414,17 +403,10 @@ namespace Kratos {
             Calculate_Coordinate_And_Insert_New_Nodes(mr_model_part, mr_new_model_part, father_node_ids, List_New_Nodes, partition_new_nodes, variable, isovalue , tolerance);
              MPI_Barrier(MPI_COMM_WORLD);
             if (mrComm.MyPID() == 0) cout << "Calculate_Coordinate_And_Insert_New_Nodes completed" << endl;
-            
-             if (mrComm.MyPID() == 0) {
-             //KRATOS_WATCH(List_New_Nodes);
-             //KRATOS_WATCH(p_edge_ids);
-                }
                      
             GenerateElements(mr_model_part, mr_new_model_part, Elems_In_Plane, p_edge_ids, plane_number, number_of_triangles, variable);
              MPI_Barrier(MPI_COMM_WORLD);
             if (mrComm.MyPID() == 0) cout << "finished generating elements" << endl;
-
-
 
             //fill the communicator
             ParallelFillCommunicator(mr_new_model_part).Execute();
@@ -530,9 +512,6 @@ namespace Kratos {
 
             pB.swap(used_nodes_matrix);
             
-
-
-            //KRATOS_WATCH("finished a csr")
             KRATOS_CATCH("")
 
         }
@@ -544,7 +523,7 @@ namespace Kratos {
                 double isovalue, int& number_of_triangles, vector<int>& Elems_In_Plane, double tolerance,
                 boost::shared_ptr<Epetra_FECrsMatrix>& used_nodes_matrix)//
 
- {
+        {
             KRATOS_TRY
             ElementsArrayType& rElements = this_model_part.Elements();
 
@@ -553,8 +532,6 @@ namespace Kratos {
             p_nonoverlapping_partitions->PutScalar(-1.0);
 
             double this_partition_index = double(mrComm.MyPID());
-            //            KRATOS_ERROR(std::logic_error,"aaaaaaaaaaa","")
-
 
             //first of all create a matrix with no overlap
             ElementsArrayType::iterator it_begin = rElements.ptr_begin(); //+element_partition[k];
@@ -630,7 +607,6 @@ namespace Kratos {
                                     if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 237", "");
                                     ierr = used_nodes_matrix->ReplaceGlobalValues(1, &index_i, 1, &index_j, &true_value);
                                     if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 237", "");
-                                    //                        Coord(index_i, index_j) = -2;
                                 }
                             }
                         } //closing the i!=j if
@@ -710,7 +686,6 @@ namespace Kratos {
             int MaxNumEntries = p_edge_ids->MaxNumEntries();
             double * id_values = new double[MaxNumEntries];
             double * partition_values = new double[MaxNumEntries];
-            //double * used_nodes_matrix_row = new double[MaxNumEntries];
             int * Indices = new int[MaxNumEntries];
             int NumEntries;
             int GlobalRow;
@@ -752,7 +727,7 @@ namespace Kratos {
             int number_of_local_nodes = new_model_part.Nodes().size(); // CHANGED from THIS_MODEL_PART to NEW_MODEL_PART. these are the nodes that i have from previous cuts
             int total_number_of_nodes = -1;
             mrComm.SumAll(&number_of_local_nodes, &total_number_of_nodes, 1);
-            KRATOS_WATCH(total_number_of_nodes)
+            //KRATOS_WATCH(total_number_of_nodes)
             if (total_number_of_nodes < 0) total_number_of_nodes = 0; //this means we're in the first cutting plane. 
             mtotal_number_of_existing_nodes = total_number_of_nodes;
             //the ids of the new nodes we will create AND OWN will be between
@@ -805,7 +780,6 @@ namespace Kratos {
             partition_new_nodes.resize(n_new_nonzeros);
             father_node_ids.resize(n_new_nonzeros);
 
-
             int k = 0;
             for (Row = 0; Row < NumMyRows; ++Row) {
                 GlobalRow = p_edge_ids->GRID(Row);
@@ -848,7 +822,7 @@ namespace Kratos {
             delete [] id_values;
             delete [] partition_values;
 
-            KRATOS_WATCH(n_new_nonzeros)
+            //KRATOS_WATCH(n_new_nonzeros)
             KRATOS_CATCH("")
 
         }
@@ -888,10 +862,8 @@ namespace Kratos {
             PointerVector< Node < 3 > > new_nodes;
 
             MPI_Barrier(MPI_COMM_WORLD);
-            if (mrComm.MyPID() == 0) cout << "DONE!!!!!!!!!!" << endl;
             if ((father_node_ids.size())!=0) {
-             for (unsigned int i = 0; i < father_node_ids.size(); i++) {
-                /// calculating the coordinate of the new nodes
+             for (unsigned int i = 0; i < father_node_ids.size(); i++) {  /// calculating the coordinate of the new nodes
 
                 //getting father node 1 
                 const int& node_i = father_node_ids[i][0];
@@ -931,7 +903,7 @@ namespace Kratos {
 		else if (fabs(diff_neigh_value) <  tolerance) weight = 1.0;
                 else weight = fabs(diff_node_value / diff_node_neigh);
 
-                if (weight > 1.05) KRATOS_WATCH("**** something's wrong! weight higher than 1! ****");
+                if (weight > 1.05) weight=1.0; //KRATOS_WATCH("**** something's wrong! weight higher than 1! ****");
 
                 for (unsigned int index = 0; index != 3; ++index) //we loop the 3 coordinates)
                     if (father_node_ids[i][0] != father_node_ids[i][1])
@@ -939,8 +911,6 @@ namespace Kratos {
                     else
                         Coordinate_New_Node[i][index] = Coord_Node_1[index]; //when both nodes are the same it doesnt make any sense to interpolate
  
-                
-                
                 //Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);  //recordar que es el nueevo model part!!
                 Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
                 pnode->SetSolutionStepVariablesList(&(new_model_part.GetNodalSolutionStepVariablesList()));
@@ -959,16 +929,7 @@ namespace Kratos {
                
             }
             new_model_part.Nodes().Sort();
-            /*
-            for (PointerVector<Node < 3 > >::iterator it = new_nodes.begin(); it != new_nodes.end(); it++)
-            {
-               new_model_part.GetMesh(0).Nodes().push_back(*it.base());
-            }
-*/           
             unsigned int current_size = new_model_part.Nodes().size();
-
-            
-            
             new_model_part.Nodes().Unique();
 
             if(current_size != new_model_part.Nodes().size())
@@ -976,7 +937,7 @@ namespace Kratos {
 
 
          }//closing the if we have nodes
-           // else {KRATOS_WATCH("tengo un cero")}
+           // else {KRATOS_WATCH("no nodes here")}
 
             KRATOS_CATCH("")
         }
@@ -989,8 +950,6 @@ namespace Kratos {
         void GenerateElements(
                 ModelPart& this_model_part, ModelPart& new_model_part, vector<int> Elems_In_Plane,
                 const boost::shared_ptr<Epetra_FECrsMatrix> p_edge_ids,
-                //PointerVector< Element >& New_Elements,
-                //bool interpolate_internal_variables
                 int plane_number, int& number_of_triangles,
                 Variable<double>& variable
                 ) {
@@ -1047,8 +1006,6 @@ namespace Kratos {
             if (elements_before < 0) elements_before = 0;
             else elements_before-=number_of_triangles;
 
-                    
-            
             array_1d<double, 3 > gradient;
             for (int j = 0; j < 3; j++) //we reset the value to zero to avoid warnings
                        gradient(j) = 0.0;
@@ -1072,9 +1029,7 @@ namespace Kratos {
                     }
                     
                 }
-                //////////////
 
-                
                 ++current_element;
                 triangle_nodes = 0; //starting, no nodes yet                       
                 ///we enter in the if for only one triangle in the tetraedra
@@ -1138,10 +1093,8 @@ namespace Kratos {
                     Condition::Pointer p_condition = rReferenceCondition.Create(triangle_id_int + 1 + elements_before + total_existing_elements, geom, properties); //creating the element using the reference element. notice we are using the first element to avoid overriting nodes created by other cutting planes
                     new_model_part.Conditions().push_back(p_condition);
                     ++triangle_id_int;
-
-                    
+ 
                 }//closing if  (1 triangle)
-
 
                 ///entering now the if for 2 triangles inside the tetraedra.
                 if (Elems_In_Plane[current_element - 1] == 2) //now we have 2 elements. we cant just create 2 elements with a random node order because they might overlap and not cover the whole area defined by the trapezoid
@@ -1233,7 +1186,7 @@ namespace Kratos {
                         } //closing the if
 
                     }//by the time this finishes i should already have TriangleNodesArray
-                   if (error_bool) {for (int counter = 0; counter != 4; ++counter) KRATOS_WATCH(TriangleNodesArray[counter]); 
+                   if (error_bool) {  //for (int counter = 0; counter != 4; ++counter) KRATOS_WATCH(TriangleNodesArray[counter]); 
                             nodes_for_2triang[0] = TriangleNodesArray[0];
                             nodes_for_2triang[1] = TriangleNodesArray[1];
                             nodes_for_2triang[2] = TriangleNodesArray[2]; //finish first triangle
@@ -1247,7 +1200,7 @@ namespace Kratos {
                         //KRATOS_WATCH(nodes_for_2triang[index * 3 + 0])
                         //KRATOS_WATCH(nodes_for_2triang[index * 3 + 1])
                         //KRATOS_WATCH(nodes_for_2triang[index * 3 + 2])
-                        if (error_bool)KRATOS_WATCH(nodes_for_2triang[index * 3 + 0]);
+                        //if (error_bool)KRATOS_WATCH(nodes_for_2triang[index * 3 + 0]);
                         it_node1 = new_model_part.Nodes().find(nodes_for_2triang[index * 3 + 0]);
                         noalias(temp_vector1) = it_node1->Coordinates(); //node 1
 
@@ -1286,10 +1239,6 @@ namespace Kratos {
 
             }//closing element loops
 
-           
-            //this is not very frequent, but sometimes it can happen that a node is not used by the local mesh, so it has to be deleted to avoid problems:
-            //NodeEraseProcess(new_model_part).Execute();
-            
             KRATOS_CATCH("")
             
             
@@ -1300,7 +1249,7 @@ namespace Kratos {
         /// ************************************************************************************************
 
         void UpdateCutData(ModelPart& new_model_part, ModelPart& old_model_part) {
-            KRATOS_WATCH("Updating Cut Data");
+            if (mrComm.MyPID() == 0) cout <<"Updating cut data:"<<endl;
             int step_data_size = old_model_part.GetNodalSolutionStepDataSize();
 
             //looping the nodes, no data is assigned to elements
@@ -1323,7 +1272,7 @@ namespace Kratos {
 
   	void DeleteCutData(ModelPart& new_model_part) 
 	{
-		 KRATOS_WATCH("Deleting Cut Data");
+		 if (mrComm.MyPID() == 0) cout <<"Deleting cut data:"<<endl;
 		 new_model_part.Nodes().clear();
 		 new_model_part.Conditions().clear();
 		 new_model_part.Elements().clear();
@@ -1375,11 +1324,6 @@ namespace Kratos {
 
 
     };
-
-
-
-
-
 
 
 
