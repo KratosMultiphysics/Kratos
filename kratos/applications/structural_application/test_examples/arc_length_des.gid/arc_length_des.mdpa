@@ -1,0 +1,42 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+
+Begin Properties  1
+DENSITY 0.000000
+YOUNG_MODULUS 0.000000
+POISSON_RATIO 0.000000
+BODY_FORCE [3] (0.000000,0.000000,0.000000)
+THICKNESS 1.000000
+End Properties
+
+
+Begin Nodes
+1           2.50000           0.25000           0.00000
+2           0.00000           0.00000           0.00000
+End Nodes
+
+Begin Elements CrisfieldTrussElement3D2N
+1 1        2        1
+End Elements
+
+
+
+Begin NodalData DISPLACEMENT_X
+1 1 0.000000
+2 1 0.000000
+End NodalData
+
+Begin NodalData DISPLACEMENT_Y
+1 1 0.000000
+2 1 0.000000
+End NodalData
+
+Begin NodalData DISPLACEMENT_Z
+1 1 0.000000
+2 1 0.000000
+End NodalData
+
+
+

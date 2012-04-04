@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/home/nelson/kratos/applications/structural_application/test_examples/arc_length_des.gid/script.py", line 25, in <module>
+    import applications_interface
+ImportError: No module named applications_interface
