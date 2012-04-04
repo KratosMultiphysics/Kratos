@@ -38,14 +38,14 @@ namespace Kratos {
         KRATOS_CLASS_POINTER_DEFINITION(BinsDynamicMpi);
 
 	typedef TreeNode<TDimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
-        typedef TPointType                         PointType;
+	typedef TPointType                         PointType;
 	typedef TContainerType                     ContainerType;
 	typedef TIteratorType                      IteratorType;
 	typedef TDistanceIteratorType              DistanceIteratorType;
 	typedef TPointerType                       PointerType;
 	typedef TDistanceFunction                  DistanceFunction;
 	
-        enum { Dimension = TDimension };
+	enum { Dimension = TDimension };
 
 	typedef typename TreeNodeType::CoordinateType  CoordinateType;  // double
 	typedef typename TreeNodeType::SizeType        SizeType;        // std::size_t
@@ -53,24 +53,22 @@ namespace Kratos {
 
 	typedef TreeNodeType LeafType;
     
-        typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
-        typedef typename TreeNodeType::SearchStructureType SearchStructureType;
-
+	typedef typename TreeNodeType::IteratorIteratorType IteratorIteratorType;
+	typedef typename TreeNodeType::SearchStructureType SearchStructureType;
 
 	// Local Container ( PointPointer Container per Cell )
 	// can be different to ContainerType
-        // not always PointVector == ContainerType ( if ContainerType = C array )
+	// not always PointVector == ContainerType ( if ContainerType = C array )
 	typedef std::vector<PointerType>       PointVector;
 	typedef typename PointVector::iterator PointIterator;
 		
-        // Global Container
+	// Global Container
 	typedef std::vector<PointVector>        CellsContainerType;
-        //typedef typename CellsContainerType::iterator IteratorIteratorType;
+	//typedef typename CellsContainerType::iterator IteratorIteratorType;
 
 	typedef Tvector<IndexType,TDimension>   CellType;
-        
-        typedef Kratos::SearchUtils::SearchNearestInRange<PointType,PointerType,PointIterator,DistanceFunction,CoordinateType> SearchNearestInRange;
-        typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,PointIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
+	typedef Kratos::SearchUtils::SearchNearestInRange<PointType,PointerType,PointIterator,DistanceFunction,CoordinateType> SearchNearestInRange;
+	typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,PointIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
 	typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,TDimension,IteratorType> SearchBoxInRange;
 
 
@@ -150,40 +148,39 @@ namespace Kratos {
         BinsDynamicMpi( ModelPart * StaticMesh, ModelPart * ParticMesh, CoordinateType BoxSize, SizeType BucketSize = 1 )
 //         : mPointBegin(StaticMesh.GetCommunicator().LocalMesh().NodesBegin()), mPointEnd(StaticMesh.GetCommunicator().LocalMesh().NodesEnd())
         {
-	    //Initialize standard dynamic bins structure
-	    IteratorType mPointIterator;
-	   
-	    mPointBegin = new PointType* [StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes()];
-	    mPointEnd = mPointBegin + StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes();
-	    
-	    mPointIterator = mPointBegin;
-	   
-	    std::cout << "Parsing local mesh elements" << std::endl;
-	    for( ModelPart::NodesContainerType::iterator inode = StaticMesh->GetCommunicator().LocalMesh().NodesBegin(); inode != StaticMesh->GetCommunicator().LocalMesh().NodesEnd(); inode++, mPointIterator++)
-	    { 
-		PointType auxPoint;
+			//Initialize standard dynamic bins structure
+			IteratorType mPointIterator;
+			
+			mPointBegin = new PointType* [StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes()];
+			mPointEnd = mPointBegin + StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes();
+			
+			mPointIterator = mPointBegin;
+		  
+			std::cout << "Parsing local mesh elements: " << StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes() << std::endl;
+			for( ModelPart::NodesContainerType::iterator inode = StaticMesh->GetCommunicator().LocalMesh().NodesBegin(); inode != StaticMesh->GetCommunicator().LocalMesh().NodesEnd(); inode++, mPointIterator++)
+			{ 
+				PointType auxPoint;
 
-		auxPoint[0] = inode->X();
-		auxPoint[1] = inode->Y();
-		auxPoint[2] = inode->Z();
+				auxPoint[0] = inode->X();
+				auxPoint[1] = inode->Y();
+				auxPoint[2] = inode->Z();
 
-		(*mPointIterator) = new PointType(auxPoint);
-	    }
-	    
-	    if(mPointBegin==mPointEnd)
-		return;
-	   
-	    mNumPoints = std::distance(mPointBegin,mPointEnd);
-	    CalculateBoundingBox();
-	    CalculateCellSize(BoxSize);
-	    AllocateCellsContainer();
-	    GenerateBins();
-	   
-	    //Set up MPI interface for dynamic bins
-	    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-	    
-	    std::cout << "Initialize done" << std::endl;
+				(*mPointIterator) = new PointType(auxPoint);
+			}
+			
+			if(mPointBegin==mPointEnd)
+			  return;
+		  
+			mNumPoints = std::distance(mPointBegin,mPointEnd);
+			CalculateBoundingBox();
+			CalculateCellSize(BoxSize);
+			AllocateCellsContainer();
+			GenerateBins();
+		  
+			MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+			MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+			
+			std::cout << "Initialize done" << std::endl;
         }
         
         //************************************************************************
@@ -466,51 +463,90 @@ namespace Kratos {
 	 	    if(Found)
 	 	    	ResultNearest = Nearest;
 		}
+	
+		//************************************************************************
 		
-		void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
-             DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SizeType const& ResultsNumberOfResults )
-        {
+		///////////////////////////////////////////////////////////////////////////
+		// MPI Single Input Search 
+		///////////////////////////////////////////////////////////////////////////
+		
+		void MPISingleSearchInRadiusTest() 
+		{
+			//Parameters
+			int NumberOfPoints 	= 5;
+			int MaxNumberOfResults = 5;
+			double Radius		= 0.1f;
+		  
+			//MultiSearch Test
+			PointerType  PointInput = new PointType[NumberOfPoints];
+			IteratorType Results    = new PointerType[MaxNumberOfResults];
+			
+			DistanceIteratorType Distances = new double[MaxNumberOfResults];
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+			{
+				PointType temp;
+
+				temp[0] = (i+1)/NumberOfPoints;
+				temp[1] = (i+1)/NumberOfPoints;
+				temp[2] = 0;
+
+				PointInput[i] = PointType(temp);
+			}
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			int res = MPI_SearchInRadius(PointInput[NumberOfPoints/2], Radius, Results, Distances, MaxNumberOfResults);
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			//Check Results
+// 			for(int i = 0; i < res; i++) 
+// 				std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
+		}
+	
+		SizeType MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults)
+		{
 			CoordinateType Radius2 = Radius * Radius;
 			SizeType NumberOfResults = 0;
-			SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults );
 		   
-//            return NumberOfResults;
-        }
+			return NumberOfResults;
+		}
 
-         //************************************************************************
+		//************************************************************************
 
-//          void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results,
-//              DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
-//          {
-//            CoordinateType Radius2 = Radius * Radius;
-//            SizeType NumberOfResults = 0;
-//            Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
-// //            return NumberOfResults;
-//          }
-// 
-//          //************************************************************************
-// 
-//          void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-//              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
-//          {
-//            SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
-//          }
-// 
-//          //************************************************************************
-// 
-//          void MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-//              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
-//          {
-//            Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-//            SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
-//          }
+// 		SizeType MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results,
+// 			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+// 		{
+// 			CoordinateType Radius2 = Radius * Radius;
+// 			SizeType NumberOfResults = 0;
+// 			Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+// 			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+// 			return NumberOfResults;
+// 		}
+
+		//************************************************************************
+
+// 		SizeType MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+// 			DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+// 		{
+// 			SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+// 			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+// 		}
+
+		//************************************************************************
+
+// 		SizeType MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+// 			DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+// 		{
+// 			Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+// 			SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+// 		}
 
 		void SearchInRadiusMpiWrapper( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
-             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,TDimension>& Box )
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
 		{  
 			PointType remoteThisPoint[mpi_size];
 			PointerType remoteResults[mpi_size][MaxNumberOfResults], recvResults[mpi_size][MaxNumberOfResults];
@@ -552,34 +588,31 @@ namespace Kratos {
 				Serializer recvParticleSerializer;
 				serializer_buffer = (std::stringstream *)recvParticleSerializer.pGetBuffer();
 
-				for(int j = 0; mpi_recv_buffer[(msgRecvSize+1)*i+j] != '\0'; j++) 
+				for(size_t j = 0; mpi_recv_buffer[(msgRecvSize+1)*i+j] != '\0'; j++) 
 				{
 					(*serializer_buffer) << mpi_recv_buffer[(msgRecvSize+1)*i+j];
 				}
 
 				remoteNumberOfResults[i] = 0;
 				
-				std::cout << "Restoring Point" << std::endl;
+// 				std::cout << "Restoring Point" << std::endl;
 
 				recvParticleSerializer.load("nodes",remoteThisPoint[i]);
 					
-				std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ")" << std::endl;
+// 				std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ")" << std::endl;
 
+				SearchStructureType Box( CalculateCell(remoteThisPoint[i],-Radius), CalculateCell(remoteThisPoint[i],Radius), mN );
 				SearchInRadiusLocal(remoteThisPoint[i],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i],MaxNumberOfResults,Box);
 
-				std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i] << std::endl;
+// 				std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoint[i].X() << " " << remoteThisPoint[i].Y() << " " << remoteThisPoint[i].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i] << std::endl;
 
-				for(int j = 0; j < remoteNumberOfResults[i]; j++)
+				for(size_t j = 0; j < remoteNumberOfResults[i]; j++)
 				{
 					std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j]) << " " << remoteResultsDistances[i][j] << std::endl;	
 				}
 			}
 			
-			std::cout << "(" << mpi_rank << ") Send Back Results " << std::endl;
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			// 	SEND BACK RESULTS 																		//
-			//////////////////////////////////////////////////////////////////////////////////////////////
+// 			std::cout << "(" << mpi_rank << ") Send Back Results " << std::endl;
 
 			std::stringstream * res_serializer_buffer[mpi_size][MaxNumberOfResults];
 			std::string message[mpi_size][MaxNumberOfResults];
@@ -587,7 +620,7 @@ namespace Kratos {
 	
 			for(int i = 0; i < mpi_size; i++) 
 			{
-				for(int j = 0; j < remoteNumberOfResults[i]; j++) 
+				for(size_t j = 0; j < remoteNumberOfResults[i]; j++) 
 				{
 					Serializer resSerializer;
 					resSerializer.save("nodes",remoteResults[i][j]);
@@ -602,30 +635,30 @@ namespace Kratos {
 			
 			MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
 			
-			std::cout << "(" << mpi_rank << ") Results Prepared " << std::endl;
+// 			std::cout << "(" << mpi_rank << ") Results Prepared " << std::endl;
 			
 			char mpi_res_send_buffer[((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults)];
 			char mpi_res_recv_buffer[((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults)];
 			
-			std::cout << "(" << mpi_rank << ") Buffers allocated " << std::endl;
+// 			std::cout << "(" << mpi_rank << ") Buffers allocated " << std::endl;
 			
 			for(int i = 0; i < mpi_size; i++) 
 			{
 				messageSendNumberOfResults[i] = remoteNumberOfResults[i];
-				for(int j = 0; j < remoteNumberOfResults[i]; j++) 
+				for(size_t j = 0; j < remoteNumberOfResults[i]; j++) 
 				{
 					strcpy(&mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j], message[i][j].c_str());
 					mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j+bufferSize[i][j]] = '\0';
 				}
 			}
 			
-			std::cout << "(" << mpi_rank << ") Buffers Filled: " <<  ((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults) * sizeof(char)<< std::endl;
+// 			std::cout << "(" << mpi_rank << ") Buffers Filled: " <<  ((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults) * sizeof(char)<< std::endl;
 
 			MPI_Alltoall(mpi_res_send_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,mpi_res_recv_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,MPI_COMM_WORLD);
 			MPI_Alltoall(messageSendNumberOfResults,1,MPI_INT,messageRecvNumberOfResults,1,MPI_INT,MPI_COMM_WORLD);
 			MPI_Alltoall(remoteResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,recvResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,MPI_COMM_WORLD);
 			
-			std::cout << "(" << mpi_rank << ") Number Of Results: " << messageRecvNumberOfResults[0] << " " << messageRecvNumberOfResults[1] << std::endl;
+// 			std::cout << "(" << mpi_rank << ") Number Of Results: " << messageRecvNumberOfResults[0] << " " << messageRecvNumberOfResults[1] << std::endl;
 			
 			for (int i = 0; i < mpi_size; i++)
 			{
@@ -642,26 +675,225 @@ namespace Kratos {
 					recvResults[i][j] = new PointType();
 					recvResParticleSerializer.load("nodes",recvResults[i][j]);
 
-					std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << recvResults[i][j]->X() << " " << recvResults[i][j]->Y() << " " << recvResults[i][j]->Z() << ") with dist: " << recvResultsDistances[i][j] << std::endl;
+// 					std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << recvResults[i][j]->X() << " " << recvResults[i][j]->Y() << " " << recvResults[i][j]->Z() << ") with dist: " << recvResultsDistances[i][j] << std::endl;
+				}
+			}
+		}
+		
+		///////////////////////////////////////////////////////////////////////////
+		// MPI Single Input END
+		///////////////////////////////////////////////////////////////////////////
+		
+		///////////////////////////////////////////////////////////////////////////
+		// MPI Multiple Input Search 
+		///////////////////////////////////////////////////////////////////////////
+		
+		void MPIMultiSearchInRadiusTest() 
+		{
+			//Parameters
+			int NumberOfPoints 		= 5;
+			int MaxNumberOfResults 	= 5;
+			double Radius			= 0.1f;
+		  
+			//MultiSearch Test
+			PointerType  PointInput = new PointType[NumberOfPoints];
+			IteratorType Results    = new PointerType[MaxNumberOfResults];
+			
+			DistanceIteratorType Distances = new double[MaxNumberOfResults];
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+			{
+				PointType temp;
+
+				temp[0] = (double)(i+1)/(double)NumberOfPoints;
+				temp[1] = (double)(i+1)/(double)NumberOfPoints;
+				temp[2] = 0;
+
+				PointInput[i] = PointType(temp);
+			}
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			int res = MPI_SearchInRadius(PointInput, NumberOfPoints, Radius, Results, Distances, MaxNumberOfResults);
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			//Check Results
+// 			for(int i = 0; i < res; i++) 
+// 				std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
+		}
+	
+		SizeType MPI_SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, IteratorType Results, 
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults)
+		{
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			
+			SearchInRadiusMpiWrapper( ThisPoints, NumberOfPoints, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults );
+		   
+			return NumberOfResults;
+		}
+
+		void SearchInRadiusMpiWrapper( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+		{  
+			PointType remoteThisPoints[mpi_size][NumberOfPoints];
+			PointerType remoteResults[mpi_size][NumberOfPoints][MaxNumberOfResults], recvResults[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			double remoteResultsDistances[mpi_size][NumberOfPoints][MaxNumberOfResults], recvResultsDistances[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			int messageSendNumberOfResults[mpi_size][NumberOfPoints], messageRecvNumberOfResults[mpi_size][NumberOfPoints];
+			int thisPointsSerializedSize[NumberOfPoints];
+			SizeType remoteNumberOfResults[mpi_size][NumberOfPoints];
+
+			int msgSendSize = 0;
+			int msgRecvSize = 0;
+
+			int msgResSendSize = 0;
+			int msgResRecvSize = 0;
+			
+			std::stringstream * serializer_buffer[NumberOfPoints];
+			std::string message[NumberOfPoints];
+			int bufferSize[NumberOfPoints];
+			
+			for(int i = 0; i < 5; i++) 
+			{
+				Serializer particleSerializer;
+				const PointType& ThisPoint = ThisPoints[i];
+				
+				particleSerializer.save("nodes",&ThisPoint);
+				
+				serializer_buffer[i] = (std::stringstream *)particleSerializer.pGetBuffer();
+				thisPointsSerializedSize[i] = serializer_buffer[i]->str().size();
+				message[i] = std::string(serializer_buffer[i]->str().c_str());
+				msgSendSize = msgSendSize > serializer_buffer[i]->str().size() ? msgSendSize : serializer_buffer[i]->str().size();
+			}
+
+			MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+			
+			char mpi_send_buffer[(msgRecvSize+1) * NumberOfPoints];
+			char mpi_recv_buffer[(msgRecvSize+1) * NumberOfPoints * mpi_size];
+			
+			for(size_t i = 0; i < NumberOfPoints; i++) 
+			{
+				strcpy(&mpi_send_buffer[(msgRecvSize + 1)*i], message[i].c_str());
+				mpi_send_buffer[(msgRecvSize + 1)*(i+1)-1] = '\0';
+			}
+			
+			MPI_Allgather(mpi_send_buffer,(msgRecvSize+1)*NumberOfPoints,MPI_CHAR,mpi_recv_buffer,(msgRecvSize+1)*NumberOfPoints,MPI_CHAR,MPI_COMM_WORLD);
+			
+			for(int i = 0; i < mpi_size; i++) 
+			{
+				size_t k = 0;
+				for(int j = 0; j < NumberOfPoints; j++) 
+				{
+					Serializer recvParticleSerializer;
+					serializer_buffer[0] = (std::stringstream *)recvParticleSerializer.pGetBuffer();
+
+					for(; mpi_recv_buffer[(msgRecvSize+1)*NumberOfPoints*i+k] != '\0'; k++) 
+						(*serializer_buffer[0]) << mpi_recv_buffer[(msgRecvSize+1)*NumberOfPoints*i+k];
+					k++;
+					
+// 					std::cout << "Restoring Point" << std::endl;
+					
+					PointerType test_t = &remoteThisPoints[i][j];
+					recvParticleSerializer.load("nodes",test_t);
+					
+// 					std::cout << "(" << mpi_rank << ")" << " test_pr: " << "(" << test_p.X() << " " << test_p.Y() << " " << test_p.Z() << ")" << std::endl;
+				
+				  	IteratorType remoteResultsPointer = &remoteResults[i][j][0];
+					double * remoteResultsDistancesPointer = remoteResultsDistances[i][j];
+					
+					remoteNumberOfResults[i][j] = 0;
+					
+// 					std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ")" << std::endl;
+
+					SearchStructureType Box( CalculateCell(remoteThisPoints[i][j],-Radius), CalculateCell(remoteThisPoints[i][j],Radius), mN );
+					SearchInRadiusLocal(remoteThisPoints[i][j],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
+
+					std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i][j] << std::endl;
+
+					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++)
+					{
+						std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j][k]) << " " << remoteResultsDistances[i][j][k] << std::endl;	
+					}
+				}
+			}
+
+			std::stringstream * res_serializer_buffer[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			std::string res_message[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			int res_bufferSize[mpi_size][NumberOfPoints][MaxNumberOfResults];
+	
+			for(int i = 0; i < mpi_size; i++) 
+			{
+				for(size_t j = 0; j < NumberOfPoints; j++)
+				{
+					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
+					{
+						Serializer resSerializer;
+						resSerializer.save("nodes",remoteResults[i][j][k]);
+						  
+						res_serializer_buffer[i][j][k] = (std::stringstream *)resSerializer.pGetBuffer();
+						res_message[i][j][k] = std::string(res_serializer_buffer[i][j][k]->str().c_str());
+						res_bufferSize[i][j][k] = res_serializer_buffer[i][j][k]->str().size();
+						
+						msgResSendSize = msgResSendSize > res_bufferSize[i][j][k] ? msgResSendSize : res_bufferSize[i][j][k];
+					}
 				}
 			}
 			
-			//////////////////////////////////////////////////////////////////////////////////////////////
-			// 	RESULT REDUCTION 																		//
-			//////////////////////////////////////////////////////////////////////////////////////////////
-		   
-		}
-         
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////
+			MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
+			
+// 			std::cout << "(" << mpi_rank << ") Results Prepared, size: " << msgResRecvSize << std::endl;
+			
+			char mpi_res_send_buffer[((msgResRecvSize + 1) * mpi_size * NumberOfPoints * MaxNumberOfResults)];
+			char mpi_res_recv_buffer[((msgResRecvSize + 1) * mpi_size * NumberOfPoints * MaxNumberOfResults)];
+			
+// 			std::cout << "(" << mpi_rank << ") Buffers allocated " << std::endl;
+			
+			for(int i = 0; i < mpi_size; i++) 
+			{
+				for(size_t j = 0; j < NumberOfPoints; j++)
+				{
+				  	messageSendNumberOfResults[i][j] = remoteNumberOfResults[i][j];//remoteNumberOfResults[i][j];
+					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
+					{
+						strcpy(&mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*MaxNumberOfResults*j+(msgResRecvSize + 1)*k], res_message[i][j][k].c_str());
+						mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*MaxNumberOfResults*j+(msgResRecvSize + 1)*k+res_bufferSize[i][j][k]] = '\0';
+					}
+				}
+			}
 
-        ////////////////////////////////////////////////////////////////////////////
-        //// LOCAL FUCNTIONS	(own domain)									////
-        ////////////////////////////////////////////////////////////////////////////
+			MPI_Alltoall(mpi_res_send_buffer,((msgResRecvSize+1) * MaxNumberOfResults * NumberOfPoints),MPI_CHAR,mpi_res_recv_buffer,((msgResRecvSize+1) * MaxNumberOfResults * NumberOfPoints),MPI_CHAR,MPI_COMM_WORLD);
+			MPI_Alltoall(messageSendNumberOfResults,NumberOfPoints,MPI_INT,messageRecvNumberOfResults,NumberOfPoints,MPI_INT,MPI_COMM_WORLD);
+// 			MPI_Alltoall(remoteResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,recvResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,MPI_COMM_WORLD);
+			
+			for (int i = 0; i < mpi_size; i++)
+			{
+				for(int j = 0; j < NumberOfPoints; j++)
+				{
+					std::cout << "(" << mpi_rank << ") Number Of Results: " << messageRecvNumberOfResults[i][j] << std::endl;
+					for(int k = 0; k < messageRecvNumberOfResults[i][j]; k++)
+					{
+						Serializer recvResParticleSerializer;
+						serializer_buffer[0] = (std::stringstream *)recvResParticleSerializer.pGetBuffer();
+				
+						size_t buffer_index = (msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*NumberOfPoints*j+(msgResRecvSize + 1)*k;
+						for(int l = 0; mpi_res_recv_buffer[buffer_index+l] != '\0'; l++) 
+						{
+							(*serializer_buffer[0]) << mpi_res_recv_buffer[buffer_index+l];
+						}
+				
+						recvResults[i][j][k] = new PointType();
+						recvResParticleSerializer.load("nodes",recvResults[i][j][k]);
+
+						std::cout << "(" << mpi_rank << ") Result point " << ThisPoints[j] << " from process (" << i << "): (" << recvResults[i][j][k]->X() << " " << recvResults[i][j][k]->Y() << " " << recvResults[i][j][k]->Z() << ") with dist: " << "NYI"/*recvResultsDistances[i][j][k]*/ << std::endl;
+					}
+				}
+			}
+		}
+
+		///////////////////////////////////////////////////////////////////////////
+		// MPI END Multi Input End
+		///////////////////////////////////////////////////////////////////////////
 
         PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
         {
@@ -675,141 +907,147 @@ namespace Kratos {
            return this->NullPointer();
         }
 
-         //************************************************************************
+        //************************************************************************
          
-         PointerType SearchNearestPoint( PointType const& ThisPoint )
-         {
-           if( mPointBegin == mPointEnd )
-             return this->NullPointer();
+		PointerType SearchNearestPoint( PointType const& ThisPoint )
+		{
+			if( mPointBegin == mPointEnd )
+				return this->NullPointer();
 
            PointerType Result            = *mPointBegin;
            CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
            SearchStructureType Box( CalculateCell(ThisPoint), mN );
            SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box );
+		   
            return Result;
-         }
+		}
          
-         //************************************************************************
+        //************************************************************************
          
-         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType ResultDistance )
-         {
-           if( mPointBegin == mPointEnd )
-             return this->NullPointer();
+		PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType ResultDistance )
+		{
+			if( mPointBegin == mPointEnd )
+				return this->NullPointer();
 
-           PointerType Result = *mPointBegin;
-           ResultDistance     = static_cast<CoordinateType>(DBL_MAX);
-           SearchStructureType Box( CalculateCell(ThisPoint), mN );
-           SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box);
-           return Result;
-         }
+			PointerType Result = *mPointBegin;
+			ResultDistance     = static_cast<CoordinateType>(DBL_MAX);
+			SearchStructureType Box( CalculateCell(ThisPoint), mN );
+			SearchNearestPointLocal( ThisPoint, Result, ResultDistance, Box);
+			
+			return Result;
+		}
 
-         //************************************************************************
+		//************************************************************************
 
-         // New Thread Safe!!!
-         PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
-         {
-           PointerType Result = *mPointBegin; //static_cast<PointerType>(NULL);
-           rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
-           Box.Set( CalculateCell(ThisPoint), mN );
-           SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
-           return Result;
-         }
+		// New Thread Safe!!!
+		PointerType SearchNearestPoint( PointType const& ThisPoint, CoordinateType& rResultDistance, SearchStructureType& Box )
+		{
+			PointerType Result = *mPointBegin; //static_cast<PointerType>(NULL);
+			rResultDistance    = static_cast<CoordinateType>(DBL_MAX);
+			Box.Set( CalculateCell(ThisPoint), mN );
+			SearchNearestPointLocal( ThisPoint, Result, rResultDistance, Box);
+			
+			return Result;
+		}
+        
+		//************************************************************************
+
+		void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
+		{
+			SearchStructureType Box;
+			Box.Set( CalculateCell(ThisPoint), mN );
+			SearchNearestPointLocal(ThisPoint,rResult,rResultDistance,Box);
+		}
+
+		//************************************************************************
+
+		void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
+		{
+			// This case is when BinStatic is a LeafType in Other Spacial Structure
+			// Then, it is possible a better Result before this search
+			Box.Set( CalculateCell(ThisPoint), mN );
+			SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
+		}
+
+        //************************************************************************
+
+		void SearchNearestPointLocal( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
+		{
+			if( mPointBegin == mPointEnd )
+				return;
+
+			bool Found = false;
+
+			// set mBox
+			Box.Set( CalculateCell(ThisPoint), mN );
+
+			// initial search
+			++Box;
+			SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
+			// increase mBox and try again
+			while(!Found)
+			{
+				++Box;
+				SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
+			}
+		}
+
+        //************************************************************************
          
-         //************************************************************************
+        SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults )
+		{
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+			SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+			
+			return NumberOfResults;
+		}
 
-         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance )
-         {
-           SearchStructureType Box;
-           Box.Set( CalculateCell(ThisPoint), mN );
-           SearchNearestPointLocal(ThisPoint,rResult,rResultDistance,Box);
+		//************************************************************************
+
+		SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results,
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+		{
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+			SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+			
+			return NumberOfResults;
          }
 
          //************************************************************************
 
-         void SearchNearestPoint( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
-         {
-           // This case is when BinStatic is a LeafType in Other Spacial Structure
-           // Then, it is possible a better Result before this search
-           Box.Set( CalculateCell(ThisPoint), mN );
-           SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
-         }
+		void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+			DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+		{
+			SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+			SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+		}
 
-         //************************************************************************
+		//************************************************************************
 
-         void SearchNearestPointLocal( PointType const& ThisPoint, PointerType& rResult, CoordinateType& rResultDistance, SearchStructureType& Box )
-         {
-           if( mPointBegin == mPointEnd )
-             return;
+		void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+			DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
+		{
+			Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+			SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+		}
 
-           bool Found = false;
+		//************************************************************************
 
-           // set mBox
-           Box.Set( CalculateCell(ThisPoint), mN );
+		// **** THREAD SAFE
 
-           // initial search
-           ++Box;
-           SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
-           // increase mBox and try again
-           while(!Found){
-             ++Box;
-             SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
-           }
-         }
-
-         //************************************************************************
-         
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
-             DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults )
-         {
-           CoordinateType Radius2 = Radius * Radius;
-           SizeType NumberOfResults = 0;
-           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
-           return NumberOfResults;
-         }
-
-         //************************************************************************
-
-         SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results,
-             DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
-         {
-           CoordinateType Radius2 = Radius * Radius;
-           SizeType NumberOfResults = 0;
-           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
-           return NumberOfResults;
-         }
-
-         //************************************************************************
-
-         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
-         {
-           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
-         }
-
-         //************************************************************************
-
-         void SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Box )
-         {
-           Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
-         }
-
-         //************************************************************************
-
-         // **** THREAD SAFE
-
-         // Dimension = 1
-         void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-             DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
-             SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
-         {
-           for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
-             SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
-         }
+		// Dimension = 1
+		void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
+			DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+			SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+		{
+			for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+				SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+		}
 
          // Dimension = 2
          void SearchInRadiusLocal( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
@@ -831,16 +1069,169 @@ namespace Kratos {
                for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
                  SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
 		 }
+		   
+         //************************************************************************
+         
+		///////////////////////////////////////////////////////////////////////////
+		// Multiple Input Search 
+		///////////////////////////////////////////////////////////////////////////
+		
+		void MultiSearchInRadiusTest() 
+		{
+			//Parameters
+			int NumberOfPoints 	= 5;
+			int NumberOfResults = 5;
+			double Radius		= 0.1f;
+		  
+			//MultiSearch Test
+			PointerType  PointInput = new PointType[NumberOfPoints];
+			IteratorType Results    = new PointerType[NumberOfPoints * NumberOfResults];
+			
+			DistanceIteratorType Distances = new double[NumberOfPoints  * NumberOfResults];
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+			{
+				PointType temp;
 
+				temp[0] = (i+1)/NumberOfPoints;
+				temp[1] = (i+1)/NumberOfPoints;
+				temp[2] = 0;
+
+				PointInput[i] = PointType(temp);
+			}
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			int res = SearchInRadius(PointInput, NumberOfPoints, Radius, Results, Distances, NumberOfResults);
+			
+			MPI_Barrier(MPI_COMM_WORLD);
+			
+			//Check Results
+			for(int i = 0; i < res; i++) 
+				std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
+		}
+ 
+		SizeType SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, IteratorType Results, 
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults )
+		{
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			SearchStructureType Box[NumberOfPoints];
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+				Box[i] = SearchStructureType( CalculateCell(ThisPoints[i],-Radius), CalculateCell(ThisPoints[i],Radius), mN );
+			
+			SearchInRadiusLocal( ThisPoints, NumberOfPoints, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+			
+			return NumberOfResults;
+		}
+
+		//************************************************************************
+
+		SizeType SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, IteratorType Results,
+			DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults, SearchStructureType Box[] )
+		{
+			CoordinateType Radius2 = Radius * Radius;
+			SizeType NumberOfResults = 0;
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+				Box[i].Set( CalculateCell(ThisPoints[i],-Radius), CalculateCell(ThisPoints[i],Radius), mN );
+			
+			SearchInRadiusLocal( ThisPoints, NumberOfPoints, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box );
+			return NumberOfResults;
+		}
+
+		//************************************************************************
+
+		void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, 
+			IteratorType& Results, DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
+		{
+			SearchStructureType Box[NumberOfPoints];
+			
+			for(int i = 0; i < NumberOfPoints; i++) 
+				Box[i] = SearchStructureType( CalculateCell(ThisPoints[i],-Radius), CalculateCell(ThisPoints[i],Radius), mN );
+			
+			SearchInRadiusLocal( ThisPoints, NumberOfPoints, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+		}
+
+		//************************************************************************
+
+		void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, 
+			IteratorType& Results, DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType Box[] )
+		{
+			for(int i = 0; i < NumberOfPoints; i++) 
+				Box[i].Set( CalculateCell(ThisPoints[i],-Radius), CalculateCell(ThisPoints[i],Radius), mN );
+			SearchInRadiusLocal( ThisPoints, NumberOfPoints, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
+		}
+
+		//************************************************************************
+
+		// Dimension = 1
+		void SearchInRadiusLocal( PointerType const& ThisPoint, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, 
+			IteratorType& Results, DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+			SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+		{
+			for(int i = 0; i < NumberOfPoints; i++)
+			{
+			  	SizeType thisNumberOfResults = 0;
+				IteratorType ResulPointer = &Results[NumberOfResults];
+				DistanceIteratorType ResultsDistancesPointer = &ResultsDistances[NumberOfResults];
+				for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+					SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+				NumberOfResults += thisNumberOfResults;
+			}
+		}
+
+		// Dimension = 2
+		void SearchInRadiusLocal( PointerType const& ThisPoint, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, 
+			IteratorType& Results, DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+			SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+		{
+		  	for(int i = 0; i < NumberOfPoints; i++)
+			{
+				SizeType thisNumberOfResults = 0;
+				IteratorType ResulPointer = &Results[NumberOfResults];
+				DistanceIteratorType ResultsDistancesPointer = &ResultsDistances[NumberOfResults];
+				for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+					for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+						SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint,Radius2,Results,ResultsDistances,NumberOfResults,MaxNumberOfResults);
+				NumberOfResults += thisNumberOfResults;
+			}
+		}
+
+		// Dimension = 3
+		void SearchInRadiusLocal( PointerType const& ThisPoint, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, 
+			IteratorType& Results, DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults,
+			SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3> * const& Box )
+		{
+			for(int i = 0; i < NumberOfPoints; i++)
+			{
+				SizeType thisNumberOfResults = 0;
+				IteratorType ResulPointer = &Results[NumberOfResults];
+				DistanceIteratorType ResultsDistancesPointer = &ResultsDistances[NumberOfResults];
+				for(IndexType III = Box[i].Axis[2].Begin() ; III <= Box[i].Axis[2].End() ; III += Box[i].Axis[2].Block )
+					for(IndexType II = III + Box[i].Axis[1].Begin() ; II <= III + Box[i].Axis[1].End() ; II += Box[i].Axis[1].Block )
+						for(IndexType I = II + Box[i].Axis[0].Begin() ; I <= II + Box[i].Axis[0].End() ; I += Box[i].Axis[0].Block )
+							SearchRadiusInRange()(mPoints[I].begin(),mPoints[I].end(),ThisPoint[i],Radius2,ResulPointer,ResultsDistancesPointer,thisNumberOfResults,MaxNumberOfResults);
+
+/*				std::cout << "(" << mpi_rank << ")" << ThisPoint[i] << "\tNOR\t" << thisNumberOfResults << std::endl;*/ 
+				NumberOfResults += thisNumberOfResults;
+			}
+		}         
+		 	 
+		///////////////////////////////////////////////////////////////////////////
+		// Thread Safe ?
+		///////////////////////////////////////////////////////////////////////////
+		        
          //************************************************************************
          
          SizeType SearchInRadius( PointType const& ThisPoint, CoordinateType Radius, IteratorType Results, SizeType MaxNumberOfResults )
          {
-           CoordinateType Radius2 = Radius * Radius;
-           SizeType NumberOfResults = 0;
-           SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
-           SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
-           return NumberOfResults;
+		  CoordinateType Radius2 = Radius * Radius;
+		  SizeType NumberOfResults = 0;
+		  SearchStructureType Box( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
+		  SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Box );
+		  return NumberOfResults;
          }
 
          //************************************************************************
@@ -1046,8 +1437,8 @@ namespace Kratos {
 
     private:
 
-         IteratorType     mPointBegin;
-         IteratorType     mPointEnd;
+         IteratorType mPointBegin;
+         IteratorType mPointEnd;
          
          Tvector<CoordinateType,TDimension>  mMinPoint;
          Tvector<CoordinateType,TDimension>  mMaxPoint;
