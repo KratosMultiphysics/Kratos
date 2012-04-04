@@ -141,7 +141,7 @@ namespace Kratos
 	  while(is_converged ==false &&   ++iter < max )
 	  {                    
  	      //STEP1
-	      #pragma omp parallel for shared(alfa_damp, mid_time_step, CurrentProcessInfo)
+	      #pragma omp parallel for //shared(alfa_damp, mid_time_step, CurrentProcessInfo)
 	      for(int k=0; k<number_of_threads; k++)
 	      {
 		ConditionsContainerType::iterator it_begin = end_previos + condition_partition[k];
