@@ -1,0 +1,19 @@
+BeginZE /home/nelson/kratos/applications/structural_application/test_examples/cantilever3d.gid/cantilever3d.vv
+   x -1.32778 1.21173
+   y 0.571958 -0.521955
+   z -2.13561 1.14613
+   e 0.546957
+   v -0.431749 -0.323588 -0.660013
+   r 0.522749
+   m -0.0806537 0.96946 0.231609 0 -0.410624 -0.244049 0.878537 0 0.908231 -0.0242469 0.417767 0 0 0 0 1
+   c -0.0580253 0.0250012 0.494741
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 1
+   LightVector 3.7054 116.722 83.0551 0
+EndZE /home/nelson/kratos/applications/structural_application/test_examples/cantilever3d.gid/cantilever3d.vv
+
