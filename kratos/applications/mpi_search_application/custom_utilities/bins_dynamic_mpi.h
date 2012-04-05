@@ -705,8 +705,12 @@ namespace Kratos {
 			{
 				PointType temp;
 
-				temp[0] = (double)(i+1)/(double)NumberOfPoints;
-				temp[1] = (double)(i+1)/(double)NumberOfPoints;
+// 				temp[0] = (double)(i+1)/(double)NumberOfPoints;
+// 				temp[1] = (double)(i+1)/(double)NumberOfPoints;
+// 				temp[2] = 0;
+				
+				temp[0] = 0.5;
+				temp[1] = 0.5;
 				temp[2] = 0;
 
 				PointInput[i] = PointType(temp);
@@ -738,8 +742,11 @@ namespace Kratos {
              DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
 		{  
 			PointType remoteThisPoints[mpi_size][NumberOfPoints];
-			PointerType remoteResults[mpi_size][NumberOfPoints][MaxNumberOfResults], recvResults[mpi_size][NumberOfPoints][MaxNumberOfResults];
 			double remoteResultsDistances[mpi_size][NumberOfPoints][MaxNumberOfResults], recvResultsDistances[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			
+			vector<vector<vector<PointerType> > > remoteResults(mpi_size, vector<vector<PointerType> >(NumberOfPoints, vector<PointerType>(MaxNumberOfResults)));
+			vector<vector<vector<PointerType> > > recvResults  (mpi_size, vector<vector<PointerType> >(NumberOfPoints, vector<PointerType>(MaxNumberOfResults)));
+												
 			int messageSendNumberOfResults[mpi_size][NumberOfPoints], messageRecvNumberOfResults[mpi_size][NumberOfPoints];
 			int thisPointsSerializedSize[NumberOfPoints];
 			SizeType remoteNumberOfResults[mpi_size][NumberOfPoints];
@@ -791,101 +798,70 @@ namespace Kratos {
 					for(; mpi_recv_buffer[(msgRecvSize+1)*NumberOfPoints*i+k] != '\0'; k++) 
 						(*serializer_buffer[0]) << mpi_recv_buffer[(msgRecvSize+1)*NumberOfPoints*i+k];
 					k++;
-					
-// 					std::cout << "Restoring Point" << std::endl;
-					
+
 					PointerType test_t = &remoteThisPoints[i][j];
 					recvParticleSerializer.load("nodes",test_t);
-					
-// 					std::cout << "(" << mpi_rank << ")" << " test_pr: " << "(" << test_p.X() << " " << test_p.Y() << " " << test_p.Z() << ")" << std::endl;
-				
+
 				  	IteratorType remoteResultsPointer = &remoteResults[i][j][0];
 					double * remoteResultsDistancesPointer = remoteResultsDistances[i][j];
 					
 					remoteNumberOfResults[i][j] = 0;
-					
-// 					std::cout << "(" << mpi_rank << ")" << " Restored Par: " << "(" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ")" << std::endl;
 
 					SearchStructureType Box( CalculateCell(remoteThisPoints[i][j],-Radius), CalculateCell(remoteThisPoints[i][j],Radius), mN );
 					SearchInRadiusLocal(remoteThisPoints[i][j],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
-
-					std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i][j] << std::endl;
-
-					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++)
-					{
-						std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j][k]) << " " << remoteResultsDistances[i][j][k] << std::endl;	
-					}
 				}
 			}
 
-			std::stringstream * res_serializer_buffer[mpi_size][NumberOfPoints][MaxNumberOfResults];
-			std::string res_message[mpi_size][NumberOfPoints][MaxNumberOfResults];
-			int res_bufferSize[mpi_size][NumberOfPoints][MaxNumberOfResults];
+			std::stringstream * res_serializer_buffer[mpi_size];
+			std::string res_message[mpi_size];
+			int res_bufferSize[mpi_size];
 	
-			for(int i = 0; i < mpi_size; i++) 
+			for(int i = 0; i < mpi_size; i++)
 			{
-				for(size_t j = 0; j < NumberOfPoints; j++)
-				{
-					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
-					{
-						Serializer resSerializer;
-						resSerializer.save("nodes",remoteResults[i][j][k]);
-						  
-						res_serializer_buffer[i][j][k] = (std::stringstream *)resSerializer.pGetBuffer();
-						res_message[i][j][k] = std::string(res_serializer_buffer[i][j][k]->str().c_str());
-						res_bufferSize[i][j][k] = res_serializer_buffer[i][j][k]->str().size();
-						
-						msgResSendSize = msgResSendSize > res_bufferSize[i][j][k] ? msgResSendSize : res_bufferSize[i][j][k];
-					}
-				}
+				Serializer resSerializer;
+				resSerializer.save("nodes",remoteResults[i]);
+				  
+				res_serializer_buffer[i] = (std::stringstream *)resSerializer.pGetBuffer();
+				res_message[i] = std::string(res_serializer_buffer[i]->str().c_str());
+				res_bufferSize[i] = res_serializer_buffer[i]->str().size();
+				
+				msgResSendSize = msgResSendSize > res_bufferSize[i] ? msgResSendSize : res_bufferSize[i];
 			}
 			
 			MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-			
-// 			std::cout << "(" << mpi_rank << ") Results Prepared, size: " << msgResRecvSize << std::endl;
-			
-			char mpi_res_send_buffer[((msgResRecvSize + 1) * mpi_size * NumberOfPoints * MaxNumberOfResults)];
-			char mpi_res_recv_buffer[((msgResRecvSize + 1) * mpi_size * NumberOfPoints * MaxNumberOfResults)];
-			
-// 			std::cout << "(" << mpi_rank << ") Buffers allocated " << std::endl;
-			
-			for(int i = 0; i < mpi_size; i++) 
-			{
-				for(size_t j = 0; j < NumberOfPoints; j++)
-				{
-				  	messageSendNumberOfResults[i][j] = remoteNumberOfResults[i][j];//remoteNumberOfResults[i][j];
-					for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
-					{
-						strcpy(&mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*MaxNumberOfResults*j+(msgResRecvSize + 1)*k], res_message[i][j][k].c_str());
-						mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*MaxNumberOfResults*j+(msgResRecvSize + 1)*k+res_bufferSize[i][j][k]] = '\0';
-					}
-				}
-			}
 
-			MPI_Alltoall(mpi_res_send_buffer,((msgResRecvSize+1) * MaxNumberOfResults * NumberOfPoints),MPI_CHAR,mpi_res_recv_buffer,((msgResRecvSize+1) * MaxNumberOfResults * NumberOfPoints),MPI_CHAR,MPI_COMM_WORLD);
+			char mpi_res_send_buffer[(msgResRecvSize+1) * mpi_size];
+			char mpi_res_recv_buffer[(msgResRecvSize+1) * mpi_size];
+
+			for(int i = 0; i < mpi_size; i++)
+			{
+				strcpy(&mpi_res_send_buffer[(msgResRecvSize+1)*i],res_message[i].c_str());
+				mpi_res_send_buffer[(msgResRecvSize+1)*i+res_bufferSize[i]] = '\0';
+				
+				for(int j = 0; j < NumberOfPoints; j++)
+					messageSendNumberOfResults[i][j] = remoteNumberOfResults[i][j];
+			}
+			
+			MPI_Alltoall(mpi_res_send_buffer,(msgResRecvSize+1),MPI_CHAR,mpi_res_recv_buffer,(msgResRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
 			MPI_Alltoall(messageSendNumberOfResults,NumberOfPoints,MPI_INT,messageRecvNumberOfResults,NumberOfPoints,MPI_INT,MPI_COMM_WORLD);
 // 			MPI_Alltoall(remoteResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,recvResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,MPI_COMM_WORLD);
 			
-			for (int i = 0; i < mpi_size; i++)
+			for (int i = 0; i < 1; i++)
 			{
+				Serializer recvResParticleSerializer;
+				serializer_buffer[0] = (std::stringstream *)recvResParticleSerializer.pGetBuffer();
+				
+				for(int l = (msgResRecvSize+1)*i; mpi_res_recv_buffer[l] != '\0'; l++) 
+					(*serializer_buffer[0]) << mpi_res_recv_buffer[l];
+				
+				recvResParticleSerializer.load("nodes",remoteResults[i]);
+
 				for(int j = 0; j < NumberOfPoints; j++)
 				{
 					std::cout << "(" << mpi_rank << ") Number Of Results: " << messageRecvNumberOfResults[i][j] << std::endl;
 					for(int k = 0; k < messageRecvNumberOfResults[i][j]; k++)
 					{
-						Serializer recvResParticleSerializer;
-						serializer_buffer[0] = (std::stringstream *)recvResParticleSerializer.pGetBuffer();
-				
-						size_t buffer_index = (msgResRecvSize + 1)*MaxNumberOfResults*NumberOfPoints*i+(msgResRecvSize + 1)*NumberOfPoints*j+(msgResRecvSize + 1)*k;
-						for(int l = 0; mpi_res_recv_buffer[buffer_index+l] != '\0'; l++) 
-						{
-							(*serializer_buffer[0]) << mpi_res_recv_buffer[buffer_index+l];
-						}
-				
-						recvResults[i][j][k] = new PointType();
-						recvResParticleSerializer.load("nodes",recvResults[i][j][k]);
-
-						std::cout << "(" << mpi_rank << ") Result point " << ThisPoints[j] << " from process (" << i << "): (" << recvResults[i][j][k]->X() << " " << recvResults[i][j][k]->Y() << " " << recvResults[i][j][k]->Z() << ") with dist: " << "NYI"/*recvResultsDistances[i][j][k]*/ << std::endl;
+						std::cout << "(" << mpi_rank << ") Result point " << ThisPoints[j] << " from process (" << i << "): (" << remoteResults[i][j][k]->X() << " " << remoteResults[i][j][k]->Y() << " " << remoteResults[i][j][k]->Z() << ") with dist: " << "NYI"/*recvResultsDistances[i][j][k]*/ << std::endl;
 					}
 				}
 			}
