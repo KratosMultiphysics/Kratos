@@ -3,6 +3,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MKLSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
+
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -330,7 +332,8 @@ class MonolithicSolver:
     def OutputStep(self,time,gid_io):
         if(time >= self.next_output_time):
             self.next_output_time = self.next_output_time + self.output_time_increment;
-
+##            print "output time increment", self.output_time_increment
+             
             #writing mesh 
             gid_io.InitializeMesh( time );
             gid_io.WriteNodeMesh((self.model_part).GetMesh());
