@@ -57,15 +57,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cmath>
 #include <sstream>
 
+
 // External includes
+
+
 // Project includes
 #include "opencl_interface.h"
 
-
-#if defined(_WIN64) || defined(_WIN32) || defined(WIN64) 
-   #include <windows.h>
-   typedef  __int64 int64_t;
-#endif
 
 // InnerProd and SpMV kernel parameters range
 #define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 8
@@ -94,28 +92,11 @@ namespace OpenCL
 
 	int64_t Timer()
 	{
-#if defined(_WIN64) || defined(_WIN32) 
-		LARGE_INTEGER frequency;
-		LARGE_INTEGER start;
-		LARGE_INTEGER end;
-
-		//  Get the frequency
-		QueryPerformanceFrequency(&frequency);
-
-		//  Start timer
-		QueryPerformanceCounter(&start);
-		
-		return ( start.QuadPart)* (( 1000 *1000 *1000) / long double( frequency.QuadPart ));
-		
-		
-		
-		#else
 		struct timespec tp;
 
 		clock_gettime(CLOCK_MONOTONIC, &tp);
 
 		return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
-		#endif
 	}
 
 	//
