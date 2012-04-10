@@ -56,6 +56,12 @@ public:
     typedef WeakPointerVector<SphericHertzianParticle > ParticleWeakVectorType;
     typedef WeakPointerVector<SphericHertzianParticle >::iterator ParticleWeakIteratorType;
 
+   //Cfeng:For Shear Contact Force,020312
+    typedef std::vector< array_1d<double,3> > ContactForceVectorType;
+    typedef std::vector< int > ContactFailureIdType;
+    typedef std::vector< double > ContactInitialDeltaType;
+    typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -64,6 +70,8 @@ public:
     SphericHertzianParticle():IndexedObject(0){
         mpCenterNode = Node<3>::Pointer(new Node<3>(1,0.0,0.0,0.0));
         mMaterial = 1;
+        mContinuumGroup = 0;
+        mFailureId = 1; // detahced by default.
         mRadius = 1.0;
         mDensity = 1.0;
         mYoung = 1000.0;
@@ -73,11 +81,20 @@ public:
         mZeta = 0.1;
         mProximity_Tol = 0.000000001;
         mMass = 1.33333333333333333333333 * M_PI * mDensity * mRadius * mRadius * mRadius;
+        mTolerance = 0;
+        mTension = 0.0;
+        mFriction = 20.0;
+        mCohesion = 0.0;
+        mLocalDampRatio = 0.2;
+	
+       
         };
 
     SphericHertzianParticle(double tol, Node<3>::Pointer center):IndexedObject(center->Id()){
         mpCenterNode = center;
         mMaterial = mpCenterNode->GetSolutionStepValue(PARTICLE_MATERIAL);
+        mContinuumGroup = mpCenterNode->GetSolutionStepValue(PARTICLE_CONTINUUM);
+        mFailureId = !(mContinuumGroup); // if ContinuumGroup != 0 --> mFailureId = 0; mFailureId is 1 when mContinuumGroup=0;
         mRadius = mpCenterNode->GetSolutionStepValue(RADIUS);
         mDensity = mpCenterNode->GetSolutionStepValue(PARTICLE_DENSITY);
         mYoung = mpCenterNode->GetSolutionStepValue(YOUNG_MODULUS);
@@ -95,6 +112,13 @@ public:
         mProximity_Tol = tol * mRadius;
         mInitialPosition = mpCenterNode->GetInitialPosition().Coordinates();
         mOldPosition = mInitialPosition + mpCenterNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
+        mTolerance = 0; //M: no se com passarli...
+
+        mTension = mpCenterNode->GetSolutionStepValue(PARTICLE_TENSION);
+        mFriction = mpCenterNode->GetSolutionStepValue(PARTICLE_FRICTION);
+        mCohesion = mpCenterNode->GetSolutionStepValue(PARTICLE_COHESION);
+        mLocalDampRatio = mpCenterNode->GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+      
         };
 
   /// Destructor.
@@ -124,12 +148,33 @@ public:
     ///@name Operations
     ///@{
 
-    void ComputeForcesOnCenterNode(double dt, array_1d<double, 3 >& gravity);
-    ///@}
+    void SetInitialContacts();
+    void AddContinuumContacts();
+   /*
+    void CaseSelector(int type_id, int damp_id, double dt, array_1d<double, 3 >& gravity);
+    void NeighbourTypeSelector (SphericHertzianParticle::ParticleWeakVectorType& rGenericNeighbours, int type_id, int damp_id, int caseIdentifier, double dt, array_1d<double,3>& gravity);
+    */
+   
+    void ComputeForcesGeneral ( int type_id, int damp_id, double dt_input, array_1d<double,3>& gravity);
+
+    void AfterForceCalculation(int damp_id);
+
+////Cfeng: Add some functions to calculate the direction of the contact plane
+    void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3]);
+    void norm(double Vector[3]);
+    void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3]);
+    void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3]);
+    double DotProduct(double Vector1[3], double Vector2[3]);
+    void CrossProduct(double u[3], double v[3], double ReturnVector[3]);
+
+
+	///@}
     ///@name Access
     ///@{
     double& GetRadius(){return (mRadius);};
     int& GetMaterial(){return (mMaterial);};
+    int& GetContinuumGroup(){return (mContinuumGroup);};
+     /////////////////////////////////////M: sta repetit com PARTICLE_FAILURE_ID
     double& GetMass(){return (mMass);};
     double& GetDensity(){return (mDensity);};
     double& GetYoung(){return (mYoung);};
@@ -145,9 +190,23 @@ public:
     array_1d<double,3>& GetForce(){return (mpCenterNode->FastGetSolutionStepValue(FORCE));};
     Node<3>::Pointer& GetPointerToCenterNode(){return(mpCenterNode);};
     ParticleWeakVectorType& GetNeighbours(){return(mNeighbours);};
+    ParticleWeakVectorType& GetInitialNeighbours(){return(mInitialNeighbours);};
+    std::vector<double>& GetInitialDelta(){return(mInitialDelta);};
     DistanceVectorType& GetDistancesToNeighbours(){return(mDistancesToNeighbours);};
     DistanceVectorType& GetDistancesToContacts(){return(mDistancesToContacts);};
     void GetTangentialDisplacementOfNeighbours(DistanceVectorType& vector){};
+
+    ContactForceVectorType&  GetContactForces(){return(mContactForces);};
+    ContactFailureIdType& GetContactFailureId() {return(mContactFailureId);};
+    ContactInitialDeltaType& GetContactInitialDelta(){return (mContactInitialDelta);};
+        
+
+    double& GetTension(){return (mpCenterNode->FastGetSolutionStepValue(PARTICLE_TENSION));};
+    double& GetFriction(){return (mpCenterNode->FastGetSolutionStepValue(PARTICLE_FRICTION));};
+    double& GetCohesion(){return (mpCenterNode->FastGetSolutionStepValue(PARTICLE_COHESION));};
+    double& GetLocalDampRatio(){return (mpCenterNode->FastGetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO));};
+    double& GetFailureId(){return (mpCenterNode->FastGetSolutionStepValue(PARTICLE_FAILURE_ID));};/////////////////////////////////////M: sta repetit com mFaiuireId
+
 
     ///@}
     ///@name Inquiry
@@ -179,7 +238,9 @@ public:
         this->SetId(rOtherParticle.Id());
         this->mpCenterNode = rOtherParticle.mpCenterNode;
         this->mMaterial = rOtherParticle.mMaterial;
+        this->mContinuumGroup =rOtherParticle.mContinuumGroup;
         this->mRadius = rOtherParticle.mRadius;
+        this->mFailureId = rOtherParticle.mFailureId;
         this->mMass = rOtherParticle.mMass;
         this->mYoung = rOtherParticle.mYoung;
         this->mPoisson = rOtherParticle.mPoisson;
@@ -187,6 +248,12 @@ public:
         this->mRestitutionCoef = rOtherParticle.mRestitutionCoef;
         this->mZeta = rOtherParticle.mZeta;
         this->mProximity_Tol = rOtherParticle.mProximity_Tol;
+
+        this->mTension = rOtherParticle.mTension;
+        this->mCohesion = rOtherParticle.mCohesion;
+        this->mFriction = rOtherParticle.mFriction;
+        this->mLocalDampRatio = rOtherParticle.mLocalDampRatio;
+        this->mFailureId = rOtherParticle.mFailureId;
         }
 
     /// Print information about this object.
@@ -240,6 +307,7 @@ private:
     ///@{
     double mRadius;
     int mMaterial;
+    int mContinuumGroup;
     double mMass;
     double mYoung;
     double mYoungStar;
@@ -248,6 +316,7 @@ private:
     double mZeta;
     double mDensity;
     double mProximity_Tol;
+    double mTolerance;
     Node<3>::Pointer mpCenterNode;
     array_1d<double, 3> mInitialPosition;
     array_1d<double, 3> mPosition;
@@ -255,8 +324,28 @@ private:
     array_1d<double, 3> mVelocity;
     array_1d<double, 3> mForce;
     ParticleWeakVectorType mNeighbours;
+    ParticleWeakVectorType mInitialNeighbours;
+    ParticleWeakVectorType mGenericNeighbours;
+    std::vector<double> mInitialDelta;
+   
+    ContactForceVectorType mContactForces;
+    ContactFailureIdType mContactFailureId;
+    ContactInitialDeltaType mContactInitialDelta;
+
+    
+    double mCohesion;
+    double mFriction;
+    double mTension;
+    double mLocalDampRatio;
+    int mFailureId;      // the dominating type of failure of the contacts.
+    
     DistanceVectorType mDistancesToNeighbours;
     DistanceVectorType mDistancesToContacts;
+
+    //M: nomes per probes.
+    double mTestVariable;
+    double maxForce;
+    double minForce;
 
     ///@}
     ///@name Private Operators
