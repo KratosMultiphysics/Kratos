@@ -189,9 +189,7 @@ namespace Kratos
 
         ~OpenCLFluidSolver3D()
         {
-            delete mLinearSolverOptimizationParameters;
-			delete mCGSolver;
-
+			// Nothing to do!
         }
 
         //
@@ -203,17 +201,9 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            for (ModelPart::NodesContainerType::iterator it = mr_model_part.Nodes().begin(); it != mr_model_part.Nodes().end(); it++)
-            {
-                std::cout << it->Id() << " " << it->GetValue(NEIGHBOUR_NODES).size() <<std::endl;
-            }
-
             // Get no. of nodes and edges
             n_nodes = mr_model_part.Nodes().size();
             n_edges = mr_matrix_container.GetNumberEdges();
-
-            dp.resize(n_nodes);
-            rhs.resize(n_nodes);
 
             // TODO: Check if these are all needed
 
@@ -240,12 +230,11 @@ namespace Kratos
             AllocateArray(&mBeta, n_nodes);
             AllocateArray(&mdiv_error, n_nodes);
 
-            // RHS
-            //AllocateArray(&mrhs, n_nodes);  // TODO: It seems that this is not needed
-
             // Allocating lists
+
             // TODO: Maximum size is used; if this seems a problem with OpenCL buffers, try fixing this
             // TODO: Decide where to copy these lists to GPU
+
             AllocateArray(&mSlipNormal, n_nodes);
 
             AllocateArray(&mSlipBoundaryList, n_nodes);
@@ -254,11 +243,9 @@ namespace Kratos
 
             AllocateArray(&mFixedVelocitiesValuesList, n_nodes);
 
-
             AllocateArray(&medge_nodesList, n_nodes);
             AllocateArray(&medge_nodes_directionList, n_nodes);
             AllocateArray(&mcorner_nodesList, n_nodes);
-
 
             // Allocating buffers on OpenCL device
             mbWork = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
@@ -297,7 +284,6 @@ namespace Kratos
 
             mbFixedVelocitiesValuesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
 
-
             mbedge_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_uint), CL_MEM_READ_WRITE);
             mbedge_nodes_directionList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_double3), CL_MEM_READ_WRITE);
             mbcorner_nodesList = mrDeviceGroup.CreateBuffer(n_nodes * sizeof (cl_uint), CL_MEM_READ_WRITE);
@@ -312,7 +298,6 @@ namespace Kratos
             medge_nodesListLength = 0;
             medge_nodes_directionListLength = 0;
             mcorner_nodesListLength = 0;
-
 
             mr_matrix_container.SetToZero(mbdiv_error);
 
@@ -347,9 +332,6 @@ namespace Kratos
                         KRATOS_ERROR(std::logic_error, "Velocities can be either all fixed or none fixed", "")
                     }
 
-                    // TODO: Is this OK?
-                    //mFixedVelocities.push_back(index);
-                    //mFixedVelocitiesValues.push_back(mvel_n1[index]);
                     mFixedVelocitiesList[mFixedVelocitiesListLength] = index;
                     mFixedVelocitiesValuesList[mFixedVelocitiesListLength] = mvel_n1[index];
                     mFixedVelocitiesListLength++;
@@ -357,8 +339,6 @@ namespace Kratos
 
                 if (inode -> IsFixed(PRESSURE))
                 {
-                    // TODO: Is this OK?
-                    //mPressureOutletList.push_back(index);
                     mPressureOutletList[mPressureOutletListLength] = index;
                     mPressureOutletListLength++;
                 }
@@ -373,14 +353,7 @@ namespace Kratos
             // Determine number of edges and entries
             unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
 
-            // Allocate memory for variables
-            mLRowIndices = mrDeviceGroup.CreateBuffer((n_nodes + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
-            mLColumnIndices = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_uint), CL_MEM_READ_ONLY);
-            mLValues = mrDeviceGroup.CreateBuffer(n_nonzero_entries * sizeof(cl_double), CL_MEM_READ_ONLY);
-
-            rhs_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
-            dp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
-            temp_GPU = mrDeviceGroup.CreateBuffer(n_nodes * sizeof(cl_double), CL_MEM_READ_WRITE);
+            mL.resize(n_nodes, n_nodes, n_nonzero_entries);
 
             // TODO: May we assume that the graph of mL is the same as the graph of mr_matrix_container? What does the flag do?
 
@@ -418,16 +391,25 @@ namespace Kratos
                 }
             }
 
+            // Allocate memory for variables
+            mLRowIndices = mrDeviceGroup.CreateBuffer((mL.size1() + 1) * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLColumnIndices = mrDeviceGroup.CreateBuffer(mL.nnz() * sizeof(cl_uint), CL_MEM_READ_ONLY);
+            mLValues = mrDeviceGroup.CreateBuffer(mL.nnz() * sizeof(cl_double), CL_MEM_READ_ONLY);
+
+            rhs_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
+            dp_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
+            temp_GPU = mrDeviceGroup.CreateBuffer(mL.size1() * sizeof(cl_double), CL_MEM_READ_WRITE);
+
             // Copy mL to GPU
             mrDeviceGroup.CopyBuffer(mLRowIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index1_data()[0]));
             mrDeviceGroup.CopyBuffer(mLColumnIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index2_data()[0]));
             mrDeviceGroup.CopyBuffer(mLValues, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.value_data()[0]));
 
 			mLinearSolverOptimizationParameters = new OpenCL::LinearSolverOptimizationParameters(mrDeviceGroup, n_nodes);
-			mCGSolver = new OpenCL::CGSolver(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
-
 			mLinearSolverOptimizationParameters->OptimizeInnerProd(rhs_GPU, dp_GPU, temp_GPU);
 			mLinearSolverOptimizationParameters->OptimizeSpMV(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
+
+			mCGSolver = new OpenCL::CGSolver(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
 
             // Compute minimum length of the surrounding edges
             CalculateEdgeLengths(mr_model_part.Nodes());
@@ -799,11 +781,11 @@ namespace Kratos
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 2, mbTauPressure);
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 3, mbPn);
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 4, mbPn1);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 5, mLRowIndices);  // TODO: Verify
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 6, mLColumnIndices);  // TODO: Verify
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 5, mLRowIndices);  // TODO: Verify
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 6, mLColumnIndices);  // TODO: Verify
             mrDeviceGroup.SetImageAsKernelArg(mkSolveStep2_1, 7, mr_matrix_container.GetEdgeValuesBuffer());
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 8, rhs_GPU);  // TODO: Verify
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 9, mLValues);  // TODO: Verify
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 8, rhs_GPU);  // TODO: Verify
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_1, 9, mLValues);  // TODO: Verify
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 10, mRho);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 11, delta_t);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_1, 12, n_nodes);
@@ -830,10 +812,10 @@ namespace Kratos
 
             // Setting arguments
             mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 0, mbPressureOutletList);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 1, mLRowIndices);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 2, mLColumnIndices);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 3, mLValues);
-            mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 4, rhs_GPU);
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 1, mLRowIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 2, mLColumnIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 3, mLValues);
+            mrDeviceGroup.SetBufferAsKernelArg(mkSolveStep2_2, 4, rhs_GPU);
             mrDeviceGroup.SetKernelArg(mkSolveStep2_2, 5, mPressureOutletListLength);
 
 
@@ -846,9 +828,9 @@ namespace Kratos
             // Compute the scaling factors
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 0, mLRowIndices);
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 1, mLColumnIndices);
-            mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 2, mLValues);
+            mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 0, mLRowIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 1, mLColumnIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 2, mLValues);
             mrDeviceGroup.SetBufferAsKernelArg(mkComputeScalingCoefficients, 3, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkComputeScalingCoefficients, 4, n_nodes);
             mrDeviceGroup.SetLocalMemAsKernelArg(mkComputeScalingCoefficients, 5, (mrDeviceGroup.WorkGroupSizes[mkComputeScalingCoefficients][0] + 1) * sizeof (cl_uint));
@@ -860,10 +842,10 @@ namespace Kratos
             // Apply scaling
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 0, mLRowIndices);
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 1, mLColumnIndices);
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 2, mLValues);
-            mrDeviceGroup.SetKernelArg(mkApplyScaling, 3, rhs_GPU);
+            mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 0, mLRowIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 1, mLColumnIndices);
+            mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 2, mLValues);
+            mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 3, rhs_GPU);
             mrDeviceGroup.SetBufferAsKernelArg(mkApplyScaling, 4, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkApplyScaling, 5, n_nodes);
             mrDeviceGroup.SetLocalMemAsKernelArg(mkApplyScaling, 6, (mrDeviceGroup.WorkGroupSizes[mkApplyScaling][0] + 1) * sizeof (cl_uint));
@@ -917,7 +899,7 @@ namespace Kratos
             // Apply inverse scaling
 
             // Setting arguments
-            mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 0, dp_GPU);
+            mrDeviceGroup.SetBufferAsKernelArg(mkApplyInverseScaling, 0, dp_GPU);
             mrDeviceGroup.SetBufferAsKernelArg(mkApplyInverseScaling, 1, mbscaling_factors);
             mrDeviceGroup.SetKernelArg(mkApplyInverseScaling, 2, n_nodes);
 
@@ -931,7 +913,7 @@ namespace Kratos
 
             // Setting arguments
             mrDeviceGroup.SetBufferAsKernelArg(mkAddVectorInplace, 0, mbPn1);
-            mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 1, dp_GPU);
+            mrDeviceGroup.SetBufferAsKernelArg(mkAddVectorInplace, 1, dp_GPU);
             mrDeviceGroup.SetKernelArg(mkAddVectorInplace, 2, n_nodes);
 
             // Execute OpenCL kernel
@@ -1179,7 +1161,10 @@ namespace Kratos
 
             mBeta.clear();
 
-            mdiv_error.clear();*/
+            mdiv_error.clear();
+
+            delete mLinearSolverOptimizationParameters;
+			delete mCGSolver;*/
 
             KRATOS_CATCH("")
         }
@@ -1204,7 +1189,7 @@ namespace Kratos
         cl_uint mkComputeScalingCoefficients, mkApplyScaling, mkApplyInverseScaling;
         cl_double mbscaling_factors;
 
-        Vector rhs, dp;
+        //Vector rhs, dp;
 
         // Matrix container
         OpenCLMatrixContainer &mr_matrix_container;
