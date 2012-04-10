@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
+#include "custom_utilities/trilinos_iso_printer.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 
 namespace Kratos
@@ -100,13 +101,19 @@ namespace Kratos
                     .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
 		    //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
 		    //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
-		    //.def("AddModelPartElements", &TrilinosCuttingIsosurfaceApplication::AddModelPartElements)
 		    .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
                     .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
 		    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
 		    ;
              
-            
+           class_<TrilinosIsosurfacePrinterApplication, boost::noncopyable >
+                    ("TrilinosIsosurfacePrinterApplication",
+                     init<ModelPart& , Epetra_MpiComm& >() )
+                    .def("AddScalarVarIsosurface", &TrilinosIsosurfacePrinterApplication::AddScalarVarIsosurface)
+                    .def("ClearData", &TrilinosIsosurfacePrinterApplication::ClearData)
+		    .def("AddSkinConditions", &TrilinosIsosurfacePrinterApplication::AddSkinConditions)
+                    .def("CreateNodesArray", &TrilinosIsosurfacePrinterApplication::CreateNodesArray)
+		    ;
             
             class_<TrilinosRefineMesh, boost::noncopyable >
                     ("TrilinosRefineMesh",
