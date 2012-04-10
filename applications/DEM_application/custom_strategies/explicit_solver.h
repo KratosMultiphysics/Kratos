@@ -18,9 +18,9 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/neighbours_calculator.h"
-#include "custom_utilities/circular_particle.h"
-#include "custom_utilities/spheric_particle.h"
-#include "custom_utilities/circular_particle_hertzian.h"
+//#include "custom_utilities/circular_particle.h"
+//#include "custom_utilities/spheric_particle.h"
+//#include "custom_utilities/circular_particle_hertzian.h"
 #include "custom_utilities/spheric_particle_hertzian.h"
 
 #include <fstream>
@@ -30,41 +30,9 @@
 
 namespace Kratos {
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
- */
 template< std::size_t TDim, class TParticle >
 class Explicit_Solver{
-    ///@}
-
-    ///@name Type Definitions
-    ///@{
-    
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-
+  
 public:
 
     ///@name Type Definitions
@@ -82,16 +50,12 @@ public:
     typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
     typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
-    ///@{
 
-    /// Pointer definition of Explicit_Solver
+
+   
     KRATOS_CLASS_POINTER_DEFINITION(Explicit_Solver);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructor.
+    
 
     Explicit_Solver(int solver_id, double radius, double tol, ModelPart& model_part){
         mModelPart = &model_part;
@@ -115,33 +79,48 @@ public:
     /// Destructor.
 
     virtual ~Explicit_Solver(){}
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
+   
     void Search_Neighbours(){
         Neighbours_Calculator<TDim, ParticleType, ParticlePointerType, ParticleVectorType, ParticleWeakVectorType, ParticlePointerVectorType,
         ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
         Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch, mProximityTol);
         }
+    
+    void Search_Neighbours_Tolerance(){
+    //...
+    
+    }
 
-    void Calculate_Forces(double delta_t, array_1d<double, 3 > gravity){ 
+    void Set_Initial_Contacts(){
+
+    //aqui he de guardar els veins inicials i per cada un la distancia delta de la tolerancia.
+       KRATOS_TRY
+       int size = mListOfParticlePointers.size();
+       ///pragma omp parallel for
+       for (int i = 0; i < size; i++){
+            ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
+
+            (*particle_it) -> SetInitialContacts();
+                  
+            (*particle_it)->AddContinuumContacts();
+
+        } // loop over particle_it
+        KRATOS_CATCH("")
+    }  // Set_Initial_Contacts
+
+    void Calculate_Forces(int type_id, int damp_id, double delta_t, array_1d<double, 3 > gravity){
         KRATOS_TRY
         int size = mListOfParticlePointers.size();
        // #pragma omp parallel for
         for (int i = 0; i < size; i++){
             ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
-            (*particle_it)->ComputeForcesOnCenterNode(delta_t, gravity);
+            (*particle_it)->ComputeForcesGeneral(type_id, damp_id, delta_t, gravity);
+
             }
         KRATOS_CATCH("")
         }
 
-    void Evolve_Motion(double delta_t, array_1d<double, 3 > gravity){ 
+    void Evolve_Motion(int type_id, int damp_id, double delta_t, array_1d<double, 3 > gravity){
         int size = mListOfParticlePointers.size();
 
 //****************************************************************************************************************************************************//
@@ -190,7 +169,7 @@ public:
                     noalias(vel) = vel_old[i] + 0.5 * aux;
                     }
                 }
-            Calculate_Forces(delta_t, gravity);
+            Calculate_Forces(type_id, damp_id, delta_t, gravity);
 //***********************************       K2      ***************************************************************************************************//
             for (int i = 0; i < size; i++){
                 ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
@@ -205,7 +184,7 @@ public:
                         noalias(vel) = vel_old[i] + 0.5 * aux;
                         }
                 }
-            Calculate_Forces(delta_t, gravity);
+            Calculate_Forces(type_id, damp_id, delta_t, gravity);
 //***********************************       K3      ***************************************************************************************************//
             for (int i = 0; i < size; i++){
                 ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
@@ -220,7 +199,7 @@ public:
                         noalias(vel) = vel_old[i] + aux;
                         }
                 }
-            Calculate_Forces(delta_t, gravity);
+            Calculate_Forces(type_id, damp_id, delta_t, gravity);
 //***********************************       K4      ***************************************************************************************************//
            for (int i = 0; i < size; i++){
                 ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;
@@ -269,7 +248,7 @@ public:
                         noalias(displ) += half_delta_t * vel;
                     }
                 }
-                Calculate_Forces(delta_t, gravity);
+                Calculate_Forces(type_id, damp_id, delta_t, gravity);
                 //***********************************       EVOLUTION      ********************************************************************************************//
                 for (int i = 0; i < size; i++) {
                     ParticlePointerIteratorType particle_it = mListOfParticlePointers.begin() + i;

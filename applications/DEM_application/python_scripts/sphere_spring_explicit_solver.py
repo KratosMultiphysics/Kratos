@@ -31,7 +31,7 @@ class ExplicitSolver:
     def __init__(self, solver_id, Dt, search_radius, n_step_search, prox_tol, model_part):
  
         #data of the problem
-        self.particle_destructor_and_constructor = Spheres_Creator_Destructor() # M: name didn't fit the one on add custom utilities to python
+        self.particle_destructor_and_constructor = Spheres_Creator_Destructor() # M: name doesn't match the one on add custom utilities to python
         self.solver_id = solver_id
 	self.step = 0;
         self.time_step = Dt;
