@@ -20,7 +20,7 @@ from KratosMultiphysics import *
 ##################################################################
 ##################################################################
 from KratosMultiphysics.IncompressibleFluidApplication import *
-##from KratosMultiphysics.MKLSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
