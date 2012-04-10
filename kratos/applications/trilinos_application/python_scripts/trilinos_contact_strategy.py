@@ -1,10 +1,12 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-from KratosTrilinosApplication import *
 import os,time
-
-import mpi
+# importing the Kratos Library
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+# import mpi interface
+from KratosMultiphysics.mpi import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 ## Parameters contain:
 # perform_contact_analysis_flag

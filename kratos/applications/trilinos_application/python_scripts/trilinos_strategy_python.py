@@ -2,6 +2,8 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 class SolvingStrategyPython:
     #######################################################################

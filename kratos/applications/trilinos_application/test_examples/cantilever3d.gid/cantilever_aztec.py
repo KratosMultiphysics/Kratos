@@ -1,41 +1,23 @@
-#importing MPI ... for this boost 1.35 or superior is needed
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
-print "i am ",mpi.rank , " of ",mpi.size
-
+# -*- coding: utf-8 -*-
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
 domain_size = 3
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path = '../../../../libs/' ##kratos_root/libs
-kratos_applications_path = '../../../../applications/' ##kratos_root/applications
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+kratos_path = '../../../..'
+kratos_benchmarking_path = '../../../../benchmarking'
+sys.path.append(kratos_path)
+sys.path.append(kratos_benchmarking_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.MetisApplication import *
 
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.Import_KratosTrilinosApplication = True
-applications_interface.Import_KratosMetisApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
-from KratosTrilinosApplication import *
-from KratosMetisApplication import *
+print "i am ",mpi.rank , " of ",mpi.size
 
-## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
 
