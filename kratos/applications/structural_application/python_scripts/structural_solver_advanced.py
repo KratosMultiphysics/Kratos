@@ -1,6 +1,9 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 import sys
 
 import structural_solver_static
@@ -23,6 +26,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(ELASTIC_LEFT_CAUCHY_GREEN_OLD);
     model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
+    model_part.AddNodalSolutionStepVariable(PRESTRESS);
     model_part.AddNodalSolutionStepVariable(FACE_LOAD);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_NULL);
@@ -80,8 +84,7 @@ def AddDofs(model_part):
         
 #######################################################################
 class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
-    def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol, application_path ):
-        sys.path.append(application_path+'/structural_application/python_scripts')
+    def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol ):
         structural_solver_static.StaticStructuralSolver.__init__( self, model_part, domain_size )
         self.time_steps = time_steps
         self.analysis_parameters = analysis_parameters
@@ -113,6 +116,7 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
+        #builder_and_solver = MultiPhaseBuilderAndSolver(self.structure_linear_solver)
         #builder_and_solver = ParallelResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
         #creating the solution strategy

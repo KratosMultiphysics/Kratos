@@ -1,6 +1,8 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 import os,time
 
 ## Parameters contain:
