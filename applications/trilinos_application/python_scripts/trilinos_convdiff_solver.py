@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-#importing the Kratos Library
-from Kratos import *
-from KratosConvectionDiffusionApplication import *
-from KratosTrilinosApplication import *
+# importing the Kratos Library
+from KratosMultiphysics import *
+from KratosMultiphysics.ConvectionDiffusionApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part,settings ):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

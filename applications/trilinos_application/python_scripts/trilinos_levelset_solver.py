@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 #importing the Kratos Library
-from Kratos import *
-#from KratosConvectionDiffusionApplication import *
-from KratosThermoMechanicalApplication import *
-from KratosTrilinosApplication import *
-from KratosMeshingApplication import *
-from KratosIncompressibleFluidApplication import EstimateDt3D
+from KratosMultiphysics import *
+#from KratosMultiphysics.ConvectionDiffusionApplication import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
+from KratosMultiphysics.mpi import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
+
 import trilinos_pureconvection_solver
 import trilinos_thermal_solver
 import trilinos_monolithic_solver_eulerian
-
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
 
 #settings for the convection solver
 distance_settings = ConvectionDiffusionSettings()

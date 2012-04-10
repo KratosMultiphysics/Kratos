@@ -1,9 +1,11 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-from KratosTrilinosApplication import *
-import mpi
 import sys
+# importing the Kratos Library
+from KratosMultiphsysics import *
+from KratosMultiphsysics.StructuralApplication import *
+from KratosMultiphsysics.TrilinosApplication import *
+from KratosMultiphsysics.mpi import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
