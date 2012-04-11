@@ -206,8 +206,8 @@ namespace Kratos
                     .def("TransferNodalVariables", &VariableTransferUtility::TransferNodalVariables )
                     .def("TransferConstitutiveLawVariables", &VariableTransferUtility::TransferConstitutiveLawVariables )
                     .def("TransferInSituStress", &VariableTransferUtility::TransferInSituStress )
-                    .def("TransferPrestress", &VariableTransferUtility::TransferPrestress )
-                    .def("TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )
+/*                    .def("TransferPrestress", &VariableTransferUtility::TransferPrestress )
+                    .def("TransferSpecificVariable", &VariableTransferUtility::TransferSpecificVariable )*/
                     .def("InitializeModelPart", &VariableTransferUtility::InitializeModelPart )
                     //.def("TransferVariablesToNodes", &VariableTransferUtility::DoubleTransferVariablesToNodes)
                     ;
