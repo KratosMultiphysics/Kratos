@@ -128,7 +128,9 @@ namespace Kratos
 
 		  if(dimension == 2)
 		    {
-			array_1d<double,3> dxprim12, dx32, dxprim32, dv12, dv32, dvprim12;
+			array_1d<double,3> dv12, dv32;
+			array_1d<double,2> dxprim12, dx32, dxprim32, dvprim12;
+
 			double B, A, C;
 
 			for(ModelPart::ElementsContainerType::iterator i = model_part.ElementsBegin();
