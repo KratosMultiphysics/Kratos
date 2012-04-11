@@ -453,7 +453,7 @@ namespace Kratos
             Matrix mCtangent;
             Vector mCurrentStress;
 
-            double mDensity, mE, mNU, mG, mK, mEta, mXi, mCohesion, mHardening;
+            double mDensity, mE, mNU, mG, mK, mEta, mXi, mCohesion, mHardening, mPrestressFactor;
             double mdGamma;
             
             

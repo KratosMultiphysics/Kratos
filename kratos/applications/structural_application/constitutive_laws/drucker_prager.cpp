@@ -216,6 +216,22 @@ namespace Kratos
     void DruckerPrager::SetValue( const Variable<double>& rThisVariable,
                                   const double& rValue, const ProcessInfo& rCurrentProcessInfo )
     {
+        if ( rThisVariable == PRESTRESS_FACTOR )
+            mPrestressFactor = rValue;
+        if( rThisVariable == YOUNG_MODULUS )
+            mE = rValue;
+        if( rThisVariable == POISSON_RATIO )
+            mNU = rValue;
+        if( rThisVariable == COHESION )
+            mCohesion = rValue;
+        if( rThisVariable == ISOTROPIC_HARDENING_MODULUS )
+            mHardening = rValue;
+        if( rThisVariable == INTERNAL_FRICTION_ANGLE )
+        {
+            double tan_phi = tan( rValue*PI/180 );
+            mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+            mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+        }
     }
 
     void DruckerPrager::SetValue( const Variable<Vector>& rThisVariable,
@@ -281,7 +297,7 @@ namespace Kratos
     
     int DruckerPrager::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
     {
-        KRATOS_WATCH("checking constitutive law");
+//         KRATOS_WATCH("checking constitutive law");
         if( ValidateInput( props ) )
             return 0;
         return -1;
@@ -312,6 +328,7 @@ namespace Kratos
         mOldPlasticStrains = ZeroVector( 6 );
         mPrestress.resize( 6 );
         mPrestress = ZeroVector( 6 );
+        mPrestressFactor = 1.0;
         mConsistentTangent.resize( 6, 6 );
         mConsistentTangent = ZeroMatrix( 6, 6 );
 
@@ -319,6 +336,17 @@ namespace Kratos
         mAlpha = 0.0;
         mOldAlpha = 0.0;
         isYielded = false;
+        
+        mE = props[YOUNG_MODULUS];
+        mNU = props[POISSON_RATIO];
+        mCohesion = props[COHESION];
+
+        double tan_phi = tan(( props[INTERNAL_FRICTION_ANGLE] ) * PI / 180 );
+
+        mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+        mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
+        mHardening = props[ISOTROPIC_HARDENING_MODULUS];
+
         
         ResetMaterial( props, geom, ShapeFunctionsValues );
 
@@ -328,17 +356,10 @@ namespace Kratos
                                        const GeometryType& geom, const Vector& ShapeFunctionsValues )
     {
         
-        mE = props[YOUNG_MODULUS];
-        mNU = props[POISSON_RATIO];
         mG = mE / ( 2.0 * ( 1.0 + mNU ) );
         mK = mE / ( 3.0 * ( 1.0 - 2.0 * mNU ) );
-        mCohesion = props[COHESION];
-
-        double tan_phi = tan(( props[INTERNAL_FRICTION_ANGLE] ) * PI / 180 );
-
-        mEta = 3.0 * tan_phi / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
-        mXi = 3.0 / ( sqrt( 9.0 + 12.0 * tan_phi * tan_phi ) );
-        mHardening = props[ISOTROPIC_HARDENING_MODULUS];
+        
+        mPrestressFactor = 1.0;
 
         CalculateElasticMatrix( mCtangent, mE, mNU );
 
@@ -401,8 +422,8 @@ namespace Kratos
         mCurrentElasticStrain = StrainVector;
         mCurrentStrainInc = StrainVector - mOldStrain;
 
-        StressVector = prod( mCtangent, mCurrentStrainInc );
-        KRATOS_WATCH( StressVector );
+        StressVector = prod( mCtangent, mCurrentStrainInc )  - mPrestressFactor * mPrestress;
+//         KRATOS_WATCH( StressVector );
 
         for ( unsigned int i = 0; i < 6; i++ )
             StressVector( i ) += mOldStress( i );
@@ -432,7 +453,7 @@ namespace Kratos
 
         deviatoric_Stress_Vector( 5 ) = mCurrentStress( 5 );
 
-        KRATOS_WATCH( deviatoric_Stress_Vector );
+//         KRATOS_WATCH( deviatoric_Stress_Vector );
 
         double J2 = 0.5 * ( deviatoric_Stress_Vector( 0 )
                             * deviatoric_Stress_Vector( 0 ) + deviatoric_Stress_Vector( 1 )
@@ -444,17 +465,17 @@ namespace Kratos
 
         double sqrtJ2 = sqrt( J2 );
 
-        KRATOS_WATCH( sqrtJ2 );
+//         KRATOS_WATCH( sqrtJ2 );
 
-        KRATOS_WATCH( mEta );
+//         KRATOS_WATCH( mEta );
 
-        KRATOS_WATCH( pTr );
+//         KRATOS_WATCH( pTr );
 
-        KRATOS_WATCH( mXi );
+//         KRATOS_WATCH( mXi );
 
-        KRATOS_WATCH( mCohesion );
+//         KRATOS_WATCH( mCohesion );
 
-        KRATOS_WATCH( mHardening );
+//         KRATOS_WATCH( mHardening );
 
         double yield_function = sqrtJ2 + mEta * pTr - mXi * ( mCohesion + mHardening * mAlpha );
 
@@ -468,7 +489,7 @@ namespace Kratos
 
         double pTr_n = 0.0;
 
-        KRATOS_WATCH( yield_function );
+//         KRATOS_WATCH( yield_function );
 
         if ( yield_function > Tol )
         {
@@ -511,7 +532,7 @@ namespace Kratos
 
             }
 
-            KRATOS_WATCH( yield_function );
+//             KRATOS_WATCH( yield_function );
 
             mCurrentStress( 0 ) = dummy * deviatoric_Stress_Vector( 0 ) + pTr_n;
             mCurrentStress( 1 ) = dummy * deviatoric_Stress_Vector( 1 ) + pTr_n;
@@ -544,7 +565,8 @@ namespace Kratos
 
         mCurrentPlasticStrains = mOldPlasticStrains + mCurrentStrainInc - (mCurrentElasticStrain - mOldSElasticStrain);
 
-        KRATOS_WATCH( StressVector );
+//         KRATOS_WATCH( StressVector );
+        mCurrentStress += mPrestressFactor * mPrestress;
 
     }
 
@@ -608,15 +630,15 @@ namespace Kratos
 
             rResult = mConsistentTangent;
 
-            KRATOS_WATCH( "line 497 ####################" );
+//             KRATOS_WATCH( "line 497 ####################" );
         }
         else
         {
             rResult = mCtangent;
-            KRATOS_WATCH( "line 502 ####################" );
+//             KRATOS_WATCH( "line 502 ####################" );
         }
 
-        KRATOS_WATCH( "line 504 ####################" );
+//         KRATOS_WATCH( "line 504 ####################" );
     }
 
 
