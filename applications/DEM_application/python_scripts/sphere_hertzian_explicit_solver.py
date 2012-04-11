@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 #importing the Kratos Library
 import time as timer
-from Kratos import *
-from KratosDEMApplication import *
+
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
