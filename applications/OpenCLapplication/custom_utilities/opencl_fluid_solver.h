@@ -450,7 +450,7 @@ namespace Kratos
             mdelta_t_avg = 1e10;
 
             // Getting value of current velocity and of viscosity
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes(), mbvel_n1);
+//             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes(), mbvel_n1);
 
             // Loop over all nodes
             for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
@@ -501,6 +501,39 @@ namespace Kratos
 
             KRATOS_CATCH("")
         }
+        
+        void LoadDataToGPU()
+        {
+	  KRATOS_TRY
+	  
+	    ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+	  
+            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+            mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes, mbvel_n);
+
+            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1);
+            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes, mbPn);
+	    
+	    mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+	    
+	    
+	  KRATOS_CATCH("");
+	}
+	
+	void WriteDataToCPU()
+        {
+	  KRATOS_TRY
+	  
+	    ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+	  
+            mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+	    
+	    mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes, mbPn1);
+
+            mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+	    
+	  KRATOS_CATCH("");
+	}
 
         //
         // UpdateFixedVelocityValues
@@ -512,8 +545,8 @@ namespace Kratos
             KRATOS_TRY
 
             // Read velocity and pressure data from Kratos
-            ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+            //ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+//             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
             unsigned int fixed_size = mFixedVelocitiesListLength; // TODO: Why firstprivate? //mFixedVelocities.size();
 
@@ -573,8 +606,8 @@ namespace Kratos
                 ComputeWallResistance(vel_buffer, rhs_buffer);
             }
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-            mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+//            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+//             mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
             KRATOS_CATCH("")
         }
@@ -661,15 +694,15 @@ namespace Kratos
 
             // Prerequisites
 
-            // Variables for node based data handling
-            ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+            // Variables for node based data handling*
+           // ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
 
             // Read velocity and pressure data from Kratos
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
-            mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes, mbvel_n);
-
-            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1);
-            mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes, mbPn);
+//             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+//             mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes, mbvel_n);
+// 
+//             mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1);
+//             mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes, mbPn);
 
             // Read time step size from Kratos
             ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -762,16 +795,16 @@ namespace Kratos
             // Prerequisites
 
             // Allocate memory for variables
-            ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
+//            ModelPart::NodesContainerType &rNodes = mr_model_part.Nodes();
 
             // Read time step size from Kratos
             ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
             double delta_t = CurrentProcessInfo[DELTA_TIME];
 
             // Read the pressure projection from the database
-            mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1); // TODO: Is this OK? //mr_model_part.Nodes()
-            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
-            mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+//             mr_matrix_container.FillScalarFromDatabase(PRESSURE, mPn1, rNodes, mbPn1); // TODO: Is this OK? //mr_model_part.Nodes()
+//             mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+//             mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
             // Calling Solve2_1 OpenCL kernel
 
@@ -920,7 +953,7 @@ namespace Kratos
             mrDeviceGroup.ExecuteKernel(mkAddVectorInplace, n_nodes);
 
             // Write pressure and density to Kratos
-            mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes, mbPn1);
+//             mr_matrix_container.WriteScalarToDatabase(PRESSURE, mPn1, rNodes, mbPn1);
 
             // Compute pressure proj for the next step
 
@@ -940,7 +973,7 @@ namespace Kratos
             mrDeviceGroup.ExecuteKernel(mkSolveStep2_3, n_nodes);
 
 
-            mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
+//             mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes, mbXi);
 
             KRATOS_CATCH("")
         }
@@ -954,7 +987,7 @@ namespace Kratos
         {
             KRATOS_TRY
 
-            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+//            ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
 
             // Read time step size from Kratos
             ProcessInfo &CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -993,7 +1026,7 @@ namespace Kratos
             ApplyVelocityBC(mbvel_n1);
 
             // Write velocity of time step n+1 to Kratos
-            mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
+//             mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes, mbvel_n1);
 
 
             // Calculate the error on the divergence
