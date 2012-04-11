@@ -6,28 +6,11 @@ import time as timer
 #from numpy import *
 #from pylab import *
 
-##################################################################
-## ATTENTION: here the order is important
+from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
-#including kratos path
-kratos_libs_path            = DEM_explicit_solver_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = DEM_explicit_solver_var.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-#print "aqui hi arribem"
-#importing applications
-import applications_interface
-applications_interface.Import_KratosDEMApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-##################################################################
-## from now on the order is not anymore crucial
-
-from KratosDEMApplication import *
 #defining a model part for the solid part
 solid_model_part = ModelPart("SolidPart");  
 #############################################
