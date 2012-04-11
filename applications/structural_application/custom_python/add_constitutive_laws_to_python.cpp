@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_constitutive_laws_to_python.h"
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
+#include "constitutive_laws/dummy_constitutive_law.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
 #include "constitutive_laws/hyperelastic_3d.h"
@@ -134,6 +135,11 @@ namespace Kratos
             .def( "PushBack", Push_Back_Constitutive_Laws )
             ;
 
+            class_< DummyConstitutiveLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+            ( "DummyConstitutiveLaw",
+              init<>() )
+            ;
+
             class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
             ( "Isotropic2D",
               init<>() )
@@ -170,6 +176,13 @@ namespace Kratos
               init<>() )
             .def( init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
             ;
+            
+            class_< Isotropic_Damage_3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+            ( "IsotropicDamage3D",
+              init<>() )
+            .def( init<FluencyCriteriaPointer, SofteningHardeningCriteriaPointer, PropertiesPointer>() )
+            ;
+
 
             class_<Plasticity2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
             ( "Plasticity2D",
