@@ -1,7 +1,8 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosOpenCLApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.OpenCLApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -89,6 +90,7 @@ class OpenClSolver:
     ################################################################
     ################################################################
     def Solve(self):
+	(self.fluid_solver).LoadDataToGPU();
 ##        (self.fluid_solver).UpdateFixedVelocityValues()
 
         (self.fluid_solver).SolveStep1();
@@ -96,6 +98,8 @@ class OpenClSolver:
         (self.fluid_solver).SolveStep2();
 
         (self.fluid_solver).SolveStep3();
+        
+        (self.fluid_solver).WriteDataToCPU();
    
     ################################################################
     ################################################################

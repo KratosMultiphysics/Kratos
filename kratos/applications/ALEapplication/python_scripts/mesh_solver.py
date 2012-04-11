@@ -1,6 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosALEApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ALEApplication import *
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

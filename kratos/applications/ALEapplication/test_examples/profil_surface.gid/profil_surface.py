@@ -1,14 +1,7 @@
-#path for applications s
-import sys
-sys.path.append('/home/rrossi/kratosR1/applications/ALEapplication/python_scripts')
-sys.path.append('/home/rrossi/kratosR1/applications/ALEapplication/Linux')
-
 #importing the Kratos Library
-from Kratos import *
-from KratosALEApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ALEApplication import *
 
-
-kernel = Kernel()
 
 #############################################
 #defining the domain size

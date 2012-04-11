@@ -102,6 +102,8 @@ namespace Python
 						  .def("CalculateNormals", &OpenCLFluidSolver3D::CalculateNormals)
 						  .def("UpdateFixedVelocityValues", &OpenCLFluidSolver3D::UpdateFixedVelocityValues)
                                                   .def("ActivateWallResistance", &OpenCLFluidSolver3D::ActivateWallResistance)
+                                                  .def("LoadDataToGPU", &OpenCLFluidSolver3D::LoadDataToGPU)
+                                                  .def("WriteDataToCPU", &OpenCLFluidSolver3D::WriteDataToCPU)
                         ;
 
           enum_<cl_device_type>("cl_device_type")
