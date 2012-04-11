@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <iostream>
 #include <ostream>
-#include <math.h>
+#include <math.h>//M: for adding pi number.
 #include <vector>
-#include <boost/smart_ptr/weak_ptr.hpp> //M: for adding pi number.
+#include <boost/weak_ptr.hpp> 
 #include "utilities/timer.h"
 
 // External includes 
