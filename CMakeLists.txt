@@ -218,8 +218,11 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
 kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
 kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
+kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications) ")
+sys.path.append(kratos_applications) 
+sys.path.append(kratos_scripts) 
+")
 
     file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
 
@@ -241,6 +244,8 @@ else(${INSTALL_PYTHON_FILES} MATCHES ON)
     file(WRITE ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics/KratosLoader.py "import sys
 kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
 kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
+kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications) ")
+sys.path.append(kratos_applications) 
+sys.path.append(kratos_scripts) ")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
