@@ -195,6 +195,7 @@ def IncreaseDisplacement(forcing_nodes_list,disp):
         
  
 node_1 = FindNode(model_part.Nodes, 2.5, 0.25, 0.00)
+solver.CalculateReactionFlag = True;
 
 Dt         = 1;
 nsteps     = 61;
