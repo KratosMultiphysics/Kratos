@@ -58,7 +58,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
-#include "custom_utilities/trilinos_iso_printer.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 
 namespace Kratos
@@ -105,16 +104,7 @@ namespace Kratos
                     .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
 		    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
 		    ;
-             
-           class_<TrilinosIsosurfacePrinterApplication, boost::noncopyable >
-                    ("TrilinosIsosurfacePrinterApplication",
-                     init<ModelPart& , Epetra_MpiComm& >() )
-                    .def("AddScalarVarIsosurface", &TrilinosIsosurfacePrinterApplication::AddScalarVarIsosurface)
-                    .def("ClearData", &TrilinosIsosurfacePrinterApplication::ClearData)
-		    .def("AddSkinConditions", &TrilinosIsosurfacePrinterApplication::AddSkinConditions)
-                    .def("CreateNodesArray", &TrilinosIsosurfacePrinterApplication::CreateNodesArray)
-		    ;
-            
+
             class_<TrilinosRefineMesh, boost::noncopyable >
                     ("TrilinosRefineMesh",
                      init<ModelPart& , Epetra_MpiComm& >() )
