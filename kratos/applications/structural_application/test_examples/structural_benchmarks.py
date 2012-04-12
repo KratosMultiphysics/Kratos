@@ -88,7 +88,7 @@ def Run():
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "cantilever2dstatic using MKLPardisoSolver example FAILED"
+		print "Expected fail because the  program should be compiled with INTEL compliler."
 
 	os.chdir("..")
 
@@ -146,7 +146,7 @@ def Run():
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "cantilever2dstatic_parallel using ParallelSkylineLUFactorizationSolver example FAILED"
+		print "Expected fail because the  program should be compiled with INTEL compliler."
 
 	os.chdir("..")
 
@@ -167,7 +167,7 @@ def Run():
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "cantilever2dstatic using ParallelMKLPardisoSolver example FAILED"
+		print "Expected fail because the  program should be compiled with INTEL compliler."p
 
 	os.chdir("..")
 
