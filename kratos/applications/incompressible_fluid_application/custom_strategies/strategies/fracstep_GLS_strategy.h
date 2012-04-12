@@ -267,7 +267,7 @@ namespace Kratos
 	  Timer::Start("paso_4");
 	  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	  array_1d<double, 3 > zero = ZeroVector(3);
-	  Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+	  //Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 	  
 #ifdef _OPENMP
 	  int number_of_threads = omp_get_max_threads();
@@ -406,7 +406,7 @@ namespace Kratos
                 //double A = (it)->FastGetSolutionStepValue(NODAL_MASS);
 		double A = (it)->FastGetSolutionStepValue(NODAL_AREA);
 
-		double density_inverse = 1.0 / it->FastGetSolutionStepValue(DENSITY);
+		//double density_inverse = 1.0 / it->FastGetSolutionStepValue(DENSITY);
 
                 double temp = 1.00 / A;
                 press_proj *= temp;
@@ -545,7 +545,7 @@ namespace Kratos
 		  {
                     //array_1d<double, 3 > & press_proj = (i)->FastGetSolutionStepValue(PRESS_PROJ);
                     //array_1d<double, 3 > & conv_proj = (i)->FastGetSolutionStepValue(CONV_PROJ);
-                    double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
+                    //double A = (i)->FastGetSolutionStepValue(NODAL_MASS);
 		    //array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
 
 		    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
