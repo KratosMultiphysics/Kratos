@@ -547,6 +547,7 @@ namespace Kratos
 		//KRATOS_WATCH(density);
 
 		density = this->GetValue(DENSITY);
+		KRATOS_WATCH(density);
 		//density = 0.33333333333333*(rho0 + rho1 + rho2 );
 		//if(density>1.01 and density<999.0) density=500.0;
 		/*noalias(rLeftHandSideMatrix) = ZeroMatrix(TDim + 1, TDim + 1);
