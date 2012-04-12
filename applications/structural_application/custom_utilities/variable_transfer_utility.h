@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spaces/ublas_space.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "structural_application.h"
 
 namespace Kratos
 {
@@ -236,6 +237,29 @@ namespace Kratos
                     (*it).Z() = (*it).Z0()+(*it).GetSolutionStepValue( DISPLACEMENT_Z );
                 }
             }
+            
+            /**
+             * Transfer of PRESTRESS.
+             * This transfers the in-situ stress from rSource to rTarget.
+             * @param rSource the source model part
+             * @param rTarget the target model part
+             */
+            void TransferPrestress( ModelPart& rSource, ModelPart& rTarget )
+            {
+                TransferSpecificVariable( rSource, rTarget, PRESTRESS );
+            }
+            
+            
+            /**
+             * Transfer of INSITU_STRESS.
+             * This transfers the in-situ stress from rSource to rTarget.
+             * @param rSource the source model part
+             * @param rTarget the target model part
+             */
+            void TransferInSituStress( ModelPart& rSource, ModelPart& rTarget )
+            {
+                TransferSpecificVariable( rSource, rTarget, INSITU_STRESS );
+            }
 			
 			/**
              * Transfer of INSITU_STRESS.
@@ -243,7 +267,7 @@ namespace Kratos
              * @param rSource the source model part
              * @param rTarget the target model part
                          */
-            void TransferInSituStress( ModelPart& rSource, ModelPart& rTarget )
+            void TransferSpecificVariable( ModelPart& rSource, ModelPart& rTarget, Variable<Vector>& rThisVariable )
             {
                 boost::timer timer1;
 //                 std::cout << "line 243" << std::endl;
@@ -271,7 +295,7 @@ namespace Kratos
                 timer1.restart();
 //                 std::cout << "line 263" << std::endl;
 
-                TransferVariablesToNodes(rSource, INSITU_STRESS);
+                TransferVariablesToNodes(rSource, rThisVariable);
                 
                 std::cout << "time for transferring GP variables to nodes: " << timer1.elapsed() << std::endl;
                 timer1.restart();
@@ -281,7 +305,7 @@ namespace Kratos
 //                 std::cout << "line 268" << std::endl;
                 
 // 				TransferVariablesToGaussPoints(rTarget, INSITU_STRESS);
-                TransferVariablesToGaussPoints(rSource, rTarget, INSITU_STRESS);
+                TransferVariablesToGaussPoints(rSource, rTarget, rThisVariable );
                 
                 std::cout << "time for transferring variables to gauss points: " << timer1.elapsed() << std::endl;
                 timer1.restart();
