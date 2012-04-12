@@ -116,6 +116,7 @@ RotationalDofs()
 SolverType.AddDofs(model_part)
 solver = SolverType.DynamicStructuralSolver(model_part,domain_size) 
 solver.structure_linear_solver  =  SuperLUSolver()
+solver.CalculateReactionFlag = True;
 
 
 CT = Kratos_Structural_Application_var.Convergence_Tolerance;
