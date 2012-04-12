@@ -167,7 +167,7 @@ def Run():
 		Text += "FAILED\n"
 		Text += Msg
 		Text += "\n\n"
-		print "Expected fail because the  program should be compiled with INTEL compliler."p
+		print "Expected fail because the  program should be compiled with INTEL compliler."
 
 	os.chdir("..")
 
