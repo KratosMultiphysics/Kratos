@@ -155,7 +155,7 @@ namespace Kratos
             {
 		ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 		double subdivisions = (iparticle)->FastGetSolutionStepValue(LAMBDA);
-		subdivisions=10.0;
+		subdivisions=20.0;
 		const double small_dt = dt / subdivisions;
 		//KRATOS_WATCH(subdivisions);
 		//KRATOS_WATCH(small_dt);
@@ -353,7 +353,7 @@ namespace Kratos
             unsigned int id = (rEulerianModelPart.Nodes().end() - 1)->Id() + 1;
             rLagrangianModelPart.Nodes().clear();
 
-          for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
+          /*for (ModelPart::NodesContainerType::iterator node_it = rEulerianModelPart.NodesBegin();
                     node_it != rEulerianModelPart.NodesEnd(); node_it++)
             {
                 int node_id = id++;
@@ -363,7 +363,7 @@ namespace Kratos
                 Node < 3 > ::Pointer pnode = rLagrangianModelPart.CreateNewNode(node_id, x, y, z);
 
                 pnode->FastGetSolutionStepValue(VELOCITY) = node_it->FastGetSolutionStepValue(VELOCITY);
-            }
+            }*/
 
 	   #ifdef USE_FEW_PARTICLES
                                     boost::numeric::ublas::bounded_matrix<double, TDim + 2, TDim + 1 > pos;
@@ -426,6 +426,13 @@ namespace Kratos
             {
                 el_it->SetValue(YOUNG_MODULUS,0.0);
             }
+
+	for (ModelPart::NodesContainerType::iterator pparticle = rLagrangianModelPart.NodesBegin(); pparticle != rLagrangianModelPart.NodesEnd(); pparticle++)
+	    {
+	                pparticle->SetValue(ERASE_FLAG,false);
+            }
+
+
 	  int last_id=id;
 	  //count particles that fall within an element
 	  array_1d<double, TDim + 1 > N;
@@ -471,20 +478,36 @@ namespace Kratos
 	      if (is_found == true)
 		{
 		 double& counter = pelement->GetValue(YOUNG_MODULUS);
-		  //double densi_ty = pelement->GetValue(DENSITY);
-		  
-		  //if(densi_ty!=500.0){
-		  if(counter  > 14){  //14
+		  /*KRATOS_WATCH("cantidad de particulas");
+		  KRATOS_WATCH("cantidad de particulas");
+		  KRATOS_WATCH("cantidad de particulas");
+		  KRATOS_WATCH(counter);*/
+		  double densi_ty = pelement->GetValue(DENSITY);
+		  if(densi_ty!=500.0 ){		  
+		  if(counter  > 10.0){  //14
+		   /* KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");
+		    KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");
+		    KRATOS_WATCH("BOOOOOOOOOOOOOOOOOOOOOOORRRRRRRRRRRRRRAAAAAAAAAAAAAARRRRRRRRRRRRRRRRRRR");	*/
 		    pparticle->SetValue(ERASE_FLAG,true);
-#pragma omp atomic
+		   #pragma omp atomic
 		    counter -=1.0;
-		    //}
+		    }
 		  }
+		else if (densi_ty==500.0)
+		{
+		if(counter  > 20.0){  
+		    pparticle->SetValue(ERASE_FLAG,true);
+		   #pragma omp atomic
+		    counter -=1.0;
+		    }
+
+		}
+
 		}
 	      
             }
 	  //perform the erase
-	  //NodeEraseProcess(rLagrangianModelPart).Execute();
+	  NodeEraseProcess(rLagrangianModelPart).Execute();
 	  
 	  
 	  
@@ -529,6 +552,7 @@ namespace Kratos
 	      {
 		
 		if (el_it->GetValue(YOUNG_MODULUS) < 4.0)
+//		if (el_it->GetValue(YOUNG_MODULUS) < 1.0)
 		  {
 		//KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
 		    Geometry< Node<3> >& geom = el_it->GetGeometry();
@@ -1034,7 +1058,10 @@ namespace Kratos
 
 		if(counter_min==0.0 &&  counter_max==0.0){
 		  //dens=1.0;
-		  
+		  KRATOS_WATCH("SIN PARTICULAS");
+		  KRATOS_WATCH("SIN PARTICULAS");
+		  KRATOS_WATCH("SIN PARTICULAS");
+		  KRATOS_WATCH("SIN PARTICULAS");
 		  KRATOS_WATCH(dens);
 		  KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
 		  }
@@ -1107,14 +1134,14 @@ namespace Kratos
 
 		      if(N(0)>0.5) {
 			density_node= geom[0].FastGetSolutionStepValue(DENSITY);
-		if(density_node<500.0) density=1.0;
+		if(density_node<600.0) density=1.0;
 			else
 			  density=1000.0;
 			
 		      }
 		      else if(N(1)>0.5) {
 			density_node= geom[1].FastGetSolutionStepValue(DENSITY);
-			if(density_node<500.0) density=1.0;
+			if(density_node<600.0) density=1.0;
 			else
 			  density=1000.0;
 
@@ -1122,14 +1149,14 @@ namespace Kratos
 		      else if(N(2)>0.5) {
 			
 			density_node= geom[2].FastGetSolutionStepValue(DENSITY);
-			if(density_node<500.0) density=1.0;
+			if(density_node<600.0) density=1.0;
 			else
 			  density=1000.0;
 			
 		      }
 		      else { 
-			if(density_element>=500.0) {density=1000.0;}
-			else if(density_element<500.0) {density=1.0;}
+			if(density_element>600.0) {density=1000.0;}
+			else if(density_element<=600.0) {density=1.0;}
 			
 }
 			
@@ -1432,7 +1459,6 @@ namespace Kratos
 
                             geom[k].SetLock();
                             geom[k].FastGetSolutionStepValue(DENSITY) += N[k] * density_particle;
-			    //geom[k].FastGetSolutionStepValue(FLAG_VARIABLE) += N[k] * flag_variable_particle; 
                             geom[k].GetValue(POISSON_RATIO) += N[k];
                             geom[k].UnSetLock();
 
@@ -1455,7 +1481,7 @@ namespace Kratos
             {
 
                     const double NN1 = (node_it)->GetValue(POISSON_RATIO);
-                    if (NN1 != 0.0)
+                   if (NN1 != 0.0)
                     {
 			//double pepe;
                         (node_it)->FastGetSolutionStepValue(DENSITY) /= NN1;
