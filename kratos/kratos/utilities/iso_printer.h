@@ -62,7 +62,7 @@ namespace Kratos {
     //HOW TO USE IT from python.
     /*
      #constructor:
-     Iso_App = TrilinosIsosurfacePrinterApplication(model_part)
+     Iso_App = IsosurfacePrinterApplication(model_part)
      
      #and then, in each time step in which results must be printed:
      Iso_App.ClearData()
