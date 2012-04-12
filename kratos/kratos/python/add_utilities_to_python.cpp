@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/openmp_utils.h"
 #include "utilities/pointlocation.h"
 #include "utilities/deflation_utils.h"
+#include "utilities/iso_printer.h"
 
 // #include "utilities/signed_distance_calculator_bin_based.h"
 #include "utilities/divide_elem_utils.h"
@@ -155,7 +156,14 @@ namespace Kratos
                     .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
                     ;
 
-
+           class_<IsosurfacePrinterApplication, boost::noncopyable >
+                    ("IsosurfacePrinterApplication",
+                     init<ModelPart& >() )
+                    .def("AddScalarVarIsosurface", &IsosurfacePrinterApplication::AddScalarVarIsosurface)
+                    .def("ClearData", &IsosurfacePrinterApplication::ClearData)
+		    .def("AddSkinConditions", &IsosurfacePrinterApplication::AddSkinConditions)
+                    .def("CreateNodesArray", &IsosurfacePrinterApplication::CreateNodesArray)
+		    ;
 
             // 	  class_<SignedDistanceCalculationBinBased<2> >("SignedDistanceCalculationBinBased2D", init<>())
             // 			  .def("CalculateDistances",&SignedDistanceCalculationBinBased<2>::CalculateDistances )
