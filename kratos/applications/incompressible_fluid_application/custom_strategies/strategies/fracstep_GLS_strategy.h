@@ -265,7 +265,7 @@ namespace Kratos
 	  KRATOS_TRY;
 	  Timer time;
 	  Timer::Start("paso_4");
-	  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	//  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	  array_1d<double, 3 > zero = ZeroVector(3);
 	  //Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 	  
@@ -450,7 +450,7 @@ namespace Kratos
 	  BaseType::GetModelPart().GetProcessInfo()[FRACTIONAL_STEP] = 4;
 	  return mppressurestep->Solve();
 	  Timer::Stop("Presion");
-	  KRATOS_WATCH(time)
+	  KRATOS_WATCH(*time)
 	    
 	    KRATOS_CATCH("");
 
