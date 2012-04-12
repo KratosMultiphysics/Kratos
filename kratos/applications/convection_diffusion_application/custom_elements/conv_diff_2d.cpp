@@ -198,15 +198,15 @@ namespace Kratos
         grad_g[1] = p2;
         //     		double norm_g =norm_2(grad_g);
 
-        double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
-        double aux_res = fabs(res - proj);
-        if (fabs(res) > aux_res)
-            res = aux_res;
+//        double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
+//        double aux_res = fabs(res - proj);
+//        if (fabs(res) > aux_res)
+//            res = aux_res;
         //        res -= proj;
-        res *= density*specific_heat;
-        double norm_grad = norm_2(grad_g);
-        double k_aux = fabs(res) / (norm_grad + 1e-6);
-        k_aux *= 0.707;
+//        res *= density*specific_heat;
+//        double norm_grad = norm_2(grad_g);
+//        double k_aux = fabs(res) / (norm_grad + 1e-6);
+//        k_aux *= 0.707;
 
 	double Schmidt_Prandl=1.0;
 	double nu_turbulent = 0.0;
@@ -214,6 +214,13 @@ namespace Kratos
 	if (Cs != 0.0){
         	nu_turbulent = ComputeSmagorinskyViscosity(msDN_DX, h, Cs, nu);
 	}
+
+
+	double norm_g =norm_2(grad_g);
+
+	double res = density * specific_heat*(inner_prod(ms_vel_gauss,grad_g)) ;//+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
+	double norm_grad=norm_2(grad_g);
+	double k_aux=fabs(res) /(norm_grad + 0.000000000001);
 
 
         noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
@@ -236,7 +243,7 @@ namespace Kratos
         //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
         noalias(rLeftHandSideMatrix) += (conductivity * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third));
 
-	noalias(rLeftHandSideMatrix) += density * (nu_turbulent /Schmidt_Prandl ) * prod(msDN_DX,trans(msDN_DX));
+	//noalias(rLeftHandSideMatrix) += density * (nu_turbulent /Schmidt_Prandl ) * prod(msDN_DX,trans(msDN_DX));
         //filling the mass factors
         //        msMassFactors(0, 0) = 1/6.0; 1.00 / 3.00;
         //        msMassFactors(0, 1) = 0.00;
