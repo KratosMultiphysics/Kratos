@@ -1,0 +1,18 @@
+COMMUN BOUNDARY NODES
+
+FLUID
+
+FLUID_POSITIVE_SIDE
+Number_Of_Nodes
+0
+Nodes
+
+FLUID_NEGATIVE_SIDE
+Number_Of_Nodes
+0
+Nodes
+
+STRUCTURE_SIDE
+Number_Of_Nodes
+0
+Nodes
