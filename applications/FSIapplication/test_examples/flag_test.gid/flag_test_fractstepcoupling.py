@@ -3,32 +3,11 @@
 #setting the domain size for the problem to be solved
 domain_size = 2
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path = '../../../../libs/' ##kratos_root/libs
-kratos_applications_path = '../../../../applications/' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_ALEApplication = True
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_StructuralApplication = True
-applications_interface.Import_FSIApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.FSIApplication import *
+from KratosMultiphysics.ALEApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  

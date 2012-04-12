@@ -1,8 +1,10 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosFSIApplication import *
-from KratosIncompressibleFluidApplication import *
-from KratosALEApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.FSIApplication import *
+from KratosMultiphysics.ALEApplication import *
+CheckForPreviousImport()
+
 import math
 
 def AddVariables(fluid_model_part,structure_model_part):

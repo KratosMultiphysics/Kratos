@@ -1,5 +1,5 @@
-#importing the Kratos Library
-from Kratos import *
+from KratosMultiphysics import *
+CheckForPreviousImport()
 
 class ExplicitCoupling:
     
