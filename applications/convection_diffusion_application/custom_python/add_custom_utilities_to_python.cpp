@@ -71,6 +71,17 @@ namespace Kratos
 namespace Python
 {
 
+void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+	{
+		if(domain_size == 2)
+		{
+			FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiff2D"),KratosComponents<Condition>::Get("ThermalFace2D")	); 
+		}
+		else if(domain_size == 3)
+		{
+			FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D")	); 
+		}
+	}
 	
   void  AddCustomUtilitiesToPython()
   {
@@ -79,6 +90,8 @@ namespace Python
 
 	  class_<FaceHeatUtilities>("FaceHeatUtilities", init<>())
 		.def("ApplyFaceHeat",&FaceHeatUtilities::ApplyFaceHeat)
+		.def("ConditionModelPart",&FaceHeatUtilities::ConditionModelPart)
+		.def("GenerateModelPart",GenerateModelPart)
 		;
 	  
 	  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
