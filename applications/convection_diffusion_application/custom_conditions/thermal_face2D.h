@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/variables.h"
 
 #include "includes/serializer.h"
-
+#include "includes/convection_diffusion_settings.h"
 namespace Kratos
 {
 
