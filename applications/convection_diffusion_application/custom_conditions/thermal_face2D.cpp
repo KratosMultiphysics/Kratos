@@ -111,17 +111,30 @@ namespace Kratos
 
 	//************************************************************************************
 	//************************************************************************************
-	void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										ProcessInfo& rCurrentProcessInfo,
-										bool CalculateStiffnessMatrixFlag,
-										bool CalculateResidualVectorFlag)
-	{
+	void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo, bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag)	{
 		KRATOS_TRY
 
 		unsigned int number_of_nodes = GetGeometry().size();
 
 		//resizing as needed the LHS
 		unsigned int MatSize=number_of_nodes;
+
+		 ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+            	//const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+		//ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		
+        	//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+        	
+        	const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+        	
+		//KRATOS_WATCH(rUnknownVar);
+		//KRATOS_ERROR(std::logic_error, "method not implemented", "");
+        	//const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
+        	
+
+        	//double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
+
 
 		//calculate lenght
 		double x21 = GetGeometry()[1].X() - GetGeometry()[0].X();
@@ -134,12 +147,11 @@ namespace Kratos
 		double emissivity = GetProperties()[EMISSIVITY];
 		double convection_coefficient = GetProperties()[CONVECTION_COEFFICIENT];
 
-		const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE);
-		const double& T1 = GetGeometry()[1].FastGetSolutionStepValue(TEMPERATURE);
+		const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+		const double& T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
 
-		const double& q0 = GetGeometry()[0].FastGetSolutionStepValue(FACE_HEAT_FLUX);
-		const double& q1 = GetGeometry()[1].FastGetSolutionStepValue(FACE_HEAT_FLUX);
-
+		const double& q0 =GetGeometry()[0].FastGetSolutionStepValue(FACE_HEAT_FLUX);
+		const double& q1 =GetGeometry()[1].FastGetSolutionStepValue(FACE_HEAT_FLUX);
 
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 		{
@@ -170,7 +182,7 @@ namespace Kratos
 			
 			rRightHandSideVector[0] =  q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)  -  convection_coefficient * ( T0 - ambient_temperature);
 
-			rRightHandSideVector[1] =  q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux) -  convection_coefficient * ( T1 - ambient_temperature);
+			rRightHandSideVector[1] =  q1   - emissivity*StefenBoltzmann*(pow(T1,4) - aux) -  convection_coefficient * ( T1 - ambient_temperature);
 
 /*			rRightHandSideVector[0] =  emissivity*q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)   
 									-  convection_coefficient * ( T0 - ambient_temperature);
@@ -192,11 +204,21 @@ namespace Kratos
 	void ThermalFace2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 	{
 		unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+
+        	//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+        	
+        	const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
+
+
+
 		if(rResult.size() != number_of_nodes)
 			rResult.resize(number_of_nodes,false);
 		for (unsigned int i=0;i<number_of_nodes;i++)
 		{
-			rResult[i] = (GetGeometry()[i].GetDof(TEMPERATURE)).EquationId();
+			rResult[i] = (GetGeometry()[i].GetDof(rUnknownVar)).EquationId();
 		}
 	}
 
@@ -204,10 +226,22 @@ namespace Kratos
 	//************************************************************************************
 	  void ThermalFace2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
 	{
+
+
+		ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+		
+        	//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
+        	
+        	const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+
 		ConditionalDofList.resize(GetGeometry().size());
+
+
+
+
 		for (unsigned int i=0;i<GetGeometry().size();i++)
 		{
-			ConditionalDofList[i] = (GetGeometry()[i].pGetDof(TEMPERATURE));
+			ConditionalDofList[i] = (GetGeometry()[i].pGetDof(rUnknownVar));
 		}
 	}
 	  
