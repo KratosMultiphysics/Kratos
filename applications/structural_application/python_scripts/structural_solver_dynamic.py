@@ -51,6 +51,7 @@ class DynamicStructuralSolver:
         #definition of the convergence criteria
         self.conv_criteria = DisplacementCriteria(0.000001,1e-9)
         self.conv_criteria.Check(self.model_part)
+        self.CalculateReactionFlag = True
         
        
 
@@ -67,11 +68,10 @@ class DynamicStructuralSolver:
         #builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
 
         #creating the solution strategy
-        CalculateReactionFlag = False
         ReformDofSetAtEachStep = False
         MoveMeshFlag = True
         import strategy_python
-        self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
+        self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,ReformDofSetAtEachStep,MoveMeshFlag)
 
         self.solver.Check();
          
