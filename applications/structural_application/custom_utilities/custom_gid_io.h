@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 // #include "includes/datafile_io.h"
 #include "includes/gid_io.h"
+#include "structural_application.h"
 
 
 namespace Kratos
@@ -179,7 +180,7 @@ namespace Kratos
                 {
                     WriteGaussPoints();
                     
-                    if( rVariable == INSITU_STRESS )
+                    if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
                         GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                           GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     else if( (rVariable == MATERIAL_PARAMETERS) || (rVariable == INTERNAL_VARIABLES) )
@@ -206,7 +207,7 @@ namespace Kratos
                                 for(unsigned int i=0; i<mIndexContainer.size(); i++)
                                 {
                                     int index = mIndexContainer[i];
-                                    if( rVariable == INSITU_STRESS )
+                                    if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
                                     {
                                         if(ValuesOnIntPoint[i].size() ==6 )
                                             GiD_Write3DMatrix( it->Id(),
@@ -245,7 +246,7 @@ namespace Kratos
                                 for(unsigned int i=0; i<mIndexContainer.size(); i++)
                                 {
                                     int index = mIndexContainer[i];
-                                    if( rVariable == INSITU_STRESS )
+                                    if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
                                     {
                                         if(ValuesOnIntPoint[i].size() ==6 )
                                             GiD_Write3DMatrix( it->Id(),
