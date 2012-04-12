@@ -83,7 +83,7 @@ class Solver:
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
-        #(self.duplicate_and_create_conditions).Execute()
+        (self.duplicate_and_create_conditions).Execute()
 	#a = Matrix(2,3)
 
 	#a[0,0] = 3
