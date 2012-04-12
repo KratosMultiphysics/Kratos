@@ -158,6 +158,35 @@ namespace Kratos
             #endif
         }
 
+        /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
+        /** This function assumes that the vector class will have an iterator type and implement begin(), end() and size() methods.
+          * @param rVector An arary containing the elements to be distributed between the threads.
+          * @param rBegin Iterator pointing to the first element in rVector to be used in the current thread.
+          * @param rEnd Iterator pointing to the end position for the current thread in rVector.
+          */
+        template< class TVector >
+        static void PartitionedIterators(TVector& rVector,
+                                         typename TVector::iterator& rBegin,
+                                         typename TVector::iterator& rEnd)
+        {
+#ifdef _OPENMP
+            int NumTerms = rVector.size();
+            int ThreadNum = omp_get_thread_num();
+            int NumThreads = omp_get_max_threads();
+            int PartitionSize = NumTerms / NumThreads;
+            // Set Partition start
+            rBegin = rVector.begin() + ThreadNum * PartitionSize;
+            // Partition ends after 'PartitionSize' terms, except if this is the last partition
+            if ( (ThreadNum + 1) != NumThreads )
+                rEnd = rBegin + PartitionSize;
+            else
+                rEnd = rVector.end();
+#else
+            rBegin = rVector.begin();
+            rEnd = rVector.end();
+#endif
+        }
+
         /// A function to set the number of threads from Python.
         /**
          This is an auxiliary mainly intended for test purposes, to help with the
