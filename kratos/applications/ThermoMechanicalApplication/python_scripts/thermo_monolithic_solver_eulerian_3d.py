@@ -1,13 +1,13 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosThermoMechanicalApplication import *
-from KratosIncompressibleFluidApplication import *
-##from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
-##from KratosMKLSolversApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part,settings):
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(settings.GetConvectionVariable());
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);    
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable());   
@@ -50,9 +50,9 @@ class MonolithicSolver:
 
 
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.1);
+        #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.1);
 
-        #self.dynamic_tau = 0.0
+        self.dynamic_tau = 1.0
         #self.oss_switch  = 0
 
         
@@ -87,6 +87,7 @@ class MonolithicSolver:
  	
         self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
         #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
         #self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
