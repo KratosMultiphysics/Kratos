@@ -1,6 +1,6 @@
 #importing the Kratos Library
-from Kratos import *
-
+#from Kratos import *
+from KratosMultiphysics import *
 
 class SolvingStrategyPython:
     #######################################################################
