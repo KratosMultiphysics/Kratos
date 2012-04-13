@@ -73,33 +73,7 @@ void SpalartAllmaras::Initialize()
 {
     KRATOS_TRY;
 
-    const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
-    const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
-
-    // Initialize member variables
-    mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
-    mDetJ = 0.00;
-
-    GeometryType::JacobiansType J;
-    J = GetGeometry().Jacobian( J, mIntegrationMethod );
-
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
-
-    // container for inverse of J
-    Matrix InvJ;
-
-    //calculating the inverse J
-    for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
-    {
-        //calculating and storing inverse of the jacobian and the parameters needed
-        MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
-
-        //calculating the shape function derivatives in global coordinates
-        mDN_DX[g].resize(NumNodes,Dim);
-        noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
-    }
+    this->InitializeElementData();
 
     KRATOS_CATCH( "" )
 }
@@ -111,33 +85,7 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
     if (FractionalStepNumber == 1)
     {
-        const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
-        const SizeType NumNodes = this->GetGeometry().PointsNumber();
-
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
-
-        // Initialize member variables
-        mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
-
-        GeometryType::JacobiansType J;
-        J = GetGeometry().Jacobian( J, mIntegrationMethod );
-
-        const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
-
-        // containers for inverse of J
-        Matrix InvJ;
-
-        //calculating the inverse J
-        for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
-        {
-
-            //calculating and storing inverse of the jacobian and the parameters needed
-            MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
-
-            //calculating the shape function derivatives in global coordinates
-            mDN_DX[g].resize(NumNodes,Dim);
-            noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
-        }
+        this->InitializeElementData();
     }
     else if (FractionalStepNumber == 2)
     {
@@ -322,6 +270,37 @@ void SpalartAllmaras::GetValuesVector(Vector &rValues, int Step)
 }
 
 // Protected functions: Definition of local contributions ---------------------
+
+void SpalartAllmaras::InitializeElementData()
+{
+    const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
+
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
+
+    // Initialize member variables
+    mDN_DX.resize( IntegrationPoints.size() ); // Shape function derivatives container
+    mDetJ = 0.00;
+
+    GeometryType::JacobiansType J;
+    J = GetGeometry().Jacobian( J, mIntegrationMethod );
+
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = this->GetGeometry().ShapeFunctionsLocalGradients( this->mIntegrationMethod );
+
+    // container for inverse of J
+    Matrix InvJ;
+
+    //calculating the inverse J
+    for ( SizeType g = 0; g < IntegrationPoints.size(); g++ )
+    {
+        //calculating and storing inverse of the jacobian and the parameters needed
+        MathUtils<double>::InvertMatrix( J[g], InvJ, mDetJ );
+
+        //calculating the shape function derivatives in global coordinates
+        mDN_DX[g].resize(NumNodes,Dim);
+        noalias( mDN_DX[g] ) = prod( DN_De[g], InvJ );
+    }
+}
 
 // Lumped version
 void SpalartAllmaras::AddMassTerm(MatrixType &rMassMatrix,
