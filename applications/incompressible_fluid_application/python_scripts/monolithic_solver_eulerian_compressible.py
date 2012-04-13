@@ -4,11 +4,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplicatio import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
-#from Kratos import *
-#from KratosIncompressibleFluidApplication import *
-#from KratosPFEMApplication import *
-##from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
+
 
 
 def AddVariables(model_part):
