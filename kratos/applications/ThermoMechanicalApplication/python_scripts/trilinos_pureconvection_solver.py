@@ -1,9 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosThermoMechanicalApplication import *
-#from KratosIncompressibleFluidApplication import *
-from KratosTrilinosApplication import *
-
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.TrilinosApplication import *
 try:
  import boost.mpi as mpi
 except ImportError:
