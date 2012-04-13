@@ -1,33 +1,20 @@
-import fluid_only_var
+import problem_settings
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = fluid_only_var.domain_size
+domain_size = problem_settings.domain_size
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-import sys
-sys.path.append(fluid_only_var.kratos_path)
-
-#importing Kratos main library
 from KratosMultiphysics import *
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
+from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-##from KratosMultiphysics.ExternalSolversApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
 
 #############################################
 ##importing the solvers needed
-SolverType = fluid_only_var.SolverType
+SolverType = problem_settings.SolverType
 if(SolverType == "fractional_step"):
     import fractional_step_solver
     fractional_step_solver.AddVariables(fluid_model_part)
@@ -45,12 +32,12 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible
     monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
 else:
-    raise "solver type not supported: options are fractional_step - \
+    raise Exception("solver type not supported: options are fractional_step - \
 	pressure_splitting - monolithic_solver_eulerian - \
-	monolithic_solver_eulerian_compressible"
+	monolithic_solver_eulerian_compressible")
 
 #introducing input file name
-input_file_name = fluid_only_var.problem_name
+input_file_name = problem_settings.problem_name
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -75,7 +62,7 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
 
 #########select here the laplacian form!!!!!!!!!!!!!!!!!
-laplacian_form = fluid_only_var.laplacian_form 
+laplacian_form = problem_settings.laplacian_form 
 if(laplacian_form >= 2):
     for node in fluid_model_part.Nodes:
         node.Free(PRESSURE)
@@ -84,18 +71,18 @@ if(laplacian_form >= 2):
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
         print "node ",node.Id," has zero density!"
-        raise 'node with zero density found'
+        raise Exception('node with zero density found')
     if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
         print "node ",node.Id," has zero viscosity!"
-        raise 'node with zero VISCOSITY found'
+        raise Exception('node with zero VISCOSITY found')
 
 #creating the solvers
 #fluid solver
 if(SolverType == "fractional_step"):
     fluid_solver = fractional_step_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
-    fluid_solver.predictor_corrector = fluid_only_var.predictor_corrector
-    fluid_solver.max_press_its = fluid_only_var.max_press_its
+    fluid_solver.predictor_corrector = problem_settings.predictor_corrector
+    fluid_solver.max_press_its = problem_settings.max_press_its
     fluid_solver.Initialize()
 elif(SolverType == "pressure_splitting"):
     fluid_solver = decoupled_solver_eulerian.DecoupledSolver(fluid_model_part,domain_size)
@@ -108,30 +95,30 @@ elif(SolverType == "pressure_splitting"):
     fluid_solver.rel_pres_tol = 1e-4
     fluid_solver.abs_pres_tol = 1e-6
     fluid_solver.use_inexact_newton = False
-    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
+    fluid_solver.dynamic_tau = problem_settings.dynamic_tau
+    fluid_solver.oss_switch  = int(problem_settings.use_oss)
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
-    fluid_solver.regularization_coef = fluid_only_var.m_coef
+    fluid_solver.dynamic_tau = problem_settings.dynamic_tau
+    fluid_solver.oss_switch  = int(problem_settings.use_oss)
+    fluid_solver.regularization_coef = problem_settings.m_coef
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_solver.dynamic_tau = fluid_only_var.dynamic_tau
-    fluid_solver.oss_switch  = int(fluid_only_var.use_oss)
+    fluid_solver.dynamic_tau = problem_settings.dynamic_tau
+    fluid_solver.oss_switch  = int(problem_settings.use_oss)
     fluid_solver.Initialize()
 
 
 print "fluid solver created"
 
 #settings to be changed
-Dt = fluid_only_var.Dt 
+Dt = problem_settings.Dt 
 full_Dt = Dt 
 initial_Dt = 0.001 * full_Dt #0.05 #0.01
-final_time = fluid_only_var.max_time
-output_step = fluid_only_var.output_step
+final_time = problem_settings.max_time
+output_step = problem_settings.output_step
 
 out = 0
 
@@ -145,9 +132,9 @@ gid_io.FinalizeMesh()
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
 # Write .post.list file (GiD postprocess list)
-f = open(ProjectParameters.problem_name+'.post.lst','w')
+f = open(problem_settings.problem_name+'.post.lst','w')
 f.write('Single\n')
-f.write(ProjectParameters.problem_name+'.post.bin\n')
+f.write(problem_settings.problem_name+'.post.bin\n')
 f.close()
 
 time = 0.0
