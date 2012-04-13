@@ -239,7 +239,7 @@ double Solve()
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ConditionsArrayType& pConditions     = r_model_part.Conditions();
-	NodesArrayType& pNodes               = r_model_part.Nodes();
+	//NodesArrayType& pNodes               = r_model_part.Nodes();
 	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
 	
 	#ifdef _OPENMP
@@ -254,7 +254,7 @@ double Solve()
 	
 	///Inicializa los elementos y condiciones. Crea los elementos del Boundary y los Joints para Heuristic o DG
 	if(mInitializeWasPerformed == false){
-	  DofsArrayType& rDofSet   = mpBuilderAndSolver->GetDofSet();    
+	  //DofsArrayType& rDofSet   = mpBuilderAndSolver->GetDofSet();    
 	  minitial_conditions_size = pConditions.size();
 	  mDTU.CreateJoints(r_model_part,mdimension);
 	  Initialize();
@@ -424,7 +424,7 @@ void ComputeNonViscousDampingForces()
   
   KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
-      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
       NodesArrayType& pNodes           = r_model_part.Nodes(); 
 
       #ifdef _OPENMP
