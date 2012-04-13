@@ -1,7 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.PFEMApplicatio import *
+from KratosMultiphysics.PFEMApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
