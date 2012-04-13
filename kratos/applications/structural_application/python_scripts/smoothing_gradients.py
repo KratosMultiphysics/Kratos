@@ -1,7 +1,8 @@
 import os, sys
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+
 
 class Smoothing_Gradients:
     #######################################################################

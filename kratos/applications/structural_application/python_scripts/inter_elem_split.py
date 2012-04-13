@@ -1,8 +1,9 @@
 import os, sys
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-#from KratosMeshingApplication import *
+#including kratos path
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.MeshingApplication import *
 
 
 class Nodal_Split_Elem:

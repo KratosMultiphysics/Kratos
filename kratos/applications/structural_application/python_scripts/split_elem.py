@@ -1,8 +1,8 @@
 import os, sys
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-#from KratosMeshingApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.MeshingApplication import *
 
 
 class Split_Elements:
