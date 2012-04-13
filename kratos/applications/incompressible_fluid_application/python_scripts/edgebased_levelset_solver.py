@@ -1,7 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from KratosMultiphysics.MeshingApplication import *
+#from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 def AddVariables(model_part):
