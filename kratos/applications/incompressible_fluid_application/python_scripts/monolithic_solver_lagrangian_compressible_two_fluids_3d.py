@@ -1,10 +1,11 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosIncompressibleFluidApplication import *
-from KratosPFEMApplication import *
-from KratosMeshingApplication import *
-from KratosExternalSolversApplication import *
-#from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplicatio import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -20,11 +21,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_VISITED);    
     model_part.AddNodalSolutionStepVariable(IS_POROUS);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
-    print"before free surface"
     model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE);
-    print"after free surface"
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
-    print"after IS_INTERFACE"
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);
     model_part.AddNodalSolutionStepVariable(ERASE_FLAG);    
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -49,7 +47,14 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(DISTANCE);
-    model_part.AddNodalSolutionStepVariable(AUX_INDEX);  
+    model_part.AddNodalSolutionStepVariable(AUX_INDEX);
+    model_part.AddNodalSolutionStepVariable(NORMAL);
+    model_part.AddNodalSolutionStepVariable(RHS); 
+    model_part.AddNodalSolutionStepVariable(RHS_WATER); 
+    model_part.AddNodalSolutionStepVariable(RHS_AIR);
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS);
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);
+    model_part.AddNodalSolutionStepVariable(NODAL_MAUX);
 
 
     print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
@@ -107,8 +112,8 @@ class MonolithicSolver:
                                        
         self.node_erase_process = NodeEraseProcess(self.model_part);
         
-       # self.Mesher = TetGenPfemModeler()
-        self.Mesher = TetGenPfemRefineFace()
+        self.Mesher = TetGenPfemModeler()
+       # self.Mesher = TetGenPfemRefineFace()
 
 	
         self.neigh_finder = FindNodalNeighboursProcess(model_part,9,18)
@@ -169,7 +174,7 @@ class MonolithicSolver:
        # self.CalculateDistanceAndDiviedSet(3);
         print "143"
        # self.DistToH()
-        self.Remesh()
+       # self.Remesh()
         print "145"
         (self.solver).Solve()
         print "a47"
@@ -243,7 +248,9 @@ class MonolithicSolver:
             (self.neigh_finder).ClearNeighbours();
             (self.neigh_finder).Execute();
             
-	    (self.Mesher).ReGenerateMesh("ASGSCompressible3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)					      
+	    (self.Mesher).ReGenerateMesh("ASGSCompressible3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+	    #(self.Mesher).ReGenerateMesh("ASGSCompressible3D", "Condition3D",self.model_part,(self.structure_model_part).Elements,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)	
+					      
 ##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)						      
 	    print"after remesh"
              #calculating fluid neighbours before applying boundary conditionsTrue
