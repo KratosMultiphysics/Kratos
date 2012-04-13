@@ -404,8 +404,8 @@ void ComputeContactForce2D(const PointerType& Target, const PointerType& Contact
   const double RP5  = 0.50;
   const double RP15 = 1.50;
   
-  int icontact = 0; 
-  int np = 0;
+  unsigned int icontact = 0; 
+  unsigned int np = 0;
   double a0,a1,a2,b0,b1,b2,c0,c1,c2,n0,n1,n2,fn,fna,fnb;
   double pen,tmp,dmin2,smin,smax;
   double small =  EPSILON;
@@ -1281,8 +1281,8 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	    int  Case                   =  0;    
 	    unsigned int  master        =  0;
 	    unsigned int  slave         =  1;    
-	    bool is_repited             =  false;
-	    bool corner                 =  false; 
+	    //bool is_repited             =  false;
+	    //bool corner                 =  false; 
 	    bool Change                 =  true;    
             Near_Node  Near             =  no_near; 
             Exist_Node Exist            =  no_nodes;
@@ -1321,7 +1321,7 @@ void ComputeContactForce3D(const PointerType& Target, const PointerType& Contact
 	    std::cout<<"     NUMBER OF INITIAL CONDITIONS            = " << initial_conditions_size <<  std::endl;
             std::cout<<"     NUMBER OF MASTER SURFACES CONDITIONS    = " << rConditions.size()-initial_conditions_size <<  std::endl;
 	    
-	    #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
+	    #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, /*is_repited, corner,*/ Change, Near, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
 	    for(int k=0; k<number_of_threads; k++)          
 	     {
 	       IteratorType it_begin = mBoundaryElements.begin() + partition[k];
@@ -4006,7 +4006,7 @@ void IdentifyMasterSegment2D()
 	  { 
 	    std::size_t size = rBins.SearchObjectsInner(*it, Result);
 	    
-	    if(Result.size()!=0){
+	    if(size!=0){
 	    Element::GeometryType& geom = (*it)->GetGeometry();
 	    for(unsigned int i = 0; i<geom.size(); i++){       
 	      if(geom(i)->GetValue(IS_BOUNDARY) == 1){
