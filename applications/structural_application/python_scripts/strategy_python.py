@@ -1,6 +1,8 @@
 #importing the Kratos Library
-from Kratos import *
-
+#from Kratos import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.MeshingApplication import *
 
 class SolvingStrategyPython:
     #######################################################################
