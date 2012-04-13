@@ -247,6 +247,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void InitializeElementData();
+
     void AddMassTerm(MatrixType &rMassMatrix,
                      const ShapeFunctionsType& N,
                      const double Weight);
