@@ -1,9 +1,10 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosThermoMechanicalApplication import *
-#from KratosIncompressibleFluidApplication import *
-from KratosTrilinosApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.TrilinosApplication import *
 
+# Check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
 try:
  import boost.mpi as mpi
 except ImportError:
@@ -95,19 +96,39 @@ class Solver:
 
         self.guess_row_size = 18
 
-
+        self.neigh_finder = FindNodalNeighboursProcess(self.model_part,9,18)
+        self.elem_neighbor_finder = FindElementalNeighboursProcess(self.model_part, 2, 20)
+        self.Nmax = len(model_part.Properties)
+        self.contact_matix = Matrix()
+        
+        ##calculate normals
+        self.normal_tools = BodyNormalCalculationUtils() 
         
     #######################################################################
     def Initialize(self):
+        self.duplicate_and_create_conditions = DuplicateInterfaceNodesCreateConditionsProcess(self.model_part,"HeatContact2D", self.Nmax, self.contact_matix )        
+
+        (self.neigh_finder).ClearNeighbours();
+        (self.neigh_finder).Execute();
+        
+        (self.elem_neighbor_finder).ClearNeighbours()
+        (self.elem_neighbor_finder).Execute() 
+        print "INSIDE INITIALIZE"           
+        
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
+        (self.duplicate_and_create_conditions).Execute()
+        
+        self.normal_tools.CalculateBodyNormals(self.model_part,2);       	
  	
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
+        mpi.world.barrier()
         self.solver.max_iter = self.max_iterations
 	                     
     #######################################################################   
-    def Solve(self):        
-        (self.solver).Solve()      
+    def Solve(self):      
+         mpi.world.barrier()
+         (self.solver).Solve()      
 
     #######################################################################   
     def SetEchoLevel(self,level):
