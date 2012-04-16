@@ -30,7 +30,8 @@ namespace Kratos
 	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);*/
 
 
-	KratosDEMApplication::KratosDEMApplication()
+	KratosDEMApplication::KratosDEMApplication():
+	mSphericParticle()
 	{}
 	
 	void KratosDEMApplication::Register()
@@ -38,6 +39,7 @@ namespace Kratos
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
+		KRATOS_REGISTER_ELEMENT("SphericParticle", mSphericParticle)
 	}
 
 }  // namespace Kratos.
