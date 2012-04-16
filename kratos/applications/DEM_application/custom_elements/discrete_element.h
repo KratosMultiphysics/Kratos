@@ -230,17 +230,6 @@ namespace Kratos
         {
         }
         
-        virtual void GetValuesVector(Vector& values, int Step = 0)
-        {
-        }
-
-        virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
-        {
-        }
-
-        virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
-        {
-        }
 
       ///@}
       ///@name Access
