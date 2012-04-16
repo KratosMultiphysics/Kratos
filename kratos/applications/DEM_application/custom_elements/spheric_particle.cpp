@@ -49,12 +49,7 @@ namespace Kratos
       void SphericParticle::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo){}
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo)
-      {
-	if (rVariable==CONTACT_FORCE)
-	{
-	}
-      }
+      void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
       
       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
