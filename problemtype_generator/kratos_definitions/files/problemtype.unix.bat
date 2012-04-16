@@ -15,8 +15,6 @@ mv "${2}/${1}-3.dat" "${2}/problem_settings.py"
 
 # Read additional settings (kpt file)
 while read name value; do
- echo "name=${name}"
- echo "value=${value}"
  if [ ${name} = "CUSTOMFILE" ]; then
    script_type=${value}
  elif [ ${name} = "FILEPATH" ]; then
