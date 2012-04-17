@@ -14,35 +14,8 @@
 ##################################################################
 ## including kratos path                                     #####
 ## ATTENTION: the following lines have to be adapted to      #####
-##            match your acrtual configuration               #####
+##            match your actual configuration                #####
 ##################################################################
-kratos_root_path = '../../../../'
-##setting up paths
-kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
-kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
-##################################################################
-##################################################################
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-##importing Kratos main library
-#from Kratos import *
-#kernel = Kernel()   #defining kernel
-
-##importing applications
-#import applications_interface
-#applications_interface.Import_StructuralApplication = True
-#applications_interface.Import_KratosMKLSolversApplication = True
-#applications_interface.Import_ConstitutiveLawsApplication = True
-#applications_interface.ImportApplications(kernel, kratos_applications_path)
-#from KratosStructuralApplication import *
-#from KratosExternalSolversApplication import *
-#from KratosConstitutiveLawsApplication import *
-#from KratosMeshingApplication import *
-#from KratosIncompressibleFluidApplication import *
-#from KratosMKLSolversApplication import *
-
 from KratosMultiphysics import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.ConstitutiveLawsApplication import *
@@ -50,7 +23,6 @@ from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MKLSolversApplication import *
-
 ##################################################################
 ##################################################################
 class Model:
@@ -118,11 +90,8 @@ class Model:
                 
                 ## generating solver
                 import structural_solver_advanced
-                self.solver = structural_solver_advanced.SolverAdvanced( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol, kratos_applications_path )
-                #import ekate_solver_parallel
-                #self.solver = ekate_solver_parallel.EkateSolver( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol, kratos_applications_path )
+                self.solver = structural_solver_advanced.SolverAdvanced( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol )
                 structural_solver_advanced.AddVariables( self.model_part )
-                #ekate_solver_parallel.AddVariables( self.model_part )
                 ##################################################################
                 ## READ MODELPART ################################################
                 ##################################################################
