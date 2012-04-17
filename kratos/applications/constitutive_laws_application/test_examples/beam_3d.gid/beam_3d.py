@@ -14,17 +14,8 @@ domain_size = 3
 ## ATTENTION: the following lines have to be adapted to      #####
 ##            match your acrtual configuration               #####
 ##################################################################
-kratos_root_path = '../../../../'
-##setting up paths
-kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
-kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
-##################################################################
 ##################################################################
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-##################################################################
 ##################################################################
 sys.path.append('./beam_3d.gid')
 import beam_3d_include
