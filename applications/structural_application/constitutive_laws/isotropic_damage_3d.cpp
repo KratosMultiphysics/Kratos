@@ -177,8 +177,8 @@ namespace Kratos
 
         mFc    = props[FC];
         mFt    = props[FT];
-        mEc    = props[CONCRETE_YOUNG_MODULUS_C];
-        mEt    = props[CONCRETE_YOUNG_MODULUS_T];
+        mEc    = props[YOUNG_MODULUS]; ///WARNING = it could be diferent values of the youngs modulus in comprension o traction 
+        mEt    = props[YOUNG_MODULUS];
         mNU    = props[POISSON_RATIO];
         mGE    = props[FRACTURE_ENERGY];
         ml     = pow( fabs( geom.Volume() ), 0.333333333333333333 );   // longitud del elemento
@@ -261,6 +261,7 @@ namespace Kratos
 
         A  = 1.00 / (( mGE * mEc ) / ( ml * mFt * mFt ) - 0.5 );
 
+	 
         if ( A < 0.00 )
         {
             A  = 0.00;
@@ -461,6 +462,7 @@ namespace Kratos
             int CalculateTangent,
             bool SaveInternalVariables )
     {
+        CalculateStress(StrainVector, StressVector); 
         CalculateStressAndTangentMatrix( StressVector, StrainVector, AlgorithmicTangent );
     }
 
