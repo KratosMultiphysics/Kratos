@@ -18,21 +18,16 @@ sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 
 #importing Kratos main library
-from Kratos import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
 kernel = Kernel()   #defining kernel
 
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
-
 if(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
-    from KratosExternalSolversApplication import *
+    from KratosMultiphysics.ExternalSolversApplication import *
 
 if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
     applications_interface.Import_KratosMKLSolversApplication = True
-    from KratosMKLSolversApplication import *
+    from KratosMultiphysics.MKLSolversApplication import *
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
