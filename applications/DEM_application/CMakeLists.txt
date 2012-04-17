@@ -7,10 +7,10 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 ## generate variables with the sources
 set( KRATOS_DEM_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/DEM_application.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/spheric_particle_hertzian.cpp
-       	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEM_python_application.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/spheric_particle_hertzian.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spheric_particle.cpp
 )
 
