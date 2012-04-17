@@ -18,14 +18,9 @@ sys.path.append(kratos_libs_path)
 sys.path.append(kratos_applications_path)
 
 #importing Kratos main library
-from Kratos import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
 kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
 
 ## from now on the order is not anymore crucial
 ##################################################################
