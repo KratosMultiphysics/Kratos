@@ -26,12 +26,17 @@ namespace Kratos
       /// Default constructor.
       SphericParticle::SphericParticle(){}
       
-      SphericParticle::SphericParticle(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties){}
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry ){ KRATOS_WATCH("AAAAAAAAAAA") }
       
-      SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties){}
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties ){KRATOS_WATCH("BBBBBBBBBB") }
+      
+      SphericParticle::SphericParticle(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties){KRATOS_WATCH("CCCCCCCCCC")  }
+      
+      SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties){KRATOS_WATCH("DDDDDDDDDDD") }
            
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
       {
+	 KRATOS_WATCH("AKAIAKAIAKIA") 
          return Element::Pointer(new SphericParticle(NewId, ThisNodes, pProperties) );
       } 
       
@@ -49,8 +54,7 @@ namespace Kratos
       void SphericParticle::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo){}
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo){}
-      void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
-      
+      void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}     
       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
   
