@@ -74,11 +74,41 @@ namespace Kratos
       ///@name Life Cycle 
       ///@{ 
       
-      /// Default constructor.
-      DiscreteElement(){}
-      
-      DiscreteElement(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties){} 
+        /// Default constructor.
+        //DiscreteElement() : Element() {}
+     
+        DiscreteElement(IndexType NewId = 0) : Element(NewId){ } 
+     
+        /**
+         * Constructor using an array of nodes
+         */
+        DiscreteElement(IndexType NewId, const NodesArrayType& ThisNodes) :
+        Element(NewId, ThisNodes) 
+        {
+        }
 
+        /**
+         * Constructor using Geometry
+         */
+        DiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry) :
+        Element(NewId, pGeometry)
+        {
+        }
+
+        /**
+         * Constructor using Properties
+         */
+        DiscreteElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : 
+        Element(NewId, pGeometry , pProperties)
+        {
+        }
+
+        /// Copy constructor.
+        DiscreteElement (DiscreteElement const& rOther) : Element(rOther)
+        {
+        }
+      
+   
       /// Destructor.
       virtual ~DiscreteElement(){}
       
