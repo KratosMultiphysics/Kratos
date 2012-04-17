@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  
 //   
 //   Project Name:        Kratos       
-//   Last Modified by:    $Author:  $
+//   Last Modified by:    $Author: Nelson   $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
 //
@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+
 
 
 namespace Kratos

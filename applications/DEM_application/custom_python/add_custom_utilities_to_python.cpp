@@ -58,7 +58,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_strategies/explicit_solver.h"
 //#include "custom_strategies/explicit_solver_with_rotation.h"
+
+#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/create_and_destroy.h"
+#include "custom_utilities/spheric_particle_hertzian.h"
+
 
 //namespace Kratos{
 //
@@ -286,7 +290,18 @@ void  AddCustomUtilitiesToPython(){
     class_<std::vector<HertzianCircleType::Pointer > >("CirclesHertzianPointersVector", init<>());
     class_<std::vector<SphereType::Pointer > >("SpheresPointersVectors", init<>());
    */
-       class_<std::vector<HertzianSphereType::Pointer > >("SpheresHertzianPointersVector", init<>());
+    
+       /// The object
+       /*
+       class_<IndexedObject>("IndexedObject", init<>())
+       .def("Create", &IndexedObject::Create, return_value_policy<reference_existing_object > ())     
+       ;
+       */
+       class_<HertzianSphereType>("SpheresHertzian", init<>())
+       ;
+       
+       /// The conitner  
+       class_<HertzianSpherePointerVectorType>("SpheresHertzianPointersVector", init<>());
     /*
      * class_<std::vector<RotatingSphereType::Pointer > >("RotatingSpheresPointersVector", init<>());
     class_<std::vector<RotatingHertzianSphereType::Pointer > >("RotatingHertzianSpheresPointersVector", init<>());
