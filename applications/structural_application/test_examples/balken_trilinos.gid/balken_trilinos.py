@@ -16,29 +16,6 @@ print "i am ",mpi.rank , " of ",mpi.size
 ##################################################################
 ## ATTENTION: here the order is important                    #####
 ##################################################################
-## including kratos path                                     #####
-## ATTENTION: the following lines have to be adapted to      #####
-##            match your acrtual configuration               #####
-##################################################################
-## calypso:
-#kratos_root_path = '/home/hurga/kratos_bcn/kratos'
-#kratos_root_path = '/home/hurga/kratos_merged/kratos'
-## alderaan:
-#kratos_root_path = '/localsw/kratos/kratos'
-## r2d2
-#kratos_root_path = '/home/stasch/kratos_bcn/kratos'
-## astra
-kratos_root_path = '../../../../'
-##setting up paths
-kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
-kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
-##################################################################
-##################################################################
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-##################################################################
 ##################################################################
 sys.path.append('./balken_trilinos.gid')
 import balken_trilinos_include
