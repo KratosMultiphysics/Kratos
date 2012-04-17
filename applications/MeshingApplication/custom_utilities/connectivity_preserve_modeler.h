@@ -103,12 +103,12 @@ namespace Kratos
 	    DestinationModelPart.Nodes().clear();
 
             //assigning ProcessInfo
+	    DestinationModelPart.SetProcessInfo(  OriginModelPart.pGetProcessInfo() ); 
 	    DestinationModelPart.SetBufferSize(OriginModelPart.GetBufferSize());
-            DestinationModelPart.SetProcessInfo( OriginModelPart.GetProcessInfo() );
+//             DestinationModelPart.SetProcessInfo( OriginModelPart.GetProcessInfo() );
 
             //assigning Properties
             DestinationModelPart.SetProperties(OriginModelPart.pProperties());
-KRATOS_WATCH("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
 	    
 	    KRATOS_WATCH(rReferenceElement);
 	    KRATOS_WATCH(rReferenceBoundaryCondition);
@@ -116,16 +116,16 @@ KRATOS_WATCH("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
             //assigning the nodes to the new model part
             
             DestinationModelPart.Nodes() = OriginModelPart.Nodes();
-KRATOS_WATCH("bbbbbbbbbbbbbbbbbbbbbbbbbb");
-            //generating the elements
+
+	    //generating the elements
             for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
             {
                 Properties::Pointer properties = iii->pGetProperties();
                 Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
                 DestinationModelPart.Elements().push_back(p_element);
             }
-KRATOS_WATCH("elements generated");
-            //generating the conditions
+
+	    //generating the conditions
             for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
             {
                 Properties::Pointer properties = iii->pGetProperties();
@@ -133,7 +133,7 @@ KRATOS_WATCH("elements generated");
                 Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
                 DestinationModelPart.Conditions().push_back(p_condition);
             }
-KRATOS_WATCH("conditions generated");
+
             Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
             DestinationModelPart.SetCommunicator(pComm);
 

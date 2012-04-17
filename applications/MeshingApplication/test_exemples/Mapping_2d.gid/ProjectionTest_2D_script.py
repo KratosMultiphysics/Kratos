@@ -6,15 +6,8 @@ import pfem_var
 #setting the domain size for the problem to be solved
 domain_size = pfem_var.domain_size
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_path = '../../../..'
 kratos_benchmarking_path = '../../../../benchmarking'
 import sys
-sys.path.append(kratos_path)
 sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
