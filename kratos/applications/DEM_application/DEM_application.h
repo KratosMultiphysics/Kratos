@@ -28,7 +28,7 @@
 #include "custom_elements/spheric_particle.h"
 
 
-const double pi = 3.141592653589793238462643383279;
+const long double pi = 3.141592653589793238462643383279;
 
 namespace Kratos
 {
