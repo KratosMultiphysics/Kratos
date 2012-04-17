@@ -397,6 +397,8 @@ namespace Kratos
 	  {
 	    Element::GeometryType& geom = it->GetGeometry(); 
 	    (it)->Initialize(); 
+	    KRATOS_WATCH(geom)
+	    /*
 	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
 	    const unsigned int& dim   = geom.WorkingSpaceDimension();
 	    index = 0;
@@ -406,6 +408,7 @@ namespace Kratos
 		index = i*dim;
 		mass  = mass + MassMatrix(index,index);
 	     }
+	     */
 	 }
       }
       
