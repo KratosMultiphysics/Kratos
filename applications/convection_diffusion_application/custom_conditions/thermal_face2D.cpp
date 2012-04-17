@@ -127,12 +127,13 @@ namespace Kratos
         	//const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
         	
         	const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-        	
+
+		const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
+
 		//KRATOS_WATCH(rUnknownVar);
 		//KRATOS_ERROR(std::logic_error, "method not implemented", "");
         	//const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
         	
-
         	//double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
 
 
@@ -150,8 +151,8 @@ namespace Kratos
 		const double& T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
 		const double& T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
 
-		const double& q0 =GetGeometry()[0].FastGetSolutionStepValue(FACE_HEAT_FLUX);
-		const double& q1 =GetGeometry()[1].FastGetSolutionStepValue(FACE_HEAT_FLUX);
+		const double& q0 =GetGeometry()[0].FastGetSolutionStepValue(rSurfaceSourceVar);
+		const double& q1 =GetGeometry()[1].FastGetSolutionStepValue(rSurfaceSourceVar);
 
 		if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
 		{
