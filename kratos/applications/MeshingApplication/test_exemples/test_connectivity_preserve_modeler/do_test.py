@@ -75,19 +75,19 @@ for i in range(0,30):
   
   if(i > 2):
     #here we verify that both model parts have the correct time and delta time
-    benchmarking.Output(origin_model_part.ProcessInfo[TIME], "expected time", time)
-    benchmarking.Output(origin_model_part.ProcessInfo[DELTA_TIME], "expected delta time", dt)
-    benchmarking.Output(new_model_part.ProcessInfo[TIME], "expected time", time)
-    benchmarking.Output(new_model_part.ProcessInfo[DELTA_TIME], "expected delta time", dt)
+    benchmarking.Output(origin_model_part.ProcessInfo[TIME], "expected time for origin_model_part", time)
+    benchmarking.Output(origin_model_part.ProcessInfo[DELTA_TIME], "expected delta time for origin_model_part", dt)
+    benchmarking.Output(new_model_part.ProcessInfo[TIME], "expected time for new_model_part", time)
+    benchmarking.Output(new_model_part.ProcessInfo[DELTA_TIME], "expected delta tim for new_model_parte", dt)
     
     #verify that values of the processinfo can be set correctly in both model parts
-    test_value = 1234.0
+    test_value = 1234.0+3*i*i
     origin_model_part.ProcessInfo.SetValue(YOUNG_MODULUS,test_value)    #here we set from origin model part
     benchmarking.Output(origin_model_part.ProcessInfo[YOUNG_MODULUS], "test expected value for YOUNG_MODULUS on origin_model_part", test_value)
     benchmarking.Output(new_model_part.ProcessInfo[YOUNG_MODULUS], "test expected value for YOUNG_MODULUS on new_model_part", test_value)
     
     
-    other_test_value = 4567.0
+    other_test_value = 4567.0+4*i
     new_model_part.ProcessInfo.SetValue(TEMPERATURE,other_test_value)    #here we set from new_model_part
     benchmarking.Output(origin_model_part.ProcessInfo[TEMPERATURE], "test expected value for TEMPERATURE  on origin_model_part", other_test_value)
     benchmarking.Output(new_model_part.ProcessInfo[TEMPERATURE], "test expected value for TEMPERATURE  on new_model_part", other_test_value)
@@ -102,5 +102,47 @@ for i in range(0,30):
     benchmarking.Output(origin_model_part.Properties[10].GetValue(PRESSURE) , "test expected value for PRESSURE in properties for the origin_model_part", prop_test_value)
     benchmarking.Output(new_model_part.Properties[10].GetValue(PRESSURE)    , "test expected value for PRESSURE in properties for the new_model_part", prop_test_value)
 
+
+
+##now do the same but assign the pointer
+for i in range(0,30):
+  time = time + dt
+  
+  #we advance in time ONE of the model_parts
+  #note that it would be an error to advance both of them since the processinfo is shared
+  origin_model_part.CloneTimeStep(time)
+  
+  ##here we assign pointer to pointer
+  new_model_part.ProcessInfo = origin_model_part.ProcessInfo
+  
+  if(i > 2):
+    #here we verify that both model parts have the correct time and delta time
+    benchmarking.Output(origin_model_part.ProcessInfo[TIME], "expected time for origin_model_part", time)
+    benchmarking.Output(origin_model_part.ProcessInfo[DELTA_TIME], "expected delta time for origin_model_part", dt)
+    benchmarking.Output(new_model_part.ProcessInfo[TIME], "expected time for new_model_part", time)
+    benchmarking.Output(new_model_part.ProcessInfo[DELTA_TIME], "expected delta tim for new_model_parte", dt)
+    
+    #verify that values of the processinfo can be set correctly in both model parts
+    test_value = 1234.0+i
+    origin_model_part.ProcessInfo.SetValue(YOUNG_MODULUS,test_value)    #here we set from origin model part
+    benchmarking.Output(origin_model_part.ProcessInfo[YOUNG_MODULUS], "test expected value for YOUNG_MODULUS on origin_model_part", test_value)
+    benchmarking.Output(new_model_part.ProcessInfo[YOUNG_MODULUS], "test expected value for YOUNG_MODULUS on new_model_part", test_value)
+    
+    other_test_value = 4567.0+5*i
+    origin_model_part.ProcessInfo.SetValue(TEMPERATURE,other_test_value)    #here we set from new_model_part
+    benchmarking.Output(origin_model_part.ProcessInfo[TEMPERATURE], "test expected value for TEMPERATURE  on origin_model_part", other_test_value)
+    benchmarking.Output(new_model_part.ProcessInfo[TEMPERATURE], "test expected value for TEMPERATURE  on new_model_part", other_test_value)
+    
+    ##add 1.0 to the value of PRESSURE for the model part
+    ##and verify that this is correct on both model parts
+    prop_test_value += 2.0;
+    aaa = origin_model_part.Properties[10].GetValue(PRESSURE) 
+    origin_model_part.Properties[10].SetValue(PRESSURE,aaa+1)    
+    aaa = new_model_part.Properties[10].GetValue(PRESSURE) 
+    new_model_part.Properties[10].SetValue(PRESSURE,aaa+1)    
+    benchmarking.Output(origin_model_part.Properties[10].GetValue(PRESSURE) , "test expected value for PRESSURE in properties for the origin_model_part", prop_test_value)
+    benchmarking.Output(new_model_part.Properties[10].GetValue(PRESSURE)    , "test expected value for PRESSURE in properties for the new_model_part", prop_test_value)
+
+  
 print "completed"
   
