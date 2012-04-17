@@ -40,13 +40,13 @@ class ExplicitSolver:
         #data of the problem
         self.particle_destructor_and_constructor = Spheres_Hertzian_Creator_Destructor()
         self.solver_id = solver_id
-	self.step = 0;
         self.time_step = Dt;
         self.use_parallel_distance_calculation = False
         self.n_step_search = n_step_search
         self.acc_time_calc_forces = 0.0
         self.acc_time_motion = 0.0
         self.acc_time_search = 0.0
+        self.step = 0;
 
         self.type_id = type_id
         self.damp_id = damp_id
@@ -56,6 +56,8 @@ class ExplicitSolver:
         number_of_avg_nodes = 10
         self.explicit_solver_object = Spheres_Hertzian_Explicit_Solver(solver_id, search_radius, prox_tol, model_part)
         self.explicit_solver_object.Search_Neighbours()
+          #definit l'objecte aki.
+
 
     def GetInitialContinuumNeighbours(self):
         #calculate initial Neighbours
