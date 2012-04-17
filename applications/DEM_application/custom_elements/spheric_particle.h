@@ -67,11 +67,11 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      SphericParticle();
-      
+      SphericParticle();   
       SphericParticle(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties);
-      
       SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties);
+      SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
+      SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
       
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
          
@@ -209,10 +209,16 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-      //SphericParticle& operator=(SphericParticle const& rOther){}
+      SphericParticle& operator=(SphericParticle const& rOther)
+      {
+	return *this;
+      }
 
       /// Copy constructor.
-      //SphericParticle(SphericParticle const& rOther){}
+      SphericParticle(SphericParticle const& rOther)
+      {
+	*this = rOther;
+      }
 
         
       ///@}    
