@@ -450,7 +450,7 @@ namespace Kratos
 	  BaseType::GetModelPart().GetProcessInfo()[FRACTIONAL_STEP] = 4;
 	  return mppressurestep->Solve();
 	  Timer::Stop("Presion");
-	  KRATOS_WATCH(*time)
+	  //KRATOS_WATCH(*time)
 	    
 	    KRATOS_CATCH("");
 
