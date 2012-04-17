@@ -20,7 +20,7 @@
 
 #include "includes/variables.h"
 #include "DEM_application.h"
-
+#include "geometries/point_3d.h"
 
 namespace Kratos
 {
@@ -31,9 +31,9 @@ namespace Kratos
 
 
 	KratosDEMApplication::KratosDEMApplication():
-	mSphericParticle()
+	mSphericParticle(0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
 	{}
-	
+        
 	void KratosDEMApplication::Register()
 	{
 		// calling base class register to register Kratos components
