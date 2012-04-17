@@ -34,9 +34,13 @@
 
 /* Project includes */
 #include "includes/define.h"
+#include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
+
+
+#include "custom_utilities/neighbours_calculator.h"
 
 
 namespace Kratos
@@ -101,12 +105,15 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor.
-      ExplicitSolverStrategy(ModelPart& model_part,   
+       ExplicitSolverStrategy(){}
+      
+       ExplicitSolverStrategy(ModelPart& model_part,   
 			      const int        dimension,
 			      const double     damping_ratio,       ///para calcular la matriz de amortiguamiento proporcional a la masa
                               const double     fraction_delta_time,
                               const double     max_delta_time,
-		              const bool       MoveMeshFlag
+		              const bool       MoveMeshFlag,
+		              typename         TSchemeType::Pointer pScheme
 			)
 			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
 			{
@@ -116,7 +123,9 @@ namespace Kratos
 			   mConditionsAreInitialized  = false;
 			   mCalculateOldTime          = false;
                            mSolutionStepIsInitialized = false; 
+			   mInitializeWasPerformed    = false;
                            mComputeTime               = false;
+			   mInitialConditions         = false;
                            mdamping_ratio             = damping_ratio;
                            mfraction_delta_time       = fraction_delta_time; 
                            mmax_delta_time            = max_delta_time;
@@ -136,11 +145,22 @@ namespace Kratos
       ///@name Operations
       ///@{
       
+	/*
+      void Search_Neighbours()
+          {
+             Neighbours_Calculator<TDim, ParticleType, ParticlePointerType, ParticleVectorType, ParticleWeakVectorType, ParticlePointerVectorType,
+             ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
+             Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch, mProximityTol);
+          }	 
+       */
+	
       double Solve()
       {
 	KRATOS_TRY
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
+	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
+	
 	
 	#ifdef _OPENMP
 	double start_prod = omp_get_wtime();   
@@ -152,8 +172,10 @@ namespace Kratos
 	
 	
 	///Inicializa los elementos y condiciones. Crea los elementos del Boundary y los Joints para Heuristic o DG
-	if(mInitializeWasPerformed == false)
+	if(mInitializeWasPerformed == false){
+	    Set_Initial_Contacts();
 	    Initialize();
+	}
 	
 	///Initialize solution step
 	InitializeSolutionStep(); 
@@ -213,6 +235,10 @@ namespace Kratos
 	{
 	}
 	
+	void InitializeSolutionStep()
+	{
+	}
+	
 	void GetForce()
 	{
 	}
@@ -252,6 +278,7 @@ namespace Kratos
       ///@name Input and output
       ///@{
 
+      /* 
       /// Turn back information as a string.
       virtual std::string Info() const;
       
@@ -260,7 +287,7 @@ namespace Kratos
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const;
-      
+      */
             
       ///@}      
       ///@name Friends
@@ -325,6 +352,8 @@ namespace Kratos
     bool   mCalculateOldTime;
     bool   mSolutionStepIsInitialized;
     bool   mComputeTime;
+    bool   mInitializeWasPerformed;
+    bool   mInitialConditions;
     double mdamping_ratio;
     double malpha_damp;
     double mbeta_damp; 
@@ -356,7 +385,7 @@ namespace Kratos
        #endif
 
       vector<unsigned int> element_partition;
-      CreatePartition(number_of_threads, pElements.size(), element_partition);
+      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
       unsigned int index = 0;
       
       #pragma omp parallel for private(index, MassMatrix)
@@ -384,6 +413,14 @@ namespace Kratos
      mElementsAreInitialized   = true;
      KRATOS_CATCH("")
 }
+      
+      
+      void Set_Initial_Contacts()
+      {
+	 ///particula->GetValue(NEIGHBOUR_ELEMENTS)).push_back( *(particula.base()));
+	//  busqueda vecinos
+	//  get continun vecinos
+      }
       
       
       ///@} 
