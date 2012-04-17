@@ -220,8 +220,8 @@ class IncompressibleFluidSolver:
 
     def WriteRestartFile(self,FileName):
         backupfile = open(FileName+".py",'w')
-##        backupfile.write( "from Kratos import *\n");
-##        backupfile.write( "def Restart(NODES):\n" )
+        backupfile.write( "from KratosMultiphysics import *\n");
+        backupfile.write( "def Restart(NODES):\n" )
         
         import restart_utilities
         restart_utilities.PrintRestart_ScalarVariable_PyFormat(VELOCITY_X,"VELOCITY_X",self.model_part.Nodes,backupfile)
