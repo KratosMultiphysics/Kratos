@@ -16,43 +16,17 @@
 ## ATTENTION: the following lines have to be adapted to      #####
 ##            match your acrtual configuration               #####
 ##################################################################
-## calypso:
-#kratos_root_path = '/home/hurga/kratos_bcn/kratos'
-#kratos_root_path = '/home/hurga/kratos_merged/kratos'
-## alderaan:
-#kratos_root_path = '/localsw/kratos/kratos'
-## r2d2
-#kratos_root_path = '/home/stasch/kratos_bcn/kratos'
-## astra
-kratos_root_path = '../../../../'
-##setting up paths
-kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
-kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
-#kratos_applications_path_nonfree = kratos_root_path+'/applications_nonfree' ##kratos_root/applications_nonfree
-trilinos_path = kratos_root_path+'/applications/trilinos_application/python_scripts'
-##################################################################
-##################################################################
 import mpi
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-#sys.path.append(kratos_applications_path_nonfree)
-sys.path.append(trilinos_path)
-
-#importing Kratos main library
-from Kratos import *
+#importing Kratos modules
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MKLSolversApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysice.MetisApplication import *
 kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.Import_KratosTrilinosApplication = True
-applications_interface.Import_KratosMetisApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
-from KratosExternalSolversApplication import *
-from KratosMetisApplication import *
-from KratosTrilinosApplication import *
+##################################################################
 ##################################################################
 ##################################################################
 class Model:
