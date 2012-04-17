@@ -16,27 +16,13 @@
 ## ATTENTION: the following lines have to be adapted to      #####
 ##            match your acrtual configuration               #####
 ##################################################################
-## kratos test examples:
-kratos_root_path = '../../../..'
-##setting up paths
-kratos_libs_path = kratos_root_path+'/libs' ##kratos_root/libs
-kratos_applications_path = kratos_root_path+'/applications' ##kratos_root/applications
 ##################################################################
-##################################################################
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
+#importing Kratos modules
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MKLSolversApplication import *
 kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
-from KratosExternalSolversApplication import *
 ##################################################################
 ##################################################################
 class Model:
@@ -103,7 +89,7 @@ class Model:
                 
                 ## generating solver
                 import structural_solver_advanced
-                self.solver = structural_solver_advanced.SolverAdvanced( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol, kratos_applications_path )
+                self.solver = structural_solver_advanced.SolverAdvanced( self.model_part, self.domain_size, number_of_time_steps, self.analysis_parameters, abs_tol, rel_tol )
                 structural_solver_advanced.AddVariables( self.model_part )
 
                 ##################################################################
@@ -143,7 +129,8 @@ class Model:
                 ## INITIALISE SOLVER FOR PARTICULAR SOLUTION #####################
                 ##################################################################
                 #defining linear solver
-                plinear_solver = SkylineLUFactorizationSolver()
+                #plinear_solver = SkylineLUFactorizationSolver()
+                plinear_solver = MKLPardisoSolver()
                 self.solver.structure_linear_solver = plinear_solver
                 self.solver.Initialize()
                 (self.solver.solver).SetEchoLevel(2);
