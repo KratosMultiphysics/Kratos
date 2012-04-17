@@ -4,10 +4,9 @@ import time as timer
 #from numpy import *
 #from pylab import *
 
+
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 #defining a model part for the solid part
 my_timer=Timer();
