@@ -130,6 +130,26 @@ def Run():
 		print "Mapping_3d_BinBased benchmarking example FAILED"
 
 	os.chdir("..")
+	
+	
+       ################################################################
+	Text +=  "connectivity_preserve_modeler benchmark:"
+	os.chdir("test_connectivity_preserve_modeler")
+	sys.path.append(os.getcwd())
+	print "verifying  connectivity_preserve_modeler benchmark..."
+	Msg = benchmarking.RunBenchmark("do_test.py", "connectivity_preserve_benchmarking_ref.txt")
+
+	if (Msg == True):
+	    Text += "OK\n"
+	    print "connectivity_preserve_modeler benchmark succesful"
+	else:
+	    Text += "FAILED\n"
+	    Text += Msg
+	    Text += "\n\n"
+	    print "connectivity_preserve_modeler benchmark FAILED"
+	    
+	os.chdir("..")
+	
         ################################################################
         ################################################################
 
