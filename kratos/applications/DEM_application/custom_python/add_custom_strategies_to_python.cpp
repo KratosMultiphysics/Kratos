@@ -68,9 +68,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_strategy.h"
+
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
+
+
+
+//convergence criteria
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+
+//schemes
+#include "solving_strategies/schemes/scheme.h"
+
+
+//builder_and_solvers
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
 
 
@@ -83,22 +97,21 @@ namespace Kratos
 
 		void  AddCustomStrategiesToPython()
 		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+		  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+		  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+		  typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+		  typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+		  typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-			//********************************************************************
-			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-// 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy", 
-// 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-// 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-// 				;
-		 
+                     
+		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
+		  
+		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+		  (
+		  "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, bool, BaseSchemeType::Pointer>()
+		  );
+		  
 		}
 
 	}  // namespace Python.
