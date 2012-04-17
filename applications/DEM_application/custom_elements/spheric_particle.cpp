@@ -22,22 +22,20 @@
 
 namespace Kratos
 {
-
-      /// Default constructor.
-      SphericParticle::SphericParticle(){}
       
-      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry ){ KRATOS_WATCH("AAAAAAAAAAA") }
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry) {}
       
-      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties ){KRATOS_WATCH("BBBBBBBBBB") }
-      
-      SphericParticle::SphericParticle(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties){KRATOS_WATCH("CCCCCCCCCC")  }
-      
-      SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties){KRATOS_WATCH("DDDDDDDDDDD") }
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+      : DiscreteElement(NewId, pGeometry, pProperties)  
+      {}
+       
+      SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
+      : DiscreteElement(NewId, ThisNodes) 
+      {}
            
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const 
       {
-	 KRATOS_WATCH("AKAIAKAIAKIA") 
-         return Element::Pointer(new SphericParticle(NewId, ThisNodes, pProperties) );
+         return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create( ThisNodes ), pProperties) );
       } 
       
 
