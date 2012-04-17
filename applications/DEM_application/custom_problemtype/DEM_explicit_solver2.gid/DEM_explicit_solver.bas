@@ -7,9 +7,15 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-Begin Properties 0
-End Properties
+
 *# Property blocks
+*loop materials
+
+Begin Properties  1
+End Properties
+
+*end materials
+
 
 Begin Nodes
 *#// id	  X	Y	Z
@@ -19,6 +25,13 @@ Begin Nodes
 End Nodes
 *# Element blocks
 *# Condition Blocks
+
+Begin Elements SphericParticle
+*loop elems 
+*format "%i%i%i%i%i%i%i%i"
+*ElemsNum 1 *elemsconec(1)
+*end elems
+End Elements
 
 *Set cond volume_VELOCITY *elems
 *Add cond surface_VELOCITY *elems
