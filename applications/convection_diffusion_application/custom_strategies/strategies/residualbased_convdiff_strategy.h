@@ -172,7 +172,7 @@ namespace Kratos
 			BuilderSolverTypePointer componentwise_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver,Variable<double> > (pNewLinearSolver,rUnknownVar) );
 			mstep1 = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver > 				(model_part,pscheme,pNewLinearSolver,componentwise_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
 			mstep1->SetEchoLevel(2);
-
+			Check();
 			KRATOS_CATCH("")
 		}
 
@@ -312,6 +312,48 @@ namespace Kratos
 		{
 			mstep1->Clear();
 		}
+
+	virtual int Check()
+        {
+            KRATOS_TRY
+
+	    ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
+	    ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
+            const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
+	    const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
+            const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
+            const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
+            const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
+	    const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
+
+ 
+            if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rUnknownVar) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----UnknownVar---- variable!!!!!! ERROR", "");
+	    if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rDensityVar) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----rDensityVar---- variable!!!!!! ERROR", "");
+	    if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rDiffusionVar) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----rDiffusionVar---- variable!!!!!! ERROR", "");
+            if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rSourceVar) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----rSourceVar---- variable!!!!!! ERROR", "");
+            if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rMeshVelocityVar) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----rMeshVelocityVar---- variable!!!!!! ERROR", "");
+            if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rProjectionVariable) == false)
+               KRATOS_ERROR(std::logic_error, "Add  ----rProjectionVariable---- variable!!!!!! ERROR", "");
+
+
+            if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
+                KRATOS_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
+            if(BaseType::GetModelPart().GetMesh().GetProperties(0)[CONVECTION_COEFFICIENT] == false)
+                KRATOS_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
+	   if(BaseType::GetModelPart().GetMesh().GetProperties(0)[AMBIENT_TEMPERATURE] == false)
+                KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
+
+
+ 	return 0;
+
+           KRATOS_CATCH("")           
+
+	}
 
 		/*@} */
 		/**@name Operators 
