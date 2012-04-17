@@ -66,11 +66,10 @@ namespace Kratos
       ///@name Life Cycle 
       ///@{ 
       
-      /// Default constructor.
-      SphericParticle();   
-      SphericParticle(IndexType NewId, const Node<3>::Pointer rNode, PropertiesType::Pointer pProperties);
-      SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties);
+      /// Default constructor. 
+      SphericParticle() : DiscreteElement() {}
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
+      SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
       
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
@@ -208,6 +207,9 @@ namespace Kratos
       ///@name Un accessible methods 
       ///@{ 
       
+      
+      
+      /*
       /// Assignment operator.
       SphericParticle& operator=(SphericParticle const& rOther)
       {
@@ -219,7 +221,7 @@ namespace Kratos
       {
 	*this = rOther;
       }
-
+      */
         
       ///@}    
         
