@@ -133,7 +133,7 @@ def Run():
 	
 	
        ################################################################
-	Text +=  "connectivity_preserve_modeler benchmark:"
+	Text +=  "connectivity_preserve_modeler benchmark: "
 	os.chdir("test_connectivity_preserve_modeler")
 	sys.path.append(os.getcwd())
 	print "verifying  connectivity_preserve_modeler benchmark..."
