@@ -9,19 +9,19 @@ domain_size = 2
 
 #including kratos path
 kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
 import sys
 sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
+#importing Kratos main lib
 
-#importing applications
-import applications_interface
-applications_interface.Import_ThermoMechanicalApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+
+## from now on the order is not anymore crucial
+##################################################################
+##################################################################
+ # importing kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 
 #defining a model part
@@ -41,6 +41,7 @@ thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
 thermal_settings.SetUnknownVariable(TEMPERATURE)
 thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
 thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
+thermal_settings.SetConvectionVariable(VELOCITY)
 thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
 ##########################################################
 
