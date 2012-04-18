@@ -34,10 +34,6 @@ elif [ $script_type == "Copy_From" ]; then
  cp "$script_path" "${2}/script.py"
 fi
 
-# The following line is required when python and kratos
-# are linked to different versions of libstdc++.so
-export LD_PRELOAD=libstdc++.so.6:${LD_PRELOAD}
-
 # Launch the script
 if [ -f "${2}/script.py" ]; then
  python "${2}/script.py" > "${2}/${1}.info" 2> "${2}/${1}.err"
