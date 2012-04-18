@@ -1,5 +1,5 @@
 #import the configuration data as read from the GiD
-import pfem_erosion_var
+import problem_settings
 import time
 ##################################################################
 ##################################################################
