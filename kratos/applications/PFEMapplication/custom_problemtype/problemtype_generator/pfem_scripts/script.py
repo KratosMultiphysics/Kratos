@@ -94,7 +94,6 @@ if(SolverType == "pfem_solver_ale"):
     #adding dofs
     pfem_solver_ale.AddDofs(model_part)
     #creating a fluid solver object
-    name = str("dam2d")
     solver = pfem_solver_ale.PFEMSolver(model_part,name,box_corner1,box_corner2,domain_size)
     solver.laplacian_form = int(problem_settings.laplacian_form)
     solver.echo_level = 0
@@ -108,7 +107,6 @@ if(SolverType == "pfem_solver_ale"):
     solver.Initialize(initial_dt,output_Dt)
 elif(SolverType == "monolithic_solver_lagrangian"):
     #adding dofs
-
     monolithic_solver_lagrangian.AddDofs(model_part)
     solver = monolithic_solver_lagrangian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
     solver.oss_swith = int(problem_settings.use_oss)
