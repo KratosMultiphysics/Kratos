@@ -2,6 +2,7 @@ import os, sys
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
+CheckForPreviousImport()
 
 
 class Smoothing_Gradients:
