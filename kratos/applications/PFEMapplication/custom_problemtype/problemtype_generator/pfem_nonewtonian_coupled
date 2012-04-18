@@ -25,14 +25,10 @@ FACE CONDITION Condition3D surface
 FACE CONDITION Fluid2DNeumann line
 FACE CONDITION Fluid3DNeumann surface 
 
-#ELEMENT Fluid2D surface
-#ELEMENT ASGS2D surface
+
 ELEMENT NoNewtonianASGS2D surface
 ELEMENT NoNewtonianASGS3D volume
-##ELEMENT Fluid3D volume 
-#ELEMENT ASGS3D volume
-#ELEMENT Fluid2DCoupled surface
-#ELEMENT Fluid3DCoupled volume 
+
 
 PROPERTY Solid_Density 1000.0 Density
 PROPERTY Fluidified_Viscosity 0.001 Viscosity
