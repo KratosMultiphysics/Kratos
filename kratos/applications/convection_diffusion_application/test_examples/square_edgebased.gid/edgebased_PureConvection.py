@@ -5,23 +5,9 @@ import edgebased_var
 #setting the domain size for the problem to be solved
 domain_size = edgebased_var.domain_size
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path            = '../../../../libs'
-kratos_applications_path    = '../../../../applications'
 kratos_benchmarking_path = '../../../../benchmarking'
-
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
 sys.path.append(kratos_benchmarking_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
 
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
