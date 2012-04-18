@@ -374,7 +374,7 @@ namespace Kratos
 {
       KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
-      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
       ElementsArrayType& pElements     = r_model_part.Elements(); 
 
       Matrix MassMatrix;
