@@ -8,20 +8,20 @@ domain_size = 2
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
+kratos_path = '../../../..'
+#kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
+
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(kratos_path)
+sys.path.append(kratos_benchmarking_path)
+#import benchmarking
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_ThermoMechanicalApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+##################################################################
+##################################################################
+ # importing kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 
 #defining a model part
@@ -41,7 +41,7 @@ thermal_settings.SetUnknownVariable(TEMPERATURE)
 thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
 thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
 thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-convection_settings.SetConvectionVariable(VELOCITY)
+thermal_settings.SetConvectionVariable(VELOCITY)
 ##########################################################
 
 #importing the solver files
@@ -71,7 +71,7 @@ print model_part
 model_part.SetBufferSize(3)
 
 #importing the solver files
-thermo_monolithic_solver_eulerian_3d.AddDofs(model_part)
+thermo_monolithic_solver_eulerian_3d.AddDofs(model_part,thermal_settings)
 print "111111111111111111111111111111111111111111"
 
 #creating a fluid solver object
@@ -82,12 +82,12 @@ solver.Initialize()
 
 #assigning the fluid properties
 #conductivity = 0.0;
-#density = 1.0;
-#specific_heat = 1.0;
-#for node in model_part.Nodes:
+density = 1.0;
+specific_heat = 100.0;
+for node in model_part.Nodes:
     #node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
-    #node.SetSolutionStepValue(DENSITY,0,density);
-    #node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
+    node.SetSolutionStepValue(DENSITY,0,density);
+    node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
 #assigning a rotational velocity field
 vel = Vector(3);
@@ -102,7 +102,7 @@ for node in model_part.Nodes:
 ##   if(node.X**2 + node.Y**2 > 0.24):
 ##        vel[0] = 0.0
 ##        vel[1] = 0.0        
-      node.SetSolutionStepValue(VELOCITY,0,vel);
+      node.SetSolutionStepValue(thermal_settings.GetConvectionVariable(),0,vel);
 
 #assigning a cone shaped temperature distribution
 xc = 0.0
@@ -126,7 +126,7 @@ for node in model_part.Nodes:
 print "222222222222222222222222222222222222222222222222222222"
 
 #settings to be changed
-nsteps = 1000
+nsteps = 100
 output_step = 1
 
 Dt = 2.00*math.pi/200.0;
@@ -147,7 +147,7 @@ for step in range(0,nsteps):
     #print the results
     if(out == output_step):
         gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(thermal_settings.GetConvectionVariable(),model_part.Nodes,time,0)
         gid_io.WriteNodalResults(NODAL_AREA,model_part.Nodes,time,0)
         #gid_io.WriteNodalResults(SPECIFIC_HEAT,model_part.Nodes,time,0) 
         #gid_io.WriteNodalResults(DENSITY,model_part.Nodes,time,0) 
