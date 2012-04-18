@@ -1,5 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+CheckForPreviousImport()
 
 
 class SolvingStrategyPython:

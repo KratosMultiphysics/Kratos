@@ -1,6 +1,7 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE);

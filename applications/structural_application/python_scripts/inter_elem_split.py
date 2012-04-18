@@ -4,6 +4,7 @@ import os, sys
 from KratosMultiphysics import *
 from KratosMultiphysics.StructuralApplication import *
 #from KratosMultiphysics.MeshingApplication import *
+CheckForPreviousImport()
 
 
 class Nodal_Split_Elem:

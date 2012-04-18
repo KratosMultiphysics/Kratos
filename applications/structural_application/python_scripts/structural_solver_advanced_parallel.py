@@ -1,8 +1,10 @@
-#importing the Kratos Library
-from Kratos import *
-from KratosStructuralApplication import *
-import sys
 
+#importing the Kratos Library
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+CheckForPreviousImport()
+
+import sys
 import structural_solver_static_parallel
 
 def AddVariables(model_part):
