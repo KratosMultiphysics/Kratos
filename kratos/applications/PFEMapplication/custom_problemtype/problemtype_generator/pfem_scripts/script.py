@@ -16,8 +16,11 @@ sys.path.append(problem_settings.kratos_path)
 
 #importing Kratos main library
 from KratosMultiphysics import *
-from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
+
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -53,13 +56,10 @@ model_part_io.ReadModelPart(model_part)
 for node in model_part.Nodes:
     node.SetSolutionStepValue(BODY_FORCE_X,0,problem_settings.Gravity_X) 
     node.SetSolutionStepValue(BODY_FORCE_Y,0,problem_settings.Gravity_Y) 
-    node.SetSolutionStepValue(BODY_FORCE_Z,0,problem_settings.Gravity_Z) 
-    if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ",node.Id," has zero density!"
-        raise 'node with zero density found'
-    if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ",node.Id," has zero viscosity!"
-        raise 'node with zero density found'
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,problem_settings.Gravity_Z)
+    node.SetSolutionStepValue(DENSITY,0,problem_settings.density)
+    node.SetSolutionStepValue(VISCOSITY,0,problem_settings.viscosity)
+
 
 
 mesh_name = 0.0
@@ -85,8 +85,8 @@ output_Dt = problem_settings.output_Dt
 max_dt = problem_settings.max_dt
 min_dt = problem_settings.min_dt
 safety_factor = problem_settings.safety_factor
-nsteps = problem_settings.nsteps
-
+##nsteps = int(problem_settings.nsteps)
+final_time = problem_settings.max_time
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(2)
 
@@ -96,7 +96,7 @@ if(SolverType == "pfem_solver_ale"):
     #creating a fluid solver object
     name = str("dam2d")
     solver = pfem_solver_ale.PFEMSolver(model_part,name,box_corner1,box_corner2,domain_size)
-    solver.laplacian_form = problem_settings.laplacian_form
+    solver.laplacian_form = int(problem_settings.laplacian_form)
     solver.echo_level = 0
     solver.prediction_order = 1
     solver.predictor_corrector = True
@@ -111,11 +111,10 @@ elif(SolverType == "monolithic_solver_lagrangian"):
 
     monolithic_solver_lagrangian.AddDofs(model_part)
     solver = monolithic_solver_lagrangian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
-    oss_swith = problem_settings.use_oss
-    dynamic_tau = problem_settings.dynamic_tau
+    solver.oss_swith = int(problem_settings.use_oss)
+    solver.dynamic_tau = int(problem_settings.dynamic_tau)
     solver.echo_level = 2
-    model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
-    model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+
     solver.Initialize(output_Dt)
 
 
@@ -123,7 +122,9 @@ elif(SolverType == "monolithic_solver_lagrangian"):
 
 ###############################################################
 time = 0.0
-for step in range(0,nsteps):
+step = 0
+##for step in range(0,nsteps):
+while(time < final_time):
     print "line49"
 
     new_Dt = solver.EstimateDeltaTime(min_dt,max_dt)
@@ -138,6 +139,6 @@ for step in range(0,nsteps):
     if(step > 3):
         solver.Solve(time,gid_io)
 
-
+    step = step + 1 
           
         
