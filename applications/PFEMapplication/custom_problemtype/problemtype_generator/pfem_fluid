@@ -8,8 +8,8 @@ VECTOR CONDITION MESH_VELOCITY     	point line surface volume free 0.0 0.0 0.0
 VECTOR CONDITION BODY_FORCE     	point line surface volume free 0.0 0.0 0.0
 SCALAR CONDITION PRESSURE     		point line surface volume free  0.0
 SCALAR CONDITION EXTERNAL_PRESSURE     	point line surface volume free  0.0
-SCALAR CONDITION VISCOSITY     	        point line surface volume free  0.000001
-SCALAR CONDITION DENSITY     		point line surface volume free  1.0
+#SCALAR CONDITION VISCOSITY     	        point line surface volume free  0.000001
+#SCALAR CONDITION DENSITY     		point line surface volume free  1.0
 
 FLAG CONDITION IS_INTERFACE   		point line surface volume free 1.0
 FLAG CONDITION FLAG_VARIABLE  		point line surface volume free 1.0 2.0 3.0 4.0 5.0
@@ -34,8 +34,10 @@ ELEMENT Fluid3DCoupled volume
 PROPERTY Gravity_X 0.0 Gravity_X
 PROPERTY Gravity_Y -9.806 Gravity_Y
 PROPERTY Gravity_Z 0.0 Gravity_Z
+PROPERTY density 1000.0 density
+PROPERTY viscosity 0.000001 viscosity
 
-#PROPERTY max_time 100.0 max_time
+PROPERTY max_time 100.0 max_time
 PROPERTY max_x 10.0 max_x
 PROPERTY max_y 10.0 max_y
 PROPERTY max_z 10.0 max_z
@@ -44,7 +46,7 @@ PROPERTY min_y -1.0 min_y
 PROPERTY min_z -1.0 min_z
 PROPERTY use_oss 0 use_oss
 PROPERTY dynamic_tau 1 dynamic_tau
-PROPERTY nsteps 100 nsteps
+#PROPERTY nsteps 100 nsteps
 PROPERTY output_dt 0.1 output_Dt
 PROPERTY min_dt 0.001 min_dt
 PROPERTY max_dt 0.1 max_dt
