@@ -7,21 +7,23 @@ domain_size = 2
 ##################################################################
 ## ATTENTION: here the order is important
 
-#including kratos path
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
+
+## from now on the order is not anymore crucial
+##################################################################
+kratos_path = '../../../..'
+#kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
+
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(kratos_path)
+sys.path.append(kratos_benchmarking_path)
+import benchmarking
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_ThermoMechanicalApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+##################################################################
+##################################################################
+ # importing kratos
+from KratosMultiphysics import *
+from KratosMultiphysics.ThermoMechanicalApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 
 #defining a model part
@@ -33,6 +35,8 @@ model_part = ModelPart("FluidPart");
 ##################################################################
 
 from KratosThermoMechanicalApplication import *
+#import benchmarking
+
 
 ##########################################################
 thermal_settings = ConvectionDiffusionSettings()
@@ -42,6 +46,8 @@ thermal_settings.SetUnknownVariable(TEMPERATURE)
 thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
 thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
 thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
+thermal_settings.SetConvectionVariable(VELOCITY)
+
 ##########################################################
 
 #importing the solver files
@@ -83,7 +89,7 @@ solver.Initialize()
 #assigning the fluid properties
 conductivity = 0.0;
 density = 1.0;
-specific_heat = 1.0;
+specific_heat = 10.0;
 for node in model_part.Nodes:
     node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
     node.SetSolutionStepValue(DENSITY,0,density);
