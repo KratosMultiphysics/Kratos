@@ -1,0 +1,82 @@
+BOOK:Solids
+NUMBER: 1 MATERIAL: TrussProperties
+QUESTION: ConstitutiveLaw#CB#(Isotropic3D,DruckerPrager,IsotropicDamage3D,TrussMaterial,BeamMaterial,PlaneStress,PlaneStrain,Isotropic2D,UserDefined)
+VALUE: TrussMaterial
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 1000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 210000N/mm^2
+HELP: elastic stiffness modulus
+END MATERIAL
+NUMBER: 2 MATERIAL: Isotropic3D
+QUESTION: ConstitutiveLaw#CB#(Isotropic3D,DruckerPrager,IsotropicDamage3D,TrussMaterial,BeamMaterial,PlaneStress,PlaneStrain,Isotropic2D,UserDefined)
+VALUE: Isotropic3D
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 1500N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl)
+END MATERIAL
+NUMBER: 3 MATERIAL: DruckerPrager
+QUESTION: ConstitutiveLaw#CB#(Isotropic3D,DruckerPrager,IsotropicDamage3D,TrussMaterial,BeamMaterial,PlaneStress,PlaneStrain,Isotropic2D,UserDefined)
+VALUE: DruckerPrager
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Young_modulus#UNITS#
+VALUE: 10000N/mm^2
+HELP: elastic stiffness modulus
+QUESTION: Poisson_ratio
+VALUE: 0.3
+HELP: poisson ratio (Querdehnzahl)
+QUESTION: Cohesion#UNITS#
+VALUE: 10kN/m^2
+QUESTION: Friction_angle#UNITS#
+VALUE: 30deg
+QUESTION: Isotropic_hardening_modulus#UNITS#
+VALUE: 100N/mm^2
+END MATERIAL
+NUMBER: 4 MATERIAL: UserDefined
+QUESTION: ConstitutiveLaw#CB#(Isotropic3D,DruckerPrager,IsotropicDamage3D,TrussMaterial,BeamMaterial,PlaneStress,PlaneStrain,Isotropic2D,UserDefined)
+VALUE: UserDefined
+STATE: HIDDEN
+END MATERIAL
+NUMBER: 5 MATERIAL: IsotropicDamage3D
+QUESTION: ConstitutiveLaw#CB#(Isotropic3D,DruckerPrager,IsotropicDamage3D,TrussMaterial,BeamMaterial,PlaneStress,PlaneStrain,Isotropic2D,UserDefined)
+VALUE: IsotropicDamage3D
+STATE: HIDDEN
+QUESTION: Density#UNITS#
+VALUE: 2000.0kg/m^3
+QUESTION: Compressive_Young_modulus#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Tensile_Young_modulus#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Compressive_strength#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Tensile_strength#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Yield_stress#UNITS#
+VALUE: 0.0N/mm^2
+QUESTION: Fracture_Energy#UNITS#
+VALUE: 0.0N/m
+QUESTION: Poisson_ratio
+VALUE: 0.0
+QUESTION: FlowRule#CB#(VonMises,Energy,MohrCoulomb,MohrCoulombNonAssociated,Rankine)
+VALUE: VonMises
+DEPENDENCIES: (VonMises,RESTORE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)(Energy,HIDE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)(MohrCoulomb,RESTORE,Crushing_Energy,#CURRENT#,RESTORE,Friction_angle,#CURRENT#,RESTORE,Dilatancy_angle,#CURRENT#,RESTORE,Cohesion,#CURRENT#)(MohrCoulombNonAssociated,RESTORE,Crushing_Energy,#CURRENT#,RESTORE,Friction_angle,#CURRENT#,RESTORE,Dilatancy_angle,#CURRENT#,RESTORE,Cohesion,#CURRENT#)(Rankine,HIDE,Crushing_Energy,#CURRENT#,HIDE,Friction_angle,#CURRENT#,HIDE,Dilatancy_angle,#CURRENT#,HIDE,Cohesion,#CURRENT#)
+QUESTION: Crushing_Energy#UNITS#
+VALUE: 0.0J
+QUESTION: Cohesion#UNITS#
+VALUE: 0.0kN/m^2
+QUESTION: Friction_angle#UNITS#
+VALUE: 30.0deg
+QUESTION: Dilatancy_angle#UNITS#
+VALUE: 0.0deg
+QUESTION: HardeningLaw#CB#(Linear,Exponential)
+VALUE: LinearHardening
+END MATERIAL
