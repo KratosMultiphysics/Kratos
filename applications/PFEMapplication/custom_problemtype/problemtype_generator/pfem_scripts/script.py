@@ -1,10 +1,10 @@
 #import the configuration data as read from the GiD
-import pfem_var
+import problem_settings
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = pfem_var.domain_size
+domain_size = problem_settings.domain_size
 
 ##################################################################
 ##################################################################
@@ -12,7 +12,7 @@ domain_size = pfem_var.domain_size
 
 #including kratos path
 import sys
-sys.path.append(pfem_var.kratos_path)
+sys.path.append(problem_settings.kratos_path)
 
 #importing Kratos main library
 from KratosMultiphysics import *
@@ -26,7 +26,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 model_part = ModelPart("FluidPart");  
 
 #importing the solver files and adding the variables
-SolverType = pfem_var.SolverType
+SolverType = problem_settings.SolverType
 
 if(SolverType == "pfem_solver_ale"):
     import pfem_solver_ale
@@ -39,7 +39,7 @@ else:
 
 
 #reading a model
-name = pfem_var.problem_name
+name = problem_settings.problem_name
 
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
@@ -51,9 +51,9 @@ model_part_io.ReadModelPart(model_part)
 
 ##check to ensure that no node has zero density or pressure
 for node in model_part.Nodes:
-    node.SetSolutionStepValue(BODY_FORCE_X,0,pfem_var.Gravity_X) 
-    node.SetSolutionStepValue(BODY_FORCE_Y,0,pfem_var.Gravity_Y) 
-    node.SetSolutionStepValue(BODY_FORCE_Z,0,pfem_var.Gravity_Z) 
+    node.SetSolutionStepValue(BODY_FORCE_X,0,problem_settings.Gravity_X) 
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,problem_settings.Gravity_Y) 
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,problem_settings.Gravity_Z) 
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
         print "node ",node.Id," has zero density!"
         raise 'node with zero density found'
@@ -72,20 +72,20 @@ print model_part.Properties
 
 #setting the limits of the bounding box
 box_corner1 = Vector(3);
-box_corner1[0]=pfem_var.min_x;
-box_corner1[1]=pfem_var.min_y;
-box_corner1[2]=pfem_var.min_z;
+box_corner1[0]=problem_settings.min_x;
+box_corner1[1]=problem_settings.min_y;
+box_corner1[2]=problem_settings.min_z;
 box_corner2 = Vector(3);
-box_corner2[0]=pfem_var.max_x;
-box_corner2[1]=pfem_var.max_y;
-box_corner2[2]=pfem_var.max_z;
+box_corner2[0]=problem_settings.max_x;
+box_corner2[1]=problem_settings.max_y;
+box_corner2[2]=problem_settings.max_z;
 
 #time setting
-output_Dt = pfem_var.output_Dt
-max_dt = pfem_var.max_dt
-min_dt = pfem_var.min_dt
-safety_factor = pfem_var.safety_factor
-nsteps = pfem_var.nsteps
+output_Dt = problem_settings.output_Dt
+max_dt = problem_settings.max_dt
+min_dt = problem_settings.min_dt
+safety_factor = problem_settings.safety_factor
+nsteps = problem_settings.nsteps
 
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(2)
@@ -96,7 +96,7 @@ if(SolverType == "pfem_solver_ale"):
     #creating a fluid solver object
     name = str("dam2d")
     solver = pfem_solver_ale.PFEMSolver(model_part,name,box_corner1,box_corner2,domain_size)
-    solver.laplacian_form = pfem_var.laplacian_form
+    solver.laplacian_form = problem_settings.laplacian_form
     solver.echo_level = 0
     solver.prediction_order = 1
     solver.predictor_corrector = True
@@ -111,8 +111,8 @@ elif(SolverType == "monolithic_solver_lagrangian"):
 
     monolithic_solver_lagrangian.AddDofs(model_part)
     solver = monolithic_solver_lagrangian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
-    oss_swith = pfem_var.use_oss
-    dynamic_tau = pfem_var.dynamic_tau
+    oss_swith = problem_settings.use_oss
+    dynamic_tau = problem_settings.dynamic_tau
     solver.echo_level = 2
     model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);				
     model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
