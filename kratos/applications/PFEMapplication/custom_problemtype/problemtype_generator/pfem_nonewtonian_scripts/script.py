@@ -1,10 +1,10 @@
 #import the configuration data as read from the GiD
-import pfem_nonewtonian_var
+import problem_settings
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = pfem_nonewtonian_var.domain_size
+domain_size = problem_settings.domain_size
 
 ##################################################################
 ##################################################################
@@ -12,7 +12,7 @@ domain_size = pfem_nonewtonian_var.domain_size
 
 #including kratos path
 import sys
-sys.path.append(pfem_nonewtonian_var.kratos_path)
+sys.path.append(problem_settings.kratos_path)
 
 #importing Kratos main library
 from KratosMultiphysics import *
@@ -20,6 +20,8 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.MKLSolversApplication import*
+
 # from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -32,7 +34,7 @@ import monolithic_solver_lagrangian_nonnewtonian
 monolithic_solver_lagrangian_nonnewtonian.AddVariables(model_part)
 
 #reading a model
-name = pfem_nonewtonian_var.problem_name
+name = problem_settings.problem_name
 
 gid_mode = GiDPostMode.GiD_PostBinary
 multifile = MultiFileFlag.MultipleFiles
@@ -44,13 +46,13 @@ model_part_io.ReadModelPart(model_part)
 
 ##assigning density viscosity and gravity acceleration
 for node in model_part.Nodes:
-    node.SetSolutionStepValue(DENSITY,0,pfem_nonewtonian_var.Density)
-    node.SetSolutionStepValue(VISCOSITY,0,pfem_nonewtonian_var.Viscosity) 
-    node.SetSolutionStepValue(BODY_FORCE_X,0,pfem_nonewtonian_var.Gravity_X) 
-    node.SetSolutionStepValue(BODY_FORCE_Y,0,pfem_nonewtonian_var.Gravity_Y) 
-    node.SetSolutionStepValue(BODY_FORCE_Z,0,pfem_nonewtonian_var.Gravity_Z)
-    node.SetSolutionStepValue(INTERNAL_FRICTION_ANGLE,0,pfem_nonewtonian_var.Friction_Angle_Tangent)
-    node.SetSolutionStepValue(YIELD_STRESS,0,pfem_nonewtonian_var.Yield_Stress)
+    node.SetSolutionStepValue(DENSITY,0,problem_settings.Density)
+    node.SetSolutionStepValue(VISCOSITY,0,problem_settings.Viscosity) 
+    node.SetSolutionStepValue(BODY_FORCE_X,0,problem_settings.Gravity_X) 
+    node.SetSolutionStepValue(BODY_FORCE_Y,0,problem_settings.Gravity_Y) 
+    node.SetSolutionStepValue(BODY_FORCE_Z,0,problem_settings.Gravity_Z)
+    node.SetSolutionStepValue(INTERNAL_FRICTION_ANGLE,0,problem_settings.Friction_Angle_Tangent)
+    node.SetSolutionStepValue(YIELD_STRESS,0,problem_settings.Yield_Stress)
     
 #initializing the mesh
 mesh_name = 0.0
@@ -63,20 +65,20 @@ print model_part.Properties
 
 #setting the limits of the bounding box
 box_corner1 = Vector(3);
-box_corner1[0]=pfem_nonewtonian_var.min_x;
-box_corner1[1]=pfem_nonewtonian_var.min_y;
-box_corner1[2]=pfem_nonewtonian_var.min_z;
+box_corner1[0]=problem_settings.min_x;
+box_corner1[1]=problem_settings.min_y;
+box_corner1[2]=problem_settings.min_z;
 box_corner2 = Vector(3);
-box_corner2[0]=pfem_nonewtonian_var.max_x;
-box_corner2[1]=pfem_nonewtonian_var.max_y;
-box_corner2[2]=pfem_nonewtonian_var.max_z;
+box_corner2[0]=problem_settings.max_x;
+box_corner2[1]=problem_settings.max_y;
+box_corner2[2]=problem_settings.max_z;
 
 #time setting
-output_Dt = pfem_nonewtonian_var.output_Dt
-max_dt = pfem_nonewtonian_var.max_dt
-min_dt = pfem_nonewtonian_var.min_dt
-safety_factor = pfem_nonewtonian_var.safety_factor
-final_time = pfem_nonewtonian_var.max_time
+output_Dt = problem_settings.output_Dt
+max_dt = problem_settings.max_dt
+min_dt = problem_settings.min_dt
+safety_factor = problem_settings.safety_factor
+final_time = problem_settings.max_time
 
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(2)
@@ -87,9 +89,9 @@ monolithic_solver_lagrangian_nonnewtonian.AddDofs(model_part)
 #defining the solver
 solver = monolithic_solver_lagrangian_nonnewtonian.MonolithicSolver(model_part,domain_size,box_corner1,box_corner2)
 #setting solver parameters
-solver.oss_switch = int(pfem_nonewtonian_var.use_oss) #OSS = 1; ASGS = 0;
-solver.dynamic_tau = pfem_nonewtonian_var.dynamic_tau 
-solver.regularization_coef = pfem_nonewtonian_var.m_coef #m regularization coefficient in the exponential law of viscosity
+solver.oss_switch = int(problem_settings.use_oss) #OSS = 1; ASGS = 0;
+solver.dynamic_tau = problem_settings.dynamic_tau 
+solver.regularization_coef = problem_settings.m_coef #m regularization coefficient in the exponential law of viscosity
 solver.echo_level = 2
 
 solver.max_iter = 8
