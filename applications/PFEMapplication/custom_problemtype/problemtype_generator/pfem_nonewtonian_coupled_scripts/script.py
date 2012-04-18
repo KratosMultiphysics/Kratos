@@ -1,18 +1,21 @@
 #import the configuration data as read from the GiD
-import pfem_nonewtonian_coupled_var
+import problem_settings
 import time as timer
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = pfem_nonewtonian_coupled_var.domain_size
+domain_size = problem_settings.domain_size
 
-#read from pfem_nonewtonian_coupled_var name and path of fluid_gid_problem
+#read from problem_settings name and path of fluid_gid_problem
 ## Acuario version*********************************
 ##fluid_path='.'
 
 
-fluid_path=pfem_nonewtonian_coupled_var.fluid_file.rpartition('/')
+fluid_path=problem_settings.fluid_file.rpartition('/')
 fluid_path=fluid_path[0]
+import shutil
+import os
+shutil.copyfile(fluid_path+"/problem_settings.py",os.getcwd()+"/edgebased_levelset_var.py")
 
 ##################################################################
 ##################################################################
@@ -20,9 +23,8 @@ fluid_path=fluid_path[0]
 
 #including kratos path
 import sys
-sys.path.append(pfem_nonewtonian_coupled_var)
-
-
+sys.path.append(problem_settings.kratos_path)
+sys.path.append(fluid_path)
 
 #importing Kratos main library
 from KratosMultiphysics import *
@@ -30,7 +32,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
 from KratosMultiphysics.MeshingApplication import *
-from KratosMultiphysics.ExternalSolversApplication import*
+from KratosMultiphysics.MKLSolversApplication import*
 
 
 ## from now on the order is not anymore crucial
@@ -75,8 +77,8 @@ pfem_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE)
 
 
 #reading the models
-name_pfem = pfem_nonewtonian_coupled_var.problem_name
-name_fixed = pfem_nonewtonian_coupled_var.fluid_file
+name_pfem = problem_settings.problem_name
+name_fixed = problem_settings.fluid_file
 
 
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -101,20 +103,20 @@ monolithic_solver_lagrangian_nonnewtonian.AddDofs(pfem_model_part)
 
 ##GET NODAL CONDITIONS FROM the PFEM model
 body_force = Vector(3)
-body_force[0] = pfem_nonewtonian_coupled_var.Gravity_X
-body_force[1] = pfem_nonewtonian_coupled_var.Gravity_Y
-body_force[2] = pfem_nonewtonian_coupled_var.Gravity_Z
+body_force[0] = problem_settings.Gravity_X
+body_force[1] = problem_settings.Gravity_Y
+body_force[2] = problem_settings.Gravity_Z
 for node in pfem_model_part.Nodes:
-    node.SetSolutionStepValue(DENSITY,0,pfem_nonewtonian_coupled_var.Density)
-    node.SetSolutionStepValue(VISCOSITY,0,pfem_nonewtonian_coupled_var.Viscosity)
-    node.SetSolutionStepValue(POROSITY,0,pfem_nonewtonian_coupled_var.Porosity)
-    node.SetSolutionStepValue(DIAMETER,0,pfem_nonewtonian_coupled_var.Diameter)
+    node.SetSolutionStepValue(DENSITY,0,problem_settings.Density)
+    node.SetSolutionStepValue(VISCOSITY,0,problem_settings.Viscosity)
+    node.SetSolutionStepValue(POROSITY,0,problem_settings.Porosity)
+    node.SetSolutionStepValue(DIAMETER,0,problem_settings.Diameter)
     node.SetSolutionStepValue(BODY_FORCE_X,0,body_force[0]) 
     node.SetSolutionStepValue(BODY_FORCE_Y,0,body_force[1]) 
     node.SetSolutionStepValue(BODY_FORCE_Z,0,body_force[2]) 
-    node.SetSolutionStepValue(YIELD_STRESS,0,pfem_nonewtonian_coupled_var.Yield_Stress) 
-    node.SetSolutionStepValue(INTERNAL_FRICTION_ANGLE,0,pfem_nonewtonian_coupled_var.Friction_Angle_Tangent)
-##    node.SetSolutionStepValue(EFFECTIVE_VISCOSITY,0,pfem_nonewtonian_coupled_var.Yield_Stress)
+    node.SetSolutionStepValue(YIELD_STRESS,0,problem_settings.Yield_Stress) 
+    node.SetSolutionStepValue(INTERNAL_FRICTION_ANGLE,0,problem_settings.Friction_Angle_Tangent)
+##    node.SetSolutionStepValue(EFFECTIVE_VISCOSITY,0,problem_settings.Yield_Stress)
 ##    node.SetSolutionStepValue(AUX_INDEX,0,0.0)
 
 
@@ -145,13 +147,13 @@ for node in fixed_model_part.Nodes:
 
 #setting the limits of the bounding box
 box_corner1 = Vector(3);
-box_corner1[0]=pfem_nonewtonian_coupled_var.min_x;
-box_corner1[1]=pfem_nonewtonian_coupled_var.min_y;
-box_corner1[2]=pfem_nonewtonian_coupled_var.min_z;
+box_corner1[0]=problem_settings.min_x;
+box_corner1[1]=problem_settings.min_y;
+box_corner1[2]=problem_settings.min_z;
 box_corner2 = Vector(3);
-box_corner2[0]=pfem_nonewtonian_coupled_var.max_x;
-box_corner2[1]=pfem_nonewtonian_coupled_var.max_y;
-box_corner2[2]=pfem_nonewtonian_coupled_var.max_z;
+box_corner2[0]=problem_settings.max_x;
+box_corner2[1]=problem_settings.max_y;
+box_corner2[2]=problem_settings.max_z;
 
 
 
@@ -165,7 +167,7 @@ fixed_model_part.SetBufferSize(2)
 fluid_viscosity   = edgebased_levelset_var.viscosity
 ##print "*****************   VISCOSITY  *********************"
 fluid_density = edgebased_levelset_var.density
-solid_density = pfem_nonewtonian_coupled_var.Density
+solid_density = problem_settings.Density
 ##print "*****************   DENSITY  *********************"
 fluid_solver = edgebased_levelset_solver.EdgeBasedLevelSetSolver(fixed_model_part,domain_size,body_force,fluid_viscosity,fluid_density)
 
@@ -189,15 +191,15 @@ if(edgebased_levelset_var.wall_law_y > 1e-10):
 #defining the structural solver
 structural_solver = monolithic_solver_lagrangian_nonnewtonian.MonolithicSolver(pfem_model_part,domain_size,box_corner1,box_corner2)
 #setting solver parameters
-structural_solver.oss_swith = int(pfem_nonewtonian_coupled_var.use_oss)
-structural_solver.dynamic_tau = pfem_nonewtonian_coupled_var.dynamic_tau
-structural_solver.regularization_coef = pfem_nonewtonian_coupled_var.m_coef #m regularization coefficient in the exponential law of viscosity
+structural_solver.oss_swith = int(problem_settings.use_oss)
+structural_solver.dynamic_tau = problem_settings.dynamic_tau
+structural_solver.regularization_coef = problem_settings.m_coef #m regularization coefficient in the exponential law of viscosity
 structural_solver.echo_level = 2
 #problem parameters to be changed
 #####time setting pfem
 ### pfem implicit
-max_dt = pfem_nonewtonian_coupled_var.max_dt
-min_dt = pfem_nonewtonian_coupled_var.min_dt
+max_dt = problem_settings.max_dt
+min_dt = problem_settings.min_dt
 ### edgebased explicit
 max_Dt = edgebased_levelset_var.max_time_step
 initial_Dt_ls = 0.001 * max_Dt 
@@ -209,8 +211,8 @@ safety_factor = edgebased_levelset_var.safety_factor
 number_of_inital_steps = edgebased_levelset_var.number_of_inital_steps
 initial_time_step = edgebased_levelset_var.initial_time_step
 
-structural_solver.max_iter = 8
-print "max iterations non-newtonian solver = 8"
+structural_solver.max_iter = 10
+print "max iterations non-newtonian solver = 10"
 
 ## STRUCTURAL SOLVER INITIALIZATION
 structural_solver.Initialize(output_dt)
