@@ -1,9 +1,12 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
-from KratosPFEMApplication import PfemUtils
-from KratosStructuralApplication import *
-from KratosMeshingApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.PFEMApplication import PfemUtils
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+#CheckForPreviousImport()
+
 import time
 
 def AddVariables(model_part):
@@ -11,7 +14,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
 
     model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
-    #model_part.AddNodalSolutionStepVariable(DISP_FRAC);
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
     model_part.AddNodalSolutionStepVariable(VAUX);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
         
@@ -267,7 +270,7 @@ class ULF_FSISolver:
     def Remesh(self):    
 	timeRemesh=time.time()
         ##preventing the nodes from coming tooo close to wall
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.12)
+        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
         ##erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
@@ -280,7 +283,7 @@ class ULF_FSISolver:
         (self.mark_outer_nodes_process).MarkOuterNodes(self.box_corner1, self.box_corner2);
         #adaptivity=True
         
-        h_factor=0.7
+        h_factor=0.2
         if (self.domain_size == 2):
 	  h_factor=0.25
 	  (self.Mesher).ReGenerateMesh("UlfFrac2D","Condition2D", self.fluid_model_part, self.node_erase_process, True, self.add_nodes, self.alpha_shape, h_factor)

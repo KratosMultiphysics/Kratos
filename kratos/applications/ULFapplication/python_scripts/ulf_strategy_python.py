@@ -1,6 +1,8 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
+#import cProfile
+import time
 
 class ULFStrategyPython:
     #######################################################################

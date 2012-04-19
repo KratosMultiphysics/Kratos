@@ -1,7 +1,8 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
 #import cProfile
+import time
 
 class ULFStrategyPythonInc:
     #######################################################################
@@ -219,10 +220,11 @@ class ULFStrategyPythonInc:
         
         
         #assembling additional matrices
-        self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
+        #self.builder_and_solver.AssembleMassMatrices(self.MPconsistent, self.MPinv, self.model_part)
         
         #now build the D = GT matrix
-        self.builder_and_solver.BuildAuxiliaries(self.D, self.model_part)
+        #self.builder_and_solver.BuildAuxiliaries(self.D, self.model_part)
+        self.builder_and_solver.BuildAuxiliaries(self.D, self.MPconsistent, self.MPinv, self.model_part)
         
         #print self.D
         #penalizing fixed DOF
