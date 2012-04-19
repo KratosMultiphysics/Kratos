@@ -1,16 +1,20 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
-from KratosPFEMApplication import *
-from KratosStructuralApplication import *
-from KratosMeshingApplication import *
-#import time
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.PFEMApplication import PfemUtils
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+#CheckForPreviousImport()
+
+import time
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
@@ -262,7 +266,7 @@ class ULF_FSISolver:
     def Remesh(self):
 	
 	#self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
-	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.17)
+	self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
 	
 			
         ##erase all conditions and elements prior to remeshing
@@ -281,7 +285,7 @@ class ULF_FSISolver:
         self.node_erase_process.Execute()
         
          
-        h_factor=0.65;
+        h_factor=0.1;
         ##remesh CHECK for 3D or 2D
         if (self.domain_size == 2):
             #(self.Mesher).ReGenerateMesh("UpdatedLagrangianFluid2Dinc", self.fluid_model_part, self.node_erase_process, self.add_nodes, self.alpha_shape)          

@@ -1,11 +1,13 @@
-# -*- coding: utf-8 -*-
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
-from KratosPFEMApplication import *
-from KratosStructuralApplication import *
-from KratosMeshingApplication import *
-#import time
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.PFEMApplication import PfemUtils
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.MeshingApplication import *
+# Check that KratosMultiphysics was imported in the main script
+#CheckForPreviousImport()
+
+import time
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PRESSURE);

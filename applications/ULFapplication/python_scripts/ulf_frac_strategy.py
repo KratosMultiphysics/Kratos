@@ -1,6 +1,6 @@
 #importing the Kratos Library
-from Kratos import *
-from KratosULFApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
 #import cProfile
 import time
 class ULFFracStrategyPython:
@@ -210,7 +210,8 @@ class ULFFracStrategyPython:
         #self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);     
         
         time_ln212 = time.time()
-        
+        if (self.domain_size==3):
+	  self.CorrectVolume(domain_size, 0.011, self.model_part, UlfUtils) 
         #converged=False
         #inverted_elements=False
         #while(converged == False and inverted_elements == False):
