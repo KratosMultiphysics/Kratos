@@ -1,6 +1,29 @@
 ###################################################################################FUNCTIONS FOR MOVING THE CONTAINER####################################################
 import math
 
+
+def CalculateShearX(time, bottom_nodes):    
+    fx = 0.0
+    for node in bottom_nodes:
+	fx -= node.GetSolutionStepValue(REACTION_X,0)	    
+    return fx
+def CalculateShearY(time, bottom_nodes):    
+    fy = 0.0
+    for node in bottom_nodes:
+	fy -= node.GetSolutionStepValue(REACTION_Y,0)	    
+    return fy
+
+
+
+def PrintReactionForce(time,filename, bottom_nodes):
+    f_cummulative_X=CalculateShearX(time, bottom_nodes)
+    f_cummulative_Y=CalculateShearY(time, bottom_nodes)
+    print "in print force",time 
+    outstring = str(time) + " "
+    outstring += str(f_cummulative_X) + " "
+    outstring += str(f_cummulative_Y) + "\n" 
+    filename.write( outstring )     
+
 def SelectSolidNodes(model_part,solid_nodes):
     print "in SelectSolidNodes"
     for node in model_part.Nodes:
@@ -68,7 +91,6 @@ def MoveSolidNodes(alpha_max_grad,T,Dt,time,solid_nodes,xc,yc):
 
 
 #####################################################################################################################################################################
-
 import fluid_ulf_var
 
 ##################################################################
@@ -81,31 +103,14 @@ domain_size = fluid_ulf_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = fluid_ulf_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = fluid_ulf_var.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
 #importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_ULFApplication = True
-applications_interface.Import_MeshingApplication = True
-applications_interface.Import_PFEMApplication = True
-applications_interface.Import_StructuralApplication = True
-##applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosULFApplication import *
-from KratosMeshingApplication import *
-from KratosStructuralApplication import *
+import sys
+sys.path.append(fluid_ulf_var.kratos_path)
+from KratosMultiphysics import *
+from KratosMultiphysics.ULFApplication import *
+from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.PFEMApplication import PfemUtils
+from KratosMultiphysics.StructuralApplication import *
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");
@@ -206,7 +211,7 @@ if(SolverType == "Incompressible_Modified_FracStep"):
     for node in fluid_model_part.Nodes:
 	node.SetSolutionStepValue(BULK_MODULUS,0, bulk_modulus)
 	node.SetSolutionStepValue(DENSITY,0, density)
-	node.SetSolutionStepValue(VISCOSITY,0, 0.0001)
+	node.SetSolutionStepValue(VISCOSITY,0, 0.00001)
 	node.SetSolutionStepValue(BODY_FORCE_Y,0, -10.000)
     solver.Initialize()
     
@@ -289,6 +294,9 @@ distance_utils=BodyDistanceCalculationUtils()
 
 dummy=LagrangianInletProcess(fluid_model_part, 0.0, inlet_vel)
 
+outstring9 = "REACTION_FORCES.csv"
+outputfile9 = open(outstring9, 'w')
+
 while (time < final_time):
     step = step+1   
     
@@ -311,7 +319,8 @@ while (time < final_time):
 	xc = 0.45; yc=0.184;
 	MoveSolidNodes(alpha_max_grad,T,new_Dt,time,solid_nodes,xc,yc)
 
-        solver.Solve(dummy)        
+        solver.Solve(dummy)
+        PrintReactionForce(time,outputfile9, fluid_model_part.Nodes)
         print "after completing the solution"
 ##        SelectVisited(fluid_model_part.Nodes)
 ##        distance_utils.CalculateDistances2D(fluid_model_part.Elements, DISTANCE, True)
@@ -364,6 +373,7 @@ while (time < final_time):
             gid_io.WriteNodalResults(IS_FREE_SURFACE, combined_model_part.Nodes, time, 0);
             gid_io.WriteNodalResults(IS_INTERFACE, combined_model_part.Nodes, time, 0);            
             gid_io.WriteNodalResults(VELOCITY, combined_model_part.Nodes, time, 0);
+            gid_io.WriteNodalResults(REACTION, combined_model_part.Nodes, time, 0);
             gid_io.WriteNodalResults(PRESSURE, (combined_model_part).Nodes, time, 0);
             
             
