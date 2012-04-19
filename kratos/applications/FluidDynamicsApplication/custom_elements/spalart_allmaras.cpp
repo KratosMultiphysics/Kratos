@@ -83,11 +83,11 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
     KRATOS_TRY
     int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 
-    if (FractionalStepNumber == 1)
-    {
+    //if (FractionalStepNumber == 1)
+    //{
         this->InitializeElementData();
-    }
-    else if (FractionalStepNumber == 2)
+    /*}
+    else */if (FractionalStepNumber == 2)
     {
         const SizeType NumNodes = this->GetGeometry().PointsNumber();
         const SizeType NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
@@ -122,12 +122,14 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
             for (SizeType i = 0; i < NumNodes; i++)
                 ConvTerm += GaussWeight * UGradN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
         }
+        
+	const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1) ,0);
 
         for (SizeType i = 0; i < NumNodes; i++)
         {
             this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea;
-            this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += ConvTerm;
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += N[i] * NodalArea;
+            this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += N[i] * ConvTerm;
             this->GetGeometry()[i].UnSetLock();
         }
     }
@@ -526,7 +528,7 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
     const Vector& N = row(NContainer,0);
 
     // Time Term
-    const double TimeCoeff = rCurrentProcessInfo[BDF_COEFFICIENTS][0];
+    const double TimeCoeff = 0.0; //rCurrentProcessInfo[BDF_COEFFICIENTS][0];
 
     // Diffusivity
     double MolecularViscosity = 0.0;
