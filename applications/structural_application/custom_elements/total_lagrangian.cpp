@@ -224,7 +224,6 @@ namespace Kratos
 
 
             //deformation gradient
-            //Does not work with Newmark scheme for some reason
             noalias( F ) = prod( J[PointNumber], mInvJ0[PointNumber] );
 
 
