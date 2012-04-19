@@ -10,35 +10,20 @@ domain_size = pfem_var.domain_size
 ## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = pfem_var.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = pfem_var.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+#including kratos path
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
 
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_PFEMApplication = True
-#applications_interface.Import_ExternalSolversApplication = True
-applications_interface.Import_StructuralApplication = True
-applications_interface.Import_MeshingApplication = True
-#applications_interface.Import_ULFApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+if(Kratos_Structural_Application_var.LinearSolver == "SuperLUSolver"):
+    from KratosMultiphysics.ExternalSolversApplication import *
 
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################.
-from KratosStructuralApplication import *
-from KratosPFEMApplication import *
-from KratosIncompressibleFluidApplication import *
-#from KratosExternalSolversApplication import *
+if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
+    from KratosMultiphysics.MKLSolversApplication import *
 
-#from KratosULFApplication import *
+
 
 #defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");
