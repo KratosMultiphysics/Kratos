@@ -470,7 +470,15 @@ namespace Kratos
 //            double dT_norm = 0.0;
 //            double T_norm = 0.0;
 
+	    int current_fract_step = rCurrentProcessInfo[FRACTIONAL_STEP];
+	    rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
+
+	    CalculateProjection();
+
+	    rCurrentProcessInfo[FRACTIONAL_STEP] = 1;
             mpSolutionStrategy->Solve();
+	    
+	    rCurrentProcessInfo[FRACTIONAL_STEP] = current_fract_step;
 
 //            while (iter++ < mmax_it && is_converged == false)
 //            {
@@ -546,7 +554,8 @@ namespace Kratos
 
             //add the elemental contributions for the calculation of the velocity
             //and the determination of the nodal area
-            rCurrentProcessInfo[FRACTIONAL_STEP] = 2;
+	    
+            
             for (ModelPart::ElementIterator i = mspalart_model_part.ElementsBegin();
                     i != mspalart_model_part.ElementsEnd(); ++i)
             {
