@@ -56,12 +56,16 @@ namespace Kratos
   class SphericParticle : public DiscreteElement
     {
     public:
+
+
       ///@name Type Definitions
       ///@{
       
       /// Pointer definition of SphericParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
-  
+
+
+      typedef WeakPointerVector<SphericParticle > ParticleWeakVectorType;  //M: l'he afegit jo.. esta be akesta?
       ///@}
       ///@name Life Cycle 
       ///@{ 
@@ -174,6 +178,10 @@ namespace Kratos
       ///@}
       
     private:
+
+        void SetInitialContacts();
+        void AddContinuumContacts();
+
       ///@name Static Member Variables 
       ///@{ 
         
