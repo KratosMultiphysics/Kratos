@@ -422,7 +422,7 @@ namespace Kratos
     }
 
     /**
-     * Returns the square of the minimum element height, to be used as dilter width in the Smagorinsky model
+     * Returns the square of the minimum element height, to be used as filter width in the Smagorinsky model
      * @see VMS::FilterWidth
      */
     template <>
@@ -590,7 +590,7 @@ namespace Kratos
     {
         const unsigned int NumNodes = 4;
 
-        const double SevenThirds = 7.0 / 3.0;
+        const double OneThird = 1.0 / 3.0;
         const double nTwoThirds = -2.0 / 3.0;
 
         unsigned int FirstRow(0),FirstCol(0);
@@ -599,20 +599,23 @@ namespace Kratos
         {
             for (unsigned int i = 0; i < NumNodes; ++i)
             {
+                // (dN_i/dx_k dN_j/dx_k)
+                const double Diag =  rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,2) * rShapeDeriv(j,2);
+
                 // First Row
-                rDampMatrix(FirstRow,FirstCol) += Weight * ( SevenThirds * rShapeDeriv(i,0) * rShapeDeriv(j,0) + rShapeDeriv(i,1) * rShapeDeriv(j,1) );
-                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
-                rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
+                rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rShapeDeriv(i,0) * rShapeDeriv(j,0) + Diag );
+                rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,0) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
 
                 // Second Row
-                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,2) * rShapeDeriv(j,0) );
-                rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( SevenThirds * rShapeDeriv(i,1) * rShapeDeriv(j,1) + rShapeDeriv(i,2) * rShapeDeriv(j,2) );
-                rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,1) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
+                rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rShapeDeriv(i,1) * rShapeDeriv(j,1) + Diag );
+                rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rShapeDeriv(i,1) * rShapeDeriv(j,2) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
 
                 // Third Row
-                rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,2) * rShapeDeriv(j,1) );
-                rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,0) * rShapeDeriv(j,1) );
-                rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( SevenThirds * rShapeDeriv(i,2) * rShapeDeriv(j,2) + rShapeDeriv(i,0) * rShapeDeriv(j,0) );
+                rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,0) + rShapeDeriv(i,0) * rShapeDeriv(j,2) );
+                rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rShapeDeriv(i,2) * rShapeDeriv(j,1) + rShapeDeriv(i,1) * rShapeDeriv(j,2) );
+                rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rShapeDeriv(i,2) * rShapeDeriv(j,2) + Diag );
 
                 // Update Counter
                 FirstRow += 4;
