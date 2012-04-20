@@ -375,7 +375,7 @@ private:
 
     ///@}
 
-}; // Class SphericParticleHertzian
+}; // Class SphericHertzianParticle
 
     ///@}
 
