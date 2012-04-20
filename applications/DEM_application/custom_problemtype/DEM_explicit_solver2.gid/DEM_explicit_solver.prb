@@ -12,6 +12,8 @@ QUESTION: SolutionType#CB#(Incremental,Absolutal)
 VALUE: Incremental
 QUESTION: DampRatioType#CB#(ViscDamp,LocalDamp)
 VALUE: LocalDamp
+QUESTION: search_radius
+VALUE: 0.01
 QUESTION: search_step
 VALUE: 10
 QUESTION: max_time
