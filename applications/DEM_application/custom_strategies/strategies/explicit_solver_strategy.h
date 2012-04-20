@@ -93,7 +93,7 @@ namespace Kratos
 	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;	  
 	  
 	  typedef ModelPart::NodesContainerType::ContainerType      NodesContainerType;
-	  typedef ModelPart::ElementsContainerType::ContainerType   ElementsContaineType;
+	  typedef ModelPart::ElementsContainerType::ContainerType   ElementsContainerType;
 	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
 	  
       /// Pointer definition of ExplicitSolverStrategy
@@ -170,14 +170,18 @@ namespace Kratos
         std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           << CurrentProcessInfo[TIME_STEPS]     <<std::endl;                                                    
 	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	
-	
+
+        /*
 	///Inicializa los elementos y condiciones. Crea los elementos del Boundary y los Joints para Heuristic o DG
 	if(mInitializeWasPerformed == false){
-	    Set_Initial_Contacts();
-	    Initialize();
-	}
+	   
+             Set_Initial_Contacts();
 	
-	///Initialize solution step
+             Initialize();
+	}
+        */
+
+        ///Initialize solution step
 	InitializeSolutionStep(); 
 	
         ComputeCriticalTime();
@@ -209,6 +213,7 @@ namespace Kratos
 	double stop_prod = omp_get_wtime();
 	std::cout << "  Time solving                                 = "<<   stop_prod - start_prod    << "  seconds" << std::endl; 
 	#endif
+	
 	std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
 	KRATOS_CATCH("")
@@ -216,15 +221,47 @@ namespace Kratos
       }
 	
 	void Initialize()
-	{
-	  KRATOS_TRY
-	  ///Initializing elements
+        {
+            KRATOS_TRY
+
+              ///Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
 	  mInitializeWasPerformed   = true;
-	  
+
+        ModelPart& r_model_part           = BaseType::GetModelPart();
+        ProcessInfo& CurrentProcessInfo   = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+        //ElementsArrayType& pElements     = r_model_part.Elements();
+        ElementsContainerType& pElements  = r_model_part.ElementsArray();
+
+
+
+        typedef Element                                                         ParticleType;
+        typedef Element::Pointer                                                ParticlePointerType;
+        typedef ElementsContainerType                                           ParticleContainerType;
+        typedef WeakPointerVector<Element>                                      ParticleWeakVectorType;  //hauria de ser Discrete_Element
+        typedef typename std::vector<ParticlePointerType>                       ParticlePointerVectorType;
+        typedef WeakPointerVector<Element>::iterator                            ParticleWeakIteratorType;
+        typedef typename std::vector<ParticleType>::iterator                    ParticleIteratorType;
+        typedef typename std::vector<ParticlePointerType>::iterator             ParticlePointerIteratorType;
+        typedef std::vector<double>                                             DistanceVectorType;
+        typedef std::vector<double>::iterator                                   DistanceIteratorType;
+
+
+        double search_radius = 1.0;
+/*
+        Neighbours_Calculator<2, ParticleType, ParticlePointerType, ParticleContainerType, ParticleWeakVectorType, ParticlePointerVectorType,
+        ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
+        Search_Neighbours(pElements, r_model_part, search_radius);
+*/
+        //const double search_radius       = CurrentProcessInfo[SEARCH_RADIUS];  //DEMANAR A POOYAN COM OBTING AIXO.
+        //Search_Neighbours(pElements, r_model_part, search_radius);   //M: pk fa falta enviar el modelpart al search neighbours?
+        //Set_Initial_Contacts();
+
 	  ///WARNING = Initializing CONDITION
-	  KRATOS_CATCH("")
+
+ 
+          KRATOS_CATCH("")
 	}
 	
       void  ComputeCriticalTime()
@@ -374,7 +411,7 @@ namespace Kratos
 {
       KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
-      //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
       ElementsArrayType& pElements     = r_model_part.Elements(); 
 
       Matrix MassMatrix;
@@ -388,7 +425,7 @@ namespace Kratos
       OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
       unsigned int index = 0;
       
-      #pragma omp parallel for private(index, MassMatrix)
+      #pragma omp parallel for private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
       for(int k=0; k<number_of_threads; k++)
       {
 	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -397,9 +434,8 @@ namespace Kratos
 	  {
 	    Element::GeometryType& geom = it->GetGeometry(); 
 	    (it)->Initialize(); 
-	    KRATOS_WATCH(geom)
-	    /*
 	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+            /*
 	    const unsigned int& dim   = geom.WorkingSpaceDimension();
 	    index = 0;
 	    for (unsigned int i = 0; i <geom.size(); i++)
@@ -421,7 +457,48 @@ namespace Kratos
       void Set_Initial_Contacts()
       {
 	 ///particula->GetValue(NEIGHBOUR_ELEMENTS)).push_back( *(particula.base()));
-	//  busqueda vecinos
+	//  busqueda vecinos inicial amb tolerancia
+        //aqui he de guardar els veins inicials i per cada un la distancia delta de la tolerancia.
+
+       KRATOS_TRY
+       /*
+       ModelPart& r_model_part          = BaseType::GetModelPart();  
+       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+       ElementsArrayType& pElements     = r_model_part.Elements(); 
+       
+      #ifdef _OPENMP
+      int number_of_threads = omp_get_max_threads();
+      #else
+      int number_of_threads = 1;
+       #endif
+
+      vector<unsigned int> element_partition;
+      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+     
+      unsigned int index = 0;
+      
+      #pragma omp parallel for private(index)
+      for(int k=0; k<number_of_threads; k++)
+      {
+	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	  {
+	    Element::GeometryType& geom = it->GetGeometry(); 
+	    (it)->Initialize(); //add , set initals...
+	    KRATOS_WATCH(geom)
+       
+       int size = pElements.size();
+
+       ///pragma omp parallel for
+
+          
+
+         } // loop over particle_it
+ 
+            */
+        KRATOS_CATCH("")
+
 	//  get continun vecinos
       }
       
