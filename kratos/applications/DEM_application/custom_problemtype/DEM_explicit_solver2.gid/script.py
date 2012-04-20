@@ -4,7 +4,6 @@ import time as timer
 #from numpy import *
 #from pylab import *
 
-
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
