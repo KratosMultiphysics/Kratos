@@ -109,8 +109,9 @@ namespace Kratos
 		  
 		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
 		  (
-		  "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, bool, BaseSchemeType::Pointer>()
-		  );
+		  "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, bool, BaseSchemeType::Pointer>())
+                  .def("Initialize", &ExplicitSolverStrategyType::Initialize)
+		  ;
 		  
 		}
 

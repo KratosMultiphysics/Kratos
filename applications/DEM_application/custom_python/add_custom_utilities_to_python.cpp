@@ -146,6 +146,7 @@ typedef std::vector<RotatingSphereType> RotatingSphereVectorType;
 typedef std::vector<RotatingSphereType>::iterator RotatingSphereIteratorType;
 typedef std::vector<RotatingSphereType::Pointer> RotatingSpherePointerVectorType;
 typedef std::vector<RotatingSphereType::Pointer>::iterator RotatingSpherePointerIteratorType;
+*/
 
 typedef SphericRotatingHertzianParticle RotatingHertzianSphereType;
 typedef SphericRotatingHertzianParticle::Pointer RotatingHertzianSpherePointerType;
@@ -158,7 +159,7 @@ typedef std::vector<RotatingHertzianSphereType>::iterator RotatingHertzianSphere
 typedef std::vector<RotatingHertzianSphereType::Pointer> RotatingHertzianSpherePointerVectorType;
 typedef std::vector<RotatingHertzianSphereType::Pointer>::iterator RotatingHertzianSpherePointerIteratorType;
 
-*/
+
 void  AddCustomUtilitiesToPython(){
     using namespace boost::python;
 
@@ -187,12 +188,12 @@ void  AddCustomUtilitiesToPython(){
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType> >("Rotating_Spheres_Neighbours_Calculator", init<>())
     .def("Search_Neighbours",&Neighbours_Calculator<3, RotatingSphereType, RotatingSpherePointerType, RotatingSphereVectorType, RotatingSphereWeakVectorType, RotatingSpherePointerVectorType,
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType> ::Search_Neighbours);
-
+*/
     class_<Neighbours_Calculator<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> >("Rotating_Hertzian_Spheres_Neighbours_Calculator", init<>())
     .def("Search_Neighbours",&Neighbours_Calculator<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> ::Search_Neighbours);
-*/
+
  /*
     class_<Explicit_Solver<2, CircleType > >("Circles_Explicit_Solver", init<int, double, double, ModelPart& >())
     .def("Search_Neighbours",&Explicit_Solver<2, CircleType >::Search_Neighbours)
@@ -233,7 +234,13 @@ void  AddCustomUtilitiesToPython(){
     .def("Evolve_Motion",&Explicit_Solver_With_Rotation<3, RotatingSphereType >::Evolve_Motion)
     .def("Estimate_Time_Step",&Explicit_Solver_With_Rotation<3, RotatingSphereType >::Estimate_Time_Step_Spheres)
     .def("Get_List_Of_Particle_Pointers", &Explicit_Solver_With_Rotation< 3, RotatingSphereType >::GetListOfParticlePointers, return_internal_reference<>());
+*/
 
+
+
+    //MIQUEL: Comento aquest pk en principi el solver és el mateix per rotacio que sense, pero canviem algo en l'argument.
+
+    /*
     class_<Explicit_Solver_With_Rotation<3, RotatingHertzianSphereType > >("Rotating_Hertzian_Spheres_Explicit_Solver", init<int, double, double, ModelPart& >())
     .def("Search_Neighbours",&Explicit_Solver_With_Rotation<3, RotatingHertzianSphereType >::Search_Neighbours)
     .def("Update_Contacting_Neighbours",&Explicit_Solver_With_Rotation<3, RotatingHertzianSphereType >::Update_Contacting_Neighbours)
@@ -242,6 +249,13 @@ void  AddCustomUtilitiesToPython(){
     .def("Evolve_Motion",&Explicit_Solver_With_Rotation<3, RotatingHertzianSphereType >::Evolve_Motion)
     .def("Estimate_Time_Step",&Explicit_Solver_With_Rotation<3, RotatingHertzianSphereType >::Estimate_Time_Step_Spheres)
     .def("Get_List_Of_Particle_Pointers", &Explicit_Solver_With_Rotation< 3, RotatingHertzianSphereType >::GetListOfParticlePointers, return_internal_reference<>());
+    */
+
+
+    
+
+/*
+
 
     class_<Particle_Creator_Destructor<3, CircleType, CirclePointerType, CircleVectorType, CircleWeakVectorType, CirclePointerVectorType,
         CircleWeakIteratorType, CircleIteratorType, CirclePointerIteratorType, CircleDistanceVectorType, CircleDistanceIteratorType> >("Circles_Creator_Destructor", init<>())
@@ -277,14 +291,14 @@ void  AddCustomUtilitiesToPython(){
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType>::CalculateSurroundingBoundingBox)
     .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, RotatingSphereType, RotatingSpherePointerType, RotatingSphereVectorType, RotatingSphereWeakVectorType, RotatingSpherePointerVectorType,
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType>::DestroyDistantParticles);
-
+*/
     class_<Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> >("Rotating_Hertzian_Spheres_Creator_Destructor", init<>())
     .def("Calculate_Surrounding_Bounding_Box", &Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType>::CalculateSurroundingBoundingBox)
     .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType>::DestroyDistantParticles);
-*/
+
     /*
     class_<std::vector<CircleType::Pointer > >("CirclesPointersVector", init<>());
     class_<std::vector<HertzianCircleType::Pointer > >("CirclesHertzianPointersVector", init<>());
@@ -304,9 +318,9 @@ void  AddCustomUtilitiesToPython(){
        class_<HertzianSpherePointerVectorType>("SpheresHertzianPointersVector", init<>());
     /*
      * class_<std::vector<RotatingSphereType::Pointer > >("RotatingSpheresPointersVector", init<>());
+   */
     class_<std::vector<RotatingHertzianSphereType::Pointer > >("RotatingHertzianSpheresPointersVector", init<>());
-     *
-     */
+    
 
     }
 }  // namespace Python.
