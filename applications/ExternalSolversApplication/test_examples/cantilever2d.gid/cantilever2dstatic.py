@@ -3,46 +3,9 @@
 #setting the domain size for the problem to be solved
 domain_size = 2
 
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-print "importing KratosMetisApplication ..."
-sys.path.append(kratos_applications_path + '/metis_application/python_scripts')
-sys.path.append(kratos_applications_path + '/petsc_application/python_scripts')
-from KratosMetisApplication import *
-metis_application = KratosMetisApplication()
-kernel.AddApplication(metis_application)
-print "KratosMetisApplication sucessfully imported"
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
-from KratosPetscApplication import *
-
-petsc_application = KratosPetscApplication()
-kernel.AddApplication(petsc_application)
-kernel.InitializeApplication(petsc_application);
-
-kernel.InitializeApplication(metis_application)
-
-print kernel
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 #defining a model part
 model_part = ModelPart("FluidPart");  
