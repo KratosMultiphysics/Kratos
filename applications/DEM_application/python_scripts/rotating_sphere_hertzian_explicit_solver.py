@@ -8,20 +8,13 @@ from KratosMultiphysics.DEMApplication import *
 CheckForPreviousImport()
 
 def AddVariables(model_part):
-    model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
-    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    
+     model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(ROTATION)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
     model_part.AddNodalSolutionStepVariable(FORCE)
-    model_part.AddNodalSolutionStepVariable(MOMENT)
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_STATIC_FRICTION_COEF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DYNAMIC_FRICTION_COEF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MASS)
@@ -29,6 +22,16 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_ZETA)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_LOCAL_DAMP_RATIO)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_FAILURE_ID)
+    model_part.AddNodalSolutionStepVariable(ROTATION)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(MOMENT)   
 
     print "variables for the explicit solver added correctly"
 
@@ -50,29 +53,36 @@ class ExplicitSolver:
         self.acc_time_motion = 0.0
         self.acc_time_search = 0.0
 
+        self.type_id = type_id
+        self.damp_id = damp_id
+
         #first neighbours search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        self.explicit_solver_object = Rotating_Hertzian_Spheres_Explicit_Solver(solver_id, search_radius, prox_tol, model_part)
+        self.explicit_solver_object = Spheres_Hertzian_Explicit_Solver(solver_id, search_radius, prox_tol, model_part)
         self.explicit_solver_object.Search_Neighbours()
-        self.explicit_solver_object.Update_Contacting_Neighbours()
+        ####self.explicit_solver_object.Update_Contacting_Neighbours()
   
-    def EvolveSystem(self, Dt, gravity):
+    def GetInitialContinuumNeighbours(self):
+
+        self.explicit_solver_object.Set_Initial_Contacts()
+        self.explicit_solver_object.Search_Neighbours()
+
+    def EvolveSystem(self, Dt, gravity, type_id,damp_id):
  	#calculate forces
         before_forces_time = timer.time()
-        self.explicit_solver_object.Calculate_Forces(Dt, gravity)
+        self.explicit_solver_object.Calculate_Forces(type_id, damp_id, Dt, gravity)
         elapsed_time_forces = timer.time() - before_forces_time
         self.acc_time_calc_forces += elapsed_time_forces
-#        print 'acumulated computing time for the forces: ', self.acc_time_calc_forces
 
 	#evolve motion
         before_motion_time = timer.time()
-        self.explicit_solver_object.Evolve_Motion(Dt, gravity)
+        self.explicit_solver_object.Evolve_Motion(type_id, damp_id, Dt, gravity)
         elapsed_time_motion = timer.time() - before_motion_time
         self.acc_time_motion += elapsed_time_motion        
-#        print 'acumulated computing time for the time integration: ', self.acc_time_motion
 
 	#neighbours search
+
         before_search_time = timer.time()
         if (self.step % self.n_step_search == 0):
             self.explicit_solver_object.Search_Neighbours()
@@ -81,8 +91,8 @@ class ExplicitSolver:
         self.acc_time_search += elapsed_time_search
 #        print 'acumulated computing time for the search: ', self.acc_time_search
 
-    def Solve(self, Dt, gravity):
-        self.EvolveSystem(Dt, gravity)
+    def Solve(self, Dt, gravity,type_id,damp_id):
+        self.EvolveSystem(Dt, gravity,type_id,damp_id)
 	self.step += 1
 
     def EstimateTimeStep(self, risk_factor, Dt, max_Dt, min_Dt):
@@ -107,8 +117,4 @@ class ExplicitSolver:
 
     def Destroy_Particles(self, particles_pointers, model_part):
         self.particle_destructor_and_constructor.Destroy_Distant_Particles(particles_pointers, model_part)
-
-
-        
-        
-
+        self.explicit_solver_object.Search_Neighbours()
