@@ -21,7 +21,8 @@
 //#include "custom_utilities/circular_particle.h"
 //#include "custom_utilities/spheric_particle.h"
 //#include "custom_utilities/circular_particle_hertzian.h"
-#include "custom_utilities/spheric_particle_hertzian.h"
+#include "custom_utilities/spheric_particle_hertzian_rotation.h" //Aquest ja inclou el .../spheric_particle_hertzian.h"
+
 
 #include <fstream>
 #include <iostream>
@@ -51,8 +52,6 @@ public:
     typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
 
-
-   
     KRATOS_CLASS_POINTER_DEFINITION(Explicit_Solver);
 
     
@@ -83,7 +82,7 @@ public:
     void Search_Neighbours(){
         Neighbours_Calculator<TDim, ParticleType, ParticlePointerType, ParticleVectorType, ParticleWeakVectorType, ParticlePointerVectorType,
         ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
-        Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch, mProximityTol);
+        Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch);
         }
     
     void Search_Neighbours_Tolerance(){
