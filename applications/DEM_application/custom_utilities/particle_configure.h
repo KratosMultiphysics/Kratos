@@ -151,6 +151,15 @@ public:
             rHighPoint[i] += radius;
             }
         }
+        
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius){
+        rLowPoint = *(rObject->GetPointerToCenterNode());
+        rHighPoint = *(rObject->GetPointerToCenterNode());
+        for(std::size_t i = 0; i < 3; i++){
+            rLowPoint[i]  += -Radius;
+            rHighPoint[i] += Radius;
+            }
+        }
 
     //******************************************************************************************************************
 
@@ -159,6 +168,17 @@ public:
         double distance_2 = rObj_2_to_rObj_1[0] * rObj_2_to_rObj_1[0] + rObj_2_to_rObj_1[1] * rObj_2_to_rObj_1[1] + rObj_2_to_rObj_1[2] * rObj_2_to_rObj_1[2];
         //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
         double radius_1 = rObj_1->GetRadius();
+        double radius_2 = rObj_2->GetRadius();
+        double radius_sum = radius_1 + radius_2;
+        bool intersect = (distance_2 - radius_sum * radius_sum) <= 0;
+        return intersect;
+        }
+        
+     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, double Radius){
+        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetPosition() - rObj_2->GetPosition();
+        double distance_2 = rObj_2_to_rObj_1[0] * rObj_2_to_rObj_1[0] + rObj_2_to_rObj_1[1] * rObj_2_to_rObj_1[1] + rObj_2_to_rObj_1[2] * rObj_2_to_rObj_1[2];
+        //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
+        double radius_1 = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
         double radius_2 = rObj_2->GetRadius();
         double radius_sum = radius_1 + radius_2;
         bool intersect = (distance_2 - radius_sum * radius_sum) <= 0;
@@ -175,6 +195,28 @@ public:
             rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
         return  intersect;
         }
+        
+     static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint, const double& Radius){
+//        double separation_from_particle_radius_ratio = 0.1;
+        array_1d<double, 3> center_of_particle = rObject->GetPosition();
+        double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
+        bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
+            rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
+        return  intersect;
+        }
+        
+    //******************************************************************************************************************
+        
+     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
+	 {
+		array_1d<double, 3> center_of_particle1 = rObj_1->GetPosition();
+		array_1d<double, 3> center_of_particle2 = rObj_2->GetPosition();
+		
+		distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) + 
+						(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
+						(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+	 }
+     
 
     //******************************************************************************************************************
 

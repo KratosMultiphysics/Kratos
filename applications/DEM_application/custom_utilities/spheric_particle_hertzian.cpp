@@ -151,11 +151,9 @@ namespace Kratos{
             CCohesion   = 2* Cohesion * other_cohesion / (Cohesion + other_cohesion);
         }
        
-        if(delta_OPTION) {
+        if( delta_OPTION && (iContactForce < mContactInitialDelta.size()) ) {
                
-            neighbour_iterator->GetPointerToCenterNode()->Id();
-             initial_delta = mContactInitialDelta[iContactForce];
-     
+            initial_delta = mContactInitialDelta[iContactForce];
         }
        
         // BASIC CALCULATIONS
@@ -482,8 +480,6 @@ namespace Kratos{
      KRATOS_CATCH("")
 
     }
-
-
     void SphericHertzianParticle::norm(double Vector[3])
     {
         double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);

@@ -52,7 +52,7 @@ namespace Kratos {
         typedef Bucket < TDim, Particle, ParticlePointerVector> BucketType;
         typedef ParticleConfigure < TParticle > ConfigureType;
      
-        typedef BinsObjectStatic <ConfigureType> bins;  //static Bins..?
+        typedef BinsObjectDynamic <ConfigureType> bins;  //static Bins..?
 
         /// Pointer definition of Neighbour_calculator
         KRATOS_CLASS_POINTER_DEFINITION(Neighbours_Calculator);
@@ -64,7 +64,7 @@ namespace Kratos {
         virtual ~Neighbours_Calculator() {
         };
 
-        static void Search_Neighbours(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double max_radius, double prox_tol)
+        static void Search_Neighbours(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double search_radius)
         {
             KRATOS_TRY
             ParticlePointerVector aux_list_of_particles;
@@ -101,8 +101,9 @@ namespace Kratos {
                 //looks which of the new particles is inside the radius around the working particle
 
                 typename ConfigureType::ResultIteratorType results_begin = Results.begin();
-                (*particle_pointer_it)->GetNumberOfNeighbours() = particle_bin.SearchObjects(*(particle_pointer_it.base()), results_begin, MaximumNumberOfResults) - 1;
-
+				typename ConfigureType::DistanceIteratorType result_distances_begin = ResultsDistances.begin();
+                (*particle_pointer_it)->GetNumberOfNeighbours() = particle_bin.SearchObjectsInRadius(*(particle_pointer_it.base()), search_radius, results_begin, result_distances_begin, MaximumNumberOfResults) - 1;
+				
        // M: ARA VE LU DEL CFENG.         
   /////////////////////////////////////////////////////////////////////////////////////
 
