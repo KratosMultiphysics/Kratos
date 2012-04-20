@@ -464,7 +464,6 @@ bool HasIntersection3D(__global double4 * Points, __global int4 * Triangles, dou
     else 
       boxhalfsize.z = 0;
 
-//??¿¿??¿¿??¿¿
     double4 trivertsFaceA[3];
     double4 trivertsFaceB[3];
     double4 trivertsFaceC[3];
@@ -531,9 +530,13 @@ inline double4 calculatePositionT4(double4 a, double4 b, double4 c, double4 d, d
 {
     double4 N = (double4)(-1,-1,-1,0);
 
-    double inv_vol = native_divide(1.0f,(float)CalculateVol4(a,b,c,d)); //Fast
-//     double inv_vol = 1.0 / CalculateVol4(a,b,c,d);
-    N = (double4)(CalculateVol4(b,d,c,p),CalculateVol4(d,a,c,p),CalculateVol4(d,b,a,p),CalculateVol4(a,b,c,p));
+//     double inv_vol = native_divide(1.0f,(float)CalculateVol4(a,b,c,d)); //Fast
+    double inv_vol = 1.0 / CalculateVol4(a,b,c,d);
+
+    N = (double4)(CalculateVol4(b,d,c,p),
+		  CalculateVol4(a,c,d,p),
+		  CalculateVol4(d,b,a,p),
+		  CalculateVol4(b,c,a,p));
 
     return N * inv_vol;
 } 
