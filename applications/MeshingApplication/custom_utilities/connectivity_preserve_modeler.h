@@ -102,6 +102,13 @@ namespace Kratos
 	    
 	    DestinationModelPart.Nodes().clear();
 
+
+	    DestinationModelPart.Conditions().clear();
+    	    DestinationModelPart.Elements().clear();
+
+
+
+
             //assigning ProcessInfo
 	    DestinationModelPart.SetProcessInfo(  OriginModelPart.pGetProcessInfo() ); 
 	    DestinationModelPart.SetBufferSize(OriginModelPart.GetBufferSize());
