@@ -1468,8 +1468,18 @@ namespace Kratos
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
         Vector gravity( dim );
-
-        noalias( gravity ) = GetProperties()[GRAVITY];
+        
+        double density = 0.0;
+        if( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            noalias( gravity ) = GetValue(GRAVITY);
+            density = GetValue(DENSITY);
+        }
+        else
+        {
+            noalias( gravity ) = GetProperties()[GRAVITY];
+            density = GetProperties()[DENSITY];
+        }
 
         for ( unsigned int prim = 0; prim < ( mNodesDispMax - mNodesDispMin + 1 ); prim++ )
         {
@@ -3188,14 +3198,14 @@ namespace Kratos
         if ( rValues.size() != mConstitutiveLawVector.size() )
             rValues.resize( mConstitutiveLawVector.size() );
 
-        if ( rVariable == INSITU_STRESS )
+        if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 if ( rValues[i].size() != 6 )
                     rValues[i].resize( 6 );
 
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INSITU_STRESS, rValues[i] );
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
             }
         }
 
@@ -3397,23 +3407,23 @@ namespace Kratos
             return;
         }
 
-        if ( rVariable == INSITU_STRESS )
+        if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
         {
 
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                mConstitutiveLawVector[i]->SetValue( INSITU_STRESS, rValues[i], rCurrentProcessInfo );
+                mConstitutiveLawVector[i]->SetValue( PRESTRESS, rValues[i], rCurrentProcessInfo );
             }
         }
     }
 
     void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rVariable == INSITU_STRESS_SCALE )
+        if ( rVariable == PRESTRESS_FACTOR )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
-                mConstitutiveLawVector[i]->SetValue( INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo );
+                mConstitutiveLawVector[i]->SetValue( PRESTRESS_FACTOR, rValues[i], rCurrentProcessInfo );
             }
         }
 

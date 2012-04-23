@@ -210,8 +210,7 @@ namespace Kratos
             mConstitutiveLawVector.resize( integration_points.size() );
             InitializeMaterial();
         }
-
-
+        
         for ( unsigned int i = ( mNodesDispMin - 1 ) ; i < mNodesDispMax ; i++ )
         {
             ( GetGeometry()[i] ).GetSolutionStepValue( DISPLACEMENT_NULL ) =
@@ -284,18 +283,18 @@ namespace Kratos
             bool CalculateStiffnessMatrixFlag, bool CalculateResidualVectorFlag )
     {
         KRATOS_TRY
-
+//         KRATOS_WATCH("line 287");
         unsigned int number_of_nodes_disp = ( mNodesDispMax - mNodesDispMin + 1 );
         unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
 //          unsigned int number_of_nodes = number_of_nodes_disp+number_of_nodes_press;
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
+// KRATOS_WATCH("line 291");
 //                 ResizeAndInitializeAuxiliaries();
         //resizing as needed the LHS
         unsigned int MatSize1 = ( number_of_nodes_disp * dim + number_of_nodes_press );
         unsigned int MatSizeU = number_of_nodes_disp * dim;
         unsigned int MatSizeP = number_of_nodes_press;
-
+// KRATOS_WATCH("line 297");
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
             if ( rLeftHandSideMatrix.size1() != MatSize1 )
@@ -303,7 +302,7 @@ namespace Kratos
 
             noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize1, MatSize1 ); //resetting LHS
         }
-
+// KRATOS_WATCH("line 305");
         //resizing as needed the RHS
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
@@ -312,7 +311,7 @@ namespace Kratos
 
             noalias( rRightHandSideVector ) = ZeroVector( MatSize1 ); //resetting RHS
         }
-
+// KRATOS_WATCH("line 314");
         //reading integration points and local gradients
         const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -321,7 +320,7 @@ namespace Kratos
 
         const GeometryType::ShapeFunctionsGradientsType& DN_De_Pressure =
             mpPressureGeometry->ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
+// KRATOS_WATCH("line 323");
         const Matrix& Ncontainer_Displacement = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
 
         const Matrix& Ncontainer_Pressure = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
@@ -349,7 +348,7 @@ namespace Kratos
         Vector Help_R_U( MatSizeU );
 
         Vector Help_R_W( MatSizeP );
-
+// KRATOS_WATCH("line 351");
 //                 Vector StressVector(6);
 //                 Vector StrainVector(6);
 
@@ -375,7 +374,7 @@ namespace Kratos
             noalias( Help_K_WW ) = ZeroMatrix( MatSizeP, MatSizeP );
 
         }
-
+// KRATOS_WATCH("line 377");
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
             noalias( Help_R_U ) = ZeroVector( MatSizeU );
@@ -394,7 +393,7 @@ namespace Kratos
         Matrix DN_DX_DISP( number_of_nodes_disp, dim );
 
         Matrix CurrentDisp( number_of_nodes_disp, dim );
-
+// KRATOS_WATCH("line 396");
         //Current displacements
         for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
         {
@@ -411,7 +410,7 @@ namespace Kratos
             noalias( DN_DX_PRESS ) = prod( DN_De_Pressure[PointNumber], mInvJ0[PointNumber] );
 
             noalias( DN_DX_DISP ) = prod( DN_De_Displacement[PointNumber], mInvJ0[PointNumber] );
-
+// KRATOS_WATCH("line 413");
             Weight = integration_points[PointNumber].Weight();
 
             DetJ = mDetJ0[PointNumber];
@@ -433,8 +432,15 @@ namespace Kratos
             CalculateStrain( B, CurrentDisp, StrainVector );
 
 //                         noalias(StressVector) = ZeroVector(6);
-
+// KRATOS_WATCH("line 435");
             GetPressures( N_PRESS, capillaryPressure, waterPressure );
+            if( waterPressure < 0.0 )
+            {
+                std::cout << "in Element " << Id() << std::endl;
+                KRATOS_WATCH( waterPressure );
+                waterPressure = 0.0;
+            }
+
 
             porosity = GetPorosity( DN_DX_DISP );
 
@@ -446,7 +452,7 @@ namespace Kratos
             density = GetAveragedDensity( capillaryPressure, porosity );
 
             CalculateStressAndTangentialStiffnessUnsaturatedSoils( StressVector, TanC_U, tanC_W, StrainVector, waterPressure,  PointNumber, rCurrentProcessInfo );
-
+// KRATOS_WATCH("line 448");
             if ( CalculateStiffnessMatrixFlag == true )
             {
                 //Calculation of spatial Stiffnes and Mass Matrix
@@ -455,7 +461,7 @@ namespace Kratos
                 CalculateStiffnesMatrixWU( Help_K_WU, DN_DX_DISP, DN_DX_PRESS, N_PRESS, capillaryPressure,  Weight, DetJ );
                 CalculateStiffnesMatrixWW( Help_K_WW, DN_DX_DISP, DN_DX_PRESS, N_PRESS, capillaryPressure, Weight, DetJ );
             }
-
+// 
             if ( CalculateResidualVectorFlag == true )
             {
                 //Calculation of spatial Loadvector
@@ -463,23 +469,23 @@ namespace Kratos
                 AddInternalForcesToRHSU( Help_R_U, B, StressVector, Weight, DetJ );
                 AddInternalForcesToRHSW( Help_R_W, DN_DX_DISP, DN_DX_PRESS, N_PRESS, capillaryPressure, Weight, DetJ );
             }
-
+// KRATOS_WATCH("line 465");
             ///////////////////////////////////////////////////////////////////////
             // END Integration in space sum_(beta=0)^(number of quadrature points)
             ///////////////////////////////////////////////////////////////////////
         }
-
+// KRATOS_WATCH("line 470");
         if ( CalculateStiffnessMatrixFlag == true )
         {
             AssembleTimeSpaceStiffnessFromStiffSubMatrices( rLeftHandSideMatrix, Help_K_UU, Help_K_UW, Help_K_WU, Help_K_WW );
         }
-
+// KRATOS_WATCH("line 475");
         if ( CalculateResidualVectorFlag == true )
         {
             AssembleTimeSpaceRHSFromSubVectors( rRightHandSideVector, Help_R_U, Help_R_W );
         }
 
-
+// KRATOS_WATCH("line 481");
         KRATOS_CATCH( "" )
     }
 
@@ -509,7 +515,7 @@ namespace Kratos
         bool CalculateStiffnessMatrixFlag = true;
         bool CalculateResidualVectorFlag = true;
         CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
-                      CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+                     CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
     }
 
     ////************************************************************************************
@@ -672,6 +678,8 @@ namespace Kratos
                 N_PRESS.resize( number_of_nodes_press );
 
             noalias( N_PRESS ) = row( Ncontainer_Pressure, PointNumber );
+            GeometryType::CoordinatesArrayType gp_position; 
+            gp_position = GetGeometry().GlobalCoordinates( gp_position, GetGeometry().IntegrationPoints()[PointNumber] );
 
             GetPressures( N_PRESS, capillaryPressure, waterPressure );
 
@@ -685,6 +693,11 @@ namespace Kratos
             if ( rVariable == WATER_PRESSURE )
             {
                 Output[PointNumber] = waterPressure;
+            }
+            
+            if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
+            {
+                Output[PointNumber] = waterPressure - ( 9.81 * 1000.0 * gp_position[2] );
             }
 
             if ( rVariable == AIR_PRESSURE )
@@ -1085,7 +1098,18 @@ namespace Kratos
 
         Vector gravity( dim );
 
-        noalias( gravity ) = GetProperties()[GRAVITY];
+        double density = 0.0;
+
+        if ( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            noalias( gravity ) = GetValue( GRAVITY );
+            density = GetValue( DENSITY );
+        }
+        else
+        {
+            noalias( gravity ) = GetProperties()[GRAVITY];
+            density = GetProperties()[DENSITY];
+        }
 
         for ( unsigned int prim = 0; prim < ( mNodesDispMax - mNodesDispMin + 1 ); prim++ )
         {
@@ -1126,12 +1150,25 @@ namespace Kratos
 // t1 = clock();    // Referenzwert zum Programmstart speichern
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         unsigned int number_of_nodes_disp = mNodesDispMax - mNodesDispMin + 1;
-        Vector Gravity( dim );
-        noalias( Gravity ) = GetProperties()[GRAVITY];
+        
+        
+        Vector gravity( dim );
 
-        double density_soil = GetProperties()[DENSITY];
-        double density_air = GetProperties()[DENSITY_AIR];
-        double density_water = GetProperties()[DENSITY_WATER];
+        double density_soil = 0.0;
+        
+        if ( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            noalias( gravity ) = GetValue( GRAVITY );
+            density_soil = GetValue( DENSITY );
+        }
+        else
+        {
+            noalias( gravity ) = GetProperties()[GRAVITY];
+            density_soil = GetProperties()[DENSITY];
+        }
+        double density_water = GetValue( DENSITY_WATER );
+        double density_air = GetValue( DENSITY_AIR );
+
         double saturation = GetSaturation( capillaryPressure );
 
         double porosity_divu = 0.0;
@@ -1152,7 +1189,7 @@ namespace Kratos
                     for ( unsigned int j = 0; j < dim; j++ )
                     {
 
-                        K( prim*dim + i, sec*dim + j ) += N_DISP( prim ) * DrhoDdivU * Gravity( i ) * DN_DX_DISP( sec, j ) * Weight * detJ;
+                        K( prim*dim + i, sec*dim + j ) += N_DISP( prim ) * DrhoDdivU * gravity( i ) * DN_DX_DISP( sec, j ) * Weight * detJ;
 
 //                                                 for(unsigned int alpha=0; alpha<6; alpha++)
 //                                                         for(unsigned int beta=0; beta<6; beta++)
@@ -1188,18 +1225,30 @@ namespace Kratos
         unsigned int pressure_size = mNodesPressMax - mNodesPressMin + 1;
 
         unsigned int displacement_size = mNodesDispMax - mNodesDispMin + 1;
+        
+        Vector gravity( dim );
 
-        Vector Gravity( dim );
+        double density_soil = 0.0;
+        
+        if ( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+        {
+            noalias( gravity ) = GetValue( GRAVITY );
+            density_soil = GetValue( DENSITY );
+        }
+        else
+        {
+            noalias( gravity ) = GetProperties()[GRAVITY];
+            density_soil = GetProperties()[DENSITY];
+        }
+        double density_water = GetValue( DENSITY_WATER );
+        double density_air = GetValue( DENSITY_AIR );
 
-        noalias( Gravity ) = GetProperties()[GRAVITY];
 
         double DSDpc = GetDerivativeDSaturationDpc( capillaryPressure );
 
         double porosity = GetPorosity( DN_DX_DISP );
 
-        double density_air = GetProperties()[DENSITY_AIR];
-
-        double DrhoDp_w = porosity * ( density_air - GetProperties()[DENSITY_WATER] ) * DSDpc;
+        double DrhoDp_w = porosity * ( density_air - density_water ) * DSDpc;
 
 
         for ( unsigned int prim = 0; prim < displacement_size; prim++ )
@@ -1209,7 +1258,7 @@ namespace Kratos
                 for ( unsigned int sec = 0; sec < pressure_size; sec++ )
                 {
                     Help_K_UW( prim*dim + i, sec ) +=
-                        N_DISP( prim ) * DrhoDp_w * Gravity( i ) * N_PRESS( sec )
+                        N_DISP( prim ) * DrhoDp_w * gravity( i ) * N_PRESS( sec )
                         * Weight * DetJ;
 
                     for ( unsigned int gamma = 0; gamma < 3; gamma++ )
@@ -1228,6 +1277,7 @@ namespace Kratos
     void UnsaturatedSoilsElement_2phase_SmallStrain::AddInternalForcesToRHSW( Vector& Help_R_W, const
             Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double  DetJ )
     {
+        
         unsigned int pressure_size = mNodesPressMax - mNodesPressMin + 1;
 
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
@@ -1248,17 +1298,18 @@ namespace Kratos
         for ( unsigned int prim = 0; prim < pressure_size; prim++ )
         {
             Help_R_W( prim ) +=
-                N_PRESS( prim ) * porosity * DS_Dpc * Dpc_Dt * Weight * DetJ * GetProperties()[SCALE];
+                N_PRESS( prim ) * porosity * DS_Dpc * Dpc_Dt * Weight * DetJ/* * GetProperties()[SCALE]*/ ;
             Help_R_W( prim ) +=
-                N_PRESS( prim ) * saturation * div_Dt * Weight * DetJ * GetProperties()[SCALE];
+                N_PRESS( prim ) * saturation * div_Dt * Weight * DetJ/* * GetProperties()[SCALE]*/ ;
 
             for ( unsigned int gamma = 0; gamma < dim; gamma++ )
             {
                 Help_R_W( prim ) +=
                     ( -1 ) * ( DN_DX_PRESS( prim, gamma ) * flow_water( gamma ) )
-                    * Weight * DetJ * GetProperties()[SCALE];
+                    * Weight * DetJ/* * GetProperties()[SCALE]*/ ;
             }
         }
+        
     }
 
     //************************************************************************************
@@ -1267,6 +1318,7 @@ namespace Kratos
     void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateStiffnesMatrixWU
     ( Matrix& Help_K_WU, const Matrix& DN_DX_DISP, const Matrix& DN_DX_PRESS, Vector& N_PRESS, double capillaryPressure, double Weight, double DetJ )
     {
+        
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
         unsigned int pressure_size = mNodesPressMax - mNodesPressMin + 1;
@@ -1290,10 +1342,11 @@ namespace Kratos
                 {
                     Help_K_WU( prim, sec*dim + j ) +=
                         N_PRESS( prim ) * DnDdivU * DSDpc * Dpc_Dt * DN_DX_DISP( sec, j )
-                        * Weight * DetJ * GetProperties()[SCALE];
+                        * Weight * DetJ/* * GetProperties()[SCALE]*/ ;
                 }
             }
         }
+        
     }
 
     //************************************************************************************
@@ -1329,21 +1382,21 @@ namespace Kratos
             {
                 Help_K_WW( prim, sec ) +=
                     ( -1 ) * N_PRESS( prim ) * porosity * D2S_Dpc2 * Dpc_Dt * N_PRESS( sec )
-                    * Weight * DetJ * GetProperties()[SCALE];
+                    * Weight * DetJ/* * GetProperties()[SCALE]*/;
 
                 Help_K_WW( prim, sec ) +=
                     ( -1 ) * N_PRESS( prim ) * DSDpc * Ddiv_Dt * N_PRESS( sec )
-                    * Weight * DetJ * GetProperties()[SCALE];
+                    * Weight * DetJ/* * GetProperties()[SCALE]*/;
 
                 for ( unsigned int gamma = 0; gamma < dim; gamma++ )
                 {
                     Help_K_WW( prim, sec ) +=
                         ( -1 ) * DN_DX_PRESS( prim, gamma ) * Dflow_waterDpw( gamma )
                         * N_PRESS( sec )
-                        * Weight * DetJ * GetProperties()[SCALE];
+                        * Weight * DetJ/* * GetProperties()[SCALE]*/;
                     Help_K_WW( prim, sec ) +=
                         ( -1 ) * DN_DX_PRESS( prim, gamma ) * Dflow_waterDgradpw
-                        * DN_DX_PRESS( sec, gamma ) * Weight * DetJ * GetProperties()[SCALE];
+                        * DN_DX_PRESS( sec, gamma ) * Weight * DetJ/* * GetProperties()[SCALE]*/;
                 }
             }
         }
@@ -1372,7 +1425,7 @@ namespace Kratos
                 {
                     Help_D_WU( prim, sec*dim + j ) +=
                         N_PRESS( prim ) * saturation * DN_DX_DISP( sec, j )
-                        * Weight * DetJ * GetProperties()[SCALE];
+                        * Weight * DetJ/* * GetProperties()[SCALE]*/;
                 }
             }
         }
@@ -1393,7 +1446,7 @@ namespace Kratos
             {
                 Help_D_WW( prim, sec ) +=
                     ( -1 ) * N_PRESS( prim ) * porosity * DSDpc * N_PRESS( sec )
-                    * Weight * DetJ * GetProperties()[SCALE];
+                    * Weight * DetJ /* * GetProperties()[SCALE]*/;
             }
         }
     }
@@ -1550,22 +1603,7 @@ namespace Kratos
 
     double UnsaturatedSoilsElement_2phase_SmallStrain::GetPorosity( const Matrix& DN_DX_DISP )
     {
-        double initialPorosity = GetProperties()[POROSITY];
-//              double div= GetDivU(DN_DX_DISP);
-
-        double porosity = initialPorosity;
-//              double porosity= 1-(1-initialPorosity)*exp(-div);
-
-//              double porosity= initialPorosity;
-//              if(porosity < 0)
-//              {
-// //               KRATOS_ERROR(std::logic_error, "Porosity is less than zero" , *this);
-//              }
-//              if(porosity > 1)
-//              {
-// //               KRATOS_ERROR(std::logic_error, "Porosity is bigger than one" , *this);
-//              }
-
+        double porosity = GetValue(POROSITY);
         return porosity;
     }
 
@@ -1592,7 +1630,10 @@ namespace Kratos
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         Vector gravity( dim );
-        noalias( gravity ) = GetProperties()[GRAVITY];
+        if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
+            noalias( gravity ) = GetValue(GRAVITY);
+        else
+            noalias( gravity ) = GetProperties()[GRAVITY];
         return gravity;
     }
 
@@ -1658,10 +1699,18 @@ namespace Kratos
             double porosity )
     {
         double result = 0.0;
-
-        double density_soil = GetProperties()[DENSITY];
-        double density_air = GetProperties()[DENSITY_AIR];
-        double density_water = GetProperties()[DENSITY_WATER];
+        
+        double density_soil = 0.0;
+        if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
+        {
+            density_soil = GetValue(DENSITY);
+        }
+        else
+        {
+            density_soil = GetProperties()[DENSITY];
+        }
+        double density_air = GetValue(DENSITY_AIR);
+        double density_water = GetValue(DENSITY_WATER);
         double saturation = GetSaturation( capillaryPressure );
 
         result = ( 1 - porosity ) * density_soil +
@@ -1680,14 +1729,14 @@ namespace Kratos
 
     double UnsaturatedSoilsElement_2phase_SmallStrain::GetSaturation( double capillaryPressure )
     {
-        double airEntryPressure = GetProperties()[AIR_ENTRY_VALUE];
+        double airEntryPressure = GetValue(AIR_ENTRY_VALUE);
 
         if ( airEntryPressure <= 0.0 )
             airEntryPressure = 1.0;
 
-        double b = GetProperties()[FIRST_SATURATION_PARAM];
+        double b = GetValue(FIRST_SATURATION_PARAM);
 
-        double c = GetProperties()[SECOND_SATURATION_PARAM];
+        double c = GetValue(SECOND_SATURATION_PARAM);
 
         double saturation = 0.0;
 
@@ -1709,20 +1758,22 @@ namespace Kratos
 
     double UnsaturatedSoilsElement_2phase_SmallStrain::GetDerivativeDSaturationDpc( double capillaryPressure )
     {
-        double airEntryPressure = GetProperties()[AIR_ENTRY_VALUE];
+        double airEntryPressure = GetValue(AIR_ENTRY_VALUE);
 
         if ( airEntryPressure <= 0 )
             airEntryPressure = 1.0;
 
-        double b = GetProperties()[FIRST_SATURATION_PARAM];
+        double b = GetValue(FIRST_SATURATION_PARAM);
 
-        double c = GetProperties()[SECOND_SATURATION_PARAM];
+        double c = GetValue(SECOND_SATURATION_PARAM);
 
         double result = 0.0;
 
 //
         if ( capillaryPressure < 0.0 )
+        {
             capillaryPressure = 0.0;
+        }
 
         result = ( -c ) * pow(( 1.0 + pow(( capillaryPressure / airEntryPressure ), b ) ), ( -c - 1.0 ) ) * b *
                  pow(( capillaryPressure / airEntryPressure ), ( b - 1 ) ) * 1.0 / airEntryPressure;
@@ -1738,14 +1789,14 @@ namespace Kratos
 
     double UnsaturatedSoilsElement_2phase_SmallStrain::GetSecondDerivativeD2SaturationDpc2( double capillaryPressure )
     {
-        double airEntryPressure = GetProperties()[AIR_ENTRY_VALUE];
+        double airEntryPressure = GetValue(AIR_ENTRY_VALUE);
 
         if ( airEntryPressure <= 0 )
             airEntryPressure = 1.0;
 
-        double b = GetProperties()[FIRST_SATURATION_PARAM];
+        double b = GetValue(FIRST_SATURATION_PARAM);
 
-        double c = GetProperties()[SECOND_SATURATION_PARAM];
+        double c = GetValue(SECOND_SATURATION_PARAM);
 
         double result = 0.0;
 
@@ -1785,7 +1836,10 @@ namespace Kratos
 
         Vector gravity( dim );
 
-        noalias( gravity ) = GetProperties()[GRAVITY];
+        if( GetValue(USE_DISTRIBUTED_PROPERTIES) )
+            noalias( gravity ) = GetValue(GRAVITY);
+        else
+            noalias( gravity ) = GetProperties()[GRAVITY];
 
         Vector result( dim );
 
@@ -1797,9 +1851,9 @@ namespace Kratos
 
         for ( unsigned int i = 0; i < dim; i++ )
         {
-            result( i ) = -relPerm * GetProperties()[PERMEABILITY_WATER] /
-                          ( GetProperties()[DENSITY_WATER] * 9.81 )
-                          * ( grad_water( i ) - GetProperties()[DENSITY_WATER]
+            result( i ) = -relPerm * GetValue(PERMEABILITY_WATER) /
+                          ( GetValue(DENSITY_WATER) * 9.81 )
+                          * ( grad_water( i ) - GetValue(DENSITY_WATER)
                               * gravity( i ) );
         }
 
@@ -1835,7 +1889,10 @@ namespace Kratos
 
         Vector gravity( dim );
 
-        noalias( gravity ) = GetProperties()[GRAVITY];
+        if( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
+            noalias( gravity ) = GetValue(GRAVITY);
+        else
+            noalias( gravity ) = GetProperties()[GRAVITY];
 
         Vector grad_water( dim );
 
@@ -1843,9 +1900,9 @@ namespace Kratos
 
         for ( unsigned int i = 0; i < dim; i++ )
         {
-            result( i ) = -relPerm_pw * GetProperties()[PERMEABILITY_WATER] /
-                          ( GetProperties()[DENSITY_WATER] * 9.81 )
-                          * ( grad_water( i ) - GetProperties()[DENSITY_WATER]
+            result( i ) = -relPerm_pw * GetValue(PERMEABILITY_WATER) /
+                          ( GetValue(DENSITY_WATER) * 9.81 )
+                          * ( grad_water( i ) - GetValue(DENSITY_WATER)
                               * gravity( i ) );
         }
 
@@ -1872,7 +1929,7 @@ namespace Kratos
         double result( dim );
 
         result =
-            -relPerm * GetProperties()[PERMEABILITY_WATER] / ( GetProperties()[DENSITY_WATER] * 9.81 );
+            -relPerm * GetValue(PERMEABILITY_WATER) / ( GetValue(DENSITY_WATER) * 9.81 );
 
         return result;
     }
@@ -2058,14 +2115,14 @@ namespace Kratos
                 rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
         }
 
-        if ( rVariable == INSITU_STRESS )
+        if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
         {
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
             {
                 if ( rValues[i].size() != 6 )
                     rValues[i].resize( 6 );
 
-                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( INSITU_STRESS, rValues[i] );
+                noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
             }
         }
 
@@ -2198,11 +2255,15 @@ namespace Kratos
 
         double saturation;
 
+
         /////////////////////////////////////////////////////////////////////////
 //// Integration in space sum_(beta=0)^(number of quadrature points)
         /////////////////////////////////////////////////////////////////////////
         for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
         {
+            GeometryType::CoordinatesArrayType gp_position;
+            gp_position = GetGeometry().GlobalCoordinates( gp_position, GetGeometry().IntegrationPoints()[PointNumber] );
+            
             // Shape Functions on current spatial quadrature point
             if ( N_PRESS.size() != number_of_nodes_press )
                 N_PRESS.resize( number_of_nodes_press );
@@ -2221,6 +2282,11 @@ namespace Kratos
             if ( rVariable == WATER_PRESSURE )
             {
                 rValues[PointNumber] = waterPressure;
+            }
+            
+            if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
+            {
+                rValues[PointNumber] = waterPressure - ( 9.81 * 1000.0 * (12.75-gp_position[2]) );
             }
 
         }
@@ -2251,9 +2317,9 @@ namespace Kratos
         if ( rValues.size() != mConstitutiveLawVector.size() )
             return;
 
-        if ( rVariable == INSITU_STRESS )
+        if ( rVariable == INSITU_STRESS || rVariable == PRESTRESS )
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-                mConstitutiveLawVector[i]->SetValue( INSITU_STRESS, rValues[i], rCurrentProcessInfo );
+                mConstitutiveLawVector[i]->SetValue( PRESTRESS, rValues[i], rCurrentProcessInfo );
 
         if ( rVariable == INTERNAL_VARIABLES )
             for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -2266,23 +2332,25 @@ namespace Kratos
 // std::cout<<"END::SetValueOnIntegrationPoints"<<std::endl;
     }
 
+    void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( const Kratos::Variable< ConstitutiveLaw::Pointer >& rVariable, std::vector< ConstitutiveLaw::Pointer >& rValues, const Kratos::ProcessInfo& rCurrentProcessInfo )
+    {
+        if ( rVariable == CONSTITUTIVE_LAW )
+        {
+            for ( unsigned int i = 0; i < rValues.size(); i++ )
+            {
+                mConstitutiveLawVector[i] = rValues[i];
+                mConstitutiveLawVector[i]->InitializeMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+            }
+        }
+    }
+
     void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
     {
-        if ( rVariable == INSITU_STRESS_SCALE )
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            {
-                mConstitutiveLawVector[i]->SetValue( INSITU_STRESS_SCALE, rValues[i], rCurrentProcessInfo );
-            }
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
         }
 
-        if ( rVariable == OVERCONSOLIDATION_RATIO )
-        {
-            for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-            {
-                mConstitutiveLawVector[i]->SetValue( OVERCONSOLIDATION_RATIO, rValues[i], rCurrentProcessInfo );
-            }
-        }
     }
 
     UnsaturatedSoilsElement_2phase_SmallStrain::IntegrationMethod UnsaturatedSoilsElement_2phase_SmallStrain::GetIntegrationMethod()
