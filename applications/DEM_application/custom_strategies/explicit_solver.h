@@ -21,7 +21,7 @@
 //#include "custom_utilities/circular_particle.h"
 //#include "custom_utilities/spheric_particle.h"
 //#include "custom_utilities/circular_particle_hertzian.h"
-#include "custom_utilities/spheric_particle_hertzian_rotation.h" //Aquest ja inclou el .../spheric_particle_hertzian.h"
+//#include "custom_utilities/spheric_particle_hertzian_rotation.h" //Aquest ja inclou el .../spheric_particle_hertzian.h"
 
 
 #include <fstream>
