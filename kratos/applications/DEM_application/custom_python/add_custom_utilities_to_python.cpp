@@ -147,7 +147,7 @@ typedef std::vector<RotatingSphereType>::iterator RotatingSphereIteratorType;
 typedef std::vector<RotatingSphereType::Pointer> RotatingSpherePointerVectorType;
 typedef std::vector<RotatingSphereType::Pointer>::iterator RotatingSpherePointerIteratorType;
 */
-
+/*
 typedef SphericRotatingHertzianParticle RotatingHertzianSphereType;
 typedef SphericRotatingHertzianParticle::Pointer RotatingHertzianSpherePointerType;
 typedef SphericRotatingHertzianParticle::ParticleWeakVectorType RotatingHertzianSphereWeakVectorType;
@@ -159,7 +159,7 @@ typedef std::vector<RotatingHertzianSphereType>::iterator RotatingHertzianSphere
 typedef std::vector<RotatingHertzianSphereType::Pointer> RotatingHertzianSpherePointerVectorType;
 typedef std::vector<RotatingHertzianSphereType::Pointer>::iterator RotatingHertzianSpherePointerIteratorType;
 
-
+*/
 void  AddCustomUtilitiesToPython(){
     using namespace boost::python;
 
@@ -188,13 +188,13 @@ void  AddCustomUtilitiesToPython(){
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType> >("Rotating_Spheres_Neighbours_Calculator", init<>())
     .def("Search_Neighbours",&Neighbours_Calculator<3, RotatingSphereType, RotatingSpherePointerType, RotatingSphereVectorType, RotatingSphereWeakVectorType, RotatingSpherePointerVectorType,
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType> ::Search_Neighbours);
-*/
+
     class_<Neighbours_Calculator<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> >("Rotating_Hertzian_Spheres_Neighbours_Calculator", init<>())
     .def("Search_Neighbours",&Neighbours_Calculator<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> ::Search_Neighbours);
 
- /*
+ 
     class_<Explicit_Solver<2, CircleType > >("Circles_Explicit_Solver", init<int, double, double, ModelPart& >())
     .def("Search_Neighbours",&Explicit_Solver<2, CircleType >::Search_Neighbours)
     .def("Calculate_Forces",&Explicit_Solver<2, CircleType >::Calculate_Forces)
@@ -291,7 +291,8 @@ void  AddCustomUtilitiesToPython(){
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType>::CalculateSurroundingBoundingBox)
     .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, RotatingSphereType, RotatingSpherePointerType, RotatingSphereVectorType, RotatingSphereWeakVectorType, RotatingSpherePointerVectorType,
         RotatingSphereWeakIteratorType, RotatingSphereIteratorType, RotatingSpherePointerIteratorType, RotatingSphereDistanceVectorType, RotatingSphereDistanceIteratorType>::DestroyDistantParticles);
-*/
+
+
     class_<Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType> >("Rotating_Hertzian_Spheres_Creator_Destructor", init<>())
     .def("Calculate_Surrounding_Bounding_Box", &Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
@@ -299,7 +300,7 @@ void  AddCustomUtilitiesToPython(){
     .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, RotatingHertzianSphereType, RotatingHertzianSpherePointerType, RotatingHertzianSphereVectorType, RotatingHertzianSphereWeakVectorType, RotatingHertzianSpherePointerVectorType,
         RotatingHertzianSphereWeakIteratorType, RotatingHertzianSphereIteratorType, RotatingHertzianSpherePointerIteratorType, RotatingHertzianSphereDistanceVectorType, RotatingHertzianSphereDistanceIteratorType>::DestroyDistantParticles);
 
-    /*
+
     class_<std::vector<CircleType::Pointer > >("CirclesPointersVector", init<>());
     class_<std::vector<HertzianCircleType::Pointer > >("CirclesHertzianPointersVector", init<>());
     class_<std::vector<SphereType::Pointer > >("SpheresPointersVectors", init<>());
@@ -318,10 +319,10 @@ void  AddCustomUtilitiesToPython(){
        class_<HertzianSpherePointerVectorType>("SpheresHertzianPointersVector", init<>());
     /*
      * class_<std::vector<RotatingSphereType::Pointer > >("RotatingSpheresPointersVector", init<>());
-   */
+
     class_<std::vector<RotatingHertzianSphereType::Pointer > >("RotatingHertzianSpheresPointersVector", init<>());
     
-
+   */
     }
 }  // namespace Python.
 
