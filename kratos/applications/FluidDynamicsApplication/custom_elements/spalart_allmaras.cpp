@@ -89,16 +89,16 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
     /*}
     else */if (FractionalStepNumber == 2)
     {
-        const SizeType NumNodes = this->GetGeometry().PointsNumber();
-        const SizeType NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
+        const unsigned int NumNodes = this->GetGeometry().PointsNumber();
+        const unsigned int NumGauss = this->GetGeometry().IntegrationPoints(this->mIntegrationMethod).size();
 
         const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
 
-        double NodalArea = 0.0;
-        double ConvTerm = 0.0;
+        VectorType NodalArea = ZeroVector(NumNodes);
+        VectorType ConvTerm = ZeroVector(NumNodes);
 
-        for (SizeType g = 0; g < NumGauss; g++) // Loop on Gauss points
+        for (unsigned int g = 0; g < NumGauss; g++) // Loop on Gauss points
         {
             const ShapeFunctionsType& N = row(NContainer,g);
             const ShapeDerivativesType& DN_DX = mDN_DX[g];
@@ -118,18 +118,22 @@ void SpalartAllmaras::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
             this->EvaluateConvection(UGradN,ConvVel,DN_DX);
 
             // Finish evaluation of convective term as Velocity * Grad(N_i) * Viscosity_node_i
-            NodalArea += GaussWeight;
-            for (SizeType i = 0; i < NumNodes; i++)
-                ConvTerm += GaussWeight * UGradN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                double Temp = GaussWeight * UGradN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(TURBULENT_VISCOSITY);
+                for (unsigned int j = 0; j < NumNodes; j++)
+                {
+                    ConvTerm[j] += N[j] * Temp;
+                    NodalArea[j] += N[j] * GaussWeight;
+                }
+            }
         }
-        
-	const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1) ,0);
 
-        for (SizeType i = 0; i < NumNodes; i++)
+        for (unsigned int i = 0; i < NumNodes; i++)
         {
             this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += N[i] * NodalArea;
-            this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += N[i] * ConvTerm;
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
+            this->GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += ConvTerm[i];
             this->GetGeometry()[i].UnSetLock();
         }
     }
@@ -528,7 +532,7 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
     const Vector& N = row(NContainer,0);
 
     // Time Term
-    const double TimeCoeff = 0.0; //rCurrentProcessInfo[BDF_COEFFICIENTS][0];
+    const double TimeCoeff = rCurrentProcessInfo[BDF_COEFFICIENTS][0];
 
     // Diffusivity
     double MolecularViscosity = 0.0;
