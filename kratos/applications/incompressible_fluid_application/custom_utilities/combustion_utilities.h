@@ -175,7 +175,7 @@ namespace Kratos
 	  KRATOS_TRY;
 	  double c1, c2, c3, c4, c5, c, b ,a,h;
  
-	  double T, yf, ych4, yo2, yco2, yh2o, yn2, h;
+	  double T, yf, ych4, yo2, yco2, yh2o, yn2;
 
 	  
 	  for (ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in){
