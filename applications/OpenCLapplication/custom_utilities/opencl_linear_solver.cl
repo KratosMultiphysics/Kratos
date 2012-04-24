@@ -646,6 +646,27 @@ __kernel void ZeroVector3Negate(__global ValueType *X_Values, __global ValueType
 }
 
 //
+// ZeroVector2Copy2
+//
+// Zeros two vectors and updates the two others with another
+// Note: x = 0; y = 0; z = u; t = u
+
+__kernel void ZeroVector2Copy2(__global ValueType *X_Values, __global ValueType *Y_Values, __global ValueType *Z_Values, __global ValueType *T_Values, __global const ValueType *U_Values, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		X_Values[gid] = 0.00;
+		Y_Values[gid] = 0.00;
+		Z_Values[gid] = U_Values[gid];
+		T_Values[gid] = U_Values[gid];
+	}
+}
+
+//
 // UpdateVectorWithBackup32
 //
 // Updates two vectors with 3 vectors after backing them up in others
@@ -668,6 +689,31 @@ __kernel void UpdateVectorWithBackup32(__global ValueType *X_Values1, __global V
 		T = X_Values2[gid];
 		X_Values2[gid] = A2 * X_Values2[gid] + B2 * Y_Values2[gid] + C2 * Z_Values2[gid];
 		Y_Values2[gid] = T;
+	}
+}
+
+//
+// UpdateVector4
+//
+// Updates four vectors
+// Note: p = r + Beta * p; q = s + Beta * q; x = x + Alpha * p; r = r - Alpha * q;
+
+__kernel void UpdateVector4(__global ValueType *X_Values, __global ValueType *P_Values, __global ValueType *Q_Values, __global ValueType *R_Values, __global const ValueType *S_Values, ValueType Alpha, ValueType Beta, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		ValueType TP = R_Values[gid] + Beta * P_Values[gid];
+		ValueType TQ = S_Values[gid] + Beta * Q_Values[gid];
+
+		X_Values[gid] += Alpha * TP;
+		R_Values[gid] -= Alpha * TQ;
+
+		P_Values[gid] = TP;
+		Q_Values[gid] = TQ;
 	}
 }
 
