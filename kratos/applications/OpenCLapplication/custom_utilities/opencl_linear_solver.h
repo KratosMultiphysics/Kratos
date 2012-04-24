@@ -144,7 +144,7 @@ namespace OpenCL
 			int64_t T0, T1, BestTime;
 
 			// Debugging only!
-			std::cout << "OptimizeInnerProd():" << std::endl << std::endl;
+			std::cout << "Optimizing InnerProd kernel..." << std::endl;
 
 			BestTime = 0x7FFFFFFFFFFFFFFF;
 
@@ -227,7 +227,7 @@ namespace OpenCL
 			BestTime = 0x7FFFFFFFFFFFFFFF;
 
 			// Debugging only!
-			std::cout << "OptimizeSpMV():" << std::endl << std::endl;
+			std::cout << "Optimizing SpMV kernel..." << std::endl;
 
 			for (unsigned int i = KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN; i <= KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX; i++)
 			{
@@ -409,7 +409,7 @@ namespace OpenCL
 	//
 	// CGSolver
 	//
-	// A class to solve linear systems of equations on OpenCL devices
+	// A class to solve linear systems of equations on OpenCL devices using a variant of CG [Algorithm 6.18, Y. Saad book, page 179]
 
 	class CGSolver
 	{
@@ -625,6 +625,272 @@ namespace OpenCL
 		cl_uint mkUpdateVectorWithBackup32, mkZeroVector3Negate;
 		cl_uint mSize;
 		cl_uint mbr, mbAr, mbx_old, mbr_old, mbReductionBuffer1, mbReductionBuffer2;
+		unsigned int mMaxIterations;
+		double mTolerance;
+		unsigned int mIterationNo;
+		double mEstimatedError;
+		cl_double *mReductionBuffer1, *mReductionBuffer2;
+	};
+
+	//
+	// CGSolverChronopoulos
+	//
+	// A class to solve linear systems of equations on OpenCL devices using Chronopoulos variant of CG [Algorithm 2.3, s-step iterative methods for symmetric linear systems]
+
+	class CGSolverChronopoulos
+	{
+	public:
+
+		//
+		// CGSolverChronopoulos
+		//
+		// Constructor
+
+		CGSolverChronopoulos(DeviceGroup &DeviceGroup, LinearSolverOptimizationParameters &OptimizationParameters, cl_uint Size, unsigned int MaxIterations, double Tolerance):
+			mrDeviceGroup(DeviceGroup),
+			mOptimizationParameters(OptimizationParameters),
+			mSize(Size),
+			mMaxIterations(MaxIterations),
+			mTolerance(Tolerance),
+			mIterationNo(0),
+			mEstimatedError(0.00)
+        {
+			// General routines
+			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_NEED_GENERIC_KERNELS");
+			mkUpdateVector4 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVector4");
+			mkZeroVector2Copy2 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "ZeroVector2Copy2");
+
+			// Temporary vectors needed on GPU and CPU
+			mbp = mrDeviceGroup.CreateBuffer(mSize * sizeof(cl_double), CL_MEM_READ_WRITE);
+			mbq = mrDeviceGroup.CreateBuffer(mSize * sizeof(cl_double), CL_MEM_READ_WRITE);
+			mbr = mrDeviceGroup.CreateBuffer(mSize * sizeof(cl_double), CL_MEM_READ_WRITE);
+			mbAr = mrDeviceGroup.CreateBuffer(mSize * sizeof(cl_double), CL_MEM_READ_WRITE);
+
+			mbReductionBuffer1 = mrDeviceGroup.CreateBuffer(mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1() * sizeof(cl_double), CL_MEM_READ_WRITE);
+			mbReductionBuffer2 = mrDeviceGroup.CreateBuffer(mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1() * sizeof(cl_double), CL_MEM_READ_WRITE);  // Yes, both are of the same size!
+
+			mReductionBuffer1 = new cl_double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];
+			mReductionBuffer2 = new cl_double[mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1()];  // Yes, both are of the same size!
+        }
+
+        //
+        // ~CGSolverChronopoulos
+        //
+        // Destructor
+
+        ~CGSolverChronopoulos()
+        {
+			mrDeviceGroup.DeleteBuffer(mbp);
+			mrDeviceGroup.DeleteBuffer(mbq);
+			mrDeviceGroup.DeleteBuffer(mbr);
+			mrDeviceGroup.DeleteBuffer(mbAr);
+
+			delete [] mReductionBuffer1;
+			delete [] mReductionBuffer2;
+        }
+
+        //
+        // Solve
+        //
+        // Solves the linear system
+
+        bool Solve(cl_uint A_RowIndices_Buffer, cl_uint A_Column_Indices_Buffer, cl_uint A_Values_Buffer, cl_uint B_Values_Buffer, cl_uint X_Values_Buffer)
+		{
+			double Alpha, Beta = 0.00, bb, rr, rr1, rAr;
+
+			// Initialization
+
+			// x = q = 0.00, p = r = b
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Copy2, 0, X_Values_Buffer);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Copy2, 1, mbq);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Copy2, 2, mbp);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Copy2, 3, mbr);
+			mrDeviceGroup.SetBufferAsKernelArg(mkZeroVector2Copy2, 4, B_Values_Buffer);
+			mrDeviceGroup.SetKernelArg(mkZeroVector2Copy2, 5, mSize);
+
+			mrDeviceGroup.ExecuteKernel(mkZeroVector2Copy2, mSize);
+
+
+			// Ar = A * r
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 0, A_RowIndices_Buffer);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 1, A_Column_Indices_Buffer);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 2, A_Values_Buffer);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 3, mbr);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 4, mbAr);
+			mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 5, mSize);
+			mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 6, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize1() * sizeof(cl_uint));
+			mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 7, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize2() * sizeof(cl_double));
+
+			mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedSpMVKernel(), mOptimizationParameters.GetOptimizedSpMVKernelLaunchSize());
+
+
+			// rr = r.r, rAr = r.Ar
+
+			// Phase 1 on GPU
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 0, mbr);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 1, mbAr);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 2, mbReductionBuffer1);
+			mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 3, mbReductionBuffer2);
+			mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 4, mSize);
+			mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 5, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));
+			mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 6, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));  // Yes, both are of the same size!
+
+			mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), mOptimizationParameters.GetOptimizedInnerProdKernelLaunchSize());
+
+
+			// Phase 2 on CPU
+			mrDeviceGroup.CopyBuffer(mbReductionBuffer1, DeviceToHost, VoidPList(1, mReductionBuffer1));
+			mrDeviceGroup.CopyBuffer(mbReductionBuffer2, DeviceToHost, VoidPList(1, mReductionBuffer2));
+
+			rr = 0.00;
+			rAr = 0.00;
+
+			// It seems OpenMP reduction is not economic here, at least for not so large problems
+
+			//#pragma omp parallel for reduction(+:rr)
+			for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
+			{
+				rr += mReductionBuffer1[i];
+			}
+
+			//#pragma omp parallel for reduction(+:rAr)
+			for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
+			{
+				rAr += mReductionBuffer2[i];
+			}
+
+			Alpha = rr / rAr;
+
+			mIterationNo = 0;
+
+			while (true)
+			{
+				// Update vectors
+
+				// p = r + Beta * p; q = Ar + Beta * q; x = x + Alpha * p; r = r - Alpha * q;
+
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector4, 0, X_Values_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector4, 1, mbp);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector4, 2, mbq);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector4, 3, mbr);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector4, 4, mbAr);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector4, 5, Alpha);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector4, 6, Beta);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector4, 7, mSize);
+
+				mrDeviceGroup.ExecuteKernel(mkUpdateVector4, mSize);
+
+
+				// If not first iteration, Rho = 1 / (1 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old))
+				if (!mIterationNo++)
+				{
+					bb = rr;
+				}
+
+				mEstimatedError = sqrt(rr / bb);
+
+				// Convergence check
+				if (mEstimatedError < mTolerance)
+				{
+					return true;
+				}
+				else
+				{
+					if (mIterationNo > mMaxIterations)
+					{
+						mIterationNo--;
+						return false;
+					}
+				}
+
+				// Debugging only!
+				//std::cout << mIterationNo << ": rr = " << rr << ", rAr = " << rAr << ", Alpha = " << Alpha << ", Beta = " << Beta << ", est. error: " << mEstimatedError << std::endl;
+
+				// Ar = A * r
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 0, A_RowIndices_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 1, A_Column_Indices_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 2, A_Values_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 3, mbr);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 4, mbAr);
+				mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 5, mSize);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 6, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize1() * sizeof(cl_uint));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedSpMVKernel(), 7, mOptimizationParameters.GetOptimizedSpMVKernelBufferSize2() * sizeof(cl_double));
+
+				mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedSpMVKernel(), mOptimizationParameters.GetOptimizedSpMVKernelLaunchSize());
+
+
+				// rr1 = r.r, rAr = r.Ar
+
+				// Phase 1 on GPU
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 0, mbr);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 1, mbAr);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 2, mbReductionBuffer1);
+				mrDeviceGroup.SetBufferAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 3, mbReductionBuffer2);
+				mrDeviceGroup.SetKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 4, mSize);
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 5, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));
+				mrDeviceGroup.SetLocalMemAsKernelArg(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), 6, mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize2() * sizeof(cl_double));  // Yes, both are of the same size!
+
+				mrDeviceGroup.ExecuteKernel(mOptimizationParameters.GetOptimizedInnerProd2Kernel(), mOptimizationParameters.GetOptimizedInnerProdKernelLaunchSize());
+
+
+				// Phase 2 on CPU
+				mrDeviceGroup.CopyBuffer(mbReductionBuffer1, DeviceToHost, VoidPList(1, mReductionBuffer1));
+				mrDeviceGroup.CopyBuffer(mbReductionBuffer2, DeviceToHost, VoidPList(1, mReductionBuffer2));
+
+				rr1 = 0.00;
+				rAr = 0.00;
+
+				// It seems OpenMP reduction is not economic here, at least for not so large problems
+
+				//#pragma omp parallel for reduction(+:rr)
+				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
+				{
+					rr1 += mReductionBuffer1[i];
+				}
+
+				//#pragma omp parallel for reduction(+:rAr)
+				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
+				{
+					rAr += mReductionBuffer2[i];
+				}
+
+				Beta = rr1 / rr;
+				Alpha = (rr1 * Alpha) / (rAr * Alpha - rr1 * Beta);
+
+				// Prepare for next iteration
+
+				rr = rr1;
+			}
+		}
+
+		//
+		// GetIterationNo
+		//
+		// Returns no. of iterations performed
+
+		unsigned int GetIterationNo()
+		{
+			return mIterationNo;
+		}
+
+		//
+		// GetEstimatedError
+		//
+		// Returns estimated error
+
+		double GetEstimatedError()
+		{
+			return mEstimatedError;
+		}
+
+	private:
+
+		DeviceGroup &mrDeviceGroup;
+		LinearSolverOptimizationParameters &mOptimizationParameters;
+		cl_uint mpOpenCLLinearSolverGeneral;
+		cl_uint mkUpdateVector4, mkZeroVector2Copy2;
+		cl_uint mSize;
+		cl_uint mbp, mbq, mbr, mbAr, mbReductionBuffer1, mbReductionBuffer2;
 		unsigned int mMaxIterations;
 		double mTolerance;
 		unsigned int mIterationNo;
