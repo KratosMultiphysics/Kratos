@@ -130,11 +130,11 @@ int CPostAscii::WriteString( GP_CONST char * str )
 
 int CPostAscii::WriteInteger(int i, int op)
 {
-  if (op==1) {
-    fprintf(m_file, " ");
+  if(op==0){
     fprintf(m_file, "%d", i);
-  } else {
-    fprintf(m_file, "%d", i);
+  }
+  else{    
+    fprintf(m_file, " %d", i);    
     if (op==2) {
       fprintf(m_file, "\n");
     }
