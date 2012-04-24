@@ -92,7 +92,7 @@ namespace Kratos
 	void Mixture_Fraction(ModelPart& full_model_part){
 	  KRATOS_TRY;
 	  
-	  double yo,ypr, yf, Z; 
+	  //double yo,ypr, yf, Z; 
 	  double r=4.0;
 	  double p=79.0/6.0;
 	  double q1=11.0/4.0;
