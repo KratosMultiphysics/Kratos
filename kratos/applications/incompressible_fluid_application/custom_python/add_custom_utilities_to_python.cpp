@@ -80,6 +80,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fluid_thermal_solver_utilities.h"
 #include "custom_utilities/move_particle_utility.h"
 #include "custom_utilities/particle_utilities.h"
+#include "custom_utilities/combustion_utilities.h"
 
 //#include "custom_utilities/edgebased_levelset.h"
 
@@ -128,6 +129,7 @@ namespace Kratos
 
             class_<AssignNoSlipCondition > ("AssignNoSlipCondition", init<>())
                     .def("AssignNoSlipCondition2D", &AssignNoSlipCondition::AssignNoSlipCondition2D)
+
                     ;
 
 
@@ -369,6 +371,12 @@ namespace Kratos
 //		    .def("StreamlineMove2", &ParticleUtils < 2 > ::StreamlineMove2)
                     ;
 
+
+	    class_<CombustionUtilities >("CombustionUtilities", init<>())
+	      .def("Mixture_Fraction",&CombustionUtilities::Mixture_Fraction)
+	      .def("Enthalpy",&CombustionUtilities::Enthalpy)
+	      .def("Temperature",&CombustionUtilities::Temperature)
+	      ;
 
             class_<FluidThermalSolverUtilities>("FluidThermalSolverUtilities", init<ModelPart&, ModelPart&>())
                     .def("ProjectFromThermalToFluid",&FluidThermalSolverUtilities::ProjectFromThermalToFluid)
