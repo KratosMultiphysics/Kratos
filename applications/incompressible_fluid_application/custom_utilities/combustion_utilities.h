@@ -100,7 +100,7 @@ namespace Kratos
 	  double gamma1=1.0;
 	  double gamma2=-1.0/(r+p);
 	  
-	  double ych4, yo2, yco2, yh2o, yn2; 
+	  double ych4, yo2, yco2, yh2o, yn2, Z; 
 	  
 	  for (ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in){
 	    Z =  in->FastGetSolutionStepValue(MIXTURE_FRACTION);
