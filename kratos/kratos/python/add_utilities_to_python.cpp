@@ -106,13 +106,21 @@ namespace Kratos
             // This is required to recognize the different overloads of NormalCalculationUtils::CalculateOnSimplex
             typedef  void (NormalCalculationUtils::*CalcOnSimplexCondType)(NormalCalculationUtils::ConditionsArrayType&,int);
             typedef  void (NormalCalculationUtils::*CalcOnSimplexMPType)(ModelPart&,int);
+            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,int,Variable<double>&);
+            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,int,Variable<int>&);
+//            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithArrayVarType)(ModelPart&,int,Variable< array_1d<double,3> >&,const array_1d<double,3>&);
 
             CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
+            CalcOnSimplexWithDoubleVarType CalcOnSimplexWithDoubleVar = &NormalCalculationUtils::CalculateOnSimplex;
+            CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
 
             class_<NormalCalculationUtils > ("NormalCalculationUtils", init<>())
                     .def("CalculateOnSimplex", CalcOnSimplex_Cond)
                     .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
+                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
+                    .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
+//                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
                     ;
 
             class_<BodyNormalCalculationUtils > ("BodyNormalCalculationUtils", init<>())
