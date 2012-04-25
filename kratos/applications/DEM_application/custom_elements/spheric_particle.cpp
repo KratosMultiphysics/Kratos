@@ -123,7 +123,7 @@ namespace Kratos
 
             int other_continuum_group = iInitialNeighbours->GetContinuumGroup();
 
-            /* this loop will set only the 0 (contunuum simulating case) to the initial neighbours. The force calculator will change this
+             * this loop will set only the 0 (contunuum simulating case) to the initial neighbours. The force calculator will change this
              * values depending of the type of failure as it is describre here:
              *
              *   mContactFailureId values:
@@ -133,7 +133,7 @@ namespace Kratos
              *      3 := tensile case
              *      4 := shear case
              *      5 :=von Misses.....M: define new cases...
-             
+             **
 
             if(other_continuum_group != continuum_group ){
                 mContactFailureId[index]=1;
