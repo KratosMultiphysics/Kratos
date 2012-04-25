@@ -667,12 +667,12 @@ __kernel void ZeroVector2Copy2(__global ValueType *X_Values, __global ValueType 
 }
 
 //
-// UpdateVectorWithBackup32
+// UpdateVector3WithBackup2
 //
 // Updates two vectors with 3 vectors after backing them up in others
 // Note: t1 = x1; x1 = a1 * x1 + b1 * y1 + c1 * z1; y1 = t1; t2 = x2; x2 = a2 * x2 + b2 * y2 + c2 * z2; y2 = t2
 
-__kernel void UpdateVectorWithBackup32(__global ValueType *X_Values1, __global ValueType *Y_Values1, __global const ValueType *Z_Values1, ValueType A1, ValueType B1, ValueType C1, __global ValueType *X_Values2, __global ValueType *Y_Values2, __global const ValueType *Z_Values2, ValueType A2, ValueType B2, ValueType C2, IndexType N)
+__kernel void UpdateVector3WithBackup2(__global ValueType *X_Values1, __global ValueType *Y_Values1, __global const ValueType *Z_Values1, ValueType A1, ValueType B1, ValueType C1, __global ValueType *X_Values2, __global ValueType *Y_Values2, __global const ValueType *Z_Values2, ValueType A2, ValueType B2, ValueType C2, IndexType N)
 {
 	// Get work item index
 	const size_t gid = get_global_id(0);

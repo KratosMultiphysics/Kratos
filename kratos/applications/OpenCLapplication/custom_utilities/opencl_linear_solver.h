@@ -431,7 +431,7 @@ namespace OpenCL
         {
 			// General routines
 			mpOpenCLLinearSolverGeneral = mrDeviceGroup.BuildProgramFromFile("opencl_linear_solver.cl", "-cl-fast-relaxed-math -DKRATOS_OCL_NEED_GENERIC_KERNELS");
-			mkUpdateVectorWithBackup32 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVectorWithBackup32");
+			mkUpdateVector3WithBackup2 = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "UpdateVector3WithBackup2");
 			mkZeroVector3Negate = mrDeviceGroup.RegisterKernel(mpOpenCLLinearSolverGeneral, "ZeroVector3Negate");
 
 			// Temporary vectors needed on GPU and CPU
@@ -573,21 +573,21 @@ namespace OpenCL
 				// x = x_old * (1 - Rho) + (x - r * Gamma) * Rho
 				// r = r_old * (1 - Rho) + (r - Ar * Gamma) * Rho
 
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 0, X_Values_Buffer);
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 1, mbx_old);
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 2, mbr);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 3, Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 4, 1.00 - Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 5, -Rho * Gamma);
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 6, mbr);
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 7, mbr_old);
-				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVectorWithBackup32, 8, mbAr);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 9, Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 10, 1.00 - Rho);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 11, -Rho * Gamma);
-				mrDeviceGroup.SetKernelArg(mkUpdateVectorWithBackup32, 12, mSize);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 0, X_Values_Buffer);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 1, mbx_old);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 2, mbr);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 3, Rho);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 4, 1.00 - Rho);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 5, -Rho * Gamma);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 6, mbr);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 7, mbr_old);
+				mrDeviceGroup.SetBufferAsKernelArg(mkUpdateVector3WithBackup2, 8, mbAr);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 9, Rho);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 10, 1.00 - Rho);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 11, -Rho * Gamma);
+				mrDeviceGroup.SetKernelArg(mkUpdateVector3WithBackup2, 12, mSize);
 
-				mrDeviceGroup.ExecuteKernel(mkUpdateVectorWithBackup32, mSize);
+				mrDeviceGroup.ExecuteKernel(mkUpdateVector3WithBackup2, mSize);
 
 
 				// Prepare for next iteration
@@ -622,7 +622,7 @@ namespace OpenCL
 		DeviceGroup &mrDeviceGroup;
 		LinearSolverOptimizationParameters &mOptimizationParameters;
 		cl_uint mpOpenCLLinearSolverGeneral;
-		cl_uint mkUpdateVectorWithBackup32, mkZeroVector3Negate;
+		cl_uint mkUpdateVector3WithBackup2, mkZeroVector3Negate;
 		cl_uint mSize;
 		cl_uint mbr, mbAr, mbx_old, mbr_old, mbReductionBuffer1, mbReductionBuffer2;
 		unsigned int mMaxIterations;
