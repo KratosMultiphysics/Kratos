@@ -208,7 +208,7 @@ namespace Kratos
 //        double k_aux = fabs(res) / (norm_grad + 1e-6);
 //        k_aux *= 0.707;
 
-	double Schmidt_Prandl=1.0;
+	//double Schmidt_Prandl=1.0;
 	double nu_turbulent = 0.0;
 	const double Cs = this->GetValue(C_SMAGORINSKY);
 	if (Cs != 0.0){
@@ -216,7 +216,7 @@ namespace Kratos
 	}
 
 
-	double norm_g =norm_2(grad_g);
+	//double norm_g =norm_2(grad_g);
 
 	double res = density * specific_heat*(inner_prod(ms_vel_gauss,grad_g)) ;//+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
 	double norm_grad=norm_2(grad_g);
