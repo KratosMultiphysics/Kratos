@@ -129,9 +129,8 @@ public:
       * processes. The overload of this function that takes a ModelPart is
       * preferable in ths case, as it performs the required communication.
       */
-    void CalculateOnSimplex(
-        ConditionsArrayType& rConditions,
-        int dimension)
+    void CalculateOnSimplex(ConditionsArrayType& rConditions,
+                            int dimension)
     {
         KRATOS_TRY
 
@@ -189,7 +188,7 @@ public:
 
     }
 
-    /// Calculates the "area normal" (vector oriented as the normal with a dimension proportional to the area).
+    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area).
     /** This is done on the base of the Conditions provided which should be
       * understood as the surface elements of the area of interest.
       * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
@@ -198,10 +197,92 @@ public:
       * as it will take care of communication between partitions.
       */
     void CalculateOnSimplex(ModelPart& rModelPart,
-                            int dimension)
+                            int Dimension)
     {
-        this->CalculateOnSimplex(rModelPart.Conditions(),dimension);
+        this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+    }
+
+    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable.
+    /** This function is equivalent to other implementations of CalculateOnSimplex, but instead of using all conditions in the array, it only uses
+      * those that contain a value of rVariable != Zero. This is useful in problems where a part of the boundary is a slip condition, as it provides
+      * more reasonable values for the normals on the border between this area and other parts of the boundary. This function is safe to use in MPI.
+      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain.
+      * @param Dimension Spatial dimension (2 or 3).
+      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals.
+      * @param Zero The 'off' value for the flag. Conditions where rVariable == Zero will be skipped for normal calculation.
+      */
+    template< class TValueType >
+    void CalculateOnSimplex(ModelPart& rModelPart,
+                            int Dimension,
+                            Variable<TValueType>& rVariable,
+                            const TValueType Zero)
+    {
+        KRATOS_TRY;
+
+        // Reset normals
+        const array_1d<double,3> ZeroNormal(3,0.0);
+
+        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+        {
+            Condition::GeometryType& rGeom = itCond->GetGeometry();
+            for ( Condition::GeometryType::iterator itNode = rGeom.begin(); itNode != rGeom.end(); ++itNode)
+                itNode->GetValue(NORMAL) = ZeroNormal;
+        }
+
+        // Calculate new condition normals, using only conditions with rVariable == rValue
+        array_1d<double,3> An(3,0.0);
+
+        if ( Dimension == 2 )
+        {
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal2D(itCond,An);
+            }
+        }
+        else if ( Dimension == 3 )
+        {
+            array_1d<double,3> v1(3,0.0);
+            array_1d<double,3> v2(3,0.0);
+
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal3D(itCond,An,v1,v2);
+            }
+        }
+
+        // Transfer normals to nodes
+        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+        {
+            Condition::GeometryType& rGeom = itCond->GetGeometry();
+            const double Coef = 1.0 / rGeom.PointsNumber();
+            const array_1d<double,3>& rNormal = itCond->GetValue(NORMAL);
+            for ( Condition::GeometryType::iterator itNode = rGeom.begin(); itNode != rGeom.end(); ++itNode)
+                noalias( itNode->FastGetSolutionStepValue(NORMAL) ) += rNormal * Coef;
+        }
+
+        // For MPI: correct values on partition boundaries
+        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+
+        KRATOS_CATCH("");
+    }
+
+    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable.
+    /** This function is equivalent to other implementations of CalculateOnSimplex, but instead of using all conditions in the array, it only uses
+      * those that contain a value of rVariable != Zero. This is useful in problems where a part of the boundary is a slip condition, as it provides
+      * more reasonable values for the normals on the border between this area and other parts of the boundary. This function is safe to use in MPI.
+      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain.
+      * @param Dimension Spatial dimension (2 or 3).
+      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals. Conditions where rVariable == Zero will be skipped.
+      */
+    template< class TValueType >
+    void CalculateOnSimplex(ModelPart& rModelPart,
+                            int Dimension,
+                            Variable<TValueType>& rVariable)
+    {
+        CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType());
     }
 
 
