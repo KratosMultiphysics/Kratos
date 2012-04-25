@@ -855,8 +855,13 @@ namespace Kratos {
 			//Results data
 			MPI_Alltoall(mpi_res_send_buffer,(msgRecvSize+1),MPI_CHAR,mpi_res_recv_buffer,(msgRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
 
+			vector<vector<PointerType> > tResults(NumberOfSendPoints, vector<PointerType>(MaxNumberOfResults));
+			for(int j = 0; j < NumberOfSendPoints; j++)
+				for(int k = 0; k < MaxNumberOfResults; k++)
+					tResults[j][k] = new PointType();
+			
 			for (int i = 0; i < mpi_size; i++)
-			{
+			{ 
 				if (i != mpi_rank)
 				{
 					Serializer particleSerializer;
@@ -864,11 +869,6 @@ namespace Kratos {
 					
 					for(int l = (msgRecvSize+1)*i; mpi_res_recv_buffer[l] != '\0'; l++) 
 						(*serializer_buffer[0]) << mpi_res_recv_buffer[l];
-
-					vector<vector<PointerType> > tResults(NumberOfSendPoints, vector<PointerType>(MaxNumberOfResults));
-					for(int j = 0; j < NumberOfSendPoints; j++)
-						for(int k = 0; k < MaxNumberOfResults; k++)
-							tResults[j][k] = new PointType();
 					
 					particleSerializer.load("nodes",tResults);
 					
@@ -895,6 +895,13 @@ namespace Kratos {
 					}
 				}
 			}
+			
+			for(int i = 0; i < mpi_size; i++) 
+				if(i != mpi_rank)
+					for(size_t j = 0; j < RemoteNumberOfSendPoints[i]; j++) 
+						for(int l = remoteNumberOfResults[i][j]; l < MaxNumberOfResults; l++) 
+							if (remoteResults[i][j][l] != NULL)
+								delete remoteResults[i][j][l];
 		}
 
 		///////////////////////////////////////////////////////////////////////////
