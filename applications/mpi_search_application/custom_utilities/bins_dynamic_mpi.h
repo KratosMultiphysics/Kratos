@@ -633,7 +633,7 @@ namespace Kratos {
 				
 				temp[0] = (double)(rand()%1000)/(double)1000;//PointBegin[i]->X();
 				temp[1] = (double)(rand()%1000)/(double)1000;//PointBegin[i]->Y();
-				temp[2] = (double)(rand()%1000)/(double)1000;//mPointBegin[i]->Z();
+				temp[2] = (double)(rand()%1000)/(double)1000;//PointBegin[i]->Z();
 
 				PointInput[i] = PointType(temp);
 			}
@@ -646,15 +646,22 @@ namespace Kratos {
 			
 				MPI_SearchInRadius(PointInput, NumberOfPoints, Radius, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
 				MPI_Barrier(MPI_COMM_WORLD);
+				
+				if(i == times-1) 
+				{
+					SizeType rest = 0;
+					//Check Results
+					for(int i = 0; i < NumberOfPoints; i++) 
+						rest += NumberOfResults[i];
+					std::cout << "(" << mpi_rank << ") Found aprox " << rest/NumberOfPoints << " results per point" << std::endl;
+				}
 			}
 			
-			//Check Results
-// 			for(int i = 0; i < res; i++) 
 // 				std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
 		}
 	
-		void MPI_SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, vector<vector<PointerType> > Results, 
-			vector<vector<double> > ResultsDistances, vector<SizeType> NumberOfResults, SizeType const& MaxNumberOfResults)
+		void MPI_SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, vector<vector<PointerType> >& Results, 
+			vector<vector<double> >& ResultsDistances, vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
 		{
 			CoordinateType Radius2 = Radius * Radius;
 			
@@ -675,8 +682,8 @@ namespace Kratos {
 		 * @param NumberOfResults Number of results
 		 * @param MaxNumberOfResults Maximum number of results returned for each point
 		 */
-		void SearchInRadiusMpiWrapper( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, vector<vector<PointerType> > Results,
-             vector<vector<double> > ResultsDistances, vector<SizeType> NumberOfResults, SizeType const& MaxNumberOfResults )
+		void SearchInRadiusMpiWrapper( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, vector<vector<PointerType> >& Results,
+             vector<vector<double> >& ResultsDistances, vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
 		{  
 			PointType remoteThisPoints[mpi_size][NumberOfPoints];
 			
@@ -739,6 +746,7 @@ namespace Kratos {
 			char mpi_recv_buffer[(msgRecvSize+1) * MaxNumberOfSendPoints * mpi_size];
 				
 			int messageNumberOfResults[mpi_size][MaxNumberOfSendPoints];
+			int messageRecvNumberOfResults[mpi_size][MaxNumberOfSendPoints];
 			
 			std::cout << "(" << mpi_rank << ") Max number Of Send Points: " << MaxNumberOfSendPoints << " : " << NumberOfSendPoints << std::endl;
 			
@@ -793,14 +801,15 @@ namespace Kratos {
 						for(int l = remoteNumberOfResults[i][j]; l < MaxNumberOfResults; l++) 
 							remoteResults[i][j][l] = new PointType();
 						
-/*						std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i][j] << std::endl; 
-						for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
-							std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j][k]) << " " << remoteResultsDistances[i][j][k] << std::endl;    */   
+// 						std::cout << "(" << mpi_rank << ") Found points for: (" << remoteThisPoints[i][j].X() << " " << remoteThisPoints[i][j].Y() << " " << remoteThisPoints[i][j].Z() << ") from process(" << i << "): FOUND: " << remoteNumberOfResults[i][j] << std::endl; 
+/*						for(size_t k = 0; k < remoteNumberOfResults[i][j]; k++) 
+							std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j][k]) << " " << remoteResultsDistances[i][j][k] << std::endl;     */  
 					}
+					
+// 					std::cout << "END OF SERIALIZATION BLOCK" << std::endl;
 				}
 			}
 			
-			std::cout << "(" << mpi_rank << ") Found elements from foregin proceeses" << std::endl;
 			std::stringstream * res_serializer_buffer[mpi_size];
 			std::string res_message[mpi_size];
 			int res_bufferSize[mpi_size];
@@ -815,7 +824,6 @@ namespace Kratos {
 					Serializer resSerializer;
 					resSerializer.save("nodes",remoteResults[i]);
 					  
-// 					std::cout << "(" << mpi_rank << ") Serializing result buffer of size: " << remoteResults[i].size() << " for process: " << i << std::endl;
 					res_serializer_buffer[i] = (std::stringstream *)resSerializer.pGetBuffer();
 					res_message[i] = std::string(res_serializer_buffer[i]->str().c_str());
 					res_bufferSize[i] = res_serializer_buffer[i]->str().size();
@@ -843,7 +851,7 @@ namespace Kratos {
 			}
 
 			//Number of results of each point of each process
-			MPI_Alltoall(messageNumberOfResults,MaxNumberOfSendPoints,MPI_INT,messageNumberOfResults,MaxNumberOfSendPoints,MPI_INT,MPI_COMM_WORLD);
+			MPI_Alltoall(messageNumberOfResults,MaxNumberOfSendPoints,MPI_INT,messageRecvNumberOfResults,MaxNumberOfSendPoints,MPI_INT,MPI_COMM_WORLD);
 			//Results data
 			MPI_Alltoall(mpi_res_send_buffer,(msgRecvSize+1),MPI_CHAR,mpi_res_recv_buffer,(msgRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
 
@@ -866,9 +874,10 @@ namespace Kratos {
 					
 					for(size_t j = 0; j < NumberOfPoints; j++)
 					{
-						if(NumberOfResults[i] < MaxNumberOfResults)
+// 						std::cout << "(" << mpi_rank << ") Number of results for point " << j << " form process " << i << " " << messageRecvNumberOfResults[i][j] << " " << NumberOfResults[j] << std::endl;
+						if(NumberOfResults[j] < MaxNumberOfResults)
 						{
-							for(int k = 0; k < messageNumberOfResults[i][j]; k++)
+							for(int k = 0; k < messageRecvNumberOfResults[i][j]; k++)
 							{
 								Results[j][NumberOfResults[j]] = tResults[j][k];
 								
@@ -879,7 +888,6 @@ namespace Kratos {
 								NumberOfResults[j]++;
 							}
 						}
-// 						std::cout << "(" << mpi_rank << ") Found " <<  NumberOfResults[j] << " results for point: " << ThisPoints[j] << std::endl;
 // 						for(int k = 0; k < NumberOfResults[j]; k++)
 // 						{
 // 							std::cout << "(" << mpi_rank << ")\t(" << Results[j][k]->X() << " " << Results[j][k]->Y() << " " << Results[j][k]->Z() << ") with dist: " << ResultsDistances[j][k] << std::endl;
