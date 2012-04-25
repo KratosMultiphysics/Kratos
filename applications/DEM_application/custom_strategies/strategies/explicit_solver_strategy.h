@@ -229,10 +229,10 @@ namespace Kratos
 	     InitializeElements();
 	  mInitializeWasPerformed   = true;
 
-        ModelPart& r_model_part           = BaseType::GetModelPart();
-        ProcessInfo& CurrentProcessInfo   = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+        //ModelPart& r_model_part           = BaseType::GetModelPart();
+        //ProcessInfo& CurrentProcessInfo   = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
         //ElementsArrayType& pElements     = r_model_part.Elements();
-        ElementsContainerType& pElements  = r_model_part.ElementsArray();
+        //ElementsContainerType& pElements  = r_model_part.ElementsArray();
 
 
 
@@ -248,7 +248,7 @@ namespace Kratos
         typedef std::vector<double>::iterator                                   DistanceIteratorType;
 
 
-        double search_radius = 1.0;
+        //double search_radius = 1.0;
 /*
         Neighbours_Calculator<2, ParticleType, ParticlePointerType, ParticleContainerType, ParticleWeakVectorType, ParticlePointerVectorType,
         ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
@@ -432,7 +432,7 @@ namespace Kratos
 	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  {
-	    Element::GeometryType& geom = it->GetGeometry(); 
+	    //Element::GeometryType& geom = it->GetGeometry(); 
 	    (it)->Initialize(); 
 	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
             /*
