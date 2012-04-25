@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/bash -i
 # OutputFile: $2/$1.info
 # ErrorFile: $2/$1.err
 
-if [ -f ${HOME}/.bashrc ]; then
- source ${HOME}/.bashrc
-fi
+#if [ -f ${HOME}/.bashrc ]; then
+# source ${HOME}/.bashrc
+#fi
 
 #delete previous data and settings 
 rm -f "${2}/${1}.info"
