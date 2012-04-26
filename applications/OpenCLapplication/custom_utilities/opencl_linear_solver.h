@@ -66,18 +66,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 // InnerProd and SpMV kernel parameters range
-#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 8
+#define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MIN 0
 #define KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE_BITS_MAX 8
 
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 5
-#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 5
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MIN 0
+#define KRATOS_OCL_SPMV_CSR_ROWS_PER_WORKGROUP_BITS_MAX 8
 
-#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 8
+#define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MIN 0
 #define KRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS_MAX 8
 
 // Kernel optimization iteration count
-#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 1
-#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 1
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_1 5
+#define KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 5
 
 
 namespace Kratos
@@ -193,7 +193,7 @@ namespace OpenCL
 				}
 
 				// Debugging only!
-				std::cout << "WORKGROUP_SIZE = " << (1 << i) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+				//std::cout << "WORKGROUP_SIZE = " << (1 << i) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
 
 				if (T1 < BestTime)
 				{
@@ -205,11 +205,13 @@ namespace OpenCL
 					mOptimizedInnerProdKernelLaunchSize = mSize;
 					mOptimizedInnerProdKernelBufferSize1 = (mSize + (1 << i) - 1) / (1 << i);
 					mOptimizedInnerProdKernelBufferSize2 = 1 << i;
+					
+					mOptimizedInnerProdKernelWorkgroupSize = 1 << i;
 				}
 			}
 
 			// Debugging only!
-			std::cout << "Best time: " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+			std::cout << "Best configuration: WORKGROUP_SIZE = " << mOptimizedInnerProdKernelWorkgroupSize << ", " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
 
 		}
 
@@ -287,7 +289,7 @@ namespace OpenCL
 						}
 
 						// Debugging only!
-						std::cout << "ROWS_PER_WORKGROUP = " << (1 << i) << ", WORKGROUP_SIZE = " << (1 << j) << ", BARRIER = " << (1U << (j - i) > mWavefrontSize) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
+						//std::cout << "ROWS_PER_WORKGROUP = " << (1 << i) << ", WORKGROUP_SIZE = " << (1 << j) << ", BARRIER = " << (1U << (j - i) > mWavefrontSize) << ", " << double(T1) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
 
 						if (T1 < BestTime)
 						{
@@ -298,14 +300,17 @@ namespace OpenCL
 							mOptimizedSpMVKernelLaunchSize = mSize * (1 << (j - i)) + 1;
 							mOptimizedSpMVKernelBufferSize1 = (1 << i) + 1;
 							mOptimizedSpMVKernelBufferSize2 = 1 << j;
+							
+							mOptimizedSpMVKernelRowsPerWorkgroup = 1 << i;
+							mOptimizedSpMVKernelWorkgroupSize = 1 << j;
+							mOptimizedSpMVKernelBarrier = 1U << (j - i) > mWavefrontSize;
 						}
 					}
 				}
 			}
 
 			// Debugging only!
-			std::cout << "Best time: " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
-
+			std::cout << "Best configuration: ROWS_PER_WORKGROUP = " << mOptimizedSpMVKernelRowsPerWorkgroup << ", WORKGROUP_SIZE = " << mOptimizedSpMVKernelWorkgroupSize << ", BARRIER = " << mOptimizedSpMVKernelBarrier << ", " << double(BestTime) / 1000000 / KRATOS_OCL_OPTIMIZATION_ITERATION_COUNT_2 << "ms." << std::endl;
 		}
 
 		//
@@ -404,6 +409,8 @@ namespace OpenCL
 		cl_uint mSize, mWavefrontSize;
 		cl_uint mOptimizedSpMVKernel, mOptimizedInnerProdKernel, mOptimizedInnerProd2Kernel;
 		cl_uint mOptimizedSpMVKernelLaunchSize, mOptimizedSpMVKernelBufferSize1, mOptimizedSpMVKernelBufferSize2, mOptimizedInnerProdKernelLaunchSize, mOptimizedInnerProdKernelBufferSize1, mOptimizedInnerProdKernelBufferSize2;
+		cl_uint mOptimizedSpMVKernelRowsPerWorkgroup, mOptimizedSpMVKernelWorkgroupSize, mOptimizedInnerProdKernelWorkgroupSize;
+		bool mOptimizedSpMVKernelBarrier;
 	};
 
 	//
@@ -524,13 +531,13 @@ namespace OpenCL
 
 				// It seems OpenMP reduction is not economic here, at least for not so large problems
 
-				//#pragma omp parallel for reduction(+:rr)
+				#pragma omp parallel for reduction(+:rr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rr += mReductionBuffer1[i];
 				}
 
-				//#pragma omp parallel for reduction(+:rAr)
+				#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
@@ -747,13 +754,13 @@ namespace OpenCL
 
 			// It seems OpenMP reduction is not economic here, at least for not so large problems
 
-			//#pragma omp parallel for reduction(+:rr)
+			#pragma omp parallel for reduction(+:rr)
 			for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 			{
 				rr += mReductionBuffer1[i];
 			}
 
-			//#pragma omp parallel for reduction(+:rAr)
+			#pragma omp parallel for reduction(+:rAr)
 			for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 			{
 				rAr += mReductionBuffer2[i];
@@ -842,13 +849,13 @@ namespace OpenCL
 
 				// It seems OpenMP reduction is not economic here, at least for not so large problems
 
-				//#pragma omp parallel for reduction(+:rr)
+				#pragma omp parallel for reduction(+:rr1)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rr1 += mReductionBuffer1[i];
 				}
 
-				//#pragma omp parallel for reduction(+:rAr)
+				#pragma omp parallel for reduction(+:rAr)
 				for (unsigned int i = 0; i < mOptimizationParameters.GetOptimizedInnerProdKernelBufferSize1(); i++)
 				{
 					rAr += mReductionBuffer2[i];
