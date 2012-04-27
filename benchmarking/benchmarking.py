@@ -9,6 +9,7 @@
 #    1.00: Farshid Mossaiby, Initial Version                               #
 #    1.10: Farshid Mossaiby, Added the ability of determining build        #
 #                            reference mode                                #
+#    1.20: Farshid Mossaiby, Added self cleaning of BenchTemp.txt          #
 #                                                                          #
 ############################################################################
 
@@ -133,6 +134,7 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 	f = open("BenchTemp.txt", "r")
 	t = f.readlines()
 	f.close()
+	os.remove("BenchTemp.txt")
 
 	f = open(ReferenceBenchmarkFile, "r")
 	r = f.readlines()
@@ -160,7 +162,8 @@ def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 	f = open("BenchTemp.txt", "r")
 	t = f.readlines()
 	f.close()
-
+	os.remove("BenchTemp.txt")
+	
 	f = open(ReferenceBenchmarkFile, "r")
 	r = f.readlines()
 	f.close()
