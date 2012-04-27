@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,12 +38,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:31 $
-//   Revision:            $Revision: 1.2 $ 
+//   Revision:            $Revision: 1.2 $
 //
 //  this process marks distorted fluid elements and their direct neighbours
 
@@ -54,10 +54,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -73,301 +73,305 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the PRESSURE_FORCE on the nodes
-
-		
-	*/
-
-	class MarkBadElementsProcess
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of PushStructureProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MarkBadElementsProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MarkBadElementsProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-		}
-
-		/// Destructor.
-		virtual ~MarkBadElementsProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+///@}
+///@name  Functions
+///@{
 
+///@}
+///@name Kratos Classes
+///@{
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Execute()
-		{
-		KRATOS_TRY
-		for(ModelPart::ElementsContainerType::const_iterator im = mr_model_part.ElementsBegin(); in!=mr_model_part.ElementsEnd(); in++)
-				{
-			double x0 = im.X();
-			double x1 = im.X();
-			double x2 = pgeom[2].X();
-			
-			double y0 = pgeom[0].Y();
-			double y1 = pgeom[1].Y();
-			double y2 = pgeom[2].Y();
-
-			/*if( ((y0<-0.1) || (y1<-0.1 ) || (y2<-0.1 )) && (x0>1.1 || x1>1.1 || x2>1.1 ))
-			{	
-				return false;
-			}*/
-						
-			msJ(0,0)=2.0*(x1-x0);	msJ(0,1)=2.0*(y1-y0);
-			msJ(1,0)=2.0*(x2-x0);	msJ(1,1)=2.0*(y2-y0);
-			
-			
-			double detJ = msJ(0,0)*msJ(1,1)-msJ(0,1)*msJ(1,0);
-						
-			msJinv(0,0) =  msJ(1,1); msJinv(0,1) = -msJ(0,1);
-			msJinv(1,0) = -msJ(1,0); msJinv(1,1) =  msJ(0,0);
-		
-			bounded_matrix<double,2,2> check;
-		
-			
-			if(detJ < 1e-12) 
-			{
-				//std::cout << "detJ = " << detJ << std::endl;
-				////mark as boundary
-				pgeom[0].GetSolutionStepValue(IS_BOUNDARY) = 1;
-				pgeom[1].GetSolutionStepValue(IS_BOUNDARY) = 1;
-				pgeom[2].GetSolutionStepValue(IS_BOUNDARY) = 1;
-				return false;
-			}
-			
-			else
-			{
-
-				double x0_2 = x0*x0 + y0*y0;
-				double x1_2 = x1*x1 + y1*y1; 
-				double x2_2 = x2*x2 + y2*y2; 
-
-				//finalizing the calculation of the inverted matrix
-				//std::cout<<"MATR INV"<<MatrixInverse(msJ)<<std::endl;
-				msJinv /= detJ;
-				//calculating the RHS
-				ms_rhs[0] = (x1_2 - x0_2);
-				ms_rhs[1] = (x2_2 - x0_2);
-
-				//calculate position of the center
-				noalias(msc) = prod(msJinv,ms_rhs);
-
-				double radius = sqrt(pow(msc[0]-x0,2)+pow(msc[1]-y0,2));
-
-				//calculate average h
-				double h;
-				h =  pgeom[0].FastGetSolutionStepValue(NODAL_H);
-				h += pgeom[1].FastGetSolutionStepValue(NODAL_H);
-				h += pgeom[2].FastGetSolutionStepValue(NODAL_H);
-				h *= 0.333333333;
-				if (radius < h*alpha_param)
-				{
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			
-				}
-				
-		KRATOS_CATCH("")
-		}
+/// Short class definition.
+/** Detail class definition.
+	Update the PRESSURE_FORCE on the nodes
 
 
-		///@}
-		///@name Access
-		///@{ 
+*/
+
+class MarkBadElementsProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MarkBadElementsProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MarkBadElementsProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+    }
+
+    /// Destructor.
+    virtual ~MarkBadElementsProcess()
+    {
+    }
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MarkBadElementsProcess";
-		}
+    virtual void Execute()
+    {
+        KRATOS_TRY
+        for(ModelPart::ElementsContainerType::const_iterator im = mr_model_part.ElementsBegin(); in!=mr_model_part.ElementsEnd(); in++)
+        {
+            double x0 = im.X();
+            double x1 = im.X();
+            double x2 = pgeom[2].X();
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MarkBadElementsProcess";
-		}
+            double y0 = pgeom[0].Y();
+            double y1 = pgeom[1].Y();
+            double y2 = pgeom[2].Y();
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+            /*if( ((y0<-0.1) || (y1<-0.1 ) || (y2<-0.1 )) && (x0>1.1 || x1>1.1 || x2>1.1 ))
+            {
+            	return false;
+            }*/
 
-
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+            msJ(0,0)=2.0*(x1-x0);
+            msJ(0,1)=2.0*(y1-y0);
+            msJ(1,0)=2.0*(x2-x0);
+            msJ(1,1)=2.0*(y2-y0);
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+            double detJ = msJ(0,0)*msJ(1,1)-msJ(0,1)*msJ(1,0);
+
+            msJinv(0,0) =  msJ(1,1);
+            msJinv(0,1) = -msJ(0,1);
+            msJinv(1,0) = -msJ(1,0);
+            msJinv(1,1) =  msJ(0,0);
+
+            bounded_matrix<double,2,2> check;
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+            if(detJ < 1e-12)
+            {
+                //std::cout << "detJ = " << detJ << std::endl;
+                ////mark as boundary
+                pgeom[0].GetSolutionStepValue(IS_BOUNDARY) = 1;
+                pgeom[1].GetSolutionStepValue(IS_BOUNDARY) = 1;
+                pgeom[2].GetSolutionStepValue(IS_BOUNDARY) = 1;
+                return false;
+            }
+
+            else
+            {
+
+                double x0_2 = x0*x0 + y0*y0;
+                double x1_2 = x1*x1 + y1*y1;
+                double x2_2 = x2*x2 + y2*y2;
+
+                //finalizing the calculation of the inverted matrix
+                //std::cout<<"MATR INV"<<MatrixInverse(msJ)<<std::endl;
+                msJinv /= detJ;
+                //calculating the RHS
+                ms_rhs[0] = (x1_2 - x0_2);
+                ms_rhs[1] = (x2_2 - x0_2);
+
+                //calculate position of the center
+                noalias(msc) = prod(msJinv,ms_rhs);
+
+                double radius = sqrt(pow(msc[0]-x0,2)+pow(msc[1]-y0,2));
+
+                //calculate average h
+                double h;
+                h =  pgeom[0].FastGetSolutionStepValue(NODAL_H);
+                h += pgeom[1].FastGetSolutionStepValue(NODAL_H);
+                h += pgeom[2].FastGetSolutionStepValue(NODAL_H);
+                h *= 0.333333333;
+                if (radius < h*alpha_param)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MarkBadElementsProcess";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MarkBadElementsProcess";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}
+    ///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		/// Assignment operator.
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		MarkBadElementsProcess& operator=(MarkBadElementsProcess const& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		MarkBadElementsProcess(MarkBadElementsProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class MarkBadElementsProcess 
+}; // Class MarkBadElementsProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MarkBadElementsProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MarkBadElementsProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MarkBadElementsProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MarkBadElementsProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

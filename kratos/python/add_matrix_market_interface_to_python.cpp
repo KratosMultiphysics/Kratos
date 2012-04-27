@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -51,22 +51,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
-    void  AddMatrixMarketInterfaceToPython()
-    {
-      
-        using namespace boost::python;
-        
-        def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix);
-        def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix);
-        
-        def("ReadMatrixMarketVector", ReadMatrixMarketVector);
-        def("WriteMatrixMarketVector", WriteMatrixMarketVector);
+void  AddMatrixMarketInterfaceToPython()
+{
 
-  }
-	
+    using namespace boost::python;
+
+    def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix);
+    def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix);
+
+    def("ReadMatrixMarketVector", ReadMatrixMarketVector);
+    def("WriteMatrixMarketVector", WriteMatrixMarketVector);
+
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

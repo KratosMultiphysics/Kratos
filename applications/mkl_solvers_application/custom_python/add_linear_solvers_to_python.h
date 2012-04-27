@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-07-23 14:56:07 $
 //   Revision:            $Revision: 1.1 $
@@ -12,10 +12,10 @@
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -28,10 +28,10 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddLinearSolversToPython();
+void  AddLinearSolversToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED  defined 

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: kazem $
 *   Date:                $Date: 2009-01-15 18:45:31 $
 *   Revision:            $Revision: 1.2 $
@@ -63,395 +63,395 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	/**@name Kratos Globals */
-	/*@{ */
+/**@name Kratos Globals */
+/*@{ */
 
 
-	/*@} */
-	/**@name Type Definitions */       
-	/*@{ */
+/*@} */
+/**@name Type Definitions */
+/*@{ */
 
-	/*@} */
+/*@} */
 
 
-	/**@name  Enum's */       
-	/*@{ */
+/**@name  Enum's */
+/*@{ */
 
 
-	/*@} */
-	/**@name  Functions */       
-	/*@{ */
+/*@} */
+/**@name  Functions */
+/*@{ */
 
 
 
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
+/*@} */
+/**@name Kratos Classes */
+/*@{ */
 
-	/** Short class definition.
-	Detail class definition.
+/** Short class definition.
+Detail class definition.
 
-	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-	\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-	\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-	\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-	\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-	\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-	\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
-	*/
-	template<class TSparseSpace,
-	class TDenseSpace 
-	>
-	class UPCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
-	{
-	public:
-		/**@name Type Definitions */       
-		/*@{ */
-
-		//typedef boost::shared_ptr< UPCriteria< TSparseSpace, TDenseSpace > > Pointer;		
-		KRATOS_CLASS_POINTER_DEFINITION( UPCriteria );
+*/
+template<class TSparseSpace,
+         class TDenseSpace
+         >
+class UPCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
 
-		typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    //typedef boost::shared_ptr< UPCriteria< TSparseSpace, TDenseSpace > > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( UPCriteria );
 
-		typedef TSparseSpace SparseSpaceType;
-
-		typedef typename BaseType::TDataType TDataType;
-
-		typedef typename BaseType::DofsArrayType DofsArrayType;
-
-		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-		typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-		/*@} */
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
-
-		/** Constructor.
-		*/
-		UPCriteria(
-			TDataType VelRatioTolerance,
-			TDataType VelAbsTolerance,
-			TDataType PrsRatioTolerance,
-			TDataType PrsAbsTolerance)
-			: ConvergenceCriteria< TSparseSpace, TDenseSpace >()
-		{
-			mVelRatioTolerance = VelRatioTolerance;
-			mVelAbsTolerance = VelAbsTolerance;
-
-			mPrsRatioTolerance = PrsRatioTolerance;
-			mPrsAbsTolerance = PrsAbsTolerance;
-			//mActualizeRHSIsNeeded = false;
-		}
-
-		/** Destructor.
-		*/
-		virtual ~UPCriteria(){}
-
-
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
-
-		//****************Pre Criteria*/
-		bool PreCriteria(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-		  if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
-			{
-		 for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
-	        	 {
-				ind->GetValue(VELOCITY) = ind->FastGetSolutionStepValue(VELOCITY);
-				ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE);
-				ind->GetValue(AIR_PRESSURE) = ind->FastGetSolutionStepValue(AIR_PRESSURE);
-				ind->GetValue(WATER_PRESSURE) = ind->FastGetSolutionStepValue(WATER_PRESSURE);
-			}
-			return true;
-
-			}
-			else //in this case all the displacements are imposed!
-			{
-				return true;
-			}
-		}
-                //*****************post criteria
-		   bool PostCriteria(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-		  if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
-			{
-				//TDataType mFinalCorrectionNorm = sqrt(std::inner_product(Dx.begin(),Dx.end(),Dx.begin(),TDataType()));
-				//TDataType mFinalCorrectionNorm = sqrt(Dot(Dx,Dx));
-
-			double reference_pr_norm = 0.0;
-			double difference_pr_norm = 0.0;
-			double reference_air_pr_norm = 0.0;
-			double difference_air_pr_norm = 0.0;
-			double reference_water_pr_norm = 0.0;
-			double difference_water_pr_norm = 0.0;
-			double reference_vel_norm = 0.0;
-			double difference_vel_norm = 0.0;
-			int pr_size = 1;
-			int vel_size = 1;
-                            double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
-			
-
-
-		for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
-	        	 {
-				
-					double current_pr = 0.0;
-					current_pr = ind->FastGetSolutionStepValue(PRESSURE);
-					reference_pr_norm += current_pr*current_pr;
-					pr_size +=1;
-
-					double current_air_pr = 0.0;
-					current_air_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
-					reference_air_pr_norm += current_air_pr*current_air_pr;
-			
-
-					double current_water_pr = 0.0;
-					current_water_pr = ind->FastGetSolutionStepValue(WATER_PRESSURE);
-					reference_water_pr_norm += current_water_pr*current_water_pr;
-				
-										
-					const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
-					reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] +  current_vel[2]*current_vel[2]);
-					vel_size += dimension;
-
-					double old_pr = 0.0;
-					old_pr = ind->GetValue(PRESSURE);
-					difference_pr_norm += (current_pr - old_pr)*(current_pr - old_pr);
-
-					double old_air_pr = 0.0;
-					old_air_pr = ind->GetValue(AIR_PRESSURE);
-					difference_air_pr_norm += (current_air_pr - old_air_pr)*(current_air_pr - old_air_pr);
-
-					double old_water_pr = 0.0;
-					old_water_pr = ind->GetValue(WATER_PRESSURE);
-					difference_water_pr_norm += (current_water_pr - old_water_pr)*(current_water_pr - old_water_pr);
-
-
-					const array_1d<double,3> old_vel = ind->GetValue(VELOCITY);
-					array_1d<double,3> dif_vel = current_vel - old_vel;
-					difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1]+ dif_vel[2]*dif_vel[2]);
-				
-
-			 }
-			if(reference_pr_norm ==0.0)
-				reference_pr_norm = 1.0;
-			if(reference_water_pr_norm ==0.0)
-				reference_water_pr_norm = 1.0;
-			if(reference_air_pr_norm ==0.0)
-				reference_air_pr_norm = 1.0;
-
-
-			if(reference_vel_norm ==0.0)
-				reference_vel_norm = 1.0;
-
-
-			double pr_ratio = sqrt(difference_pr_norm/reference_pr_norm);
-			double vel_ratio = sqrt(difference_vel_norm/reference_vel_norm);
-			double air_pr_ratio = sqrt(difference_air_pr_norm/reference_air_pr_norm);
-			double water_pr_ratio = sqrt(difference_water_pr_norm/reference_water_pr_norm);
-			
-
-			double pr_abs = sqrt(difference_pr_norm)/pr_size;
-			double vel_abs = sqrt(difference_vel_norm)/vel_size;
-			double air_pr_abs = sqrt(difference_air_pr_norm)/pr_size;
-			double water_pr_abs = sqrt(difference_water_pr_norm)/pr_size;
-
-
-				std::cout << "VELOCITY CRITERIA :: obtained ratio = " << vel_ratio << ";  expected ratio = " << mVelRatioTolerance << "obtained abs = " <<vel_abs << ";  expected abs = " << mVelAbsTolerance << std::endl;
-
-				std::cout << "PRESSURE CRITERIA :: obtained ratio = " << pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
-
-				std::cout << "AIR_PRESSURE CRITERIA :: obtained ratio = " << air_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<air_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
-
-				std::cout << "WATER_PRESSURE CRITERIA :: obtained ratio = " << water_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<water_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
-
-				if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) 
-							&&
-                                      (air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
-							&&
-				      (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)
-					/*
-							||
-				     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance)
-							||
-				     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/)
-				{
-KRATOS_WATCH("convergence is achieved");
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else //in this case all the displacements are imposed!
-			{
-				return true;
-			}
-		}
-
-		void Initialize(
-			ModelPart& r_model_part
-			) 
-		{
-			BaseType::mConvergenceCriteriaIsInitialized = true;
-		}
-
-		void InitializeSolutionStep(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-		}
-
-		void FinalizeSolutionStep(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			){}
-
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-
-			/*@} */
-			/**@name Operations */
-			/*@{ */
+    typedef TSparseSpace SparseSpaceType;
 
+    typedef typename BaseType::TDataType TDataType;
 
-			/*@} */  
-			/**@name Access */
-			/*@{ */
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
-			/*@} */
-			/**@name Inquiry */
-			/*@{ */
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
 
-			/*@} */      
-			/**@name Friends */
-			/*@{ */
+    /** Constructor.
+    */
+    UPCriteria(
+        TDataType VelRatioTolerance,
+        TDataType VelAbsTolerance,
+        TDataType PrsRatioTolerance,
+        TDataType PrsAbsTolerance)
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    {
+        mVelRatioTolerance = VelRatioTolerance;
+        mVelAbsTolerance = VelAbsTolerance;
 
+        mPrsRatioTolerance = PrsRatioTolerance;
+        mPrsAbsTolerance = PrsAbsTolerance;
+        //mActualizeRHSIsNeeded = false;
+    }
 
-			/*@} */
+    /** Destructor.
+    */
+    virtual ~UPCriteria() {}
 
-	protected:
-		/**@name Protected static Member Variables */
-		/*@{ */
 
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
+
+    //****************Pre Criteria*/
+    bool PreCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
+        {
+            for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
+            {
+                ind->GetValue(VELOCITY) = ind->FastGetSolutionStepValue(VELOCITY);
+                ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE);
+                ind->GetValue(AIR_PRESSURE) = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+                ind->GetValue(WATER_PRESSURE) = ind->FastGetSolutionStepValue(WATER_PRESSURE);
+            }
+            return true;
+
+        }
+        else //in this case all the displacements are imposed!
+        {
+            return true;
+        }
+    }
+    //*****************post criteria
+    bool PostCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
+        {
+            //TDataType mFinalCorrectionNorm = sqrt(std::inner_product(Dx.begin(),Dx.end(),Dx.begin(),TDataType()));
+            //TDataType mFinalCorrectionNorm = sqrt(Dot(Dx,Dx));
+
+            double reference_pr_norm = 0.0;
+            double difference_pr_norm = 0.0;
+            double reference_air_pr_norm = 0.0;
+            double difference_air_pr_norm = 0.0;
+            double reference_water_pr_norm = 0.0;
+            double difference_water_pr_norm = 0.0;
+            double reference_vel_norm = 0.0;
+            double difference_vel_norm = 0.0;
+            int pr_size = 1;
+            int vel_size = 1;
+            double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
+
+
+
+            for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
+            {
+
+                double current_pr = 0.0;
+                current_pr = ind->FastGetSolutionStepValue(PRESSURE);
+                reference_pr_norm += current_pr*current_pr;
+                pr_size +=1;
+
+                double current_air_pr = 0.0;
+                current_air_pr = ind->FastGetSolutionStepValue(AIR_PRESSURE);
+                reference_air_pr_norm += current_air_pr*current_air_pr;
+
+
+                double current_water_pr = 0.0;
+                current_water_pr = ind->FastGetSolutionStepValue(WATER_PRESSURE);
+                reference_water_pr_norm += current_water_pr*current_water_pr;
+
+
+                const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
+                reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] +  current_vel[2]*current_vel[2]);
+                vel_size += dimension;
+
+                double old_pr = 0.0;
+                old_pr = ind->GetValue(PRESSURE);
+                difference_pr_norm += (current_pr - old_pr)*(current_pr - old_pr);
+
+                double old_air_pr = 0.0;
+                old_air_pr = ind->GetValue(AIR_PRESSURE);
+                difference_air_pr_norm += (current_air_pr - old_air_pr)*(current_air_pr - old_air_pr);
+
+                double old_water_pr = 0.0;
+                old_water_pr = ind->GetValue(WATER_PRESSURE);
+                difference_water_pr_norm += (current_water_pr - old_water_pr)*(current_water_pr - old_water_pr);
+
+
+                const array_1d<double,3> old_vel = ind->GetValue(VELOCITY);
+                array_1d<double,3> dif_vel = current_vel - old_vel;
+                difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1]+ dif_vel[2]*dif_vel[2]);
+
+
+            }
+            if(reference_pr_norm ==0.0)
+                reference_pr_norm = 1.0;
+            if(reference_water_pr_norm ==0.0)
+                reference_water_pr_norm = 1.0;
+            if(reference_air_pr_norm ==0.0)
+                reference_air_pr_norm = 1.0;
+
+
+            if(reference_vel_norm ==0.0)
+                reference_vel_norm = 1.0;
+
+
+            double pr_ratio = sqrt(difference_pr_norm/reference_pr_norm);
+            double vel_ratio = sqrt(difference_vel_norm/reference_vel_norm);
+            double air_pr_ratio = sqrt(difference_air_pr_norm/reference_air_pr_norm);
+            double water_pr_ratio = sqrt(difference_water_pr_norm/reference_water_pr_norm);
+
+
+            double pr_abs = sqrt(difference_pr_norm)/pr_size;
+            double vel_abs = sqrt(difference_vel_norm)/vel_size;
+            double air_pr_abs = sqrt(difference_air_pr_norm)/pr_size;
+            double water_pr_abs = sqrt(difference_water_pr_norm)/pr_size;
+
+
+            std::cout << "VELOCITY CRITERIA :: obtained ratio = " << vel_ratio << ";  expected ratio = " << mVelRatioTolerance << "obtained abs = " <<vel_abs << ";  expected abs = " << mVelAbsTolerance << std::endl;
+
+            std::cout << "PRESSURE CRITERIA :: obtained ratio = " << pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+
+            std::cout << "AIR_PRESSURE CRITERIA :: obtained ratio = " << air_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<air_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+
+            std::cout << "WATER_PRESSURE CRITERIA :: obtained ratio = " << water_pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<water_pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+
+            if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance)
+                    &&
+                    (air_pr_ratio <= mPrsRatioTolerance || air_pr_abs<mPrsAbsTolerance)
+                    &&
+                    (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)
+                    /*
+                    		||
+                     (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance)
+                    		||
+                     (water_pr_ratio <= mPrsRatioTolerance || water_pr_abs<mPrsAbsTolerance)*/)
+            {
+                KRATOS_WATCH("convergence is achieved");
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else //in this case all the displacements are imposed!
+        {
+            return true;
+        }
+    }
 
-		/*@} */
-		/**@name Protected member Variables */
-		/*@{ */
+    void Initialize(
+        ModelPart& r_model_part
+    )
+    {
+        BaseType::mConvergenceCriteriaIsInitialized = true;
+    }
 
+    void InitializeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+    }
 
-		/*@} */
-		/**@name Protected Operators*/
-		/*@{ */
+    void FinalizeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    ) {}
 
 
-		/*@} */
-		/**@name Protected Operations*/
-		/*@{ */
 
+    /*@} */
+    /**@name Operations */
+    /*@{ */
 
-		/*@} */
-		/**@name Protected  Access */
-		/*@{ */
 
+    /*@} */
+    /**@name Access */
+    /*@{ */
 
-		/*@} */     
-		/**@name Protected Inquiry */
-		/*@{ */
 
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
 
-		/*@} */   
-		/**@name Protected LifeCycle */  
-		/*@{ */
 
+    /*@} */
+    /**@name Friends */
+    /*@{ */
 
 
-		/*@} */    
+    /*@} */
 
-	private:
-		/**@name Static Member Variables */
-		/*@{ */
+protected:
+    /**@name Protected static Member Variables */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
-		TDataType mVelRatioTolerance;
-		TDataType mVelAbsTolerance;
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
 
-		TDataType mPrsRatioTolerance;
-		TDataType mPrsAbsTolerance;
 
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private  Access */
-		/*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
 
 
-		/*@} */     
-		/**@name Private Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
 
 
-		/*@} */   
-		/**@name Un accessible methods */
-		/*@{ */
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
 
 
-		/*@} */   
 
-	}; /* Class ClassName */
+    /*@} */
 
-	/*@} */
+private:
+    /**@name Static Member Variables */
+    /*@{ */
 
-	/**@name Type Definitions */       
-	/*@{ */
 
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+    TDataType mVelRatioTolerance;
+    TDataType mVelAbsTolerance;
 
-	/*@} */
+    TDataType mPrsRatioTolerance;
+    TDataType mPrsAbsTolerance;
+
+
+
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
+
+
+    /*@} */
+
+}; /* Class ClassName */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+
+/*@} */
 
 }  /* namespace Kratos.*/
 

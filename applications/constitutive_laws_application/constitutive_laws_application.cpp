@@ -22,13 +22,13 @@
 namespace Kratos
 {
 
-    void KratosConstitutiveLawsApplication::Register()
-    {
-        // calling base class register to register Kratos components
-        KratosApplication::Register();
-        std::cout << "Initializing KratosConstitutiveLawsApplication... " << std::endl;
+void KratosConstitutiveLawsApplication::Register()
+{
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    std::cout << "Initializing KratosConstitutiveLawsApplication... " << std::endl;
 
-    }
+}
 
 
 }  // namespace Kratos.

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2008-11-17 17:46:04 $
 //   Revision:            $Revision: 1.4 $
@@ -52,13 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <numeric>
 #include <cstddef>
 
 
 // External includes
-#include <boost/array.hpp>  
+#include <boost/array.hpp>
 
 
 // Project includes
@@ -69,42 +69,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class TriangleGaussianIntegrationPoints1
+class TriangleGaussianIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints1);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 2;
+        return 1;
+    }
 
-	typedef IntegrationPoint<2> IntegrationPointType;
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 );
+        return msIntegrationPoints;
+    }
 
-      	typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle gaussian quadrature 1 ";
+        return buffer.str();
+    }
+protected:
 
-      	typedef IntegrationPointType::PointType PointType;
+private:
 
-      	static SizeType IntegrationPointsNumber(){  return 1; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 );
-	  return msIntegrationPoints;
-	}
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "Triangle gaussian quadrature 1 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class TriangleGaussianIntegrationPoints1
+}; // Class TriangleGaussianIntegrationPoints1
 
 
 /*  TriangleGaussianIntegrationPoints1::IntegrationPointsArrayType TriangleGaussianIntegrationPoints1::msIntegrationPoints =
@@ -112,51 +115,54 @@ namespace Kratos
 		IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , 1.00 / 2.00 )
 };*/
 
-    
-    
-    
-    
-    
-    
-    
-    class TriangleGaussianIntegrationPoints2
+
+
+
+
+
+
+
+class TriangleGaussianIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints2);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-	    public:
-		    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints2);
-		    typedef std::size_t SizeType;
-		    
-		    static const unsigned int Dimension = 2;
+        return 3;
+    }
 
-		    typedef IntegrationPoint<2> IntegrationPointType;
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00 , 1.00 / 6.00 );
+        msIntegrationPoints[1] = IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00 , 1.00 / 6.00 );
+        msIntegrationPoints[2] = IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00 , 1.00 / 6.00 );
+        return msIntegrationPoints;
+    }
 
-		    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle gaussian quadrature 2 ";
+        return buffer.str();
+    }
+protected:
 
-		    typedef IntegrationPointType::PointType PointType;
+private:
 
-		    static SizeType IntegrationPointsNumber()    {  return 3; }
-		    
-		    static IntegrationPointsArrayType& IntegrationPoints()
-		    {
-		      // This is added to solve the problem of static initialization. Pooyan.
-		      msIntegrationPoints[0] = IntegrationPointType( 1.00 / 6.00 , 1.00 / 6.00 , 1.00 / 6.00 );
-		      msIntegrationPoints[1] = IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00 , 1.00 / 6.00 );
-		      msIntegrationPoints[2] = IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00 , 1.00 / 6.00 );
-			    return msIntegrationPoints;
-		    }
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-		    std::string Info() const
-		    {
-			    std::stringstream buffer;
-			    buffer << "Triangle gaussian quadrature 2 ";
-			    return buffer.str();
-		    }
-	    protected:
-
-	    private:
-
-		    static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class TriangleGaussianIntegrationPoints2
+}; // Class TriangleGaussianIntegrationPoints2
 
 
 //   TriangleGaussianIntegrationPoints2::IntegrationPointsArrayType TriangleGaussianIntegrationPoints2::msIntegrationPoints =
@@ -165,48 +171,51 @@ namespace Kratos
 // 		IntegrationPointType( 2.00 / 3.00 , 1.00 / 6.00 , 1.00 / 6.00 ),
 // 		IntegrationPointType( 1.00 / 6.00 , 2.00 / 3.00 , 1.00 / 6.00 )
 //    };
-  
-  
-   
-   
-   
-   
-   class TriangleGaussianIntegrationPoints3
-   {
-	   public:
-		   KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints3);
-		   typedef std::size_t SizeType;
-		   
-		   static const unsigned int Dimension = 2;
 
-		   typedef IntegrationPoint<2> IntegrationPointType;
 
-		   typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
-		   typedef IntegrationPointType::PointType PointType;
 
-		   static SizeType IntegrationPointsNumber()    {  return 4; }
-		    
-		   static IntegrationPointsArrayType& IntegrationPoints()
-		   {
-			   return msIntegrationPoints;
-		   }
 
-		   std::string Info() const
-		   {
-			   std::stringstream buffer;
-			   buffer << "Triangle gaussian quadrature 3 ";
-			   return buffer.str();
-		   }
-	   protected:
 
-	   private:
+class TriangleGaussianIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints3);
+    typedef std::size_t SizeType;
 
-		   static IntegrationPointsArrayType msIntegrationPoints;
+    static const unsigned int Dimension = 2;
 
-   }; // Class TriangleGaussianIntegrationPoints2
-   
-   
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 4;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle gaussian quadrature 3 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class TriangleGaussianIntegrationPoints2
+
+
 //    TriangleGaussianIntegrationPoints3::IntegrationPointsArrayType TriangleGaussianIntegrationPoints3::msIntegrationPoints =
 //     {
 //  		IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 ),
@@ -214,19 +223,19 @@ namespace Kratos
 //  		IntegrationPointType( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 ),
 // 		IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 )
 //    };
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_TRIANGLE_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED  defined 

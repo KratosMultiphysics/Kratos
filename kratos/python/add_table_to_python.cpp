@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: pooyan $
 //   Date:                $Date: 2009-01-14 14:43:15 $
 //   Revision:            $Revision: 1.3 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -59,30 +59,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-		
-  using namespace boost::python;
 
-  typedef Table<double,double> DoubleTableType;
+using namespace boost::python;
 
-  double TableGetNearestValue(DoubleTableType& ThisTable, double X)
-  {
-      return ThisTable.GetNearestValue(X);
-  }
-	
- 	
-  void  AddTableToPython()
-  {
-      class_<DoubleTableType, DoubleTableType::Pointer>("PiecewiseLinearTable")
-        .def(init<Matrix const&>())
-        .def("GetValue", &DoubleTableType::GetValue)
-        .def("GetNearestValue", TableGetNearestValue)
-        .def(self_ns::str(self))
-       ;
- 	}
-	
+typedef Table<double,double> DoubleTableType;
+
+double TableGetNearestValue(DoubleTableType& ThisTable, double X)
+{
+    return ThisTable.GetNearestValue(X);
+}
+
+
+void  AddTableToPython()
+{
+    class_<DoubleTableType, DoubleTableType::Pointer>("PiecewiseLinearTable")
+    .def(init<Matrix const&>())
+    .def("GetValue", &DoubleTableType::GetValue)
+    .def("GetNearestValue", TableGetNearestValue)
+    .def(self_ns::str(self))
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -5,13 +5,13 @@
 #ifndef __CFORTRAN_LOADED
 #define __CFORTRAN_LOADED
 
-/* 
+/*
    THIS FILE IS PROPERTY OF BURKHARD BUROW. IF YOU ARE USING THIS FILE YOU
    SHOULD ALSO HAVE ACCESS TO CFORTRAN.DOC WHICH PROVIDES TERMS FOR USING,
    MODIFYING, COPYING AND DISTRIBUTING THE CFORTRAN.H PACKAGE.
 */
 
-/* 
+/*
   Avoid symbols already used by compilers and system *.h:
   __ - OSF1 zukal06 V3.0 347 alpha, cc -c -std1 cfortest.c
 
@@ -33,7 +33,7 @@
 #define ANSI_C_preprocessor 1
 #else
 #define _cfleft             1
-#define _cfright 
+#define _cfright
 #define _cfleft_cfright     0
 #define ANSI_C_preprocessor _cfleft/**/_cfright
 #endif
@@ -68,7 +68,7 @@
 
 #if !defined(__GNUC__) && !defined(__sun) && (defined(sun)||defined(VAXUltrix)||defined(lynx))
 #define __CF__KnR     /* Sun, LynxOS and VAX Ultrix cc only supports K&R.     */
-                      /* Manually define __CF__KnR for HP if desired/required.*/
+/* Manually define __CF__KnR for HP if desired/required.*/
 #endif                /*       i.e. We will generate Kernighan and Ritchie C. */
 /* Note that you may define __CF__KnR before #include cfortran.h, in order to
 generate K&R C instead of the default ANSI C. The differences are mainly in the
@@ -84,16 +84,16 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #define f2cFortran
 #endif
 
-/* VAX/VMS does not let us \-split long #if lines. */ 
+/* VAX/VMS does not let us \-split long #if lines. */
 /* Split #if into 2 because some HP-UX can't handle long #if */
 #if !(defined(NAGf90Fortran)||defined(f2cFortran)||defined(hpuxFortran)||defined(apolloFortran)||defined(sunFortran)||defined(IBMR2Fortran)||defined(CRAYFortran))
 #if !(defined(mipsFortran)||defined(DECFortran)||defined(vmsFortran)||defined(CONVEXFortran)||defined(PowerStationFortran)||defined(AbsoftUNIXFortran)||defined(AbsoftProFortran)||defined(SXFortran))
 /* If no Fortran compiler is given, we choose one for the machines we know.   */
 #if defined(lynx) || defined(VAXUltrix)
 #define f2cFortran    /* Lynx:      Only support f2c at the moment.
-                         VAXUltrix: f77 behaves like f2c.
-                           Support f2c or f77 with gcc, vcc with f2c. 
-                           f77 with vcc works, missing link magic for f77 I/O.*/
+VAXUltrix: f77 behaves like f2c.
+Support f2c or f77 with gcc, vcc with f2c.
+f77 with vcc works, missing link magic for f77 I/O.*/
 #endif
 #if defined(__hpux)             /* 921107: Use __hpux instead of __hp9000s300 */
 #define       hpuxFortran       /*         Should also allow hp9000s7/800 use.*/
@@ -101,7 +101,7 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #if       defined(apollo)
 #define           apolloFortran /* __CF__APOLLO67 also defines some behavior. */
 #endif
-#if          defined(sun) || defined(__sun) 
+#if          defined(sun) || defined(__sun)
 #define              sunFortran
 #endif
 #if       defined(_IBMR2)
@@ -135,28 +135,33 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #if !(defined(NAGf90Fortran)||defined(f2cFortran)||defined(hpuxFortran)||defined(apolloFortran)||defined(sunFortran)||defined(IBMR2Fortran)||defined(CRAYFortran))
 #if !(defined(mipsFortran)||defined(DECFortran)||defined(vmsFortran)||defined(CONVEXFortran)||defined(PowerStationFortran)||defined(AbsoftUNIXFortran)||defined(AbsoftProFortran)||defined(SXFortran))
 /* If your compiler barfs on ' #error', replace # with the trigraph for #     */
- #error "cfortran.h:  Can't find your environment among:\
-    - MIPS cc and f77 2.0. (e.g. Silicon Graphics, DECstations, ...)     \
-    - IBM AIX XL C and FORTRAN Compiler/6000 Version 01.01.0000.0000     \
-    - VAX   VMS CC 3.1 and FORTRAN 5.4.                                  \
-    - Alpha VMS DEC C 1.3 and DEC FORTRAN 6.0.                           \
-    - Alpha OSF DEC C and DEC Fortran for OSF/1 AXP Version 1.2          \
-    - Apollo DomainOS 10.2 (sys5.3) with f77 10.7 and cc 6.7.            \
-    - CRAY                                                               \
-    - NEC SX-4 SUPER-UX                                                  \
-    - CONVEX                                                             \
-    - Sun                                                                \
-    - PowerStation Fortran with Visual C++                               \
-    - HP9000s300/s700/s800 Latest test with: HP-UX A.08.07 A 9000/730    \
-    - LynxOS: cc or gcc with f2c.                                        \
-    - VAXUltrix: vcc,cc or gcc with f2c. gcc or cc with f77.             \
-    -            f77 with vcc works; but missing link magic for f77 I/O. \
-    -            NO fort. None of gcc, cc or vcc generate required names.\
-    - f2c    : Use #define    f2cFortran, or cc -Df2cFortran             \
-    - NAG f90: Use #define NAGf90Fortran, or cc -DNAGf90Fortran          \
-    - Absoft UNIX F77: Use #define AbsoftUNIXFortran or cc -DAbsoftUNIXFortran \
-    - Absoft Pro Fortran: Use #define AbsoftProFortran \
-    - Portland Group Fortran: Use #define pgiFortran"
+#error "cfortran.h:  Can't find your environment among:\
+- MIPS cc and f77 2.0. (e.g. Silicon Graphics, DECstations, ...)     \
+- IBM AIX XL C and FORTRAN Compiler/6000 Version 01.01.0000.0000     \
+- VAX   VMS CC 3.1 and FORTRAN 5.4.                                  \
+- Alpha VMS DEC C 1.3 and DEC FORTRAN 6.0.                           \
+- Alpha OSF DEC C and DEC Fortran for OSF/1 AXP Version 1.2          \
+- Apollo DomainOS 10.2 (sys5.3) with f77 10.7 and cc 6.7.            \
+- CRAY                                                               \
+- NEC SX-4 SUPER-UX                                                  \
+- CONVEX                                                             \
+- Sun                                                                \
+- PowerStation Fortran with Visual C++                               \
+- HP9000s300/s700/s800 Latest test with: 
+HP-UX A.08.07 A 9000/730    \
+- LynxOS:
+cc or gcc with f2c.                                        \
+- VAXUltrix:
+vcc,cc or gcc with f2c. gcc or cc with f77.             \
+-            f77 with vcc works;
+but missing link magic for f77 I/O. \
+-            NO fort. None of gcc, cc or vcc generate required names.\
+- f2c    :
+Use #define    f2cFortran, or cc -Df2cFortran             \
+- NAG f90: Use #define NAGf90Fortran, or cc -DNAGf90Fortran          \
+- Absoft UNIX F77: Use #define AbsoftUNIXFortran or cc -DAbsoftUNIXFortran \
+- Absoft Pro Fortran: Use #define AbsoftProFortran \
+- Portland Group Fortran: Use #define pgiFortran"
 /* Compiler must throw us out at this point! */
 #endif
 #endif
@@ -184,8 +189,8 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #define CF_SAME_NAMESPACE
 #ifdef vmsFortran
 #define CFC_(UN,LN)            LN           /* Either case FORTRAN symbols.   */
-     /* BUT we usually use UN for C macro to FORTRAN routines, so use LN here,*/
-     /* because VAX/VMS doesn't do recursive macros.                          */
+/* BUT we usually use UN for C macro to FORTRAN routines, so use LN here,*/
+/* because VAX/VMS doesn't do recursive macros.                          */
 #define orig_fcallsc(UN,LN)    UN
 #else      /* HP-UX without +ppu or IBMR2 without -qextname. NOT reccomended. */
 #define CFC_(UN,LN)            LN           /* Lowercase FORTRAN symbols.     */
@@ -242,7 +247,7 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #define FLOATVVVVVVV_cfPP (FORTRAN_REAL *)   /* Used for C calls FORTRAN.     */
 /* CRAY's double==float but CRAY says pointers to doubles and floats are diff.*/
 #define VOIDP  (void *)  /* When FORTRAN calls C, we don't know if C routine 
-                            arg.'s have been declared float *, or double *.   */
+arg.'s have been declared float *, or double *.   */
 #else
 #define FLOATVVVVVVV_cfPP
 #define VOIDP
@@ -263,13 +268,13 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #include "math.h"     /* i.e. if crosscompiling assume user has file. */
 #endif
 /* At least starting with the default C compiler SC3.0.1 of SunOS 5.3,
- * FLOATFUNCTIONTYPE, ASSIGNFLOAT, RETURNFLOAT are not required and not in
- * <math.h>, since sun C no longer promotes C float return values to doubles.
- * Therefore, only use them if defined.
- * Even if gcc is being used, assume that it exhibits the Sun C compiler
- * behavior in order to be able to use *.o from the Sun C compiler.
- * i.e. If FLOATFUNCTIONTYPE, etc. are in math.h, they required by gcc.
- */
+* FLOATFUNCTIONTYPE, ASSIGNFLOAT, RETURNFLOAT are not required and not in
+* <math.h>, since sun C no longer promotes C float return values to doubles.
+* Therefore, only use them if defined.
+* Even if gcc is being used, assume that it exhibits the Sun C compiler
+* behavior in order to be able to use *.o from the Sun C compiler.
+* i.e. If FLOATFUNCTIONTYPE, etc. are in math.h, they required by gcc.
+*/
 #endif
 
 #ifndef apolloFortran
@@ -331,9 +336,9 @@ only C calling FORTRAN subroutines will work using K&R style.*/
 #define _cfMIN(A,B) (A<B?A:B)
 
 /* 970211 - XIX.145:
-   firstindexlength  - better name is all_but_last_index_lengths
-   secondindexlength - better name is         last_index_length
- */
+firstindexlength  - better name is all_but_last_index_lengths
+secondindexlength - better name is         last_index_length
+*/
 #define  firstindexlength(A) (sizeof(A[0])==1 ? 1 : (sizeof(A) / sizeof(A[0])) )
 #define secondindexlength(A) (sizeof(A[0])==1 ?      sizeof(A) : sizeof(A[0])  )
 
@@ -343,9 +348,9 @@ f2c, MIPS f77 [DECstation, SGI], VAX Ultrix f77,
 HP-UX f77                                        : as in C.
 VAX/VMS FORTRAN, VAX Ultrix fort,
 Absoft Unix Fortran, IBM RS/6000 xlf             : LS Bit = 0/1 = TRUE/FALSE.
-Apollo                                           : neg.   = TRUE, else FALSE. 
+Apollo                                           : neg.   = TRUE, else FALSE.
 [Apollo accepts -1 as TRUE for function values, but NOT all other neg. values.]
-[DECFortran for Ultrix RISC is also called f77 but is the same as VAX/VMS.]   
+[DECFortran for Ultrix RISC is also called f77 but is the same as VAX/VMS.]
 [MIPS f77 treats .eqv./.neqv. as .eq./.ne. and hence requires LOGICAL_STRICT.]*/
 
 #if defined(NAGf90Fortran) || defined(f2cFortran) || defined(mipsFortran) || defined(PowerStationFortran) || defined(hpuxFortran800) || defined(AbsoftUNIXFortran) || defined(AbsoftProFortran) || defined(SXFortran)
@@ -390,19 +395,19 @@ Apollo                                           : neg.   = TRUE, else FALSE.
 #endif  /* apolloFortran                      */
 
 /* 970514 - In addition to CRAY, there may be other machines
-            for which LOGICAL_STRICT makes no sense. */
+for which LOGICAL_STRICT makes no sense. */
 #if defined(LOGICAL_STRICT) && !defined(CRAYFortran)
 /* Force C2FLOGICAL to generate only the values for either .TRUE. or .FALSE.
-   SX/PowerStationFortran only have 0 and 1 defined.
-   Elsewhere, only needed if you want to do:
-     logical lvariable
-     if (lvariable .eq.  .true.) then       ! (1)
-   instead of
-     if (lvariable .eqv. .true.) then       ! (2)
-   - (1) may not even be FORTRAN/77 and that Apollo's f77 and IBM's xlf
-     refuse to compile (1), so you are probably well advised to stay away from 
-     (1) and from LOGICAL_STRICT.
-   - You pay a (slight) performance penalty for using LOGICAL_STRICT. */
+SX/PowerStationFortran only have 0 and 1 defined.
+Elsewhere, only needed if you want to do:
+logical lvariable
+if (lvariable .eq.  .true.) then       ! (1)
+instead of
+if (lvariable .eqv. .true.) then       ! (2)
+- (1) may not even be FORTRAN/77 and that Apollo's f77 and IBM's xlf
+refuse to compile (1), so you are probably well advised to stay away from
+(1) and from LOGICAL_STRICT.
+- You pay a (slight) performance penalty for using LOGICAL_STRICT. */
 #undef  C2FLOGICAL
 #ifdef hpuxFortran800
 #define C2FLOGICAL(L) ((L)?0x01000000:0)
@@ -420,15 +425,15 @@ Apollo                                           : neg.   = TRUE, else FALSE.
 static char *c2fstrv(char* cstr, char *fstr, int elem_len, int sizeofcstr)
 #else
 static char *c2fstrv(      cstr,       fstr,     elem_len,     sizeofcstr)
-                     char* cstr; char *fstr; int elem_len; int sizeofcstr;
+char* cstr; char *fstr; int elem_len; int sizeofcstr;
 #endif
 { int i,j;
 /* elem_len includes \0 for C strings. Fortran strings don't have term. \0.
-   Useful size of string must be the same in both languages. */
+Useful size of string must be the same in both languages. */
 for (i=0; i<sizeofcstr/elem_len; i++) {
-  for (j=1; j<elem_len && *cstr; j++) *fstr++ = *cstr++;
-  cstr += 1+elem_len-j;
-  for (; j<elem_len; j++) *fstr++ = ' ';
+for (j=1; j<elem_len && *cstr; j++) *fstr++ = *cstr++;
+cstr += 1+elem_len-j;
+for (; j<elem_len; j++) *fstr++ = ' ';
 } /* 95109 - Seems to be returning the original fstr. */
 return fstr-sizeofcstr+sizeofcstr/elem_len; }
 
@@ -437,16 +442,16 @@ return fstr-sizeofcstr+sizeofcstr/elem_len; }
 static char *f2cstrv(char *fstr, char* cstr, int elem_len, int sizeofcstr)
 #else
 static char *f2cstrv(      fstr,       cstr,     elem_len,     sizeofcstr)
-                     char *fstr; char* cstr; int elem_len; int sizeofcstr; 
+char *fstr; char* cstr; int elem_len; int sizeofcstr;
 #endif
 { int i,j;
 /* elem_len includes \0 for C strings. Fortran strings don't have term. \0.
-   Useful size of string must be the same in both languages. */
+Useful size of string must be the same in both languages. */
 cstr += sizeofcstr;
 fstr += sizeofcstr - sizeofcstr/elem_len;
 for (i=0; i<sizeofcstr/elem_len; i++) {
-  *--cstr = '\0';
-  for (j=1; j<elem_len; j++) *--cstr = *--fstr;
+*--cstr = '\0';
+for (j=1; j<elem_len; j++) *--cstr = *--fstr;
 } return cstr; }
 
 /* kill the trailing char t's in string s. */
@@ -455,27 +460,27 @@ static char *kill_trailing(char *s, char t)
 #else
 static char *kill_trailing(      s,      t) char *s; char t;
 #endif
-{char *e; 
+{char *e;
 e = s + strlen(s);
 if (e>s) {                           /* Need this to handle NULL string.*/
-  while (e>s && *--e==t);            /* Don't follow t's past beginning. */
-  e[*e==t?0:1] = '\0';               /* Handle s[0]=t correctly.       */
+while (e>s && *--e==t);            /* Don't follow t's past beginning. */
+e[*e==t?0:1] = '\0';               /* Handle s[0]=t correctly.       */
 } return s; }
 
-/* kill_trailingn(s,t,e) will kill the trailing t's in string s. e normally 
+/* kill_trailingn(s,t,e) will kill the trailing t's in string s. e normally
 points to the terminating '\0' of s, but may actually point to anywhere in s.
 s's new '\0' will be placed at e or earlier in order to remove any trailing t's.
-If e<s string s is left unchanged. */ 
+If e<s string s is left unchanged. */
 #ifndef __CF__KnR
 static char *kill_trailingn(char *s, char t, char *e)
 #else
 static char *kill_trailingn(      s,      t,       e) char *s; char t; char *e;
 #endif
-{ 
+{
 if (e==s) *e = '\0';                 /* Kill the string makes sense here.*/
 else if (e>s) {                      /* Watch out for neg. length string.*/
-  while (e>s && *--e==t);            /* Don't follow t's past beginning. */
-  e[*e==t?0:1] = '\0';               /* Handle s[0]=t correctly.       */
+while (e>s && *--e==t);            /* Don't follow t's past beginning. */
+e[*e==t?0:1] = '\0';               /* Handle s[0]=t correctly.       */
 } return s; }
 
 /* Note the following assumes that any element which has t's to be chopped off,
@@ -484,11 +489,11 @@ does indeed fill the entire element. */
 static char *vkill_trailing(char* cstr, int elem_len, int sizeofcstr, char t)
 #else
 static char *vkill_trailing(      cstr,     elem_len,     sizeofcstr,      t)
-                            char* cstr; int elem_len; int sizeofcstr; char t;
+char* cstr; int elem_len; int sizeofcstr; char t;
 #endif
 { int i;
 for (i=0; i<sizeofcstr/elem_len; i++) /* elem_len includes \0 for C strings. */
-  kill_trailingn(cstr+elem_len*i,t,cstr+elem_len*(i+1)-1);
+kill_trailingn(cstr+elem_len*i,t,cstr+elem_len*(i+1)-1);
 return cstr; }
 
 #ifdef vmsFortran
@@ -511,7 +516,7 @@ struct {                                                                       \
 }
 typedef DSC$DESCRIPTOR_A(1) fstringvector;
 /*typedef DSC$DESCRIPTOR_A(2) fstringarrarr;
-  typedef DSC$DESCRIPTOR_A(3) fstringarrarrarr;*/
+typedef DSC$DESCRIPTOR_A(3) fstringarrarrarr;*/
 #define initfstr(F,C,ELEMNO,ELEMLEN)                                           \
 ( (F).dsc$l_arsize=  ( (F).dsc$w_length                        =(ELEMLEN) )    \
                     *( (F).dsc$l_m[0]=(F).dsc$bounds[0].dsc$l_u=(ELEMNO)  ),   \
@@ -527,21 +532,21 @@ typedef DSC$DESCRIPTOR_A(1) fstringvector;
 static int num_elem(char *strv, unsigned elem_len, int term_char, int num_term)
 #else
 static int num_elem(      strv,          elem_len,     term_char,     num_term)
-                    char *strv; unsigned elem_len; int term_char; int num_term;
+char *strv; unsigned elem_len; int term_char; int num_term;
 #endif
 /* elem_len is the number of characters in each element of strv, the FORTRAN
 vector of strings. The last element of the vector must begin with at least
-num_term term_char characters, so that this routine can determine how 
+num_term term_char characters, so that this routine can determine how
 many elements are in the vector. */
 {
 unsigned num,i;
-if (num_term == _NUM_ELEMS || num_term == _NUM_ELEM_ARG) 
-  return term_char;
+if (num_term == _NUM_ELEMS || num_term == _NUM_ELEM_ARG)
+return term_char;
 if (num_term <=0) num_term = (int)elem_len;
 for (num=0; ; num++) {
-  for (i=0; i<(unsigned)num_term && *strv==term_char; i++,strv++);
-  if (i==(unsigned)num_term) break;
-  else strv += elem_len-i;
+for (i=0; i<(unsigned)num_term && *strv==term_char; i++,strv++);
+if (i==(unsigned)num_term) break;
+else strv += elem_len-i;
 }
 return (int)num;
 }
@@ -552,7 +557,7 @@ return (int)num;
 
 /* C string TO Fortran Common Block STRing. */
 /* DIM is the number of DIMensions of the array in terms of strings, not
-   characters. e.g. char a[12] has DIM = 0, char a[12][4] has DIM = 1, etc. */
+characters. e.g. char a[12] has DIM = 0, char a[12][4] has DIM = 1, etc. */
 #define C2FCBSTR(CSTR,FSTR,DIM)                                                \
  c2fstrv((char *)CSTR, (char *)FSTR, sizeof(FSTR)/cfelementsof(FSTR,DIM)+1,    \
          sizeof(FSTR)+cfelementsof(FSTR,DIM))
@@ -597,8 +602,8 @@ return (int)num;
 #define   PFLOAT_cfVP(A,B)
 #ifdef ZTRINGV_ARGS_allows_Pvariables
 /* This allows Pvariables for ARGS. ARGF machinery is above ARGFP.
- * B is not needed because the variable may be changed by the Fortran routine,
- * but because B is the only way to access an arbitrary macro argument.       */
+* B is not needed because the variable may be changed by the Fortran routine,
+* but because B is the only way to access an arbitrary macro argument.       */
 #define     PINT_cfVP(A,B) int  B = (int)A;              /* For ZSTRINGV_ARGS */
 #else
 #define     PINT_cfVP(A,B)
@@ -623,10 +628,10 @@ return (int)num;
 #define    SHORT_cfVCF(A,B)
 
 /* 980416
-   Cast (void (*)(CF_NULL_PROTO)) causes SunOS CC 4.2 occasionally to barf,
-   while the following equivalent typedef is fine.
-   For consistency use the typedef on all machines.
- */
+Cast (void (*)(CF_NULL_PROTO)) causes SunOS CC 4.2 occasionally to barf,
+while the following equivalent typedef is fine.
+For consistency use the typedef on all machines.
+*/
 typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 
 #define VCF(TN,I)       _Icf4(4,V,TN,_(A,I),_(B,I),F)
@@ -665,8 +670,8 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 #define   PZTRINGV_cfV(T,A,B,F) PSTRINGV_cfV(T,A,B,F)
 
 /* Note that the actions of the A table were performed inside the AA table.
-   VAX Ultrix vcc, and HP-UX cc, didn't evaluate arguments to functions left to
-   right, so we had to split the original table into the current robust two. */
+VAX Ultrix vcc, and HP-UX cc, didn't evaluate arguments to functions left to
+right, so we had to split the original table into the current robust two. */
 #define ACF(NAME,TN,AI,I)      _(TN,_cfSTR)(4,A,NAME,I,AI,_(B,I),0)
 #define   DEFAULT_cfA(M,I,A,B)
 #define   LOGICAL_cfA(M,I,A,B) B=C2FLOGICAL(B);
@@ -830,14 +835,14 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 
 
 /* Apollo 6.7, CRAY, old Sun, VAX/Ultrix vcc/cc and new ultrix
-   can't hack more than 31 arg's.
-   e.g. ultrix >= 4.3 gives message:
-       zow35> cc -c -DDECFortran cfortest.c
-       cfe: Fatal: Out of memory: cfortest.c
-       zow35>
-   Old __hpux had the problem, but new 'HP-UX A.09.03 A 9000/735' is fine
-   if using -Aa, otherwise we have a problem.
- */
+can't hack more than 31 arg's.
+e.g. ultrix >= 4.3 gives message:
+zow35> cc -c -DDECFortran cfortest.c
+cfe: Fatal: Out of memory: cfortest.c
+zow35>
+Old __hpux had the problem, but new 'HP-UX A.09.03 A 9000/735' is fine
+if using -Aa, otherwise we have a problem.
+*/
 #ifndef MAX_PREPRO_ARGS
 #if !defined(__GNUC__) && (defined(VAXUltrix) || defined(__CF__APOLLO67) || (defined(sun)&&!defined(__sun)) || defined(_CRAY) || defined(__ultrix__) || (defined(__hpux)&&defined(__CF__KnR)))
 #define MAX_PREPRO_ARGS 31
@@ -848,10 +853,10 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 
 #if defined(AbsoftUNIXFortran) || defined(AbsoftProFortran)
 /* In addition to explicit Absoft stuff, only Absoft requires:
-   - DEFAULT coming from _cfSTR.
-     DEFAULT could have been called e.g. INT, but keep it for clarity.
-   - M term in CFARGT14 and CFARGT14FS.
- */
+- DEFAULT coming from _cfSTR.
+DEFAULT could have been called e.g. INT, but keep it for clarity.
+- M term in CFARGT14 and CFARGT14FS.
+*/
 #define ABSOFT_cf1(T0) _(T0,_cfSTR)(0,ABSOFT1,0,0,0,0,0)
 #define ABSOFT_cf2(T0) _(T0,_cfSTR)(0,ABSOFT2,0,0,0,0,0)
 #define ABSOFT_cf3(T0) _(T0,_cfSTR)(0,ABSOFT3,0,0,0,0,0)
@@ -871,8 +876,8 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 #endif
 
 /* _Z introduced to cicumvent IBM and HP silly preprocessor warning.
-   e.g. "Macro CFARGT14 invoked with a null argument."
- */
+e.g. "Macro CFARGT14 invoked with a null argument."
+*/
 #define _Z
 
 #define  CFARGT14S(S,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE)                \
@@ -897,16 +902,16 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 
 #if !(defined(PowerStationFortran)||defined(hpuxFortran800))
 /*  Old CFARGT14 -> CFARGT14FS as seen below, for Absoft cross-compile yields:
-      SunOS> cc -c -Xa -DAbsoftUNIXFortran c.c
-      "c.c", line 406: warning: argument mismatch
-    Haven't checked if this is ANSI C or a SunOS bug. SunOS -Xs works ok.
-    Behavior is most clearly seen in example:
-      #define A 1 , 2
-      #define  C(X,Y,Z) x=X. y=Y. z=Z.
-      #define  D(X,Y,Z) C(X,Y,Z)
-      D(x,A,z)
-    Output from preprocessor is: x = x . y = 1 . z = 2 .
- #define CFARGT14(F,S,M,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE) \
+SunOS> cc -c -Xa -DAbsoftUNIXFortran c.c
+"c.c", line 406: warning: argument mismatch
+Haven't checked if this is ANSI C or a SunOS bug. SunOS -Xs works ok.
+Behavior is most clearly seen in example:
+#define A 1 , 2
+#define  C(X,Y,Z) x=X. y=Y. z=Z.
+#define  D(X,Y,Z) C(X,Y,Z)
+D(x,A,z)
+Output from preprocessor is: x = x . y = 1 . z = 2 .
+#define CFARGT14(F,S,M,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE) \
        CFARGT14FS(F,S,M,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE)
 */
 #define  CFARGT14(F,S,M,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE)             \
@@ -1081,9 +1086,9 @@ typedef void (*cfCAST_FUNCTION)(CF_NULL_PROTO);
 #define PROTOCCALLSFSUB27(UN,LN,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE,TF,TG,TH,TI,TJ,TK,TL,TM,TN,TO,TP,TQ,TR)\
    PROTOCCALLSFFUN27(VOID,UN,LN,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE,TF,TG,TH,TI,TJ,TK,TL,TM,TN,TO,TP,TQ,TR)
 #else
-/* Note: Prevent compiler warnings, null #define PROTOCCALLSFSUB14/20 after 
-   #include-ing cfortran.h if calling the FORTRAN wrapper within the same 
-   source code where the wrapper is created. */
+/* Note: Prevent compiler warnings, null #define PROTOCCALLSFSUB14/20 after
+#include-ing cfortran.h if calling the FORTRAN wrapper within the same 
+source code where the wrapper is created. */
 #define PROTOCCALLSFSUB0(UN,LN)     _(VOID,_cfPU)(CFC_(UN,LN))();
 #ifndef __CF__KnR
 #define PROTOCCALLSFSUB14(UN,LN,T1,T2,T3,T4,T5,T6,T7,T8,T9,TA,TB,TC,TD,TE) \
@@ -1263,20 +1268,20 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 /*               UTILITIES FOR C TO CALL FORTRAN FUNCTIONS                 */
 
 /*N.B. PROTOCCALLSFFUNn(..) generates code, whether or not the FORTRAN
-  function is called. Therefore, especially for creator's of C header files
-  for large FORTRAN libraries which include many functions, to reduce
-  compile time and object code size, it may be desirable to create
-  preprocessor directives to allow users to create code for only those
-  functions which they use.                                                */
+function is called. Therefore, especially for creator's of C header files
+for large FORTRAN libraries which include many functions, to reduce
+compile time and object code size, it may be desirable to create
+preprocessor directives to allow users to create code for only those
+functions which they use.                                                */
 
 /* The following defines the maximum length string that a function can return.
-   Of course it may be undefine-d and re-define-d before individual
-   PROTOCCALLSFFUNn(..) as required. It would also be nice to have this derived
-   from the individual machines' limits.                                      */
+Of course it may be undefine-d and re-define-d before individual
+PROTOCCALLSFFUNn(..) as required. It would also be nice to have this derived
+from the individual machines' limits.                                      */
 #define MAX_LEN_FORTRAN_FUNCTION_STRING 0x4FE
 
 /* The following defines a character used by CFORTRAN.H to flag the end of a
-   string coming out of a FORTRAN routine.                                 */
+string coming out of a FORTRAN routine.                                 */
 #define CFORTRAN_NON_CHAR 0x7F
 
 #ifdef OLD_VAXC                                /* Prevent %CC-I-PARAMNOTUSED. */
@@ -1307,7 +1312,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define   PPSTRING_cfSEP(T,B) INT_cfSEP(T,B)
 #define    ZTRINGV_cfSEP(T,B) INT_cfSEP(T,B)
 #define   PZTRINGV_cfSEP(T,B) INT_cfSEP(T,B)
-                         
+
 #if defined(SIGNED_BYTE) || !defined(UNSIGNED_BYTE)
 #ifdef OLD_VAXC
 #define INTEGER_BYTE               char    /* Old VAXC barfs on 'signed char' */
@@ -1407,10 +1412,10 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define          PVOID_cfINT(N,A,B,X,Y,Z) _(CFARGS,N)(A,B,B,X,Y,Z,0)
 #define        ROUTINE_cfINT(N,A,B,X,Y,Z)         PVOID_cfINT(N,A,B,X,Y,Z)
 /*CRAY coughs on the first,
-  i.e. the usual trouble of not being able to
-  define macros to macros with arguments. 
-  New ultrix is worse, it coughs on all such uses.
- */
+i.e. the usual trouble of not being able to
+define macros to macros with arguments.
+New ultrix is worse, it coughs on all such uses.
+*/
 /*#define       SIMPLE_cfINT                    PVOID_cfINT*/
 #define         SIMPLE_cfINT(N,A,B,X,Y,Z)         PVOID_cfINT(N,A,B,X,Y,Z)
 #define           VOID_cfINT(N,A,B,X,Y,Z)         PVOID_cfINT(N,A,B,X,Y,Z)
@@ -1423,7 +1428,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define        ZTRINGV_cfINT(N,A,B,X,Y,Z)         PVOID_cfINT(N,A,B,X,Y,Z)
 #define       PZTRINGV_cfINT(N,A,B,X,Y,Z)         PVOID_cfINT(N,A,B,X,Y,Z)
 #define           CF_0_cfINT(N,A,B,X,Y,Z)
-                         
+
 
 #define   UCF(TN,I,C)  _SEP_(TN,C,cfCOMMA) _Icf(2,U,TN,_(A,I),0)
 #define  UUCF(TN,I,C)  _SEP_(TN,C,cfCOMMA) _SEP_(TN,1,I) 
@@ -1492,8 +1497,8 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
                 memset(AA0,CFORTRAN_NON_CHAR, MAX_LEN_FORTRAN_FUNCTION_STRING);\
                             A0 = _cptofcd(AA0,MAX_LEN_FORTRAN_FUNCTION_STRING);
 #else
-/* 'cc: SC3.0.1 13 Jul 1994' barfs on char A0[0x4FE+1]; 
- * char A0[0x4FE +1]; char A0[1+0x4FE]; are both OK.     */
+/* 'cc: SC3.0.1 13 Jul 1994' barfs on char A0[0x4FE+1];
+* char A0[0x4FE +1]; char A0[1+0x4FE]; are both OK.     */
 #define STRING_cfE static char A0[1+MAX_LEN_FORTRAN_FUNCTION_STRING];          \
                        memset(A0, CFORTRAN_NON_CHAR,                           \
                               MAX_LEN_FORTRAN_FUNCTION_STRING);                \
@@ -1501,12 +1506,12 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #endif
 #endif
 /* ESTRING must use static char. array which is guaranteed to exist after
-   function returns.                                                     */
+function returns.                                                     */
 
 /* N.B.i) The diff. for 0 (Zero) and >=1 arguments.
-       ii)That the following create an unmatched bracket, i.e. '(', which
-          must of course be matched in the call.
-       iii)Commas must be handled very carefully                         */
+ii)That the following create an unmatched bracket, i.e. '(', which
+must of course be matched in the call.
+iii)Commas must be handled very carefully                         */
 #define    INT_cfGZ(T,UN,LN) A0=CFC_(UN,LN)(
 #define   VOID_cfGZ(T,UN,LN)    CFC_(UN,LN)(
 #ifdef vmsFortran
@@ -1555,7 +1560,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define    ROUTINE_cfB(T,A) (cfCAST_FUNCTION)A
 #define    ZTRINGV_cfB(T,A) (char *)   A
 #define   PZTRINGV_cfB(T,A) (char *)   A
-                                                              	
+
 #define SCF(TN,NAME,I,A)    _(TN,_cfSTR)(3,S,NAME,I,A,0,0)
 #define  DEFAULT_cfS(M,I,A)
 #define  LOGICAL_cfS(M,I,A)
@@ -1673,7 +1678,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define   STRING_cfC(M,I,A,B,C) (B.clen=strlen(A),B.f.dsc$a_pointer=A,         \
         C==sizeof(char*)||C==(unsigned)(B.clen+1)?B.f.dsc$w_length=B.clen:     \
           (memset((A)+B.clen,' ',C-B.clen-1),A[B.f.dsc$w_length=C-1]='\0'));
-      /* PSTRING_cfC to beware of array A which does not contain any \0.      */
+/* PSTRING_cfC to beware of array A which does not contain any \0.      */
 #define  PSTRING_cfC(M,I,A,B,C) (B.dsc$a_pointer=A, C==sizeof(char*) ?         \
              B.dsc$w_length=strlen(A):  (A[C-1]='\0',B.dsc$w_length=strlen(A), \
        memset((A)+B.dsc$w_length,' ',C-B.dsc$w_length-1), B.dsc$w_length=C-1));
@@ -1684,7 +1689,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define  PSTRING_cfC(M,I,A,B,C) (C==sizeof(char*)? B=strlen(A):                \
                     (A[C-1]='\0',B=strlen(A),memset((A)+B,' ',C-B-1),B=C-1));
 #endif
-          /* For CRAYFortran for (P)STRINGV_cfC, B.fs is set, but irrelevant. */
+/* For CRAYFortran for (P)STRINGV_cfC, B.fs is set, but irrelevant. */
 #define  STRINGV_cfC(M,I,A,B,C) \
         AATRINGV_cfA(    A,B,(C/0xFFFF)*(C%0xFFFF),C/0xFFFF,C%0xFFFF)
 #define PSTRINGV_cfC(M,I,A,B,C) \
@@ -1700,7 +1705,7 @@ do{VVCF(T1,A1,B1)  VVCF(T2,A2,B2)  VVCF(T3,A3,B3)  VVCF(T4,A4,B4)  VVCF(T5,A5,B5
 #define   DOUBLE_cfCCC(A,B) &A
 #if !defined(__CF__KnR)
 #define    FLOAT_cfCCC(A,B) &A
-                               /* Although the VAX doesn't, at least the      */
+/* Although the VAX doesn't, at least the      */
 #else                          /* HP and K&R mips promote float arg.'s of     */
 #define    FLOAT_cfCCC(A,B) &B /* unprototyped functions to double. Cannot    */
 #endif                         /* use A here to pass the argument to FORTRAN. */
@@ -1830,7 +1835,7 @@ Can only have prototype arg.'s with difficulty, a la G... table since FORTRAN
 functions returning strings have extra arg.'s. Don't bother, since this only
 causes a compiler warning to come up when one uses FCALLSCFUNn and CCALLSFFUNn
 for the same function in the same source code. Something done by the experts in
-debugging only.*/    
+debugging only.*/
 
 #define PROTOCCALLSFFUN0(F,UN,LN)                                              \
 _(F,_cfPU)( CFC_(UN,LN))(CF_NULL_PROTO);                                       \
@@ -2026,8 +2031,8 @@ static _Icf(2,U,F,CFFUN(UN),0)() {_(F,_cfE) _Icf(3,GZ,F,UN,LN) ABSOFT_cf1(F));_(
 #define        ROUTINE_cfT(M,I,A,B,D)  _(ROUTINE_,I)    A
 #endif
 /* A == pointer to the characters
-   D == length of the string, or of an element in an array of strings
-   E == number of elements in an array of strings                             */
+D == length of the string, or of an element in an array of strings
+E == number of elements in an array of strings                             */
 #define TTSTR(    A,B,D)                                                       \
            ((B=_cf_malloc(D+1))[D]='\0', memcpy(B,A,D), kill_trailing(B,' '))
 #define TTTTSTR(  A,B,D)   (!(D<4||A[0]||A[1]||A[2]||A[3]))?NULL:              \
@@ -2092,7 +2097,7 @@ static _Icf(2,U,F,CFFUN(UN),0)() {_(F,_cfE) _Icf(3,GZ,F,UN,LN) ABSOFT_cf1(F));_(
 #define    VOID_cfFZ(UN,LN) void  FCALLSC_QUALIFIER fcallsc(UN,LN)(
 #ifndef __CF__KnR
 /* The void is req'd by the Apollo, to make this an ANSI function declaration.
-   The Apollo promotes K&R float functions to double. */
+The Apollo promotes K&R float functions to double. */
 #define   FLOAT_cfFZ(UN,LN) FORTRAN_REAL FCALLSC_QUALIFIER fcallsc(UN,LN)(void
 #ifdef vmsFortran
 #define  STRING_cfFZ(UN,LN) void  FCALLSC_QUALIFIER fcallsc(UN,LN)(fstring *AS

@@ -36,7 +36,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-/* 
+/*
  * File:   signed_distance_calculation_utils.h
  * Author: rrossi
  *
@@ -60,131 +60,131 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	/**@name Kratos Globals */
-	/*@{ */
+/**@name Kratos Globals */
+/*@{ */
 
 
-	/*@} */
-	/**@name Type Definitions */
-	/*@{ */
+/*@} */
+/**@name Type Definitions */
+/*@{ */
 
 
-	/*@} */
+/*@} */
 
 
-	/**@name  Enum's */
-	/*@{ */
+/**@name  Enum's */
+/*@{ */
 
 
-	/*@} */
-	/**@name  Functions */
-	/*@{ */
+/*@} */
+/**@name  Functions */
+/*@{ */
 
 
 
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
+/*@} */
+/**@name Kratos Classes */
+/*@{ */
 
-	/** Short class definition.
-	Detail class definition.
+/** Short class definition.
+Detail class definition.
 
-      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-		\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-		  \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+	  \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-			\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-				\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-				  \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-					\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-					  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+		\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-	*/
-    template< unsigned int TDim>
-    class SignedDistanceCalculationUtils
+			\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+
+			  \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+
+				\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+
+				  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+
+
+*/
+template< unsigned int TDim>
+class SignedDistanceCalculationUtils
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
+    typedef ModelPart::NodesContainerType NodesArrayType;
+    typedef ModelPart::ElementsContainerType ElementsArrayType;
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
+
+    /** Constructor.
+    */
+
+
+    /** Destructor.
+    */
+
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
+    //***********************************************************************
+    //***********************************************************************
+    void CalculateDistances(
+        ModelPart& r_model_part,
+        Variable<double>& rDistanceVar,
+        const double max_distance
+    )
     {
-    public:
-		/**@name Type Definitions */
-		/*@{ */
-		typedef ModelPart::NodesContainerType NodesArrayType;
-		typedef ModelPart::ElementsContainerType ElementsArrayType;
-		/*@} */
-		/**@name Life Cycle
-		*/
-		/*@{ */
+        KRATOS_TRY
 
-		/** Constructor.
-		*/
+        double large_distance = 1e6;
+        double tol = 1.0/large_distance;
 
-
-		/** Destructor.
-		*/
-
-		/*@} */
-		/**@name Operators
-		*/
-		/*@{ */
-
-
-		/*@} */
-		/**@name Operations */
-		/*@{ */
-
-		//***********************************************************************
-		//***********************************************************************
-		void CalculateDistances(
-			ModelPart& r_model_part,
-			Variable<double>& rDistanceVar,
-			const double max_distance
-			)
+        //copy rDistance var to GetValue database
+        for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
         {
-			KRATOS_TRY
+            it->GetValue(rDistanceVar) = it->FastGetSolutionStepValue(rDistanceVar);
+            it->FastGetSolutionStepValue(rDistanceVar) = large_distance;
+            it->GetValue(IS_VISITED) = 0;
+        }
 
-                        double large_distance = 1e6;
-                        double tol = 1.0/large_distance;
+        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
+        array_1d<double,TDim+1> N, distances;
+        array_1d<double,TDim> grad_d;
+        array_1d<double,3> coord_on_0;
+        array_1d<double,3> temp;
+        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points;
 
-			//copy rDistance var to GetValue database
-			for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
-			{
-                            it->GetValue(rDistanceVar) = it->FastGetSolutionStepValue(rDistanceVar);
-                                it->FastGetSolutionStepValue(rDistanceVar) = large_distance;
-                                it->GetValue(IS_VISITED) = 0;
-                        }
+        //fill the list of the first elements to be solved for the "distance"
+        for(ElementsArrayType::iterator it =  r_model_part.ElementsBegin(); it !=r_model_part.ElementsEnd(); it++)
+        {
+            Element::GeometryType& geom = it->GetGeometry();
 
-                        boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
-			array_1d<double,TDim+1> N, distances;
-                        array_1d<double,TDim> grad_d;
-                        array_1d<double,3> coord_on_0;
-                        array_1d<double,3> temp;
-                        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points;
+            unsigned int n_positive = 0;
+            unsigned int n_negative = 0;
+            for(unsigned int kk = 0; kk<TDim+1 ; kk++)
+            {
+                const double dist = geom[kk].GetValue(rDistanceVar);
+                distances[kk] = dist;
+                if(dist < 0)
+                    n_negative += 1;
+                else
+                    n_positive += 1;
+            }
 
-			//fill the list of the first elements to be solved for the "distance"
-			for(ElementsArrayType::iterator it =  r_model_part.ElementsBegin(); it !=r_model_part.ElementsEnd(); it++)
-			{
-				Element::GeometryType& geom = it->GetGeometry();
-
-                                unsigned int n_positive = 0;
-                                unsigned int n_negative = 0;
-				for(unsigned int kk = 0; kk<TDim+1 ; kk++)
-				{
-                                    const double dist = geom[kk].GetValue(rDistanceVar);
-                                    distances[kk] = dist;
-                                    if(dist < 0)
-                                         n_negative += 1;
-                                    else
-                                         n_positive += 1;
-				}
-
-                                if(n_negative > 0 && n_positive > 0) //ELEMENT IS CROSSED BY THE INTERFACE!
-                                {
+            if(n_negative > 0 && n_positive > 0) //ELEMENT IS CROSSED BY THE INTERFACE!
+            {
 //                                    //determine the positions at which the edges are cut by the free surface
 //                                    unsigned int counter = 0;
 //                                    for (unsigned int i = 0; i < TDim + 1; i++) {
@@ -237,188 +237,190 @@ namespace Kratos
 
 
 //
-                                    double Volume;
-                                    GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+                double Volume;
+                GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
 
-                                    //compute the gradient of the distance and normalize it
-                                    noalias(grad_d) = prod(trans(DN_DX),distances);
-                                    double norm = norm_2(grad_d);
-                                    grad_d /= norm;
+                //compute the gradient of the distance and normalize it
+                noalias(grad_d) = prod(trans(DN_DX),distances);
+                double norm = norm_2(grad_d);
+                grad_d /= norm;
 
-                                    //find one division point on one edge
-                                    for(unsigned int i = 1; i<TDim+1; i++)
-                                    {
-                                        if(distances[0]*distances[i]<=0) //if the edge is divided
-                                         {
-                                                double delta_d = fabs(distances[i]) + fabs(distances[0]);
-						
-						if(delta_d>1e-20)
-						{
-						  double Ni = fabs(distances[0]) / delta_d;
-						  double N0 = fabs(distances[i]) / delta_d;
+                //find one division point on one edge
+                for(unsigned int i = 1; i<TDim+1; i++)
+                {
+                    if(distances[0]*distances[i]<=0) //if the edge is divided
+                    {
+                        double delta_d = fabs(distances[i]) + fabs(distances[0]);
 
-						  noalias(coord_on_0) = N0 * geom[0].Coordinates();
-						  noalias(coord_on_0) += Ni * geom[i].Coordinates();
-						}
-						else
-						  noalias(coord_on_0) = geom[0].Coordinates();
+                        if(delta_d>1e-20)
+                        {
+                            double Ni = fabs(distances[0]) / delta_d;
+                            double N0 = fabs(distances[i]) / delta_d;
 
-                                                break;
-
-                                        }
-                                    }
-
-                                    //now calculate the distance of all the nodes from the elemental free surface
-                                    for(unsigned int i = 0; i<TDim+1; i++)
-                                    {
-                                        noalias(temp) = geom[i].Coordinates();
-                                        noalias(temp) -= coord_on_0 ;
-
-                                        double real_distance = 0.0;
-                                        for(unsigned int k=0; k<TDim; k++)
-                                            real_distance += temp[k]*grad_d[k];
-                                        real_distance = fabs(real_distance);
-
-                                        double& dist_i = geom[i].FastGetSolutionStepValue(rDistanceVar);
-                                        if(real_distance < dist_i)
-                                            dist_i = real_distance;
-
-                                        //select the nodes for the computation of the distance
-                                        geom[i].GetValue(IS_VISITED) = 1;
-                                    }
-
-                                }
-			}
-
-                        //loop on all nodes to treat correctly the case of the surface coinciding with a node
-                        //copy rDistance var to GetValue database
-			array_1d<double,3> aux;
-			for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
-			{
-                            if(fabs(it->GetValue(rDistanceVar)) < tol)
-                            {
-                                it->FastGetSolutionStepValue(rDistanceVar) = 0.0;
-                               it->GetValue(IS_VISITED) = 1;
-
-				const array_1d<double,3>& center_coords = it->Coordinates();
-
-				//now loop all of its neighbours and calculate the distance value
-				for (WeakPointerVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
-                                 in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
-				{
-					const array_1d<double,3>& coords = in->Coordinates();
-					noalias(aux) = coords;
-					noalias(aux) -= center_coords;
-					double dist = norm_2(aux);
-
-					if(in->FastGetSolutionStepValue(rDistanceVar) > dist)
-						in->FastGetSolutionStepValue(rDistanceVar) = dist;
-					
-					in->GetValue(IS_VISITED)=1;
-				}
-                               
-                            }
+                            noalias(coord_on_0) = N0 * geom[0].Coordinates();
+                            noalias(coord_on_0) += Ni * geom[i].Coordinates();
                         }
-                        
-                        //compute the distance using the element based approach
-                        BodyDistanceCalculationUtils util;
-                        util.CalculateDistances<TDim>(r_model_part.Elements(),rDistanceVar,max_distance);
+                        else
+                            noalias(coord_on_0) = geom[0].Coordinates();
 
-                        //finally change the sign to the distance as needed
-			for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
-			{
-                            if(it->GetValue(rDistanceVar) < 0)
-                                it->FastGetSolutionStepValue(rDistanceVar) = -it->FastGetSolutionStepValue(rDistanceVar);
-                        }
-                         
-                        //check if something is wrong
-                        for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
-			{
-                            if(fabs(it->FastGetSolutionStepValue(rDistanceVar)) == large_distance)
-                            {
-                                KRATOS_WATCH("error in the calculation of the distance for node")
-                                KRATOS_WATCH(it->Id());
+                        break;
 
-                            }
-                        }
-
-
-
-
-			KRATOS_CATCH("")
-
-			}
-
-
-
-
-	//**********************************************************************************+
-	//**********************************************************************************+
-        double FindMaximumEdgeSize(ModelPart& r_model_part) {
-            KRATOS_TRY
-
-            ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
-
-            double h_max = 0.0;
-
-            for (ModelPart::NodesContainerType::iterator in = rNodes.begin(); in != rNodes.end(); in++)
-            {
-                double xc = in->X();
-                double yc = in->Y();
-                double zc = in->Z();
-
-                double h = 0.0;
-                for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
-                        i != in->GetValue(NEIGHBOUR_NODES).end(); i++) {
-                    double x = i->X();
-                    double y = i->Y();
-                    double z = i->Z();
-                    double l = (x - xc)*(x - xc);
-                    l += (y - yc)*(y - yc);
-                    l += (z - zc)*(z - zc);
-
-                    if (l > h) h = l;
+                    }
                 }
-                h = sqrt(h);
 
-                if(h > h_max) h_max = h;
+                //now calculate the distance of all the nodes from the elemental free surface
+                for(unsigned int i = 0; i<TDim+1; i++)
+                {
+                    noalias(temp) = geom[i].Coordinates();
+                    noalias(temp) -= coord_on_0 ;
+
+                    double real_distance = 0.0;
+                    for(unsigned int k=0; k<TDim; k++)
+                        real_distance += temp[k]*grad_d[k];
+                    real_distance = fabs(real_distance);
+
+                    double& dist_i = geom[i].FastGetSolutionStepValue(rDistanceVar);
+                    if(real_distance < dist_i)
+                        dist_i = real_distance;
+
+                    //select the nodes for the computation of the distance
+                    geom[i].GetValue(IS_VISITED) = 1;
+                }
 
             }
-
-            return h_max;
-
-            KRATOS_CATCH("");
         }
 
-			/*@} */
-		/**@name Acces */
-		/*@{ */
+        //loop on all nodes to treat correctly the case of the surface coinciding with a node
+        //copy rDistance var to GetValue database
+        array_1d<double,3> aux;
+        for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
+        {
+            if(fabs(it->GetValue(rDistanceVar)) < tol)
+            {
+                it->FastGetSolutionStepValue(rDistanceVar) = 0.0;
+                it->GetValue(IS_VISITED) = 1;
+
+                const array_1d<double,3>& center_coords = it->Coordinates();
+
+                //now loop all of its neighbours and calculate the distance value
+                for (WeakPointerVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
+                        in != it->GetValue(NEIGHBOUR_NODES).end(); in++)
+                {
+                    const array_1d<double,3>& coords = in->Coordinates();
+                    noalias(aux) = coords;
+                    noalias(aux) -= center_coords;
+                    double dist = norm_2(aux);
+
+                    if(in->FastGetSolutionStepValue(rDistanceVar) > dist)
+                        in->FastGetSolutionStepValue(rDistanceVar) = dist;
+
+                    in->GetValue(IS_VISITED)=1;
+                }
+
+            }
+        }
+
+        //compute the distance using the element based approach
+        BodyDistanceCalculationUtils util;
+        util.CalculateDistances<TDim>(r_model_part.Elements(),rDistanceVar,max_distance);
+
+        //finally change the sign to the distance as needed
+        for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
+        {
+            if(it->GetValue(rDistanceVar) < 0)
+                it->FastGetSolutionStepValue(rDistanceVar) = -it->FastGetSolutionStepValue(rDistanceVar);
+        }
+
+        //check if something is wrong
+        for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin(); it !=r_model_part.NodesEnd(); it++)
+        {
+            if(fabs(it->FastGetSolutionStepValue(rDistanceVar)) == large_distance)
+            {
+                KRATOS_WATCH("error in the calculation of the distance for node")
+                KRATOS_WATCH(it->Id());
+
+            }
+        }
 
 
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
 
 
-		/*@} */
-		/**@name Friends */
-		/*@{ */
+        KRATOS_CATCH("")
+
+    }
 
 
-		/*@} */
-
-    private:
-		/**@name Static Member Variables */
-		/*@{ */
 
 
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
+    //**********************************************************************************+
+    //**********************************************************************************+
+    double FindMaximumEdgeSize(ModelPart& r_model_part)
+    {
+        KRATOS_TRY
 
-		/*@} */
-		/**@name Private Operators*/
-		/*@{ */
+        ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
+
+        double h_max = 0.0;
+
+        for (ModelPart::NodesContainerType::iterator in = rNodes.begin(); in != rNodes.end(); in++)
+        {
+            double xc = in->X();
+            double yc = in->Y();
+            double zc = in->Z();
+
+            double h = 0.0;
+            for (WeakPointerVector< Node < 3 > >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                    i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+            {
+                double x = i->X();
+                double y = i->Y();
+                double z = i->Z();
+                double l = (x - xc)*(x - xc);
+                l += (y - yc)*(y - yc);
+                l += (z - zc)*(z - zc);
+
+                if (l > h) h = l;
+            }
+            h = sqrt(h);
+
+            if(h > h_max) h_max = h;
+
+        }
+
+        return h_max;
+
+        KRATOS_CATCH("");
+    }
+
+    /*@} */
+    /**@name Acces */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Friends */
+    /*@{ */
+
+
+    /*@} */
+
+private:
+    /**@name Static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
 //                 void ComputeDistancesFromVirtualPoint3D(
 //                                 Geometry< Node<3> >& geom,
 //                                 double xi, double eta,
@@ -428,7 +430,7 @@ namespace Kratos
 //                 {
 //                     Point<3> aux(0.0, 0.0, 0.0);
 //                     array_1d<double, 3 >& coords = aux.Coordinates();
-// 
+//
 //                     //setting the coordinates for the virtual points to the expected value
 //                     N[0] = 1.0 - xi - eta;
 //                     N[1] = xi;
@@ -438,7 +440,7 @@ namespace Kratos
 //                         for (unsigned int j = 0; j < TDim; j++)
 //                             coords[j] += N[i] * free_surface_points(i,j);
 //                     }
-// 
+//
 //                     //now compute and verify the distance
 //                     for (unsigned int i = 0; i < TDim+1; i++)
 //                     {
@@ -446,9 +448,9 @@ namespace Kratos
 //                         double dist = 0.0;
 //                         for (unsigned int j = 0; j < TDim; j++)
 //                             dist += pow( coords[j] - node_coords[j] , 2);
-// 
+//
 //                         dist = sqrt(dist);
-// 
+//
 //                         double& node_dist = geom[i].FastGetSolutionStepValue(rDistanceVar);
 //                         if(dist < node_dist)
 //                             node_dist = dist;
@@ -456,38 +458,38 @@ namespace Kratos
 //                 }
 
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private  Acces */
-		/*@{ */
+    /*@} */
+    /**@name Private  Acces */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Un accessible methods */
-		/*@{ */
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
 
 
 
-		/*@} */
+    /*@} */
 
-    }; /* Class ClassName */
+}; /* Class ClassName */
 
-	/*@} */
+/*@} */
 
-	/**@name Type Definitions */
-	/*@{ */
+/**@name Type Definitions */
+/*@{ */
 
 
-	/*@} */
+/*@} */
 
 }  /* namespace Kratos.*/
 

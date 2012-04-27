@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,15 +38,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.2 $ 
+//   Revision:            $Revision: 1.2 $
 //
-//  
+//
 
 #if !defined(KRATOS_MARK_CLOSE_NODES_PROCESS_INCLUDED )
 #define  KRATOS_MARK_CLOSE_NODES_PROCESS_INCLUDED
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -74,254 +74,256 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the PRESSURE_FORCE on the nodes
-
-		
-	*/
-
-	class MarkCloseNodesProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of PushStructureProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MarkCloseNodesProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MarkCloseNodesProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-		}
-
-		/// Destructor.
-		virtual ~MarkCloseNodesProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+///@}
+///@name  Functions
+///@{
 
+///@}
+///@name Kratos Classes
+///@{
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Execute()
-		{
-		KRATOS_TRY
-		for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ; 
-				in != mr_model_part.NodesEnd() ; ++in)
-		{
-			
-				const double& X0 = in->X();		const double& Y0 = in->Y();
-				//KRATOS_WATCH("ENTERED MARKING CLOSE NODES FUCNTION!");
-			
-				for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
-									i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
-				{
-				const double& X1 = i->X();	const double& Y1 = i->Y();
-				const double& dist_sq = (X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0);
-				if (dist_sq<0.1*(i->GetValue(NODAL_H))*(i->GetValue(NODAL_H)) && in->GetId()>i->GetId())
-				//if (dist_sq<0.001 && in->GetId()>i->GetId())
-					{
-					i->GetValue(ERASE_FLAG)= true;
-					KRATOS_WATCH("ERASING NODE!!!!!!");
-					KRATOS_WATCH(in->GetId());
-
-					}
-				
-				}
-				
-				
-		}
-			
-			
-		KRATOS_CATCH("")
-		}
+/// Short class definition.
+/** Detail class definition.
+	Update the PRESSURE_FORCE on the nodes
 
 
-		///@}
-		///@name Access
-		///@{ 
+*/
+
+class MarkCloseNodesProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MarkCloseNodesProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MarkCloseNodesProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+    }
+
+    /// Destructor.
+    virtual ~MarkCloseNodesProcess()
+    {
+    }
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MarkCloseNodesProcess";
-		}
+    virtual void Execute()
+    {
+        KRATOS_TRY
+        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ;
+                in != mr_model_part.NodesEnd() ; ++in)
+        {
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MarkCloseNodesProcess";
-		}
+            const double& X0 = in->X();
+            const double& Y0 = in->Y();
+            //KRATOS_WATCH("ENTERED MARKING CLOSE NODES FUCNTION!");
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+            for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                    i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+            {
+                const double& X1 = i->X();
+                const double& Y1 = i->Y();
+                const double& dist_sq = (X1-X0)*(X1-X0)+(Y1-Y0)*(Y1-Y0);
+                if (dist_sq<0.1*(i->GetValue(NODAL_H))*(i->GetValue(NODAL_H)) && in->GetId()>i->GetId())
+                    //if (dist_sq<0.001 && in->GetId()>i->GetId())
+                {
+                    i->GetValue(ERASE_FLAG)= true;
+                    KRATOS_WATCH("ERASING NODE!!!!!!");
+                    KRATOS_WATCH(in->GetId());
 
+                }
 
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+            }
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+        }
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+        KRATOS_CATCH("")
+    }
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MarkCloseNodesProcess";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MarkCloseNodesProcess";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		/// Assignment operator.
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		MarkCloseNodesProcess& operator=(MarkCloseNodesProcess const& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		MarkCloseNodesProcess(MarkCloseNodesProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class MarkCloseNodesProcess 
+}; // Class MarkCloseNodesProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MarkCloseNodesProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MarkCloseNodesProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MarkCloseNodesProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MarkCloseNodesProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

@@ -35,8 +35,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/*          
+
+/*
 * =======================================================================*
 * kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
 * kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
@@ -85,7 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 // #include "utilities/superlu_interface.h"
 #include "includes/ublas_interface.h"
@@ -117,68 +117,68 @@ namespace ublas = boost::numeric::ublas;
 
 namespace Kratos
 {
-    template< class TSparseSpaceType, class TDenseSpaceType, 
-              class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-        class SuperLUSolver : public DirectSolver< TSparseSpaceType, 
-              TDenseSpaceType, TReordererType>
+template< class TSparseSpaceType, class TDenseSpaceType,
+          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+class SuperLUSolver : public DirectSolver< TSparseSpaceType,
+    TDenseSpaceType, TReordererType>
+{
+public:
+    /**
+     * Counted pointer of SuperLUSolver
+     */
+    typedef boost::shared_ptr<SuperLUSolver> Pointer;
+
+    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+
+    typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+    /**
+     * Default constructor
+     */
+    SuperLUSolver() {}
+
+    /**
+     * Destructor
+     */
+    virtual ~SuperLUSolver() {}
+
+    /**
+     * Normal solve method.
+     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
+     * rX is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector.
+     * @param rB. Right hand side vector.
+     */
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        public:
-            /**
-             * Counted pointer of SuperLUSolver
-             */
-            typedef boost::shared_ptr<SuperLUSolver> Pointer;
-            
-            typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType; 
-            
-            typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-            
-            typedef typename TSparseSpaceType::VectorType VectorType;
-            
-            typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-            
-            /**
-             * Default constructor
-             */
-            SuperLUSolver(){}
-            
-            /**
-             * Destructor
-             */
-            virtual ~SuperLUSolver(){}
-            
-            /** 
-             * Normal solve method.
-             * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-             * rX is also th initial guess for iterative methods.
-             * @param rA. System matrix
-             * @param rX. Solution vector.
-             * @param rB. Right hand side vector.
-             */
-            bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-            {
-				std::cout << "matrix size in solver: " << rA.size1() << std::endl;
-				std::cout << "RHS size in solver: " << rB.size() << std::endl;
-                typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
-                typedef typename matraits::value_type val_t;
-                
-                typedef ublas::compressed_matrix<double, ublas::row_major, 0,
+        std::cout << "matrix size in solver: " << rA.size1() << std::endl;
+        std::cout << "RHS size in solver: " << rB.size() << std::endl;
+        typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
+        typedef typename matraits::value_type val_t;
+
+        typedef ublas::compressed_matrix<double, ublas::row_major, 0,
                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
-                typedef ublas::matrix<double, ublas::row_major> m_t;
-                
-                if(IsNotConsistent(rA, rX, rB))
-                    return false;
-                
-                //manually create RHS matrix
-                m_t b( rB.size(), 1 );
-                for( int i=0; i<rB.size(); i++ )
-                {
+        typedef ublas::matrix<double, ublas::row_major> m_t;
+
+        if(IsNotConsistent(rA, rX, rB))
+            return false;
+
+        //manually create RHS matrix
+        m_t b( rB.size(), 1 );
+        for( int i=0; i<rB.size(); i++ )
+        {
 //                     if( ! (abs(rB[i])< 1.0e-15) )
-					b(i,0) = rB[i];
+            b(i,0) = rB[i];
 //                     else b[i][0] = 0.0;
-                }
-                
+        }
+
 //                 KRATOS_WATCH(b);
-                
+
 //                 for( int i=0; i< rA.index1_data().size(); i++ )
 //                 {
 //                     std::cout << rA.index1_data()[i]  << " ";
@@ -191,52 +191,52 @@ namespace Kratos
 // //                     row_index_vector[i] = rA.index1_data()[i];
 //                 }
 //                 std::cout << std::endl;
-                
-                //call solver routine
-                slu::gssv (rA, b, slu::atpla_min_degree);
-                
-                //resubstitution of results
-                for( int i=0; i<rB.size(); i++ )
-                {
-					rX[i] = b(i,0);
-                }
-                
-                return true;
-            }
-            
-            /** 
-             * Multi solve method for solving a set of linear systems with same coefficient matrix.
-             * Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-             * rX is also th initial guess for iterative methods.
-             * @param rA. System matrix
-             * @param rX. Solution vector.
-             * @param rB. Right hand side vector.
-             */
-            bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-            {
-            /**
-             * TODO: 
-                 * translate SparseMatrixType into SuperMatrix
-                 * call solving routine from SuperLU
-             */
+
+        //call solver routine
+        slu::gssv (rA, b, slu::atpla_min_degree);
+
+        //resubstitution of results
+        for( int i=0; i<rB.size(); i++ )
+        {
+            rX[i] = b(i,0);
+        }
+
+        return true;
+    }
+
+    /**
+     * Multi solve method for solving a set of linear systems with same coefficient matrix.
+     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
+     * rX is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector.
+     * @param rB. Right hand side vector.
+     */
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    {
+        /**
+         * TODO:
+             * translate SparseMatrixType into SuperMatrix
+             * call solving routine from SuperLU
+         */
 //                 slu::gssv ( rA, rB, slu::atpla_min_degree);
-                
+
 //                 std::cout<<"Matrix Test:"<<std::endl;
 //                 std::cout<<"boost matrix:"<<std::endl;
 //                 KRATOS_WATCH( rA );
-            //             const int size1 = TDenseSpaceType::Size1(rX);
+        //             const int size1 = TDenseSpaceType::Size1(rX);
 //             const int size2 = TDenseSpaceType::Size2(rX);
 
-                bool is_solved = true;
+        bool is_solved = true;
 
 //             VectorType x(size1);
 //             VectorType b(size1);
 
-            // define an object to store skyline matrix and factorization
+        // define an object to store skyline matrix and factorization
 //             LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> myFactorization;
-            // copy myMatrix into skyline format
+        // copy myMatrix into skyline format
 //             myFactorization.copyFromCSRMatrix(rA);
-            // factorize it
+        // factorize it
 //             myFactorization.factorize();
 
 //             for(int i = 0 ; i < size2 ; i++)
@@ -244,71 +244,71 @@ namespace Kratos
 //                 TDenseSpaceType::GetColumn(i,rX, x);
 //                 TDenseSpaceType::GetColumn(i,rB, b);
 
-                // and back solve
+        // and back solve
 //                 myFactorization.backForwardSolve(size1, b, x);
 
 //                 TDenseSpaceType::SetColumn(i,rX, x);
 //                 TDenseSpaceType::SetColumn(i,rB, b);
 //             }
 
-                return is_solved;
-            }
-            
-            /**
-             * Print information about this object.
-             */
-            void  PrintInfo(std::ostream& rOStream) const
-            {
-                rOStream << "SuperLU solver finished.";
-            }
-            
-            /**
-             * Print object's data.
-             */
-            void  PrintData(std::ostream& rOStream) const 
-            {
-            }
-        
-        private:
-            
-            /**
-             * Assignment operator.
-             */
-            SuperLUSolver& operator=(const SuperLUSolver& Other);
-            
-            /**
-             * Copy constructor.
-             */
-            SuperLUSolver(const SuperLUSolver& Other);
-    
-    }; // Class SkylineLUFactorizationSolver 
+        return is_solved;
+    }
 
-    
     /**
-     * input stream function
+     * Print information about this object.
      */
-    template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-    inline std::istream& operator >> (std::istream& rIStream, SuperLUSolver< TSparseSpaceType, 
-                                      TDenseSpaceType, TReordererType>& rThis)
+    void  PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SuperLU solver finished.";
+    }
+
+    /**
+     * Print object's data.
+     */
+    void  PrintData(std::ostream& rOStream) const
     {
     }
-    
-    /**
-     * output stream function
-     */
-    template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-    inline std::ostream& operator << (std::ostream& rOStream, 
-                                      const SuperLUSolver<TSparseSpaceType, 
-                                      TDenseSpaceType, TReordererType>& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
 
-        return rOStream;
-    }
- 
-  
+private:
+
+    /**
+     * Assignment operator.
+     */
+    SuperLUSolver& operator=(const SuperLUSolver& Other);
+
+    /**
+     * Copy constructor.
+     */
+    SuperLUSolver(const SuperLUSolver& Other);
+
+}; // Class SkylineLUFactorizationSolver
+
+
+/**
+ * input stream function
+ */
+template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
+inline std::istream& operator >> (std::istream& rIStream, SuperLUSolver< TSparseSpaceType,
+                                  TDenseSpaceType, TReordererType>& rThis)
+{
+}
+
+/**
+ * output stream function
+ */
+template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const SuperLUSolver<TSparseSpaceType,
+                                  TDenseSpaceType, TReordererType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_SUPERLU_SOLVER_H_INCLUDED  defined 

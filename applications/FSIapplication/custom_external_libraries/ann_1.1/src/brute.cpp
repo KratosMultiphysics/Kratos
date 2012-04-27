@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-2005 University of Maryland and Sunil Arya and
 // David Mount.  All Rights Reserved.
-// 
+//
 // This software and related documentation is part of the Approximate
 // Nearest Neighbor Library (ANN).  This software is provided under
 // the provisions of the Lesser GNU Public License (LGPL).  See the
 // file ../ReadMe.txt for further information.
-// 
+//
 // The University of Maryland (U.M.) and the authors make no
 // representations about the suitability or fitness of this software for
 // any purpose.  It is provided "as is" without express or implied
@@ -42,68 +42,76 @@
 //----------------------------------------------------------------------
 
 ANNbruteForce::ANNbruteForce(			// constructor from point array
-	ANNpointArray		pa,				// point array
-	int					n,				// number of points
-	int					dd)				// dimension
+    ANNpointArray		pa,				// point array
+    int					n,				// number of points
+    int					dd)				// dimension
 {
-	dim = dd;  n_pts = n;  pts = pa;
+    dim = dd;
+    n_pts = n;
+    pts = pa;
 }
 
 ANNbruteForce::~ANNbruteForce() { }		// destructor (empty)
 
 void ANNbruteForce::annkSearch(			// approx k near neighbor search
-	ANNpoint			q,				// query point
-	int					k,				// number of near neighbors to return
-	ANNidxArray			nn_idx,			// nearest neighbor indices (returned)
-	ANNdistArray		dd,				// dist to near neighbors (returned)
-	double				eps)			// error bound (ignored)
+    ANNpoint			q,				// query point
+    int					k,				// number of near neighbors to return
+    ANNidxArray			nn_idx,			// nearest neighbor indices (returned)
+    ANNdistArray		dd,				// dist to near neighbors (returned)
+    double				eps)			// error bound (ignored)
 {
-	ANNmin_k mk(k);						// construct a k-limited priority queue
-	int i;
+    ANNmin_k mk(k);						// construct a k-limited priority queue
+    int i;
 
-	if (k > n_pts) {					// too many near neighbors?
-		annError("Requesting more near neighbors than data points", ANNabort);
-	}
-										// run every point through queue
-	for (i = 0; i < n_pts; i++) {
-										// compute distance to point
-		ANNdist sqDist = annDist(dim, pts[i], q);
-		if (ANN_ALLOW_SELF_MATCH || sqDist != 0)
-			mk.insert(sqDist, i);
-	}
-	for (i = 0; i < k; i++) {			// extract the k closest points
-		dd[i] = mk.ith_smallest_key(i);
-		nn_idx[i] = mk.ith_smallest_info(i);
-	}
+    if (k > n_pts)  					// too many near neighbors?
+    {
+        annError("Requesting more near neighbors than data points", ANNabort);
+    }
+    // run every point through queue
+    for (i = 0; i < n_pts; i++)
+    {
+        // compute distance to point
+        ANNdist sqDist = annDist(dim, pts[i], q);
+        if (ANN_ALLOW_SELF_MATCH || sqDist != 0)
+            mk.insert(sqDist, i);
+    }
+    for (i = 0; i < k; i++)  			// extract the k closest points
+    {
+        dd[i] = mk.ith_smallest_key(i);
+        nn_idx[i] = mk.ith_smallest_info(i);
+    }
 }
 
 int ANNbruteForce::annkFRSearch(		// approx fixed-radius kNN search
-	ANNpoint			q,				// query point
-	ANNdist				sqRad,			// squared radius
-	int					k,				// number of near neighbors to return
-	ANNidxArray			nn_idx,			// nearest neighbor array (returned)
-	ANNdistArray		dd,				// dist to near neighbors (returned)
-	double				eps)			// error bound
+    ANNpoint			q,				// query point
+    ANNdist				sqRad,			// squared radius
+    int					k,				// number of near neighbors to return
+    ANNidxArray			nn_idx,			// nearest neighbor array (returned)
+    ANNdistArray		dd,				// dist to near neighbors (returned)
+    double				eps)			// error bound
 {
-	ANNmin_k mk(k);						// construct a k-limited priority queue
-	int i;
-	int pts_in_range = 0;				// number of points in query range
-										// run every point through queue
-	for (i = 0; i < n_pts; i++) {
-										// compute distance to point
-		ANNdist sqDist = annDist(dim, pts[i], q);
-		if (sqDist <= sqRad &&			// within radius bound
-			(ANN_ALLOW_SELF_MATCH || sqDist != 0)) { // ...and no self match
-			mk.insert(sqDist, i);
-			pts_in_range++;
-		}
-	}
-	for (i = 0; i < k; i++) {			// extract the k closest points
-		if (dd != NULL)
-			dd[i] = mk.ith_smallest_key(i);
-		if (nn_idx != NULL)
-			nn_idx[i] = mk.ith_smallest_info(i);
-	}
+    ANNmin_k mk(k);						// construct a k-limited priority queue
+    int i;
+    int pts_in_range = 0;				// number of points in query range
+    // run every point through queue
+    for (i = 0; i < n_pts; i++)
+    {
+        // compute distance to point
+        ANNdist sqDist = annDist(dim, pts[i], q);
+        if (sqDist <= sqRad &&			// within radius bound
+                (ANN_ALLOW_SELF_MATCH || sqDist != 0))   // ...and no self match
+        {
+            mk.insert(sqDist, i);
+            pts_in_range++;
+        }
+    }
+    for (i = 0; i < k; i++)  			// extract the k closest points
+    {
+        if (dd != NULL)
+            dd[i] = mk.ith_smallest_key(i);
+        if (nn_idx != NULL)
+            nn_idx[i] = mk.ith_smallest_info(i);
+    }
 
-	return pts_in_range;
+    return pts_in_range;
 }

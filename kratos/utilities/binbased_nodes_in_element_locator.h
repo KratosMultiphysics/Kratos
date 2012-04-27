@@ -77,7 +77,7 @@ namespace Kratos
 ///After the creation of the "BinBasedNodesInElementLocator",
 ///the user should call the function "UpdateSearchDatabase" or"UpdateSearchDatabaseAssignedSize(hmin)"  to mount the bin
 ///and subsequently locate the points as needed
-///An application of this utility can be found in 
+///An application of this utility can be found in
 
 ///REMARK: the location function is threadsafe, and can be used in OpenMP loops
 template< unsigned int TDim>
@@ -99,7 +99,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BinBasedNodesInElementLocator);
 
     BinBasedNodesInElementLocator(ModelPart& model_part)
-            : mr_model_part(model_part)
+        : mr_model_part(model_part)
     {
     }
 
@@ -167,42 +167,44 @@ public:
                                     boost::numeric::ublas::vector<int>& positions,
                                     Matrix& Nmat,
                                     const unsigned int& max_results,
-				    PointIterator work_results,
-				    DistanceIterator work_distances,
-				    Node<3>& work_point  // is it needed from outside???????????????
+                                    PointIterator work_results,
+                                    DistanceIterator work_distances,
+                                    Node<3>& work_point  // is it needed from outside???????????????
                                    )
     {
-	Geometry<Node<3> >&geom = pelement->GetGeometry();
-	array_1d<double,TDim+1> N;
-				
-	double xc, yc, zc,  radius;	
-	CalculateCenterAndSearchRadius( geom, xc,yc,zc, radius,N);  
-	work_point.X() = xc; work_point.Y() = yc; work_point.Z() = zc;
-	
-	//find all of the new nodes within the radius
-	int number_of_points_in_radius;
+        Geometry<Node<3> >&geom = pelement->GetGeometry();
+        array_1d<double,TDim+1> N;
 
-	//look between the new nodes which of them is inside the radius of the circumscribed cyrcle
-	number_of_points_in_radius = mp_search_structure->SearchInRadius(work_point, radius, work_results, work_distances, max_results);
+        double xc, yc, zc,  radius;
+        CalculateCenterAndSearchRadius( geom, xc,yc,zc, radius,N);
+        work_point.X() = xc;
+        work_point.Y() = yc;
+        work_point.Z() = zc;
 
-	//check if inside 
-	unsigned int counter = 0;
-	
-	for( PointIterator it_found = work_results; it_found != work_results + number_of_points_in_radius; it_found++)			
-	{	
- 		bool is_inside = false;
-		is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
+        //find all of the new nodes within the radius
+        int number_of_points_in_radius;
 
-		//if the node falls inside the element interpolate
-		if(is_inside == true)
-		{
-		    positions[counter] = it_found - work_results;
-		    for(unsigned int k=0; k<TDim+1;k++)
-		      Nmat(counter,k) = N[k];
-		    counter++;
-		}
-	}
-	return counter;
+        //look between the new nodes which of them is inside the radius of the circumscribed cyrcle
+        number_of_points_in_radius = mp_search_structure->SearchInRadius(work_point, radius, work_results, work_distances, max_results);
+
+        //check if inside
+        unsigned int counter = 0;
+
+        for( PointIterator it_found = work_results; it_found != work_results + number_of_points_in_radius; it_found++)
+        {
+            bool is_inside = false;
+            is_inside = CalculatePosition(geom,	(*it_found)->X(),(*it_found)->Y(),(*it_found)->Z(),N);
+
+            //if the node falls inside the element interpolate
+            if(is_inside == true)
+            {
+                positions[counter] = it_found - work_results;
+                for(unsigned int k=0; k<TDim+1; k++)
+                    Nmat(counter,k) = N[k];
+                counter++;
+            }
+        }
+        return counter;
     }
 
 protected:
@@ -210,59 +212,70 @@ protected:
 
 private:
 
-	inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
-					double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N		
-					)
-	{
-		  double x0 = geom[0].X();double  y0 = geom[0].Y(); 
-		  double x1 = geom[1].X();double  y1 = geom[1].Y(); 
-		  double x2 = geom[2].X();double  y2 = geom[2].Y(); 
-		  
-
-		xc = 0.3333333333333333333*(x0+x1+x2);
-		yc = 0.3333333333333333333*(y0+y1+y2);
-		zc = 0.0;
-
-		double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0);
-		double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1);
-		double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2);
-		
-		R = R1;
-		if(R2 > R) R = R2;
-		if(R3 > R) R = R3;
-		
-		R = 1.01 * sqrt(R);
-	}
-	//***************************************
-	//***************************************
-	inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
-					double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N		
-
-					)
-	{
-		  double x0 = geom[0].X();double  y0 = geom[0].Y();double  z0 = geom[0].Z();
-		  double x1 = geom[1].X();double  y1 = geom[1].Y();double  z1 = geom[1].Z();
-		  double x2 = geom[2].X();double  y2 = geom[2].Y();double  z2 = geom[2].Z();
-		  double x3 = geom[3].X();double  y3 = geom[3].Y();double  z3 = geom[3].Z();	
+    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+            double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N
+                                              )
+    {
+        double x0 = geom[0].X();
+        double  y0 = geom[0].Y();
+        double x1 = geom[1].X();
+        double  y1 = geom[1].Y();
+        double x2 = geom[2].X();
+        double  y2 = geom[2].Y();
 
 
-		xc = 0.25*(x0+x1+x2+x3);
-		yc = 0.25*(y0+y1+y2+y3);
-		zc = 0.25*(z0+z1+z2+z3);			 
+        xc = 0.3333333333333333333*(x0+x1+x2);
+        yc = 0.3333333333333333333*(y0+y1+y2);
+        zc = 0.0;
 
-		double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0);
-		double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
-		double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
-		double R4 = (xc-x3)*(xc-x3) + (yc-y3)*(yc-y3) + (zc-z3)*(zc-z3);
-		
-		R = R1;
-		if(R2 > R) R = R2;
-		if(R3 > R) R = R3;
-		if(R4 > R) R = R4;
-		  
-		R = sqrt(R);
-	}  
-  
+        double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0);
+        double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1);
+        double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2);
+
+        R = R1;
+        if(R2 > R) R = R2;
+        if(R3 > R) R = R3;
+
+        R = 1.01 * sqrt(R);
+    }
+    //***************************************
+    //***************************************
+    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+            double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N
+
+                                              )
+    {
+        double x0 = geom[0].X();
+        double  y0 = geom[0].Y();
+        double  z0 = geom[0].Z();
+        double x1 = geom[1].X();
+        double  y1 = geom[1].Y();
+        double  z1 = geom[1].Z();
+        double x2 = geom[2].X();
+        double  y2 = geom[2].Y();
+        double  z2 = geom[2].Z();
+        double x3 = geom[3].X();
+        double  y3 = geom[3].Y();
+        double  z3 = geom[3].Z();
+
+
+        xc = 0.25*(x0+x1+x2+x3);
+        yc = 0.25*(y0+y1+y2+y3);
+        zc = 0.25*(z0+z1+z2+z3);
+
+        double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0);
+        double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
+        double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
+        double R4 = (xc-x3)*(xc-x3) + (yc-y3)*(yc-y3) + (zc-z3)*(zc-z3);
+
+        R = R1;
+        if(R2 > R) R = R2;
+        if(R3 > R) R = R3;
+        if(R4 > R) R = R4;
+
+        R = sqrt(R);
+    }
+
     //***************************************
     //***************************************
     inline bool CalculatePosition(Geometry<Node < 3 > >&geom,
@@ -281,9 +294,9 @@ private:
         double inv_area = 0.0;
         if (area == 0.0)
         {
-	//The interpolated node will not be inside an elemente with zero area
-	  return false;        
-	}
+            //The interpolated node will not be inside an elemente with zero area
+            return false;
+        }
         else
         {
             inv_area = 1.0 / area;
@@ -328,9 +341,9 @@ private:
         double inv_vol = 0.0;
         if (vol < 0.0000000000001)
         {
-	//The interpolated node will not be inside an elemente with zero area
-	  return false;
-	}
+            //The interpolated node will not be inside an elemente with zero area
+            return false;
+        }
         else
         {
             inv_vol = 1.0 / vol;

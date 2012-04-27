@@ -72,7 +72,7 @@ namespace Kratos
 //************************************************************************************
 
 ASGS3D::ASGS3D(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+    : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -81,7 +81,7 @@ ASGS3D::ASGS3D(IndexType NewId, GeometryType::Pointer pGeometry)
 //************************************************************************************
 
 ASGS3D::ASGS3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties)
+    : Element(NewId, pGeometry, pProperties)
 {
 
 }

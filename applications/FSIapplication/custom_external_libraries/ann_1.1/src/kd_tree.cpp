@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-2005 University of Maryland and Sunil Arya and
 // David Mount.  All Rights Reserved.
-// 
+//
 // This software and related documentation is part of the Approximate
 // Nearest Neighbor Library (ANN).  This software is provided under
 // the provisions of the Lesser GNU Public License (LGPL).  See the
 // file ../ReadMe.txt for further information.
-// 
+//
 // The University of Maryland (U.M.) and the authors make no
 // representations about the suitability or fitness of this software for
 // any purpose.  It is provided "as is" without express or implied
@@ -50,7 +50,7 @@ static int				IDX_TRIVIAL[] = {0};	// trivial point index
 ANNkd_leaf				*KD_TRIVIAL = NULL;		// trivial leaf node
 
 //----------------------------------------------------------------------
-//	Printing the kd-tree 
+//	Printing the kd-tree
 //		These routines print a kd-tree in reverse inorder (high then
 //		root then low).  (This is so that if you look at the output
 //		from the right side it appear from left to right in standard
@@ -65,60 +65,66 @@ ANNkd_leaf				*KD_TRIVIAL = NULL;		// trivial leaf node
 //----------------------------------------------------------------------
 
 void ANNkd_split::print(				// print splitting node
-		int level,						// depth of node in tree
-		ostream &out)					// output stream
+    int level,						// depth of node in tree
+    ostream &out)					// output stream
 {
-	child[ANN_HI]->print(level+1, out);	// print high child
-	out << "    ";
-	for (int i = 0; i < level; i++)		// print indentation
-		out << "..";
-	out << "Split cd=" << cut_dim << " cv=" << cut_val;
-	out << " lbnd=" << cd_bnds[ANN_LO];
-	out << " hbnd=" << cd_bnds[ANN_HI];
-	out << "\n";
-	child[ANN_LO]->print(level+1, out);	// print low child
+    child[ANN_HI]->print(level+1, out);	// print high child
+    out << "    ";
+    for (int i = 0; i < level; i++)		// print indentation
+        out << "..";
+    out << "Split cd=" << cut_dim << " cv=" << cut_val;
+    out << " lbnd=" << cd_bnds[ANN_LO];
+    out << " hbnd=" << cd_bnds[ANN_HI];
+    out << "\n";
+    child[ANN_LO]->print(level+1, out);	// print low child
 }
 
 void ANNkd_leaf::print(					// print leaf node
-		int level,						// depth of node in tree
-		ostream &out)					// output stream
+    int level,						// depth of node in tree
+    ostream &out)					// output stream
 {
 
-	out << "    ";
-	for (int i = 0; i < level; i++)		// print indentation
-		out << "..";
+    out << "    ";
+    for (int i = 0; i < level; i++)		// print indentation
+        out << "..";
 
-	if (this == KD_TRIVIAL) {			// canonical trivial leaf node
-		out << "Leaf (trivial)\n";
-	}
-	else{
-		out << "Leaf n=" << n_pts << " <";
-		for (int j = 0; j < n_pts; j++) {
-			out << bkt[j];
-			if (j < n_pts-1) out << ",";
-		}
-		out << ">\n";
-	}
+    if (this == KD_TRIVIAL)  			// canonical trivial leaf node
+    {
+        out << "Leaf (trivial)\n";
+    }
+    else
+    {
+        out << "Leaf n=" << n_pts << " <";
+        for (int j = 0; j < n_pts; j++)
+        {
+            out << bkt[j];
+            if (j < n_pts-1) out << ",";
+        }
+        out << ">\n";
+    }
 }
 
 void ANNkd_tree::Print(					// print entire tree
-		ANNbool with_pts,				// print points as well?
-		ostream &out)					// output stream
+    ANNbool with_pts,				// print points as well?
+    ostream &out)					// output stream
 {
-	out << "ANN Version " << ANNversion << "\n";
-	if (with_pts) {						// print point coordinates
-		out << "    Points:\n";
-		for (int i = 0; i < n_pts; i++) {
-			out << "\t" << i << ": ";
-			annPrintPt(pts[i], dim, out);
-			out << "\n";
-		}
-	}
-	if (root == NULL)					// empty tree?
-		out << "    Null tree.\n";
-	else {
-		root->print(0, out);			// invoke printing at root
-	}
+    out << "ANN Version " << ANNversion << "\n";
+    if (with_pts)  						// print point coordinates
+    {
+        out << "    Points:\n";
+        for (int i = 0; i < n_pts; i++)
+        {
+            out << "\t" << i << ": ";
+            annPrintPt(pts[i], dim, out);
+            out << "\n";
+        }
+    }
+    if (root == NULL)					// empty tree?
+        out << "    Null tree.\n";
+    else
+    {
+        root->print(0, out);			// invoke printing at root
+    }
 }
 
 //----------------------------------------------------------------------
@@ -130,12 +136,14 @@ void ANNkd_tree::Print(					// print entire tree
 
 #define MAX(a,b)		((a) > (b) ? (a) : (b))
 
-void ANNkdStats::merge(const ANNkdStats &st)	// merge stats from child 
+void ANNkdStats::merge(const ANNkdStats &st)	// merge stats from child
 {
-	n_lf += st.n_lf;			n_tl += st.n_tl;
-	n_spl += st.n_spl;			n_shr += st.n_shr;
-	depth = MAX(depth, st.depth);
-	sum_ar += st.sum_ar;
+    n_lf += st.n_lf;
+    n_tl += st.n_tl;
+    n_spl += st.n_spl;
+    n_shr += st.n_shr;
+    depth = MAX(depth, st.depth);
+    sum_ar += st.sum_ar;
 }
 
 //----------------------------------------------------------------------
@@ -145,41 +153,41 @@ void ANNkdStats::merge(const ANNkdStats &st)	// merge stats from child
 const double ANN_AR_TOOBIG = 1000;				// too big an aspect ratio
 
 void ANNkd_leaf::getStats(						// get subtree statistics
-	int					dim,					// dimension of space
-	ANNkdStats			&st,					// stats (modified)
-	ANNorthRect			&bnd_box)				// bounding box
+    int					dim,					// dimension of space
+    ANNkdStats			&st,					// stats (modified)
+    ANNorthRect			&bnd_box)				// bounding box
 {
-	st.reset();
-	st.n_lf = 1;								// count this leaf
-	if (this == KD_TRIVIAL) st.n_tl = 1;		// count trivial leaf
-	double ar = annAspectRatio(dim, bnd_box);	// aspect ratio of leaf
-												// incr sum (ignore outliers)
-	st.sum_ar += float(ar < ANN_AR_TOOBIG ? ar : ANN_AR_TOOBIG);
+    st.reset();
+    st.n_lf = 1;								// count this leaf
+    if (this == KD_TRIVIAL) st.n_tl = 1;		// count trivial leaf
+    double ar = annAspectRatio(dim, bnd_box);	// aspect ratio of leaf
+    // incr sum (ignore outliers)
+    st.sum_ar += float(ar < ANN_AR_TOOBIG ? ar : ANN_AR_TOOBIG);
 }
 
 void ANNkd_split::getStats(						// get subtree statistics
-	int					dim,					// dimension of space
-	ANNkdStats			&st,					// stats (modified)
-	ANNorthRect			&bnd_box)				// bounding box
+    int					dim,					// dimension of space
+    ANNkdStats			&st,					// stats (modified)
+    ANNorthRect			&bnd_box)				// bounding box
 {
-	ANNkdStats ch_stats;						// stats for children
-												// get stats for low child
-	ANNcoord hv = bnd_box.hi[cut_dim];			// save box bounds
-	bnd_box.hi[cut_dim] = cut_val;				// upper bound for low child
-	ch_stats.reset();							// reset
-	child[ANN_LO]->getStats(dim, ch_stats, bnd_box);
-	st.merge(ch_stats);							// merge them
-	bnd_box.hi[cut_dim] = hv;					// restore bound
-												// get stats for high child
-	ANNcoord lv = bnd_box.lo[cut_dim];			// save box bounds
-	bnd_box.lo[cut_dim] = cut_val;				// lower bound for high child
-	ch_stats.reset();							// reset
-	child[ANN_HI]->getStats(dim, ch_stats, bnd_box);
-	st.merge(ch_stats);							// merge them
-	bnd_box.lo[cut_dim] = lv;					// restore bound
+    ANNkdStats ch_stats;						// stats for children
+    // get stats for low child
+    ANNcoord hv = bnd_box.hi[cut_dim];			// save box bounds
+    bnd_box.hi[cut_dim] = cut_val;				// upper bound for low child
+    ch_stats.reset();							// reset
+    child[ANN_LO]->getStats(dim, ch_stats, bnd_box);
+    st.merge(ch_stats);							// merge them
+    bnd_box.hi[cut_dim] = hv;					// restore bound
+    // get stats for high child
+    ANNcoord lv = bnd_box.lo[cut_dim];			// save box bounds
+    bnd_box.lo[cut_dim] = cut_val;				// lower bound for high child
+    ch_stats.reset();							// reset
+    child[ANN_HI]->getStats(dim, ch_stats, bnd_box);
+    st.merge(ch_stats);							// merge them
+    bnd_box.lo[cut_dim] = lv;					// restore bound
 
-	st.depth++;									// increment depth
-	st.n_spl++;									// increment number of splits
+    st.depth++;									// increment depth
+    st.n_spl++;									// increment number of splits
 }
 
 //----------------------------------------------------------------------
@@ -189,15 +197,16 @@ void ANNkd_split::getStats(						// get subtree statistics
 //----------------------------------------------------------------------
 
 void ANNkd_tree::getStats(						// get tree statistics
-	ANNkdStats			&st)					// stats (modified)
+    ANNkdStats			&st)					// stats (modified)
 {
-	st.reset(dim, n_pts, bkt_size);				// reset stats
-												// create bounding box
-	ANNorthRect bnd_box(dim, bnd_box_lo, bnd_box_hi);
-	if (root != NULL) {							// if nonempty tree
-		root->getStats(dim, st, bnd_box);		// get statistics
-		st.avg_ar = st.sum_ar / st.n_lf;		// average leaf asp ratio
-	}
+    st.reset(dim, n_pts, bkt_size);				// reset stats
+    // create bounding box
+    ANNorthRect bnd_box(dim, bnd_box_lo, bnd_box_hi);
+    if (root != NULL)  							// if nonempty tree
+    {
+        root->getStats(dim, st, bnd_box);		// get statistics
+        st.avg_ar = st.sum_ar / st.n_lf;		// average leaf asp ratio
+    }
 }
 
 //----------------------------------------------------------------------
@@ -208,10 +217,10 @@ void ANNkd_tree::getStats(						// get tree statistics
 
 ANNkd_tree::~ANNkd_tree()				// tree destructor
 {
-	if (root != NULL) delete root;
-	if (pidx != NULL) delete [] pidx;
-	if (bnd_box_lo != NULL) annDeallocPt(bnd_box_lo);
-	if (bnd_box_hi != NULL) annDeallocPt(bnd_box_hi);
+    if (root != NULL) delete root;
+    if (pidx != NULL) delete [] pidx;
+    if (bnd_box_lo != NULL) annDeallocPt(bnd_box_lo);
+    if (bnd_box_hi != NULL) annDeallocPt(bnd_box_hi);
 }
 
 //----------------------------------------------------------------------
@@ -220,10 +229,11 @@ ANNkd_tree::~ANNkd_tree()				// tree destructor
 //----------------------------------------------------------------------
 void annClose()				// close use of ANN
 {
-	if (KD_TRIVIAL != NULL) {
-		delete KD_TRIVIAL;
-		KD_TRIVIAL = NULL;
-	}
+    if (KD_TRIVIAL != NULL)
+    {
+        delete KD_TRIVIAL;
+        KD_TRIVIAL = NULL;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -242,39 +252,44 @@ void annClose()				// close use of ANN
 //----------------------------------------------------------------------
 
 void ANNkd_tree::SkeletonTree(			// construct skeleton tree
-		int n,							// number of points
-		int dd,							// dimension
-		int bs,							// bucket size
-		ANNpointArray pa,				// point array
-		ANNidxArray pi)					// point indices
+    int n,							// number of points
+    int dd,							// dimension
+    int bs,							// bucket size
+    ANNpointArray pa,				// point array
+    ANNidxArray pi)					// point indices
 {
-	dim = dd;							// initialize basic elements
-	n_pts = n;
-	bkt_size = bs;
-	pts = pa;							// initialize points array
+    dim = dd;							// initialize basic elements
+    n_pts = n;
+    bkt_size = bs;
+    pts = pa;							// initialize points array
 
-	root = NULL;						// no associated tree yet
+    root = NULL;						// no associated tree yet
 
-	if (pi == NULL) {					// point indices provided?
-		pidx = new ANNidx[n];			// no, allocate space for point indices
-		for (int i = 0; i < n; i++) {
-			pidx[i] = i;				// initially identity
-		}
-	}
-	else {
-		pidx = pi;						// yes, use them
-	}
+    if (pi == NULL)  					// point indices provided?
+    {
+        pidx = new ANNidx[n];			// no, allocate space for point indices
+        for (int i = 0; i < n; i++)
+        {
+            pidx[i] = i;				// initially identity
+        }
+    }
+    else
+    {
+        pidx = pi;						// yes, use them
+    }
 
-	bnd_box_lo = bnd_box_hi = NULL;		// bounding box is nonexistent
-	if (KD_TRIVIAL == NULL)				// no trivial leaf node yet?
-		KD_TRIVIAL = new ANNkd_leaf(0, IDX_TRIVIAL);	// allocate it
+    bnd_box_lo = bnd_box_hi = NULL;		// bounding box is nonexistent
+    if (KD_TRIVIAL == NULL)				// no trivial leaf node yet?
+        KD_TRIVIAL = new ANNkd_leaf(0, IDX_TRIVIAL);	// allocate it
 }
 
 ANNkd_tree::ANNkd_tree(					// basic constructor
-		int n,							// number of points
-		int dd,							// dimension
-		int bs)							// bucket size
-{  SkeletonTree(n, dd, bs);  }			// construct skeleton tree
+    int n,							// number of points
+    int dd,							// dimension
+    int bs)							// bucket size
+{
+    SkeletonTree(n, dd, bs);     // construct skeleton tree
+}
 
 //----------------------------------------------------------------------
 //	rkd_tree - recursive procedure to build a kd-tree
@@ -295,7 +310,7 @@ ANNkd_tree::ANNkd_tree(					// basic constructor
 //
 //		One of the arguments is a pointer to a splitting routine,
 //		whose prototype is:
-//		
+//
 //				void split(
 //						ANNpointArray pa,  // complete point array
 //						ANNidxArray pidx,  // point array (permuted on return)
@@ -312,50 +327,52 @@ ANNkd_tree::ANNkd_tree(					// basic constructor
 //----------------------------------------------------------------------
 
 ANNkd_ptr rkd_tree(				// recursive construction of kd-tree
-	ANNpointArray		pa,				// point array
-	ANNidxArray			pidx,			// point indices to store in subtree
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					bsp,			// bucket space
-	ANNorthRect			&bnd_box,		// bounding box for current node
-	ANNkd_splitter		splitter)		// splitting routine
+    ANNpointArray		pa,				// point array
+    ANNidxArray			pidx,			// point indices to store in subtree
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					bsp,			// bucket space
+    ANNorthRect			&bnd_box,		// bounding box for current node
+    ANNkd_splitter		splitter)		// splitting routine
 {
-	if (n <= bsp) {						// n small, make a leaf node
-		if (n == 0)						// empty leaf node
-			return KD_TRIVIAL;			// return (canonical) empty leaf
-		else							// construct the node and return
-			return new ANNkd_leaf(n, pidx); 
-	}
-	else {								// n large, make a splitting node
-		int cd;							// cutting dimension
-		ANNcoord cv;					// cutting value
-		int n_lo;						// number on low side of cut
-		ANNkd_node *lo, *hi;			// low and high children
+    if (n <= bsp)  						// n small, make a leaf node
+    {
+        if (n == 0)						// empty leaf node
+            return KD_TRIVIAL;			// return (canonical) empty leaf
+        else							// construct the node and return
+            return new ANNkd_leaf(n, pidx);
+    }
+    else  								// n large, make a splitting node
+    {
+        int cd;							// cutting dimension
+        ANNcoord cv;					// cutting value
+        int n_lo;						// number on low side of cut
+        ANNkd_node *lo, *hi;			// low and high children
 
-										// invoke splitting procedure
-		(*splitter)(pa, pidx, bnd_box, n, dim, cd, cv, n_lo);
+        // invoke splitting procedure
+        (*splitter)(pa, pidx, bnd_box, n, dim, cd, cv, n_lo);
 
-		ANNcoord lv = bnd_box.lo[cd];	// save bounds for cutting dimension
-		ANNcoord hv = bnd_box.hi[cd];
+        ANNcoord lv = bnd_box.lo[cd];	// save bounds for cutting dimension
+        ANNcoord hv = bnd_box.hi[cd];
 
-		bnd_box.hi[cd] = cv;			// modify bounds for left subtree
-		lo = rkd_tree(					// build left subtree
-				pa, pidx, n_lo,			// ...from pidx[0..n_lo-1]
-				dim, bsp, bnd_box, splitter);
-		bnd_box.hi[cd] = hv;			// restore bounds
+        bnd_box.hi[cd] = cv;			// modify bounds for left subtree
+        lo = rkd_tree(					// build left subtree
+                 pa, pidx, n_lo,			// ...from pidx[0..n_lo-1]
+                 dim, bsp, bnd_box, splitter);
+        bnd_box.hi[cd] = hv;			// restore bounds
 
-		bnd_box.lo[cd] = cv;			// modify bounds for right subtree
-		hi = rkd_tree(					// build right subtree
-				pa, pidx + n_lo, n-n_lo,// ...from pidx[n_lo..n-1]
-				dim, bsp, bnd_box, splitter);
-		bnd_box.lo[cd] = lv;			// restore bounds
+        bnd_box.lo[cd] = cv;			// modify bounds for right subtree
+        hi = rkd_tree(					// build right subtree
+                 pa, pidx + n_lo, n-n_lo,// ...from pidx[n_lo..n-1]
+                 dim, bsp, bnd_box, splitter);
+        bnd_box.lo[cd] = lv;			// restore bounds
 
-										// create the splitting node
-		ANNkd_split *ptr = new ANNkd_split(cd, cv, lv, hv, lo, hi);
+        // create the splitting node
+        ANNkd_split *ptr = new ANNkd_split(cd, cv, lv, hv, lo, hi);
 
-		return ptr;						// return pointer to this node
-	}
-} 
+        return ptr;						// return pointer to this node
+    }
+}
 
 //----------------------------------------------------------------------
 // kd-tree constructor
@@ -366,40 +383,41 @@ ANNkd_ptr rkd_tree(				// recursive construction of kd-tree
 //----------------------------------------------------------------------
 
 ANNkd_tree::ANNkd_tree(					// construct from point array
-	ANNpointArray		pa,				// point array (with at least n pts)
-	int					n,				// number of points
-	int					dd,				// dimension
-	int					bs,				// bucket size
-	ANNsplitRule		split)			// splitting method
+    ANNpointArray		pa,				// point array (with at least n pts)
+    int					n,				// number of points
+    int					dd,				// dimension
+    int					bs,				// bucket size
+    ANNsplitRule		split)			// splitting method
 {
-	SkeletonTree(n, dd, bs);			// set up the basic stuff
-	pts = pa;							// where the points are
-	if (n == 0) return;					// no points--no sweat
+    SkeletonTree(n, dd, bs);			// set up the basic stuff
+    pts = pa;							// where the points are
+    if (n == 0) return;					// no points--no sweat
 
-	ANNorthRect bnd_box(dd);			// bounding box for points
-	annEnclRect(pa, pidx, n, dd, bnd_box);// construct bounding rectangle
-										// copy to tree structure
-	bnd_box_lo = annCopyPt(dd, bnd_box.lo);
-	bnd_box_hi = annCopyPt(dd, bnd_box.hi);
+    ANNorthRect bnd_box(dd);			// bounding box for points
+    annEnclRect(pa, pidx, n, dd, bnd_box);// construct bounding rectangle
+    // copy to tree structure
+    bnd_box_lo = annCopyPt(dd, bnd_box.lo);
+    bnd_box_hi = annCopyPt(dd, bnd_box.hi);
 
-	switch (split) {					// build by rule
-	case ANN_KD_STD:					// standard kd-splitting rule
-		root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, kd_split);
-		break;
-	case ANN_KD_MIDPT:					// midpoint split
-		root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, midpt_split);
-		break;
-	case ANN_KD_FAIR:					// fair split
-		root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, fair_split);
-		break;
-	case ANN_KD_SUGGEST:				// best (in our opinion)
-	case ANN_KD_SL_MIDPT:				// sliding midpoint split
-		root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, sl_midpt_split);
-		break;
-	case ANN_KD_SL_FAIR:				// sliding fair split
-		root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, sl_fair_split);
-		break;
-	default:
-		annError("Illegal splitting method", ANNabort);
-	}
+    switch (split)  					// build by rule
+    {
+    case ANN_KD_STD:					// standard kd-splitting rule
+        root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, kd_split);
+        break;
+    case ANN_KD_MIDPT:					// midpoint split
+        root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, midpt_split);
+        break;
+    case ANN_KD_FAIR:					// fair split
+        root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, fair_split);
+        break;
+    case ANN_KD_SUGGEST:				// best (in our opinion)
+    case ANN_KD_SL_MIDPT:				// sliding midpoint split
+        root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, sl_midpt_split);
+        break;
+    case ANN_KD_SL_FAIR:				// sliding fair split
+        root = rkd_tree(pa, pidx, n, dd, bs, bnd_box, sl_fair_split);
+        break;
+    default:
+        annError("Illegal splitting method", ANNabort);
+    }
 }

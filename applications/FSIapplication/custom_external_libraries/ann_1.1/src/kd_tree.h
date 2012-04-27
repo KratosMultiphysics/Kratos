@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-2005 University of Maryland and Sunil Arya and
 // David Mount.  All Rights Reserved.
-// 
+//
 // This software and related documentation is part of the Approximate
 // Nearest Neighbor Library (ANN).  This software is provided under
 // the provisions of the Lesser GNU Public License (LGPL).  See the
 // file ../ReadMe.txt for further information.
-// 
+//
 // The University of Maryland (U.M.) and the authors make no
 // representations about the suitability or fitness of this software for
 // any purpose.  It is provided "as is" without express or implied
@@ -43,23 +43,24 @@ using namespace std;					// make std:: available
 //		this.
 //----------------------------------------------------------------------
 
-class ANNkd_node{						// generic kd-tree node (empty shell)
+class ANNkd_node 						// generic kd-tree node (empty shell)
+{
 public:
-	virtual ~ANNkd_node() {}					// virtual distroyer
+    virtual ~ANNkd_node() {}					// virtual distroyer
 
-	virtual void ann_search(ANNdist) = 0;		// tree search
-	virtual void ann_pri_search(ANNdist) = 0;	// priority search
-	virtual void ann_FR_search(ANNdist) = 0;	// fixed-radius search
+    virtual void ann_search(ANNdist) = 0;		// tree search
+    virtual void ann_pri_search(ANNdist) = 0;	// priority search
+    virtual void ann_FR_search(ANNdist) = 0;	// fixed-radius search
 
-	virtual void getStats(						// get tree statistics
-				int dim,						// dimension of space
-				ANNkdStats &st,					// statistics
-				ANNorthRect &bnd_box) = 0;		// bounding box
-												// print node
-	virtual void print(int level, ostream &out) = 0;
-	virtual void dump(ostream &out) = 0;		// dump node
+    virtual void getStats(						// get tree statistics
+        int dim,						// dimension of space
+        ANNkdStats &st,					// statistics
+        ANNorthRect &bnd_box) = 0;		// bounding box
+    // print node
+    virtual void print(int level, ostream &out) = 0;
+    virtual void dump(ostream &out) = 0;		// dump node
 
-	friend class ANNkd_tree;					// allow kd-tree to access us
+    friend class ANNkd_tree;					// allow kd-tree to access us
 };
 
 //----------------------------------------------------------------------
@@ -70,14 +71,14 @@ public:
 //----------------------------------------------------------------------
 
 typedef void (*ANNkd_splitter)(			// splitting routine for kd-trees
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 //----------------------------------------------------------------------
 //	Leaf kd-tree node
@@ -90,29 +91,29 @@ typedef void (*ANNkd_splitter)(			// splitting routine for kd-trees
 
 class ANNkd_leaf: public ANNkd_node		// leaf node for kd-tree
 {
-	int					n_pts;			// no. points in bucket
-	ANNidxArray			bkt;			// bucket of points
+    int					n_pts;			// no. points in bucket
+    ANNidxArray			bkt;			// bucket of points
 public:
-	ANNkd_leaf(							// constructor
-		int				n,				// number of points
-		ANNidxArray		b)				// bucket
-		{
-			n_pts		= n;			// number of points in bucket
-			bkt			= b;			// the bucket
-		}
+    ANNkd_leaf(							// constructor
+        int				n,				// number of points
+        ANNidxArray		b)				// bucket
+    {
+        n_pts		= n;			// number of points in bucket
+        bkt			= b;			// the bucket
+    }
 
-	~ANNkd_leaf() { }					// destructor (none)
+    ~ANNkd_leaf() { }					// destructor (none)
 
-	virtual void getStats(						// get tree statistics
-				int dim,						// dimension of space
-				ANNkdStats &st,					// statistics
-				ANNorthRect &bnd_box);			// bounding box
-	virtual void print(int level, ostream &out);// print node
-	virtual void dump(ostream &out);			// dump node
+    virtual void getStats(						// get tree statistics
+        int dim,						// dimension of space
+        ANNkdStats &st,					// statistics
+        ANNorthRect &bnd_box);			// bounding box
+    virtual void print(int level, ostream &out);// print node
+    virtual void dump(ostream &out);			// dump node
 
-	virtual void ann_search(ANNdist);			// standard search
-	virtual void ann_pri_search(ANNdist);		// priority search
-	virtual void ann_FR_search(ANNdist);		// fixed-radius search
+    virtual void ann_search(ANNdist);			// standard search
+    virtual void ann_pri_search(ANNdist);		// priority search
+    virtual void ann_FR_search(ANNdist);		// fixed-radius search
 };
 
 //----------------------------------------------------------------------
@@ -141,44 +142,44 @@ extern ANNkd_leaf *KD_TRIVIAL;					// trivial (empty) leaf node
 
 class ANNkd_split : public ANNkd_node	// splitting node of a kd-tree
 {
-	int					cut_dim;		// dim orthogonal to cutting plane
-	ANNcoord			cut_val;		// location of cutting plane
-	ANNcoord			cd_bnds[2];		// lower and upper bounds of
-										// rectangle along cut_dim
-	ANNkd_ptr			child[2];		// left and right children
+    int					cut_dim;		// dim orthogonal to cutting plane
+    ANNcoord			cut_val;		// location of cutting plane
+    ANNcoord			cd_bnds[2];		// lower and upper bounds of
+    // rectangle along cut_dim
+    ANNkd_ptr			child[2];		// left and right children
 public:
-	ANNkd_split(						// constructor
-		int cd,							// cutting dimension
-		ANNcoord cv,					// cutting value
-		ANNcoord lv, ANNcoord hv,				// low and high values
-		ANNkd_ptr lc=NULL, ANNkd_ptr hc=NULL)	// children
-		{
-			cut_dim		= cd;					// cutting dimension
-			cut_val		= cv;					// cutting value
-			cd_bnds[ANN_LO] = lv;				// lower bound for rectangle
-			cd_bnds[ANN_HI] = hv;				// upper bound for rectangle
-			child[ANN_LO]	= lc;				// left child
-			child[ANN_HI]	= hc;				// right child
-		}
+    ANNkd_split(						// constructor
+        int cd,							// cutting dimension
+        ANNcoord cv,					// cutting value
+        ANNcoord lv, ANNcoord hv,				// low and high values
+        ANNkd_ptr lc=NULL, ANNkd_ptr hc=NULL)	// children
+    {
+        cut_dim		= cd;					// cutting dimension
+        cut_val		= cv;					// cutting value
+        cd_bnds[ANN_LO] = lv;				// lower bound for rectangle
+        cd_bnds[ANN_HI] = hv;				// upper bound for rectangle
+        child[ANN_LO]	= lc;				// left child
+        child[ANN_HI]	= hc;				// right child
+    }
 
-	~ANNkd_split()						// destructor
-		{
-			if (child[ANN_LO]!= NULL && child[ANN_LO]!= KD_TRIVIAL)
-				delete child[ANN_LO];
-			if (child[ANN_HI]!= NULL && child[ANN_HI]!= KD_TRIVIAL)
-				delete child[ANN_HI];
-		}
+    ~ANNkd_split()						// destructor
+    {
+        if (child[ANN_LO]!= NULL && child[ANN_LO]!= KD_TRIVIAL)
+            delete child[ANN_LO];
+        if (child[ANN_HI]!= NULL && child[ANN_HI]!= KD_TRIVIAL)
+            delete child[ANN_HI];
+    }
 
-	virtual void getStats(						// get tree statistics
-				int dim,						// dimension of space
-				ANNkdStats &st,					// statistics
-				ANNorthRect &bnd_box);			// bounding box
-	virtual void print(int level, ostream &out);// print node
-	virtual void dump(ostream &out);			// dump node
+    virtual void getStats(						// get tree statistics
+        int dim,						// dimension of space
+        ANNkdStats &st,					// statistics
+        ANNorthRect &bnd_box);			// bounding box
+    virtual void print(int level, ostream &out);// print node
+    virtual void dump(ostream &out);			// dump node
 
-	virtual void ann_search(ANNdist);			// standard search
-	virtual void ann_pri_search(ANNdist);		// priority search
-	virtual void ann_FR_search(ANNdist);		// fixed-radius search
+    virtual void ann_search(ANNdist);			// standard search
+    virtual void ann_pri_search(ANNdist);		// priority search
+    virtual void ann_FR_search(ANNdist);		// fixed-radius search
 };
 
 //----------------------------------------------------------------------
@@ -186,12 +187,12 @@ public:
 //----------------------------------------------------------------------
 
 ANNkd_ptr rkd_tree(				// recursive construction of kd-tree
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices to store in subtree
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					bsp,			// bucket space
-	ANNorthRect			&bnd_box,		// bounding box for current node
-	ANNkd_splitter		splitter);		// splitting routine
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices to store in subtree
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					bsp,			// bucket space
+    ANNorthRect			&bnd_box,		// bounding box for current node
+    ANNkd_splitter		splitter);		// splitting routine
 
 #endif

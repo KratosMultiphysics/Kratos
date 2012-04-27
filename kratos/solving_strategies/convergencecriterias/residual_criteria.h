@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: antonia $
 *   Date:                $Date: 2008-06-20 18:20:16 $
 *   Revision:            $Revision: 1.7 $
@@ -63,306 +63,306 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	/**@name Kratos Globals */
-	/*@{ */
+/**@name Kratos Globals */
+/*@{ */
 
 
-	/*@} */
-	/**@name Type Definitions */       
-	/*@{ */
+/*@} */
+/**@name Type Definitions */
+/*@{ */
 
-	/*@} */
+/*@} */
 
 
-	/**@name  Enum's */       
-	/*@{ */
+/**@name  Enum's */
+/*@{ */
 
 
-	/*@} */
-	/**@name  Functions */       
-	/*@{ */
+/*@} */
+/**@name  Functions */
+/*@{ */
 
 
 
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
+/*@} */
+/**@name Kratos Classes */
+/*@{ */
 
-	/** Short class definition.
-	Detail class definition.
+/** Short class definition.
+Detail class definition.
 
-	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-	\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-	\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-	\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-	\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-	\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-	\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
-	*/
-	template<class TSparseSpace,
-	class TDenseSpace 
-	>
-	class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
-	{
-	public:
-		/**@name Type Definitions */       
-		/*@{ */
+*/
+template<class TSparseSpace,
+         class TDenseSpace
+         >
+class ResidualCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
 
-		//typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;		
-		KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
+    //typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualCriteria );
 
-		typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
-		typedef TSparseSpace SparseSpaceType;
+    typedef TSparseSpace SparseSpaceType;
 
-		typedef typename BaseType::TDataType TDataType;
+    typedef typename BaseType::TDataType TDataType;
 
-		typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
-		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
-		typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-		/*@} */
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
 
-		/** Constructor.
-		*/
-		ResidualCriteria(
-			TDataType NewRatioTolerance,
-			TDataType AlwaysConvergedNorm)
-			: ConvergenceCriteria< TSparseSpace, TDenseSpace >()
-		{
-			mRatioTolerance       = NewRatioTolerance;
-			mAlwaysConvergedNorm  = AlwaysConvergedNorm;
-			mInitialResidualIsSet = false;
+    /** Constructor.
+    */
+    ResidualCriteria(
+        TDataType NewRatioTolerance,
+        TDataType AlwaysConvergedNorm)
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    {
+        mRatioTolerance       = NewRatioTolerance;
+        mAlwaysConvergedNorm  = AlwaysConvergedNorm;
+        mInitialResidualIsSet = false;
 
-			//mActualizeRHSIsNeeded = false;
-		}
+        //mActualizeRHSIsNeeded = false;
+    }
 
-		/** Destructor.
-		*/
-		virtual ~ResidualCriteria(){}
+    /** Destructor.
+    */
+    virtual ~ResidualCriteria() {}
 
 
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
 
-		/*Criterias that need to be called after getting the solution */
-		bool PostCriteria(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-                      if (b.size() != 0) //if we are solving for something
-			{
-
-				if (mInitialResidualIsSet == false)
-				{
-					mInitialResidualNorm = TSparseSpace::TwoNorm(b); 
-					mInitialResidualIsSet = true;
-				}	
-
-				TDataType ratio;
-				mCurrentResidualNorm = TSparseSpace::TwoNorm(b); 
-                               
-                                double b_size = b.size();
-				
-
-				if(mInitialResidualNorm == 0.00) ratio = 0.00;
-
-				else ratio = mCurrentResidualNorm/mInitialResidualNorm;
-
-				std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
-				if ( 
-					ratio <= mRatioTolerance 
-					|| 
-					(mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm
-					)
-				{       
-                                        KRATOS_WATCH("convergence is achieved")
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else 
-			{
-				return true;
-			}
-		}
+    /*Criterias that need to be called after getting the solution */
+    bool PostCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        if (b.size() != 0) //if we are solving for something
+        {
 
-                
-  
+            if (mInitialResidualIsSet == false)
+            {
+                mInitialResidualNorm = TSparseSpace::TwoNorm(b);
+                mInitialResidualIsSet = true;
+            }
 
-		void Initialize(
-			ModelPart& r_model_part
-			) 
-		{
-			BaseType::mConvergenceCriteriaIsInitialized = true;
-		}
+            TDataType ratio;
+            mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 
-		void InitializeSolutionStep(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-		mInitialResidualIsSet = false;
-		}
+            double b_size = b.size();
 
-		void FinalizeSolutionStep(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			){}
 
+            if(mInitialResidualNorm == 0.00) ratio = 0.00;
 
+            else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
-			/*@} */
-			/**@name Operations */
-			/*@{ */
+            std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+            if (
+                ratio <= mRatioTolerance
+                ||
+                (mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm
+            )
+            {
+                KRATOS_WATCH("convergence is achieved")
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        else
+        {
+            return true;
+        }
+    }
 
 
-			/*@} */  
-			/**@name Access */
-			/*@{ */
 
 
-			/*@} */
-			/**@name Inquiry */
-			/*@{ */
+    void Initialize(
+        ModelPart& r_model_part
+    )
+    {
+        BaseType::mConvergenceCriteriaIsInitialized = true;
+    }
 
+    void InitializeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        mInitialResidualIsSet = false;
+    }
 
-			/*@} */      
-			/**@name Friends */
-			/*@{ */
+    void FinalizeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    ) {}
 
 
-			/*@} */
 
-	protected:
-		/**@name Protected static Member Variables */
-		/*@{ */
+    /*@} */
+    /**@name Operations */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected member Variables */
-		/*@{ */
+    /*@} */
+    /**@name Access */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected Operators*/
-		/*@{ */
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Friends */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected  Access */
-		/*@{ */
+    /*@} */
 
+protected:
+    /**@name Protected static Member Variables */
+    /*@{ */
 
-		/*@} */     
-		/**@name Protected Inquiry */
-		/*@{ */
 
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
 
-		/*@} */   
-		/**@name Protected LifeCycle */  
-		/*@{ */
 
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
 
 
-		/*@} */    
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
 
-	private:
-		/**@name Static Member Variables */
-		/*@{ */
 
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
 
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
 
-		
-		bool mInitialResidualIsSet;
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
 
-		TDataType mRatioTolerance;
 
-		TDataType mInitialResidualNorm;
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
 
-		TDataType mCurrentResidualNorm;
 
-		TDataType mGuaranteedNormValue;
 
-		TDataType mAlwaysConvergedNorm;
+    /*@} */
 
-		TDataType mReferenceDispNorm;
+private:
+    /**@name Static Member Variables */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private Operators*/
-		/*@{ */
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
 
+    bool mInitialResidualIsSet;
 
-		/*@} */
-		/**@name Private  Access */
-		/*@{ */
+    TDataType mRatioTolerance;
 
+    TDataType mInitialResidualNorm;
 
-		/*@} */     
-		/**@name Private Inquiry */
-		/*@{ */
+    TDataType mCurrentResidualNorm;
 
+    TDataType mGuaranteedNormValue;
 
-		/*@} */   
-		/**@name Un accessible methods */
-		/*@{ */
+    TDataType mAlwaysConvergedNorm;
 
+    TDataType mReferenceDispNorm;
 
-		/*@} */   
 
-	}; /* Class ClassName */
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
 
-	/*@} */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
 
-	/**@name Type Definitions */       
-	/*@{ */
 
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
 
-	/*@} */
+
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
+
+
+    /*@} */
+
+}; /* Class ClassName */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+
+/*@} */
 
 }  /* namespace Kratos.*/
 

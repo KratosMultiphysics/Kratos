@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2008-10-13 07:04:58 $
 //   Revision:            $Revision: 1.5 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
@@ -66,164 +66,164 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	namespace Python
-	{
-		using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
 
-	  template<class TVariableType> inline
-	  void NodeFix(Node<3>& rThisNode, TVariableType const& rThisVariable)
-	  {
-	    rThisNode.Fix(rThisVariable);
-	  }
+template<class TVariableType> inline
+void NodeFix(Node<3>& rThisNode, TVariableType const& rThisVariable)
+{
+    rThisNode.Fix(rThisVariable);
+}
 
-	  template<class TVariableType> inline
-	  void NodeFree(Node<3>& rThisNode, TVariableType const& rThisVariable)
-	  {
-	    rThisNode.Free(rThisVariable);
-	  }
+template<class TVariableType> inline
+void NodeFree(Node<3>& rThisNode, TVariableType const& rThisVariable)
+{
+    rThisNode.Free(rThisVariable);
+}
 
-	  template<class TVariableType> inline
-	  bool NodeIsFixed(Node<3>& rThisNode, TVariableType const& rThisVariable)
-	  {
-	    return rThisNode.IsFixed(rThisVariable);
-	  }
+template<class TVariableType> inline
+bool NodeIsFixed(Node<3>& rThisNode, TVariableType const& rThisVariable)
+{
+    return rThisNode.IsFixed(rThisVariable);
+}
 
-	  template<class TVariableType> inline
-	  bool NodeHasDofFor(Node<3>& rThisNode, TVariableType const& rThisVariable)
-	  {
-	    return rThisNode.HasDofFor(rThisVariable);
-	  }
+template<class TVariableType> inline
+bool NodeHasDofFor(Node<3>& rThisNode, TVariableType const& rThisVariable)
+{
+    return rThisNode.HasDofFor(rThisVariable);
+}
 
-	  template<class TVariableType> inline
-	  void NodeAddDof(Node<3>& rThisNode, TVariableType const& rThisVariable)
-	  {
-		rThisNode.pAddDof(rThisVariable);
-	  }
+template<class TVariableType> inline
+void NodeAddDof(Node<3>& rThisNode, TVariableType const& rThisVariable)
+{
+    rThisNode.pAddDof(rThisVariable);
+}
 
-	  template<class TVariableType> inline
-	  void NodeAddDofwithReaction(Node<3>& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
-	  {
+template<class TVariableType> inline
+void NodeAddDofwithReaction(Node<3>& rThisNode, TVariableType const& rThisVariable,  TVariableType const& rReactionVariable)
+{
 // 	      KRATOS_WATCH(rReactionVariable);
-		rThisNode.pAddDof(rThisVariable, rReactionVariable);
-	  }
-	  
-	  
-	  void PointSetX0(Node<3>& ThisPoint, double Value)
-	  {
-	    ThisPoint.X0() = Value;
-	  }
-	  
-	  void PointSetY0(Node<3>& ThisPoint, double Value)
-	  {
-	    ThisPoint.Y0() = Value;
-	  }
-	  
-	  void PointSetZ0(Node<3>& ThisPoint, double Value)
-	  {
-	    ThisPoint.Z0() = Value;
-	  }
-	  
-	  double PointGetX0(Node<3>& ThisPoint)
-	  {
-	    return ThisPoint.X0();
-	  }
-	  
-	  double PointGetY0(Node<3>& ThisPoint)
-	  {
-	    return ThisPoint.Y0();
-	  }
-	  
-	  double PointGetZ0(Node<3>& ThisPoint)
-	  {
-	    return ThisPoint.Z0();
-	  }
+    rThisNode.pAddDof(rThisVariable, rReactionVariable);
+}
+
+
+void PointSetX0(Node<3>& ThisPoint, double Value)
+{
+    ThisPoint.X0() = Value;
+}
+
+void PointSetY0(Node<3>& ThisPoint, double Value)
+{
+    ThisPoint.Y0() = Value;
+}
+
+void PointSetZ0(Node<3>& ThisPoint, double Value)
+{
+    ThisPoint.Z0() = Value;
+}
+
+double PointGetX0(Node<3>& ThisPoint)
+{
+    return ThisPoint.X0();
+}
+
+double PointGetY0(Node<3>& ThisPoint)
+{
+    return ThisPoint.Y0();
+}
+
+double PointGetZ0(Node<3>& ThisPoint)
+{
+    return ThisPoint.Z0();
+}
 
 
 
 
 
-		void  AddNodeToPython()
-		{
-			typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+void  AddNodeToPython()
+{
+    typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 
-			typedef MeshType::NodeType NodeType;
-
-
-			class_<IndexedObject>("IndexedObject")
-				.add_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
-				.def(self_ns::str(self))
-				;
+    typedef MeshType::NodeType NodeType;
 
 
-			class_<Dof<double>, Dof<double>::Pointer, bases<IndexedObject> >("Dof", no_init)
-			  ;
-			//class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
-			//.def("GetVariable", &Dof::GetVariable, return_internal_reference<>())
-			//.def("GetReaction", &Dof::GetReaction, return_internal_reference<>())
-			//.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_internal_reference<>())
-			//.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_internal_reference<>())
-			//.def("NodeIndex", &Dof::NodeIndex)
-			//.add_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
-			//.def("Fix", &Dof::FixDof)
-			//.def("Free", &Dof::FreeDof)
-			//.def("IsFixed", &Dof::IsFixed)
-			//.def("HasTimeDerivative", &Dof::HasTimeDerivative)
-			//.def("HasSecondTimeDerivative", &Dof::HasSecondTimeDerivative)
-			//.def(self_ns::str(self))
-			//      ;
+    class_<IndexedObject>("IndexedObject")
+    .add_property("Id", &IndexedObject::GetId, &IndexedObject::SetId)
+    .def(self_ns::str(self))
+    ;
+
+
+    class_<Dof<double>, Dof<double>::Pointer, bases<IndexedObject> >("Dof", no_init)
+    ;
+    //class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
+    //.def("GetVariable", &Dof::GetVariable, return_internal_reference<>())
+    //.def("GetReaction", &Dof::GetReaction, return_internal_reference<>())
+    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, return_internal_reference<>())
+    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, return_internal_reference<>())
+    //.def("NodeIndex", &Dof::NodeIndex)
+    //.add_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
+    //.def("Fix", &Dof::FixDof)
+    //.def("Free", &Dof::FreeDof)
+    //.def("IsFixed", &Dof::IsFixed)
+    //.def("HasTimeDerivative", &Dof::HasTimeDerivative)
+    //.def("HasSecondTimeDerivative", &Dof::HasSecondTimeDerivative)
+    //.def(self_ns::str(self))
+    //      ;
 
 //			void (NodeType::*pointer_to_double_variable_fix)(Variable<double> const&) = &NodeType::Fix;
 //			void (NodeType::*pointer_to_double_component_fix)(VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > const&) = &NodeType::Fix;
 
 
-			class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject > >("Node", init<int, double, double, double>())
-				.def(init<int, const Point<3>& >())
-                                .def(VariableIndexingPython<NodeType, Variable<bool> >())
-				.def(VariableIndexingPython<NodeType, Variable<bool> >())
-				.def(VariableIndexingPython<NodeType, Variable<int> >())
-				.def(VariableIndexingPython<NodeType, Variable<double> >())
-				.def(VariableIndexingPython<NodeType, Variable<array_1d<double, 3> > >())
-				.def(VariableIndexingPython<NodeType, Variable<vector<double> > >())
-				.def(VariableIndexingPython<NodeType, Variable<matrix<double> > >())
-				.def(VariableIndexingPython<NodeType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-                                .def(SolutionStepVariableIndexingPython<NodeType, Variable<bool> >()) 
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<int> >())
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<double> >())
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<array_1d<double, 3> > >())
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<vector<double> > >())
-				.def(SolutionStepVariableIndexingPython<NodeType, Variable<matrix<double> > >())
-				.def(SolutionStepVariableIndexingPython<NodeType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
-				.def("GetBufferSize", &NodeType::GetBufferSize)
- 				//.def("AddDof", &NodeType::pAddDof, NodeType_padd_dof_overloads())
- 				.def("AddDof", NodeAddDof<Variable<double> >)
- 				.def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
- 				.def("AddDof", NodeAddDofwithReaction<Variable<double> >)
- 				.def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
-				.def("Fix", NodeFix<Variable<double> >)
- 				.def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
- 				.def("Free", NodeFree<Variable<double> >)
- 				.def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
- 				.def("IsFixed", NodeIsFixed<Variable<double> >)
- 				.def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
- 				.def("HasDofFor", NodeHasDofFor<Variable<double> >)
- 				.def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    class_<NodeType, NodeType::Pointer, bases<NodeType::BaseType, IndexedObject > >("Node", init<int, double, double, double>())
+    .def(init<int, const Point<3>& >())
+    .def(VariableIndexingPython<NodeType, Variable<bool> >())
+    .def(VariableIndexingPython<NodeType, Variable<bool> >())
+    .def(VariableIndexingPython<NodeType, Variable<int> >())
+    .def(VariableIndexingPython<NodeType, Variable<double> >())
+    .def(VariableIndexingPython<NodeType, Variable<array_1d<double, 3> > >())
+    .def(VariableIndexingPython<NodeType, Variable<vector<double> > >())
+    .def(VariableIndexingPython<NodeType, Variable<matrix<double> > >())
+    .def(VariableIndexingPython<NodeType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<bool> >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<int> >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<double> >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<array_1d<double, 3> > >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<vector<double> > >())
+    .def(SolutionStepVariableIndexingPython<NodeType, Variable<matrix<double> > >())
+    .def(SolutionStepVariableIndexingPython<NodeType, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >())
+    .def("GetBufferSize", &NodeType::GetBufferSize)
+    //.def("AddDof", &NodeType::pAddDof, NodeType_padd_dof_overloads())
+    .def("AddDof", NodeAddDof<Variable<double> >)
+    .def("AddDof", NodeAddDof<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("AddDof", NodeAddDofwithReaction<Variable<double> >)
+    .def("AddDof", NodeAddDofwithReaction<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("Fix", NodeFix<Variable<double> >)
+    .def("Fix", NodeFix<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("Free", NodeFree<Variable<double> >)
+    .def("Free", NodeFree<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("IsFixed", NodeIsFixed<Variable<double> >)
+    .def("IsFixed", NodeIsFixed<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
+    .def("HasDofFor", NodeHasDofFor<Variable<double> >)
+    .def("HasDofFor", NodeHasDofFor<VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >)
 // 				.def("IsFixed", &NodeType::IsFixed)
 // 				.def("HasDofFor", &NodeType::HasDofFor)
-				.def(self_ns::str(self))
-                                .def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData)
-				.add_property("X0", PointGetX0, PointSetX0)
-				.add_property("Y0", PointGetY0, PointSetY0)
-				.add_property("Z0", PointGetZ0, PointSetZ0)
-				;
+    .def(self_ns::str(self))
+    .def("OverwriteSolutionStepData", &NodeType::OverwriteSolutionStepData)
+    .add_property("X0", PointGetX0, PointSetX0)
+    .add_property("Y0", PointGetY0, PointSetY0)
+    .add_property("Z0", PointGetZ0, PointSetZ0)
+    ;
 
-			
-			PointerVectorSetPythonInterface<MeshType::NodesContainerType>::CreateInterface("NodesArray")
-				;
 
-		}
+    PointerVectorSetPythonInterface<MeshType::NodesContainerType>::CreateInterface("NodesArray")
+    ;
 
-	}  // namespace Python.
+}
+
+}  // namespace Python.
 
 } // Namespace Kratos
 

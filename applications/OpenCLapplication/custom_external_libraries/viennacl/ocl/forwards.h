@@ -11,7 +11,7 @@
                             -----------------
 
    Project Head:    Karl Rupp                   rupp@iue.tuwien.ac.at
-               
+
    (A list of authors and contributors can be found in the PDF manual)
 
    License:         MIT (X11), see file LICENSE in the base directory
@@ -27,30 +27,30 @@
 
 namespace viennacl
 {
-  namespace ocl
-  {
-    //device type tags (cf. OpenCL standard)
-    struct gpu_tag {};
-    struct cpu_tag {};
-    struct accelerator_tag {};
-    struct default_tag {};
-    
-    
-    class kernel;
-    class device;
-    class command_queue;
-    class context;
-    class program;
+namespace ocl
+{
+//device type tags (cf. OpenCL standard)
+struct gpu_tag {};
+struct cpu_tag {};
+struct accelerator_tag {};
+struct default_tag {};
 
-    template<class OCL_TYPE>
-    class handle;
 
-    template <typename KernelType>
-    void enqueue(KernelType & k, viennacl::ocl::command_queue const & queue);
-    
-    inline viennacl::ocl::context & current_context();
-    inline viennacl::ocl::device const & current_device();
-  }
+class kernel;
+class device;
+class command_queue;
+class context;
+class program;
+
+template<class OCL_TYPE>
+class handle;
+
+template <typename KernelType>
+void enqueue(KernelType & k, viennacl::ocl::command_queue const & queue);
+
+inline viennacl::ocl::context & current_context();
+inline viennacl::ocl::device const & current_device();
+}
 } //namespace viennacl
 
 #endif

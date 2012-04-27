@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,190 +65,190 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		///@name Kratos Globals
-		///@{ 
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TContainerType, class TScalarType>
-		class VectorScalarAssignmentOperatorPython : public def_visitor<VectorScalarAssignmentOperatorPython<TContainerType, TScalarType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TContainerType, class TScalarType>
+class VectorScalarAssignmentOperatorPython : public def_visitor<VectorScalarAssignmentOperatorPython<TContainerType, TScalarType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of VectorScalarAssignmentOperatorPython
-			KRATOS_CLASS_POINTER_DEFINITION(VectorScalarAssignmentOperatorPython);
+    /// Pointer definition of VectorScalarAssignmentOperatorPython
+    KRATOS_CLASS_POINTER_DEFINITION(VectorScalarAssignmentOperatorPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			VectorScalarAssignmentOperatorPython(){}
+    /// Default constructor.
+    VectorScalarAssignmentOperatorPython() {}
 
-			/// Copy constructor.
-			VectorScalarAssignmentOperatorPython(const VectorScalarAssignmentOperatorPython& rOther);
+    /// Copy constructor.
+    VectorScalarAssignmentOperatorPython(const VectorScalarAssignmentOperatorPython& rOther);
 
-			/// Destructor.
-			virtual ~VectorScalarAssignmentOperatorPython(){}
-
-
-			///@}
-			///@name Operators 
-			///@{
+    /// Destructor.
+    virtual ~VectorScalarAssignmentOperatorPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				ThisClass
-					.def("__iadd__", &iadd, return_internal_reference<1>())           
-					.def("__isub__", &isub, return_internal_reference<1>())          
-					.def("__imul__", &imul, return_internal_reference<1>())           
-					.def("__idiv__", &idiv, return_internal_reference<1>())          
-					;
-			}
-
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        ThisClass
+        .def("__iadd__", &iadd, return_internal_reference<1>())
+        .def("__isub__", &isub, return_internal_reference<1>())
+        .def("__imul__", &imul, return_internal_reference<1>())
+        .def("__idiv__", &idiv, return_internal_reference<1>())
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-			static 
-				TContainerType&
-				iadd(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					ThisContainer[i] += ThisScalar;
-				return ThisContainer;
-			}
-
-			static
-				TContainerType&
-				isub(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					ThisContainer[i] -= ThisScalar;
-				return ThisContainer;
-			}
-
-			static 
-				TContainerType&
-				imul(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					ThisContainer[i] *= ThisScalar;
-				return ThisContainer;
-			}
-
-			static 
-				TContainerType&
-				idiv(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					ThisContainer[i] /= ThisScalar;
-				return ThisContainer;
-			}
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
+    static
+    TContainerType&
+    iadd(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            ThisContainer[i] += ThisScalar;
+        return ThisContainer;
+    }
+
+    static
+    TContainerType&
+    isub(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            ThisContainer[i] -= ThisScalar;
+        return ThisContainer;
+    }
+
+    static
+    TContainerType&
+    imul(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            ThisContainer[i] *= ThisScalar;
+        return ThisContainer;
+    }
+
+    static
+    TContainerType&
+    idiv(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            ThisContainer[i] /= ThisScalar;
+        return ThisContainer;
+    }
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			VectorScalarAssignmentOperatorPython& operator=(const VectorScalarAssignmentOperatorPython& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-			///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		}; // Class VectorScalarAssignmentOperatorPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    /// Assignment operator.
+    VectorScalarAssignmentOperatorPython& operator=(const VectorScalarAssignmentOperatorPython& rOther);
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
 
-		///@} 
+}; // Class VectorScalarAssignmentOperatorPython
 
-	}  // namespace Python.
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

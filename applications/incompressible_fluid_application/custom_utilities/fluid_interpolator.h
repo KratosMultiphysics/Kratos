@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.2 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -69,59 +69,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//this class is to be modified by the user to customize the interpolation process
-	class FluidInterpolator : public CustomInterpolator
-	{
-	public:
+//this class is to be modified by the user to customize the interpolation process
+class FluidInterpolator : public CustomInterpolator
+{
+public:
 
-		KRATOS_CLASS_POINTER_DEFINITION(FluidInterpolator);
+    KRATOS_CLASS_POINTER_DEFINITION(FluidInterpolator);
 
-		FluidInterpolator(ModelPart& model_part)
-			: CustomInterpolator(model_part)
-		{}
+    FluidInterpolator(ModelPart& model_part)
+        : CustomInterpolator(model_part)
+    {}
 
-		~FluidInterpolator()
-		{}
-
-
-		virtual void InterpolateNode(Node<3>::Pointer new_node, 
-			const Geometry< Node<3> >& geom,
-			const Vector& N)
-		{
-			KRATOS_TRY
-				
-			//add dofs
-			new_node->pAddDof(PRESSURE);
-			new_node->pAddDof(VELOCITY_X);
-			new_node->pAddDof(VELOCITY_Y);
-			new_node->pAddDof(VELOCITY_Z);
-			new_node->pAddDof(FRACT_VEL_X);
-			new_node->pAddDof(FRACT_VEL_Y);
-			new_node->pAddDof(FRACT_VEL_Z);
-
-			//interpolate scalar variables
-			std::vector< const Variable<double>* > double_vars;
-			double_vars.push_back(&PRESSURE);
-			double_vars.push_back(&NODAL_H);
-			AdaptivityUtils::Interpolate<double>(new_node,geom,N,double_vars,mr_model_part.GetBufferSize());
-
-			//interpolate vector variables
-			std::vector<const Variable<array_1d<double,3> >* > vector_vars;
-			vector_vars.push_back(&VELOCITY);
-			AdaptivityUtils::Interpolate< array_1d<double,3> >(new_node,geom,N,vector_vars,mr_model_part.GetBufferSize());
-
-			KRATOS_CATCH("")
-		}
+    ~FluidInterpolator()
+    {}
 
 
-	protected:
+    virtual void InterpolateNode(Node<3>::Pointer new_node,
+                                 const Geometry< Node<3> >& geom,
+                                 const Vector& N)
+    {
+        KRATOS_TRY
+
+        //add dofs
+        new_node->pAddDof(PRESSURE);
+        new_node->pAddDof(VELOCITY_X);
+        new_node->pAddDof(VELOCITY_Y);
+        new_node->pAddDof(VELOCITY_Z);
+        new_node->pAddDof(FRACT_VEL_X);
+        new_node->pAddDof(FRACT_VEL_Y);
+        new_node->pAddDof(FRACT_VEL_Z);
+
+        //interpolate scalar variables
+        std::vector< const Variable<double>* > double_vars;
+        double_vars.push_back(&PRESSURE);
+        double_vars.push_back(&NODAL_H);
+        AdaptivityUtils::Interpolate<double>(new_node,geom,N,double_vars,mr_model_part.GetBufferSize());
+
+        //interpolate vector variables
+        std::vector<const Variable<array_1d<double,3> >* > vector_vars;
+        vector_vars.push_back(&VELOCITY);
+        AdaptivityUtils::Interpolate< array_1d<double,3> >(new_node,geom,N,vector_vars,mr_model_part.GetBufferSize());
+
+        KRATOS_CATCH("")
+    }
 
 
-	private:
+protected:
+
+
+private:
 
 
 
-	};
+};
 
 }  // namespace Kratos.
 

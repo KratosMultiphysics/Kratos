@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosMixedElementApplication 
+KratosMixedElementApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -42,22 +42,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "mixedelement_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -67,35 +67,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        using namespace boost::python;
+using namespace boost::python;
 
-        BOOST_PYTHON_MODULE(KratosMixedElementApplication)
-        {
+BOOST_PYTHON_MODULE(KratosMixedElementApplication)
+{
 
-            class_<KratosMixedElementApplication,
-                    KratosMixedElementApplication::Pointer,
-                    bases<KratosApplication>, boost::noncopyable > ("KratosMixedElementApplication")
-                    ;
+    class_<KratosMixedElementApplication,
+           KratosMixedElementApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable > ("KratosMixedElementApplication")
+           ;
 
-            AddCustomStrategiesToPython();
-            AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
 
-            //registering variables in python
-            //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SX)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SY)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SZ)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SXY)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SXZ)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE(SYZ)
+    //registering variables in python
+    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SZ)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SXY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SXZ)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SYZ)
 
-        }
+}
 
 
-    } // namespace Python.
+} // namespace Python.
 
 } // namespace Kratos.
 

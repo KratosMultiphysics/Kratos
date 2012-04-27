@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1ElectrostaticApplication 
+KratosR1ElectrostaticApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2010
 Pooyan Dadvand, Riccardo Rossi, Javier Mora
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 mora@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
@@ -38,25 +38,25 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: jmora $
 //   Date:                $Date: 2010-02-02 $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
- 
+
 #if !defined(KRATOS_EFIELD3D_CONDITION_H_INCLUDED )
-#define  KRATOS_EFIELD3D_CONDITION_H_INCLUDED 
+#define  KRATOS_EFIELD3D_CONDITION_H_INCLUDED
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -70,205 +70,205 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Efield3D
-	  : public Condition
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Efield3D
-      KRATOS_CLASS_POINTER_DEFINITION(Efield3D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  Efield3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      Efield3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+///@name Kratos Globals
+///@{
 
-      /// Destructor.
-      virtual ~Efield3D();
-      
+///@}
+///@name Type Definitions
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name  Functions
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+///@}
+///@name Kratos Classes
+///@{
 
-	  void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
+class Efield3D
+    : public Condition
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Counted pointer of Efield3D
+    KRATOS_CLASS_POINTER_DEFINITION(Efield3D);
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Efield3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    Efield3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~Efield3D();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										ProcessInfo& rCurrentProcessInfo,
-										bool CalculateStiffnessMatrixFlag,
-										bool CalculateResidualVectorFlag);
-        
-      
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //Efield3D& operator=(const Efield3D& rOther);
 
-      /// Copy constructor.
-      //Efield3D(const Efield3D& rOther);
+    ///@}
+    ///@name Friends
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class Efield3D 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                      ProcessInfo& rCurrentProcessInfo,
+                      bool CalculateStiffnessMatrixFlag,
+                      bool CalculateResidualVectorFlag);
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //Efield3D& operator=(const Efield3D& rOther);
+
+    /// Copy constructor.
+    //Efield3D(const Efield3D& rOther);
+
+
+    ///@}
+
+}; // Class Efield3D
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    Efield3D& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const Efield3D& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -277,7 +277,7 @@ namespace Kratos
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

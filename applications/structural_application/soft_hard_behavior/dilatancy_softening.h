@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
+
 /* *********************************************************
 *
 *   Last Modified by:    $Author: Nelson Lafontaine $
@@ -58,29 +58,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	  class Dilatancy_Softening: public SofteningHardeningCriteria
-	    {
-	    
-		public: 
-		   Dilatancy_Softening();
-		  ~Dilatancy_Softening();
-                   KRATOS_CLASS_POINTER_DEFINITION(Dilatancy_Softening);
-		   virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
-                    {
-                      boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Dilatancy_Softening());
-                      return p_clone;
-                    }
-		   
-		   double   FunctionBehavior(const Vector& Imput_Parameters);
-		   double   FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
-		   
-		   
-           };    
-    
+class Dilatancy_Softening: public SofteningHardeningCriteria
+{
 
-    /**
-     * definition of CONSTITUTIVE_LAW variable
-     */
+public:
+    Dilatancy_Softening();
+    ~Dilatancy_Softening();
+    KRATOS_CLASS_POINTER_DEFINITION(Dilatancy_Softening);
+    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    {
+        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Dilatancy_Softening());
+        return p_clone;
+    }
+
+    double   FunctionBehavior(const Vector& Imput_Parameters);
+    double   FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
+
+
+};
+
+
+/**
+ * definition of CONSTITUTIVE_LAW variable
+ */
 }  /* namespace Kratos.*/
 #endif /* FLUENCY_CRITERIA defined */
 

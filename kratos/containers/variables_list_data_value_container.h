@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: nelson $
 //   Date:                $Date: 2008-12-09 15:23:36 $
 //   Revision:            $Revision: 1.10 $
@@ -46,20 +46,20 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #if !defined(KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED )
-#define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED 
+#define KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED
 
 
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cstddef>
 #include <cstring>
- 
 
 
 
-// External includes 
+
+// External includes
 
 
 // Project includes
@@ -73,470 +73,470 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class VariablesListDataValueContainer
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class VariablesListDataValueContainer
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of VariablesListDataValueContainer
+    KRATOS_CLASS_POINTER_DEFINITION(VariablesListDataValueContainer);
+
+    typedef VariablesList::BlockType BlockType;
+
+    /// Type of the container used for variables
+    typedef BlockType* ContainerType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    VariablesListDataValueContainer(SizeType NewQueueSize = 1)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
+          mpData(0), mpVariablesList(&Globals::DefaultVariablesList)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of VariablesListDataValueContainer
-      KRATOS_CLASS_POINTER_DEFINITION(VariablesListDataValueContainer);
+        // Allcating memory
+        Allocate();
 
-      typedef VariablesList::BlockType BlockType;
-  
-      /// Type of the container used for variables 
-      typedef BlockType* ContainerType;
+        // Setting the current position at the begining of data
+        mpCurrentPosition = mpData;
 
-      typedef std::size_t IndexType;
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType* position = Position(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+                i_variable->AssignZero(position + i * size);
+        }
+    }
 
-      typedef std::size_t SizeType;
+    /// Copy constructor.
+    VariablesListDataValueContainer(VariablesListDataValueContainer const& rOther)
+        : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
+          mpData(0), mpVariablesList(rOther.mpVariablesList)
+    {
+        // Allcating memory
+        Allocate();
 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      VariablesListDataValueContainer(SizeType NewQueueSize = 1) 
-	  : mQueueSize(NewQueueSize), mpCurrentPosition(0), 
-	    mpData(0), mpVariablesList(&Globals::DefaultVariablesList)
-	  {
-	      // Allcating memory
-	      Allocate();
+        // Setting the current position with relative source container offset
+        mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-	      // Setting the current position at the begining of data
-	      mpCurrentPosition = mpData;
-	      
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  BlockType* position = Position(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		      i_variable->AssignZero(position + i * size);
-	      }
-	  }
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            SizeType offset = LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            {
+                SizeType total_offset =  offset + i * size;
+                i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
+            }
+        }
+    }
 
-      /// Copy constructor.
-      VariablesListDataValueContainer(VariablesListDataValueContainer const& rOther) 
-	  : mQueueSize(rOther.mQueueSize), mpCurrentPosition(0),
-	    mpData(0), mpVariablesList(rOther.mpVariablesList)
-	  {
-	      // Allcating memory
-	      Allocate();
+    /// Variables list constructor.
+    VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
+          mpData(0), mpVariablesList(pVariablesList)
+    {
+        // Allcating memory
+        Allocate();
 
-	      // Setting the current position with relative source container offset
-	      mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
-  
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  SizeType offset = LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		  {
-		      SizeType total_offset =  offset + i * size;
-		      i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
-		  }
-	      }
-	  }
+        // Setting the current position at the begining of data
+        mpCurrentPosition = mpData;
 
-	  /// Variables list constructor.
-	  VariablesListDataValueContainer(VariablesList*  pVariablesList, SizeType NewQueueSize = 1) 
-	      : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-	        mpData(0), mpVariablesList(pVariablesList)
-	  {
-	      // Allcating memory
-	      Allocate();
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = Position(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+                i_variable->AssignZero(position + i * size);
+        }
+    }
 
-	      // Setting the current position at the begining of data
-	      mpCurrentPosition = mpData;
-	      
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  BlockType*  position = Position(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		      i_variable->AssignZero(position + i * size);
-	      }
-	  }
+    /// Variables list and data constructor
+    VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
+        : mQueueSize(NewQueueSize), mpCurrentPosition(0),
+          mpData(0), mpVariablesList(pVariablesList)
+    {
+        // Allcating memory
+        Allocate();
 
-	  /// Variables list and data constructor
-	  VariablesListDataValueContainer(VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1) 
-	      : mQueueSize(NewQueueSize), mpCurrentPosition(0),
-	        mpData(0), mpVariablesList(pVariablesList)
-	  {
-	      // Allcating memory
-	      Allocate();
+        // Setting the current position at the begining of data
+        mpCurrentPosition = mpData;
 
-	      // Setting the current position at the begining of data
-	      mpCurrentPosition = mpData;
-	      
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  SizeType offset = LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		  {
-		      SizeType total_offset =  offset + i * size;
-		      i_variable->Copy(ThisData + total_offset, mpData + total_offset);
-		  }
-	      }
-	  }
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            SizeType offset = LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            {
+                SizeType total_offset =  offset + i * size;
+                i_variable->Copy(ThisData + total_offset, mpData + total_offset);
+            }
+        }
+    }
 
-	  /// Destructor.
-	  virtual ~VariablesListDataValueContainer()
-	  {
-		  Clear();
-	  }
-      
+    /// Destructor.
+    virtual ~VariablesListDataValueContainer()
+    {
+        Clear();
+    }
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
+
+    ///@}
+    ///@name Operators
+    ///@{
+
 //       template<class TDataType> const TDataType& operator()(const VariableData& rThisVariable, SizeType QueueIndex = 0) const
 // 	{
 // 	  return GetValue(rThisVariable, QueueIndex);
 // 	}
-      
-      template<class TDataType> 
-      TDataType& operator()(const Variable<TDataType>& rThisVariable)
-	{
-	  return GetValue(rThisVariable);
-	}
-      
-      template<class TDataType>
-      TDataType& operator()(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
-	{
-	  return GetValue(rThisVariable, QueueIndex);
-	}
-      
-      template<class TDataType> 
-      const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
-	{
-	  return GetValue(rThisVariable);
-	}
-      
-      template<class TDataType> 
-      const TDataType& operator()(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
-	{
-	  return GetValue(rThisVariable, QueueIndex);
-	}
-      
-      template<class TAdaptorType> 
-      typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TAdaptorType> 
-      typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	}
-      
-      template<class TAdaptorType> 
-      const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TAdaptorType> 
-      const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	}
-      
+
+    template<class TDataType>
+    TDataType& operator()(const Variable<TDataType>& rThisVariable)
+    {
+        return GetValue(rThisVariable);
+    }
+
+    template<class TDataType>
+    TDataType& operator()(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
+    {
+        return GetValue(rThisVariable, QueueIndex);
+    }
+
+    template<class TDataType>
+    const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
+    {
+        return GetValue(rThisVariable);
+    }
+
+    template<class TDataType>
+    const TDataType& operator()(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
+    {
+        return GetValue(rThisVariable, QueueIndex);
+    }
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
 //       template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
 // 	{
 // 	  return GetValue(rThisVariable, 0);
 // 	}
-      
+
 //       template<class TDataType> const TDataType& operator[](const VariableData& rThisVariable) const
 // 	{
 // 	  return GetValue(rThisVariable, 0);
 // 	}
-      
-      template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
-	{
-	  return GetValue(rThisVariable);
-	}
-      
-      template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
-	{
-	  return GetValue(rThisVariable);
-	}
-      
-      template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
-	}
-      
-      template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
-	}
-      
-      /// Assignment operator.
-      VariablesListDataValueContainer& operator=(const VariablesListDataValueContainer& rOther)
-	{
-	    if(rOther.mpVariablesList == 0)
-		Clear();
-	    else if((mpVariablesList == rOther.mpVariablesList) && 
-		    (mQueueSize == rOther.mQueueSize))
-	    {
-		mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);  
 
-		SizeType size = mpVariablesList->DataSize();
-		for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		    i_variable != mpVariablesList->end() ; i_variable++)
-		{
-		    SizeType offset = LocalOffset(*i_variable);
-		    for(SizeType i = 0 ; i < mQueueSize ; i++)
-		    {
-			SizeType total_offset =  offset + i * size;
-			i_variable->Assign(rOther.mpData + total_offset, mpData + total_offset);
-		    }
-		}
-	    }
-	  else
-	  {
-	      DestructAllElements();
+    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    {
+        return GetValue(rThisVariable);
+    }
 
-	      mQueueSize = rOther.mQueueSize;
-	      mpVariablesList = rOther.mpVariablesList;
-	      
-	      Reallocate();
-	    
-	      mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);  
+    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    {
+        return GetValue(rThisVariable);
+    }
 
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  SizeType offset = LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		    {
-			SizeType total_offset =  offset + i * size;
-			i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
-		    }
-	      }
-	  }
-	  
-	  return *this;
-	}
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-	template<class TDataType> 
-	TDataType& GetValue(const Variable<TDataType>& rThisVariable)
-	    {
-		if(!mpVariablesList->Has(rThisVariable))
-		    KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
-		return *(TDataType*)Position(rThisVariable);
-	    }
-      
-	template<class TDataType> 
-	TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
-	    {
-		if(!mpVariablesList->Has(rThisVariable))
-		    KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
-		return *(TDataType*)Position(rThisVariable, QueueIndex);
-	    }
+    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
+    }
 
-	template<class TDataType> 
-	const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
-	    {
-		if(!mpVariablesList->Has(rThisVariable))
-		    KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
-		return *(const TDataType*)Position(rThisVariable);
-	    }
+    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), 0));
+    }
 
-	template<class TDataType> 
-	const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
-	    {
-		if(!mpVariablesList->Has(rThisVariable))
-		    KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
-		return *(const TDataType*)Position(rThisVariable, QueueIndex);
-	    }
-	
+    /// Assignment operator.
+    VariablesListDataValueContainer& operator=(const VariablesListDataValueContainer& rOther)
+    {
+        if(rOther.mpVariablesList == 0)
+            Clear();
+        else if((mpVariablesList == rOther.mpVariablesList) &&
+                (mQueueSize == rOther.mQueueSize))
+        {
+            mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-	template<class TAdaptorType> 
-	typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	    }
+            SizeType size = mpVariablesList->DataSize();
+            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                    i_variable != mpVariablesList->end() ; i_variable++)
+            {
+                SizeType offset = LocalOffset(*i_variable);
+                for(SizeType i = 0 ; i < mQueueSize ; i++)
+                {
+                    SizeType total_offset =  offset + i * size;
+                    i_variable->Assign(rOther.mpData + total_offset, mpData + total_offset);
+                }
+            }
+        }
+        else
+        {
+            DestructAllElements();
 
-	template<class TAdaptorType> 
-	typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	    }
-	
-	template<class TAdaptorType> 
-	const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	    }
-	
-	template<class TAdaptorType> 
-	const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	    }
-	
-	template<class TDataType> 
-	TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
-	    {
-		return *(TDataType*)Position(rThisVariable);
-	    }
-	
-	template<class TDataType> 
-	TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
-	    {
-		return (TDataType*)Position(rThisVariable);
-	    }
-	
-	template<class TDataType> 
-	TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
-	    {
-		return *(TDataType*)Position(rThisVariable, QueueIndex);
-	    }
-	
-	template<class TDataType> 
-	TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
-	    {
-		return *(TDataType*)(Position(QueueIndex) + ThisPosition);
-	    }
-	
-	template<class TDataType> 
-	TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
-	    {
-		return *(TDataType*)(mpCurrentPosition + ThisPosition);
-	    }
-	
-	template<class TDataType>
-	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
-	    {
-		return *(const TDataType*)Position(rThisVariable);
-	    }
-	
-	template<class TDataType>
-	const TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable) const
-	    {
-		return (const TDataType*)Position(rThisVariable);
-	    }
+            mQueueSize = rOther.mQueueSize;
+            mpVariablesList = rOther.mpVariablesList;
 
-	template<class TDataType>
-	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
-	    {
-		return *(const TDataType*)Position(rThisVariable, QueueIndex);
-	    }
+            Reallocate();
 
-	template<class TDataType> 
-	const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition) const
-	    {
-		return *(TDataType*)(Position(QueueIndex) + ThisPosition);
-	    }
-	
-	
-	template<class TDataType> 
-	const TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition) const
-	    {
-		return *(TDataType*)(mpCurrentPosition + ThisPosition);
-	    }
+            mpCurrentPosition = mpData + (rOther.mpCurrentPosition - rOther.mpData);
 
-	template<class TAdaptorType>
-	typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	    }
-      
-	template<class TAdaptorType>
-	typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	    }
-      
-      
-      template<class TAdaptorType>
-      const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	    }
-	
-      template<class TAdaptorType>
-      const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
-	    {
-		return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
-	    }
-	
+            SizeType size = mpVariablesList->DataSize();
+            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                    i_variable != mpVariablesList->end() ; i_variable++)
+            {
+                SizeType offset = LocalOffset(*i_variable);
+                for(SizeType i = 0 ; i < mQueueSize ; i++)
+                {
+                    SizeType total_offset =  offset + i * size;
+                    i_variable->Copy(rOther.mpData + total_offset, mpData + total_offset);
+                }
+            }
+        }
 
-	SizeType Size() const
-	{
-	    return mpVariablesList->DataSize();
-	}
-	
-      SizeType QueueSize() const
-	{
-	  return mQueueSize;
-	}
+        return *this;
+    }
 
-      SizeType TotalSize() const
-	{
-	  return mQueueSize * mpVariablesList->DataSize();
-	}
+    ///@}
+    ///@name Operations
+    ///@{
 
-      template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
-	{
-	  GetValue(rThisVariable) = rValue;
-	}
+    template<class TDataType>
+    TDataType& GetValue(const Variable<TDataType>& rThisVariable)
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        return *(TDataType*)Position(rThisVariable);
+    }
 
-      template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue, SizeType QueueIndex)
-	{
-	  GetValue(rThisVariable, QueueIndex) = rValue;
-	}
+    template<class TDataType>
+    TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        return *(TDataType*)Position(rThisVariable, QueueIndex);
+    }
 
-      template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-	{
-	  rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
-	}
+    template<class TDataType>
+    const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        return *(const TDataType*)Position(rThisVariable);
+    }
 
-      template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue, SizeType QueueIndex)
-	{
-	  rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex)) = rValue;
-	}
-	
+    template<class TDataType>
+    const TDataType& GetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::invalid_argument, "This container only can store the variables specified in its variables list. The variables list doesn't have this variable:",rThisVariable);
+        return *(const TDataType*)Position(rThisVariable, QueueIndex);
+    }
+
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
+    template<class TDataType>
+    TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
+    {
+        return *(TDataType*)Position(rThisVariable);
+    }
+
+    template<class TDataType>
+    TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable)
+    {
+        return (TDataType*)Position(rThisVariable);
+    }
+
+    template<class TDataType>
+    TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex)
+    {
+        return *(TDataType*)Position(rThisVariable, QueueIndex);
+    }
+
+    template<class TDataType>
+    TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition)
+    {
+        return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+    }
+
+    template<class TDataType>
+    TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition)
+    {
+        return *(TDataType*)(mpCurrentPosition + ThisPosition);
+    }
+
+    template<class TDataType>
+    const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        return *(const TDataType*)Position(rThisVariable);
+    }
+
+    template<class TDataType>
+    const TDataType* pFastGetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        return (const TDataType*)Position(rThisVariable);
+    }
+
+    template<class TDataType>
+    const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex) const
+    {
+        return *(const TDataType*)Position(rThisVariable, QueueIndex);
+    }
+
+    template<class TDataType>
+    const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable, SizeType QueueIndex, SizeType ThisPosition) const
+    {
+        return *(TDataType*)(Position(QueueIndex) + ThisPosition);
+    }
+
+
+    template<class TDataType>
+    const TDataType& FastGetCurrentValue(const Variable<TDataType>& rThisVariable, SizeType ThisPosition) const
+    {
+        return *(TDataType*)(mpCurrentPosition + ThisPosition);
+    }
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType>
+    const typename TAdaptorType::Type& FastGetValue(const VariableComponent<TAdaptorType>& rThisVariable, SizeType QueueIndex) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex));
+    }
+
+
+    SizeType Size() const
+    {
+        return mpVariablesList->DataSize();
+    }
+
+    SizeType QueueSize() const
+    {
+        return mQueueSize;
+    }
+
+    SizeType TotalSize() const
+    {
+        return mQueueSize * mpVariablesList->DataSize();
+    }
+
+    template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
+    {
+        GetValue(rThisVariable) = rValue;
+    }
+
+    template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue, SizeType QueueIndex)
+    {
+        GetValue(rThisVariable, QueueIndex) = rValue;
+    }
+
+    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
+    {
+        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
+    }
+
+    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue, SizeType QueueIndex)
+    {
+        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable(), QueueIndex)) = rValue;
+    }
+
 //       template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
 // 	{
 // 	  typename ContainerType::iterator i;
-      
+
 // 	  if ((i = std::find_if(mpData.begin(), mpData.end(), IndexCheck(rThisVariable.Key())))  != mpData.end())
 // 	    {
 // 	      i->first->Delete(i->second);
@@ -544,163 +544,163 @@ namespace Kratos
 // 	    }
 // 	}
 
-      void Clear()
-	  {
-	      DestructAllElements();
-	      if(mpData)
-		  free(mpData);
+    void Clear()
+    {
+        DestructAllElements();
+        if(mpData)
+            free(mpData);
 
-	      mpData = 0;
-	  }
-
-
-	///@}
-      ///@name Access
-      ///@{ 
-
-      VariablesList* pGetVariablesList()
-	  {
-		  return mpVariablesList;
-	  }
-
-      const VariablesList * pGetVariablesList() const
-	  {
-		  return mpVariablesList;
-	  }
+        mpData = 0;
+    }
 
 
+    ///@}
+    ///@name Access
+    ///@{
 
-	void SetVariablesList(VariablesList* pVariablesList)
-	{
-	    DestructAllElements();
-	    
-	    mpVariablesList = pVariablesList;
-	    
-	    Reallocate();
+    VariablesList* pGetVariablesList()
+    {
+        return mpVariablesList;
+    }
 
-	    mpCurrentPosition = mpData;
+    const VariablesList * pGetVariablesList() const
+    {
+        return mpVariablesList;
+    }
 
-	    SizeType size = mpVariablesList->DataSize();
-	    for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		i_variable != mpVariablesList->end() ; i_variable++)
-	    {
-		BlockType*  position = Position(*i_variable);
-		for(SizeType i = 0 ; i < mQueueSize ; i++)
-		    i_variable->AssignZero(position + i * size);
-	    }
-	}
 
-	void SetVariablesList(VariablesList* pVariablesList, SizeType ThisQueueSize)
-	{
-	    DestructAllElements();
-	    
-	    mpVariablesList = pVariablesList;
 
-	    mQueueSize = ThisQueueSize;
+    void SetVariablesList(VariablesList* pVariablesList)
+    {
+        DestructAllElements();
 
-	    Reallocate();
+        mpVariablesList = pVariablesList;
 
-	    mpCurrentPosition = mpData;
-	    
-	    SizeType size = mpVariablesList->DataSize();
-	    for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		i_variable != mpVariablesList->end() ; i_variable++)
-	    {
-		BlockType*  position = Position(*i_variable);
-		for(SizeType i = 0 ; i < mQueueSize ; i++)
-		    i_variable->AssignZero(position + i * size);
-	    }
-	}
+        Reallocate();
 
-	VariablesList& GetDefaultVariablesList()
-	  {
-		  return Globals::DefaultVariablesList;
-	  }
+        mpCurrentPosition = mpData;
 
-	void Resize(SizeType NewSize)
-	{
-	    if(mQueueSize == NewSize) // if new size is equal to the provious one
-		return; // Do nothing!!
-	    
-	    if(mQueueSize > NewSize) // if new size is smaller
-	    {
-		// Destructing elements out of the new size
-		for(SizeType i = NewSize ; i < mQueueSize ; i++)
-		    DestructElements(i);
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = Position(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+                i_variable->AssignZero(position + i * size);
+        }
+    }
 
-		SizeType size = mpVariablesList->DataSize();
-			
-		//allocating memory
-		BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
+    void SetVariablesList(VariablesList* pVariablesList, SizeType ThisQueueSize)
+    {
+        DestructAllElements();
 
-		//Copying data to allocated memory
-		for(SizeType i = 0 ; i < NewSize ; i++)
-		    memcpy(temp + i * size, Position(i), size * sizeof(BlockType));
+        mpVariablesList = pVariablesList;
 
-		// Updating the queue size
-		mQueueSize = NewSize;
+        mQueueSize = ThisQueueSize;
 
-		// freeing the old memory
-		free(mpData);
+        Reallocate();
 
-		// Setting data pointer to the allocated memory
-		mpData = temp;
+        mpCurrentPosition = mpData;
 
-		// updating the current position
-		mpCurrentPosition = mpData;
-		
-	    }
-	    else
-	    {
-		// Calculating the difference of new and old sizes
-		SizeType difference = NewSize - mQueueSize;
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = Position(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+                i_variable->AssignZero(position + i * size);
+        }
+    }
 
-		//keeping the old queue size
-		SizeType old_size = mQueueSize;
+    VariablesList& GetDefaultVariablesList()
+    {
+        return Globals::DefaultVariablesList;
+    }
 
-		// Getting the relative offset of current position
-		SizeType current_offset = mpCurrentPosition - mpData;
+    void Resize(SizeType NewSize)
+    {
+        if(mQueueSize == NewSize) // if new size is equal to the provious one
+            return; // Do nothing!!
 
-		//Updating the queue size
-		mQueueSize = NewSize;
+        if(mQueueSize > NewSize) // if new size is smaller
+        {
+            // Destructing elements out of the new size
+            for(SizeType i = NewSize ; i < mQueueSize ; i++)
+                DestructElements(i);
 
-		// Reallocating for new size
-		Reallocate();
+            SizeType size = mpVariablesList->DataSize();
 
-		SizeType size = mpVariablesList->DataSize();
+            //allocating memory
+            BlockType* temp = (BlockType*)malloc(size * sizeof(BlockType) * NewSize);
 
-		// Updating the mpCurrentPosition
-		mpCurrentPosition = mpData + current_offset; 
+            //Copying data to allocated memory
+            for(SizeType i = 0 ; i < NewSize ; i++)
+                memcpy(temp + i * size, Position(i), size * sizeof(BlockType));
 
-		// moving the region after current position to the end
-		SizeType region_size = old_size * size - current_offset;
-		memmove(mpCurrentPosition + difference * size, mpCurrentPosition, region_size * sizeof(BlockType));
+            // Updating the queue size
+            mQueueSize = NewSize;
 
-		// Assigning zero to the added elements
-		for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		    i_variable != mpVariablesList->end() ; i_variable++)
-		{
-		    BlockType*  position = mpCurrentPosition + LocalOffset(*i_variable);
-		    for(SizeType i = 0 ; i < difference ; i++)
-			i_variable->AssignZero(position + i * size);
-		}
+            // freeing the old memory
+            free(mpData);
 
-		//moving the current position to the moved place
-		mpCurrentPosition +=  difference * size;
-	    }
-	}
+            // Setting data pointer to the allocated memory
+            mpData = temp;
+
+            // updating the current position
+            mpCurrentPosition = mpData;
+
+        }
+        else
+        {
+            // Calculating the difference of new and old sizes
+            SizeType difference = NewSize - mQueueSize;
+
+            //keeping the old queue size
+            SizeType old_size = mQueueSize;
+
+            // Getting the relative offset of current position
+            SizeType current_offset = mpCurrentPosition - mpData;
+
+            //Updating the queue size
+            mQueueSize = NewSize;
+
+            // Reallocating for new size
+            Reallocate();
+
+            SizeType size = mpVariablesList->DataSize();
+
+            // Updating the mpCurrentPosition
+            mpCurrentPosition = mpData + current_offset;
+
+            // moving the region after current position to the end
+            SizeType region_size = old_size * size - current_offset;
+            memmove(mpCurrentPosition + difference * size, mpCurrentPosition, region_size * sizeof(BlockType));
+
+            // Assigning zero to the added elements
+            for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                    i_variable != mpVariablesList->end() ; i_variable++)
+            {
+                BlockType*  position = mpCurrentPosition + LocalOffset(*i_variable);
+                for(SizeType i = 0 ; i < difference ; i++)
+                    i_variable->AssignZero(position + i * size);
+            }
+
+            //moving the current position to the moved place
+            mpCurrentPosition +=  difference * size;
+        }
+    }
 
 
 // 	void Resize(SizeType NewSize, BlockType* SourceData)
 // 	{
 // 	    if(mQueueSize == NewSize)
 // 		return;
-	    
+
 // 	    if(mQueueSize > NewSize)
 // 	    {
 // 		for(SizeType i = NewSize ; i < mQueueSize ; i++)
 // 		    DestructElements(i);
-			
+
 // 		mQueueSize = NewSize;
 
 // 		Reallocate();
@@ -722,30 +722,30 @@ namespace Kratos
 // 	}
 
 
-	BlockType* Data()
-	    {
-		return mpData;
-	    }
+    BlockType* Data()
+    {
+        return mpData;
+    }
 
-	BlockType* Data(SizeType QueueIndex)
-	    {
-		return Position(QueueIndex);
-	    }
+    BlockType* Data(SizeType QueueIndex)
+    {
+        return Position(QueueIndex);
+    }
 
-	SizeType DataSize()
-	    {
-		return mpVariablesList->DataSize() * sizeof(BlockType);
-	    }
+    SizeType DataSize()
+    {
+        return mpVariablesList->DataSize() * sizeof(BlockType);
+    }
 
-	SizeType TotalDataSize()
-	    {
-		return mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize;
-	    }
+    SizeType TotalDataSize()
+    {
+        return mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize;
+    }
 
-	void AssignData(BlockType* Source, SizeType QueueIndex)
-	    {
-		AssignData(Source, Position(QueueIndex));
-	    }
+    void AssignData(BlockType* Source, SizeType QueueIndex)
+    {
+        AssignData(Source, Position(QueueIndex));
+    }
 
 //	void SetData(BlockType* pThisData)
 //	    {
@@ -754,364 +754,364 @@ namespace Kratos
 //		mpData = pThisData;
 //	    }
 
-	void CloneFront()
-	{
-	    if(mQueueSize == 0)
-	    {
-		Resize(1);
-		return;
-	    }
-	    
-	    if(mQueueSize == 1)
-		return;
-	    
-	    SizeType size = mpVariablesList->DataSize();
-	    BlockType* position = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
-	    AssignData(mpCurrentPosition, position);
-	    mpCurrentPosition = position;
-	    
-	}
-	
-	void PushFront()
-	{
-	    if(mQueueSize == 0)
-	    {
-		Resize(1);
-		return;
-	    }
-	    
-	    if(mQueueSize == 1)
-		return;
-	    
-	    SizeType size = mpVariablesList->DataSize();
-	    mpCurrentPosition = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
-	    AssignZero();
-
-	}
-      
-
-	void AssignZero()
-	{
-	    for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		i_variable != mpVariablesList->end() ; i_variable++)
-		i_variable->AssignZero(mpCurrentPosition + LocalOffset(*i_variable));
-	}
-
-	void AssignZero(SizeType QueueIndex)
-	{
-	    BlockType* position = Position(QueueIndex);
-	    for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		i_variable != mpVariablesList->end() ; i_variable++)
-		i_variable->AssignZero(position + LocalOffset(*i_variable));
-	}
-	
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-	{
-	  return mpVariablesList->Has(rThisVariable);
-	}
-
-      template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return mpVariablesList->Has(rThisVariable.GetSourceVariable());
-	}
-      
-      bool IsEmpty()
-	{
-	  return mpVariablesList->IsEmpty();
-	}
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  return std::string("variables list data value container");
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << "variables list data value container";
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-	  for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-	      i_variable != mpVariablesList->end() ; i_variable++)
-	  {
-	      rOStream <<"    ";
-	      for(SizeType i = 0 ; i < mQueueSize ; i++)
-	      {
-		  rOStream << i << ": ";
-		  i_variable->Print(Position(*i_variable, i), rOStream);
-		  rOStream << "  ";
-	      }
-	      rOStream << std::endl;
-	  }
-	  
-      }
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-
-      ///@name Static Member Variables 
-      ///@{ 
-       
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-	  
-      SizeType mQueueSize;
-      
-      BlockType* mpCurrentPosition;
-
-      ContainerType mpData;
-      
-      VariablesList* mpVariablesList;
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-      
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      inline void Allocate()
-	  {
-	      mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
-	  }
-
-	inline void Reallocate()
-	    {
-		mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
-	    }
-        
-      void DestructElements(SizeType ThisIndex)
-	  {
-	      if(mpData == 0)
-		  return;
-	      BlockType* position = Position(ThisIndex);
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-		  i_variable->Destruct(position + LocalOffset(*i_variable));
-	  }
-      
-      
-      void DestructAllElements()
-	  {
-	      if(mpData == 0)
-		  return;
-		  
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  BlockType*  position = mpData + LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-		      i_variable->Destruct(position + i * size);
-	      }
-	  }
-      
-
-	void AssignData(BlockType* Source, BlockType* Destination)
-	    {
-		for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		    i_variable != mpVariablesList->end() ; i_variable++)
-		{
-		    SizeType offset = LocalOffset(*i_variable);
-		    i_variable->Assign(Source + offset, Destination + offset);
-		}
-	    }
-        
-      inline SizeType LocalOffset(VariableData const & rThisVariable) const
-	  {
-	      return mpVariablesList->Index(rThisVariable);
-	  }
-
-      inline BlockType* Position(VariableData const & rThisVariable) const
-	  {
-	      return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
-	  }
-
-      inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
-	  {
-	      return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
-	  }
-      
-      inline BlockType* Position() const
-	  {
-	      return mpCurrentPosition;
-	  }
-
-      inline BlockType* Position(SizeType ThisIndex) const
-	  {
-	      SizeType total_size = TotalSize();
-	      BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
-	      return (position < mpData + total_size) ? position : position - total_size;
-	  }
-	  
-      ///@} 
-      ///@name Serialization
-      ///@{ 
-        
-	friend class Serializer;
- 	
-	virtual void save(Serializer& rSerializer) const
-	{
-	  rSerializer.save("Variables List", mpVariablesList);
-	  rSerializer.save("QueueSize", mQueueSize);
-          if(mpVariablesList->DataSize() != 0 )
-            rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
-          else
-           rSerializer.save("QueueIndex", 0);
-
-	  
-	      if(mpData == 0)
-		  KRATOS_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
-		  
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  BlockType*  position = mpData + LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-                  {
-                      //rSerializer.save("VariableName", i_variable->Name());
-		      i_variable->Save(rSerializer, position + i * size);
-                  }
-	      }
-	}
-
-	virtual void load(Serializer& rSerializer)
-	{
-	  rSerializer.load("Variables List", mpVariablesList);
-	  rSerializer.load("QueueSize", mQueueSize);
-          SizeType queue_index;
-          rSerializer.load("QueueIndex", queue_index);
-	  Allocate();
-
-          // Setting the current position at the begining of data
-          if(queue_index > mQueueSize)
-              KRATOS_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
-          mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
-
-          std::string name;
-              for(SizeType i = 0 ; i < mQueueSize ; i++)
-                  AssignZero(i);
-	      
-	      SizeType size = mpVariablesList->DataSize();
-	      for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
-		  i_variable != mpVariablesList->end() ; i_variable++)
-	      {
-		  BlockType*  position = mpData + LocalOffset(*i_variable);
-		  for(SizeType i = 0 ; i < mQueueSize ; i++)
-                  {
-                      //rSerializer.load("VariableName", name);
-		      i_variable->Load(rSerializer, position + i * size);
-                  }
-	      }
-	}
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class VariablesListDataValueContainer 
-
-  ///@} 
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    VariablesListDataValueContainer& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const VariablesListDataValueContainer& rThis)
+    void CloneFront()
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        if(mQueueSize == 0)
+        {
+            Resize(1);
+            return;
+        }
 
-      return rOStream;
+        if(mQueueSize == 1)
+            return;
+
+        SizeType size = mpVariablesList->DataSize();
+        BlockType* position = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
+        AssignData(mpCurrentPosition, position);
+        mpCurrentPosition = position;
+
     }
-  ///@} 
-  
-  
+
+    void PushFront()
+    {
+        if(mQueueSize == 0)
+        {
+            Resize(1);
+            return;
+        }
+
+        if(mQueueSize == 1)
+            return;
+
+        SizeType size = mpVariablesList->DataSize();
+        mpCurrentPosition = (mpCurrentPosition == mpData) ? mpData + TotalSize() - size :  mpCurrentPosition - size;
+        AssignZero();
+
+    }
+
+
+    void AssignZero()
+    {
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+            i_variable->AssignZero(mpCurrentPosition + LocalOffset(*i_variable));
+    }
+
+    void AssignZero(SizeType QueueIndex)
+    {
+        BlockType* position = Position(QueueIndex);
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+            i_variable->AssignZero(position + LocalOffset(*i_variable));
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mpVariablesList->Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mpVariablesList->Has(rThisVariable.GetSourceVariable());
+    }
+
+    bool IsEmpty()
+    {
+        return mpVariablesList->IsEmpty();
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return std::string("variables list data value container");
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "variables list data value container";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            rOStream <<"    ";
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            {
+                rOStream << i << ": ";
+                i_variable->Print(Position(*i_variable, i), rOStream);
+                rOStream << "  ";
+            }
+            rOStream << std::endl;
+        }
+
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    SizeType mQueueSize;
+
+    BlockType* mpCurrentPosition;
+
+    ContainerType mpData;
+
+    VariablesList* mpVariablesList;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    inline void Allocate()
+    {
+        mpData = (BlockType*)malloc(mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+    }
+
+    inline void Reallocate()
+    {
+        mpData = (BlockType*)realloc(mpData, mpVariablesList->DataSize() * sizeof(BlockType) * mQueueSize);
+    }
+
+    void DestructElements(SizeType ThisIndex)
+    {
+        if(mpData == 0)
+            return;
+        BlockType* position = Position(ThisIndex);
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+            i_variable->Destruct(position + LocalOffset(*i_variable));
+    }
+
+
+    void DestructAllElements()
+    {
+        if(mpData == 0)
+            return;
+
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = mpData + LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+                i_variable->Destruct(position + i * size);
+        }
+    }
+
+
+    void AssignData(BlockType* Source, BlockType* Destination)
+    {
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            SizeType offset = LocalOffset(*i_variable);
+            i_variable->Assign(Source + offset, Destination + offset);
+        }
+    }
+
+    inline SizeType LocalOffset(VariableData const & rThisVariable) const
+    {
+        return mpVariablesList->Index(rThisVariable);
+    }
+
+    inline BlockType* Position(VariableData const & rThisVariable) const
+    {
+        return mpCurrentPosition + mpVariablesList->Index(rThisVariable);
+    }
+
+    inline BlockType* Position(VariableData const & rThisVariable, SizeType ThisIndex) const
+    {
+        return Position(ThisIndex) + mpVariablesList->Index(rThisVariable);
+    }
+
+    inline BlockType* Position() const
+    {
+        return mpCurrentPosition;
+    }
+
+    inline BlockType* Position(SizeType ThisIndex) const
+    {
+        SizeType total_size = TotalSize();
+        BlockType* position = mpCurrentPosition + ThisIndex * mpVariablesList->DataSize();
+        return (position < mpData + total_size) ? position : position - total_size;
+    }
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Variables List", mpVariablesList);
+        rSerializer.save("QueueSize", mQueueSize);
+        if(mpVariablesList->DataSize() != 0 )
+            rSerializer.save("QueueIndex", SizeType(mpCurrentPosition-mpData)/mpVariablesList->DataSize());
+        else
+            rSerializer.save("QueueIndex", 0);
+
+
+        if(mpData == 0)
+            KRATOS_ERROR(std::logic_error, "Cannot save an empty variables list container", "");
+
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = mpData + LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            {
+                //rSerializer.save("VariableName", i_variable->Name());
+                i_variable->Save(rSerializer, position + i * size);
+            }
+        }
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Variables List", mpVariablesList);
+        rSerializer.load("QueueSize", mQueueSize);
+        SizeType queue_index;
+        rSerializer.load("QueueIndex", queue_index);
+        Allocate();
+
+        // Setting the current position at the begining of data
+        if(queue_index > mQueueSize)
+            KRATOS_ERROR(std::invalid_argument, "Invalid Queue index loaded : ", queue_index)
+            mpCurrentPosition = mpData + queue_index * mpVariablesList->DataSize();
+
+        std::string name;
+        for(SizeType i = 0 ; i < mQueueSize ; i++)
+            AssignZero(i);
+
+        SizeType size = mpVariablesList->DataSize();
+        for(VariablesList::const_iterator i_variable = mpVariablesList->begin() ;
+                i_variable != mpVariablesList->end() ; i_variable++)
+        {
+            BlockType*  position = mpData + LocalOffset(*i_variable);
+            for(SizeType i = 0 ; i < mQueueSize ; i++)
+            {
+                //rSerializer.load("VariableName", name);
+                i_variable->Load(rSerializer, position + i * size);
+            }
+        }
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class VariablesListDataValueContainer
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  VariablesListDataValueContainer& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const VariablesListDataValueContainer& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIABLES_LIST_DATA_VALUE_CONTAINER_H_INCLUDED  defined 

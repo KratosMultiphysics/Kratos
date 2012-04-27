@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: jmora $ rrossi $
 //   Date:                $Date: 2009-09-28 $
 //   Revision:            $Revision: 1.4 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -41,245 +41,245 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
+// Variables definition
 //	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
-	//KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
+//KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 //	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
-	KRATOS_DEFINE_VARIABLE(double,  CONDUCTIVITY)
-	KRATOS_DEFINE_VARIABLE(double,  SPECIFIC_HEAT)
-	KRATOS_DEFINE_VARIABLE(double,  HEAT_FLUX)	
-	KRATOS_DEFINE_VARIABLE(double,  TEMP_CONV_PROJ)	
+KRATOS_DEFINE_VARIABLE(double,  CONDUCTIVITY)
+KRATOS_DEFINE_VARIABLE(double,  SPECIFIC_HEAT)
+KRATOS_DEFINE_VARIABLE(double,  HEAT_FLUX)
+KRATOS_DEFINE_VARIABLE(double,  TEMP_CONV_PROJ)
 
-	KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)	
-	KRATOS_DEFINE_VARIABLE(double,  EMISSIVITY)	
-	KRATOS_DEFINE_VARIABLE(double,  CONVECTION_COEFFICIENT)	
-	KRATOS_DEFINE_VARIABLE(double,  FACE_HEAT_FLUX)	
-	
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
-			
-	// for electromagnetic applications
-	// for kElectrostatic application
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_PERMITTIVITY)
-	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
-	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POINT_CHARGE)
-	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_SURFACE_CHARGE)
-	KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_VOLUME_CHARGE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_DISPLACEMENT_FIELD)
-	KRATOS_DEFINE_VARIABLE(double, INFINIT_COEFFICIENT)
+KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)
+KRATOS_DEFINE_VARIABLE(double,  EMISSIVITY)
+KRATOS_DEFINE_VARIABLE(double,  CONVECTION_COEFFICIENT)
+KRATOS_DEFINE_VARIABLE(double,  FACE_HEAT_FLUX)
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
-	///@} 
-	///@name  Enum's
-	///@{
+// for electromagnetic applications
+// for kElectrostatic application
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRICAL_PERMITTIVITY)
+KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POTENTIAL)
+KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_POINT_CHARGE)
+KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_SURFACE_CHARGE)
+KRATOS_DEFINE_VARIABLE(double, ELECTROSTATIC_VOLUME_CHARGE)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_FIELD)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELECTRIC_DISPLACEMENT_FIELD)
+KRATOS_DEFINE_VARIABLE(double, INFINIT_COEFFICIENT)
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name Type Definitions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosR1ElectrostaticApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+///@}
+///@name  Functions
+///@{
 
-		/// Pointer definition of KratosR1ElectrostaticApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosR1ElectrostaticApplication);
+///@}
+///@name Kratos Classes
+///@{
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		KratosR1ElectrostaticApplication();
-
-		/// Destructor.
-		virtual ~KratosR1ElectrostaticApplication(){}
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosR1ElectrostaticApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+    /// Pointer definition of KratosR1ElectrostaticApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosR1ElectrostaticApplication);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    KratosR1ElectrostaticApplication();
+
+    /// Destructor.
+    virtual ~KratosR1ElectrostaticApplication() {}
 
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Register();
+    ///@}
+    ///@name Operators
+    ///@{
 
 
+    ///@}
+    ///@name Operations
+    ///@{
 
-		///@}
-		///@name Access
-		///@{ 
-
-
-		///@}
-		///@name Inquiry
-		///@{
+    virtual void Register();
 
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosR1ElectrostaticApplication";
-		}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
-
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosR1ElectrostaticApplication");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}      
-		///@name Friends
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosR1ElectrostaticApplication";
+    }
 
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operators
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operations
-		///@{ 
-
-
-		///@} 
-		///@name Protected  Access 
-		///@{ 
-
-
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
-
-
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosR1ElectrostaticApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
 
-		///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
 
-//		static const ConvDiff2D  msConvDiff2D; 
-//		static const ConvDiff3D  msConvDiff3D; 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+//		static const ConvDiff2D  msConvDiff2D;
+//		static const ConvDiff3D  msConvDiff3D;
 //		static const ThermalFace2D  msThermalFace2D;
 //		static const ThermalFace3D  msThermalFace3D;
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+    //       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		const Electrostatic2D  mElectrostatic2D;
-		const Electrostatic3D  mElectrostatic3D;
-		const PointCharge2D  mPointCharge2D;
-		const PointCharge3D  mPointCharge3D;
-		const Efield2D  mEfield2D;
-		const Efield3D  mEfield3D;
+    ///@}
+    ///@name Member Variables
+    ///@{
+    const Electrostatic2D  mElectrostatic2D;
+    const Electrostatic3D  mElectrostatic3D;
+    const PointCharge2D  mPointCharge2D;
+    const PointCharge3D  mPointCharge3D;
+    const Efield2D  mEfield2D;
+    const Efield3D  mEfield3D;
 
-		///@} 
-		///@name Private Operators
-		///@{ 
-
-
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
-
-		/// Assignment operator.
-		KratosR1ElectrostaticApplication& operator=(KratosR1ElectrostaticApplication const& rOther);
-
-		/// Copy constructor.
-		KratosR1ElectrostaticApplication(KratosR1ElectrostaticApplication const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	}; // Class KratosR1ElectrostaticApplication 
+    /// Assignment operator.
+    KratosR1ElectrostaticApplication& operator=(KratosR1ElectrostaticApplication const& rOther);
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+    /// Copy constructor.
+    KratosR1ElectrostaticApplication(KratosR1ElectrostaticApplication const& rOther);
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+    ///@}
 
-	///@} 
+}; // Class KratosR1ElectrostaticApplication
+
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

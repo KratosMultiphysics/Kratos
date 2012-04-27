@@ -35,10 +35,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
 
-/* *********************************************************   
- *          
+
+/* *********************************************************
+ *
  *   Last modified by:    $Author: rrossi $
  *   Date:                $Date: 2007-03-06 10:30:33 $
  *   Revision:            $Revision: 1.2 $
@@ -179,20 +179,20 @@ KRATOS_CATCH_AND_THROW(std::domain_error,MoreInfo,Block)     \
 KRATOS_CATCH_AND_THROW(std::logic_error,MoreInfo,Block)      \
 KRATOS_CATCH_AND_THROW(std::runtime_error,MoreInfo,Block)    \
 catch(std::exception& e) { Block KRATOS_ERROR(std::runtime_error, e.what(), MoreInfo) } \
-catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) } 
+catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 
 #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
-#define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block(); 
-  
-#ifndef __SUNPRO_CC
-  #define KRATOS_TRY try {
+#define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block();
 
-  #define KRATOS_CATCH(MoreInfo) \
+#ifndef __SUNPRO_CC
+#define KRATOS_TRY try {
+
+#define KRATOS_CATCH(MoreInfo) \
   KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 #else
-  #define KRATOS_TRY { };
+#define KRATOS_TRY { };
 
-  #define KRATOS_CATCH(MoreInfo) { };
+#define KRATOS_CATCH(MoreInfo) { };
 #endif
 //-----------------------------------------------------------------
 //
@@ -219,13 +219,13 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 #undef KRATOS_CREATE_VARIABLE
 #endif
 #define KRATOS_CREATE_VARIABLE(type, name) \
-    /*const*/ Kratos::Variable<type > name(#name); 
+    /*const*/ Kratos::Variable<type > name(#name);
 
 #ifdef KRATOS_CREATE_VARIABLE_WITH_ZERO
 #undef KRATOS_CREATE_VARIABLE_WITH_ZERO
 #endif
 #define KRATOS_CREATE_VARIABLE_WITH_ZERO(type, name, zero) \
-    /*const*/ Kratos::Variable<type> name(#name, zero); 
+    /*const*/ Kratos::Variable<type> name(#name, zero);
 
 #ifdef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS
 #undef KRATOS_CREATE_3D_VARIABLE_WITH_THIS_COMPONENTS
@@ -310,30 +310,30 @@ namespace Kratos
 {
 
 
-  /**@name Kratos Classes */
-  /*@{ */ 
+/**@name Kratos Classes */
+/*@{ */
 
-  /*@} */ 
-  
-  /**@name Type Definitions */       
-  /*@{ */   
-  /** Pointer to char
-   */
-  typedef const char* PointerToConstCharType;
-  
-  /*@} */ 
-  
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+/** Pointer to char
+ */
+typedef const char* PointerToConstCharType;
+
+/*@} */
+
 #if defined(_MSC_VER)
 #pragma warning (disable: 4355)
 #pragma warning (disable: 4503)
 #pragma warning (disable: 4786)
 #endif
 
-  //Exception handling  
+//Exception handling
 #define KRATOS_TYPE_NAME_OF(name) name##Type
 #define KRATOS_NOT_EXCLUDED(filename) !defined(KRATOS_##filename##_EXCLUDED)
 
-#define KRATOS_DECLEAR_TYPE  namespace KratosComponents{ typedef 
+#define KRATOS_DECLEAR_TYPE  namespace KratosComponents{ typedef
 #define KRATOS_FOR_COMPONENT_NAMED(name) KRATOS_TYPE_NAME_OF(name);}
 
 // Kratos variable registering
@@ -347,10 +347,10 @@ namespace Kratos
 
 
 
-  //Print Trace if defined 
+//Print Trace if defined
 //#define KRATOS_PRINT_TRACE
 #ifdef KRATOS_PRINT_TRACE
-  
+
 #define KRATOS_TRACE(A,B) gTrace.Inform(A,B)
 
 #else
@@ -366,21 +366,21 @@ namespace Kratos
   std::cout << #variable << " : " << variable << std::endl;
 
 
-  // Complete version
+// Complete version
 #define KRATOS_VERSION  2.10
 
- /* Major version
-   */
+/* Major version
+  */
 #define KRATOS_MAJOR_VERSION  2
 
-  /* Minor version 
-   */
+/* Minor version
+ */
 #define KRATOS_MINOR_VERSION  1
 
-  /* Corrected version 
-   */
+/* Corrected version
+ */
 #define KRATOS_CORRECTION     0
-  
+
 
 }  /* namespace Kratos.*/
 
@@ -392,6 +392,6 @@ namespace Kratos
 #define KRATOS_SERIALIZE_LOAD_BASE_CLASS(Serializer, BaseType) \
 	Serializer.load_base("BaseClass",*static_cast<BaseType *>(this));
 
-  
+
 #endif /* KRATOS_DEFINE  defined */
 

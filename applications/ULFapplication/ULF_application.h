@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-04-01 10:25:52 $
 //   Revision:            $Revision: 1.7 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -35,10 +35,10 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
+// Variables definition
 /*	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 	KRATOS_DEFINE_VARIABLE(double, NODAL_H)
 	KRATOS_DEFINE_VARIABLE(double, IS_STRUCTURE)
@@ -48,217 +48,217 @@ namespace Kratos
 	KRATOS_DEFINE_VARIABLE(double, IS_FREE_SURFACE)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(NORMAL_TO_WALL)
 */
-	//KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
+//KRATOS_DEFINE_VARIABLE(double, IS_LAGRANGIAN_INLET)
 //	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
 
-	
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(DISP_FRAC)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(VAUX)
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name Type Definitions
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosULFApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Pointer definition of KratosULFApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosULFApplication);
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosULFApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
 
-		/// Default constructor.
-		KratosULFApplication();
+    /// Pointer definition of KratosULFApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosULFApplication);
 
-		/// Destructor.
-		virtual ~KratosULFApplication(){}
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
+    /// Default constructor.
+    KratosULFApplication();
 
-		///@}
-		///@name Operators 
-		///@{
+    /// Destructor.
+    virtual ~KratosULFApplication() {}
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-		virtual void Register();
 
+    ///@}
+    ///@name Operations
+    ///@{
 
+    virtual void Register();
 
-		///@}
-		///@name Access
-		///@{ 
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosULFApplication";
-		}
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosULFApplication");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosULFApplication";
+    }
 
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
-		///@}      
-		///@name Friends
-		///@{
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosULFApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
 
-		///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
 
+    ///@}
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
 
+    ///@}
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		const UpdatedLagrangianFluid mUpdatedLagrangianFluid2D;
-		const UpdatedLagrangianFluid3D mUpdatedLagrangianFluid3D;
-		const UpdatedLagrangianFluidInc mUpdatedLagrangianFluid2Dinc;
-		const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
-		//
-		const UlfFrac2D mUlfFrac2D;
-		const UlfFrac3D mUlfFrac3D;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    const UpdatedLagrangianFluid mUpdatedLagrangianFluid2D;
+    const UpdatedLagrangianFluid3D mUpdatedLagrangianFluid3D;
+    const UpdatedLagrangianFluidInc mUpdatedLagrangianFluid2Dinc;
+    const UpdatedLagrangianFluid3Dinc mUpdatedLagrangianFluid3Dinc;
+    //
+    const UlfFrac2D mUlfFrac2D;
+    const UlfFrac3D mUlfFrac3D;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
 
-		/// Assignment operator.
-		KratosULFApplication& operator=(KratosULFApplication const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		/// Copy constructor.
-		KratosULFApplication(KratosULFApplication const& rOther);
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		///@}    
+    /// Assignment operator.
+    KratosULFApplication& operator=(KratosULFApplication const& rOther);
 
-	}; // Class KratosULFApplication 
+    /// Copy constructor.
+    KratosULFApplication(KratosULFApplication const& rOther);
 
-	///@} 
 
+    ///@}
 
-	///@name Type Definitions       
-	///@{ 
+}; // Class KratosULFApplication
 
+///@}
 
-	///@} 
-	///@name Input and output 
-	///@{ 
 
-	///@} 
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

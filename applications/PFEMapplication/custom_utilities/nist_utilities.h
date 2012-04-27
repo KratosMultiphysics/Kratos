@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:31 $
 //   Revision:            $Revision: 1.3 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -71,109 +71,109 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	class NistUtils
-	{
-	public:
+class NistUtils
+{
+public:
 
 
-		//**********************************************************************************************
-		//**********************************************************************************************
-		/*void GenerateModelPart(
-			ModelPart& OriginModelPart , 
-			ModelPart& DestinationModelPart,
-			Element const& rReferenceElement, 
-			Condition const& rReferenceBoundaryCondition
-			)
-		{
-			KRATOS_TRY;
+    //**********************************************************************************************
+    //**********************************************************************************************
+    /*void GenerateModelPart(
+    	ModelPart& OriginModelPart ,
+    	ModelPart& DestinationModelPart,
+    	Element const& rReferenceElement,
+    	Condition const& rReferenceBoundaryCondition
+    	)
+    {
+    	KRATOS_TRY;
 
-			//assigning the nodes to the new model part
-			DestinationModelPart.rProperties()=OriginModelPart.rProperties();
-			DestinationModelPart.Nodes().clear();
-			DestinationModelPart.Nodes() = OriginModelPart.Nodes();
-			
-			//generating the elements
-			int id = 1;
-			Properties::Pointer properties = OriginModelPart.GetMesh().pGetProperties(1);			
-			for(ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
-			{
-				Geometry< Node<3> >& geom = iii->GetGeometry();
-				Properties::Pointer properties = iii->pGetProperties();
-				Element::Pointer p_element = rReferenceElement.Create(id, geom ,properties);
-				DestinationModelPart.Elements().push_back(p_element);
-				id = id + 1;
-			}
-			std::cout << "Elements are generated" << std::endl;
+    	//assigning the nodes to the new model part
+    	DestinationModelPart.rProperties()=OriginModelPart.rProperties();
+    	DestinationModelPart.Nodes().clear();
+    	DestinationModelPart.Nodes() = OriginModelPart.Nodes();
 
-			//generating the conditions
-			id = 1;
-			for(ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
-			{
-				Geometry< Node<3> >& geom = iii->GetGeometry();
-				double nfree_surf = 0;
-				for(unsigned int k = 0; k<geom.size(); k++)
-					nfree_surf += geom[k].FastGetSolutionStepValue(IS_FREE_SURFACE);
+    	//generating the elements
+    	int id = 1;
+    	Properties::Pointer properties = OriginModelPart.GetMesh().pGetProperties(1);
+    	for(ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
+    	{
+    		Geometry< Node<3> >& geom = iii->GetGeometry();
+    		Properties::Pointer properties = iii->pGetProperties();
+    		Element::Pointer p_element = rReferenceElement.Create(id, geom ,properties);
+    		DestinationModelPart.Elements().push_back(p_element);
+    		id = id + 1;
+    	}
+    	std::cout << "Elements are generated" << std::endl;
 
-				if(nfree_surf > 1)
-				{
-					Properties::Pointer properties = iii->pGetProperties(); 
-					Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(id, geom,properties);
-						DestinationModelPart.Conditions().push_back(p_condition);
-						id = id + 1;
-				}
-			}
-			std::cout << "Conditions are generated" << std::endl;
-			
-			KRATOS_CATCH("");   
-		}
-*/
+    	//generating the conditions
+    	id = 1;
+    	for(ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
+    	{
+    		Geometry< Node<3> >& geom = iii->GetGeometry();
+    		double nfree_surf = 0;
+    		for(unsigned int k = 0; k<geom.size(); k++)
+    			nfree_surf += geom[k].FastGetSolutionStepValue(IS_FREE_SURFACE);
 
-		//**********************************************************************************************
-		//**********************************************************************************************
-		void ApplyInitialTemperature(
-			ModelPart& ThisModelPart , 
-			double wall_temperature
-			)
-		{
-			KRATOS_TRY;
-			for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); 
-				in!=ThisModelPart.NodesEnd(); in++)
-			{
-				if(in->FastGetSolutionStepValue(IS_STRUCTURE) == 1 &&
-				  (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 )
-				{
-					in->FastGetSolutionStepValue(TEMPERATURE) = wall_temperature;
-				}
-			}
+    		if(nfree_surf > 1)
+    		{
+    			Properties::Pointer properties = iii->pGetProperties();
+    			Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(id, geom,properties);
+    				DestinationModelPart.Conditions().push_back(p_condition);
+    				id = id + 1;
+    		}
+    	}
+    	std::cout << "Conditions are generated" << std::endl;
 
-			KRATOS_CATCH("");   
-		}
+    	KRATOS_CATCH("");
+    }
+    */
 
-		//**********************************************************************************************
-		//**********************************************************************************************
-		double FindFluidLevel(
-			ModelPart::NodesContainerType nodes
-			)
-		{
-			KRATOS_TRY;
+    //**********************************************************************************************
+    //**********************************************************************************************
+    void ApplyInitialTemperature(
+        ModelPart& ThisModelPart ,
+        double wall_temperature
+    )
+    {
+        KRATOS_TRY;
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
+                in!=ThisModelPart.NodesEnd(); in++)
+        {
+            if(in->FastGetSolutionStepValue(IS_STRUCTURE) == 1 &&
+                    (in->GetValue(NEIGHBOUR_ELEMENTS)).size() == 0 )
+            {
+                in->FastGetSolutionStepValue(TEMPERATURE) = wall_temperature;
+            }
+        }
 
-			double level = 0.00;
-			for(ModelPart::NodesContainerType::iterator in = nodes.begin(); 
-				in!=nodes.end(); in++)
-			{
-				if(  (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0 )
-				{
-					if( in->Y() > level) level = in->Y();
-				}
-			}
-			return level;
+        KRATOS_CATCH("");
+    }
 
-			KRATOS_CATCH("");   
-		}
+    //**********************************************************************************************
+    //**********************************************************************************************
+    double FindFluidLevel(
+        ModelPart::NodesContainerType nodes
+    )
+    {
+        KRATOS_TRY;
 
-	private:
+        double level = 0.00;
+        for(ModelPart::NodesContainerType::iterator in = nodes.begin();
+                in!=nodes.end(); in++)
+        {
+            if(  (in->GetValue(NEIGHBOUR_ELEMENTS)).size() != 0 )
+            {
+                if( in->Y() > level) level = in->Y();
+            }
+        }
+        return level;
 
-	};
+        KRATOS_CATCH("");
+    }
+
+private:
+
+};
 
 }  // namespace Kratos.
 

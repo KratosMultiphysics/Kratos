@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosGPUApplication 
+KratosGPUApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2009
-Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 isaac.gallego.pla@gmail.com
 mossaiby@yahoo.com
@@ -49,15 +49,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 using namespace Kratos::GPUSparse;
 
 
-class AMGpreconditioner : public GPUPreconditioner {
+class AMGpreconditioner : public GPUPreconditioner
+{
 public:
     AMGpreconditioner();
     AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, bool actAsPreconditioner);
     AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, size_t* _preSweeps, size_t* _postSweeps, bool actAsPreconditioner);
     virtual ~AMGpreconditioner();
     void initialize(size_t* ptr_cpu, size_t* indices_cpu, double* values_cpu,
-        size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
-        size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged);
+                    size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
+                    size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged);
     size_t solve(double* b_gpu, double* b_cpu, double* x_gpu, double* x_cpu, double precision, size_t maxIters);
     void singleStep(double* b_gpu, double* x_gpu);
     void cleanPreconditioner();
@@ -83,8 +84,8 @@ private:
 
 protected:
 
-	void setPreSweeps(size_t* _preSweeps);
-	void setPostSweeps(size_t* _postSweeps);
+    void setPreSweeps(size_t* _preSweeps);
+    void setPostSweeps(size_t* _postSweeps);
 };
 
 #endif	/* _AMGPRECONDITIONER_H */

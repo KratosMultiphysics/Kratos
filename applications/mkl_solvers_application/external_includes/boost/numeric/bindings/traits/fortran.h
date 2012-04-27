@@ -2,7 +2,7 @@
 //  distribute this software is granted provided this copyright notice appears
 //  in all copies. This software is provided "as is" without express or implied
 //  warranty, and with no claim as to its suitability for any purpose.
-//  Copyright (C) 2002, 2003 Si-Lab b.v.b.a., Toon Knapen and Kresimir Fresl 
+//  Copyright (C) 2002, 2003 Si-Lab b.v.b.a., Toon Knapen and Kresimir Fresl
 
 #ifndef BOOST_NUMERIC_BINDINGS_TRAITS_FORTRAN_H
 #define BOOST_NUMERIC_BINDINGS_TRAITS_FORTRAN_H
@@ -17,7 +17,7 @@
 #error do not know how to link with fortran for the given platform
 #endif
 
-// Next we define macro's to convert our symbols to 
+// Next we define macro's to convert our symbols to
 // the current convention
 #if defined(BIND_FORTRAN_LOWERCASE_UNDERSCORE)
 #define FORTRAN_ID( id ) id##_

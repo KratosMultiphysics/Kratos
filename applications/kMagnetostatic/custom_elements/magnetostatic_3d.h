@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1MagnetostaticApplication 
+KratosR1MagnetostaticApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2010
 Pooyan Dadvand, Riccardo Rossi, Javier Mora
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,24 +37,24 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi , jmora$
 //   Date:                $Date: 2010-02-02  $
 //   Revision:            $Revision: 1.2 $
 //
 //
- 
+
 
 #if !defined(KRATOS_MAGNETOSTATIC_3D_ELEM_H_INCLUDED )
 #define  KRATOS_MAGNETOSTATIC_3D_ELEM_H_INCLUDED
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -68,213 +68,213 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Magnetostatic3D
-	  : public Element
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Magnetostatic3D
-      KRATOS_CLASS_POINTER_DEFINITION(Magnetostatic3D);
+///@name Kratos Globals
+///@{
 
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      Magnetostatic3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      Magnetostatic3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+///@}
+///@name Type Definitions
+///@{
 
-      /// Destructor.
-      virtual ~ Magnetostatic3D();
+///@}
+///@name  Enum's
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Functions
+///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name Kratos Classes
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
+class Magnetostatic3D
+    : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    /// Counted pointer of Magnetostatic3D
+    KRATOS_CLASS_POINTER_DEFINITION(Magnetostatic3D);
 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-	  void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                           std::vector<array_1d<double,3> >& rValues, 
-                                           const ProcessInfo& rCurrentProcessInfo);
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
-	
+    /// Default constructor.
+    Magnetostatic3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    Magnetostatic3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Destructor.
+    virtual ~ Magnetostatic3D();
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                       std::vector<array_1d<double,3> >& rValues,
+                                       const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
 
 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-          
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-            
-      /// Assignment operator.
- 
+    ///@}
 
-      /// Copy constructor.
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-        
-      ///@}    
-        
-    }; // Class Magnetostatic3D
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-  /// output stream function
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-  ///@} 
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+
+
+    /// Copy constructor.
+
+
+
+    ///@}
+
+}; // Class Magnetostatic3D
+
+
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+
+
+/// output stream function
+
+
+///@}
 
 }  // namespace Kratos.
 

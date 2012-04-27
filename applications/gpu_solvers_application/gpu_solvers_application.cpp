@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <stdio.h>
 
 
-// External includes 
+// External includes
 #include "cublas.h"
 
 
@@ -54,27 +54,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	KratosGPUSolversApplication::KratosGPUSolversApplication()
-	{
-		// Initialize cuBlas
-		if (cublasInit() != CUBLAS_STATUS_SUCCESS)
-			printf("*** Warning! cuBlas failed to initialize! ***\n");
-	}
-	
-	KratosGPUSolversApplication::~KratosGPUSolversApplication()
-	{
-		// Shutdown cuBlas
-		if (cublasShutdown() != CUBLAS_STATUS_SUCCESS)
-			printf("*** Warning! cuBlas failed to shutdown! ***\n");
-	}
+KratosGPUSolversApplication::KratosGPUSolversApplication()
+{
+    // Initialize cuBlas
+    if (cublasInit() != CUBLAS_STATUS_SUCCESS)
+        printf("*** Warning! cuBlas failed to initialize! ***\n");
+}
 
-	void KratosGPUSolversApplication::Register()
-	{
-		// calling base class register to register Kratos components
-		KratosApplication::Register();
-		std::cout << "Initializing KratosGPUSolversApplication... " << std::endl;
+KratosGPUSolversApplication::~KratosGPUSolversApplication()
+{
+    // Shutdown cuBlas
+    if (cublasShutdown() != CUBLAS_STATUS_SUCCESS)
+        printf("*** Warning! cuBlas failed to shutdown! ***\n");
+}
 
-	}
+void KratosGPUSolversApplication::Register()
+{
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    std::cout << "Initializing KratosGPUSolversApplication... " << std::endl;
+
+}
 
 
 }  // namespace Kratos.

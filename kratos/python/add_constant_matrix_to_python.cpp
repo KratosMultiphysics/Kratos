@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-15 11:11:35 $
 //   Revision:            $Revision: 1.3 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -62,12 +62,12 @@ namespace Kratos
 {
 namespace Python
 {
-		
-  using namespace boost::python;
-	
-	
-  void  AddConstantMatrixToPython()
-  {
+
+using namespace boost::python;
+
+
+void  AddConstantMatrixToPython()
+{
 // 	  ReadonlyMatrixPythonInterface<identity_matrix<double> >::CreateInterface("IdentityMatrix")
 // 		  .def(init<identity_matrix<double>::size_type>())
 // 		  .def(init<identity_matrix<double>::size_type, identity_matrix<double>::size_type>())
@@ -92,7 +92,7 @@ namespace Python
 // 	          .def(MatrixMatrixOperatorPython<identity_matrix<double>, compressed_matrix<double>, compressed_matrix<double> >())
 // 	          .def(MatrixMatrixOperatorPython<identity_matrix<double>, coordinate_matrix<double>, coordinate_matrix<double> >())
 // 		  ;
-// 
+//
 // 	  ReadonlyMatrixPythonInterface<zero_matrix<double> >::CreateInterface("ZeroMatrix")
 // 		  .def(init<zero_matrix<double>::size_type>())
 // 		  .def(init<zero_matrix<double>::size_type, zero_matrix<double>::size_type>())
@@ -117,7 +117,7 @@ namespace Python
 // 	          .def(MatrixMatrixOperatorPython<zero_matrix<double>, compressed_matrix<double>, compressed_matrix<double> >())
 // 	          .def(MatrixMatrixOperatorPython<zero_matrix<double>, coordinate_matrix<double>, coordinate_matrix<double> >())
 // 		  ;
-// 
+//
 // 	  ReadonlyMatrixPythonInterface<scalar_matrix<double> >::CreateInterface("ScalarMatrix")
 // 		  .def(init<scalar_matrix<double>::size_type, scalar_matrix<double>::size_type>())
 // 		  .def(init<scalar_matrix<double>::size_type, scalar_matrix<double>::size_type, scalar_matrix<double>::value_type>())
@@ -143,8 +143,8 @@ namespace Python
 // 	          .def(MatrixMatrixOperatorPython<scalar_matrix<double>, coordinate_matrix<double>, coordinate_matrix<double> >())
 // 		  ;
 
- 	}
-	
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

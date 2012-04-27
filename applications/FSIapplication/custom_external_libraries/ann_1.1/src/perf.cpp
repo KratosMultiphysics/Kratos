@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-2005 University of Maryland and Sunil Arya and
 // David Mount.  All Rights Reserved.
-// 
+//
 // This software and related documentation is part of the Approximate
 // Nearest Neighbor Library (ANN).  This software is provided under
 // the provisions of the Lesser GNU Public License (LGPL).  See the
 // file ../ReadMe.txt for further information.
-// 
+//
 // The University of Maryland (U.M.) and the authors make no
 // representations about the suitability or fitness of this software for
 // any purpose.  It is provided "as is" without express or implied
@@ -68,67 +68,72 @@ ANNsampStat		ann_rank_err;			// rank error
 
 DLL_API void annResetStats(int data_size) // reset stats for a set of queries
 {
-	ann_Ndata_pts  = data_size;
-	ann_visit_lfs.reset();
-	ann_visit_spl.reset();
-	ann_visit_shr.reset();
-	ann_visit_nds.reset();
-	ann_visit_pts.reset();
-	ann_coord_hts.reset();
-	ann_float_ops.reset();
-	ann_average_err.reset();
-	ann_rank_err.reset();
+    ann_Ndata_pts  = data_size;
+    ann_visit_lfs.reset();
+    ann_visit_spl.reset();
+    ann_visit_shr.reset();
+    ann_visit_nds.reset();
+    ann_visit_pts.reset();
+    ann_coord_hts.reset();
+    ann_float_ops.reset();
+    ann_average_err.reset();
+    ann_rank_err.reset();
 }
 
 DLL_API void annResetCounts()				// reset counts for one query
 {
-	ann_Nvisit_lfs = 0;
-	ann_Nvisit_spl = 0;
-	ann_Nvisit_shr = 0;
-	ann_Nvisit_pts = 0;
-	ann_Ncoord_hts = 0;
-	ann_Nfloat_ops = 0;
+    ann_Nvisit_lfs = 0;
+    ann_Nvisit_spl = 0;
+    ann_Nvisit_shr = 0;
+    ann_Nvisit_pts = 0;
+    ann_Ncoord_hts = 0;
+    ann_Nfloat_ops = 0;
 }
 
 DLL_API void annUpdateStats()				// update stats with current counts
 {
-	ann_visit_lfs += ann_Nvisit_lfs;
-	ann_visit_nds += ann_Nvisit_spl + ann_Nvisit_lfs;
-	ann_visit_spl += ann_Nvisit_spl;
-	ann_visit_shr += ann_Nvisit_shr;
-	ann_visit_pts += ann_Nvisit_pts;
-	ann_coord_hts += ann_Ncoord_hts;
-	ann_float_ops += ann_Nfloat_ops;
+    ann_visit_lfs += ann_Nvisit_lfs;
+    ann_visit_nds += ann_Nvisit_spl + ann_Nvisit_lfs;
+    ann_visit_spl += ann_Nvisit_spl;
+    ann_visit_shr += ann_Nvisit_shr;
+    ann_visit_pts += ann_Nvisit_pts;
+    ann_coord_hts += ann_Ncoord_hts;
+    ann_float_ops += ann_Nfloat_ops;
 }
 
-										// print a single statistic
+// print a single statistic
 void print_one_stat(char *title, ANNsampStat s, double div)
 {
-	cout << title << "= [ ";
-	cout.width(9); cout << s.mean()/div			<< " : ";
-	cout.width(9); cout << s.stdDev()/div		<< " ]<";
-	cout.width(9); cout << s.min()/div			<< " , ";
-	cout.width(9); cout << s.max()/div			<< " >\n";
+    cout << title << "= [ ";
+    cout.width(9);
+    cout << s.mean()/div			<< " : ";
+    cout.width(9);
+    cout << s.stdDev()/div		<< " ]<";
+    cout.width(9);
+    cout << s.min()/div			<< " , ";
+    cout.width(9);
+    cout << s.max()/div			<< " >\n";
 }
 
 DLL_API void annPrintStats(				// print statistics for a run
-	ANNbool validate)					// true if average errors desired
+    ANNbool validate)					// true if average errors desired
 {
-	cout.precision(4);					// set floating precision
-	cout << "  (Performance stats: "
-		 << " [      mean :    stddev ]<      min ,       max >\n";
-	print_one_stat("    leaf_nodes       ", ann_visit_lfs, 1);
-	print_one_stat("    splitting_nodes  ", ann_visit_spl, 1);
-	print_one_stat("    shrinking_nodes  ", ann_visit_shr, 1);
-	print_one_stat("    total_nodes      ", ann_visit_nds, 1);
-	print_one_stat("    points_visited   ", ann_visit_pts, 1);
-	print_one_stat("    coord_hits/pt    ", ann_coord_hts, ann_Ndata_pts);
-	print_one_stat("    floating_ops_(K) ", ann_float_ops, 1000);
-	if (validate) {
-		print_one_stat("    average_error    ", ann_average_err, 1);
-		print_one_stat("    rank_error       ", ann_rank_err, 1);
-	}
-	cout.precision(0);					// restore the default
-	cout << "  )\n";
-	cout.flush();
+    cout.precision(4);					// set floating precision
+    cout << "  (Performance stats: "
+         << " [      mean :    stddev ]<      min ,       max >\n";
+    print_one_stat("    leaf_nodes       ", ann_visit_lfs, 1);
+    print_one_stat("    splitting_nodes  ", ann_visit_spl, 1);
+    print_one_stat("    shrinking_nodes  ", ann_visit_shr, 1);
+    print_one_stat("    total_nodes      ", ann_visit_nds, 1);
+    print_one_stat("    points_visited   ", ann_visit_pts, 1);
+    print_one_stat("    coord_hits/pt    ", ann_coord_hts, ann_Ndata_pts);
+    print_one_stat("    floating_ops_(K) ", ann_float_ops, 1000);
+    if (validate)
+    {
+        print_one_stat("    average_error    ", ann_average_err, 1);
+        print_one_stat("    rank_error       ", ann_rank_err, 1);
+    }
+    cout.precision(0);					// restore the default
+    cout << "  )\n";
+    cout.flush();
 }

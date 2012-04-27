@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.3 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <ctime>
 using namespace std;
-// External includes 
+// External includes
 
 
 // Project includes
@@ -70,341 +70,344 @@ using namespace Kratos::GPUSparse;
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
- /* template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>, 
-    class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-    class CGSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>*/
-    template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>, 
-    class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-    class AMGSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+/* template<class TSparseSpaceType, class TDenseSpaceType,
+   class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+   class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+   class CGSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>*/
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+class AMGSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of CGSolver
+    KRATOS_CLASS_POINTER_DEFINITION(AMGSolver);
+
+    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+
+    typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    AMGSolver() {}
+
+    AMGSolver(double NewMaxTolerance) : BaseType(NewMaxTolerance)
+    {}
+
+    AMGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps) : BaseType(NewMaxTolerance, NewMaxIterationsNumber)
     {
-      public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of CGSolver
-      KRATOS_CLASS_POINTER_DEFINITION(AMGSolver);
+        tol = NewMaxTolerance;
+        maxIter = NewMaxIterationsNumber;
+        preconditioner = new Kratos_AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, _preSweeps, _postSweeps, false);
+    }
 
-      typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType; 
-  
-      typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-  
-      typedef typename TSparseSpaceType::VectorType VectorType;
-  
-      typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      AMGSolver(){}
-
-      AMGSolver(double NewMaxTolerance) : BaseType(NewMaxTolerance)
-      {}
-
-      AMGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps) : BaseType(NewMaxTolerance, NewMaxIterationsNumber)
-      {
-		tol = NewMaxTolerance;
-		maxIter = NewMaxIterationsNumber;
-		preconditioner = new Kratos_AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, _preSweeps, _postSweeps, false);
-      }
-
-      /// Copy constructor.
-      AMGSolver(const AMGSolver& Other) : BaseType(Other) {}
+    /// Copy constructor.
+    AMGSolver(const AMGSolver& Other) : BaseType(Other) {}
 
 
-      /// Destructor.
-      virtual ~AMGSolver(){  delete preconditioner ;}
-      
+    /// Destructor.
+    virtual ~AMGSolver()
+    {
+        delete preconditioner ;
+    }
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      /// Assignment operator.
-      AMGSolver& operator=(const AMGSolver& Other)
-      {
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    AMGSolver& operator=(const AMGSolver& Other)
+    {
         BaseType::operator=(Other);
-	return *this;
-      }
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      /** Normal solve method.
-	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-	  rX is also th initial guess for iterative methods.
-	  @param rA. System matrix
-	  @param rX. Solution vector. it's also the initial 
-	  guess for iterative linear solvers.
- 	  @param rB. Right hand side vector.
-      */
-      bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-	{
-	  if(IsNotConsistent(rA, rX, rB))
-	  {
-	    KRATOS_WATCH(rA.size1());
-	    KRATOS_WATCH(rA.size2());
-	    KRATOS_WATCH(rX.size());
-	    KRATOS_WATCH(rB.size());
-	    std::cout << "system is not consistent" << std::endl;
-	    return false;
-	  }
-	  
+        return *this;
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /** Normal solve method.
+    Solves the linear system Ax=b and puts the result on SystemVector& rX.
+    rX is also th initial guess for iterative methods.
+    @param rA. System matrix
+    @param rX. Solution vector. it's also the initial
+    guess for iterative linear solvers.
+    @param rB. Right hand side vector.
+    */
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        if(IsNotConsistent(rA, rX, rB))
+        {
+            KRATOS_WATCH(rA.size1());
+            KRATOS_WATCH(rA.size2());
+            KRATOS_WATCH(rX.size());
+            KRATOS_WATCH(rB.size());
+            std::cout << "system is not consistent" << std::endl;
+            return false;
+        }
+
 // 	  GetTimeTable()->Start(Info());
 
-	  
-		/** TODO here preconditioner must solve the problem **/
-	//Allocating matrix A
-	GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]), false);
-	GPU_CHECK(gpuA.GPU_Allocate());
-	GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
-	//Allocating vector b
-	GPUVector gpuB(rB.size(), &(rB[0]));
-	GPU_CHECK(gpuB.GPU_Allocate());
-	GPU_CHECK(gpuB.Copy(CPU_GPU));
+        /** TODO here preconditioner must solve the problem **/
+        //Allocating matrix A
+        GPUCSRMatrix gpuA(rA.nnz(), rA.size1(), rA.size2(), &(rA.index2_data() [0]), &(rA.index1_data() [0]), &(rA.value_data() [0]), false);
+        GPU_CHECK(gpuA.GPU_Allocate());
+        GPU_CHECK(gpuA.Copy(CPU_GPU, false));
 
-	//Allocating vector x
-	GPUVector gpuX(rX.size(), &(rX[0]));
-	GPU_CHECK(gpuX.GPU_Allocate());
-	GPU_CHECK(gpuX.Copy(CPU_GPU));
+        //Allocating vector b
+        GPUVector gpuB(rB.size(), &(rB[0]));
+        GPU_CHECK(gpuB.GPU_Allocate());
+        GPU_CHECK(gpuB.Copy(CPU_GPU));
 
-	this->preconditioner->initialize(&(rA.index1_data() [0]), &(rA.index2_data() [0]), &(rA.value_data() [0]),
-				gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
-				gpuA.Size1, gpuA.Size2, gpuA.NNZ, true, true);
+        //Allocating vector x
+        GPUVector gpuX(rX.size(), &(rX[0]));
+        GPU_CHECK(gpuX.GPU_Allocate());
+        GPU_CHECK(gpuX.Copy(CPU_GPU));
 
-	BaseType::mIterationsNumber = this->preconditioner->solve(gpuB.GPU_Values, gpuB.CPU_Values, gpuX.GPU_Values, gpuX.CPU_Values, tol, maxIter);
+        this->preconditioner->initialize(&(rA.index1_data() [0]), &(rA.index2_data() [0]), &(rA.value_data() [0]),
+                                         gpuA.GPU_RowIndices, gpuA.GPU_Columns, gpuA.GPU_Values,
+                                         gpuA.Size1, gpuA.Size2, gpuA.NNZ, true, true);
 
-	GPU_CHECK(gpuX.Copy(GPU_CPU));
-	this->preconditioner->cleanPreconditioner();
+        BaseType::mIterationsNumber = this->preconditioner->solve(gpuB.GPU_Values, gpuB.CPU_Values, gpuX.GPU_Values, gpuX.CPU_Values, tol, maxIter);
+
+        GPU_CHECK(gpuX.Copy(GPU_CPU));
+        this->preconditioner->cleanPreconditioner();
 
 
-	  return true;
-	}
-      
-      
-      /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-	  rX is also th initial guess for iterative methods.
-	  @param rA. System matrix
-	  @param rX. Solution vector. it's also the initial 
-	  guess for iterative linear solvers.
- 	  @param rB. Right hand side vector.
-      */
-      bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-	{
+        return true;
+    }
+
+
+    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
+    Solves the linear system Ax=b and puts the result on SystemVector& rX.
+    rX is also th initial guess for iterative methods.
+    @param rA. System matrix
+    @param rX. Solution vector. it's also the initial
+    guess for iterative linear solvers.
+    @param rB. Right hand side vector.
+    */
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    {
 // 	  GetTimeTable()->Start(Info());
 
-   	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+        BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
 
- 	  bool is_solved = true;
-	  VectorType x(TDenseSpaceType::Size1(rX));
-	  VectorType b(TDenseSpaceType::Size1(rB));
-	  for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
-	    {
-	      TDenseSpaceType::GetColumn(i,rX, x);
-	      TDenseSpaceType::GetColumn(i,rB, b);
-	      
-	      BaseType::GetPreconditioner()->ApplyInverseRight(x);
-	      BaseType::GetPreconditioner()->ApplyLeft(b);
+        bool is_solved = true;
+        VectorType x(TDenseSpaceType::Size1(rX));
+        VectorType b(TDenseSpaceType::Size1(rB));
+        for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
+        {
+            TDenseSpaceType::GetColumn(i,rX, x);
+            TDenseSpaceType::GetColumn(i,rB, b);
 
-	      //is_solved &= IterativeSolve(rA,x,b);
+            BaseType::GetPreconditioner()->ApplyInverseRight(x);
+            BaseType::GetPreconditioner()->ApplyLeft(b);
 
-	      BaseType::GetPreconditioner()->Finalize(x);
-	    }
+            //is_solved &= IterativeSolve(rA,x,b);
+
+            BaseType::GetPreconditioner()->Finalize(x);
+        }
 
 // 	  GetTimeTable()->Stop(Info());
 
-	  return is_solved;
-	}
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  std::stringstream buffer;
-	  buffer << "Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
-	  return  buffer.str();
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info();
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	  BaseType::PrintData(rOStream);
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        //This var control preconditioner 
-
-	Kratos_AMGpreconditioner *preconditioner;
-	double tol;
-	size_t maxIter;
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class CGSolver 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
-  inline std::istream& operator >> (std::istream& IStream, 
-				      AMGSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
-    {
-		return IStream;
+        return is_solved;
     }
 
-  /// output stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
-  inline std::ostream& operator << (std::ostream& OStream, 
-				    const AMGSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
-    {
-      rThis.PrintInfo(OStream);
-      OStream << std::endl;
-      rThis.PrintData(OStream);
+    ///@}
+    ///@name Access
+    ///@{
 
-      return OStream;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Conjugate gradient linear solver with " << BaseType::GetPreconditioner()->Info();
+        return  buffer.str();
     }
-  ///@} 
-  
-  
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        BaseType::PrintData(rOStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    //This var control preconditioner
+
+    Kratos_AMGpreconditioner *preconditioner;
+    double tol;
+    size_t maxIter;
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class CGSolver
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType,
+         class TReordererType>
+inline std::istream& operator >> (std::istream& IStream,
+                                  AMGSolver<TSparseSpaceType, TDenseSpaceType,
+                                  TPreconditionerType, TReordererType>& rThis)
+{
+    return IStream;
+}
+
+/// output stream function
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType,
+         class TReordererType>
+inline std::ostream& operator << (std::ostream& OStream,
+                                  const AMGSolver<TSparseSpaceType, TDenseSpaceType,
+                                  TPreconditionerType, TReordererType>& rThis)
+{
+    rThis.PrintInfo(OStream);
+    OStream << std::endl;
+    rThis.PrintData(OStream);
+
+    return OStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_AMG_SOLVER_H_INCLUDED  defined 

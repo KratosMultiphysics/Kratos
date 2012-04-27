@@ -115,10 +115,10 @@ public:
            WriteDeformedMeshFlag write_deformed_flag,
            WriteConditionsFlag write_conditions_flag
          )
-            : BaseType( rNodeDatafilename, rPropertiesDatafilename,
-                        rElementDatafilename, rConditionDatafilename,
-                        rInitialValueDatafilename
-                      )
+        : BaseType( rNodeDatafilename, rPropertiesDatafilename,
+                    rElementDatafilename, rConditionDatafilename,
+                    rInitialValueDatafilename
+                  )
     {
         mMode = Mode;
         mResultFileOpen = false;
@@ -141,7 +141,7 @@ public:
            WriteDeformedMeshFlag write_deformed_flag,
            WriteConditionsFlag write_conditions_flag
          )
-            : BaseType(rDatafilename)
+        : BaseType(rDatafilename)
     {
         mMode = Mode;
         mResultFileOpen = false;
@@ -819,9 +819,9 @@ public:
         GiD_EndCoordinates();
         int nodes_id[1];
         GiD_BeginElements();
-        
+
 //         mNodeList.clear();
-        
+
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
@@ -832,7 +832,7 @@ public:
         }
         GiD_EndElements();
         GiD_EndMesh();
-        
+
 //         mNodeList.Unique();
 
         Timer::Stop("Writing Mesh");
@@ -872,7 +872,7 @@ public:
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-           GiD_WriteSphereMat(node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_WriteSphereMat(node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
 //             mNodeList.push_back(*node_iterator);
         }
         GiD_EndElements();
@@ -929,17 +929,17 @@ public:
                 it->WriteMesh(false);
             else
                 KRATOS_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
-            
+
             ModelPart::NodesContainerType tempNodes = it->GetMeshNodes();
             for( ModelPart::NodesContainerType::iterator iter = tempNodes.begin(); iter != tempNodes.end(); iter++ )
             {
 //                 mNodeList.push_back(*iter);
-                
+
             }
-            
+
             it->Reset();
         }
-        
+
 //         mNodeList.Unique();
 
 

@@ -1,21 +1,21 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2008-12-09 20:20:55 $
 //   Revision:            $Revision: 1.5 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
-#include "custom_python/add_trilinos_space_to_python.h" 
-#include "custom_python/add_trilinos_convergence_criterias_to_python.h" 
-#include "custom_python/add_trilinos_schemes_to_python.h" 
-#include "custom_python/add_trilinos_linear_solvers_to_python.h" 
+#include "custom_python/add_trilinos_space_to_python.h"
+#include "custom_python/add_trilinos_convergence_criterias_to_python.h"
+#include "custom_python/add_trilinos_schemes_to_python.h"
+#include "custom_python/add_trilinos_linear_solvers_to_python.h"
 #include "custom_python/add_trilinos_processes_to_python.h"
 #include "custom_python/add_trilinos_strategies_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
@@ -35,32 +35,35 @@
 //#include "includes/model_part.h"
 
 
-namespace Kratos {
+namespace Kratos
+{
 
-    namespace Python {
+namespace Python
+{
 
 
-        BOOST_PYTHON_MODULE(KratosTrilinosApplication) {
+BOOST_PYTHON_MODULE(KratosTrilinosApplication)
+{
 
- 	class_<KratosTrilinosApplication,
-                    KratosTrilinosApplication::Pointer,
-                    bases<KratosApplication>, boost::noncopyable > ("KratosTrilinosApplication")
-                    ;
+    class_<KratosTrilinosApplication,
+           KratosTrilinosApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable > ("KratosTrilinosApplication")
+           ;
 
-		AddBasicOperations();
-		AddConvergenceCriterias();
-		AddSchemes();
-		AddLinearSolvers();
-		AddProcesses();
-		AddStrategies();
-        AddCustomIOToPython();
-        AddCustomUtilitiesToPython();
-        AddTrilinosCommunicatorToPython();
+    AddBasicOperations();
+    AddConvergenceCriterias();
+    AddSchemes();
+    AddLinearSolvers();
+    AddProcesses();
+    AddStrategies();
+    AddCustomIOToPython();
+    AddCustomUtilitiesToPython();
+    AddTrilinosCommunicatorToPython();
 // 	AddFirst();
-        }
+}
 
 
-    } // namespace Python.
+} // namespace Python.
 
 } // namespace Kratos.
 

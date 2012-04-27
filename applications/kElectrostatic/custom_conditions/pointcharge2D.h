@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: jmora $
 //   Date:                $Date: 2009-09-24 16:46:49 $
 //   Revision:            $Revision: 1.1 $
@@ -12,10 +12,10 @@
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -29,205 +29,205 @@
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class PointCharge2D
-	  : public Condition
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of PointCharge2D
-      KRATOS_CLASS_POINTER_DEFINITION(PointCharge2D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  PointCharge2D(IndexType NewId, GeometryType::Pointer pGeometry);
-      PointCharge2D(IndexType NewId, GeometryType::Pointer pGeometry,  
-PropertiesType::Pointer pProperties);
+///@name Kratos Globals
+///@{
 
-      /// Destructor.
-      virtual ~PointCharge2D();
-      
+///@}
+///@name Type Definitions
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      Condition::Pointer Create(IndexType NewId, NodesArrayType const& 
-ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name  Functions
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& 
-rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& 
-rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& 
-rCurrentProcessInfo);
+///@}
+///@name Kratos Classes
+///@{
 
-	  void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& 
-CurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
+class PointCharge2D
+    : public Condition
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Counted pointer of PointCharge2D
+    KRATOS_CLASS_POINTER_DEFINITION(PointCharge2D);
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    PointCharge2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    PointCharge2D(IndexType NewId, GeometryType::Pointer pGeometry,
+                  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~PointCharge2D();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const&
+                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
+                              rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
+                                rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
+                          rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo&
+                    CurrentProcessInfo);
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
 
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //PointCharge2D& operator=(const PointCharge2D& rOther);
+    ///@}
+    ///@name Friends
+    ///@{
 
-      /// Copy constructor.
-      //PointCharge2D(const PointCharge2D& rOther);
 
-        
-      ///@}    
-        
-    }; // Class PointCharge2D 
+    ///@}
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //PointCharge2D& operator=(const PointCharge2D& rOther);
+
+    /// Copy constructor.
+    //PointCharge2D(const PointCharge2D& rOther);
+
+
+    ///@}
+
+}; // Class PointCharge2D
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    PointCharge2D& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const PointCharge2D& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -236,7 +236,7 @@ CurrentProcessInfo);
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

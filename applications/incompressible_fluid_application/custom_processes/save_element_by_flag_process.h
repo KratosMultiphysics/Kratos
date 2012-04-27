@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-11-19 15:38:01 $
 //   Revision:            $Revision: 1.1 $
@@ -62,72 +62,72 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "kratos/applications/MeshingApplication/meshing_application.h"
 
 namespace Kratos
-{ 
-	class SaveElementByFlagProcess 
-		: public Process 
-	 {
-	   public:
+{
+class SaveElementByFlagProcess
+    : public Process
+{
+public:
 
-	      SaveElementByFlagProcess(ModelPart::ElementsContainerType& elements_model_part,ModelPart::ElementsContainerType& fluid_elements, Kratos::Variable<int>& flag, int value )
-			:Process(), mr_elements(elements_model_part), mr_fluid_elements(fluid_elements), m_val(value), m_flag(flag)
-		{
-		}
+    SaveElementByFlagProcess(ModelPart::ElementsContainerType& elements_model_part,ModelPart::ElementsContainerType& fluid_elements, Kratos::Variable<int>& flag, int value )
+        :Process(), mr_elements(elements_model_part), mr_fluid_elements(fluid_elements), m_val(value), m_flag(flag)
+    {
+    }
 
-	      /// Destructor.
-	      virtual ~SaveElementByFlagProcess()
-		{
-		}
-      
+    /// Destructor.
+    virtual ~SaveElementByFlagProcess()
+    {
+    }
 
-	      ///@}
-	      ///@name Operators 
-	      ///@{
 
-	      void operator()()
-		{
-		  Execute();
-		}
-		
-	   virtual void Execute()
-		 {
-			//KRATOS_WATCH("++++++++++++++++++++BEGIN OF SaveElementByFlagProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
-			//ModelPart::ElementsContainerType ElemPart;
-			//KRATOS_WATCH(mr_model_part.Elements().size());
-			mr_fluid_elements.clear();
+    ///@}
+    ///@name Operators
+    ///@{
 
-								
+    void operator()()
+    {
+        Execute();
+    }
+
+    virtual void Execute()
+    {
+        //KRATOS_WATCH("++++++++++++++++++++BEGIN OF SaveElementByFlagProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
+        //ModelPart::ElementsContainerType ElemPart;
+        //KRATOS_WATCH(mr_model_part.Elements().size());
+        mr_fluid_elements.clear();
+
+
 //			Element const& rEl1 = KratosComponents<Element>::Get("Fluid2DASGS");
 //			Element const& rEl2 = KratosComponents<Element>::Get("ASGSPRDC");
 
-			//Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
-			//Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
+        //Element const& rEl1 = KratosComponents<Element>::Get("ASGSCOMPPRDC2D"); //water element
+        //Element const& rEl2 = KratosComponents<Element>::Get("ASGSCompressible2D"); // air element
 
-			for(ModelPart::ElementsContainerType::iterator Belem = mr_elements.begin(); Belem != mr_elements.end(); ++Belem)
-			{
-			      if(Belem->GetValue(m_flag) != m_val)
-				      {
-					Belem->GetValue(IS_WATER_ELEMENT) = -10.0;
-					mr_fluid_elements.push_back( *(Belem.base()) )  ;
+        for(ModelPart::ElementsContainerType::iterator Belem = mr_elements.begin(); Belem != mr_elements.end(); ++Belem)
+        {
+            if(Belem->GetValue(m_flag) != m_val)
+            {
+                Belem->GetValue(IS_WATER_ELEMENT) = -10.0;
+                mr_fluid_elements.push_back( *(Belem.base()) )  ;
 
-				      }
-				
-			}
+            }
+
+        }
 // 			KRATOS_WATCH("ALL ELEMENTS");
 // 			KRATOS_WATCH(mr_elements.size());
-// 
+//
 // 			KRATOS_WATCH("flag Elements");
 // 			KRATOS_WATCH((mr_fluid_elements).size());
 
-			KRATOS_WATCH("++++++++++++++++++++END OF SaveElementByFlagProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
-		 }
+        KRATOS_WATCH("++++++++++++++++++++END OF SaveElementByFlagProcess PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
+    }
 
-		private:
-			ModelPart::ElementsContainerType& mr_elements;
-			ModelPart::ElementsContainerType& mr_fluid_elements;
-		         int m_val;
-			Kratos::Variable<int>& m_flag;
+private:
+    ModelPart::ElementsContainerType& mr_elements;
+    ModelPart::ElementsContainerType& mr_fluid_elements;
+    int m_val;
+    Kratos::Variable<int>& m_flag;
 
-	};
+};
 
 }//namespace kratos
 

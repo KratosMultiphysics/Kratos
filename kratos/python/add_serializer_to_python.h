@@ -66,7 +66,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddSerializerToPython();
+void  AddSerializerToPython();
 
 }  // namespace Python.
 

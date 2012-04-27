@@ -70,32 +70,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        void AddCustomProcessesToPython()
-        {
-            using namespace boost::python;
+void AddCustomProcessesToPython()
+{
+    using namespace boost::python;
 
-            typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-            typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-            typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-            typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-            class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
-                    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
-                    .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
-                    .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
-                    .def("SetPeriodicBoundaryCondition",&SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetPeriodicBoundaryCondition)
-                    ;
-        }
-
-
+    class_<SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases<Process>, boost::noncopyable >
+    ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
+    .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
+    .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
+    .def("SetPeriodicBoundaryCondition",&SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetPeriodicBoundaryCondition)
+    ;
+}
 
 
 
-    } // namespace Python.
+
+
+} // namespace Python.
 
 } // Namespace Kratos
 

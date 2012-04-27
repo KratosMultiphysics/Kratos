@@ -33,17 +33,17 @@
 template <class T> class Tensor;
 
 template <class T> std::ostream& operator << (std::ostream& s,
-					      const Tensor<T>& t);
+        const Tensor<T>& t);
 
 template <class T> Tensor<T> operator + (const Tensor<T>& t1,
-					 const Tensor<T>& t2);
+        const Tensor<T>& t2);
 template <class T> Tensor<T> operator - (const Tensor<T>& t1,
-					 const Tensor<T>& t2);
+        const Tensor<T>& t2);
 
 template <class T> Tensor<T> operator - (const Tensor<T>& t);
 
 template <class T> Tensor<T> operator * (const Tensor<T>& t1,
-					 const Tensor<T>& t2);
+        const Tensor<T>& t2);
 
 template <class T> Tensor<T> contract(const Tensor<T>& t_ij, int i, int j);
 
@@ -57,7 +57,8 @@ template <class T> Tensor<T> swap(const Tensor<T>& t_ij, int i, int j);
  * associated vectorial space.
  */
 template <class T>
-class Tensor {
+class Tensor
+{
 private:
     T* m_value;          //!< array with all the values
 
@@ -68,7 +69,7 @@ public:
     Tensor(int rank, long dimension);
     Tensor(const Tensor<T>& t);
     ~Tensor();
-    
+
     /* Read */
     int rank() const;           //!< rank of the tensor
     long dimension() const;     //!< dimension of the tensor
@@ -96,8 +97,11 @@ public:
  * Utilities.
  */
 
-inline long quick_pow(long d, int r) {
-    long p = 1; for (int i = 0; i < r; i++) p *= d; return p;
+inline long quick_pow(long d, int r)
+{
+    long p = 1;
+    for (int i = 0; i < r; i++) p *= d;
+    return p;
 }
 
 

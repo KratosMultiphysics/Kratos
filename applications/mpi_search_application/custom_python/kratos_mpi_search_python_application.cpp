@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,52 +38,52 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: pooyan $
 //   Date:                $Date: 2008-04-21 13:33:42 $
 //   Revision:            $Revision: 1.1 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "mpi_search_application.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosMPISearchApplication)
-  {
 
-	  class_<KratosMPISearchApplication, 
-			  KratosMPISearchApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosMPISearchApplication")
-			;
+BOOST_PYTHON_MODULE(KratosMPISearchApplication)
+{
 
-	  AddCustomUtilitiesToPython();
-  }
-  
-  
+    class_<KratosMPISearchApplication,
+           KratosMPISearchApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosMPISearchApplication")
+           ;
+
+    AddCustomUtilitiesToPython();
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -151,13 +151,13 @@ Calculation of the reactions involves a cost very similiar to the calculation of
 
 template < class TSparseSpace,
 
-class TDenseSpace,
+         class TDenseSpace,
 
-class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
->
+         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         >
 
 class TrilinosMultiphaseBuilderAndSolver
-            : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
+    : public BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
     /**@name Type Definitions */
@@ -203,8 +203,8 @@ public:
         Epetra_MpiComm& Comm,
         int guess_row_size,
         typename TLinearSolver::Pointer pNewLinearSystemSolver )
-            : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >( pNewLinearSystemSolver )
-            , mrComm( Comm ), mguess_row_size( guess_row_size )
+        : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >( pNewLinearSystemSolver )
+        , mrComm( Comm ), mguess_row_size( guess_row_size )
     {
 
 
@@ -743,7 +743,8 @@ public:
             {
                 MPI_Recv(neighbours[i], number_or_receive_needed[i], MPI_INT, i, i, MPI_COMM_WORLD, &status);
                 //KRATOS_WATCH(status);
-            } else if (my_rank == i)
+            }
+            else if (my_rank == i)
             {
                 int nreceives = receive_list_compact.size();
                 int* temp = new int[nreceives];
@@ -753,7 +754,7 @@ public:
                 delete [] temp;
             }
         }
-        
+
         //*************************************************************************************
         //here do the coloring - the scalar part should be improved quite a lot!!
         matrix<int> dense_colored_graph;
@@ -815,7 +816,7 @@ public:
                     }
                     else
                     {
-                        for (int k=0; k<num_processors;k++)
+                        for (int k=0; k<num_processors; k++)
                         {
                             if (dense_colored_graph(k, j) == i)
                             {
@@ -860,7 +861,8 @@ public:
                     send_colors[j] = dense_colored_graph(i, j);
                 }
                 MPI_Send(send_colors, max_color_found , MPI_INT, i, i, MPI_COMM_WORLD);
-            } else if (my_rank == i)
+            }
+            else if (my_rank == i)
             {
                 MPI_Recv(colors, max_color_found , MPI_INT, 0, i, MPI_COMM_WORLD, &status);
             }
@@ -870,10 +872,10 @@ public:
         r_model_part.GetCommunicator().SetNumberOfColors(max_color_found );
         r_model_part.GetCommunicator().NeighbourIndices().resize(max_color_found);
 
-        
-        
-        
-        
+
+
+
+
         //make list of DOF keys
         DofsArrayType all_dofs_to_send;
         for ( typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator )
@@ -884,12 +886,12 @@ public:
             }
         }
         std::cout << "process " << my_rank << ": size of dofs_send_buffer: " << all_dofs_to_send.size() << "; total dofs: " << Doftemp.size() << std::endl;
-        
+
         int send_size = all_dofs_to_send.size();
         int* dofs_index_send_buffer = new int[send_size];
         int* dofs_key_send_buffer = new int[send_size];
         int i=0;
-        
+
         for( typename DofsArrayType::iterator it=all_dofs_to_send.begin(); it != all_dofs_to_send.end(); ++it )
         {
             dofs_key_send_buffer[i] = it->GetVariable().Key();
@@ -907,14 +909,14 @@ public:
             int send_tag = i;
             int receive_tag = i;
             //syncronize the buffer size to be sent/received
-            
+
             MPI_Sendrecv( &send_size, 1, MPI_INT, colors[i], send_tag, &recv_size, 1, MPI_INT, colors[i], receive_tag, MPI_COMM_WORLD, &status );
-            
+
             std::cout << "*****************************************" << std::endl;
             std::cout << "process " << my_rank << " send buffer size: " << send_size << "; receive buffer size: " << recv_size << std::endl;
             std::cout << "*****************************************" << std::endl;
             MPI_Barrier(MPI_COMM_WORLD);
-            
+
             //setup receive buffers
             int* dofs_index_recv_buffer = new int[recv_size];
             int* dofs_key_recv_buffer = new int[recv_size];
@@ -923,11 +925,11 @@ public:
             MPI_Sendrecv( dofs_index_send_buffer, send_size, MPI_INT, colors[i], 0, dofs_index_recv_buffer, recv_size, MPI_INT, colors[i], 0, MPI_COMM_WORLD, &status );
             MPI_Sendrecv( dofs_key_send_buffer, send_size, MPI_INT, colors[i], 0, dofs_key_recv_buffer, recv_size, MPI_INT, colors[i], 0, MPI_COMM_WORLD, &status );
             MPI_Barrier(MPI_COMM_WORLD);
-            
+
             std::cout << "*****************************************" << std::endl;
             std::cout << "process " << my_rank << " send buffer last element: " << dofs_index_send_buffer[send_size-1] << "; receive buffer last element: " << dofs_index_recv_buffer[recv_size-1] << std::endl;
             std::cout << "*****************************************" << std::endl;
-            
+
             //TODO: store back received dofs into Doftemp!!!
             for( typename NodesArrayType::iterator it = r_model_part.NodesBegin(); it != r_model_part.NodesEnd(); ++it )
             {
@@ -962,7 +964,7 @@ public:
             }
             delete [] neighbours;
         }
-        
+
         Doftemp.Unique();
         KRATOS_WATCH("after adding additional DOFs");
         KRATOS_WATCH( Doftemp.size() );

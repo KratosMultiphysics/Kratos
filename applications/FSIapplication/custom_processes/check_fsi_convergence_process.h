@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2006-11-27 16:07:42 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -31,253 +31,253 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@}
+///@name Type Definitions
+///@{
 
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-		calculate the nodal H for all the nodes depending on the min distance
-		of the neighbouring nodes.
+/// Short class definition.
+/** Detail class definition.
+	calculate the nodal H for all the nodes depending on the min distance
+	of the neighbouring nodes.
 
-		lonely nodes are given the average value of the H
-	*/
+	lonely nodes are given the average value of the H
+*/
 
-	class CheckFSIConvergence 
-	{
-	public:
-		///@name Type Definitions
-		///@{
+class CheckFSIConvergence
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Pointer definition of CheckFSIConvergence
-		KRATOS_CLASS_POINTER_DEFINITION(CheckFSIConvergence);
+    /// Pointer definition of CheckFSIConvergence
+    KRATOS_CLASS_POINTER_DEFINITION(CheckFSIConvergence);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		/// Default constructor.
-		CheckFSIConvergence()
-		{
-		}
+    /// Default constructor.
+    CheckFSIConvergence()
+    {
+    }
 
-		/// Destructor.
-		virtual ~CheckFSIConvergence()
-		{
-		}
+    /// Destructor.
+    virtual ~CheckFSIConvergence()
+    {
+    }
 
 
-		///@}
-		///@name Operators 
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+    void operator()()
+    {
+        Execute();
+    }
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		bool CheckConvergence(PointerVector< Node<3> >& fluid_interface_nodes, double toll)
-		{
-			KRATOS_TRY
+    bool CheckConvergence(PointerVector< Node<3> >& fluid_interface_nodes, double toll)
+    {
+        KRATOS_TRY
 
-			double dp_norm = 0.00;
-			double p_norm = 0.00;
-			double dp,p;
-			//verifies that the pressure variation is sufficiently small
-			for(PointerVector< Node<3> >::iterator it = fluid_interface_nodes.begin();
-												it != fluid_interface_nodes.end(); it++);
-			{
-				p = it->FastGetSolutionStepValue(PRESSURE);
-				dp = p - it->FastGetSolutionStepValue(PRESSURE,1);
+        double dp_norm = 0.00;
+        double p_norm = 0.00;
+        double dp,p;
+        //verifies that the pressure variation is sufficiently small
+        for(PointerVector< Node<3> >::iterator it = fluid_interface_nodes.begin();
+                it != fluid_interface_nodes.end(); it++);
+        {
+            p = it->FastGetSolutionStepValue(PRESSURE);
+            dp = p - it->FastGetSolutionStepValue(PRESSURE,1);
 
-				dp_norm += dp*dp;
-				p_norm += p*p
-			}
+            dp_norm += dp*dp;
+            p_norm += p*p
+        }
 
-			if( p_norm = 0.00)
-				p_norm = 1.00;
+                  if( p_norm = 0.00)
+                      p_norm = 1.00;
 
-			double ratio = sqrt(p_norm/dp_norm);
-			std::cout << "FSI convergence ratio = " << ratio << std::endl;
+        double ratio = sqrt(p_norm/dp_norm);
+        std::cout << "FSI convergence ratio = " << ratio << std::endl;
 
-			if(ratio < toll)
-				return true;
-			else
-				return false;
+        if(ratio < toll)
+            return true;
+        else
+            return false;
 
-			KRATOS_CATCH("")
-		}
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-		///@name Access
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "CheckFSIConvergence";
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "CheckFSIConvergence";
+    }
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "CheckFSIConvergence";
-		}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "CheckFSIConvergence";
+    }
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}      
-		///@name Friends
-		///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}
+    ///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@}
+    ///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		double m_min_h;
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+    double m_min_h;
 
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		/// Assignment operator.
-		CheckFSIConvergence& operator=(CheckFSIConvergence const& rOther);
+    /// Assignment operator.
+    CheckFSIConvergence& operator=(CheckFSIConvergence const& rOther);
 
-		/// Copy constructor.
-		//CheckFSIConvergence(CheckFSIConvergence const& rOther);
+    /// Copy constructor.
+    //CheckFSIConvergence(CheckFSIConvergence const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class CheckFSIConvergence 
+}; // Class CheckFSIConvergence
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@}
+///@name Input and output
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		CheckFSIConvergence& rThis);
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  CheckFSIConvergence& rThis);
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const CheckFSIConvergence& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const CheckFSIConvergence& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

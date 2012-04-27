@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: janosch $
 //   Date:                $Date: 2008-04-28 16:19:49 $
 //   Revision:            $Revision: 1.2 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -62,60 +62,60 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Python
-    {
-        using namespace boost::python;
-        
-        void  AddCustomUtilitiesToPython()
-        {
-            class_<TrilinosDeactivationUtility, boost::noncopyable >
-                    ("TrilinosDeactivationUtility",
-                     init<>() )
-                    .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
-                    .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
-                    .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
-                    .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
-                    .def("Initialize", &TrilinosDeactivationUtility::Initialize )
-                    ;
-		    
-            class_<ParallelFillCommunicator, boost::noncopyable >
-                    ("ParallelFillCommunicator",
-                     init<ModelPart& >() )
-                    .def("Execute", &ParallelFillCommunicator::Execute )
-                    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
-                    ;
-		
-            class_<TrilinosCuttingApplication, boost::noncopyable >
-                    ("TrilinosCuttingApplication",
-                     init< Epetra_MpiComm& >() )
-                    .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
-                    .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
-                    .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
-                    .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
-                    ;
-            
-            class_<TrilinosCuttingIsosurfaceApplication,boost::noncopyable >
-                    ("TrilinosCuttingIsosurfaceApplication",
-                     init< Epetra_MpiComm& >() )
-                    .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
-		    //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
-		    //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
-		    .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
-                    .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
-		    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
-		    ;
+namespace Python
+{
+using namespace boost::python;
 
-            class_<TrilinosRefineMesh, boost::noncopyable >
-                    ("TrilinosRefineMesh",
-                     init<ModelPart& , Epetra_MpiComm& >() )
-                    .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
-                    .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
-            ;
-		    
-		    
-		    
-        }	
-    }  // namespace Python.
+void  AddCustomUtilitiesToPython()
+{
+    class_<TrilinosDeactivationUtility, boost::noncopyable >
+    ("TrilinosDeactivationUtility",
+     init<>() )
+    .def("Deactivate", &TrilinosDeactivationUtility::Deactivate )
+    .def("Reactivate", &TrilinosDeactivationUtility::Reactivate )
+    .def("ReactivateStressFree", &TrilinosDeactivationUtility::ReactivateStressFree )
+    .def("ReactivateAll", &TrilinosDeactivationUtility::ReactivateAll )
+    .def("Initialize", &TrilinosDeactivationUtility::Initialize )
+    ;
+
+    class_<ParallelFillCommunicator, boost::noncopyable >
+    ("ParallelFillCommunicator",
+     init<ModelPart& >() )
+    .def("Execute", &ParallelFillCommunicator::Execute )
+    .def("PrintDebugInfo", &ParallelFillCommunicator::PrintDebugInfo )
+    ;
+
+    class_<TrilinosCuttingApplication, boost::noncopyable >
+    ("TrilinosCuttingApplication",
+     init< Epetra_MpiComm& >() )
+    .def("FindSmallestEdge", &TrilinosCuttingApplication::FindSmallestEdge )
+    .def("GenerateCut", &TrilinosCuttingApplication::GenerateCut )
+    .def("AddSkinConditions", &TrilinosCuttingApplication::AddSkinConditions )
+    .def("UpdateCutData", &TrilinosCuttingApplication::UpdateCutData )
+    ;
+
+    class_<TrilinosCuttingIsosurfaceApplication,boost::noncopyable >
+    ("TrilinosCuttingIsosurfaceApplication",
+     init< Epetra_MpiComm& >() )
+    .def("GenerateScalarVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut<double>)
+    //.def("GenerateVectorialComponentVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVectorialComponentVariableCut<VectorComponentAdaptor< array_1d < double, 3 > > >)
+    //.def("GenerateVectorialVarCut", &TrilinosCuttingIsosurfaceApplication::GenerateVariableCut< array_1d < double, 3 > >)
+    .def("AddSkinConditions", &TrilinosCuttingIsosurfaceApplication::AddSkinConditions)
+    .def("UpdateCutData", &TrilinosCuttingIsosurfaceApplication::UpdateCutData)
+    .def("DeleteCutData", &TrilinosCuttingIsosurfaceApplication::DeleteCutData)
+    ;
+
+    class_<TrilinosRefineMesh, boost::noncopyable >
+    ("TrilinosRefineMesh",
+     init<ModelPart& , Epetra_MpiComm& >() )
+    .def("Local_Refine_Mesh", &TrilinosRefineMesh::Local_Refine_Mesh )
+    .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
+    ;
+
+
+
+}
+}  // namespace Python.
 
 } // Namespace Kratos
 

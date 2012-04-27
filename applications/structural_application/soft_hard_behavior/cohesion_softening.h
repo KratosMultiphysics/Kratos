@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
+
 /* *********************************************************
 *
 *   Last Modified by:    $Author: Nelson Lafontaine $
@@ -58,57 +58,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	  class Cohesion_Softening: public SofteningHardeningCriteria
-	    {
-	    
-		public: 
-		   Cohesion_Softening();
-		  ~Cohesion_Softening();
-                   KRATOS_CLASS_POINTER_DEFINITION(Cohesion_Softening);
-		   virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
-                    {
-                      boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Cohesion_Softening());
-                      return p_clone;
-                    }
-		   
-		   double   FunctionBehavior(const Vector& Imput_Parameters);
-		   double   FirstDerivateFunctionBehavior(const  Vector& Imput_Parameters);
-		   double   EvolucionLaws(const Vector& Imput_Parameters,const array_1d<double,3>& Sigma);
-		   
-	      private:
-		   /// Esta funcion son con respecto a KPunto
-		   ///  exponencial para la chesion en tracción, para kp es lineal
-		   /// Sigma = Cohesion inicial
-		   void FuntionCCAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
-		   {
-		     value    = 0.00;
-		     derivate = 0.00;
-		     if(Kp<1.00){
-		        value    = (1.00 - Kp) * Sigma; 
-			derivate = -Sigma;
-		     }
-		   }
-		   
-		   void FuntionCTAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
-		   {
-		     value    = 0.00;
-		     derivate = 0.00;
-		     if(Kp<1.00){
-		        const double raiz = std::sqrt((1.00 - Kp));
-		        value             = raiz * Sigma; 
-			derivate          = -Sigma/(2.00 * raiz);
-		     }
-		     
-		   }
-		   
-		   
-		   
-           };    
-    
+class Cohesion_Softening: public SofteningHardeningCriteria
+{
 
-    /**
-     * definition of CONSTITUTIVE_LAW variable
-     */
+public:
+    Cohesion_Softening();
+    ~Cohesion_Softening();
+    KRATOS_CLASS_POINTER_DEFINITION(Cohesion_Softening);
+    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    {
+        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Cohesion_Softening());
+        return p_clone;
+    }
+
+    double   FunctionBehavior(const Vector& Imput_Parameters);
+    double   FirstDerivateFunctionBehavior(const  Vector& Imput_Parameters);
+    double   EvolucionLaws(const Vector& Imput_Parameters,const array_1d<double,3>& Sigma);
+
+private:
+    /// Esta funcion son con respecto a KPunto
+    ///  exponencial para la chesion en tracción, para kp es lineal
+    /// Sigma = Cohesion inicial
+    void FuntionCCAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
+    {
+        value    = 0.00;
+        derivate = 0.00;
+        if(Kp<1.00)
+        {
+            value    = (1.00 - Kp) * Sigma;
+            derivate = -Sigma;
+        }
+    }
+
+    void FuntionCTAndDerivate(const double& Kp, const double& Sigma, double& value, double& derivate)
+    {
+        value    = 0.00;
+        derivate = 0.00;
+        if(Kp<1.00)
+        {
+            const double raiz = std::sqrt((1.00 - Kp));
+            value             = raiz * Sigma;
+            derivate          = -Sigma/(2.00 * raiz);
+        }
+
+    }
+
+
+
+};
+
+
+/**
+ * definition of CONSTITUTIVE_LAW variable
+ */
 }  /* namespace Kratos.*/
 #endif /* FLUENCY_CRITERIA defined */
 

@@ -254,9 +254,9 @@ protected:
                      const double Weight);
 
     void AddConvection(MatrixType& rLHS,
-                      const ShapeFunctionsType& N,
-                      const Vector& UGradN,
-                      const double Weight);
+                       const ShapeFunctionsType& N,
+                       const Vector& UGradN,
+                       const double Weight);
 
     void AddModelTerms(MatrixType& rLHS,
                        const double MolecularViscosity,

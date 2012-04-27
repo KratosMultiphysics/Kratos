@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/radiation_settings.h"
 namespace Kratos
 {
-	
+
 namespace Python
 {
 // 	void SetModelPartName(ModelPart& rModelPart, std::string const& NewName)
@@ -76,36 +76,36 @@ namespace Python
 // 	void SetProcessInfo(ModelPart& rModelPart, ProcessInfo& NewProcessInfo)
 // 	{	  rModelPart.SetProcessInfo(NewProcessInfo);	  }
 
-	template< class TContainerType, class TVariableType > void MySetValueHelperFunction1(
-                TContainerType& el, 
-                const TVariableType& rVar,
-                const typename TVariableType::Type& Data)
-        {
-            el.SetValue(rVar,Data);
-        }
-        
-        template< class TContainerType, class TVariableType > 
-                typename TVariableType::Type MyGetValueHelperFunction1( TContainerType& el, 
-                        const TVariableType& rVar )
-        {
-            return el.GetValue(rVar);
-        }
-        
+template< class TContainerType, class TVariableType > void MySetValueHelperFunction1(
+    TContainerType& el,
+    const TVariableType& rVar,
+    const typename TVariableType::Type& Data)
+{
+    el.SetValue(rVar,Data);
+}
+
+template< class TContainerType, class TVariableType >
+typename TVariableType::Type MyGetValueHelperFunction1( TContainerType& el,
+        const TVariableType& rVar )
+{
+    return el.GetValue(rVar);
+}
+
 //
-	void  AddProcessInfoToPython()
-	{
-		using namespace boost::python;
-		
-		class_<ProcessInfo, ProcessInfo::Pointer, bases<DataValueContainer>, boost::noncopyable>("ProcessInfo")
-				.def(init<>())
-				.def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
+void  AddProcessInfoToPython()
+{
+    using namespace boost::python;
+
+    class_<ProcessInfo, ProcessInfo::Pointer, bases<DataValueContainer>, boost::noncopyable>("ProcessInfo")
+    .def(init<>())
+    .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
 // 				.def("CreateTimeStepInfo",(void (ProcessInfo::*)(std::size_t)) &ProcessInfo::CreateTimeStepInfo)
 // 				.def("CreateTimeStepInfo",&ProcessInfo::CreateTimeStepInfo)
 // 				.def("CloneTimeStepInfo",(void (ProcessInfo::*)(std::size_t) )&ProcessInfo::CloneTimeStepInfo)
 // 				.def("SetAsTimeStepInfo",(void (ProcessInfo::*)()) &ProcessInfo::SetAsTimeStepInfo)
-				.def(self_ns::str(self))
-				;
-	}
+    .def(self_ns::str(self))
+    ;
+}
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -35,10 +35,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
 
-//   Project Name:        Kratos       
+//
+
+//   Project Name:        Kratos
 
 //   Last Modified by:    $Author: rrossi $
 

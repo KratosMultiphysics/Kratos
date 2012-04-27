@@ -13,16 +13,16 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-1998 University of Maryland and Sunil Arya and David
 // Mount.  All Rights Reserved.
-// 
-// This software and related documentation is part of the 
+//
+// This software and related documentation is part of the
 // Approximate Nearest Neighbor Library (ANN).
-// 
-// Permission to use, copy, and distribute this software and its 
-// documentation is hereby granted free of charge, provided that 
-// (1) it is not a component of a commercial product, and 
+//
+// Permission to use, copy, and distribute this software and its
+// documentation is hereby granted free of charge, provided that
+// (1) it is not a component of a commercial product, and
 // (2) this notice appears in all copies of the software and
-//   related documentation. 
-// 
+//   related documentation.
+//
 // The University of Maryland (U.M.) and the authors make no representations
 // about the suitability or fitness of this software for any purpose.  It is
 // provided "as is" without express or implied warranty.
@@ -45,7 +45,7 @@
 //----------------------------------------------------------------------
 enum	{ANN_LO=0, ANN_HI=1};	// splitting indices
 enum	{ANN_IN=0, ANN_OUT=1};	// shrinking indices
-								// what to do in case of error
+// what to do in case of error
 enum ANNerr {ANNwarn = 0, ANNabort = 1};
 
 //----------------------------------------------------------------------
@@ -64,13 +64,13 @@ extern int		ANNptsVisited;		// number of pts visited in search
 //----------------------------------------------------------------------
 
 void annError(					// ANN error routine
-	char			*msg,		// error message
-	ANNerr			level);		// level of error
+    char			*msg,		// error message
+    ANNerr			level);		// level of error
 
 void annPrintPt(				// print a point
-	ANNpoint		pt,			// the point
-	int				dim,		// the dimension
-	std::ostream	&out);		// output stream
+    ANNpoint		pt,			// the point
+    int				dim,		// the dimension
+    std::ostream	&out);		// output stream
 
 //----------------------------------------------------------------------
 //	Orthogonal (axis aligned) rectangle
@@ -89,38 +89,51 @@ void annPrintPt(				// print a point
 //	you get into big trouble in the calling procedure.)
 //----------------------------------------------------------------------
 
-class ANNorthRect {
+class ANNorthRect
+{
 public:
-	ANNpoint		lo;			// rectangle lower bounds
-	ANNpoint		hi;			// rectangle upper bounds
+    ANNpoint		lo;			// rectangle lower bounds
+    ANNpoint		hi;			// rectangle upper bounds
 //
-	ANNorthRect(				// basic constructor
-	int				dd,			// dimension of space
-	ANNcoord		l=0,		// default is empty
-	ANNcoord		h=0)
-	{  lo = annAllocPt(dd, l);  hi = annAllocPt(dd, h); }
+    ANNorthRect(				// basic constructor
+        int				dd,			// dimension of space
+        ANNcoord		l=0,		// default is empty
+        ANNcoord		h=0)
+    {
+        lo = annAllocPt(dd, l);
+        hi = annAllocPt(dd, h);
+    }
 
-	ANNorthRect(				// (almost a) copy constructor
-	int				dd,			// dimension
-	const			ANNorthRect &r) // rectangle to copy
-	{  lo = annCopyPt(dd, r.lo);  hi = annCopyPt(dd, r.hi);  }
+    ANNorthRect(				// (almost a) copy constructor
+        int				dd,			// dimension
+        const			ANNorthRect &r) // rectangle to copy
+    {
+        lo = annCopyPt(dd, r.lo);
+        hi = annCopyPt(dd, r.hi);
+    }
 
-	ANNorthRect(				// construct from points
-	int				dd,			// dimension
-	ANNpoint		l,			// low point
-	ANNpoint		h)			// hight point
-	{  lo = annCopyPt(dd, l);  hi = annCopyPt(dd, h);  }
+    ANNorthRect(				// construct from points
+        int				dd,			// dimension
+        ANNpoint		l,			// low point
+        ANNpoint		h)			// hight point
+    {
+        lo = annCopyPt(dd, l);
+        hi = annCopyPt(dd, h);
+    }
 
-	~ANNorthRect()				// destructor
-    {  annDeallocPt(lo);  annDeallocPt(hi);  }
+    ~ANNorthRect()				// destructor
+    {
+        annDeallocPt(lo);
+        annDeallocPt(hi);
+    }
 
-	ANNbool inside(int dim, ANNpoint p);// is point p inside rectangle?
+    ANNbool inside(int dim, ANNpoint p);// is point p inside rectangle?
 };
 
 void annAssignRect(				// assign one rect to another
-	int				dim,		// dimension (both must be same)
-	ANNorthRect		&dest,		// destination (modified)
-	const ANNorthRect &source);	// source
+    int				dim,		// dimension (both must be same)
+    ANNorthRect		&dest,		// destination (modified)
+    const ANNorthRect &source);	// source
 
 //----------------------------------------------------------------------
 //	Orthogonal (axis aligned) halfspace
@@ -130,41 +143,66 @@ void annAssignRect(				// assign one rect to another
 //	halfspace if (q[cd] - cv)*sd >= 0.
 //----------------------------------------------------------------------
 
-class ANNorthHalfSpace {
+class ANNorthHalfSpace
+{
 public:
-	int				cd;			// cutting dimension
-	ANNcoord		cv;			// cutting value
-	int				sd;			// which side
+    int				cd;			// cutting dimension
+    ANNcoord		cv;			// cutting value
+    int				sd;			// which side
 //
-	ANNorthHalfSpace()			// default constructor
-	{  cd = 0; cv = 0;  sd = 0;  }
+    ANNorthHalfSpace()			// default constructor
+    {
+        cd = 0;
+        cv = 0;
+        sd = 0;
+    }
 
-	ANNorthHalfSpace(			// basic constructor
-	int				cdd,		// dimension of space
-	ANNcoord		cvv,		// cutting value
-	int				sdd)		// side
-	{  cd = cdd;  cv = cvv;  sd = sdd;  }
+    ANNorthHalfSpace(			// basic constructor
+        int				cdd,		// dimension of space
+        ANNcoord		cvv,		// cutting value
+        int				sdd)		// side
+    {
+        cd = cdd;
+        cv = cvv;
+        sd = sdd;
+    }
 
-	ANNbool in(ANNpoint q) const	// is q inside halfspace?
-	{  return  (ANNbool) ((q[cd] - cv)*sd >= 0);  }
+    ANNbool in(ANNpoint q) const	// is q inside halfspace?
+    {
+        return  (ANNbool) ((q[cd] - cv)*sd >= 0);
+    }
 
-	ANNbool out(ANNpoint q) const	// is q outside halfspace?
-	{  return  (ANNbool) ((q[cd] - cv)*sd < 0);  }
+    ANNbool out(ANNpoint q) const	// is q outside halfspace?
+    {
+        return  (ANNbool) ((q[cd] - cv)*sd < 0);
+    }
 
-	ANNdist dist(ANNpoint q) const	// (squared) distance from q
-	{  return  (ANNdist) ANN_POW(q[cd] - cv);  }
+    ANNdist dist(ANNpoint q) const	// (squared) distance from q
+    {
+        return  (ANNdist) ANN_POW(q[cd] - cv);
+    }
 
-	void setLowerBound(int d, ANNpoint p)// set to lower bound at p[i]
-	{  cd = d;  cv = p[d];  sd = +1;  }
+    void setLowerBound(int d, ANNpoint p)// set to lower bound at p[i]
+    {
+        cd = d;
+        cv = p[d];
+        sd = +1;
+    }
 
-	void setUpperBound(int d, ANNpoint p)// set to upper bound at p[i]
-	{  cd = d;  cv = p[d];  sd = -1;  }
+    void setUpperBound(int d, ANNpoint p)// set to upper bound at p[i]
+    {
+        cd = d;
+        cv = p[d];
+        sd = -1;
+    }
 
-	void project(ANNpoint &q)		// project q (modified) onto halfspace
-	{  if (out(q)) q[cd] = cv;  }
+    void project(ANNpoint &q)		// project q (modified) onto halfspace
+    {
+        if (out(q)) q[cd] = cv;
+    }
 };
 
-								// array of halfspaces
+// array of halfspaces
 typedef ANNorthHalfSpace *ANNorthHSArray;
 
 #endif

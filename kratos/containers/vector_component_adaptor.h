@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -66,249 +66,249 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  template<class TVectorType>
-    class VectorComponentAdaptor
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TVectorType>
+class VectorComponentAdaptor
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of VectorComponentAdaptor
+    KRATOS_CLASS_POINTER_DEFINITION(VectorComponentAdaptor);
+
+    typedef typename TVectorType::value_type Type;
+
+    typedef TVectorType SourceType;
+
+    typedef Variable<TVectorType>  SourceVariableType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor.
+    VectorComponentAdaptor(const SourceVariableType& rSourceVariable, int ComponentIndex)
+        : mpSourceVariable(&rSourceVariable), mComponentIndex(ComponentIndex)
+    {}
+
+    /// Copy constructor.
+    VectorComponentAdaptor(const VectorComponentAdaptor& rOther)
+        : mpSourceVariable(rOther.mpSourceVariable), mComponentIndex(rOther.mComponentIndex)
+    {}
+
+    /// Destructor.
+    virtual ~VectorComponentAdaptor() {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Type& GetValue(SourceType& rValue) const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of VectorComponentAdaptor
-      KRATOS_CLASS_POINTER_DEFINITION(VectorComponentAdaptor);
-  
-      typedef typename TVectorType::value_type Type;
-
-      typedef TVectorType SourceType;
-
-      typedef Variable<TVectorType>  SourceVariableType;
-
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Constructor.
-      VectorComponentAdaptor(const SourceVariableType& rSourceVariable, int ComponentIndex)
-	: mpSourceVariable(&rSourceVariable), mComponentIndex(ComponentIndex)
-	{}
-
-      /// Copy constructor.
-      VectorComponentAdaptor(const VectorComponentAdaptor& rOther)
-	: mpSourceVariable(rOther.mpSourceVariable), mComponentIndex(rOther.mComponentIndex)
-	{}
-
-      /// Destructor.
-      virtual ~VectorComponentAdaptor(){}
-     
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      Type& GetValue(SourceType& rValue) const
-      {
-	return rValue[mComponentIndex];
-      }
-      
-      const Type& GetValue(const SourceType& rValue) const
-      {
-	return rValue[mComponentIndex];
-      }
-      
-
-      static VectorComponentAdaptor const& StaticObject()
-	{
-	  return msStaticObject;
-	}
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      const SourceVariableType& GetSourceVariable() const
-      {
-	return *mpSourceVariable;
-      }
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  std::stringstream buffer;
-	  buffer << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
-	  return buffer.str();
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	}
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-      
-      static VectorComponentAdaptor const msStaticObject;
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-      const SourceVariableType* mpSourceVariable;
-      
-      int mComponentIndex;
-	  
-      ///@} 
-      ///@name Serialization
-      ///@{ 
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Default constructor.
-      VectorComponentAdaptor();
-        
-      ///@}    
-        
-    }; // Class VectorComponentAdaptor 
-
-  ///@} 
-  
-  template<class TVectorType>
-  const VectorComponentAdaptor<TVectorType> VectorComponentAdaptor<TVectorType>::msStaticObject = VectorComponentAdaptor<TVectorType>(VectorComponentAdaptor<TVectorType>::SourceVariableType::StaticObject(), 0);
-
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template<class TDataType>
-  inline std::istream& operator >> (std::istream& IStream, 
-				    VectorComponentAdaptor<TDataType>& rThis);
-
-  /// output stream function
-  template<class TDataType>
-  inline std::ostream& operator << (std::ostream& OStream, 
-				    const VectorComponentAdaptor<TDataType>& rThis)
-    {
-      rThis.PrintInfo(OStream);
-      rThis.PrintData(OStream);
-
-      return OStream;
+        return rValue[mComponentIndex];
     }
-  ///@} 
-  
-  
+
+    const Type& GetValue(const SourceType& rValue) const
+    {
+        return rValue[mComponentIndex];
+    }
+
+
+    static VectorComponentAdaptor const& StaticObject()
+    {
+        return msStaticObject;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    const SourceVariableType& GetSourceVariable() const
+    {
+        return *mpSourceVariable;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << mpSourceVariable->Name() << " vector component " << mComponentIndex << " adaptor";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    static VectorComponentAdaptor const msStaticObject;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    const SourceVariableType* mpSourceVariable;
+
+    int mComponentIndex;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Default constructor.
+    VectorComponentAdaptor();
+
+    ///@}
+
+}; // Class VectorComponentAdaptor
+
+///@}
+
+template<class TVectorType>
+const VectorComponentAdaptor<TVectorType> VectorComponentAdaptor<TVectorType>::msStaticObject = VectorComponentAdaptor<TVectorType>(VectorComponentAdaptor<TVectorType>::SourceVariableType::StaticObject(), 0);
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TDataType>
+inline std::istream& operator >> (std::istream& IStream,
+                                  VectorComponentAdaptor<TDataType>& rThis);
+
+/// output stream function
+template<class TDataType>
+inline std::ostream& operator << (std::ostream& OStream,
+                                  const VectorComponentAdaptor<TDataType>& rThis)
+{
+    rThis.PrintInfo(OStream);
+    rThis.PrintData(OStream);
+
+    return OStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_VECTOR_COMPONENT_ADAPTOR_H_INCLUDED  defined 

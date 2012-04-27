@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplicationApplication 
+KratosIncompressibleFluidApplicationApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -39,8 +39,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: antonia $
 //   Date:                $Date: 2009-01-14 16:24:38 $
 //   Revision:            $Revision: 1.11 $
@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include <omp.h>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -76,170 +76,171 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-					
-			
-	class ElemBasedDistanceUtilities
-	{
-		public:
-			//constructor and destructor
-			ElemBasedDistanceUtilities( ModelPart& mr_model_part
-						   )
-			: mr_model_part(mr_model_part){};
-			~ElemBasedDistanceUtilities(){};
-			
 
-			void IdentifyFreeSurface()
-			{
-				KRATOS_TRY
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();inode++)	
-				{
-					inode->GetValue(IS_VISITED) = 0;
-				}
-				
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					
-					if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0)
-					{	
-						WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES); 
-						for( WeakPointerVector< Node<3> >::iterator j =	neighb_nodes.begin(); j != neighb_nodes.end(); j++) 
-						{ 
-							if(j->FastGetSolutionStepValue(DISTANCE) < 0.0)
-							{
 
-								inode->GetValue(IS_VISITED) = 1;
+class ElemBasedDistanceUtilities
+{
+public:
+    //constructor and destructor
+    ElemBasedDistanceUtilities( ModelPart& mr_model_part
+                              )
+        : mr_model_part(mr_model_part) {};
+    ~ElemBasedDistanceUtilities() {};
+
+
+    void IdentifyFreeSurface()
+    {
+        KRATOS_TRY
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd(); inode++)
+        {
+            inode->GetValue(IS_VISITED) = 0;
+        }
+
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+
+            if (inode->FastGetSolutionStepValue(DISTANCE) > 0.0)
+            {
+                WeakPointerVector< Node<3> >& neighb_nodes = inode->GetValue(NEIGHBOUR_NODES);
+                for( WeakPointerVector< Node<3> >::iterator j =	neighb_nodes.begin(); j != neighb_nodes.end(); j++)
+                {
+                    if(j->FastGetSolutionStepValue(DISTANCE) < 0.0)
+                    {
+
+                        inode->GetValue(IS_VISITED) = 1;
 // 								KRATOS_WATCH("ENTRAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 // 								KRATOS_WATCH(inode->Id())
-							}
-						} 
-					}
-					if (inode->FastGetSolutionStepValue(DISTANCE) == 0.0)
-					{	inode->GetValue(IS_VISITED) = 1; 
+                    }
+                }
+            }
+            if (inode->FastGetSolutionStepValue(DISTANCE) == 0.0)
+            {
+                inode->GetValue(IS_VISITED) = 1;
 // 						KRATOS_WATCH(inode->Id())
-					}
-				}
-				KRATOS_CATCH("")	
-			}
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
 
-			void ChangeSignToDistance()
-			{
-				KRATOS_TRY	
+    void ChangeSignToDistance()
+    {
+        KRATOS_TRY
 
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					double dist = inode->FastGetSolutionStepValue(DISTANCE);
-					inode->FastGetSolutionStepValue(DISTANCE) = -dist;
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            double dist = inode->FastGetSolutionStepValue(DISTANCE);
+            inode->FastGetSolutionStepValue(DISTANCE) = -dist;
 // 					KRATOS_WATCH(dist)
-				}
+        }
 
-				KRATOS_CATCH("")
-			}
+        KRATOS_CATCH("")
+    }
 
-			void MarkNodesByDistance(double min, double max )
-			{
-				KRATOS_TRY	
+    void MarkNodesByDistance(double min, double max )
+    {
+        KRATOS_TRY
 
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					double dist = inode->FastGetSolutionStepValue(DISTANCE);
-					if(dist > min && dist < max)
-						inode->GetValue(IS_VISITED) = 1;
-					else
-						inode->GetValue(IS_VISITED) = 0;
-				}
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            double dist = inode->FastGetSolutionStepValue(DISTANCE);
+            if(dist > min && dist < max)
+                inode->GetValue(IS_VISITED) = 1;
+            else
+                inode->GetValue(IS_VISITED) = 0;
+        }
 
-				KRATOS_CATCH("")
-			}
+        KRATOS_CATCH("")
+    }
 
-			void SaveScalarVariableToOldStep(Variable<double>& rVar)
-			{
-				KRATOS_TRY	
+    void SaveScalarVariableToOldStep(Variable<double>& rVar)
+    {
+        KRATOS_TRY
 
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					inode->FastGetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
-				}
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            inode->FastGetSolutionStepValue(rVar,1) = inode->FastGetSolutionStepValue(rVar);
+        }
 
-				KRATOS_CATCH("")
-			}
+        KRATOS_CATCH("")
+    }
 
-			void MarkExternalAndMixedNodes( )
-			{
-				KRATOS_TRY	
+    void MarkExternalAndMixedNodes( )
+    {
+        KRATOS_TRY
 
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					inode->GetValue(IS_VISITED) = 0;
-				}
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            inode->GetValue(IS_VISITED) = 0;
+        }
 
-				//detect the nodes outside the fluid surface
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					if( inode->FastGetSolutionStepValue(DISTANCE) >= 0.0) //candidates are only the ones outside the fluid domain and the boundary
-					{
-						inode->GetValue(IS_VISITED) = 1;
-					}
-				}
-				KRATOS_CATCH("")
-			}
+        //detect the nodes outside the fluid surface
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            if( inode->FastGetSolutionStepValue(DISTANCE) >= 0.0) //candidates are only the ones outside the fluid domain and the boundary
+            {
+                inode->GetValue(IS_VISITED) = 1;
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
-			void MarkInternalAndMixedNodes( )
-			{
-				KRATOS_TRY	
+    void MarkInternalAndMixedNodes( )
+    {
+        KRATOS_TRY
 
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					inode->GetValue(IS_VISITED) = 0;
-				}
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            inode->GetValue(IS_VISITED) = 0;
+        }
 
-				//detect the nodes inside the fluid surface
-				for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-								inode != mr_model_part.NodesEnd();
-								inode++)	
-				{
-					if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are the ones inside the fluid domain and the boundary
-					{
-						inode->GetValue(IS_VISITED) = 1; 
-					}
-				}
-				KRATOS_CATCH("")
-			}
-			
-		
-		
+        //detect the nodes inside the fluid surface
+        for( ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
+                inode != mr_model_part.NodesEnd();
+                inode++)
+        {
+            if( inode->FastGetSolutionStepValue(DISTANCE) <= 0.0) //candidates are the ones inside the fluid domain and the boundary
+            {
+                inode->GetValue(IS_VISITED) = 1;
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
 
-		private:
-			ModelPart& mr_model_part;
-			
-			
-	};
 
 
-		// 			//*******************************
+
+private:
+    ModelPart& mr_model_part;
+
+
+};
+
+
+// 			//*******************************
 // 			//function to free dynamic memory
 // 			void Clear()
 // 			{
 // 			KRATOS_TRY
 // 			KRATOS_CATCH("")
 // 			}
-			//generate a model part with all of the elements and nodes between min_dist and max_dist
+//generate a model part with all of the elements and nodes between min_dist and max_dist
 } //namespace Kratos
 
 #endif //KRATOS_ELEMBASED_DISTANCE_UTILITIES_H_INCLUDED defined

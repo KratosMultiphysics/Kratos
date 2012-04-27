@@ -71,94 +71,94 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class ConnectivityPreserveModeler : public Modeler
+class ConnectivityPreserveModeler : public Modeler
+{
+public:
+
+    ConnectivityPreserveModeler()
     {
-    public:
+    }
 
-        ConnectivityPreserveModeler()
-        {
-        }
+    /// Destructor.
 
-        /// Destructor.
+    virtual ~ConnectivityPreserveModeler()
+    {
+    }
 
-        virtual ~ConnectivityPreserveModeler()
-        {
-        }
+    //**********************************************************************************************
+    //**********************************************************************************************
+    ///This function fills the @param DestinationModelPart using the data obtained from @param  OriginModelPart
+    ///the elements and conditions of the DestinationModelPart part use the same connectivity (and id) as the
+    ///OriginModelPart but their type is determined by @param rReferenceElement and @param rReferenceBoundaryCondition
 
-        //**********************************************************************************************
-        //**********************************************************************************************
-        ///This function fills the @param DestinationModelPart using the data obtained from @param  OriginModelPart
-        ///the elements and conditions of the DestinationModelPart part use the same connectivity (and id) as the
-        ///OriginModelPart but their type is determined by @param rReferenceElement and @param rReferenceBoundaryCondition
+    void GenerateModelPart(
+        ModelPart& OriginModelPart,
+        ModelPart& DestinationModelPart,
+        Element const& rReferenceElement,
+        Condition const& rReferenceBoundaryCondition
+    )
+    {
+        KRATOS_TRY;
 
-        void GenerateModelPart(
-                ModelPart& OriginModelPart,
-                ModelPart& DestinationModelPart,
-                Element const& rReferenceElement,
-                Condition const& rReferenceBoundaryCondition
-                )
-        {
-            KRATOS_TRY;
-	    
-	    DestinationModelPart.Nodes().clear();
+        DestinationModelPart.Nodes().clear();
 
 
-	    DestinationModelPart.Conditions().clear();
-    	    DestinationModelPart.Elements().clear();
+        DestinationModelPart.Conditions().clear();
+        DestinationModelPart.Elements().clear();
 
 
 
 
-            //assigning ProcessInfo
-	    DestinationModelPart.SetProcessInfo(  OriginModelPart.pGetProcessInfo() ); 
-	    DestinationModelPart.SetBufferSize(OriginModelPart.GetBufferSize());
+        //assigning ProcessInfo
+        DestinationModelPart.SetProcessInfo(  OriginModelPart.pGetProcessInfo() );
+        DestinationModelPart.SetBufferSize(OriginModelPart.GetBufferSize());
 //             DestinationModelPart.SetProcessInfo( OriginModelPart.GetProcessInfo() );
 
-            //assigning Properties
-            DestinationModelPart.SetProperties(OriginModelPart.pProperties());
-	    
-	    KRATOS_WATCH(rReferenceElement);
-	    KRATOS_WATCH(rReferenceBoundaryCondition);
+        //assigning Properties
+        DestinationModelPart.SetProperties(OriginModelPart.pProperties());
 
-            //assigning the nodes to the new model part
-            
-            DestinationModelPart.Nodes() = OriginModelPart.Nodes();
+        KRATOS_WATCH(rReferenceElement);
+        KRATOS_WATCH(rReferenceBoundaryCondition);
 
-	    //generating the elements
-            for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
-            {
-                Properties::Pointer properties = iii->pGetProperties();
-                Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
-                DestinationModelPart.Elements().push_back(p_element);
-            }
+        //assigning the nodes to the new model part
 
-	    //generating the conditions
-            for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
-            {
-                Properties::Pointer properties = iii->pGetProperties();
+        DestinationModelPart.Nodes() = OriginModelPart.Nodes();
 
-                Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
-                DestinationModelPart.Conditions().push_back(p_condition);
-            }
-
-            Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
-            DestinationModelPart.SetCommunicator(pComm);
-
-            KRATOS_CATCH("");
+        //generating the elements
+        for (ModelPart::ElementsContainerType::iterator iii = OriginModelPart.ElementsBegin(); iii != OriginModelPart.ElementsEnd(); iii++)
+        {
+            Properties::Pointer properties = iii->pGetProperties();
+            Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
+            DestinationModelPart.Elements().push_back(p_element);
         }
 
+        //generating the conditions
+        for (ModelPart::ConditionsContainerType::iterator iii = OriginModelPart.ConditionsBegin(); iii != OriginModelPart.ConditionsEnd(); iii++)
+        {
+            Properties::Pointer properties = iii->pGetProperties();
 
-        //**********************************************************************************************
-        //**********************************************************************************************
-    private:
+            Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
+            DestinationModelPart.Conditions().push_back(p_condition);
+        }
 
-        ConnectivityPreserveModeler & operator=(ConnectivityPreserveModeler const& rOther);
+        Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
+        DestinationModelPart.SetCommunicator(pComm);
 
-        /// Copy constructor.
-        ConnectivityPreserveModeler(ConnectivityPreserveModeler const& rOther);
+        KRATOS_CATCH("");
+    }
 
 
-    };
+    //**********************************************************************************************
+    //**********************************************************************************************
+private:
+
+    ConnectivityPreserveModeler & operator=(ConnectivityPreserveModeler const& rOther);
+
+    /// Copy constructor.
+    ConnectivityPreserveModeler(ConnectivityPreserveModeler const& rOther);
+
+
+};
 
 } // namespace Kratos.
 

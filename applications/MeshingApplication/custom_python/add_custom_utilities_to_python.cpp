@@ -143,12 +143,12 @@ void AddCustomUtilitiesToPython()
     class_<TetrahedraReconnectUtility, boost::noncopyable >("TetrahedraReconnectUtility", init<ModelPart&>())
     .def("EvaluateQuality", &TetrahedraReconnectUtility::EvaluateQuality)
     .def("TestRemovingElements", &TetrahedraReconnectUtility::TestRemovingElements)
-	.def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
-	.def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
-	.def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
-	.def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
-	.def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
-	.def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
+    .def("OptimizeQuality", &TetrahedraReconnectUtility::OptimizeQuality)
+    .def("FinalizeOptimization", &TetrahedraReconnectUtility::FinalizeOptimization)
+    .def("updateNodesPositions", &TetrahedraReconnectUtility::updateNodesPositions)
+    .def("setMaxNumThreads", &TetrahedraReconnectUtility::setMaxNumThreads)
+    .def("setBlockSize", &TetrahedraReconnectUtility::setBlockSize)
+    .def("isaValidMesh", &TetrahedraReconnectUtility::isaValidMesh)
     ;
 }
 } // namespace Python.

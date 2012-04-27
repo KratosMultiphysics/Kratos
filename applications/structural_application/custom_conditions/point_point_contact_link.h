@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-/* *********************************************************   
-*          
+/* *********************************************************
+*
 *   Last Modified by:    $Author: Nelson$
 *   Date:                $Date: 2009-03-17 14:35:29 $
 *   Revision:            $Revision: 1.2 $
@@ -50,14 +50,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 * ***********************************************************/
 
 #if !defined(KRATOS_POINT_POINT_LINK_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_POINT_LINK_2D_CONDITION_H_INCLUDED  
+#define  KRATOS_POINT_POINT_LINK_2D_CONDITION_H_INCLUDED
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -71,149 +71,149 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/slave_contact_point_2d.h"
 
 namespace Kratos
-{  
+{
+/**
+ * Contact surface element for 3D contact problems.
+ * Defines a facet of a 3D-Element as a contact surface for
+ * master contact surfaces
+ * adapted from face2D originally written by riccardo.
+ */
+class PointPointContactLink : public Condition
+{
+
+public:
+    typedef Condition BaseType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    typedef BaseType::MatrixType LHS_ContributionType;
+    typedef MasterContactFace2D MasterContactType;
+
     /**
-     * Contact surface element for 3D contact problems.
-     * Defines a facet of a 3D-Element as a contact surface for
-     * master contact surfaces
-     * adapted from face2D originally written by riccardo.
+    * REMOVED
+    */
+
+    // typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
+    // typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
+    // typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
+
+    typedef Condition::GeometryType::Pointer PointerGeometryType;
+
+    // typedef BaseType::SecondaryCondition SecondaryConditionType;
+    // typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
+
+    // Counted pointer of PointPointContactLink
+    KRATOS_CLASS_POINTER_DEFINITION(PointPointContactLink);
+
+    /**
+     * Default constructor.
      */
-    class PointPointContactLink : public Condition
-    {
-        
-        public:  
-	typedef Condition BaseType;
-	typedef BaseType::EquationIdVectorType EquationIdVectorType;
-	typedef BaseType::MatrixType LHS_ContributionType;
-	typedef MasterContactFace2D MasterContactType;  
+    PointPointContactLink( IndexType NewId, GeometryType::Pointer pGeometry);
 
-	/**
-	* REMOVED
-	*/
+    PointPointContactLink( IndexType NewId, NodesArrayType const& ThisNodes);
 
-	// typedef PointerVectorSet<StressConditionType, IndexedObject> StressConditionContainerType;
-	// typedef PointerVectorSet< EquationIdVectorType, IndexedObject> EquationIdVectorContainerType;
-	// typedef PointerVectorSet< LHS_ContributionType, IndexedObject> LHS_ContainerType;
-
-	typedef Condition::GeometryType::Pointer PointerGeometryType; 
-
-	// typedef BaseType::SecondaryCondition SecondaryConditionType;
-	// typedef PointerVectorSet< SecondaryConditionType, IndexedObject> SecondaryConditionContainerType;
-	  
-            // Counted pointer of PointPointContactLink
-            KRATOS_CLASS_POINTER_DEFINITION(PointPointContactLink);
-            
-            /** 
-             * Default constructor.
-             */
-            PointPointContactLink( IndexType NewId, GeometryType::Pointer pGeometry);
-            
-	    PointPointContactLink( IndexType NewId, NodesArrayType const& ThisNodes);
-	    
-            PointPointContactLink( IndexType NewId, GeometryType::Pointer pGeometry, 
+    PointPointContactLink( IndexType NewId, GeometryType::Pointer pGeometry,
                            PropertiesType::Pointer pProperties);
-			   
-			   
-	    PointPointContactLink(IndexType NewId, NodesArrayType& ThisNode);
-	    
-	    
-	    PointPointContactLink( 
-	                          IndexType NewId, 
-				  GeometryType::Pointer pGeometry,  
-                                  PropertiesType::Pointer pProperties,
-                                  Condition::Pointer Master, 
-                                  Condition::Pointer Slave
-                                  //Point<3>& MasterContactLocalPoint,
-                                  //Point<3>& SlaveContactLocalPoint,
-                                  //int SlaveIntegrationPointIndex
-                                );
-	    
-            /**
-             * Destructor.
-             */
-            virtual ~PointPointContactLink();
-      
-            /**
-             * Operations.
-             */
-            Condition::Pointer Create( IndexType NewId, 
-                                       NodesArrayType const& ThisNodes,  
-                                       PropertiesType::Pointer pProperties) const;
 
-            
-           
-            
-            
-            /**
-             * Calculates the local system contributions for this contact element
-             */
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                       VectorType& rRightHandSideVector, 
-                                       ProcessInfo& rCurrentProcessInfo);
-            
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, 
-                                         ProcessInfo& rCurrentProcessInfo);
-            
-            void EquationIdVector( EquationIdVectorType& rResult, 
-                                   ProcessInfo& rCurrentProcessInfo);
-            
-            void GetDofList( DofsVectorType& ConditionalDofList,
-                             ProcessInfo& CurrentProcessInfo);
-            
-            void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
-            
-	    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-	    
-	    void  MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
-	    void Calculate( const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo); 
-      
-        protected:
-	  
-	MasterContactType::Pointer mpMasterContact; 
-        
-        
-        private:
-            void CalculateAll( MatrixType& rLeftHandSideMatrix, 
+    PointPointContactLink(IndexType NewId, NodesArrayType& ThisNode);
+
+
+    PointPointContactLink(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties,
+        Condition::Pointer Master,
+        Condition::Pointer Slave
+        //Point<3>& MasterContactLocalPoint,
+        //Point<3>& SlaveContactLocalPoint,
+        //int SlaveIntegrationPointIndex
+    );
+
+    /**
+     * Destructor.
+     */
+    virtual ~PointPointContactLink();
+
+    /**
+     * Operations.
+     */
+    Condition::Pointer Create( IndexType NewId,
+                               NodesArrayType const& ThisNodes,
+                               PropertiesType::Pointer pProperties) const;
+
+
+
+
+
+    /**
+     * Calculates the local system contributions for this contact element
+     */
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
-                               bool CalculateStiffnessMatrixFlag,
-                               bool CalculateResidualVectorFlag);
-            
-	   
-	     double CalculateGap();
-	     
-	     Vector NormalVector();
-	     Vector TangentialVector();
-	     
-	     void CalculateNormalImpenetrabilityConstraint( Vector& rCn);
-             void CalculateTangentialImpenetrabilityConstraint( Vector& rCt);
-             void CalculateNormalContactForce(Vector& rNormalForce);
-             void CalculateTangentialContactForce(Vector& rTangentialForce);
-            	
-	    friend class Serializer;
+                               ProcessInfo& rCurrentProcessInfo);
 
-	    // A private default constructor necessary for serialization 
-	    PointPointContactLink(){}; 
+    void CalculateRightHandSide( VectorType& rRightHandSideVector,
+                                 ProcessInfo& rCurrentProcessInfo);
 
-	    virtual void save(Serializer& rSerializer) const
-	    {
-	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
-	    }
+    void EquationIdVector( EquationIdVectorType& rResult,
+                           ProcessInfo& rCurrentProcessInfo);
 
-	    virtual void load(Serializer& rSerializer)
-	    {
-	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
-	    }
+    void GetDofList( DofsVectorType& ConditionalDofList,
+                     ProcessInfo& CurrentProcessInfo);
 
-	     
-	     
-	     
-            /**
-             * REMOVED
-             */
-//            
-    }; // Class PointPointContactLink 
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    void  MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    void Calculate( const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+
+protected:
+
+    MasterContactType::Pointer mpMasterContact;
+
+
+private:
+    void CalculateAll( MatrixType& rLeftHandSideMatrix,
+                       VectorType& rRightHandSideVector,
+                       ProcessInfo& rCurrentProcessInfo,
+                       bool CalculateStiffnessMatrixFlag,
+                       bool CalculateResidualVectorFlag);
+
+
+    double CalculateGap();
+
+    Vector NormalVector();
+    Vector TangentialVector();
+
+    void CalculateNormalImpenetrabilityConstraint( Vector& rCn);
+    void CalculateTangentialImpenetrabilityConstraint( Vector& rCt);
+    void CalculateNormalContactForce(Vector& rNormalForce);
+    void CalculateTangentialContactForce(Vector& rTangentialForce);
+
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    PointPointContactLink() {};
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+    }
+
+
+
+
+    /**
+     * REMOVED
+     */
+//
+}; // Class PointPointContactLink
 }  // namespace Kratos.
 
 #endif // KRATOS_CONTACT_FACE_3D_CONDITION_H_INCLUDED  defined 

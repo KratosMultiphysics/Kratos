@@ -21,26 +21,26 @@ namespace omptl
 // transform_accumulate
 template <class Iterator,class T, class UnaryFunction,class BinaryFunction>
 T transform_accumulate(Iterator first, Iterator last, T init,
-		UnaryFunction unary_op, BinaryFunction binary_op,
-		const unsigned P)
+                       UnaryFunction unary_op, BinaryFunction binary_op,
+                       const unsigned P)
 {
-	// serial version
-	while (first != last)
-	{
-		init = binary_op(unary_op(*first), init);
-		++first;
-	}
+    // serial version
+    while (first != last)
+    {
+        init = binary_op(unary_op(*first), init);
+        ++first;
+    }
 
-	return init;
+    return init;
 }
 
 template <class Iterator, class T, class UnaryFunction>
 T transform_accumulate(Iterator first, Iterator last,
-		T init, UnaryFunction unary_op,
-		const unsigned P)
+                       T init, UnaryFunction unary_op,
+                       const unsigned P)
 {
-	return omptl::transform_accumulate(first, last, init, unary_op,
-					   std::plus<T>());
+    return omptl::transform_accumulate(first, last, init, unary_op,
+                                       std::plus<T>());
 }
 
 } /* namespace std */

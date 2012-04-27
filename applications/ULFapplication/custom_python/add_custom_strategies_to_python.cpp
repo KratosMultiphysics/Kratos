@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-04-07 09:50:09 $
 //   Revision:            $Revision: 1.3 $
@@ -48,13 +48,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 
 
 // Project includes
@@ -75,136 +75,136 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{		
-		using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
-		void  AddCustomStrategiesToPython()
-		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+void  AddCustomStrategiesToPython()
+{
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-			
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-						
-		
-			typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
+
+    typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 //			typedef ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
 
-			//********************************************************************
-			//********************************************************************
-			//typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> //ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D;
-			
-			typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> ResidualBasedIncompressibleBuilderType2D;
+    //********************************************************************
+    //********************************************************************
+    //typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> //ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D;
 
-		
-						
-			//class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
+    typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 2> ResidualBasedIncompressibleBuilderType2D;
+
+
+
+    //class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
 //("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver2D", init< LinearSolverType::Pointer>() )
 //
 //
 
-			class_< ResidualBasedIncompressibleBuilderType2D, bases< BuilderAndSolverType >, boost::noncopyable>
-("ResidualBasedIncompressibleBuilder2D", init< LinearSolverType::Pointer>() )
-			.def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
-			.def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
-			.def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
-			.def("SetUpDofSet", &ResidualBasedIncompressibleBuilderType2D::SetUpDofSet)
-			.def("SetUpSystem", &ResidualBasedIncompressibleBuilderType2D::SetUpSystem)
-			.def("ResizeAndInitializeVectors", &ResidualBasedIncompressibleBuilderType2D::ResizeAndInitializeVectors)
-			.def("Build", &ResidualBasedIncompressibleBuilderType2D::Build)
-			.def("Solve", &ResidualBasedIncompressibleBuilderType2D::SystemSolve)
-			.def("ConstructMatrixStructure", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure)
-			.def("ConstructMatrixStructure_Mconsistent", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Mconsistent)
-			.def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_DivergenceMatrixD)
-			.def("BuildAuxiliaries", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliaries)
-			.def("AssembleMassMatrices", &ResidualBasedIncompressibleBuilderType2D::AssembleMassMatrices)
-			.def("calc_GMinvD_prod", &ResidualBasedIncompressibleBuilderType2D::calc_GMinvD_prod)
-			.def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedIncompressibleBuilderType2D::CalculatePreconditionerDiagonalMatrix)
-			.def("calc_prod_precond_vec", &ResidualBasedIncompressibleBuilderType2D::calc_prod_precond_vec)   
-			.def("ModifyForDirichlet", &ResidualBasedIncompressibleBuilderType2D::ModifyForDirichlet)   
- 			.def("UpdatePressures", &ResidualBasedIncompressibleBuilderType2D::UpdatePressures)   
-			.def("ReturnDx", &ResidualBasedIncompressibleBuilderType2D::ReturnDx)   
- 			.def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)
- 			.def("UpdateAfterProjection", &ResidualBasedIncompressibleBuilderType2D::UpdateAfterProjection)
- 			.def("ComputePressureAtFreeSurface", &ResidualBasedIncompressibleBuilderType2D::ComputePressureAtFreeSurface)  
-		    	.def("SavePressureIteration", &ResidualBasedIncompressibleBuilderType2D::SavePressureIteration)
-			.def("FractionalStepProjection", &ResidualBasedIncompressibleBuilderType2D::FractionalStepProjection)
- 			.def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )	
- 			.def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)  
-			//.def("BuildAuxiliariesFSI", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliariesFSI)
-			//.def("ConstructMatrixStructure_Fluid_DivergenceMatrixD",&ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Fluid_DivergenceMatrixD)
-			
-			;
+    class_< ResidualBasedIncompressibleBuilderType2D, bases< BuilderAndSolverType >, boost::noncopyable>
+    ("ResidualBasedIncompressibleBuilder2D", init< LinearSolverType::Pointer>() )
+    .def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
+    .def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
+    .def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
+    .def("SetUpDofSet", &ResidualBasedIncompressibleBuilderType2D::SetUpDofSet)
+    .def("SetUpSystem", &ResidualBasedIncompressibleBuilderType2D::SetUpSystem)
+    .def("ResizeAndInitializeVectors", &ResidualBasedIncompressibleBuilderType2D::ResizeAndInitializeVectors)
+    .def("Build", &ResidualBasedIncompressibleBuilderType2D::Build)
+    .def("Solve", &ResidualBasedIncompressibleBuilderType2D::SystemSolve)
+    .def("ConstructMatrixStructure", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure)
+    .def("ConstructMatrixStructure_Mconsistent", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Mconsistent)
+    .def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_DivergenceMatrixD)
+    .def("BuildAuxiliaries", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliaries)
+    .def("AssembleMassMatrices", &ResidualBasedIncompressibleBuilderType2D::AssembleMassMatrices)
+    .def("calc_GMinvD_prod", &ResidualBasedIncompressibleBuilderType2D::calc_GMinvD_prod)
+    .def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedIncompressibleBuilderType2D::CalculatePreconditionerDiagonalMatrix)
+    .def("calc_prod_precond_vec", &ResidualBasedIncompressibleBuilderType2D::calc_prod_precond_vec)
+    .def("ModifyForDirichlet", &ResidualBasedIncompressibleBuilderType2D::ModifyForDirichlet)
+    .def("UpdatePressures", &ResidualBasedIncompressibleBuilderType2D::UpdatePressures)
+    .def("ReturnDx", &ResidualBasedIncompressibleBuilderType2D::ReturnDx)
+    .def("UpdatePressuresNew", &ResidualBasedIncompressibleBuilderType2D::UpdatePressuresNew)
+    .def("UpdateAfterProjection", &ResidualBasedIncompressibleBuilderType2D::UpdateAfterProjection)
+    .def("ComputePressureAtFreeSurface", &ResidualBasedIncompressibleBuilderType2D::ComputePressureAtFreeSurface)
+    .def("SavePressureIteration", &ResidualBasedIncompressibleBuilderType2D::SavePressureIteration)
+    .def("FractionalStepProjection", &ResidualBasedIncompressibleBuilderType2D::FractionalStepProjection)
+    .def("CalculateNodalPressureForce", &ResidualBasedIncompressibleBuilderType2D::CalculateNodalPressureForce )
+    .def("ConvergenceCheck", &ResidualBasedIncompressibleBuilderType2D::ConvergenceCheck)
+    //.def("BuildAuxiliariesFSI", &ResidualBasedIncompressibleBuilderType2D::BuildAuxiliariesFSI)
+    //.def("ConstructMatrixStructure_Fluid_DivergenceMatrixD",&ResidualBasedIncompressibleBuilderType2D::ConstructMatrixStructure_Fluid_DivergenceMatrixD)
 
-			typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
-			
-						
-			class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, bases< BuilderAndSolverType >, boost::noncopyable> ("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D", init< LinearSolverType::Pointer>() )
-			.def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
-			.def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
-			.def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)
-			.def("SetUpDofSet", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SetUpDofSet)
-			.def("SetUpSystem", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SetUpSystem)
-			.def("ResizeAndInitializeVectors", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ResizeAndInitializeVectors)
-			.def("Build", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Build)
-			.def("Solve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SystemSolve)
-			.def("ConstructMatrixStructure", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure)
-			.def("ConstructMatrixStructure_Mconsistent", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_Mconsistent)
-			.def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_DivergenceMatrixD)
-			.def("BuildAuxiliaries", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAuxiliaries)
-			.def("AssembleMassMatrices", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleMassMatrices)
-			.def("calc_GMinvD_prod", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::calc_GMinvD_prod)
-			.def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculatePreconditionerDiagonalMatrix)
-			.def("calc_prod_precond_vec", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::calc_prod_precond_vec)
-			.def("ModifyForDirichlet", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ModifyForDirichlet)
-			.def("UpdatePressures", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdatePressures)
-			.def("ReturnDx", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ReturnDx)	
-			.def("UpdatePressuresNew", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdatePressuresNew)	
-			.def("CalculateNodalPressureForce", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculateNodalPressureForce )	
-			.def("ConvergenceCheck", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConvergenceCheck)	
-			.def("UpdateAfterProjection", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdateAfterProjection)
- 			.def("ComputePressureAtFreeSurface", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ComputePressureAtFreeSurface)  
-		    	.def("SavePressureIteration", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SavePressureIteration)
-			;
-			//********************************************************************
-			//********************************************************************
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    ;
+
+    typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
+
+
+    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, bases< BuilderAndSolverType >, boost::noncopyable> ("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D", init< LinearSolverType::Pointer>() )
+    .def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
+    .def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
+    .def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)
+    .def("SetUpDofSet", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SetUpDofSet)
+    .def("SetUpSystem", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SetUpSystem)
+    .def("ResizeAndInitializeVectors", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ResizeAndInitializeVectors)
+    .def("Build", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Build)
+    .def("Solve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SystemSolve)
+    .def("ConstructMatrixStructure", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure)
+    .def("ConstructMatrixStructure_Mconsistent", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_Mconsistent)
+    .def("ConstructMatrixStructure_DivergenceMatrixD", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConstructMatrixStructure_DivergenceMatrixD)
+    .def("BuildAuxiliaries", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAuxiliaries)
+    .def("AssembleMassMatrices", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleMassMatrices)
+    .def("calc_GMinvD_prod", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::calc_GMinvD_prod)
+    .def("CalculatePreconditionerDiagonalMatrix",  &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculatePreconditionerDiagonalMatrix)
+    .def("calc_prod_precond_vec", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::calc_prod_precond_vec)
+    .def("ModifyForDirichlet", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ModifyForDirichlet)
+    .def("UpdatePressures", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdatePressures)
+    .def("ReturnDx", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ReturnDx)
+    .def("UpdatePressuresNew", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdatePressuresNew)
+    .def("CalculateNodalPressureForce", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::CalculateNodalPressureForce )
+    .def("ConvergenceCheck", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ConvergenceCheck)
+    .def("UpdateAfterProjection", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::UpdateAfterProjection)
+    .def("ComputePressureAtFreeSurface", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::ComputePressureAtFreeSurface)
+    .def("SavePressureIteration", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::SavePressureIteration)
+    ;
+    //********************************************************************
+    //********************************************************************
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //strategy base class
-			class_< BaseSolvingStrategyType, boost::noncopyable >("SolvingStrategy", init< ModelPart&, bool >() )
-				.def("Predict", &BaseSolvingStrategyType::Predict )
-				.def("Solve", &BaseSolvingStrategyType::Solve )
-				.def("IsConverged", &BaseSolvingStrategyType::IsConverged )
-				.def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData )
-				.def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel )
-				.def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel )
-				.def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel )
-				.def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel )
-				.def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag )
-				.def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag )
-				.def("MoveMesh", &BaseSolvingStrategyType::MoveMesh )
-				.def("Clear", &BaseSolvingStrategyType::Clear )
-				//.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
-				; 
-			typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D; 
+    class_< BaseSolvingStrategyType, boost::noncopyable >("SolvingStrategy", init< ModelPart&, bool >() )
+    .def("Predict", &BaseSolvingStrategyType::Predict )
+    .def("Solve", &BaseSolvingStrategyType::Solve )
+    .def("IsConverged", &BaseSolvingStrategyType::IsConverged )
+    .def("CalculateOutputData", &BaseSolvingStrategyType::CalculateOutputData )
+    .def("SetEchoLevel", &BaseSolvingStrategyType::SetEchoLevel )
+    .def("GetEchoLevel", &BaseSolvingStrategyType::GetEchoLevel )
+    .def("SetRebuildLevel", &BaseSolvingStrategyType::SetRebuildLevel )
+    .def("GetRebuildLevel", &BaseSolvingStrategyType::GetRebuildLevel )
+    .def("SetMoveMeshFlag", &BaseSolvingStrategyType::SetMoveMeshFlag )
+    .def("MoveMeshFlag", &BaseSolvingStrategyType::MoveMeshFlag )
+    .def("MoveMesh", &BaseSolvingStrategyType::MoveMesh )
+    .def("Clear", &BaseSolvingStrategyType::Clear )
+    //.def("GetModelPart", &BaseSolvingStrategyType::GetModelPart )
+    ;
+    typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D;
 
-			class_< LapModifiedLinearStrategy2D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("LapModifiedLinearStrategy2D", 
-				init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
-				.def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
-				;
-			typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D; 
+    class_< LapModifiedLinearStrategy2D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+    ("LapModifiedLinearStrategy2D",
+     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    .def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
+    ;
+    typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D;
 
-			class_< LapModifiedLinearStrategy3D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
-				("LapModifiedLinearStrategy3D", 
-				init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
-				.def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
-				;
-			
-		}
+    class_< LapModifiedLinearStrategy3D,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+    ("LapModifiedLinearStrategy3D",
+     init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+    .def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
+    ;
 
-	}  // namespace Python.
+}
+
+}  // namespace Python.
 
 } // Namespace Kratos
 

@@ -21,8 +21,14 @@ typedef char *address;
 typedef short int shortint;
 typedef float real;
 typedef double doublereal;
-typedef struct { real r, i; } complex;
-typedef struct { doublereal r, i; } doublecomplex;
+typedef struct
+{
+    real r, i;
+} complex;
+typedef struct
+{
+    doublereal r, i;
+} doublecomplex;
 typedef short int shortlogical;
 typedef char logical1;
 typedef char integer1;

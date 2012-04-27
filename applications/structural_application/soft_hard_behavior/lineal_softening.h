@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
+
 /* *********************************************************
 *
 *   Last Modified by:    $Author: Nelson Lafontaine $
@@ -65,22 +65,22 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	  class Lineal_Softening: public SofteningHardeningCriteria
-	    {
-	    
-		public: 
-		   Lineal_Softening();
-		  ~Lineal_Softening();
-                   KRATOS_CLASS_POINTER_DEFINITION(Lineal_Softening);
-//                    double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
-                   void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result); 
-		   double Calculate(Vector& Imput_Parameters);
-           };    
-    
+class Lineal_Softening: public SofteningHardeningCriteria
+{
 
-    /**
-     * definition of CONSTITUTIVE_LAW variable
-     */
+public:
+    Lineal_Softening();
+    ~Lineal_Softening();
+    KRATOS_CLASS_POINTER_DEFINITION(Lineal_Softening);
+//                    double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
+    void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result);
+    double Calculate(Vector& Imput_Parameters);
+};
+
+
+/**
+ * definition of CONSTITUTIVE_LAW variable
+ */
 }  /* namespace Kratos.*/
 #endif /* FLUENCY_CRITERIA defined */
 

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,187 +65,199 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		///@name Kratos Globals
-		///@{ 
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TMatrixType, class TOtherMatrixType, class TResultType>
-		class MatrixMatrixOperatorPython : public def_visitor<MatrixMatrixOperatorPython<TMatrixType, TOtherMatrixType, TResultType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TMatrixType, class TOtherMatrixType, class TResultType>
+class MatrixMatrixOperatorPython : public def_visitor<MatrixMatrixOperatorPython<TMatrixType, TOtherMatrixType, TResultType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of MatrixMatrixOperatorPython
-			KRATOS_CLASS_POINTER_DEFINITION(MatrixMatrixOperatorPython);
+    /// Pointer definition of MatrixMatrixOperatorPython
+    KRATOS_CLASS_POINTER_DEFINITION(MatrixMatrixOperatorPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			MatrixMatrixOperatorPython(){}
-
-
-			/// Copy constructor.
-		MatrixMatrixOperatorPython(const MatrixMatrixOperatorPython& rOther){}
-
-			/// Destructor.
-			virtual ~MatrixMatrixOperatorPython(){}
+    /// Default constructor.
+    MatrixMatrixOperatorPython() {}
 
 
-			///@}
-			///@name Operators 
-			///@{
+    /// Copy constructor.
+    MatrixMatrixOperatorPython(const MatrixMatrixOperatorPython& rOther) {}
+
+    /// Destructor.
+    virtual ~MatrixMatrixOperatorPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				ThisClass
-					.def("__add__", &add)          
-					.def("__sub__", &sub)          
-					.def("__mul__", &mul)          
-					.def("__radd__", &radd)          
-					.def("__rsub__", &rsub)          
-					.def("__rmul__", &rmul)          
-					;
-			}
-
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        ThisClass
+        .def("__add__", &add)
+        .def("__sub__", &sub)
+        .def("__mul__", &mul)
+        .def("__radd__", &radd)
+        .def("__rsub__", &rsub)
+        .def("__rmul__", &rmul)
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-			static 
-				TResultType
-				add(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return ThisContainer + OtherContainer;}
-
-			static
-				TResultType
-				sub(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return ThisContainer - OtherContainer;}
-
-			static 
-				 TResultType
-				mul(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return prod(ThisContainer, OtherContainer);}
-
-			static 
-				TResultType
-				radd(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return OtherContainer + ThisContainer;}
-
-			static 
-				TResultType
-				rsub(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return OtherContainer - ThisContainer;}
-
-			static 
-				TResultType
-				rmul(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
-			{return prod(OtherContainer, ThisContainer);}
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
+    static
+    TResultType
+    add(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return ThisContainer + OtherContainer;
+    }
+
+    static
+    TResultType
+    sub(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return ThisContainer - OtherContainer;
+    }
+
+    static
+    TResultType
+    mul(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return prod(ThisContainer, OtherContainer);
+    }
+
+    static
+    TResultType
+    radd(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return OtherContainer + ThisContainer;
+    }
+
+    static
+    TResultType
+    rsub(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return OtherContainer - ThisContainer;
+    }
+
+    static
+    TResultType
+    rmul(TMatrixType& ThisContainer, TOtherMatrixType const& OtherContainer)
+    {
+        return prod(OtherContainer, ThisContainer);
+    }
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			MatrixMatrixOperatorPython& operator=(const MatrixMatrixOperatorPython& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-			///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		}; // Class MatrixMatrixOperatorPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    /// Assignment operator.
+    MatrixMatrixOperatorPython& operator=(const MatrixMatrixOperatorPython& rOther);
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
 
-		///@} 
+}; // Class MatrixMatrixOperatorPython
 
-	}  // namespace Python.
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

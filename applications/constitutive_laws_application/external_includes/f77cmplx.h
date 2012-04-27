@@ -18,47 +18,48 @@
 */
 
 #ifdef real
-   // some people define real as a macro
-   #undef real
-   #pragma message(__FILE__" : warning: 'real' macro definition cancelled")
+// some people define real as a macro
+#undef real
+#pragma message(__FILE__" : warning: 'real' macro definition cancelled")
 #endif
 
 template<class T>
-class COMPLEX {
+class COMPLEX
+{
 public:
-   COMPLEX();
-   COMPLEX(const COMPLEX<T>& );
-   COMPLEX(const T& re,const T& im);
-   COMPLEX<T>& operator=(const COMPLEX<T>& );
-  ~COMPLEX();
-   const T& real();
-   const T& imag();
+    COMPLEX();
+    COMPLEX(const COMPLEX<T>& );
+    COMPLEX(const T& re,const T& im);
+    COMPLEX<T>& operator=(const COMPLEX<T>& );
+    ~COMPLEX();
+    const T& real();
+    const T& imag();
 private:
-   T m_re;
-   T m_im;
+    T m_re;
+    T m_im;
 };
 
 template<class T>
 inline COMPLEX<T>::COMPLEX()
-:m_re(T()),m_im(T())
+    :m_re(T()),m_im(T())
 {}
 
 template<class T>
 inline COMPLEX<T>::COMPLEX(const COMPLEX<T>& copy)
-:m_re(copy.m_re),m_im(copy.m_im)
+    :m_re(copy.m_re),m_im(copy.m_im)
 {}
 
 template<class T>
 inline COMPLEX<T>::COMPLEX(const T& re,const T& im)
-:m_re(re),m_im(im)
+    :m_re(re),m_im(im)
 {}
 
 template<class T>
 inline COMPLEX<T>& COMPLEX<T>::operator=(const COMPLEX<T>& copy)
 {
-   m_re = copy.m_re;
-   m_im = copy.m_im;
-   return *this;
+    m_re = copy.m_re;
+    m_im = copy.m_im;
+    return *this;
 }
 
 template<class T>
@@ -68,11 +69,11 @@ inline COMPLEX<T>::~COMPLEX()
 template<class T>
 inline const T& COMPLEX<T>::real()
 {
-   return m_re;
+    return m_re;
 }
 
 template<class T>
 inline const T& COMPLEX<T>::imag()
 {
-   return m_im;
+    return m_im;
 }

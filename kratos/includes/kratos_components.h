@@ -35,10 +35,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
 
-//   Project Name:        Kratos       
+//
+
+//   Project Name:        Kratos
 
 //   Last Modified by:    $Author: pooyan $
 
@@ -70,13 +70,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <iostream>
 
-#include <map> 
+#include <map>
 
 
 
 
 
-// External includes 
+// External includes
 
 #include <boost/ref.hpp>
 
@@ -97,89 +97,89 @@ namespace Kratos
 {
 
 
-  ///@name Kratos Globals
+///@name Kratos Globals
 
-  ///@{ 
-
-  
-
-  ///@} 
-
-  ///@name Type Definitions
-
-  ///@{ 
-
-  
-
-  ///@} 
-
-  ///@name  Enum's
-
-  ///@{
-
-      
-
-  ///@}
-
-  ///@name  Functions 
-
-  ///@{
-
-      
-
-  ///@}
-
-  ///@name Kratos Classes
-
-  ///@{
-
-  
-
-  /// Short class definition.
-
-  /** Detail class definition.
-
-  */
-
-  template<class TComponentType>
-
-  class KratosComponents
-
-    {
-
-    public:
-
-      ///@name Type Definitions
-
-      ///@{
-
-      
-
-      /// Pointer definition of KratosComponents
-
-      KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
+///@{
 
 
 
-      typedef std::map<std::string, const TComponentType* > ComponentsContainerType;
+///@}
 
-  
+///@name Type Definitions
 
-      typedef typename ComponentsContainerType::value_type ValueType;
+///@{
 
 
 
-      ///@}
+///@}
 
-      ///@name Life Cycle 
+///@name  Enum's
 
-      ///@{ 
+///@{
 
-      
 
-      /// Default constructor.
 
-      KratosComponents(){}
+///@}
+
+///@name  Functions
+
+///@{
+
+
+
+///@}
+
+///@name Kratos Classes
+
+///@{
+
+
+
+/// Short class definition.
+
+/** Detail class definition.
+
+*/
+
+template<class TComponentType>
+
+class KratosComponents
+
+{
+
+public:
+
+    ///@name Type Definitions
+
+    ///@{
+
+
+
+    /// Pointer definition of KratosComponents
+
+    KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
+
+
+
+    typedef std::map<std::string, const TComponentType* > ComponentsContainerType;
+
+
+
+    typedef typename ComponentsContainerType::value_type ValueType;
+
+
+
+    ///@}
+
+    ///@name Life Cycle
+
+    ///@{
+
+
+
+    /// Default constructor.
+
+    KratosComponents() {}
 
 
 
@@ -193,397 +193,397 @@ namespace Kratos
 
 
 
-      /// Destructor.
+    /// Destructor.
 
-      virtual ~KratosComponents(){}
+    virtual ~KratosComponents() {}
 
-      
 
 
 
-      ///@}
 
-      ///@name Operators 
+    ///@}
 
-      ///@{
+    ///@name Operators
 
-      
+    ///@{
 
-      
 
-      ///@}
 
-      ///@name Operations
 
-      ///@{
 
+    ///@}
 
+    ///@name Operations
 
-      static void Add(std::string const& Name, TComponentType const& ThisComponent)
+    ///@{
 
-      {
 
-	msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
 
-      }
-
-      
-
- //     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
-
- //     {
-
-	////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-
-	//msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
-
- //     }
-
-      
-
-      static TComponentType const& Get(std::string const& Name)
-
-      {
-	typename ComponentsContainerType::iterator i =  msComponents.find(Name);
-/* 	if(i == msComponents.end()) */
-/* 	   KRATOS_ERROR(std::invalid_argument, "The component is not registered!", Name); */
-	return *(i->second);
-
-      }
-
-      
-
-      static ComponentsContainerType & GetComponents()
-
-      {
-
-	return msComponents;
-
-      }
-
-      
-
-	  static ComponentsContainerType * pGetComponents()
-
-      {
-
-	return &msComponents;
-
-      }
-
-
-
-      static void Register()
-
-	{
-
-	}
-
-      
-
-      
-
-      ///@}
-
-      ///@name Access
-
-      ///@{ 
-
-      
-
-      
-
-      ///@}
-
-      ///@name Inquiry
-
-      ///@{
-
-      
-      static bool Has(std::string const& Name)
-
-      {
-
-	return (msComponents.find(Name) != msComponents.end());
-
-      }
-
-
-      
-
-      ///@}      
-
-      ///@name Input and output
-
-      ///@{
-
-
-
-      /// Turn back information as a string.
-
-      virtual std::string Info() const
-
-      {
-
-	return "Kratos components";
-
-      }
-
-      
-
-      /// Print information about this object.
-
-      virtual void PrintInfo(std::ostream& rOStream) const
-
-      {
-
-	rOStream << "Kratos components";
-
-      }
-
-
-
-      /// Print object's data.
-
-      virtual void PrintData(std::ostream& rOStream) const
-
-      {
-
-	for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
-
-	  rOStream << "    " << i->first << std::endl;
-
-      }
-
-      
-
-            
-
-      ///@}      
-
-      ///@name Friends
-
-      ///@{
-
-      
-
-            
-
-      ///@}
-
-      
-
-    protected:
-
-      ///@name Protected static Member Variables 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Protected member Variables 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Protected Operators
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Protected Operations
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Protected  Access 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@}      
-
-      ///@name Protected Inquiry 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@}    
-
-      ///@name Protected LifeCycle 
-
-      ///@{ 
-
-      
-
-            
-
-      ///@}
-
-      
-
-    private:
-
-      ///@name Static Member Variables 
-
-      ///@{
-
-
-
-      static ComponentsContainerType msComponents;
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Member Variables 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Private Operators
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Private Operations
-
-      ///@{ 
-
-        
-
-        
-
-      ///@} 
-
-      ///@name Private  Access 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@}    
-
-      ///@name Private Inquiry 
-
-      ///@{ 
-
-        
-
-        
-
-      ///@}    
-
-      ///@name Un accessible methods 
-
-      ///@{ 
-
-      
-
-      /// Assignment operator.
-
-      KratosComponents& operator=(KratosComponents const& rOther);
-
-
-
-      /// Copy constructor.
-
-      KratosComponents(KratosComponents const& rOther);
-
-
-
-        
-
-      ///@}    
-
-        
-
-    }; // Class KratosComponents 
-
-
-
-  ///@} 
-
-
-
-  template<>
-
-  class KratosComponents<VariableData>
+    static void Add(std::string const& Name, TComponentType const& ThisComponent)
 
     {
 
-    public:
+        msComponents.insert(typename ComponentsContainerType::value_type(Name , &ThisComponent));
 
-      ///@name Type Definitions
-
-      ///@{
-
-      
-
-      /// Pointer definition of KratosComponents
-
-      KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
+    }
 
 
 
-      typedef std::map<std::string, VariableData* > ComponentsContainerType;
+//     static void Add(std::string const& Name, TComponentType const& ThisComponent, ComponentsContainerType& ThisComponents)
 
-  
+//     {
 
-      typedef ComponentsContainerType::value_type ValueType;
+    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+
+    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+
+//     }
 
 
 
-      ///@}
+    static TComponentType const& Get(std::string const& Name)
 
-      ///@name Life Cycle 
+    {
+        typename ComponentsContainerType::iterator i =  msComponents.find(Name);
+        /* 	if(i == msComponents.end()) */
+        /* 	   KRATOS_ERROR(std::invalid_argument, "The component is not registered!", Name); */
+        return *(i->second);
 
-      ///@{ 
+    }
 
-      
 
-      /// Default constructor.
 
-      KratosComponents(){}
+    static ComponentsContainerType & GetComponents()
+
+    {
+
+        return msComponents;
+
+    }
+
+
+
+    static ComponentsContainerType * pGetComponents()
+
+    {
+
+        return &msComponents;
+
+    }
+
+
+
+    static void Register()
+
+    {
+
+    }
+
+
+
+
+
+    ///@}
+
+    ///@name Access
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Inquiry
+
+    ///@{
+
+
+    static bool Has(std::string const& Name)
+
+    {
+
+        return (msComponents.find(Name) != msComponents.end());
+
+    }
+
+
+
+
+    ///@}
+
+    ///@name Input and output
+
+    ///@{
+
+
+
+    /// Turn back information as a string.
+
+    virtual std::string Info() const
+
+    {
+
+        return "Kratos components";
+
+    }
+
+
+
+    /// Print information about this object.
+
+    virtual void PrintInfo(std::ostream& rOStream) const
+
+    {
+
+        rOStream << "Kratos components";
+
+    }
+
+
+
+    /// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+
+    {
+
+        for(typename ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
+
+            rOStream << "    " << i->first << std::endl;
+
+    }
+
+
+
+
+
+    ///@}
+
+    ///@name Friends
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+
+
+protected:
+
+    ///@name Protected static Member Variables
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected member Variables
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected Operators
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected Operations
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected  Access
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected Inquiry
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Protected LifeCycle
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+
+
+private:
+
+    ///@name Static Member Variables
+
+    ///@{
+
+
+
+    static ComponentsContainerType msComponents;
+
+
+
+
+
+    ///@}
+
+    ///@name Member Variables
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Private Operators
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Private Operations
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Private  Access
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Private Inquiry
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Un accessible methods
+
+    ///@{
+
+
+
+    /// Assignment operator.
+
+    KratosComponents& operator=(KratosComponents const& rOther);
+
+
+
+    /// Copy constructor.
+
+    KratosComponents(KratosComponents const& rOther);
+
+
+
+
+
+    ///@}
+
+
+
+}; // Class KratosComponents
+
+
+
+///@}
+
+
+
+template<>
+
+class KratosComponents<VariableData>
+
+{
+
+public:
+
+    ///@name Type Definitions
+
+    ///@{
+
+
+
+    /// Pointer definition of KratosComponents
+
+    KRATOS_CLASS_POINTER_DEFINITION(KratosComponents);
+
+
+
+    typedef std::map<std::string, VariableData* > ComponentsContainerType;
+
+
+
+    typedef ComponentsContainerType::value_type ValueType;
+
+
+
+    ///@}
+
+    ///@name Life Cycle
+
+    ///@{
+
+
+
+    /// Default constructor.
+
+    KratosComponents() {}
 
 
 
@@ -597,438 +597,438 @@ namespace Kratos
 
 
 
-      /// Destructor.
+    /// Destructor.
 
-      virtual ~KratosComponents(){}
+    virtual ~KratosComponents() {}
 
-      
 
 
 
-      ///@}
 
-      ///@name Operators 
+    ///@}
 
-      ///@{
+    ///@name Operators
 
-      
+    ///@{
 
-      
 
-      ///@}
 
-      ///@name Operations
 
-      ///@{
 
+    ///@}
 
+    ///@name Operations
 
-      static void Add(std::string const& Name, VariableData& ThisComponent)
+    ///@{
 
-      {
 
-	msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
 
-      }
+    static void Add(std::string const& Name, VariableData& ThisComponent)
 
-      
+    {
 
-	  static std::size_t Size() 
+        msComponents.insert(ComponentsContainerType::value_type(Name ,&ThisComponent));
 
-      {
+    }
 
-		return msComponents.size();
 
-      }
 
-      
+    static std::size_t Size()
 
- //     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
+    {
 
- //     {
+        return msComponents.size();
 
-	////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
+    }
 
-	//msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
 
- //     }
 
-      
+//     static void Add(std::string const& Name, VariableData& ThisComponent, ComponentsContainerType& ThisComponents)
 
-      static VariableData & Get(std::string const& Name)
+//     {
 
-      {
+    ////ThisComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::cref(ThisComponent)));
 
-	return *(msComponents.find(Name)->second);
+    //msComponents.insert(typename ComponentsContainerType::value_type(Name ,boost::ref(ThisComponent)));
 
-      }
+//     }
 
-      static VariableData* pGet(std::string const& Name)
 
-      {
 
-	return (msComponents.find(Name)->second);
+    static VariableData & Get(std::string const& Name)
 
-      }
+    {
 
-      
+        return *(msComponents.find(Name)->second);
 
-      static ComponentsContainerType & GetComponents()
+    }
 
-      {
+    static VariableData* pGet(std::string const& Name)
 
-	return msComponents;
+    {
 
-      }
+        return (msComponents.find(Name)->second);
 
-      
+    }
 
-	  static ComponentsContainerType * pGetComponents()
 
-      {
 
-	return &msComponents;
+    static ComponentsContainerType & GetComponents()
 
-      }
+    {
 
+        return msComponents;
 
+    }
 
-      static void Register()
 
-	{
 
-	}
+    static ComponentsContainerType * pGetComponents()
 
-      
+    {
 
-      
+        return &msComponents;
 
-      ///@}
+    }
 
-      ///@name Access
 
-      ///@{ 
 
-      
+    static void Register()
 
-      
+    {
 
-      ///@}
+    }
 
-      ///@name Inquiry
 
-      ///@{
 
-      
-      static bool Has(std::string const& Name)
-      {
-	return (msComponents.find(Name) != msComponents.end());
-      }
 
 
-      
+    ///@}
 
-      ///@}      
+    ///@name Access
 
-      ///@name Input and output
+    ///@{
 
-      ///@{
 
 
 
-      /// Turn back information as a string.
 
-      virtual std::string Info() const
+    ///@}
 
-      {
+    ///@name Inquiry
 
-	return "Kratos components";
+    ///@{
 
-      }
 
-      
+    static bool Has(std::string const& Name)
+    {
+        return (msComponents.find(Name) != msComponents.end());
+    }
 
-      /// Print information about this object.
 
-      virtual void PrintInfo(std::ostream& rOStream) const
 
-      {
 
-	rOStream << "Kratos components";
+    ///@}
 
-      }
+    ///@name Input and output
 
+    ///@{
 
 
-      /// Print object's data.
 
-      virtual void PrintData(std::ostream& rOStream) const
+    /// Turn back information as a string.
 
-      {
+    virtual std::string Info() const
 
-	for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
+    {
 
-	  rOStream << "    " << *(i->second) << std::endl;
+        return "Kratos components";
 
-      }
+    }
 
-      
 
-            
 
-      ///@}      
+    /// Print information about this object.
 
-      ///@name Friends
+    virtual void PrintInfo(std::ostream& rOStream) const
 
-      ///@{
+    {
 
-      
+        rOStream << "Kratos components";
 
-            
+    }
 
-      ///@}
 
-      
 
-    protected:
+    /// Print object's data.
 
-      ///@name Protected static Member Variables 
+    virtual void PrintData(std::ostream& rOStream) const
 
-      ///@{ 
+    {
 
-        
+        for(ComponentsContainerType::const_iterator i = msComponents.begin() ; i != msComponents.end() ; ++i)
 
-        
+            rOStream << "    " << *(i->second) << std::endl;
 
-      ///@} 
+    }
 
-      ///@name Protected member Variables 
 
-      ///@{ 
 
-        
 
-        
 
-      ///@} 
+    ///@}
 
-      ///@name Protected Operators
+    ///@name Friends
 
-      ///@{ 
+    ///@{
 
-        
 
-        
 
-      ///@} 
 
-      ///@name Protected Operations
 
-      ///@{ 
+    ///@}
 
-        
 
-        
 
-      ///@} 
+protected:
 
-      ///@name Protected  Access 
+    ///@name Protected static Member Variables
 
-      ///@{ 
+    ///@{
 
-        
 
-        
 
-      ///@}      
 
-      ///@name Protected Inquiry 
 
-      ///@{ 
+    ///@}
 
-        
+    ///@name Protected member Variables
 
-        
+    ///@{
 
-      ///@}    
 
-      ///@name Protected LifeCycle 
 
-      ///@{ 
 
-      
 
-            
+    ///@}
 
-      ///@}
+    ///@name Protected Operators
 
-      
+    ///@{
 
-    private:
 
-      ///@name Static Member Variables 
 
-      ///@{
 
 
+    ///@}
 
-      static ComponentsContainerType msComponents;
+    ///@name Protected Operations
 
-        
+    ///@{
 
-        
 
-      ///@} 
 
-      ///@name Member Variables 
 
-      ///@{ 
 
-        
+    ///@}
 
-        
+    ///@name Protected  Access
 
-      ///@} 
+    ///@{
 
-      ///@name Private Operators
 
-      ///@{ 
 
-        
 
-        
 
-      ///@} 
+    ///@}
 
-      ///@name Private Operations
+    ///@name Protected Inquiry
 
-      ///@{ 
+    ///@{
 
-        
 
-        
 
-      ///@} 
 
-      ///@name Private  Access 
 
-      ///@{ 
+    ///@}
 
-        
+    ///@name Protected LifeCycle
 
-        
+    ///@{
 
-      ///@}    
 
-      ///@name Private Inquiry 
 
-      ///@{ 
 
-        
 
-        
+    ///@}
 
-      ///@}    
 
-      ///@name Un accessible methods 
 
-      ///@{ 
+private:
 
-      
+    ///@name Static Member Variables
 
-      /// Assignment operator.
+    ///@{
 
-      KratosComponents& operator=(KratosComponents const& rOther);
 
 
+    static ComponentsContainerType msComponents;
 
-      /// Copy constructor.
 
-      KratosComponents(KratosComponents const& rOther);
 
 
 
-        
+    ///@}
 
-      ///@}    
+    ///@name Member Variables
 
-        
+    ///@{
 
-    }; // Class KratosComponents 
 
 
 
-  template<class TComponentType>
 
-  typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+    ///@}
 
-  
+    ///@name Private Operators
 
-  
+    ///@{
 
-  ///@name Type Definitions       
 
-  ///@{ 
 
-  
 
-  
 
-  ///@} 
+    ///@}
 
-  ///@name Input and output 
+    ///@name Private Operations
 
-  ///@{ 
+    ///@{
 
-        
 
- 
 
-  /// input stream function
+
+
+    ///@}
+
+    ///@name Private  Access
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Private Inquiry
+
+    ///@{
+
+
+
+
+
+    ///@}
+
+    ///@name Un accessible methods
+
+    ///@{
+
+
+
+    /// Assignment operator.
+
+    KratosComponents& operator=(KratosComponents const& rOther);
+
+
+
+    /// Copy constructor.
+
+    KratosComponents(KratosComponents const& rOther);
+
+
+
+
+
+    ///@}
+
+
+
+}; // Class KratosComponents
+
+
+
+template<class TComponentType>
+
+typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+
+
+
+
+
+///@name Type Definitions
+
+///@{
+
+
+
+
+
+///@}
+
+///@name Input and output
+
+///@{
+
+
+
+
+
+/// input stream function
 
 //   template<class TComponentType>
 
-//   inline std::istream& operator >> (std::istream& rIStream, 
+//   inline std::istream& operator >> (std::istream& rIStream,
 
 // 				    KratosComponents<TComponentType>& rThis);
 
 
 
-  /// output stream function
+/// output stream function
 
-  template<class TComponentType>
+template<class TComponentType>
 
-  inline std::ostream& operator << (std::ostream& rOStream, 
+inline std::ostream& operator << (std::ostream& rOStream,
 
-				    const KratosComponents<TComponentType>& rThis)
+                                  const KratosComponents<TComponentType>& rThis)
 
-    {
+{
 
-      rThis.PrintInfo(rOStream);
+    rThis.PrintInfo(rOStream);
 
-      rOStream << std::endl;
+    rOStream << std::endl;
 
-      rThis.PrintData(rOStream);
-
-
-
-      return rOStream;
-
-    }
-
-  ///@} 
+    rThis.PrintData(rOStream);
 
 
 
-  template<class TComponentType> inline void AddComponent(std::string const& Name, TComponentType const& ThisComponent)
+    return rOStream;
 
-  {
+}
+
+///@}
+
+
+
+template<class TComponentType> inline void AddComponent(std::string const& Name, TComponentType const& ThisComponent)
+
+{
 
     KratosComponents<TComponentType>::Add(Name, ThisComponent);
 
-  }
+}
 
-  
+
 
 }  // namespace Kratos.
 

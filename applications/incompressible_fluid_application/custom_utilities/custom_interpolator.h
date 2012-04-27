@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.2 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -68,42 +68,42 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//this class is to be modified by the user to customize the interpolation process
-	class CustomInterpolator
-	{
-	public:
+//this class is to be modified by the user to customize the interpolation process
+class CustomInterpolator
+{
+public:
 
-		KRATOS_CLASS_POINTER_DEFINITION(CustomInterpolator);
+    KRATOS_CLASS_POINTER_DEFINITION(CustomInterpolator);
 
-		CustomInterpolator(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{}
+    CustomInterpolator(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {}
 
-		~CustomInterpolator()
-		{}
-
-
-		virtual void InterpolateNode(Node<3>::Pointer new_node, 
-			const Geometry< Node<3> >& geom,
-			const Vector& N)
-		{
-			KRATOS_TRY
-				
-				KRATOS_ERROR(std::logic_error,"empty virtual function called " , "");
-			KRATOS_CATCH("")
-		}
+    ~CustomInterpolator()
+    {}
 
 
-	protected:
-		ModelPart& mr_model_part;
+    virtual void InterpolateNode(Node<3>::Pointer new_node,
+                                 const Geometry< Node<3> >& geom,
+                                 const Vector& N)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR(std::logic_error,"empty virtual function called " , "");
+        KRATOS_CATCH("")
+    }
 
 
-
-	private:
+protected:
+    ModelPart& mr_model_part;
 
 
 
-	};
+private:
+
+
+
+};
 
 }  // namespace Kratos.
 

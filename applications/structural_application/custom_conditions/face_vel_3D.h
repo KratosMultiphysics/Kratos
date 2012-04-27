@@ -75,77 +75,77 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class FaceVel3D
-                : public Face3D
+class FaceVel3D
+    : public Face3D
+{
+public:
+
+    // Counted pointer of Face3D
+    KRATOS_CLASS_POINTER_DEFINITION( FaceVel3D );
+
+
+    // Constructor void
+    FaceVel3D();
+
+    // Constructor using an array of nodes
+    FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry );
+
+    // Constructor using an array of nodes with properties
+    FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+
+    // Destructor
+    virtual ~FaceVel3D();
+
+
+    // Name Operations
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties ) const;
+
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo );
+
+    void GetDofList(
+        DofsVectorType& ElementalDofList,
+        ProcessInfo& rCurrentProcessInfo );
+
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+
+protected:
+
+
+private:
+    ///@name Static Member Variables
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save( Serializer& rSerializer ) const
     {
-        public:
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Face3D );
+    }
 
-            // Counted pointer of Face3D
-            KRATOS_CLASS_POINTER_DEFINITION( FaceVel3D );
-
-
-            // Constructor void
-            FaceVel3D();
-
-            // Constructor using an array of nodes
-            FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry );
-
-            // Constructor using an array of nodes with properties
-            FaceVel3D( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
-
-            // Destructor
-            virtual ~FaceVel3D();
-
-
-            // Name Operations
-
-            Condition::Pointer Create(
-                IndexType NewId,
-                NodesArrayType const& ThisNodes,
-                PropertiesType::Pointer pProperties ) const;
-
-            void EquationIdVector(
-                EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo );
-
-            void GetDofList(
-                DofsVectorType& ElementalDofList,
-                ProcessInfo& rCurrentProcessInfo );
-
-            /**
-             * This function provides the place to perform checks on the completeness of the input.
-             * It is designed to be called only once (or anyway, not often) typically at the beginning
-             * of the calculations, so to verify that nothing is missing from the input
-             * or that no common error is found.
-             * @param rCurrentProcessInfo
-             */
-            virtual int Check( const ProcessInfo& rCurrentProcessInfo );
-
-        protected:
-
-
-        private:
-            ///@name Static Member Variables
-
-            ///@}
-            ///@name Serialization
-            ///@{
-
-            friend class Serializer;
-
-            virtual void save( Serializer& rSerializer ) const
-            {
-                KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  Face3D );
-            }
-
-            virtual void load( Serializer& rSerializer )
-            {
-                KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Face3D );
-            }
+    virtual void load( Serializer& rSerializer )
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer,  Face3D );
+    }
 
 
 
-    }; // class Face3D.
+}; // class Face3D.
 
 } // namespace Kratos.
 

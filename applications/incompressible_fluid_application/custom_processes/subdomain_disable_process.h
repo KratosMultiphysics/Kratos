@@ -1,10 +1,10 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-05-27 12:29:23 $
-//   Revision:            $Revision: 1.1 $ 
+//   Revision:            $Revision: 1.1 $
 //
-//  this process save structural elements in a separate list 
+//  this process save structural elements in a separate list
 
 #if !defined(KRATOS_SUBDOMAIN_DISABLE_PROCESS_INCLUDED )
 #define  KRATOS_SUBDOMAIN_DISABLE_PROCESS_INCLUDED
@@ -15,10 +15,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -27,67 +27,67 @@
 #include "includes/node.h"
 #include "includes/condition.h"
 #include "includes/model_part.h"
-#include "utilities/geometry_utilities.h" 
+#include "utilities/geometry_utilities.h"
 #include "incompressible_fluid_application.h"
 
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the PRESSURE_FORCE on the nodes
-
-		
-	*/
-
-	class SubdomainDisableProcess
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of PushStructureProcess
-		KRATOS_CLASS_POINTER_DEFINITION(SubdomainDisableProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		SubdomainDisableProcess()
-		{
-		}
-
-		/// Destructor.
-		virtual ~SubdomainDisableProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+	Update the PRESSURE_FORCE on the nodes
+
+
+*/
+
+class SubdomainDisableProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SubdomainDisableProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    SubdomainDisableProcess()
+    {
+    }
+
+    /// Destructor.
+    virtual ~SubdomainDisableProcess()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
 
 //		void operator()()
 //		{
@@ -95,217 +95,218 @@ namespace Kratos
 //		}
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		void SaveReducedPart(ModelPart& full_model_part, ModelPart& reduced_model_part)
-		{
-		  KRATOS_TRY
-	
-		  reduced_model_part.Conditions().clear();
-		  reduced_model_part.Elements().clear();
-		  reduced_model_part.Nodes().clear();
-		  reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
-		  reduced_model_part.Elements().reserve(full_model_part.Elements().size());
-		  reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
-		  
-		  int n_int=0;
-		  int n_disabled=0;
-		  
-		  for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
-		    {	  
-		      in->FastGetSolutionStepValue(DISABLE)=false;
-		    }
-		  for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; im != full_model_part.ElementsEnd() ; ++im)
-		    {	  
-		      n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-		      n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-		      n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-		      if(n_int==3){
-			im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
-			im->GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
-			im->GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
-		      }
-		      if (n_int<3)
-			{
-			  reduced_model_part.Elements().push_back(*(im.base()));
-			}
-		      if (n_int>3)
-			KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
-		      if (n_int<3)
-			{
-			  for (int i=0;i<3;i++)
-			    {
-			      im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)=true;
-			    }			
-			}
-		    }
-		  for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; 
-		      in != full_model_part.NodesEnd() ; ++in)
-		    {	  
-		      n_disabled=in->FastGetSolutionStepValue(DISABLE);
-		      if (n_disabled==1.0)
-			{
-			  reduced_model_part.Nodes().push_back(*(in.base()));
-			}
-		    }
-		
-		
-		  
-		  
-		  KRATOS_CATCH("")
-		    }
-		
-		
-		///@}
-		///@name Access
-		///@{ 
-		
+    void SaveReducedPart(ModelPart& full_model_part, ModelPart& reduced_model_part)
+    {
+        KRATOS_TRY
 
-		///@}
-		///@name Inquiry
-		///@{
+        reduced_model_part.Conditions().clear();
+        reduced_model_part.Elements().clear();
+        reduced_model_part.Nodes().clear();
+        reduced_model_part.Conditions().reserve(full_model_part.Conditions().size());
+        reduced_model_part.Elements().reserve(full_model_part.Elements().size());
+        reduced_model_part.Nodes().reserve(full_model_part.Nodes().size());
+
+        int n_int=0;
+        int n_disabled=0;
+
+        for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+        {
+            in->FastGetSolutionStepValue(DISABLE)=false;
+        }
+        for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ; im != full_model_part.ElementsEnd() ; ++im)
+        {
+            n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
+            n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
+            n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
+            if(n_int==3)
+            {
+                im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+                im->GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+                im->GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+            }
+            if (n_int<3)
+            {
+                reduced_model_part.Elements().push_back(*(im.base()));
+            }
+            if (n_int>3)
+                KRATOS_ERROR(std::logic_error,  "Number of DISABLE flags cant exceed number of the element nodes.... " , "");
+            if (n_int<3)
+            {
+                for (int i=0; i<3; i++)
+                {
+                    im->GetGeometry()[i].FastGetSolutionStepValue(DISABLE)=true;
+                }
+            }
+        }
+        for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ;
+                in != full_model_part.NodesEnd() ; ++in)
+        {
+            n_disabled=in->FastGetSolutionStepValue(DISABLE);
+            if (n_disabled==1.0)
+            {
+                reduced_model_part.Nodes().push_back(*(in.base()));
+            }
+        }
 
 
-		///@}      
-		///@name Input and output
-		///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "SubdomainDisableProcess";
-		}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "SubdomainDisableProcess";
-		}
-
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
 
 
-		///@}      
-		///@name Friends
-		///@{
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "SubdomainDisableProcess";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SubdomainDisableProcess";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		//ModelPart& mr_fluid_model_part;
-		//ModelPart& mr_structure_model_part;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
 
-		/// Assignment operator.
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    //ModelPart& mr_fluid_model_part;
+    //ModelPart& mr_structure_model_part;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		SubdomainDisableProcess& operator=(SubdomainDisableProcessconst& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		SubdomainDisableProcess(SubdomainDisableProcessconst& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class SubdomainDisableProcess
+}; // Class SubdomainDisableProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream,   
-		SubdomainDisableProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const SubdomainDisableProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  SubdomainDisableProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const SubdomainDisableProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

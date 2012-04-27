@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,15 +38,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
-//   Revision:            $Revision: 1.2 $ 
+//   Revision:            $Revision: 1.2 $
 //
-//  
+//
 
 #if !defined(KRATOS_MARK_OUTER_NODES_PROCESS_INCLUDED )
 #define  KRATOS_MARK_OUTER_NODES_PROCESS_INCLUDED
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -74,255 +74,275 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the PRESSURE_FORCE on the nodes
-
-		
-	*/
-
-	class MarkOuterNodesProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of PushStructureProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MarkOuterNodesProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MarkOuterNodesProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-		}
-
-		/// Destructor.
-		virtual ~MarkOuterNodesProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		
-		void MarkOuterNodes(const array_1d<double,3>& corner1, const array_1d<double,3>& corner2)
-		{
-		KRATOS_TRY
-			//add a big number to the id of the nodes to be erased
-		int n_erased = 0;
-		double xmax, xmin, ymax,ymin, zmax, zmin;
+///@}
+///@name  Functions
+///@{
 
-		if(corner1[0] > corner2[0])
-		{	xmax = corner1[0]; xmin = corner2[0]; 	}
-		else
-		{	xmax = corner2[0]; xmin = corner1[0]; 	}
-		if(corner1[1] > corner2[1])
-		{	ymax = corner1[1]; ymin = corner2[1]; 	}
-		else
-		{	ymax = corner2[1]; ymin = corner1[1]; 	}
-		if(corner1[2] > corner2[2])
-		{	zmax = corner1[2]; zmin = corner2[2]; 	}
-		else
-		{	zmax = corner2[2]; zmin = corner1[2]; 	}
-		//for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-		for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ; 
-		in != mr_model_part.NodesEnd() ; ++in)
-		{
-			bool erase = false;
-			double& x = in->X(); double& y = in->Y(); double& z = in->Z();
+///@}
+///@name Kratos Classes
+///@{
 
-			if(x<xmin || x>xmax)		erase = true;
-			else if(y<ymin || y>ymax)	erase = true;
-			else if(z<zmin || z>zmax)	erase = true;
-
-			if(erase == true)
-			{
-				n_erased += 1;
-				in->GetValue(ERASE_FLAG) = true;
-				KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
-				KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
-				KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
-			}
-		}
-
-		KRATOS_CATCH("")
-		}
+/// Short class definition.
+/** Detail class definition.
+	Update the PRESSURE_FORCE on the nodes
 
 
-		///@}
-		///@name Access
-		///@{ 
+*/
+
+class MarkOuterNodesProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MarkOuterNodesProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MarkOuterNodesProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+    }
+
+    /// Destructor.
+    virtual ~MarkOuterNodesProcess()
+    {
+    }
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    void MarkOuterNodes(const array_1d<double,3>& corner1, const array_1d<double,3>& corner2)
+    {
+        KRATOS_TRY
+        //add a big number to the id of the nodes to be erased
+        int n_erased = 0;
+        double xmax, xmin, ymax,ymin, zmax, zmin;
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MarkOuterNodesProcess";
-		}
+        if(corner1[0] > corner2[0])
+        {
+            xmax = corner1[0];
+            xmin = corner2[0];
+        }
+        else
+        {
+            xmax = corner2[0];
+            xmin = corner1[0];
+        }
+        if(corner1[1] > corner2[1])
+        {
+            ymax = corner1[1];
+            ymin = corner2[1];
+        }
+        else
+        {
+            ymax = corner2[1];
+            ymin = corner1[1];
+        }
+        if(corner1[2] > corner2[2])
+        {
+            zmax = corner1[2];
+            zmin = corner2[2];
+        }
+        else
+        {
+            zmax = corner2[2];
+            zmin = corner1[2];
+        }
+        //for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ;
+                in != mr_model_part.NodesEnd() ; ++in)
+        {
+            bool erase = false;
+            double& x = in->X();
+            double& y = in->Y();
+            double& z = in->Z();
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MarkOuterNodesProcess";
-		}
+            if(x<xmin || x>xmax)		erase = true;
+            else if(y<ymin || y>ymax)	erase = true;
+            else if(z<zmin || z>zmax)	erase = true;
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+            if(erase == true)
+            {
+                n_erased += 1;
+                in->GetValue(ERASE_FLAG) = true;
+                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
+                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
+                KRATOS_WATCH("ERRASING OUTER NODE!!!!!!");
+            }
+        }
 
-
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operators
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operations
-		///@{ 
-
-
-		///@} 
-		///@name Protected  Access 
-		///@{ 
-
-
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
-
-
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
-
-
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+        KRATOS_CATCH("")
+    }
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MarkOuterNodesProcess";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MarkOuterNodesProcess";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
-		/// Assignment operator.
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		MarkOuterNodesProcess& operator=(MarkOuterNodesProcess const& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		MarkOuterNodesProcess(MarkOuterNodesProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class MarkOuterNodesProcess 
+}; // Class MarkOuterNodesProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MarkOuterNodesProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MarkOuterNodesProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MarkOuterNodesProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MarkOuterNodesProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

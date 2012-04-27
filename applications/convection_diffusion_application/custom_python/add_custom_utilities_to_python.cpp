@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosConvectionDiffusionApplication 
+KratosConvectionDiffusionApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,9 +37,9 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: antonia $
 //   Date:                $Date: 2008-03-11 14:06:15 $
 //   Revision:            $Revision: 1.4 $
@@ -47,9 +47,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -67,70 +67,70 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
 void GenerateModelPart(FaceHeatUtilities& FaceHeatUtilities,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
-	{
-		if(domain_size == 2)
-		{
-			FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiff2D"),KratosComponents<Condition>::Get("ThermalFace2D")	); 
-		}
-		else if(domain_size == 3)
-		{
-			FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D")	); 
-		}
-	}
-	
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
+{
+    if(domain_size == 2)
+    {
+        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part, KratosComponents<Element>::Get("ConvDiff2D"),KratosComponents<Condition>::Get("ThermalFace2D")	);
+    }
+    else if(domain_size == 3)
+    {
+        FaceHeatUtilities.GenerateModelPart(origin_model_part, destination_model_part,KratosComponents<Element>::Get("ConvDiff3D"),KratosComponents<Condition>::Get("ThermalFace3D")	);
+    }
+}
+
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
 
 
-	  class_<FaceHeatUtilities>("FaceHeatUtilities", init<>())
-		.def("ApplyFaceHeat",&FaceHeatUtilities::ApplyFaceHeat)
-		.def("ConditionModelPart",&FaceHeatUtilities::ConditionModelPart)
-		.def("GenerateModelPart",GenerateModelPart)
-		;
-	  
-	  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-	  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-	  typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    class_<FaceHeatUtilities>("FaceHeatUtilities", init<>())
+    .def("ApplyFaceHeat",&FaceHeatUtilities::ApplyFaceHeat)
+    .def("ConditionModelPart",&FaceHeatUtilities::ConditionModelPart)
+    .def("GenerateModelPart",GenerateModelPart)
+    ;
 
-	  class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities2D", init<	>() )
-			  .def("ConstructSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
-			  .def("CalculateProjection",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
-			  .def("ConvectScalarVar",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
-			  .def("ClearSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
-			  ;	
-	    
-	  class_< PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities3D", init<	>() )
-			  .def("ConstructSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
-			  .def("CalculateProjection",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
-			  .def("ConvectScalarVar",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
-			  .def("ClearSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
-			  ;	  
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-	class_< PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities2D", init<	>() )
-			  .def("ConstructSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
-			  .def("CalculateProjection",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
-			  .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
-			  .def("ClearSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
-			  ;	
-	    
-	  class_< PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities3D", init<	>() )
-			  .def("ConstructSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
-			  .def("CalculateProjection",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
-			  .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
-			  .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
-			  ;
-			  
+    class_< PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities2D", init<	>() )
+    .def("ConstructSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("CalculateProjection",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
+    .def("ConvectScalarVar",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
+    .def("ClearSystem",&PureConvectionUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
 
-            
+    class_< PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionUtilities3D", init<	>() )
+    .def("ConstructSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("CalculateProjection",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
+    .def("ConvectScalarVar",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
+    .def("ClearSystem",&PureConvectionUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
 
-  }
-	
+    class_< PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities2D", init<	>() )
+    .def("ConstructSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("CalculateProjection",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::CalculateProjection)
+    .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
+    .def("ClearSystem",&PureConvectionCrankNUtilities< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
+
+    class_< PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("PureConvectionCrankNUtilities3D", init<	>() )
+    .def("ConstructSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("CalculateProjection",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::CalculateProjection)
+    .def("ConvectScalarVar",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ConvectScalarVar)
+    .def("ClearSystem",&PureConvectionCrankNUtilities< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
+
+
+
+
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

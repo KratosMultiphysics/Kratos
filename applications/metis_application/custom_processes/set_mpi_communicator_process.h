@@ -62,181 +62,184 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Set up an MPI communicator for a model part
-  class SetMPICommunicatorProcess : public Process
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
+/// Set up an MPI communicator for a model part
+class SetMPICommunicatorProcess : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      /// Pointer definition of SetMPICommunicatorProcess
-      KRATOS_CLASS_POINTER_DEFINITION(SetMPICommunicatorProcess);
+    /// Pointer definition of SetMPICommunicatorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SetMPICommunicatorProcess);
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      /// Default constructor.
-      SetMPICommunicatorProcess(ModelPart& rModelPart):
+    /// Default constructor.
+    SetMPICommunicatorProcess(ModelPart& rModelPart):
         mrModelPart(rModelPart)
-      {}
+    {}
 
-      /// Destructor.
-      virtual ~SetMPICommunicatorProcess(){}
-
-
-      ///@}
-      ///@name Operators
-      ///@{
+    /// Destructor.
+    virtual ~SetMPICommunicatorProcess() {}
 
 
-      ///@}
-      ///@name Operations
-      ///@{
-
-      virtual void Execute()
-      {
-          mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
-      }
-
-      ///@}
-      ///@name Access
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-      ///@}
-      ///@name Inquiry
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Execute()
+    {
+        mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-      {
-	std::stringstream buffer;
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
         buffer << "SetMPICommunicatorProcess" ;
         return buffer.str();
-      }
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SetMPICommunicatorProcess";}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SetMPICommunicatorProcess";
+    }
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const {}
-
-
-      ///@}
-      ///@name Friends
-      ///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
 
 
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
-      ///@name Protected member Variables
-      ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-      ///@}
-
-    private:
-      ///@name Static Member Variables
-      ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-      ///@}
-      ///@name Member Variables
-      ///@{
+    ///@}
 
-        ModelPart& mrModelPart;
-
-      ///@}
-      ///@name Private Operators
-      ///@{
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ModelPart& mrModelPart;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      /// Assignment operator.
-      SetMPICommunicatorProcess& operator=(SetMPICommunicatorProcess const& rOther)
-      {
-          if(&rOther == this)
-              return *this;
-          else
-          {
-              *this = rOther;
-              return *this;
-          }
-      }
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    SetMPICommunicatorProcess& operator=(SetMPICommunicatorProcess const& rOther)
+    {
+        if(&rOther == this)
+            return *this;
+        else
+        {
+            *this = rOther;
+            return *this;
+        }
+    }
 
 //      /// Copy constructor.
 //      SetMPICommunicatorProcess(SetMPICommunicatorProcess const& rOther) :
@@ -244,39 +247,39 @@ namespace Kratos
 //      {}
 
 
-      ///@}
+    ///@}
 
-    }; // Class SetMPICommunicatorProcess
+}; // Class SetMPICommunicatorProcess
 
-  ///@}
+///@}
 
-  ///@name Type Definitions
-  ///@{
-
-
-  ///@}
-  ///@name Input and output
-  ///@{
+///@name Type Definitions
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    SetMPICommunicatorProcess& rThis)
-  {
-      return rIStream;
-  }
+///@}
+///@name Input and output
+///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const SetMPICommunicatorProcess& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  SetMPICommunicatorProcess& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const SetMPICommunicatorProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

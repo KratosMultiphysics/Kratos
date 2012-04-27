@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-15 11:11:35 $
 //   Revision:            $Revision: 1.4 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -62,12 +62,12 @@ namespace Kratos
 {
 namespace Python
 {
-		
-  using namespace boost::python;
-	
-	
-  void  AddZeroMatrixToPython()
-  {
+
+using namespace boost::python;
+
+
+void  AddZeroMatrixToPython()
+{
 // 	  ReadonlyMatrixPythonInterface<zero_matrix<double> >::CreateInterface("ZeroMatrix")
 // 		  .def(init<zero_matrix<double>::size_type>())
 // 		  .def(init<zero_matrix<double>::size_type, zero_matrix<double>::size_type>())
@@ -97,8 +97,8 @@ namespace Python
 // #endif
 // 		  ;
 
- 	}
-	
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

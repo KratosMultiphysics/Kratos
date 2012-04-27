@@ -74,29 +74,29 @@ namespace Python
 {
 
 
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
 
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-        class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&,unsigned int>())
-            .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
-            .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
-            .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
-            ;
+    class_<DynamicSmagorinskyUtils>("DynamicSmagorinskyUtils", init<ModelPart&,unsigned int>())
+    .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
+    .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
+    .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
+    ;
 
-        class_<PeriodicConditionUtilities>("PeriodicConditionUtilities", init<ModelPart&,unsigned int>())
-            .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
-            .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
-            .def("DefinePeriodicBoundaryPressure",&PeriodicConditionUtilities::DefinePeriodicBoundaryPressure)
-            .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
-            .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
-            ;
+    class_<PeriodicConditionUtilities>("PeriodicConditionUtilities", init<ModelPart&,unsigned int>())
+    .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
+    .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
+    .def("DefinePeriodicBoundaryPressure",&PeriodicConditionUtilities::DefinePeriodicBoundaryPressure)
+    .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
+    .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
+    ;
 
-  }
+}
 
 
 

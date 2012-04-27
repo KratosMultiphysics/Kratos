@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-11-22 11:49:23 $
 //   Revision:            $Revision: 1.1 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -73,283 +73,283 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-	class IsotropicPlaneStressWrinkling : public ConstitutiveLaw
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class IsotropicPlaneStressWrinkling : public ConstitutiveLaw
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of IsotropicPlaneStressWrinkling
+    //typedef boost::shared_ptr<IsotropicPlaneStressWrinkling> Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( IsotropicPlaneStressWrinkling );
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    IsotropicPlaneStressWrinkling();
+    IsotropicPlaneStressWrinkling(const double E, const double NU);
+
+    /// Destructor.
+    virtual ~IsotropicPlaneStressWrinkling();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+    boost::shared_ptr<ConstitutiveLaw> Clone() const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of IsotropicPlaneStressWrinkling
-      //typedef boost::shared_ptr<IsotropicPlaneStressWrinkling> Pointer;
-      KRATOS_CLASS_POINTER_DEFINITION( IsotropicPlaneStressWrinkling );
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      IsotropicPlaneStressWrinkling();
-      IsotropicPlaneStressWrinkling(const double E, const double NU);
+        boost::shared_ptr<ConstitutiveLaw> p_clone(new IsotropicPlaneStressWrinkling());
+        return p_clone;
+    }
 
-      /// Destructor.
-      virtual ~IsotropicPlaneStressWrinkling();
-      
+    void InitializeMaterial( 	const Properties& props,
+                                const GeometryType& geom,
+                                const Vector& ShapeFunctionsValues );
 
-      ///@}
-      ///@name Operators 
-      ///@{
-	boost::shared_ptr<ConstitutiveLaw> Clone() const
-	{
-		boost::shared_ptr<ConstitutiveLaw> p_clone(new IsotropicPlaneStressWrinkling());
-		return p_clone;
-	}
-      
-	  void InitializeMaterial( 	const Properties& props,
-					const GeometryType& geom,
-					const Vector& ShapeFunctionsValues );
+    void CalculateConstitutiveMatrix( const Vector& StrainVector,
+                                      Matrix& ElasticityTensor );
 
-	  void CalculateConstitutiveMatrix( const Vector& StrainVector, 
-					    Matrix& ElasticityTensor );
+    void CalculateStress( const Vector& StrainVector,
+                          Vector& StressVector);
 
-	  void CalculateStress( const Vector& StrainVector, 
-				Vector& StressVector);
-     		
-	  void UpdateMaterial( const Vector& StrainVector,
-				const Properties& props,
-				const GeometryType& geom,
-				const Vector& ShapeFunctionsValues ,
-				const ProcessInfo& CurrentProcessInfo);
-	  
-	  void Calculate( const Variable<Matrix >& rVariable, 
-			  Matrix& Output, 
-    			  const ProcessInfo& rCurrentProcessInfo);
-		
-		
-	  void CalculateCauchyStresses(
-			Vector& Cauchy_StressVector,
-			const Matrix& F,
-			const Vector& PK2_StressVector,
-			const Vector& GreenLagrangeStrainVector);
-	  
-      void CalculateMaterialResponse( const Vector& StrainVector,
-                                      const Matrix& DeformationGradient,
-                                      Vector& StressVector,
-                                      Matrix& AlgorithmicTangent,
-                                      const ProcessInfo& CurrentProcessInfo,
-                                      const Properties& props, 
-                                      const GeometryType& geom,
-                                      const Vector& ShapeFunctionsValues,
-                                      bool CalculateStresses = true,
-                                      int CalculateTangent = true,
-                                      bool SaveInternalVariables = true );
+    void UpdateMaterial( const Vector& StrainVector,
+                         const Properties& props,
+                         const GeometryType& geom,
+                         const Vector& ShapeFunctionsValues ,
+                         const ProcessInfo& CurrentProcessInfo);
 
-	  double CalculateThicknessRatio(const Vector& GreenLagrangeStrainVector);
-	  
-	  int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+    void Calculate( const Variable<Matrix >& rVariable,
+                    Matrix& Output,
+                    const ProcessInfo& rCurrentProcessInfo);
 
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
-      //virtual String Info() const;
-      
-      /// Print information about this object.
-      //virtual void PrintInfo(std::ostream& rOStream) const;
+    void CalculateCauchyStresses(
+        Vector& Cauchy_StressVector,
+        const Matrix& F,
+        const Vector& PK2_StressVector,
+        const Vector& GreenLagrangeStrainVector);
 
-      /// Print object's data.
-      //virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-		double mE;
-		double mNU;
-		Matrix mCtangent;
-		Vector mEw;
-       
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		void CalculateStressEigNonNormalized(const Vector& StressVector,double& smin, Vector& mineigenvect,double& smax, Vector& maxeigenvect);
-		void CalculateStressEig(const Vector& StressVector,double& smin, Vector& mineigenvect,double& smax, Vector& maxeigenvect);
-		void PrincipSTRAIN(const Vector& StrainVector,double& eps1, double& eps2);
-		void PrincipSTRESS(const Vector& StressVector,double& str1, double& str2);
+    void CalculateMaterialResponse( const Vector& StrainVector,
+                                    const Matrix& DeformationGradient,
+                                    Vector& StressVector,
+                                    Matrix& AlgorithmicTangent,
+                                    const ProcessInfo& CurrentProcessInfo,
+                                    const Properties& props,
+                                    const GeometryType& geom,
+                                    const Vector& ShapeFunctionsValues,
+                                    bool CalculateStresses = true,
+                                    int CalculateTangent = true,
+                                    bool SaveInternalVariables = true );
 
-        unsigned int AssessState(const Vector& ElasticStress,const Vector& StrainVector);
-		void CalculateTangentMatrix(const Vector& StrainVector);
+    double CalculateThicknessRatio(const Vector& GreenLagrangeStrainVector);
 
-		Matrix ConstructUnidirectionalConstitutiveMatrix(const Vector& v);
-	
-		Matrix CalculateElasticMatrix(const double E, const double NU);
-	
-		Matrix CalculateDirectionVariationTerm(const Matrix& Celastic, const Vector& ElasticStrain);
+    int Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
 
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      private:
+    ///@}
+    ///@name Operations
+    ///@{
 
-      ///@}
-      ///@name Serialization
-      ///@{	
-      friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const
-      {
-         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-      }
+    ///@}
+    ///@name Access
+    ///@{
 
-      virtual void load(Serializer& rSerializer)
-      {
-         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-      }
-		
-	
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //IsotropicPlaneStressWrinkling& operator=(const IsotropicPlaneStressWrinkling& rOther);
 
-      /// Copy constructor.
-      //IsotropicPlaneStressWrinkling(const IsotropicPlaneStressWrinkling& rOther);
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class IsotropicPlaneStressWrinkling 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///// input stream function
-  //inline std::istream& operator >> (std::istream& rIStream, 
-		//		    IsotropicPlaneStressWrinkling& rThis);
+    ///@}
+    ///@name Input and output
+    ///@{
 
-  ///// output stream function
-  //inline std::ostream& operator << (std::ostream& rOStream, 
-		//		    const IsotropicPlaneStressWrinkling& rThis)
-  //  {
-  //    rThis.PrintInfo(rOStream);
-  //    rOStream << std::endl;
-  //    rThis.PrintData(rOStream);
+    /// Turn back information as a string.
+    //virtual String Info() const;
 
-  //    return rOStream;
-  //  }
-  ///@} 
-  
-  
+    /// Print information about this object.
+    //virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    //virtual void PrintData(std::ostream& rOStream) const;
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    double mE;
+    double mNU;
+    Matrix mCtangent;
+    Vector mEw;
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    void CalculateStressEigNonNormalized(const Vector& StressVector,double& smin, Vector& mineigenvect,double& smax, Vector& maxeigenvect);
+    void CalculateStressEig(const Vector& StressVector,double& smin, Vector& mineigenvect,double& smax, Vector& maxeigenvect);
+    void PrincipSTRAIN(const Vector& StrainVector,double& eps1, double& eps2);
+    void PrincipSTRESS(const Vector& StressVector,double& str1, double& str2);
+
+    unsigned int AssessState(const Vector& ElasticStress,const Vector& StrainVector);
+    void CalculateTangentMatrix(const Vector& StrainVector);
+
+    Matrix ConstructUnidirectionalConstitutiveMatrix(const Vector& v);
+
+    Matrix CalculateElasticMatrix(const double E, const double NU);
+
+    Matrix CalculateDirectionVariationTerm(const Matrix& Celastic, const Vector& ElasticStrain);
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+private:
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //IsotropicPlaneStressWrinkling& operator=(const IsotropicPlaneStressWrinkling& rOther);
+
+    /// Copy constructor.
+    //IsotropicPlaneStressWrinkling(const IsotropicPlaneStressWrinkling& rOther);
+
+
+    ///@}
+
+}; // Class IsotropicPlaneStressWrinkling
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///// input stream function
+//inline std::istream& operator >> (std::istream& rIStream,
+//		    IsotropicPlaneStressWrinkling& rThis);
+
+///// output stream function
+//inline std::ostream& operator << (std::ostream& rOStream,
+//		    const IsotropicPlaneStressWrinkling& rThis)
+//  {
+//    rThis.PrintInfo(rOStream);
+//    rOStream << std::endl;
+//    rThis.PrintData(rOStream);
+
+//    return rOStream;
+//  }
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ISOTROPIC_PLANESTRESS_WRINKLING_H_INCLUDED  defined 

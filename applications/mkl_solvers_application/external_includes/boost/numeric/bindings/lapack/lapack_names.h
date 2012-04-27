@@ -1,15 +1,15 @@
 /*
- * 
+ *
  * Copyright (c) Toon Knapen & Kresimir Fresl 2003
  *
- * Permission to copy, modify, use and distribute this software 
- * for any non-commercial or commercial purpose is granted provided 
+ * Permission to copy, modify, use and distribute this software
+ * for any non-commercial or commercial purpose is granted provided
  * that this license appear on all copies of the software source code.
  *
- * Authors assume no responsibility whatsoever for its use and makes 
+ * Authors assume no responsibility whatsoever for its use and makes
  * no guarantees about its quality, correctness or reliability.
  *
- * KF acknowledges the support of the Faculty of Civil Engineering, 
+ * KF acknowledges the support of the Faculty of Civil Engineering,
  * University of Zagreb, Croatia.
  *
  */
@@ -21,7 +21,7 @@
 #  include <boost/numeric/bindings/traits/fortran.h>
 #else
 #  define FORTRAN_ID( id ) id##_
-#endif 
+#endif
 
 /* linear systems */
 
@@ -143,7 +143,7 @@
 
 
 /********************************************/
-/* eigenproblems */ 
+/* eigenproblems */
 
 #define LAPACK_SGEES FORTRAN_ID( sgees )
 #define LAPACK_DGEES FORTRAN_ID( dgees )
@@ -173,7 +173,7 @@
 
 
 /********************************************/
-/* eigenproblems for banded matrices */ 
+/* eigenproblems for banded matrices */
 
 #define LAPACK_SSBEV FORTRAN_ID( ssbev )
 #define LAPACK_DSBEV FORTRAN_ID( dsbev )
@@ -213,10 +213,10 @@
 
 
 /********************************************/
-/* auxiliary */ 
+/* auxiliary */
 
 #define LAPACK_ILAENV FORTRAN_ID( ilaenv )
 
 
-#endif 
+#endif
 

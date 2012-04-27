@@ -35,7 +35,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
+
 /* *********************************************************
 *
 *   Last Modified by:    $Author: Nelson Lafontaine $
@@ -65,30 +65,30 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	  class Linear_Softening: public SofteningHardeningCriteria
-	    {
-	    
-		public: 
-		   Linear_Softening();
-		  ~Linear_Softening();
-                   KRATOS_CLASS_POINTER_DEFINITION(Linear_Softening);
-		   virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
-                    {
-                      boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Linear_Softening());
-                      return p_clone;
-                    }
-		   
-                   void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result); 
-		   double  Calculate(const Vector& Imput_Parameters);
-		   double  FunctionBehavior(const Vector& Imput_Parameters);
-		   double  FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
-		   
-           };    
-    
+class Linear_Softening: public SofteningHardeningCriteria
+{
 
-    /**
-     * definition of CONSTITUTIVE_LAW variable
-     */
+public:
+    Linear_Softening();
+    ~Linear_Softening();
+    KRATOS_CLASS_POINTER_DEFINITION(Linear_Softening);
+    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
+    {
+        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Linear_Softening());
+        return p_clone;
+    }
+
+    void FunctionSofteningHardeningBehavior(const double& capap, const double& sigma, double& Result, double& der_Result);
+    double  Calculate(const Vector& Imput_Parameters);
+    double  FunctionBehavior(const Vector& Imput_Parameters);
+    double  FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
+
+};
+
+
+/**
+ * definition of CONSTITUTIVE_LAW variable
+ */
 }  /* namespace Kratos.*/
 #endif /* FLUENCY_CRITERIA defined */
 

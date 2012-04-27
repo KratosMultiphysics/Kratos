@@ -2,7 +2,7 @@
 //  distribute this software is granted provided this copyright notice appears
 //  in all copies. This software is provided "as is" without express or implied
 //  warranty, and with no claim as to its suitability for any purpose.
-//  Copyright (C) 2002, 2003 Si-Lab b.v.b.a and Toon Knapen 
+//  Copyright (C) 2002, 2003 Si-Lab b.v.b.a and Toon Knapen
 
 #ifndef BOOST_NUMERIC_BINDINGS_BLAS_BLAS_NAMES_H
 #define BOOST_NUMERIC_BINDINGS_BLAS_BLAS_NAMES_H

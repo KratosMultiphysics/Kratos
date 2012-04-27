@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2007-12-13 14:22:10 $
 //   Revision:            $Revision: 1.2 $
@@ -52,13 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <numeric>
 #include <cstddef>
 
 
 // External includes
-#include <boost/array.hpp>  
+#include <boost/array.hpp>
 
 
 // Project includes
@@ -69,130 +69,139 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class PrismGaussianIntegrationPoints1
+class PrismGaussianIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints1);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 3;
+        return 1;
+    }
 
-	typedef IntegrationPoint<3> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 1; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "Prism gaussian quadrature 1 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class PrismGaussianIntegrationPoints1
-
-
-
-
-
-
-    class PrismGaussianIntegrationPoints2
+    static IntegrationPointsArrayType& IntegrationPoints()
     {
-	    public:
-		    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints2);
-		    typedef std::size_t SizeType;
-		    
-		    static const unsigned int Dimension = 3;
+        return msIntegrationPoints;
+    }
 
-		    typedef IntegrationPoint<3> IntegrationPointType;
-
-		    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
-
-		    typedef IntegrationPointType::PointType PointType;
-
-		    static SizeType IntegrationPointsNumber()    {  return 6; }
-		    
-		    static IntegrationPointsArrayType& IntegrationPoints()
-		    {
-			    return msIntegrationPoints;
-		    }
-
-		    std::string Info() const
-		    {
-			    std::stringstream buffer;
-			    buffer << "Prism gaussian quadrature 2 ";
-			    return buffer.str();
-		    }
-	    protected:
-
-	    private:
-
-		    static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class PrismGaussianIntegrationPoints2
-    
-    class PrismGaussianIntegrationPoints3
+    std::string Info() const
     {
-        public:
-            KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints3);
-            typedef std::size_t SizeType;
-		    
-            static const unsigned int Dimension = 3;
+        std::stringstream buffer;
+        buffer << "Prism gaussian quadrature 1 ";
+        return buffer.str();
+    }
+protected:
 
-            typedef IntegrationPoint<3> IntegrationPointType;
+private:
 
-            typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-            typedef IntegrationPointType::PointType PointType;
+}; // Class PrismGaussianIntegrationPoints1
 
-            static SizeType IntegrationPointsNumber()    {  return 9; }
-		    
-            static IntegrationPointsArrayType& IntegrationPoints()
-            {
-                return msIntegrationPoints;
-            }
 
-            std::string Info() const
-            {
-                std::stringstream buffer;
-                buffer << "Prism gaussian quadrature 3 ";
-                return buffer.str();
-            }
-        protected:
 
-        private:
 
-            static IntegrationPointsArrayType msIntegrationPoints;
 
-    }; // Class PrismGaussianIntegrationPoints3
 
- 
-   
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+class PrismGaussianIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints2);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 6;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism gaussian quadrature 2 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class PrismGaussianIntegrationPoints2
+
+class PrismGaussianIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(PrismGaussianIntegrationPoints3);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 9;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Prism gaussian quadrature 3 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class PrismGaussianIntegrationPoints3
+
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PRISM_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED  defined 

@@ -73,309 +73,309 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///@name Kratos Globals
-    ///@{
-    ///@}
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Total Lagrangian element for 2D and 3D geometries.
+/**
+ * Implements a total Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 2D and 3D
+ */
+
+class MixedLagrangian
+    : public Element
+{
+
+public:
     ///@name Type Definitions
     ///@{
-    ///@}
-    ///@name  Enum's
-    ///@{
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// Counted pointer of MixedLagrangian
+    KRATOS_CLASS_POINTER_DEFINITION( MixedLagrangian );
 
     ///@}
-    ///@name  Functions
+    ///@name Life Cycle
     ///@{
+
+    /// Default constructor.
+    MixedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry );
+    MixedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+
+    /// Destructor.
+    virtual ~MixedLagrangian();
 
     ///@}
-    ///@name Kratos Classes
+    ///@name Operators
     ///@{
-
-    /// Total Lagrangian element for 2D and 3D geometries.
+    ///@}
+    ///@name Operations
+    ///@{
     /**
-     * Implements a total Lagrangian definition for structural analysis.
-     * This works for arbitrary geometries in 2D and 3D
+     * Returns the currently selected integration method
+     * @return current integration method selected
      */
+    IntegrationMethod GetIntegrationMethod();
 
-    class MixedLagrangian
-                : public Element
-    {
+    Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
-        public:
-            ///@name Type Definitions
-            ///@{
-            ///Reference type definition for constitutive laws
-            typedef ConstitutiveLaw ConstitutiveLawType;
-            ///Pointer type for constitutive laws
-            typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-            ///Type definition for integration methods
-            typedef GeometryData::IntegrationMethod IntegrationMethod;
+    void Initialize();
 
-            /// Counted pointer of MixedLagrangian
-            KRATOS_CLASS_POINTER_DEFINITION( MixedLagrangian );
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
 
-            ///@}
-            ///@name Life Cycle
-            ///@{
+    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
 
-            /// Default constructor.
-            MixedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry );
-            MixedLagrangian( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-            /// Destructor.
-            virtual ~MixedLagrangian();
+    void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo );
 
-            ///@}
-            ///@name Operators
-            ///@{
-            ///@}
-            ///@name Operations
-            ///@{
-            /**
-             * Returns the currently selected integration method
-             * @return current integration method selected
-             */
-            IntegrationMethod GetIntegrationMethod();
+    void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
 
-            Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
-            void Initialize();
+    void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
 
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
 
-            //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
 
-            void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo );
+    void CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo );
 
-            void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
+    void SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-            void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
+    void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-            void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+    void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-            void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
+    void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-            void CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo );
+    void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
-            void CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& Output, const ProcessInfo& rCurrentProcessInfo );
-
-            void CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo );
-
-            void SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
-
-            void SetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
-
-            void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
-
-            void GetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo );
-
-            void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
-
-            void GetValuesVector( Vector& values, int Step = 0 );
-            void GetFirstDerivativesVector( Vector& values, int Step = 0 );
-            void GetSecondDerivativesVector( Vector& values, int Step = 0 );
-
-            ///@}
-            ///@name Access
-            ///@{
-
-            ///@}
-            ///@name Inquiry
-            ///@{
-            ///@}
-            ///@name Input and output
-            ///@{
-
-            /// Turn back information as a string.
-            //      virtual String Info() const;
-
-            /// Print information about this object.
-            //      virtual void PrintInfo(std::ostream& rOStream) const;
-
-            /// Print object's data.
-            //      virtual void PrintData(std::ostream& rOStream) const;
-            ///@}
-            ///@name Friends
-            ///@{
-            ///@}
-
-        protected:
-            ///@name Protected static Member Variables
-            ///@{
-            ///@}
-            ///@name Protected member Variables
-            ///@{
-
-            ///@}
-            ///@name Protected Operators
-            ///@{
-
-            /**
-            * Calculates the elemental contributions
-            * \f$ K^e = w\,B^T\,D\,B \f$ and
-            * \f$ r^e \f$
-            */
-            virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo,
-                                       bool CalculateStiffnessMatrixFlag,
-                                       bool CalculateResidualVectorFlag );
-            ///@}
-            ///@name Protected Operations
-            ///@{
-            ///@}
-            ///@name Protected  Access
-            ///@{
-            ///@}
-            ///@name Protected Inquiry
-            ///@{
-            ///@}
-            ///@name Protected LifeCycle
-            ///@{
-            ///@}
-
-        private:
-            ///@name Static Member Variables
-            ///@{
-            /*  static Matrix msB;
-            static Matrix msF;
-            static Matrix msD;
-            static Matrix msC;
-            static Vector msStrainVector;
-            static Vector msStressVector;
-            static Matrix msDN_DX;
-            */
-            ///@}
-            ///@name Member Variables
-            ///@{
-            /**
-             * Currently selected integration methods
-             */
-            IntegrationMethod mThisIntegrationMethod;
-            /**
-             * Container for constitutive law instances on each integration point
-             */
-            std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
-            double mTotalDomainInitialSize;
-            std::vector< Matrix > mInvJ0;
-            Vector mDetJ0;
-            ///@}
-            ///@name Private Operators
-            ///@{
-
-            void CalculateAndAddKm(
-                MatrixType& K,
-                Matrix& B,
-                Matrix& D,
-                double weight );
-
-            /**
-             * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
-             */
-            void CalculateAndAddKg(
-                MatrixType& K,
-                Matrix& DN_DX,
-                Vector& StressVector,
-                double weight
-            );
-
-            void CalculateBodyForces(
-                Vector& BodyForce,
-                const ProcessInfo& CurrentProcessInfo
-            );
-
-            void InitializeVariables();
-
-            virtual void InitializeMaterial();
-
-            double CalculateIntegrationWeight
-            ( double GaussPointWeight,
-              double DetJ0 );
-
-            void CalculateAndAdd_ExtForceContribution(
-                const Vector& N,
-                const ProcessInfo& CurrentProcessInfo,
-                Vector& BodyForce,
-                VectorType& mResidualVector,
-                double weight
-            );
-
-            void CalculateStrain( const Matrix& C,
-                                  Vector& StrainVector );
-
-            void CalculateAlamnsiStrain( const Matrix& F,
-                                         Vector& StrainVector );
-
-            void CalculateSPKStress( const Matrix& F,
-                                     Vector& StressVector );
-
-            void CalculateB( Matrix& B,
-                             Matrix& F,
-                             Matrix& DN_DX,
-                             unsigned int StrainSize );
-
-            ///@}
-            ///@name Private Operations
-            ///@{
-
-            ///@}
-            ///@name Private  Access
-            ///@{
-            ///@}
-            ///@name Private Inquiry
-            ///@{
-            ///@}
-	    
-	    ///@}
-	    ///@name Serialization
-	    ///@{	
-	    friend class Serializer; 
-
-	    // A private default constructor necessary for serialization 
-	    MixedLagrangian(){}
-
-	    virtual void save(Serializer& rSerializer) const
-	    {
-	       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-	    }
-
-	    virtual void load(Serializer& rSerializer)
-	    {
-	        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
-	    }
-	    
-            ///@name Un accessible methods
-            ///@{
-            /// Assignment operator.
-            //MixedLagrangian& operator=(const MixedLagrangian& rOther);
-            /// Copy constructor.
-            //MixedLagrangian(const MixedLagrangian& rOther);
-            ///@}
-
-    }; // Class MixedLagrangian
+    void GetValuesVector( Vector& values, int Step = 0 );
+    void GetFirstDerivativesVector( Vector& values, int Step = 0 );
+    void GetSecondDerivativesVector( Vector& values, int Step = 0 );
 
     ///@}
-    ///@name Type Definitions
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
     ///@{
     ///@}
     ///@name Input and output
     ///@{
-    /// input stream function
-    /*  inline std::istream& operator >> (std::istream& rIStream,
-    MixedLagrangian& rThis);
-    */
-    /// output stream function
-    /*  inline std::ostream& operator << (std::ostream& rOStream,
-    const MixedLagrangian& rThis)
-    {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
 
-    return rOStream;
-    }*/
+    /// Turn back information as a string.
+    //      virtual String Info() const;
+
+    /// Print information about this object.
+    //      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    //      virtual void PrintData(std::ostream& rOStream) const;
     ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    /**
+    * Calculates the elemental contributions
+    * \f$ K^e = w\,B^T\,D\,B \f$ and
+    * \f$ r^e \f$
+    */
+    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                               ProcessInfo& rCurrentProcessInfo,
+                               bool CalculateStiffnessMatrixFlag,
+                               bool CalculateResidualVectorFlag );
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    /*  static Matrix msB;
+    static Matrix msF;
+    static Matrix msD;
+    static Matrix msC;
+    static Vector msStrainVector;
+    static Vector msStressVector;
+    static Matrix msDN_DX;
+    */
+    ///@}
+    ///@name Member Variables
+    ///@{
+    /**
+     * Currently selected integration methods
+     */
+    IntegrationMethod mThisIntegrationMethod;
+    /**
+     * Container for constitutive law instances on each integration point
+     */
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
+    double mTotalDomainInitialSize;
+    std::vector< Matrix > mInvJ0;
+    Vector mDetJ0;
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    void CalculateAndAddKm(
+        MatrixType& K,
+        Matrix& B,
+        Matrix& D,
+        double weight );
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kg = dB * S
+     */
+    void CalculateAndAddKg(
+        MatrixType& K,
+        Matrix& DN_DX,
+        Vector& StressVector,
+        double weight
+    );
+
+    void CalculateBodyForces(
+        Vector& BodyForce,
+        const ProcessInfo& CurrentProcessInfo
+    );
+
+    void InitializeVariables();
+
+    virtual void InitializeMaterial();
+
+    double CalculateIntegrationWeight
+    ( double GaussPointWeight,
+      double DetJ0 );
+
+    void CalculateAndAdd_ExtForceContribution(
+        const Vector& N,
+        const ProcessInfo& CurrentProcessInfo,
+        Vector& BodyForce,
+        VectorType& mResidualVector,
+        double weight
+    );
+
+    void CalculateStrain( const Matrix& C,
+                          Vector& StrainVector );
+
+    void CalculateAlamnsiStrain( const Matrix& F,
+                                 Vector& StrainVector );
+
+    void CalculateSPKStress( const Matrix& F,
+                             Vector& StressVector );
+
+    void CalculateB( Matrix& B,
+                     Matrix& F,
+                     Matrix& DN_DX,
+                     unsigned int StrainSize );
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    MixedLagrangian() {}
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+    }
+
+    ///@name Un accessible methods
+    ///@{
+    /// Assignment operator.
+    //MixedLagrangian& operator=(const MixedLagrangian& rOther);
+    /// Copy constructor.
+    //MixedLagrangian(const MixedLagrangian& rOther);
+    ///@}
+
+}; // Class MixedLagrangian
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
+MixedLagrangian& rThis);
+*/
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
+const MixedLagrangian& rThis)
+{
+rThis.PrintInfo(rOStream);
+rOStream << std::endl;
+rThis.PrintData(rOStream);
+
+return rOStream;
+}*/
+///@}
 
 }  // namespace Kratos.
 #endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 #include <boost/iterator/iterator_adaptor.hpp>
 
 
@@ -66,159 +66,159 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-	template<class TIteratorType, class TDataType>
-  class VectorMapIterator
-	  : public boost::iterator_adaptor<VectorMapIterator<TIteratorType, TDataType>,
-	  TIteratorType, TDataType>
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TIteratorType, class TDataType>
+class VectorMapIterator
+    : public boost::iterator_adaptor<VectorMapIterator<TIteratorType, TDataType>,
+      TIteratorType, TDataType>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of VectorMapIterator
+    KRATOS_CLASS_POINTER_DEFINITION(VectorMapIterator);
+
+    typedef boost::iterator_adaptor<VectorMapIterator,
+            TIteratorType,  TDataType> BaseType;
+
+    typedef typename TIteratorType::value_type::first_type key_type;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    VectorMapIterator() {}
+
+    VectorMapIterator(TIteratorType NewIterator) :BaseType(NewIterator) {}
+
+    VectorMapIterator(VectorMapIterator const & NewIterator) :BaseType(NewIterator.base()) {}
+
+    //template<class TOtherIteratorType>
+    //VectorMapIterator(VectorMapIterator<TIteratorType> const & NewIterator) :BaseType(NewIterator.base()) {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    key_type key()
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of VectorMapIterator
-      KRATOS_CLASS_POINTER_DEFINITION(VectorMapIterator);
-
-	  typedef boost::iterator_adaptor<VectorMapIterator,
-	  TIteratorType,  TDataType> BaseType;
-
-	  typedef typename TIteratorType::value_type::first_type key_type;
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  VectorMapIterator(){}
-
-	  VectorMapIterator(TIteratorType NewIterator) :BaseType(NewIterator) {}
-
-	  VectorMapIterator(VectorMapIterator const & NewIterator) :BaseType(NewIterator.base()) {}
-
-	  //template<class TOtherIteratorType>
-	  //VectorMapIterator(VectorMapIterator<TIteratorType> const & NewIterator) :BaseType(NewIterator.base()) {}
+        return this->base()->first;
+    }
 
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
-	key_type key()
-	{
-		return this->base()->first;
-	}
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    private:
-   friend class boost::iterator_core_access;
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-      typename BaseType::reference dereference() const
-      {
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+private:
+    friend class boost::iterator_core_access;
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    typename BaseType::reference dereference() const
+    {
 # if BOOST_WORKAROUND(__BORLANDC__, BOOST_TESTED_AT(0x551))
-          return const_cast<BaseType::reference>(*this->base()->second);
+        return const_cast<BaseType::reference>(*this->base()->second);
 # else
-          return this->base()->second;
-# endif 
-      }
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class VectorMapIterator 
+        return this->base()->second;
+# endif
+    }
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-   ///@} 
-  
-  
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class VectorMapIterator
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_VECTOR_MAP_ITERATOR_H_INCLUDED  defined 

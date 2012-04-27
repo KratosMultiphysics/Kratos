@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosALEApplication 
+KratosALEApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:31 $
 //   Revision:            $Revision: 1.2 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -73,208 +73,208 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class LaplacianMeshMovingElem3D
-	  : public Element
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of LaplacianMeshMovingElem3D
-      KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElem3D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+///@name Kratos Globals
+///@{
 
-      /// Destructor.
-      virtual ~LaplacianMeshMovingElem3D();
-      
+///@}
+///@name Type Definitions
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name  Functions
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+///@}
+///@name Kratos Classes
+///@{
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
+class LaplacianMeshMovingElem3D
+    : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Counted pointer of LaplacianMeshMovingElem3D
+    KRATOS_CLASS_POINTER_DEFINITION(LaplacianMeshMovingElem3D);
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~LaplacianMeshMovingElem3D();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-/*		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-  		static array_1d<double,4> msN; //dimension = number of nodes
-  		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes*/
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-       ///@}
-      ///@name Serialization
-      ///@{
 
-	friend class Serializer;
+    ///@}
+    ///@name Friends
+    ///@{
 
-         LaplacianMeshMovingElem3D(){}
 
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-           
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-       
-      /// Assignment operator.
-      //LaplacianMeshMovingElem3D& operator=(const LaplacianMeshMovingElem3D& rOther);
+    ///@}
 
-      /// Copy constructor.
-      //LaplacianMeshMovingElem3D(const LaplacianMeshMovingElem3D& rOther);
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class LaplacianMeshMovingElem3D 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    /*		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+      		static array_1d<double,4> msN; //dimension = number of nodes
+      		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes*/
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    LaplacianMeshMovingElem3D() {}
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    /// Assignment operator.
+    //LaplacianMeshMovingElem3D& operator=(const LaplacianMeshMovingElem3D& rOther);
+
+    /// Copy constructor.
+    //LaplacianMeshMovingElem3D(const LaplacianMeshMovingElem3D& rOther);
+
+
+    ///@}
+
+}; // Class LaplacianMeshMovingElem3D
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    LaplacianMeshMovingElem3D& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const LaplacianMeshMovingElem3D& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -283,7 +283,7 @@ namespace Kratos
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

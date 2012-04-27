@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosFluidDynamicsApplication 
+KratosFluidDynamicsApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,70 +41,70 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: jcotela $
 //   Date:                $Date: 2010-11-11 $
 //   Revision:            $Revision: 1.0 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "fluid_dynamics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosFluidDynamicsApplication)
-  {
 
-	  class_<KratosFluidDynamicsApplication, 
-			  KratosFluidDynamicsApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosFluidDynamicsApplication")
-			;
+BOOST_PYTHON_MODULE(KratosFluidDynamicsApplication)
+{
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-	AddCustomProcessesToPython();
+    class_<KratosFluidDynamicsApplication,
+           KratosFluidDynamicsApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosFluidDynamicsApplication")
+           ;
 
-	//registering variables in python
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACK_SUBSCALES);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUONE);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUTWO);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(Y_WALL);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(SUBSCALE_PRESSURE);
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
+    AddCustomProcessesToPython();
+
+    //registering variables in python
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(PATCH_INDEX);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TRACK_SUBSCALES);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUONE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(TAUTWO);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(Y_WALL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SUBSCALE_PRESSURE);
 //        KRATOS_REGISTER_IN_PYTHON_VARIABLE(C_SMAGORINSKY);
-        KRATOS_REGISTER_IN_PYTHON_VARIABLE(SUBSCALE_VELOCITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(VORTICITY);
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(COARSE_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SUBSCALE_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(VORTICITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(COARSE_VELOCITY);
 
 
-  }
-  
-  
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

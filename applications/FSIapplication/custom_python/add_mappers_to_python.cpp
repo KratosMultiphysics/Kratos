@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: pooyan $
 //   Date:                $Date: 2006-11-27 16:07:42 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -7,9 +7,9 @@
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -20,36 +20,36 @@
 #include "custom_utilities/AdvancedNMPointsMapper.h"
 #include "custom_utilities/InterfacePreprocess.h"
 
-#include "custom_utilities/shared_points_mapper.h" 
+#include "custom_utilities/shared_points_mapper.h"
 #include "includes/node.h"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-  void  AddMappersToPython()
-  {
-	
-	using namespace boost::python;
+void  AddMappersToPython()
+{
 
-	  class_<SharedPointsMapper >("SharedPointsMapper",
-		 init< const ModelPart::NodesContainerType&, const  ModelPart::NodesContainerType&, double>()) 
-	  .def("ScalarMap",&SharedPointsMapper::ScalarMap)
-	  .def("VectorMap",&SharedPointsMapper::VectorMap)
-		;
+    using namespace boost::python;
 
-	  class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
-		.def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
-		.def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap)
-                .def("VectorMap",&AdvancedNMPointsMapper::VectorMap)
-		;
+    class_<SharedPointsMapper >("SharedPointsMapper",
+                                init< const ModelPart::NodesContainerType&, const  ModelPart::NodesContainerType&, double>())
+    .def("ScalarMap",&SharedPointsMapper::ScalarMap)
+    .def("VectorMap",&SharedPointsMapper::VectorMap)
+    ;
 
-          class_<InterfacePreprocess>("InterfacePreprocess", init<>())
-                .def("GenerateInterfacePart",&InterfacePreprocess::GenerateInterfacePart)
-                ;
-  }
-	
+    class_<AdvancedNMPointsMapper>("AdvancedNMPointsMapper", init<const ModelPart&, ModelPart&>())
+    .def("FindNeighbours",&AdvancedNMPointsMapper::FindNeighbours)
+    .def("ScalarMap",&AdvancedNMPointsMapper::ScalarMap)
+    .def("VectorMap",&AdvancedNMPointsMapper::VectorMap)
+    ;
+
+    class_<InterfacePreprocess>("InterfacePreprocess", init<>())
+    .def("GenerateInterfacePart",&InterfacePreprocess::GenerateInterfacePart)
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

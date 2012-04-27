@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -45,35 +45,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
-  
+
 
 // Project includes
-#include "includes/define.h"  
+#include "includes/define.h"
 #include "includes/kernel.h"
 #include "python/add_kernel_to_python.h"
 
 namespace Kratos
 {
-namespace Python 
+namespace Python
 {
- using namespace boost::python;
-	
-	
-  void  AddKernelToPython()
-  {  
-	  class_<Kernel, Kernel::Pointer, boost::noncopyable >("Kernel")
-		  .def("Initialize",&Kernel::Initialize)
-		  .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
-		  .def("InitializeApplication",&Kernel::InitializeApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
-		  //.def("",&Kernel::Initialize)
-	      .def(self_ns::str(self))
-	 ;
- 	}
-	
+using namespace boost::python;
+
+
+void  AddKernelToPython()
+{
+    class_<Kernel, Kernel::Pointer, boost::noncopyable >("Kernel")
+    .def("Initialize",&Kernel::Initialize)
+    .def("AddApplication",&Kernel::AddApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
+    .def("InitializeApplication",&Kernel::InitializeApplication,with_custodian_and_ward<1,2>()) // Note: custodian and ward to be checked. Pooyan.
+    //.def("",&Kernel::Initialize)
+    .def(self_ns::str(self))
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-15 11:11:35 $
 //   Revision:            $Revision: 1.6 $
@@ -55,11 +55,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 #include <fstream>
 
-// External includes 
+// External includes
 #include <parmetis.h>
 
 
@@ -67,357 +67,357 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 
- extern "C" { 
-   //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*); 
- extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*); 
- }; 
+extern "C" {
+    //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
+    extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
+};
 
 
 
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-
-	class MetisGraphPartitioningProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of MetisGraphPartitioningProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MetisGraphPartitioningProcess);
-
-		typedef std::size_t SizeType;
-		typedef std::size_t IndexType;
-		typedef std::vector<idxtype> PartitionIndicesType;
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MetisGraphPartitioningProcess(IO::ConnectivitiesContainerType& rElementsConnectivities, 
-									  PartitionIndicesType& rNodesPartitions, 
-									  PartitionIndicesType& rElementsPartitions, 
-									  SizeType NumberOfPartitions, int Dimension = 3)
-			: mrElementsConnectivities(rElementsConnectivities),
-			  mrNodesPartitions(rNodesPartitions), 
-			  mrElementsPartitions(rElementsPartitions), 
-			  mNumberOfPartitions(NumberOfPartitions), 
-			  mDimension(Dimension)
-		{
-		}
-
-		/// Copy constructor.
-		MetisGraphPartitioningProcess(MetisGraphPartitioningProcess const& rOther)
-			: mrElementsConnectivities(rOther.mrElementsConnectivities),
-			  mrNodesPartitions(rOther.mrNodesPartitions), 
-			  mrElementsPartitions(rOther.mrElementsPartitions), 
-			  mNumberOfPartitions(rOther.mNumberOfPartitions), 
-			  mDimension(rOther.mDimension)
-		{
-		}
-
-		/// Destructor.
-		virtual ~MetisGraphPartitioningProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+
+class MetisGraphPartitioningProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MetisGraphPartitioningProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MetisGraphPartitioningProcess);
+
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+    typedef std::vector<idxtype> PartitionIndicesType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MetisGraphPartitioningProcess(IO::ConnectivitiesContainerType& rElementsConnectivities,
+                                  PartitionIndicesType& rNodesPartitions,
+                                  PartitionIndicesType& rElementsPartitions,
+                                  SizeType NumberOfPartitions, int Dimension = 3)
+        : mrElementsConnectivities(rElementsConnectivities),
+          mrNodesPartitions(rNodesPartitions),
+          mrElementsPartitions(rElementsPartitions),
+          mNumberOfPartitions(NumberOfPartitions),
+          mDimension(Dimension)
+    {
+    }
+
+    /// Copy constructor.
+    MetisGraphPartitioningProcess(MetisGraphPartitioningProcess const& rOther)
+        : mrElementsConnectivities(rOther.mrElementsConnectivities),
+          mrNodesPartitions(rOther.mrNodesPartitions),
+          mrElementsPartitions(rOther.mrElementsPartitions),
+          mNumberOfPartitions(rOther.mNumberOfPartitions),
+          mDimension(rOther.mDimension)
+    {
+    }
+
+    /// Destructor.
+    virtual ~MetisGraphPartitioningProcess()
+    {
+    }
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-		virtual void Execute()
-		{
-		  KRATOS_TRY;
-
-			if(mNumberOfPartitions < 2) // There is no need to partition it and just reading the input
-			{
-				return;
-			}
+    void operator()()
+    {
+        Execute();
+    }
 
 
-			int number_of_elements = mrElementsConnectivities.size();
+    ///@}
+    ///@name Operations
+    ///@{
 
-			int number_of_nodes = 0; 
-			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
-			for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
-				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-					if(static_cast<int>(*i_node_id) > number_of_nodes)
-						number_of_nodes = *i_node_id;
+    virtual void Execute()
+    {
+        KRATOS_TRY;
+
+        if(mNumberOfPartitions < 2) // There is no need to partition it and just reading the input
+        {
+            return;
+        }
+
+
+        int number_of_elements = mrElementsConnectivities.size();
+
+        int number_of_nodes = 0;
+        // calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
+        for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
+            for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
+                if(static_cast<int>(*i_node_id) > number_of_nodes)
+                    number_of_nodes = *i_node_id;
 // KRATOS_WATCH(number_of_nodes)
 
-			//verify that all of the nodes exist
-			std::vector< bool > aux(number_of_nodes,false);
-			// calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
-			for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
-				for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
-				{
-					aux[static_cast<int>(*i_node_id)-1] = true;
-				}
-				
-			for(unsigned int i=0; i<aux.size(); i++)
-			  if(aux[i] != true)
-			  {
-			    KRATOS_ERROR(std::logic_error,"Isolated node found! The problematic node has Id  ",i+1);
-			  }
+        //verify that all of the nodes exist
+        std::vector< bool > aux(number_of_nodes,false);
+        // calculating number of nodes considering sequencial numbering!! We can get it from input for no sequencial one. Pooyan.
+        for(IO::ConnectivitiesContainerType::iterator i_element = mrElementsConnectivities.begin() ; i_element != mrElementsConnectivities.end() ; i_element++)
+            for(IO::ConnectivitiesContainerType::value_type::iterator i_node_id = i_element->begin() ; i_node_id != i_element->end() ; i_node_id++)
+            {
+                aux[static_cast<int>(*i_node_id)-1] = true;
+            }
+
+        for(unsigned int i=0; i<aux.size(); i++)
+            if(aux[i] != true)
+            {
+                KRATOS_ERROR(std::logic_error,"Isolated node found! The problematic node has Id  ",i+1);
+            }
 // KRATOS_WATCH("sequential numbering of nodes verified")
-			
-			
-			mrElementsPartitions.resize(number_of_elements);
-			mrNodesPartitions.resize(number_of_nodes);
 
 
-			idxtype* epart = &(*(mrElementsPartitions.begin()));
-			idxtype* npart = &(*(mrNodesPartitions.begin()));
+        mrElementsPartitions.resize(number_of_elements);
+        mrNodesPartitions.resize(number_of_nodes);
 
-			CallingMetis(number_of_nodes, number_of_elements, mrElementsConnectivities, npart, epart);
 
-			KRATOS_CATCH("")
-		}
+        idxtype* epart = &(*(mrElementsPartitions.begin()));
+        idxtype* npart = &(*(mrNodesPartitions.begin()));
 
+        CallingMetis(number_of_nodes, number_of_elements, mrElementsConnectivities, npart, epart);
 
-		///@}
-		///@name Access
-		///@{ 
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MetisGraphPartitioningProcess";
-		}
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MetisGraphPartitioningProcess";
-		}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MetisGraphPartitioningProcess";
+    }
 
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MetisGraphPartitioningProcess";
+    }
 
-		///@}      
-		///@name Friends
-		///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
 
+    ///@}
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		IO::ConnectivitiesContainerType& mrElementsConnectivities;
-		PartitionIndicesType& mrNodesPartitions; 
-		PartitionIndicesType& mrElementsPartitions; 		
-		SizeType mNumberOfPartitions;
 
-		SizeType mDimension;
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
+    IO::ConnectivitiesContainerType& mrElementsConnectivities;
+    PartitionIndicesType& mrNodesPartitions;
+    PartitionIndicesType& mrElementsPartitions;
+    SizeType mNumberOfPartitions;
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    SizeType mDimension;
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
-		{
-			// calculating total size of connectivity vector 
-			int connectivity_size = 0;
-			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
-				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-				connectivity_size += i_connectivities->size();
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-			int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
-			int ne = NumberOfElements;
-			int nn = NumberOfNodes;
+    void CallingMetis(SizeType NumberOfNodes, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, idxtype* NPart, idxtype* EPart)
+    {
+        // calculating total size of connectivity vector
+        int connectivity_size = 0;
+        for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
+                i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+            connectivity_size += i_connectivities->size();
 
+        int number_of_element_nodes = ElementsConnectivities.begin()->size(); // here assuming that all elements are the same!!
 
+        int ne = NumberOfElements;
+        int nn = NumberOfNodes;
 
-			int etype; 
-			if(number_of_element_nodes == 3) // triangles
-				etype = 1;
-			else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
-			{
-				if(mDimension == 2) // quadilateral
-					etype = 4; 
-				else  // tetrahedra
-					etype = 2;
-			}
-			else if(number_of_element_nodes == 8) // hexahedra
-				etype = 3;
-			else
-				KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
 
-			int numflag = 0;
-			int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-			int edgecut;
+        int etype;
+        if(number_of_element_nodes == 3) // triangles
+            etype = 1;
+        else if(number_of_element_nodes == 4) // tetrahedra or quadilateral
+        {
+            if(mDimension == 2) // quadilateral
+                etype = 4;
+            else  // tetrahedra
+                etype = 2;
+        }
+        else if(number_of_element_nodes == 8) // hexahedra
+            etype = 3;
+        else
+            KRATOS_ERROR(std::invalid_argument, "invalid element type with number of nodes : ", number_of_element_nodes);
 
-			idxtype* elmnts = new idxtype[connectivity_size];
 
-			int i = 0;
-			// Creating the elmnts array for Metis
-			for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ; 
-				i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
-				for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
-					elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
+        int numflag = 0;
+        int number_of_partitions = static_cast<int>(mNumberOfPartitions);
+        int edgecut;
 
-			// Calling Metis to partition
-			METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+        idxtype* elmnts = new idxtype[connectivity_size];
 
-			delete[] elmnts;
+        int i = 0;
+        // Creating the elmnts array for Metis
+        for(IO::ConnectivitiesContainerType::iterator i_connectivities = ElementsConnectivities.begin() ;
+                i_connectivities != ElementsConnectivities.end() ; i_connectivities++)
+            for(unsigned int j = 0 ; j < i_connectivities->size() ; j++)
+                elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
 
-		}
+        // Calling Metis to partition
+        METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
 
+        delete[] elmnts;
 
-	  
+    }
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+    ///@}
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
 
-		/// Assignment operator.
-		MetisGraphPartitioningProcess& operator=(MetisGraphPartitioningProcess const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		/// Copy constructor.
-		//MetisGraphPartitioningProcess(MetisGraphPartitioningProcess const& rOther);
 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		///@}    
+    /// Assignment operator.
+    MetisGraphPartitioningProcess& operator=(MetisGraphPartitioningProcess const& rOther);
 
-	}; // Class MetisGraphPartitioningProcess 
+    /// Copy constructor.
+    //MetisGraphPartitioningProcess(MetisGraphPartitioningProcess const& rOther);
 
-	///@} 
 
-	///@name Type Definitions       
-	///@{ 
+    ///@}
 
+}; // Class MetisGraphPartitioningProcess
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@}
 
+///@name Type Definitions
+///@{
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MetisGraphPartitioningProcess& rThis);
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MetisGraphPartitioningProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+///@}
+///@name Input and output
+///@{
 
-		return rOStream;
-	}
-	///@} 
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MetisGraphPartitioningProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MetisGraphPartitioningProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

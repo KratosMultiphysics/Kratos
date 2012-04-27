@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-15 11:11:35 $
 //   Revision:            $Revision: 1.4 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -63,34 +63,34 @@ namespace Kratos
 {
 namespace Python
 {
-		
-  using namespace boost::python;
-	
-	
-  void  AddMatrixToPython()
-  {
-	  MatrixPythonInterface<matrix<double> >::CreateInterface("Matrix")
-		  .def(init<matrix<double>::size_type, matrix<double>::size_type>())
-	    /*		  .def(MatrixScalarOperatorPython<matrix<double>, double>())
-		  .def(MatrixScalarAssignmentOperatorPython<matrix<double>, double>())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, zero_matrix<double>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, identity_matrix<double>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, scalar_matrix<double>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, banded_matrix<double>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, upper>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, lower>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, symmetric_matrix<double, upper>, matrix<double> >())
-#if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
-	          .def(MatrixMatrixOperatorPython<matrix<double>, hermitian_matrix<double, upper>, matrix<double> >())
-#endif
-	          .def(MatrixMatrixOperatorPython<matrix<double>, mapped_matrix<double>, matrix<double> >())
-	          .def(MatrixMatrixOperatorPython<matrix<double>, compressed_matrix<double>, matrix<double> >())
-#if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-	          .def(MatrixMatrixOperatorPython<matrix<double>, coordinate_matrix<double>, matrix<double> >())
-#endif*/
-		  ;
- 	}
-	
+
+using namespace boost::python;
+
+
+void  AddMatrixToPython()
+{
+    MatrixPythonInterface<matrix<double> >::CreateInterface("Matrix")
+    .def(init<matrix<double>::size_type, matrix<double>::size_type>())
+    /*		  .def(MatrixScalarOperatorPython<matrix<double>, double>())
+      .def(MatrixScalarAssignmentOperatorPython<matrix<double>, double>())
+          .def(MatrixMatrixOperatorPython<matrix<double>, zero_matrix<double>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, identity_matrix<double>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, scalar_matrix<double>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, banded_matrix<double>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, upper>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, triangular_matrix<double, lower>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, symmetric_matrix<double, upper>, matrix<double> >())
+    #if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
+          .def(MatrixMatrixOperatorPython<matrix<double>, hermitian_matrix<double, upper>, matrix<double> >())
+    #endif
+          .def(MatrixMatrixOperatorPython<matrix<double>, mapped_matrix<double>, matrix<double> >())
+          .def(MatrixMatrixOperatorPython<matrix<double>, compressed_matrix<double>, matrix<double> >())
+    #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
+          .def(MatrixMatrixOperatorPython<matrix<double>, coordinate_matrix<double>, matrix<double> >())
+    #endif*/
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

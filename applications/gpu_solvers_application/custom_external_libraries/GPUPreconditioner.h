@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosGPUApplication 
+KratosGPUApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2009
-Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 isaac.gallego.pla@gmail.com
 mossaiby@yahoo.com
@@ -45,17 +45,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <stdlib.h>
 
-class GPUPreconditioner {
+class GPUPreconditioner
+{
 public:
     GPUPreconditioner() {};
     virtual ~GPUPreconditioner() {};
 
     virtual void initialize(size_t* ptr_cpu, size_t* indices_cpu, double* values_cpu,
-        size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
-        size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged){};
-    virtual size_t solve(double* b_cpu, double* b_gpu, double* x_cpu, double* x_gpu, double precision, size_t maxIters){return 0;}
-    virtual void singleStep(double* b_gpu, double* x_gpu){};
-	virtual void cleanPreconditioner() {};
+                            size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
+                            size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged) {};
+    virtual size_t solve(double* b_cpu, double* b_gpu, double* x_cpu, double* x_gpu, double precision, size_t maxIters)
+    {
+        return 0;
+    }
+    virtual void singleStep(double* b_gpu, double* x_gpu) {};
+    virtual void cleanPreconditioner() {};
 
 private:
 

@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-15 11:11:35 $
 //   Revision:            $Revision: 1.16 $
@@ -16,10 +16,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -92,309 +92,108 @@
 
 namespace Kratos
 {
-    ///@addtogroup IncompressibleFluidApplication
-    ///@{
+///@addtogroup IncompressibleFluidApplication
+///@{
 
-    ///@name Kratos Globals
-    ///@{
+///@name Kratos Globals
+///@{
 
-    // Variables definition
-    //	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
-    //	//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ)
-    //	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONV_PROJ)
+// Variables definition
+//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(FRACT_VEL)
+//	//KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESS_PROJ)
+//	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONV_PROJ)
 
-    KRATOS_DEFINE_VARIABLE(double, MACH_NUMBER)
-    KRATOS_DEFINE_VARIABLE(double, PRESSURE_COEFFICIENT)
-    //	KRATOS_DEFINE_VARIABLE( double, PRESSURE_OLD_IT )
-    //	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
-    //	KRATOS_DEFINE_VARIABLE(double, NODAL_MASS)
-    //	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
-    //	KRATOS_DEFINE_VARIABLE(double, EXTERNAL_PRESSURE)
-    // 	KRATOS_DEFINE_VARIABLE(double, DIAMETER)
-    KRATOS_DEFINE_VARIABLE(double, PERMEABILITY_INV)
+KRATOS_DEFINE_VARIABLE(double, MACH_NUMBER)
+KRATOS_DEFINE_VARIABLE(double, PRESSURE_COEFFICIENT)
+//	KRATOS_DEFINE_VARIABLE( double, PRESSURE_OLD_IT )
+//	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
+//	KRATOS_DEFINE_VARIABLE(double, NODAL_MASS)
+//	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
+//	KRATOS_DEFINE_VARIABLE(double, EXTERNAL_PRESSURE)
+// 	KRATOS_DEFINE_VARIABLE(double, DIAMETER)
+KRATOS_DEFINE_VARIABLE(double, PERMEABILITY_INV)
 
-    //for disabling elements (e.g in the interaction)
-    KRATOS_DEFINE_VARIABLE(int, DISABLE)
+//for disabling elements (e.g in the interaction)
+KRATOS_DEFINE_VARIABLE(int, DISABLE)
 
-    KRATOS_DEFINE_VARIABLE(double, DENSITY_AIR)
+KRATOS_DEFINE_VARIABLE(double, DENSITY_AIR)
 
-    KRATOS_DEFINE_VARIABLE(double, AIR_SOUND_VELOCITY)
-    KRATOS_DEFINE_VARIABLE(double, SOUND_VELOCITY)
-    KRATOS_DEFINE_VARIABLE(int, ACTIVATE_TAU2)
-
-
-
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
-    KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+KRATOS_DEFINE_VARIABLE(double, AIR_SOUND_VELOCITY)
+KRATOS_DEFINE_VARIABLE(double, SOUND_VELOCITY)
+KRATOS_DEFINE_VARIABLE(int, ACTIVATE_TAU2)
 
 
-    ///@}
+
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+ */
+class KratosIncompressibleFluidApplication : public KratosApplication
+{
+public:
     ///@name Type Definitions
     ///@{
 
-    ///@}
-    ///@name  Enum's
-    ///@{
+
+    /// Pointer definition of KratosIncompressibleFluidApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosIncompressibleFluidApplication);
 
     ///@}
-    ///@name  Functions
+    ///@name Life Cycle
     ///@{
 
-    ///@}
-    ///@name Kratos Classes
-    ///@{
+    /// Default constructor.
+    KratosIncompressibleFluidApplication();
 
-    /// Short class definition.
-    /** Detail class definition.
-     */
-    class KratosIncompressibleFluidApplication : public KratosApplication
+    /// Destructor.
+
+    virtual ~KratosIncompressibleFluidApplication()
     {
-    public:
-        ///@name Type Definitions
-        ///@{
+    }
 
-
-        /// Pointer definition of KratosIncompressibleFluidApplication
-        KRATOS_CLASS_POINTER_DEFINITION(KratosIncompressibleFluidApplication);
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        /// Default constructor.
-        KratosIncompressibleFluidApplication();
-
-        /// Destructor.
-
-        virtual ~KratosIncompressibleFluidApplication()
-        {
-        }
-
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-
-        ///@}
-        ///@name Operations
-        ///@{
-
-        virtual void Register();
-
-
-
-        ///@}
-        ///@name Access
-
-        ///@{
-
-
-        ///@}
-        ///@name Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Input and output
-        ///@{
-
-        /// Turn back information as a string.
-
-        virtual std::string Info() const
-        {
-            return "KratosIncompressibleFluidApplication";
-        }
-
-        /// Print information about this object.
-
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-            rOStream << Info();
-            PrintData(rOStream);
-        }
-
-        ///// Print object's data.
-
-        virtual void PrintData(std::ostream& rOStream) const
-        {
-            KRATOS_WATCH("in KratosIncompressibleFluidApplication");
-            KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
-            rOStream << "Variables:" << std::endl;
-            KratosComponents<VariableData > ().PrintData(rOStream);
-            rOStream << std::endl;
-            rOStream << "Elements:" << std::endl;
-            KratosComponents<Element > ().PrintData(rOStream);
-            rOStream << std::endl;
-            rOStream << "Conditions:" << std::endl;
-            KratosComponents<Condition > ().PrintData(rOStream);
-        }
-
-
-        ///@}
-        ///@name Friends
-        ///@{
-
-
-        ///@}
-
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operators
-        ///@{
-
-
-        ///@}
-        ///@name Protected Operations
-        ///@{
-
-
-        ///@}
-        ///@name Protected  Access
-        ///@{
-
-
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
-
-
-        ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
-
-
-        //       static const ApplicationCondition  msApplicationCondition;
-
-        ///@}
-        ///@name Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Private Operators
-        ///@{
-//        const Fluid2Dlevelset mFluid2Dlevelset;
-
-        const Fluid3D mFluid3D;
-        const Fluid2D mFluid2D;
-
-        const Fluid2DCoupled mFluid2DCoupled;
-        const Fluid3DCoupled mFluid3DCoupled;
-
-        const Fluid3DNeumann mFluid3DNeumann;
-
-
-
-        const NDFluid2D mNDFluid2D;
-        const NDFluid3D mNDFluid3D;
-        const NDFluid2DCrankNicolson mNDFluid2DCrankNicolson;
-
-        const ASGS2D mASGS2D;
-        const ASGSPRDC2D mASGSPRDC2D;
-
-        const ASGSCompressible2D mASGSCompressible2D;
-
-        const ASGS3D mASGS3D;
-        const ASGSCompressible3D mASGSCompressible3D;
-
-
-
-        //const ASGS2DPARTICLE  mASGS2DPARTICLE;
-
-        const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
-        const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
-
-        const Monolithic2DNeumann mMonolithic2DNeumann;
-        //const Monolithic3DNeumann  mMonolithic3DNeumann;
-
-
-        const Fluid2DGLS_expl mFluid2DGLS_expl;
-        const Fluid3DGLS_expl mFluid3DGLS_expl;
-
-        const Fluid2DGLS mFluid2DGLS;
-
-        const Fluid2DGLS_expl_comp mFluid2DGLS_expl_comp;
-        const Fluid3DGLS_expl_comp mFluid3DGLS_expl_comp;
-
-        const ProjDirichletCond mProjDirichletCond;
-        const ProjDirichletCond3D mProjDirichletCond3D;
-
-        const Fluid2DSplit mFluid2DSplit;
-
-		const NoNewtonianASGS2D mNoNewtonianASGS2D;
-		const NoNewtonianASGS3D mNoNewtonianASGS3D;
-		const BinghamNonNewtonianASGS2D mBinghamNonNewtonianASGS2D;
-		const BinghamNonNewtonianASGS3D mBinghamNonNewtonianASGS3D;
-
-
-        const NoSlipCondition2D mNoSlipCondition2D;
-        // 		const NoSlipFractStep mNoSlipFractStep;
-
-        const ExplicitASGSCompressible2D mExplicitASGSCompressible2D;
-        const ExplicitASGSCOMPPRDC2D mExplicitASGSCOMPPRDC2D;
-
-        const ExplicitASGSCompressible3D mExplicitASGSCompressible3D;
-        const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
-
-		//const ExplicitHydro2D  mExplicitHydro2D; 
-	//const ASGSCompEnriched3D mASGSCompEnriched3D;
-
-
-        //const ABC2D mABC2D;
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        KratosIncompressibleFluidApplication & operator=(KratosIncompressibleFluidApplication const& rOther);
-
-        /// Copy constructor.
-        KratosIncompressibleFluidApplication(KratosIncompressibleFluidApplication const& rOther);
-
-
-        ///@}
-
-    }; // Class KratosIncompressibleFluidApplication
 
     ///@}
+    ///@name Operators
+    ///@{
 
 
-    ///@name Type Definitions
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Register();
+
+
+
+    ///@}
+    ///@name Access
+
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
     ///@{
 
 
@@ -402,9 +201,210 @@ namespace Kratos
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+
+    virtual std::string Info() const
+    {
+        return "KratosIncompressibleFluidApplication";
+    }
+
+    /// Print information about this object.
+
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosIncompressibleFluidApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData > ().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element > ().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition > ().PrintData(rOStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
     ///@}
 
-    ///@} IncompressibleFluidApplication group
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    //       static const ApplicationCondition  msApplicationCondition;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+//        const Fluid2Dlevelset mFluid2Dlevelset;
+
+    const Fluid3D mFluid3D;
+    const Fluid2D mFluid2D;
+
+    const Fluid2DCoupled mFluid2DCoupled;
+    const Fluid3DCoupled mFluid3DCoupled;
+
+    const Fluid3DNeumann mFluid3DNeumann;
+
+
+
+    const NDFluid2D mNDFluid2D;
+    const NDFluid3D mNDFluid3D;
+    const NDFluid2DCrankNicolson mNDFluid2DCrankNicolson;
+
+    const ASGS2D mASGS2D;
+    const ASGSPRDC2D mASGSPRDC2D;
+
+    const ASGSCompressible2D mASGSCompressible2D;
+
+    const ASGS3D mASGS3D;
+    const ASGSCompressible3D mASGSCompressible3D;
+
+
+
+    //const ASGS2DPARTICLE  mASGS2DPARTICLE;
+
+    const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
+    const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
+
+    const Monolithic2DNeumann mMonolithic2DNeumann;
+    //const Monolithic3DNeumann  mMonolithic3DNeumann;
+
+
+    const Fluid2DGLS_expl mFluid2DGLS_expl;
+    const Fluid3DGLS_expl mFluid3DGLS_expl;
+
+    const Fluid2DGLS mFluid2DGLS;
+
+    const Fluid2DGLS_expl_comp mFluid2DGLS_expl_comp;
+    const Fluid3DGLS_expl_comp mFluid3DGLS_expl_comp;
+
+    const ProjDirichletCond mProjDirichletCond;
+    const ProjDirichletCond3D mProjDirichletCond3D;
+
+    const Fluid2DSplit mFluid2DSplit;
+
+    const NoNewtonianASGS2D mNoNewtonianASGS2D;
+    const NoNewtonianASGS3D mNoNewtonianASGS3D;
+    const BinghamNonNewtonianASGS2D mBinghamNonNewtonianASGS2D;
+    const BinghamNonNewtonianASGS3D mBinghamNonNewtonianASGS3D;
+
+
+    const NoSlipCondition2D mNoSlipCondition2D;
+    // 		const NoSlipFractStep mNoSlipFractStep;
+
+    const ExplicitASGSCompressible2D mExplicitASGSCompressible2D;
+    const ExplicitASGSCOMPPRDC2D mExplicitASGSCOMPPRDC2D;
+
+    const ExplicitASGSCompressible3D mExplicitASGSCompressible3D;
+    const ExplicitASGSCOMPPRDC3D mExplicitASGSCOMPPRDC3D;
+
+    //const ExplicitHydro2D  mExplicitHydro2D;
+    //const ASGSCompEnriched3D mASGSCompEnriched3D;
+
+
+    //const ABC2D mABC2D;
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    KratosIncompressibleFluidApplication & operator=(KratosIncompressibleFluidApplication const& rOther);
+
+    /// Copy constructor.
+    KratosIncompressibleFluidApplication(KratosIncompressibleFluidApplication const& rOther);
+
+
+    ///@}
+
+}; // Class KratosIncompressibleFluidApplication
+
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+///@} IncompressibleFluidApplication group
 
 } // namespace Kratos.
 

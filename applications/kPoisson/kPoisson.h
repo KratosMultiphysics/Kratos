@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: it's me! $
 //   Date:                $Date: 2008-08-08 $
 //   Revision:            $Revision: 1.0 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -34,215 +34,215 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
+// Variables definition
 
-	// for Poisson application
+// for Poisson application
 
-	KRATOS_DEFINE_VARIABLE(double, DUMMY_UNKNOWN)
-	KRATOS_DEFINE_VARIABLE(double, DUMMY_MATERIAL)
-	KRATOS_DEFINE_VARIABLE(double, DUMMY_POINT_SOURCE)
+KRATOS_DEFINE_VARIABLE(double, DUMMY_UNKNOWN)
+KRATOS_DEFINE_VARIABLE(double, DUMMY_MATERIAL)
+KRATOS_DEFINE_VARIABLE(double, DUMMY_POINT_SOURCE)
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosR1PoissonApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosR1PoissonApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Pointer definition of KratosR1PoissonApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosR1PoissonApplication);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+    /// Pointer definition of KratosR1PoissonApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosR1PoissonApplication);
 
-		/// Default constructor.
-		KratosR1PoissonApplication();
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		/// Destructor.
-		virtual ~KratosR1PoissonApplication(){}
+    /// Default constructor.
+    KratosR1PoissonApplication();
 
+    /// Destructor.
+    virtual ~KratosR1PoissonApplication() {}
 
-		///@}
-		///@name Operators 
-		///@{
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-		///@}
-		///@name Operations
-		///@{
 
-		virtual void Register();
+    ///@}
+    ///@name Operations
+    ///@{
 
+    virtual void Register();
 
 
-		///@}
-		///@name Access
-		///@{ 
 
+    ///@}
+    ///@name Access
+    ///@{
 
-		///@}
-		///@name Inquiry
-		///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosR1PoissonApplication";
-		}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosR1PoissonApplication";
+    }
 
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosR1PoissonApplication");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosR1PoissonApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
-		///@}      
-		///@name Friends
-		///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		const Poisson2D  mPoisson2D;
+    //       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    const Poisson2D  mPoisson2D;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
 
-		/// Assignment operator.
-		KratosR1PoissonApplication& operator=(KratosR1PoissonApplication const& rOther);
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		/// Copy constructor.
-		KratosR1PoissonApplication(KratosR1PoissonApplication const& rOther);
+    /// Assignment operator.
+    KratosR1PoissonApplication& operator=(KratosR1PoissonApplication const& rOther);
 
+    /// Copy constructor.
+    KratosR1PoissonApplication(KratosR1PoissonApplication const& rOther);
 
-		///@}    
 
-	}; // Class KratosR1PoissonApplication 
+    ///@}
 
-	///@} 
+}; // Class KratosR1PoissonApplication
 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
 
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name Input and output 
-	///@{ 
 
-	///@} 
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

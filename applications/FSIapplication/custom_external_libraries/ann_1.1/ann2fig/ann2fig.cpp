@@ -6,16 +6,16 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-1998 University of Maryland and Sunil Arya and David
 // Mount.  All Rights Reserved.
-// 
-// This software and related documentation is part of the 
+//
+// This software and related documentation is part of the
 // Approximate Nearest Neighbor Library (ANN).
-// 
-// Permission to use, copy, and distribute this software and its 
-// documentation is hereby granted free of charge, provided that 
-// (1) it is not a component of a commercial product, and 
+//
+// Permission to use, copy, and distribute this software and its
+// documentation is hereby granted free of charge, provided that
+// (1) it is not a component of a commercial product, and
 // (2) this notice appears in all copies of the software and
-//     related documentation. 
-// 
+//     related documentation.
+//
 // The University of Maryland (U.M.) and the authors make no representations
 // about the suitability or fitness of this software for any purpose.  It is
 // provided "as is" without express or implied warranty.
@@ -88,7 +88,7 @@ double			scale;					// scale factor for transformation
 double			offset_x;				// offsets for transformation
 double			offset_y;
 
-										// transformations
+// transformations
 #define TRANS_X(p)		(offset_x + scale*(p[dim_x]))
 #define TRANS_Y(p)		(offset_y - scale*(p[dim_y]))
 
@@ -98,13 +98,15 @@ double			offset_y;
 
 void Error(char *msg, ANNerr level)
 {
-	if (level == ANNabort) {
-		cerr << "ann2fig: ERROR------->" << msg << "<-------------ERROR\n";
-		exit(1);
-	}
-	else {
-		cerr << "ann2fig: WARNING----->" << msg << "<-------------WARNING\n";
-	}
+    if (level == ANNabort)
+    {
+        cerr << "ann2fig: ERROR------->" << msg << "<-------------ERROR\n";
+        exit(1);
+    }
+    else
+    {
+        cerr << "ann2fig: WARNING----->" << msg << "<-------------WARNING\n";
+    }
 }
 
 //----------------------------------------------------------------------
@@ -113,20 +115,21 @@ void Error(char *msg, ANNerr level)
 
 void set_slice_val(double val)
 {
-	for (int i = 0; i < MAX_DIM; i++) {
-		slice_val[i] = val;
-	}
+    for (int i = 0; i < MAX_DIM; i++)
+    {
+        slice_val[i] = val;
+    }
 }
 
 //----------------------------------------------------------------------
 // getArgs - get input arguments
 //
 //		Syntax:
-//		ann2fig [-upi scale] [-x low_x] [-y low_y] 
+//		ann2fig [-upi scale] [-x low_x] [-y low_y]
 //				[-sz size] [-dx dim_x] [-dy dim_y] [-sl dim value]*
 //				[-ps pointsize]
 //				file
-//		
+//
 //		where:
 //			-upi scale			fig units per inch (default = 1200)
 //			-x low_x			x and y offset of upper left corner (inches)
@@ -147,14 +150,15 @@ void set_slice_val(double val)
 
 void getArgs(int argc, char **argv)
 {
-	int i;
-	int sl_dim;									// temp slice dimension
-	double sl_val;								// temp slice value
+    int i;
+    int sl_dim;									// temp slice dimension
+    double sl_val;								// temp slice value
 
-	set_slice_val(DEF_SLICE_VAL);				// set initial slice-values
+    set_slice_val(DEF_SLICE_VAL);				// set initial slice-values
 
-	if (argc <= 1) {
-		cerr << "Syntax:\n\
+    if (argc <= 1)
+    {
+        cerr << "Syntax:\n\
         ann2fig [-upi scale] [-x low_x] [-y low_y]\n\
                 [-sz size] [-dx dim_x] [-dy dim_y] [-sl dim value]*\n\
                 file\n\
@@ -174,76 +178,92 @@ void getArgs(int argc, char **argv)
                                 ...dim_x and dim_y.\n\
             -ps pointsize       size of points in fig units (def = 10)\n\
             file                file (input=file.dmp, output=file.fig)\n";
-		exit(0);
-	}
+        exit(0);
+    }
 
-	ANNbool fileSeen = ANNfalse;				// file argument seen?
+    ANNbool fileSeen = ANNfalse;				// file argument seen?
 
-	for (i = 1; i < argc; i++) {
-		if (!strcmp(argv[i], "-upi")) {			// process -upi option
-			sscanf(argv[++i], "%lf", &u_per_in);
-		}
-		else if (!strcmp(argv[i], "-x")) {		// process -x option
-			sscanf(argv[++i], "%lf", &in_low_x);
-		}
-		else if (!strcmp(argv[i], "-y")) {		// process -y option
-			sscanf(argv[++i], "%lf", &in_low_y);
-		}
-		else if (!strcmp(argv[i], "-sz")) {		// process -sz option
-			sscanf(argv[++i], "%lf", &in_size);
-		}
-		else if (!strcmp(argv[i], "-dx")) {		// process -dx option
-			sscanf(argv[++i], "%d", &dim_x);
-		}
-		else if (!strcmp(argv[i], "-dy")) {		// process -dy option
-			sscanf(argv[++i], "%d", &dim_y);
-		}
-		else if (!strcmp(argv[i], "-sv")) {		// process -sv option
-			sscanf(argv[++i], "%lf", &sl_val);
-			set_slice_val(sl_val);				// set slice values
-		}
-		else if (!strcmp(argv[i], "-sl")) {		// process -sl option
-			sscanf(argv[++i], "%d", &sl_dim);
-			if (sl_dim < 0 || sl_dim >= MAX_DIM) {
-				Error("Slice dimension out of bounds", ANNabort);
-			}
-			sscanf(argv[++i], "%lf", &slice_val[sl_dim]);
-		}
-		if (!strcmp(argv[i], "-ps")) {			// process -ps option
-			sscanf(argv[++i], "%i", &pt_size);
-		}
-		else {									// must be file name
-			fileSeen = ANNtrue;
-			sscanf(argv[i], "%s", file_name);
-			strcpy(infile_name, file_name);		// copy to input file name
-	    	strcat(infile_name, DUMP_SUFFIX);
-	    	strcpy(outfile_name, file_name);	// copy to output file name
-	    	strcat(outfile_name, FIG_SUFFIX);
-		}
-	}
+    for (i = 1; i < argc; i++)
+    {
+        if (!strcmp(argv[i], "-upi"))  			// process -upi option
+        {
+            sscanf(argv[++i], "%lf", &u_per_in);
+        }
+        else if (!strcmp(argv[i], "-x"))  		// process -x option
+        {
+            sscanf(argv[++i], "%lf", &in_low_x);
+        }
+        else if (!strcmp(argv[i], "-y"))  		// process -y option
+        {
+            sscanf(argv[++i], "%lf", &in_low_y);
+        }
+        else if (!strcmp(argv[i], "-sz"))  		// process -sz option
+        {
+            sscanf(argv[++i], "%lf", &in_size);
+        }
+        else if (!strcmp(argv[i], "-dx"))  		// process -dx option
+        {
+            sscanf(argv[++i], "%d", &dim_x);
+        }
+        else if (!strcmp(argv[i], "-dy"))  		// process -dy option
+        {
+            sscanf(argv[++i], "%d", &dim_y);
+        }
+        else if (!strcmp(argv[i], "-sv"))  		// process -sv option
+        {
+            sscanf(argv[++i], "%lf", &sl_val);
+            set_slice_val(sl_val);				// set slice values
+        }
+        else if (!strcmp(argv[i], "-sl"))  		// process -sl option
+        {
+            sscanf(argv[++i], "%d", &sl_dim);
+            if (sl_dim < 0 || sl_dim >= MAX_DIM)
+            {
+                Error("Slice dimension out of bounds", ANNabort);
+            }
+            sscanf(argv[++i], "%lf", &slice_val[sl_dim]);
+        }
+        if (!strcmp(argv[i], "-ps"))  			// process -ps option
+        {
+            sscanf(argv[++i], "%i", &pt_size);
+        }
+        else  									// must be file name
+        {
+            fileSeen = ANNtrue;
+            sscanf(argv[i], "%s", file_name);
+            strcpy(infile_name, file_name);		// copy to input file name
+            strcat(infile_name, DUMP_SUFFIX);
+            strcpy(outfile_name, file_name);	// copy to output file name
+            strcat(outfile_name, FIG_SUFFIX);
+        }
+    }
 
-	if (!fileSeen) {							// no file seen
-		Error("File argument is required", ANNabort);
-	}
+    if (!fileSeen)  							// no file seen
+    {
+        Error("File argument is required", ANNabort);
+    }
 
-	ifile.open(infile_name, ios::in);			// open for reading
-	if (!ifile) {
-		Error("Cannot open input file", ANNabort);
-	}
-	ofile.open(outfile_name, ios::out);			// open for writing
-	if (!ofile) {
-		Error("Cannot open output file", ANNabort);
-	}
+    ifile.open(infile_name, ios::in);			// open for reading
+    if (!ifile)
+    {
+        Error("Cannot open input file", ANNabort);
+    }
+    ofile.open(outfile_name, ios::out);			// open for writing
+    if (!ofile)
+    {
+        Error("Cannot open output file", ANNabort);
+    }
 
-	u_low_x = u_per_in * in_low_x;				// convert inches to fig units
-	u_low_y = u_per_in * in_low_y;
-	u_size  = u_per_in * in_size;
+    u_low_x = u_per_in * in_low_x;				// convert inches to fig units
+    u_low_y = u_per_in * in_low_y;
+    u_size  = u_per_in * in_size;
 
-	strcpy(caption, argv[0]);					// copy command line to caption
-	for (i = 1; i < argc; i++) {
-		strcat(caption, " ");
-		strcat(caption, argv[i]);
-	}
+    strcpy(caption, argv[0]);					// copy command line to caption
+    for (i = 1; i < argc; i++)
+    {
+        strcat(caption, " ");
+        strcat(caption, argv[i]);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -257,65 +277,65 @@ void getArgs(int argc, char **argv)
 
 void writeHeader()
 {
-	ofile << FIG_HEAD << "\n"					// fig file header
-		 << "Portrait\n"
-		 << "Center\n"
-		 << "Inches\n"
-		 << (int) u_per_in << " 2\n";
+    ofile << FIG_HEAD << "\n"					// fig file header
+          << "Portrait\n"
+          << "Center\n"
+          << "Inches\n"
+          << (int) u_per_in << " 2\n";
 }
 
 void writePoint(ANNpoint p)						// write a single point
 {
-												// filled black point object
-	ofile << "1 3 0 1 -1 7 0 0 0 0.000 1 0.0000 ";
-	int cent_x = (int) TRANS_X(p);				// transform center coords
-	int cent_y = (int) TRANS_Y(p);
-	ofile << cent_x << " " << cent_y << " "		// write center, radius, bounds
-		 << pt_size << " " << pt_size << " "
-		 << cent_x << " " << cent_y << " "
-		 << cent_x + pt_size << " " << cent_y + pt_size << "\n";
+    // filled black point object
+    ofile << "1 3 0 1 -1 7 0 0 0 0.000 1 0.0000 ";
+    int cent_x = (int) TRANS_X(p);				// transform center coords
+    int cent_y = (int) TRANS_Y(p);
+    ofile << cent_x << " " << cent_y << " "		// write center, radius, bounds
+          << pt_size << " " << pt_size << " "
+          << cent_x << " " << cent_y << " "
+          << cent_x + pt_size << " " << cent_y + pt_size << "\n";
 }
 
 void writeBox(const ANNorthRect &r)				// write box
 {
-												// unfilled box object
-	ofile << "2 2 0 1 -1 7 0 0 -1 0.000 0 0 -1 0 0 5\n";
+    // unfilled box object
+    ofile << "2 2 0 1 -1 7 0 0 -1 0.000 0 0 -1 0 0 5\n";
 
-	int p0_x = (int) TRANS_X(r.lo);				// transform endpoints
-	int p0_y = (int) TRANS_Y(r.lo);
-	int p1_x = (int) TRANS_X(r.hi);
-	int p1_y = (int) TRANS_Y(r.hi);
-	ofile << "\t"
-		 << p0_x << " " << p0_y << " "			// write vertices
-		 << p1_x << " " << p0_y << " "
-		 << p1_x << " " << p1_y << " "
-		 << p0_x << " " << p1_y << " "
-		 << p0_x << " " << p0_y << "\n";
+    int p0_x = (int) TRANS_X(r.lo);				// transform endpoints
+    int p0_y = (int) TRANS_Y(r.lo);
+    int p1_x = (int) TRANS_X(r.hi);
+    int p1_y = (int) TRANS_Y(r.hi);
+    ofile << "\t"
+          << p0_x << " " << p0_y << " "			// write vertices
+          << p1_x << " " << p0_y << " "
+          << p1_x << " " << p1_y << " "
+          << p0_x << " " << p1_y << " "
+          << p0_x << " " << p0_y << "\n";
 }
 
 void writeLine(ANNpoint p0, ANNpoint p1)		// write line
 {
-												// unfilled line object
-	ofile << "2 1 0 1 -1 7 0 0 -1 0.000 0 0 -1 0 0 2\n";
+    // unfilled line object
+    ofile << "2 1 0 1 -1 7 0 0 -1 0.000 0 0 -1 0 0 2\n";
 
-	int p0_x = (int) TRANS_X(p0);				// transform endpoints
-	int p0_y = (int) TRANS_Y(p0);
-	int p1_x = (int) TRANS_X(p1);
-	int p1_y = (int) TRANS_Y(p1);
-	ofile << "\t"
-		 << p0_x << " " << p0_y << " "			// write vertices
-		 << p1_x << " " << p1_y << "\n";
+    int p0_x = (int) TRANS_X(p0);				// transform endpoints
+    int p0_y = (int) TRANS_Y(p0);
+    int p1_x = (int) TRANS_X(p1);
+    int p1_y = (int) TRANS_Y(p1);
+    ofile << "\t"
+          << p0_x << " " << p0_y << " "			// write vertices
+          << p1_x << " " << p1_y << "\n";
 }
 
 void writeCaption(								// write caption text
-	const ANNorthRect	&bnd_box,				// bounding box
-	char				*caption)				// caption
+    const ANNorthRect	&bnd_box,				// bounding box
+    char				*caption)				// caption
 {
-	if (!strcmp(caption, "\0")) return;			// null string?
-	int px = (int) TRANS_X(bnd_box.lo);			// put .5 in. lower left
-	int py = (int) (TRANS_Y(bnd_box.lo) + 0.50 * u_per_in); 
-	ofile << "4 0 -1 0 0 0 20 0.0000 4 255 2000 ";
-	ofile << px << " " << py << " " << caption << "\\001\n";
+    if (!strcmp(caption, "\0")) return;			// null string?
+    int px = (int) TRANS_X(bnd_box.lo);			// put .5 in. lower left
+    int py = (int) (TRANS_Y(bnd_box.lo) + 0.50 * u_per_in);
+    ofile << "4 0 -1 0 0 0 20 0.0000 4 255 2000 ";
+    ofile << px << " " << py << " " << caption << "\\001\n";
 }
 
 //----------------------------------------------------------------------
@@ -333,12 +353,13 @@ void writeCaption(								// write caption text
 
 ANNbool overlap(const ANNorthRect &box)
 {
-	for (int i = 0; i < dim; i++) {
-		if (i != dim_x && i != dim_y &&
-		   (box.lo[i] > slice_val[i] || box.hi[i] < slice_val[i]))
-			return ANNfalse;
-	}
-	return ANNtrue;
+    for (int i = 0; i < dim; i++)
+    {
+        if (i != dim_x && i != dim_y &&
+                (box.lo[i] > slice_val[i] || box.hi[i] < slice_val[i]))
+            return ANNfalse;
+    }
+    return ANNtrue;
 }
 
 //----------------------------------------------------------------------
@@ -378,97 +399,110 @@ ANNbool overlap(const ANNorthRect &box)
 
 void recReadTree(ANNorthRect &box)
 {
-	char tag[STRING_LEN];						// tag (leaf, split, shrink)
-	int n_pts;									// number of points in leaf
-	int idx;									// point index
-	int cd;										// cut dimension
-	ANNcoord cv;								// cut value
-	ANNcoord lb;								// low bound
-	ANNcoord hb;								// high bound
-	int n_bnds;									// number of bounding sides
-	int sd;										// which side
+    char tag[STRING_LEN];						// tag (leaf, split, shrink)
+    int n_pts;									// number of points in leaf
+    int idx;									// point index
+    int cd;										// cut dimension
+    ANNcoord cv;								// cut value
+    ANNcoord lb;								// low bound
+    ANNcoord hb;								// high bound
+    int n_bnds;									// number of bounding sides
+    int sd;										// which side
 
-	ifile >> tag;								// input node tag
-	if (strcmp(tag, "leaf") == 0) {				// leaf node
+    ifile >> tag;								// input node tag
+    if (strcmp(tag, "leaf") == 0)  				// leaf node
+    {
 
-		ifile >> n_pts;							// input number of points
-												// check for overlap
-		if (dim == 2 || overlap(box)) { 
-			for (int i = 0; i < n_pts; i++) {	// yes, write the points
-				ifile >> idx;
-				writePoint(pts[idx]);
-			}
-		}
-		else {									// input but ignore points
-			for (int i = 0; i < n_pts; i++) {
-				ifile >> idx;
-			}
-		}
-	}
-	else if (strcmp(tag, "split") == 0) {		// splitting node
+        ifile >> n_pts;							// input number of points
+        // check for overlap
+        if (dim == 2 || overlap(box))
+        {
+            for (int i = 0; i < n_pts; i++)  	// yes, write the points
+            {
+                ifile >> idx;
+                writePoint(pts[idx]);
+            }
+        }
+        else  									// input but ignore points
+        {
+            for (int i = 0; i < n_pts; i++)
+            {
+                ifile >> idx;
+            }
+        }
+    }
+    else if (strcmp(tag, "split") == 0)  		// splitting node
+    {
 
-		ifile >> cd >> cv >> lb >> hb;
-		if (lb != box.lo[cd] || hb != box.hi[cd]) {
-			Error("Bounding box coordinates are fishy", ANNwarn);
-		}
+        ifile >> cd >> cv >> lb >> hb;
+        if (lb != box.lo[cd] || hb != box.hi[cd])
+        {
+            Error("Bounding box coordinates are fishy", ANNwarn);
+        }
 
-		ANNcoord lv = box.lo[cd];				// save bounds for cutting dim
-		ANNcoord hv = box.hi[cd];
+        ANNcoord lv = box.lo[cd];				// save bounds for cutting dim
+        ANNcoord hv = box.hi[cd];
 
-		//--------------------------------------------------------------
-		//	The following code is rather fragile so modify at your
-		//	own risk.  We first decrease the high-end of the bounding
-		//	box down to the cutting plane and then read the left subtree.
-		//	Then we increase the low-end of the bounding box up to the
-		//	cutting plane (thus collapsing the bounding box to a d-1
-		//	dimensional hyperrectangle).  Then we draw the projection of
-		//	its diagonal if it crosses the slicing plane.  This will have
-		//	the effect of drawing its intersection on the slicing plane.
-		//	Then we restore the high-end of the bounding box and read
-		//	the right subtree.  Finally we restore the low-end of the
-		//	bounding box, before returning.
-		//--------------------------------------------------------------
-		box.hi[cd] = cv;						// decrease high bounds
-		recReadTree(box);						// read left subtree
-												// check for overlap
-		box.lo[cd] = cv;						// increase low bounds
-		if (dim == 2 || overlap(box)) {			// check for overlap
-			if (cd == dim_x || cd == dim_y) {	// cut through slice plane
-				writeLine(box.lo, box.hi);		// draw cutting line
-			}
-		}
-		box.hi[cd] = hv;						// restore high bounds
+        //--------------------------------------------------------------
+        //	The following code is rather fragile so modify at your
+        //	own risk.  We first decrease the high-end of the bounding
+        //	box down to the cutting plane and then read the left subtree.
+        //	Then we increase the low-end of the bounding box up to the
+        //	cutting plane (thus collapsing the bounding box to a d-1
+        //	dimensional hyperrectangle).  Then we draw the projection of
+        //	its diagonal if it crosses the slicing plane.  This will have
+        //	the effect of drawing its intersection on the slicing plane.
+        //	Then we restore the high-end of the bounding box and read
+        //	the right subtree.  Finally we restore the low-end of the
+        //	bounding box, before returning.
+        //--------------------------------------------------------------
+        box.hi[cd] = cv;						// decrease high bounds
+        recReadTree(box);						// read left subtree
+        // check for overlap
+        box.lo[cd] = cv;						// increase low bounds
+        if (dim == 2 || overlap(box))  			// check for overlap
+        {
+            if (cd == dim_x || cd == dim_y)  	// cut through slice plane
+            {
+                writeLine(box.lo, box.hi);		// draw cutting line
+            }
+        }
+        box.hi[cd] = hv;						// restore high bounds
 
-		recReadTree(box);						// read right subtree
-		box.lo[cd] = lv;						// restore low bounds
-	}
-	else if (strcmp(tag, "shrink") == 0) {		// splitting node
+        recReadTree(box);						// read right subtree
+        box.lo[cd] = lv;						// restore low bounds
+    }
+    else if (strcmp(tag, "shrink") == 0)  		// splitting node
+    {
 
-		ANNorthRect inner(dim, box);			// copy bounding box
-		ifile >> n_bnds;						// number of bounding sides
-		for (int i = 0; i < n_bnds; i++) {
-			ifile >> cd >> cv >> sd;			// input bounding halfspace
-			ANNorthHalfSpace hs(cd, cv, sd);	// create orthogonal halfspace
-			hs.project(inner.lo);				// intersect by projecting
-			hs.project(inner.hi);
-		}
-		if (dim == 2 || overlap(inner)) {
-			writeBox(inner);					// draw inner rectangle
-		}
-		recReadTree(inner);						// read inner subtree
-		recReadTree(box);						// read outer subtree
-	}
-	else {
-		Error("Illegal node type in dump file", ANNabort);
-	}
+        ANNorthRect inner(dim, box);			// copy bounding box
+        ifile >> n_bnds;						// number of bounding sides
+        for (int i = 0; i < n_bnds; i++)
+        {
+            ifile >> cd >> cv >> sd;			// input bounding halfspace
+            ANNorthHalfSpace hs(cd, cv, sd);	// create orthogonal halfspace
+            hs.project(inner.lo);				// intersect by projecting
+            hs.project(inner.hi);
+        }
+        if (dim == 2 || overlap(inner))
+        {
+            writeBox(inner);					// draw inner rectangle
+        }
+        recReadTree(inner);						// read inner subtree
+        recReadTree(box);						// read outer subtree
+    }
+    else
+    {
+        Error("Illegal node type in dump file", ANNabort);
+    }
 }
 
 void readTree(ANNorthRect &bnd_box)
 {
-	writeHeader();								// output header
-	writeBox(bnd_box);							// draw bounding box
-	writeCaption(bnd_box, caption);				// write caption
-	recReadTree(bnd_box);						// do it
+    writeHeader();								// output header
+    writeBox(bnd_box);							// draw bounding box
+    writeCaption(bnd_box, caption);				// write caption
+    recReadTree(bnd_box);						// do it
 }
 
 //----------------------------------------------------------------------
@@ -494,7 +528,7 @@ void readTree(ANNorthRect &bnd_box)
 //		<xxx> <xxx> ... <xxx>			(upper end of bounding box)
 //				If the tree is null, then a single line "null" is
 //				output.  Otherwise the nodes of the tree are printed
-//				one per line in preorder.  Leaves and splitting nodes 
+//				one per line in preorder.  Leaves and splitting nodes
 //				have the following formats:
 //		Leaf node:
 //				leaf <n_pts> <bkt[0]> <bkt[1]> ... <bkt[n-1]>
@@ -515,64 +549,74 @@ void readTree(ANNorthRect &bnd_box)
 
 void readANN()
 {
-	int j;
-	char str[STRING_LEN];						// storage for string
+    int j;
+    char str[STRING_LEN];						// storage for string
     char version[STRING_LEN];					// storage for version
-	int  bkt_size;								// bucket size
+    int  bkt_size;								// bucket size
 
-	ifile >> str;								// input header
-	if (strcmp(str, "#ANN") != 0) {				// incorrect header
-		Error("Incorrect header for dump file", ANNabort);
-	}
+    ifile >> str;								// input header
+    if (strcmp(str, "#ANN") != 0)  				// incorrect header
+    {
+        Error("Incorrect header for dump file", ANNabort);
+    }
     ifile.getline(version, STRING_LEN);			// get version (ignore)
-	ifile >> str;								// get major heading
-	if (strcmp(str, "points") == 0) {			// points section
-		ifile >> dim;							// read dimension
-		ifile >> n_pts;							// number of points
-		pts = annAllocPts(n_pts, dim);			// allocate points
-		for (int i = 0; i < n_pts; i++) {		// input point coordinates
-			int idx;							// point index
-			ifile >> idx;						// input point index
-			if (idx < 0 || idx >= n_pts) {
-				Error("Point index is out of range", ANNabort);
-			}
-			for (j = 0; j < dim; j++) {
-				ifile >> pts[idx][j];			// read point coordinates
-			}
-		}
-		ifile >> str;							// get next major heading
-	}
-	if (strcmp(str, "tree") == 0) {				// tree section
-		ifile >> dim;							// read dimension
-		if (dim_x > dim || dim_y > dim) {
-			Error("Dimensions out of bounds", ANNabort);
-		}
-		ifile >> n_pts;							// number of points
-		ifile >> bkt_size;						// bucket size (ignored)
-												// read bounding box
-		ANNorthRect bnd_box(dim);				// create bounding box
-		for (j = 0; j < dim; j++) {
-			ifile >> bnd_box.lo[j];				// read box low coordinates
-		}
-		for (j = 0; j < dim; j++) {
-			ifile >> bnd_box.hi[j];				// read box high coordinates
-		}
-												// compute scaling factors
-		double box_len_x = bnd_box.hi[dim_x] - bnd_box.lo[dim_x];
-		double box_len_y = bnd_box.hi[dim_y] - bnd_box.lo[dim_y];
-												// longer side determines scale
-		if (box_len_x > box_len_y) scale = u_size/box_len_x;
-		else					   scale = u_size/box_len_y;
-												// compute offsets
-		offset_x = u_low_x - scale*bnd_box.lo[dim_x];
-		offset_y = u_low_y + scale*bnd_box.hi[dim_y];
-		readTree(bnd_box);						// read the tree and process
-	}
-	else if (strcmp(str, "null") == 0) return;	// empty tree
-	else {
-		cerr << "Input string: " << str << "\n";
-		Error("Illegal ann format.  Expecting section heading", ANNabort);
-	}
+    ifile >> str;								// get major heading
+    if (strcmp(str, "points") == 0)  			// points section
+    {
+        ifile >> dim;							// read dimension
+        ifile >> n_pts;							// number of points
+        pts = annAllocPts(n_pts, dim);			// allocate points
+        for (int i = 0; i < n_pts; i++)  		// input point coordinates
+        {
+            int idx;							// point index
+            ifile >> idx;						// input point index
+            if (idx < 0 || idx >= n_pts)
+            {
+                Error("Point index is out of range", ANNabort);
+            }
+            for (j = 0; j < dim; j++)
+            {
+                ifile >> pts[idx][j];			// read point coordinates
+            }
+        }
+        ifile >> str;							// get next major heading
+    }
+    if (strcmp(str, "tree") == 0)  				// tree section
+    {
+        ifile >> dim;							// read dimension
+        if (dim_x > dim || dim_y > dim)
+        {
+            Error("Dimensions out of bounds", ANNabort);
+        }
+        ifile >> n_pts;							// number of points
+        ifile >> bkt_size;						// bucket size (ignored)
+        // read bounding box
+        ANNorthRect bnd_box(dim);				// create bounding box
+        for (j = 0; j < dim; j++)
+        {
+            ifile >> bnd_box.lo[j];				// read box low coordinates
+        }
+        for (j = 0; j < dim; j++)
+        {
+            ifile >> bnd_box.hi[j];				// read box high coordinates
+        }
+        // compute scaling factors
+        double box_len_x = bnd_box.hi[dim_x] - bnd_box.lo[dim_x];
+        double box_len_y = bnd_box.hi[dim_y] - bnd_box.lo[dim_y];
+        // longer side determines scale
+        if (box_len_x > box_len_y) scale = u_size/box_len_x;
+        else					   scale = u_size/box_len_y;
+        // compute offsets
+        offset_x = u_low_x - scale*bnd_box.lo[dim_x];
+        offset_y = u_low_y + scale*bnd_box.hi[dim_y];
+        readTree(bnd_box);						// read the tree and process
+    }
+    else if (strcmp(str, "null") == 0) return;	// empty tree
+    else
+    {
+        cerr << "Input string: " << str << "\n";
+        Error("Illegal ann format.  Expecting section heading", ANNabort);
+    }
 }
 
 //----------------------------------------------------------------------
@@ -584,6 +628,6 @@ void readANN()
 
 main(int argc, char **argv)
 {
-	getArgs(argc, argv);						// get input arguments
-	readANN();									// read the dump file
+    getArgs(argc, argv);						// get input arguments
+    readANN();									// read the dump file
 }

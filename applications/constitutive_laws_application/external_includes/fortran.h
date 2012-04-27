@@ -26,30 +26,30 @@ typedef int     LOGICAL;          // LOGICAL              4 bytes
 
 // Macros for portable handling of linkage & calling conventions
 #ifdef F77_STUB_REQUIRED
-   // Typically, this branch is for Unix computers
+// Typically, this branch is for Unix computers
 
-   // C++ stub functions:
-   #define SUBROUTINE                    inline void
-   #define INTEGER_FUNCTION              inline INTEGER
-   #define REAL_FUNCTION                 inline REAL
-   #define LOGICAL_FUNCTION              inline LOGICAL
-   #define DOUBLE_PRECISION_FUNCTION     inline DOUBLE_PRECISION
+// C++ stub functions:
+#define SUBROUTINE                    inline void
+#define INTEGER_FUNCTION              inline INTEGER
+#define REAL_FUNCTION                 inline REAL
+#define LOGICAL_FUNCTION              inline LOGICAL
+#define DOUBLE_PRECISION_FUNCTION     inline DOUBLE_PRECISION
 
-   // FORTRAN functions
-   #define SUBROUTINE_F77                extern "C" void
-   #define INTEGER_FUNCTION_F77          extern "C" int
-   #define REAL_FUNCTION_F77             extern "C" float
-   #define LOGICAL_FUNCTION_F77          extern "C" int
-   #define DOUBLE_PRECISION_FUNCTION_F77 extern "C" double
+// FORTRAN functions
+#define SUBROUTINE_F77                extern "C" void
+#define INTEGER_FUNCTION_F77          extern "C" int
+#define REAL_FUNCTION_F77             extern "C" float
+#define LOGICAL_FUNCTION_F77          extern "C" int
+#define DOUBLE_PRECISION_FUNCTION_F77 extern "C" double
 #else
-   // MS Windows using Microsoft compilers
+// MS Windows using Microsoft compilers
 
-   // FORTRAN functions
-   #define SUBROUTINE            extern "C" void           __stdcall
-   #define INTEGER_FUNCTION      extern "C" INTEGER        __stdcall
-   #define REAL_FUNCTION         extern "C" REAL           __stdcall
-   #define LOGICAL_FUNCTION      extern "C" LOGICAL        __stdcall
-   #define DOUBLE_PRECISION_FUNCTION extern "C" DOUBLE_PRECISION \
+// FORTRAN functions
+#define SUBROUTINE            extern "C" void           __stdcall
+#define INTEGER_FUNCTION      extern "C" INTEGER        __stdcall
+#define REAL_FUNCTION         extern "C" REAL           __stdcall
+#define LOGICAL_FUNCTION      extern "C" LOGICAL        __stdcall
+#define DOUBLE_PRECISION_FUNCTION extern "C" DOUBLE_PRECISION \
                                                            __stdcall
 #endif
 #endif

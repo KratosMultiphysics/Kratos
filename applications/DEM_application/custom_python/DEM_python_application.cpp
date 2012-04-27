@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosDEMApplication 
+KratosDEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,59 +41,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "DEM_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosDEMApplication)
-  {
 
-	  class_<KratosDEMApplication,
-			  KratosDEMApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosDEMApplication")
-			;
+BOOST_PYTHON_MODULE(KratosDEMApplication)
+{
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
+    class_<KratosDEMApplication,
+           KratosDEMApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosDEMApplication")
+           ;
 
-	//registering variables in python
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
+
+    //registering variables in python
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 
-  }
-  
-  
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -101,99 +101,99 @@ GIDPOST_API
 FCALLSCFUN0(INT,GiD_EndOnMeshGroup,GID_ENDONMESHGROUP,gid_endonmeshgroup);
 
 int GiD_BeginScalarResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			  GiD_ResultLocation Where,
-			  GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			  GP_CONST char * Comp);
+                          GiD_ResultLocation Where,
+                          GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                          GP_CONST char * Comp);
 
 GIDPOST_API
 FCALLSCFUN7(INT,GiD_BeginScalarResult,GID_BEGINSCALARRESULT,gid_beginscalarresult,STRING,STRING,DOUBLE,INT,STRING,STRING,STRING);
 
 int GiD_BeginVectorResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			  GiD_ResultLocation Where,
-			  GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			  GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
-			  GP_CONST char * Comp4);
+                          GiD_ResultLocation Where,
+                          GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                          GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
+                          GP_CONST char * Comp4);
 
 GIDPOST_API
 FCALLSCFUN10(INT,GiD_BeginVectorResult,GID_BEGINVECTORRESULT,gid_beginvectorresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	    STRING,STRING,STRING,STRING);
+             STRING,STRING,STRING,STRING);
 
 int GiD_Begin2DMatResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			 GiD_ResultLocation Where,
-			 GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			 GP_CONST char * Comp1, GP_CONST char * Comp2,
-			 GP_CONST char * Comp3);
+                         GiD_ResultLocation Where,
+                         GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                         GP_CONST char * Comp1, GP_CONST char * Comp2,
+                         GP_CONST char * Comp3);
 
 GIDPOST_API
 FCALLSCFUN9(INT,GiD_Begin2DMatResult,GID_BEGIN2DMATRESULT,gid_begin2dmatresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	    STRING,STRING,STRING);
+            STRING,STRING,STRING);
 
 int GiD_Begin3DMatResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			 GiD_ResultLocation Where,
-			 GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			 GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
-			 GP_CONST char * Comp4, GP_CONST char * Comp5, GP_CONST char * Comp6);
+                         GiD_ResultLocation Where,
+                         GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                         GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
+                         GP_CONST char * Comp4, GP_CONST char * Comp5, GP_CONST char * Comp6);
 
 GIDPOST_API
 FCALLSCFUN12(INT,GiD_Begin3DMatResult,GID_BEGIN3DMATRESULT,gid_begin3dmatresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	    STRING,STRING,STRING,STRING,STRING,STRING);
+             STRING,STRING,STRING,STRING,STRING,STRING);
 
 int GiD_BeginPDMMatResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			  GiD_ResultLocation Where,
-			  GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			  GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
-			  GP_CONST char * Comp4);
+                          GiD_ResultLocation Where,
+                          GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                          GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
+                          GP_CONST char * Comp4);
 
 GIDPOST_API
 FCALLSCFUN10(INT,GiD_BeginPDMMatResult,GID_BEGINPDMMATRESULT,gid_beginpdmmatresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	     STRING,STRING,STRING,STRING);
+             STRING,STRING,STRING,STRING);
 
 int GiD_BeginMainMatResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-			   GiD_ResultLocation Where,
-			   GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-			   GP_CONST char * Comp1,  GP_CONST char * Comp2,  GP_CONST char * Comp3,
-			   GP_CONST char * Comp4,  GP_CONST char * Comp5,  GP_CONST char * Comp6,
-			   GP_CONST char * Comp7,  GP_CONST char * Comp8,  GP_CONST char * Comp9,
-			   GP_CONST char * Comp10, GP_CONST char * Comp11, GP_CONST char * Comp12);
+                           GiD_ResultLocation Where,
+                           GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                           GP_CONST char * Comp1,  GP_CONST char * Comp2,  GP_CONST char * Comp3,
+                           GP_CONST char * Comp4,  GP_CONST char * Comp5,  GP_CONST char * Comp6,
+                           GP_CONST char * Comp7,  GP_CONST char * Comp8,  GP_CONST char * Comp9,
+                           GP_CONST char * Comp10, GP_CONST char * Comp11, GP_CONST char * Comp12);
 
 GIDPOST_API
 FCALLSCFUN18(INT,GiD_BeginMainMatResult,GID_BEGINMAINMATRESULT,gid_beginmainmatresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	     STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING);
+             STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING,STRING);
 
 int GiD_BeginLAResult(GP_CONST char * Result, GP_CONST char * Analysis, double step,
-		      GiD_ResultLocation Where,
-		      GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
-		      GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3);
+                      GiD_ResultLocation Where,
+                      GP_CONST char * GaussPointsName, GP_CONST char * RangeTable,
+                      GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3);
 
 GIDPOST_API
 FCALLSCFUN9(INT,GiD_BeginLAResult,GID_BEGINLARESULT,gid_beginlaresult,STRING,STRING,DOUBLE,INT,STRING,STRING,
-	    STRING,STRING,STRING);
+            STRING,STRING,STRING);
 
 GIDPOST_API
 FCALLSCFUN6(INT, GiD_BeginResultHeader, GID_BEGINRESULTHEADER, gid_beginresultheader,
-	    STRING,  /* Result name */
-	    STRING,  /* Analisys name */
-	    DOUBLE,  /* step value */
-	    INT,     /* result type */
-	    INT,     /* result location */
-	    STRING); /* location name */
+            STRING,  /* Result name */
+            STRING,  /* Analisys name */
+            DOUBLE,  /* step value */
+            INT,     /* result type */
+            INT,     /* result location */
+            STRING); /* location name */
 
 GIDPOST_API
 FCALLSCFUN4(INT, GiD_BeginResultGroup, GID_BEGINRESULTGROUP, gid_beginresultgroup,
-	    STRING,  /* Analisys name */
-	    DOUBLE,  /* step value */
-	    INT,     /* result location */
-	    STRING); /* location name */
+            STRING,  /* Analisys name */
+            DOUBLE,  /* step value */
+            INT,     /* result location */
+            STRING); /* location name */
 
 GIDPOST_API
 FCALLSCFUN2(INT, GiD_ResultDescription, GID_RESULTDESCRIPTION, gid_resultdescription,
-	    STRING,  /* Result name */
-	    INT);    /* result type */
+            STRING,  /* Result name */
+            INT);    /* result type */
 
 GIDPOST_API
 FCALLSCFUN3(INT, GiD_ResultDescriptionDim, GID_RESULTDESCRIPTIONDIM, gid_resultdescriptiondim,
-	    STRING,  /* Result name */
-	    INT,     /* result type */
+            STRING,  /* Result name */
+            INT,     /* result type */
             INT);    /* result dimension */
 
 GIDPOST_API
@@ -210,69 +210,69 @@ GIDPOST_API
 FCALLSCFUN1(INT, GiD_ScalarComp, GID_SCALARCOMP, gid_scalarcomp, STRING);
 
 int GiD_VectorComp(GP_CONST char * Comp1, GP_CONST char * Comp2,
-		   GP_CONST char * Comp3, GP_CONST char * Comp4);
+                   GP_CONST char * Comp3, GP_CONST char * Comp4);
 
 GIDPOST_API
 FCALLSCFUN4(INT, GiD_VectorComp, GID_VECTORCOMP, gid_vectorcomp,
-	    STRING,  /* component 1 */
-	    STRING,  /* component 2 */
-	    STRING,  /* component 3 */
-	    STRING); /* component 4 (modulus) */
+            STRING,  /* component 1 */
+            STRING,  /* component 2 */
+            STRING,  /* component 3 */
+            STRING); /* component 4 (modulus) */
 
 int GiD_2DMatrixComp(GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3);
 FCALLSCFUN3(INT, GiD_2DMatrixComp, GID_2DMATRIXCOMP, gid_2dmatrixcomp,
-	    STRING,  /* component Sxx */
-	    STRING,  /* component Syy */
-	    STRING); /* component Sxy */
+            STRING,  /* component Sxx */
+            STRING,  /* component Syy */
+            STRING); /* component Sxy */
 
 int GiD_3DMatrixComp(GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3,
-		     GP_CONST char * Comp4, GP_CONST char * Comp5, GP_CONST char * Comp6);
+                     GP_CONST char * Comp4, GP_CONST char * Comp5, GP_CONST char * Comp6);
 
 GIDPOST_API
 FCALLSCFUN6(INT, GiD_3DMatrixComp, GID_3DMATRIXCOMP, gid_3dmatrixcomp,
-	    STRING,  /* component Sxx */
-	    STRING,  /* component Syy */
-	    STRING,  /* component Szz */
-	    STRING,  /* component Sxy */
-	    STRING,  /* component Syz */
-	    STRING); /* component Sxz */
+            STRING,  /* component Sxx */
+            STRING,  /* component Syy */
+            STRING,  /* component Szz */
+            STRING,  /* component Sxy */
+            STRING,  /* component Syz */
+            STRING); /* component Sxz */
 
 int GiD_PDMComp(GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3, GP_CONST char * Comp4);
 
 GIDPOST_API
 FCALLSCFUN4(INT, GiD_PDMComp, GID_PDMCOMP, gid_pdmcomp,
-	    STRING,  /* component Sxx */
-	    STRING,  /* component Syy */
-	    STRING,  /* component Sxy */
-	    STRING); /* component Szz */
+            STRING,  /* component Sxx */
+            STRING,  /* component Syy */
+            STRING,  /* component Sxy */
+            STRING); /* component Szz */
 
 int GiD_MainMatrixComp(GP_CONST char * Comp1,  GP_CONST char * Comp2,  GP_CONST char * Comp3,
-		       GP_CONST char * Comp4,  GP_CONST char * Comp5,  GP_CONST char * Comp6,
-		       GP_CONST char * Comp7,  GP_CONST char * Comp8,  GP_CONST char * Comp9,
-		       GP_CONST char * Comp10, GP_CONST char * Comp11, GP_CONST char * Comp12);
+                       GP_CONST char * Comp4,  GP_CONST char * Comp5,  GP_CONST char * Comp6,
+                       GP_CONST char * Comp7,  GP_CONST char * Comp8,  GP_CONST char * Comp9,
+                       GP_CONST char * Comp10, GP_CONST char * Comp11, GP_CONST char * Comp12);
 
 GIDPOST_API
 FCALLSCFUN12(INT, GiD_MainMatrixComp, GID_MAINMATRIXCOMP, gid_mainmatrixcomp,
-	     STRING,   /* component Si */
-	     STRING,   /* component Sii */
-	     STRING,   /* component Siii */
-	     STRING,   /* component Vix */
-	     STRING,   /* component Viy */
-	     STRING,   /* component Viz */
-	     STRING,   /* component Viix */
-	     STRING,   /* component Viiy */
-	     STRING,   /* component Viiz */
-	     STRING,   /* component Viiix */
-	     STRING,   /* component Viiiy */
-	     STRING);  /* component Viiiz */
+             STRING,   /* component Si */
+             STRING,   /* component Sii */
+             STRING,   /* component Siii */
+             STRING,   /* component Vix */
+             STRING,   /* component Viy */
+             STRING,   /* component Viz */
+             STRING,   /* component Viix */
+             STRING,   /* component Viiy */
+             STRING,   /* component Viiz */
+             STRING,   /* component Viiix */
+             STRING,   /* component Viiiy */
+             STRING);  /* component Viiiz */
 
 int GiD_LAComponents(GP_CONST char * Comp1, GP_CONST char * Comp2, GP_CONST char * Comp3);
 
 GIDPOST_API
 FCALLSCFUN3(INT, GiD_LAComponents, GID_LACOMPONENTS, gid_lacomponents,
-	    STRING,  /* local axes name 1 */
-	    STRING,  /* local axes name 2 */
-	    STRING); /* local axes name 3 */
+            STRING,  /* local axes name 1 */
+            STRING,  /* local axes name 2 */
+            STRING); /* local axes name 3 */
 
 GIDPOST_API
 FCALLSCFUN0(INT,GiD_EndResult,GID_ENDRESULT,gid_endresult);

@@ -18,200 +18,202 @@
 namespace Kratos
 {
 
-	/**@name Kratos Globals */
-	/*@{ */
+/**@name Kratos Globals */
+/*@{ */
 
 
-	/*@} */
-	/**@name Type Definitions */
-	/*@{ */
+/*@} */
+/**@name Type Definitions */
+/*@{ */
 
-	/*@} */
+/*@} */
 
 
-	/**@name  Enum's */
-	/*@{ */
+/**@name  Enum's */
+/*@{ */
 
 
-	/*@} */
-	/**@name  Functions */
-	/*@{ */
+/*@} */
+/**@name  Functions */
+/*@{ */
 
 
 
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
+/*@} */
+/**@name Kratos Classes */
+/*@{ */
 
-	/// Short class definition.
-	/**   Detail class definition.
+/// Short class definition.
+/**   Detail class definition.
 
-	\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+\URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-	\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+\URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
 
-	\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+\URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
 
-	\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+\URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
 
 
-	\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+\URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
 
-	\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+\URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
 
-	\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+\URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-	\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+\URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
-	*/
-	template<class TSparseSpace,
-	class TDenseSpace,
-	class TLinearSolver
-	>
-	class SolverConfiguration
-	{
-	public:
-		/**@name Type Definitions */
-		/*@{ */
+*/
+template<class TSparseSpace,
+         class TDenseSpace,
+         class TLinearSolver
+         >
+class SolverConfiguration
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
 
-		/** Counted pointer of ClassName */
+    /** Counted pointer of ClassName */
 
-		/*@} */
-		/**@name Life Cycle
-		*/
-		/*@{ */
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
 
-		/** Constructor.
-		*/
-                SolverConfiguration(ModelPart& model_part, unsigned int domain_size)
-                        : mrModelPart(model_part), mDomainSize(domain_size)
-                {
-                }
+    /** Constructor.
+    */
+    SolverConfiguration(ModelPart& model_part, unsigned int domain_size)
+        : mrModelPart(model_part), mDomainSize(domain_size)
+    {
+    }
 
-		/** Destructor.
-		*/
+    /** Destructor.
+    */
 
-		/*@} */
-		/**@name Operators
-		*/
-		/*@{ */
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
 
-                unsigned int GetDomainSize()
-                {return this->mDomainSize;}
+    unsigned int GetDomainSize()
+    {
+        return this->mDomainSize;
+    }
 
-                virtual typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer pGetStrategy(const std::string& strategy_name )
-                {
-                    KRATOS_ERROR(std::logic_error,"accessing to the SolverConfiguration base class","");
-                }
+    virtual typename SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer pGetStrategy(const std::string& strategy_name )
+    {
+        KRATOS_ERROR(std::logic_error,"accessing to the SolverConfiguration base class","");
+    }
 
-		/*@} */
-		/**@name Operations */
-		/*@{ */
+    /*@} */
+    /**@name Operations */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Access */
-		/*@{ */
+    /*@} */
+    /**@name Access */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Friends */
-		/*@{ */
+    /*@} */
+    /**@name Friends */
+    /*@{ */
 
 
-		/*@} */
+    /*@} */
 
-	protected:
-		/**@name Protected static Member Variables */
-		/*@{ */
+protected:
+    /**@name Protected static Member Variables */
+    /*@{ */
 
-		/*@} */
-		/**@name Protected member Variables */
-		/*@{ */
-                ModelPart& mrModelPart;
-                unsigned int mDomainSize;
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+    ModelPart& mrModelPart;
+    unsigned int mDomainSize;
 
-		/*@} */
-		/**@name Protected Operators*/
-		/*@{ */
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
 
-		/*@} */
-		/**@name Protected Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
 
 
 
-		/*@} */
-		/**@name Protected  Access */
-		/*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Protected LifeCycle */
-		/*@{ */
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
 
 
 
-		/*@} */
+    /*@} */
 
-	private:
-		/**@name Static Member Variables */
-		/*@{ */
+private:
+    /**@name Static Member Variables */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
 
-                /*@{ */
-		//this funcion is needed to ensure that all the memory is allocated correctly
+    /*@{ */
+    //this funcion is needed to ensure that all the memory is allocated correctly
 
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private  Access */
-		/*@{ */
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Private Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Un accessible methods */
-		/*@{ */
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
 
-		/** Copy constructor.
-		*/
+    /** Copy constructor.
+    */
 
 
-		/*@} */
+    /*@} */
 
-	}; /* Class FractionalStepStrategy */
+}; /* Class FractionalStepStrategy */
 
-	/*@} */
+/*@} */
 
-	/**@name Type Definitions */
-	/*@{ */
+/**@name Type Definitions */
+/*@{ */
 
 
-	/*@} */
+/*@} */
 
 }  /* namespace Kratos.*/
 

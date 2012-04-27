@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: clabra $
 //   Date:                $Date: 2007-03-29 19:37:47 $
 //   Revision:            $Revision: 1.2 $
@@ -10,7 +10,7 @@
 #define  KRATOS_SPACIAL_SEARCH_H_INCLUDED
 
 
-// External includes 
+// External includes
 
 #if defined(KRATOS_INDEPENDENT)
 

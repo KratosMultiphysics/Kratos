@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -57,60 +57,60 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 namespace Kratos
-  {
+{
 
-      typedef SofteningHardeningCriteria::Pointer SoftHardPointerType;    
-      
-      /*! 
-      STATE UPDATE PROCEDURE FOR MOHR-COULOMB TYPE ELASTO-PLASTIC MATERIAL
-      WITH ASSOCIATIVE/NON-ASSOCIATIVE FLOW RULE AND PIECE-WISE LINEAR
-      ISOTROPIC HARDENING:
-      IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM (BOXES 8.4-7)
-      PLANE STRAIN AND AXISYMMETRIC IMPLMENTATIONS
-      */
-      class Morh_Coulomb_Yield_Function: public virtual FluencyCriteria    
-      { 
-    
-        public:
+typedef SofteningHardeningCriteria::Pointer SoftHardPointerType;
 
-              
-            virtual boost::shared_ptr<FluencyCriteria> Clone() const
-	        {
-		      boost::shared_ptr<FluencyCriteria> p_clone(new Morh_Coulomb_Yield_Function(                   
-		      mpSofteningBehavior_Cohesion->Clone(),
-		      mpSofteningBehavior_Friction->Clone(),
-		      mpSofteningBehavior_Dilatancy->Clone(),
-		      mState, 
-		      mPotencialPlastic));
-		      return p_clone;
-		}
-  
-            Morh_Coulomb_Yield_Function(); 
-             
+/*!
+STATE UPDATE PROCEDURE FOR MOHR-COULOMB TYPE ELASTO-PLASTIC MATERIAL
+WITH ASSOCIATIVE/NON-ASSOCIATIVE FLOW RULE AND PIECE-WISE LINEAR
+ISOTROPIC HARDENING:
+IMPLICIT ELASTIC PREDICTOR/RETURN MAPPING ALGORITHM (BOXES 8.4-7)
+PLANE STRAIN AND AXISYMMETRIC IMPLMENTATIONS
+*/
+class Morh_Coulomb_Yield_Function: public virtual FluencyCriteria
+{
+
+public:
+
+
+    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    {
+        boost::shared_ptr<FluencyCriteria> p_clone(new Morh_Coulomb_Yield_Function(
+                    mpSofteningBehavior_Cohesion->Clone(),
+                    mpSofteningBehavior_Friction->Clone(),
+                    mpSofteningBehavior_Dilatancy->Clone(),
+                    mState,
+                    mPotencialPlastic));
+        return p_clone;
+    }
+
+    Morh_Coulomb_Yield_Function();
+
 //             Morh_Coulomb_Yield_Function(SoftHardPointerType SofteningBehavior,
-//                                         myState State, 
+//                                         myState State,
 // 	                                myPotencialPlastic PotencialPlastic);
-					
-	    Morh_Coulomb_Yield_Function( 
-		const SoftHardPointerType& SofteningBehaviorCohesion,
-		const SoftHardPointerType& SofteningBehaviorFriction,
-		const SoftHardPointerType& SofteningBehaviorDilatancy,
-		const myState& State, 
-		const myPotencialPlastic& PotencialPlastic);
-	
-		
-            ~Morh_Coulomb_Yield_Function();
 
-            KRATOS_CLASS_POINTER_DEFINITION( Morh_Coulomb_Yield_Function );
+    Morh_Coulomb_Yield_Function(
+        const SoftHardPointerType& SofteningBehaviorCohesion,
+        const SoftHardPointerType& SofteningBehaviorFriction,
+        const SoftHardPointerType& SofteningBehaviorDilatancy,
+        const myState& State,
+        const myPotencialPlastic& PotencialPlastic);
 
-	    
+
+    ~Morh_Coulomb_Yield_Function();
+
+    KRATOS_CLASS_POINTER_DEFINITION( Morh_Coulomb_Yield_Function );
+
+
 //***********************************************************************
 //***********************************************************************
 
 
 
-    bool CheckPlasticAdmisibility(const Vector& Stress);  
-    void InitializeMaterial(const Properties& props);  
+    bool CheckPlasticAdmisibility(const Vector& Stress);
+    void InitializeMaterial(const Properties& props);
     void ReturnMapping(const Vector& StrainVector,const Vector& TrialStress, Vector& StressVector);
     void FinalizeSolutionStep();
     void UpdateMaterial();
@@ -120,26 +120,26 @@ namespace Kratos
     void GetValue(double& Result);
     void GetValue(Matrix& Result);
     bool PlasticStep(Vector& Stress);
-    
-	
-    public:
-      
+
+
+public:
+
     bool ReturnMappingToMainPlane(const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, array_1d<double,3>& Sigma);
     bool TwoVectorReturnToEdges  (const array_1d<double,3>& PrincipalStress, const array_1d<unsigned int,3>& order, const bool& edges, array_1d<double,3>& Sigma);
-    void ReturnMappingToApex     (const array_1d<double,3>& PrincipalStress, array_1d<double, 3 >& Sigma);  
-    void ComputeActualStrees     (const double& Ppvs, const array_1d<double,3>& Ppds, const array_1d<double,3>& PrincipalStress, array_1d<double,3>& Sigma);    
+    void ReturnMappingToApex     (const array_1d<double,3>& PrincipalStress, array_1d<double, 3 >& Sigma);
+    void ComputeActualStrees     (const double& Ppvs, const array_1d<double,3>& Ppds, const array_1d<double,3>& PrincipalStress, array_1d<double,3>& Sigma);
     void ComputeActualStrain(const array_1d<double,3>& Pps);
-    
+
     bool CheckValidity(const array_1d<double,3>& Sigma);
     bool ReturnToEdges(const array_1d<double,3>& PrincipalStress);
     void CalculatePlasticDamage(const array_1d<double,3>& Sigma);
     double UniaxialTension(const Vector& Stress);
     double Toler(const Vector& Stress);
-  
 
-      
-    public:
-    
+
+
+public:
+
     bool   mplastic_step;
     double mcohesion;
     double mpressure;
@@ -149,35 +149,35 @@ namespace Kratos
     double mdilatancy_angle;
     double mcurrent_dilatancy_angle;
     double minternal_friction_angle;
-    double mcurrent_minternal_friction_angle;    
-    double mmorh_coulomb_maccumulated_plastic_strain_old; 
+    double mcurrent_minternal_friction_angle;
+    double mmorh_coulomb_maccumulated_plastic_strain_old;
     double mmorh_coulomb_maccumulated_plastic_strain_current;
     double mlength;
     double msigma_z;
     double mpastic_damage_old;
     double mpastic_damage_current;
-    Vector mplastic_strain; 
-    Vector mplastic_strain_old; 
-    Vector mElastic_strain; 
-    Vector mElastic_strain_old; 
+    Vector mplastic_strain;
+    Vector mplastic_strain_old;
+    Vector mElastic_strain;
+    Vector mElastic_strain_old;
     Matrix m_inv_DeltaF;
-     
+
     SoftHardPointerType mpSofteningBehavior_Cohesion;
     SoftHardPointerType mpSofteningBehavior_Dilatancy;
     SoftHardPointerType mpSofteningBehavior_Friction;
-    
-    array_1d<double, 3>    mPrincipalPlasticStrain_current;
-    array_1d<double, 3>    mPrincipalPlasticStrain_old;  
-    
-      
-     
-     ///@}
-     ///@name Serialization
-     ///@{
-    
-  
 
-    };
+    array_1d<double, 3>    mPrincipalPlasticStrain_current;
+    array_1d<double, 3>    mPrincipalPlasticStrain_old;
+
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+
+
+};
 }
 #endif
 

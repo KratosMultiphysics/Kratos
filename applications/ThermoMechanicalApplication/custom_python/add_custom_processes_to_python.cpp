@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,54 +38,54 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-05-28 15:29:01 $
 //   Revision:            $Revision: 1.2 $
 //
 //
- 
 
-// System includes 
 
-// External includes 
+// System includes
+
+// External includes
 #include <boost/python.hpp>
 
- 
+
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
-#include "custom_processes/duplicate_interface_nodes_create_conditions_process.h" 
-#include "custom_processes/activation_deactivation_conditions_process.h" 
+#include "custom_processes/duplicate_interface_nodes_create_conditions_process.h"
+#include "custom_processes/activation_deactivation_conditions_process.h"
 
 #include "includes/node.h"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-  void  AddCustomProcessesToPython()
-  {
-	using namespace boost::python;
+void  AddCustomProcessesToPython()
+{
+    using namespace boost::python;
 
-	
-	class_<DuplicateInterfaceNodesCreateConditionsProcess, bases<Process> >("DuplicateInterfaceNodesCreateConditionsProcess", init<ModelPart&, char* ,int, const Matrix >())
-		   .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
-		   .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
-		   .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)		   
-		 ;	
-	class_<ActivationDeactivationConditionsProcess, bases<Process> >("ActivationDeactivationConditionsProcess", init<ModelPart& ,int, const Matrix >())
-		   .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
-		 ;		 
-		 
-  }
-	
+
+    class_<DuplicateInterfaceNodesCreateConditionsProcess, bases<Process> >("DuplicateInterfaceNodesCreateConditionsProcess", init<ModelPart&, char* ,int, const Matrix >())
+    .def("Execute", &DuplicateInterfaceNodesCreateConditionsProcess::Execute)
+    .def("PairToId", &DuplicateInterfaceNodesCreateConditionsProcess::PairToId)
+    .def("IdToPair", &DuplicateInterfaceNodesCreateConditionsProcess::IdToPair)
+    ;
+    class_<ActivationDeactivationConditionsProcess, bases<Process> >("ActivationDeactivationConditionsProcess", init<ModelPart& ,int, const Matrix >())
+    .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
+    ;
+
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -77,7 +77,7 @@ namespace Kratos
  *	TO BE TESTED!!!
  */
 Casm::Casm()
-        : ConstitutiveLaw()
+    : ConstitutiveLaw()
 {
 }
 /**
@@ -517,7 +517,7 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
         // noalias(mStress)= StressVector;
 
         double pTr = (mCurrentStress(0) + mCurrentStress(1) + mCurrentStress(2)) / 3.0;
-//        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);  
+//        double firstInv= mCurrentStress(0)+mCurrentStress(1)+mCurrentStress(2);
 
 
         mMth = 0;
@@ -559,7 +559,8 @@ void Casm::CalculateStress(const Vector& StrainVector, Vector& StressVector)
         isYielded = pow(qTr / (mMth * pTr), mModelData[7]) + log(pTr / mModelData[9]) / lnr > 1e-5;
         std::cout << " Look Here you are inside 1=============== " << std::endl;
 
-        if (isYielded) {
+        if (isYielded)
+        {
             std::cout << " Look Here you are inside 2=============== " << std::endl;
             returnMapping(pTr, qTr);
 
@@ -668,7 +669,8 @@ void Casm::CalculateStressAndTangentMatrix( Vector& StressVector,
         Matrix& algorithmicTangent )
 {
 }
-void Casm::returnMapping(double pTr, double qTr) {
+void Casm::returnMapping(double pTr, double qTr)
+{
     Vector dG(5);
     Vector R(2);
     Matrix dR(2,2);
@@ -690,7 +692,8 @@ void Casm::returnMapping(double pTr, double qTr) {
     KRATOS_WATCH(R);
     double normR = (R(0)*R(0)+R(1)*R(1));
     normR = sqrt(normR);
-    while (normR > 1E-5) {
+    while (normR > 1E-5)
+    {
 
         formResidualDerivativeMatrix(dR, dG);
         KRATOS_WATCH(dR);
@@ -764,7 +767,8 @@ void Casm::CalculateElasticMatrix(Matrix& C, const double E, const double NU)
 
 }
 
-void Casm::pressureDependentElasticTangent(Matrix& mCtangent) {
+void Casm::pressureDependentElasticTangent(Matrix& mCtangent)
+{
 
     double C1 = 2.0 * Gm;
     double C2 = Km - 2.0 * Gm / 3.0;
@@ -809,7 +813,8 @@ void Casm::CalculateUnit2nd3D()
 
 }
 
-void Casm::formPlasticPotentialDerivatives(Vector& dG) {
+void Casm::formPlasticPotentialDerivatives(Vector& dG)
+{
 
     double N1 = 3.0 + 2.0 * mMth;
     double D1 = 3.0 * pk + 2.0 * qk;
@@ -828,7 +833,8 @@ void Casm::formPlasticPotentialDerivatives(Vector& dG) {
     dG(4) = -3.0 * N2 / DD2 - 6.0 * N1 / DD1;
 }
 
-void Casm::formYieldFunctionDerivatives(Vector& dF) {
+void Casm::formYieldFunctionDerivatives(Vector& dF)
+{
 
     dF(0) = pow(pk, mModelData[7] - 1) * (mModelData[7] * log(pk / pck) + 1.0) / lnr;
     dF(1) = mModelData[7] * pow(qk / mMth, mModelData[7] - 1) / mMth;
@@ -867,7 +873,8 @@ void Casm::formResidualVector(Vector& R, Vector& dG)
     R(1) = tmp1 + tmp2 * tmp3 / lnr;
 }
 
-void Casm::solveByGauss(Matrix& A, Vector& B) {
+void Casm::solveByGauss(Matrix& A, Vector& B)
+{
     double sum;
 
     unsigned int N = B.size();
@@ -876,7 +883,8 @@ void Casm::solveByGauss(Matrix& A, Vector& B) {
     decompose(A, N);
 
     //forward
-    for (unsigned int i = 0; i < N; i++) {
+    for (unsigned int i = 0; i < N; i++)
+    {
         sum = 0.0;
         for (unsigned int j = 0; j < i; j++)
             sum += A(i,j) * B(j);
@@ -885,7 +893,8 @@ void Casm::solveByGauss(Matrix& A, Vector& B) {
     }
 
     //backward
-    for (int i = N - 1; i > -1; i--) {
+    for (int i = N - 1; i > -1; i--)
+    {
         sum = 0.0;
         for (int j = N - 1; j > i; j--)
             sum += A(i,j) * B(j);
@@ -894,8 +903,10 @@ void Casm::solveByGauss(Matrix& A, Vector& B) {
     }
 }//solveGauss
 
-void Casm::decompose(Matrix& A, int N) {
-    for (int k = 0; k < N; k++) {
+void Casm::decompose(Matrix& A, int N)
+{
+    for (int k = 0; k < N; k++)
+    {
 
         for (int i = k + 1; i < N; i++)
             for (int j = k + 1; j < N; j++)
@@ -906,7 +917,8 @@ void Casm::decompose(Matrix& A, int N) {
     }
 }
 
-void Casm::getM( const Vector& devStr, double& rMth) {
+void Casm::getM( const Vector& devStr, double& rMth)
+{
 
     double J2, J3;
 
@@ -933,7 +945,8 @@ void Casm::getM( const Vector& devStr, double& rMth) {
     KRATOS_WATCH(rMth);
 }
 
-void Casm::getFactors(double qTr, Vector& factor) {
+void Casm::getFactors(double qTr, Vector& factor)
+{
 
     Vector dF(3);
     formYieldFunctionDerivatives(dF);
@@ -967,7 +980,8 @@ void Casm::getFactors(double qTr, Vector& factor) {
 
 }
 
-void Casm::CalculateModules(const double& p, double& rKm, double& rGm) {
+void Casm::CalculateModules(const double& p, double& rKm, double& rGm)
+{
 
     //double modulus[2];
     Km = (1.0 + mModelData[6]) * p / mModelData[5];

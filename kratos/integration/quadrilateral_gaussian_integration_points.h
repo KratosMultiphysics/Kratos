@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2007-03-19 10:49:46 $
 //   Revision:            $Revision: 1.4 $
@@ -52,13 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <numeric>
 #include <cstddef>
 
 
 // External includes
-#include <boost/array.hpp>  
+#include <boost/array.hpp>
 
 
 // Project includes
@@ -69,125 +69,134 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class QuadrilateralGaussianIntegrationPoints1
+class QuadrilateralGaussianIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints1);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 2;
+        return 1;
+    }
 
-	typedef IntegrationPoint<2> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 1; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "Quadrilateral gaussian quadrature 1 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints1
-
-    class QuadrilateralGaussianIntegrationPoints2
+    static IntegrationPointsArrayType& IntegrationPoints()
     {
-	    public:
-		    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints2);
-		    typedef std::size_t SizeType;
-		    
-		    static const unsigned int Dimension = 2;
+        return msIntegrationPoints;
+    }
 
-		    typedef IntegrationPoint<2> IntegrationPointType;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral gaussian quadrature 1 ";
+        return buffer.str();
+    }
+protected:
 
-		    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+private:
 
-		    typedef IntegrationPointType::PointType PointType;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-		    static SizeType IntegrationPointsNumber()    {  return 4; }
-		    
-		    static IntegrationPointsArrayType& IntegrationPoints()
-		    {
-			    return msIntegrationPoints;
-		    }
+}; // Class QuadrilateralGaussianIntegrationPoints1
 
-		    std::string Info() const
-		    {
-			    std::stringstream buffer;
-			    buffer << "Quadrilateral gaussian quadrature 2 ";
-			    return buffer.str();
-		    }
-	    protected:
+class QuadrilateralGaussianIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints2);
+    typedef std::size_t SizeType;
 
-	    private:
+    static const unsigned int Dimension = 2;
 
-		    static IntegrationPointsArrayType msIntegrationPoints;
+    typedef IntegrationPoint<2> IntegrationPointType;
 
-    }; // Class QuadrilateralGaussianIntegrationPoints2
+    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 4;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral gaussian quadrature 2 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints2
 
 
-   class QuadrilateralGaussianIntegrationPoints3
-   {
-	   public:
-		   KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints3);
-		   typedef std::size_t SizeType;
-		   
-		   static const unsigned int Dimension = 2;
+class QuadrilateralGaussianIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints3);
+    typedef std::size_t SizeType;
 
-		   typedef IntegrationPoint<2> IntegrationPointType;
+    static const unsigned int Dimension = 2;
 
-		   typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
+    typedef IntegrationPoint<2> IntegrationPointType;
 
-		   typedef IntegrationPointType::PointType PointType;
+    typedef boost::array<IntegrationPointType, 9> IntegrationPointsArrayType;
 
-		   static SizeType IntegrationPointsNumber()    {  return 9; }
-		    
-		   static IntegrationPointsArrayType& IntegrationPoints()
-		   {
-			   return msIntegrationPoints;
-		   }
+    typedef IntegrationPointType::PointType PointType;
 
-		   std::string Info() const
-		   {
-			   std::stringstream buffer;
-			   buffer << "Quadrilateral gaussian quadrature 3 ";
-			   return buffer.str();
-		   }
-	   protected:
+    static SizeType IntegrationPointsNumber()
+    {
+        return 9;
+    }
 
-	   private:
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
 
-		   static IntegrationPointsArrayType msIntegrationPoints;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral gaussian quadrature 3 ";
+        return buffer.str();
+    }
+protected:
 
-   }; // Class QuadrilateralGaussianIntegrationPoints2
+private:
 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints2
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_TRIANGLE_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED  defined 

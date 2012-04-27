@@ -47,8 +47,9 @@ Tensor<T>::Tensor(int rank, long dimension)
 
     m_value = new T[n];
 
-    if (m_value == NULL) {
-	cerr << "ERROR: not enough space to allocate tensor.\n";
+    if (m_value == NULL)
+    {
+        cerr << "ERROR: not enough space to allocate tensor.\n";
     }
 }
 
@@ -120,9 +121,10 @@ T& Tensor<T>::operator () (long i0, ...)
 
     long position = i0 * shift;
 
-    for (int i = 0; i < rank()-1; i++) {
-	shift /= m_dimension;
-	position += shift * va_arg(argptr, int);
+    for (int i = 0; i < rank()-1; i++)
+    {
+        shift /= m_dimension;
+        position += shift * va_arg(argptr, int);
     }
 
     return m_value[position];
@@ -156,16 +158,20 @@ ostream& operator << (ostream& s, const Tensor<T>& t)
 {
     long n = quick_pow(t.dimension(), t.rank());  // number of elements
 
-    for (long pos = 0; pos < n; pos++) {
-	if (pos != 0 && pos % t.dimension() == 0) {
-	    long p = pos;
-	    do {                     // put number of spaces according to
-		s << endl;           // the index we are jumping through
-		p /= t.dimension();
-	    } while (p % t.dimension() == 0);
-	}
+    for (long pos = 0; pos < n; pos++)
+    {
+        if (pos != 0 && pos % t.dimension() == 0)
+        {
+            long p = pos;
+            do                       // put number of spaces according to
+            {
+                s << endl;           // the index we are jumping through
+                p /= t.dimension();
+            }
+            while (p % t.dimension() == 0);
+        }
 
-	s << t.m_value[pos] << "\t";
+        s << t.m_value[pos] << "\t";
     }
 
     return s;
@@ -184,24 +190,26 @@ ostream& operator << (ostream& s, const Tensor<T>& t)
 template <class T>
 Tensor<T> operator + (const Tensor<T>& t1, const Tensor<T>& t2)
 {
-    if (t1.rank() != t2.rank()) {
-	cerr << "ERROR: trying to add tensors of different rank\n";
-	return Tensor<T>(1, 0);
+    if (t1.rank() != t2.rank())
+    {
+        cerr << "ERROR: trying to add tensors of different rank\n";
+        return Tensor<T>(1, 0);
     }
-    if (t1.dimension() != t2.dimension()) {
-	cerr << "ERROR: trying to add tensors of different dimension\n";
-	return Tensor<T>(1, 0);
+    if (t1.dimension() != t2.dimension())
+    {
+        cerr << "ERROR: trying to add tensors of different dimension\n";
+        return Tensor<T>(1, 0);
     }
 
     int rank       = t1.rank();
     long dimension = t1.dimension();
-    
+
     Tensor<T> s(rank, dimension);
 
     long n = quick_pow(dimension, rank);  // number of elements
 
     for (long pos = 0; pos < n; pos++)
-	s.m_value[pos] = t1.m_value[pos] + t2.m_value[pos];
+        s.m_value[pos] = t1.m_value[pos] + t2.m_value[pos];
 
     return s;
 }
@@ -215,24 +223,26 @@ Tensor<T> operator + (const Tensor<T>& t1, const Tensor<T>& t2)
 template <class T>
 Tensor<T> operator - (const Tensor<T>& t1, const Tensor<T>& t2)
 {
-    if (t1.rank() != t2.rank()) {
-	cerr << "ERROR: trying to substract tensors of different rank\n";
-	return Tensor<T>(1, 0);
+    if (t1.rank() != t2.rank())
+    {
+        cerr << "ERROR: trying to substract tensors of different rank\n";
+        return Tensor<T>(1, 0);
     }
-    if (t1.dimension() != t2.dimension()) {
-	cerr << "ERROR: trying to substract tensors of different dimension\n";
-	return Tensor<T>(1, 0);
+    if (t1.dimension() != t2.dimension())
+    {
+        cerr << "ERROR: trying to substract tensors of different dimension\n";
+        return Tensor<T>(1, 0);
     }
 
     int rank       = t1.rank();
     long dimension = t1.dimension();
-    
+
     Tensor<T> s(rank, dimension);
 
     long n = quick_pow(dimension, rank);  // number of elements
 
     for (long pos = 0; pos < n; pos++)
-	s.m_value[pos] = t1.m_value[pos] - t2.m_value[pos];
+        s.m_value[pos] = t1.m_value[pos] - t2.m_value[pos];
 
     return s;
 }
@@ -251,7 +261,7 @@ Tensor<T> operator - (const Tensor<T>& t)
     long n = quick_pow(mt.dimension(), mt.rank());  // number of elements
 
     for (long pos = 0; pos < n; pos++)
-	mt.m_value[pos] = - t.m_value[pos];
+        mt.m_value[pos] = - t.m_value[pos];
 
     return mt;
 }
@@ -266,9 +276,10 @@ Tensor<T> operator - (const Tensor<T>& t)
 template <class T>
 Tensor<T> operator * (const Tensor<T>& t1, const Tensor<T>& t2)
 {
-    if (t1.dimension() != t2.dimension()) {
-	cerr << "ERROR: trying to multiply tensors of different dimension\n";
-	return Tensor<T>(1, 0);
+    if (t1.dimension() != t2.dimension())
+    {
+        cerr << "ERROR: trying to multiply tensors of different dimension\n";
+        return Tensor<T>(1, 0);
     }
 
     long dimension = t1.dimension();
@@ -280,11 +291,12 @@ Tensor<T> operator * (const Tensor<T>& t1, const Tensor<T>& t2)
     long n2 = quick_pow(dimension, t2.rank());
 
     for (long i = 0; i < n1; i++)
-	for (long j = 0; j < n2; j++) {
-	    long pos = n2*i + j;
+        for (long j = 0; j < n2; j++)
+        {
+            long pos = n2*i + j;
 
-	    prod.m_value[pos] = t1.m_value[i] * t2.m_value[j];
-	}
+            prod.m_value[pos] = t1.m_value[i] * t2.m_value[j];
+        }
 
     return prod;
 }
@@ -300,19 +312,20 @@ Tensor<T> operator * (const Tensor<T>& t1, const Tensor<T>& t2)
 template <class T>
 Tensor<T> contract(const Tensor<T>& t_ij, int i, int j)
 {
-    if (i >= t_ij.rank() || j >= t_ij.rank() || i == j) {
-	cerr << "ERROR: Trying to contract tensor of rank "
-	     << t_ij.rank() << " with bad indices: "
-	     << i << ", " << j << endl;
+    if (i >= t_ij.rank() || j >= t_ij.rank() || i == j)
+    {
+        cerr << "ERROR: Trying to contract tensor of rank "
+             << t_ij.rank() << " with bad indices: "
+             << i << ", " << j << endl;
 
-	return t_ij;
+        return t_ij;
     }
 
     long dimension = t_ij.dimension();  // to write less later
 
     // Create a new tensor with the appropiate rank
     Tensor<T> t_ii(t_ij.rank() - 2, dimension);
-    
+
 
     // Number of elements of the new tensor
     long n = quick_pow(dimension, t_ii.rank());
@@ -324,30 +337,33 @@ Tensor<T> contract(const Tensor<T>& t_ij, int i, int j)
     i = (t_ij.rank() - 1) - i;
     j = (t_ij.rank() - 1) - j;
 
-    if (i > j) {         // swap indices if necessary, so j > i
-	int k = i;
-	i = j;
-	j = k;
+    if (i > j)           // swap indices if necessary, so j > i
+    {
+        int k = i;
+        i = j;
+        j = k;
     }
-    
+
     long step = quick_pow(dimension, i) + quick_pow(dimension, j);
 
-    for (long pos = 0; pos < n; pos++) {
-	vector<long> pos_in_base = decimal2base(t_ii.rank()+1, dimension, pos);
+    for (long pos = 0; pos < n; pos++)
+    {
+        vector<long> pos_in_base = decimal2base(t_ii.rank()+1, dimension, pos);
 
-	vec_insert(pos_in_base, i, 0);	
-	vec_insert(pos_in_base, j, 0);
+        vec_insert(pos_in_base, i, 0);
+        vec_insert(pos_in_base, j, 0);
 
-	long init = base2decimal(dimension, pos_in_base);
+        long init = base2decimal(dimension, pos_in_base);
 
-	T sum = 0;
+        T sum = 0;
 
-	for (long l = 0; l < dimension; l++) {
-	    long old_pos = init + step * l;
-	    sum += t_ij.m_value[old_pos];
-	}
+        for (long l = 0; l < dimension; l++)
+        {
+            long old_pos = init + step * l;
+            sum += t_ij.m_value[old_pos];
+        }
 
-	t_ii.m_value[pos] = sum;
+        t_ii.m_value[pos] = sum;
     }
 
     return t_ii;
@@ -362,12 +378,13 @@ Tensor<T> contract(const Tensor<T>& t_ij, int i, int j)
 template <class T>
 Tensor<T> swap(const Tensor<T>& t_ij, int i, int j)
 {
-    if (i >= t_ij.rank() || j >= t_ij.rank() || i == j) {
-	cerr << "ERROR: Trying to swap tensor of rank "
-	     << t_ij.rank() << " with bad indices: "
-	     << i << ", " << j << endl;
+    if (i >= t_ij.rank() || j >= t_ij.rank() || i == j)
+    {
+        cerr << "ERROR: Trying to swap tensor of rank "
+             << t_ij.rank() << " with bad indices: "
+             << i << ", " << j << endl;
 
-	return t_ij;
+        return t_ij;
     }
 
     long dimension = t_ij.dimension();  // to write less later
@@ -375,7 +392,7 @@ Tensor<T> swap(const Tensor<T>& t_ij, int i, int j)
 
     // Create a new tensor with the appropiate rank
     Tensor<T> t_ji(rank, dimension);
-    
+
 
     // Number of elements of the new tensor
     long n = quick_pow(dimension, rank);
@@ -385,19 +402,20 @@ Tensor<T> swap(const Tensor<T>& t_ij, int i, int j)
     // Now the last two indices, for instance, will be 1,0.
     i = (rank - 1) - i;
     j = (rank - 1) - j;
-    
-    for (long pos = 0; pos < n; pos++) {
-	vector<long> pos_in_base = decimal2base(rank+1, dimension, pos);
-	
-	vec_swap(pos_in_base, i, j);
 
-	long newpos = base2decimal(dimension, pos_in_base);
+    for (long pos = 0; pos < n; pos++)
+    {
+        vector<long> pos_in_base = decimal2base(rank+1, dimension, pos);
 
-	t_ji.m_value[newpos] = t_ij.m_value[pos];
+        vec_swap(pos_in_base, i, j);
+
+        long newpos = base2decimal(dimension, pos_in_base);
+
+        t_ji.m_value[newpos] = t_ij.m_value[pos];
     }
 
     return t_ji;
-}   
+}
 
 
 
@@ -413,9 +431,10 @@ vector<long> decimal2base(int n_digits, long base, long n)
 {
     vector<long> digits;
 
-    for (int i = 0; i < n_digits; i++) {
-	digits.push_back(n - base * (n / base));
-	n /= base;
+    for (int i = 0; i < n_digits; i++)
+    {
+        digits.push_back(n - base * (n / base));
+        n /= base;
     }
 
     return digits;
@@ -430,13 +449,14 @@ vector<long> decimal2base(int n_digits, long base, long n)
 long base2decimal(long base, const vector<long>& digits)
 {
     long n = 0;
-    
+
     long scale = 1;
-    for (int i = 0; i < (int) digits.size(); i++) {
-	n += digits[i] * scale;
-	scale *= base;
+    for (int i = 0; i < (int) digits.size(); i++)
+    {
+        n += digits[i] * scale;
+        scale *= base;
     }
-    
+
     return n;
 }
 
@@ -446,17 +466,18 @@ long base2decimal(long base, const vector<long>& digits)
  */
 void vec_insert(vector<long>& v, int position, long value)
 {
-    if (position >= (int) v.size()) {
-	cerr << "ERROR: trying to insert at position " << position
-	     << " on a vector of size " << v.size() << endl;
+    if (position >= (int) v.size())
+    {
+        cerr << "ERROR: trying to insert at position " << position
+             << " on a vector of size " << v.size() << endl;
 
-	return;
+        return;
     }
 
     vector<long>::iterator current_pos = v.begin();
 
     for (int i = 0; i < position && current_pos < v.end(); i++)
-	current_pos++;
+        current_pos++;
 
     v.insert(current_pos, value);
 }
@@ -483,14 +504,14 @@ void vec_swap(vector<long>& v, int i, int j)
 template class Tensor<double>;
 
 template Tensor<double> operator + (const Tensor<double>& t1,
-				    const Tensor<double>& t2);
+                                    const Tensor<double>& t2);
 template Tensor<double> operator - (const Tensor<double>& t1,
-				    const Tensor<double>& t2);
+                                    const Tensor<double>& t2);
 
 template Tensor<double> operator - (const Tensor<double>& t);
 
 template Tensor<double> operator * (const Tensor<double>& t1,
-				    const Tensor<double>& t2);
+                                    const Tensor<double>& t2);
 
 template Tensor<double> contract(const Tensor<double>& t_ij, int i, int j);
 template Tensor<double> swap(const Tensor<double>& t_ij, int i, int j);
@@ -508,14 +529,14 @@ typedef complex<double> dcomplex;
 template class Tensor<dcomplex>;
 
 template Tensor<dcomplex> operator + (const Tensor<dcomplex>& t1,
-				      const Tensor<dcomplex>& t2);
+                                      const Tensor<dcomplex>& t2);
 template Tensor<dcomplex> operator - (const Tensor<dcomplex>& t1,
-				      const Tensor<dcomplex>& t2);
+                                      const Tensor<dcomplex>& t2);
 
 template Tensor<dcomplex> operator - (const Tensor<dcomplex>& t);
 
 template Tensor<dcomplex> operator * (const Tensor<dcomplex>& t1,
-				      const Tensor<dcomplex>& t2);
+                                      const Tensor<dcomplex>& t2);
 
 template Tensor<dcomplex> contract(const Tensor<dcomplex>& t_ij, int i, int j);
 template Tensor<dcomplex> swap(const Tensor<dcomplex>& t_ij, int i, int j);

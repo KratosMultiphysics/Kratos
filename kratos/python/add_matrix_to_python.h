@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.3 $
@@ -50,10 +50,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -66,24 +66,24 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddMatrixToPython();
-  void  AddBandedMatrixToPython();
-  void  AddSymmetricMatrixToPython();
+void  AddMatrixToPython();
+void  AddBandedMatrixToPython();
+void  AddSymmetricMatrixToPython();
 #if defined KRATOS_ADD_HERMITIAN_MATRIX_INTERFACE
-  void  AddHermitianMatrixToPython();
+void  AddHermitianMatrixToPython();
 #endif
-  void  AddZeroMatrixToPython();
-  void  AddIdentityMatrixToPython();
-  void  AddScalarMatrixToPython();
-  void  AddTriangularMatrixToPython();
-  void  AddSparseMatrixToPython();
-  void  AddCompressedMatrixToPython();
+void  AddZeroMatrixToPython();
+void  AddIdentityMatrixToPython();
+void  AddScalarMatrixToPython();
+void  AddTriangularMatrixToPython();
+void  AddSparseMatrixToPython();
+void  AddCompressedMatrixToPython();
 #if defined KRATOS_ADD_COORDINATE_MATRIX_INTERFACE
-  void  AddCoordinateMatrixToPython();
+void  AddCoordinateMatrixToPython();
 #endif
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_MATRIX_TO_PYTHON_H_INCLUDED  defined 

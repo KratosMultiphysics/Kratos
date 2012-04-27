@@ -25,29 +25,41 @@ const char *name_begin(const char* name);
 //                drive:path1\path2\pathn\nombre.ext
 // |               path                  |nombre|ext
 // path tiene la ultima barra
-class nombre_archivo{
+class nombre_archivo
+{
 public:
-  char
+    char
     path[_max_file_len],
-    nombre[_max_file_len],
-    ext[_max_ext_len];
+         nombre[_max_file_len],
+         ext[_max_ext_len];
 
-  nombre_archivo() {path[0]=0;strcpy(nombre,"noname");ext[0]=0;}
-  nombre_archivo(const nombre_archivo &n){
-    strcpy(path,n.path); strcpy(nombre,n.nombre); strcpy(ext,n.ext);
-  }
-  nombre_archivo(const char *n) {makefrom(n);}
+    nombre_archivo()
+    {
+        path[0]=0;
+        strcpy(nombre,"noname");
+        ext[0]=0;
+    }
+    nombre_archivo(const nombre_archivo &n)
+    {
+        strcpy(path,n.path);
+        strcpy(nombre,n.nombre);
+        strcpy(ext,n.ext);
+    }
+    nombre_archivo(const char *n)
+    {
+        makefrom(n);
+    }
 
-  const char *makefrom(const char*);
+    const char *makefrom(const char*);
 
-  const char *completo() const;
-  char *completo(char *) const;
+    const char *completo() const;
+    char *completo(char *) const;
 
-  // devuelve completo()
-  const char *cambiar_ext(const char *);
-  const char *cambiar_nombre(const char *);
-  const char *agregar_nombre(const char *);
-  const char *cambiar_path(const char *);
+    // devuelve completo()
+    const char *cambiar_ext(const char *);
+    const char *cambiar_nombre(const char *);
+    const char *agregar_nombre(const char *);
+    const char *cambiar_path(const char *);
 };
 
 #endif

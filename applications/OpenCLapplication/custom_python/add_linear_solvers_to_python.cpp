@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -54,52 +54,52 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
-    void  AddLinearSolversToPython()
-    {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-        //typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
-        //typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
-        //typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
-        typedef ViennaCLSolver ViennaCLSolverType;
+void  AddLinearSolversToPython()
+{
+    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+    //typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
+    //typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
+    //typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
+    typedef ViennaCLSolver ViennaCLSolverType;
 
 
-        
-        using namespace boost::python; 
-        
-        //***************************************************************************
-        //linear solvers
-        //***************************************************************************
-        
-        class_<ViennaCLSolverType, ViennaCLSolverType::Pointer,
-        bases<LinearSolverType> >( "ViennaCLSolver" )
-                .def(init<double, unsigned int,OpenCLPrecision, OpenCLSolverType, OpenCLPreconditionerType>() )
-                .def("SetILUEntriesPerRow", &ViennaCLSolverType::SetILUEntriesPerRow)
-                .def("SetILUDropTolerance", &ViennaCLSolverType::SetILUDropTolerance)
-                .def(self_ns::str(self))
-                ;
 
-        enum_<OpenCLPrecision>("OpenCLPrecision")
-                    .value("Single", Single)
-                    .value("Double", Double)
-                    ;
-	
-        enum_<OpenCLSolverType>("OpenCLSolverType")
-                    .value("CG", CG)
-                    .value("BiCGStab", BiCGStab)
-                    .value("GMRES", GMRES)
-                    ;
+    using namespace boost::python;
 
-       enum_<OpenCLPreconditionerType>("OpenCLPreconditionerType")
-                    .value("NoPreconditioner", NoPreconditioner)
-                    .value("ILU", ILU)
-                    ;
-  }
-	
+    //***************************************************************************
+    //linear solvers
+    //***************************************************************************
+
+    class_<ViennaCLSolverType, ViennaCLSolverType::Pointer,
+           bases<LinearSolverType> >( "ViennaCLSolver" )
+           .def(init<double, unsigned int,OpenCLPrecision, OpenCLSolverType, OpenCLPreconditionerType>() )
+           .def("SetILUEntriesPerRow", &ViennaCLSolverType::SetILUEntriesPerRow)
+           .def("SetILUDropTolerance", &ViennaCLSolverType::SetILUDropTolerance)
+           .def(self_ns::str(self))
+           ;
+
+    enum_<OpenCLPrecision>("OpenCLPrecision")
+    .value("Single", Single)
+    .value("Double", Double)
+    ;
+
+    enum_<OpenCLSolverType>("OpenCLSolverType")
+    .value("CG", CG)
+    .value("BiCGStab", BiCGStab)
+    .value("GMRES", GMRES)
+    ;
+
+    enum_<OpenCLPreconditionerType>("OpenCLPreconditionerType")
+    .value("NoPreconditioner", NoPreconditioner)
+    .value("ILU", ILU)
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos
