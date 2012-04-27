@@ -130,25 +130,6 @@ int CPostAscii::WriteString( GP_CONST char * str )
     return 0;
 }
 
-<<<<<<< .mine
-int CPostAscii::WriteInteger(int i, int op)
-{
-    if (op==1)
-    {
-        fprintf(m_file, " ");
-        fprintf(m_file, "%d", i);
-    }
-    else
-    {
-        fprintf(m_file, "%d", i);
-        if (op==2)
-        {
-            fprintf(m_file, "\n");
-        }
-    }
-    return 0;
-}
-=======
 int CPostAscii::WriteInteger(int i, int op)
 {
   if(op==0){
@@ -162,7 +143,6 @@ int CPostAscii::WriteInteger(int i, int op)
   }
   return 0;
 }
->>>>>>> .r5031
 
 int CPostAscii::WriteDouble(double x, int op)
 {
