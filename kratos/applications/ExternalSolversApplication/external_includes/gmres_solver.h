@@ -1,4 +1,4 @@
-/*          
+/*
 * =======================================================================*
 * kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
 * kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
@@ -66,303 +66,304 @@
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>, 
-    class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-    class GMRESSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+class GMRESSolver : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of GMRESSolver
+    typedef boost::shared_ptr<GMRESSolver> Pointer;
+
+    typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
+
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+
+    typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    GMRESSolver() {}
+
+    GMRESSolver(double NewTolerance) : BaseType(NewTolerance) {}
+
+    GMRESSolver(double NewTolerance, unsigned int NewMaxIterationsNumber) : BaseType(NewTolerance, NewMaxIterationsNumber) {}
+
+    GMRESSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
+        BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of GMRESSolver
-      typedef boost::shared_ptr<GMRESSolver> Pointer;
+    }
 
-      typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType; 
-  
-      typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-  
-      typedef typename TSparseSpaceType::VectorType VectorType;
-  
-      typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+    /// Copy constructor.
+    GMRESSolver(const GMRESSolver& Other) : BaseType(Other) {}
 
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      GMRESSolver(){}
+    /// Destructor.
+    virtual ~GMRESSolver() {}
 
-      GMRESSolver(double NewTolerance) : BaseType(NewTolerance){}
 
-      GMRESSolver(double NewTolerance, unsigned int NewMaxIterationsNumber) : BaseType(NewTolerance, NewMaxIterationsNumber){}
+    ///@}
+    ///@name Operators
+    ///@{
 
-      GMRESSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) : 
-	BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner){
-		}
-
-      /// Copy constructor.
-   	GMRESSolver(const GMRESSolver& Other) : BaseType(Other){}
-
-      /// Destructor.
-      virtual ~GMRESSolver(){}
-      
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      /// Assignment operator.
-      GMRESSolver& operator=(const GMRESSolver& Other)
-      {
+    /// Assignment operator.
+    GMRESSolver& operator=(const GMRESSolver& Other)
+    {
         BaseType::operator=(Other);
-	return *this;
-      }
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      /** Normal solve method.
-	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-	  rX is also th initial guess for iterative methods.
-	  @param rA. System matrix
-	  @param rX. Solution vector. it's also the initial 
-	  guess for iterative linear solvers.
- 	  @param rB. Right hand side vector.
-      */
-      bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-	{
-	  	if(this->IsNotConsistent(rA, rX, rB))
-	    		return false;
+        return *this;
+    }
 
-		BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
+    ///@}
+    ///@name Operations
+    ///@{
 
-	 	bool is_solved= false;
-// 
-	  //GetTimeTable()->Start(Info());
+    /** Normal solve method.
+    Solves the linear system Ax=b and puts the result on SystemVector& rX.
+    rX is also th initial guess for iterative methods.
+    @param rA. System matrix
+    @param rX. Solution vector. it's also the initial
+    guess for iterative linear solvers.
+    @param rB. Right hand side vector.
+    */
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        if(this->IsNotConsistent(rA, rX, rB))
+            return false;
+
+        BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
+
+        bool is_solved= false;
+//
+        //GetTimeTable()->Start(Info());
 
 // 	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
 //  	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
 // 	  BaseType::GetPreconditioner()->ApplyLeft(rB);
 
-  	  	long double *x;
-  	  	long double *rhs;
-	  	unsigned int nz_sum=0;
+        long double *x;
+        long double *rhs;
+        unsigned int nz_sum=0;
 
-		x= new long double[rB.size()];
-		rhs= new long double[rB.size()];
+        x= new long double[rB.size()];
+        rhs= new long double[rB.size()];
 
-		for(unsigned int i=0; i<rB.size(); i++)
-		{
-			x[i]= rX(i);
-			rhs[i]= rB(i);
-		}
-		for(unsigned int i=0; i<rA.size1(); i++)
-			for(unsigned int j=0; j<rA.size2(); j++)
-				if(rA(i,j) != 0.0)
-					nz_sum++;
-// 
-  	  	long double *a;
-  	  	int *ia;
-  	  	int *ja;
-		
-		a= new long double[nz_sum];
-		ia= new int[nz_sum];
-		ja= new int[nz_sum];
+        for(unsigned int i=0; i<rB.size(); i++)
+        {
+            x[i]= rX(i);
+            rhs[i]= rB(i);
+        }
+        for(unsigned int i=0; i<rA.size1(); i++)
+            for(unsigned int j=0; j<rA.size2(); j++)
+                if(rA(i,j) != 0.0)
+                    nz_sum++;
+//
+        long double *a;
+        int *ia;
+        int *ja;
 
-	 	unsigned int counter= 0;
+        a= new long double[nz_sum];
+        ia= new int[nz_sum];
+        ja= new int[nz_sum];
 
-		for(unsigned int i=0; i<rA.size1(); i++)
-			for(unsigned int j=0; j<rA.size2(); j++)
-				if(rA(i,j) != 0.0)
-				{
-					a[counter]=rA(i,j);
- 					ia[counter]= i;
- 					ja[counter]= j;
-					counter++;
-				}
-		unsigned int inner_iterations=100;
-		if(inner_iterations> rB.size()-1)
-			inner_iterations= rB.size()-1;
+        unsigned int counter= 0;
 
-		mNumberOfRestarts= 0;
+        for(unsigned int i=0; i<rA.size1(); i++)
+            for(unsigned int j=0; j<rA.size2(); j++)
+                if(rA(i,j) != 0.0)
+                {
+                    a[counter]=rA(i,j);
+                    ia[counter]= i;
+                    ja[counter]= j;
+                    counter++;
+                }
+        unsigned int inner_iterations=100;
+        if(inner_iterations> rB.size()-1)
+            inner_iterations= rB.size()-1;
+
+        mNumberOfRestarts= 0;
 // 		for(unsigned int i=0; i<2; i++)
 // 		{
 // 	 		if(
-			is_solved = mgmres (a, ia, ja, x, rhs, 
-  				rB.size(), nz_sum, BaseType::GetMaxIterationsNumber(), inner_iterations, 
-				BaseType::GetTolerance() );/*)*/
+        is_solved = mgmres (a, ia, ja, x, rhs,
+                            rB.size(), nz_sum, BaseType::GetMaxIterationsNumber(), inner_iterations,
+                            BaseType::GetTolerance() );/*)*/
 // 			{
 // 				break;
 // 			}
 // 			mNumberOfRestarts++;
 // 		}
 
-	  	for(unsigned int i=0; i<rB.size(); i++)
-		{
-			rX(i)=x[i];
-		}
+        for(unsigned int i=0; i<rB.size(); i++)
+        {
+            rX(i)=x[i];
+        }
 
 //  	  BaseType::GetPreconditioner()->Finalize(rX);
 
 // 	  //GetTimeTable()->Stop(Info());
-// 
-		delete[] x;
- 		delete[] rhs;
-		delete[] a;
-		delete[] ia;
-		delete[] ja;
+//
+        delete[] x;
+        delete[] rhs;
+        delete[] a;
+        delete[] ia;
+        delete[] ja;
 
-		if(!is_solved)
-		{
-			SkylineLUFactorizationSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>().Solve(rA, rX, rB);
-			std::cout<<"####GMRES not converged -> System solved with SkylineLUFactorizationSolver####"<<std::endl;
-		}
+        if(!is_solved)
+        {
+            SkylineLUFactorizationSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>().Solve(rA, rX, rB);
+            std::cout<<"####GMRES not converged -> System solved with SkylineLUFactorizationSolver####"<<std::endl;
+        }
 
-	  	return is_solved;
-	}
-      
-      /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-	  Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-	  rX is also th initial guess for iterative methods.
-	  @param rA. System matrix
-	  @param rX. Solution vector. it's also the initial 
-	  guess for iterative linear solvers.
- 	  @param rB. Right hand side vector.
-      */
-      bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-	{
-	  //DOES NOTHING AT THE MOMENT
-          bool is_solved = true;
+        return is_solved;
+    }
 
-	  //GetTimeTable()->Stop(Info());
+    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
+    Solves the linear system Ax=b and puts the result on SystemVector& rX.
+    rX is also th initial guess for iterative methods.
+    @param rA. System matrix
+    @param rX. Solution vector. it's also the initial
+    guess for iterative linear solvers.
+    @param rB. Right hand side vector.
+    */
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    {
+        //DOES NOTHING AT THE MOMENT
+        bool is_solved = true;
 
-	  return is_solved;
-	}
+        //GetTimeTable()->Stop(Info());
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+        return is_solved;
+    }
 
-      /// Return information about this object.
-      virtual std::string Info() const
-	{
-	  std::stringstream buffer;
-	  buffer << "GMRES iterative solver [at the moment unfortunately without] with " << BaseType::GetPreconditioner()->Info();
-	  return  buffer.str();
-	}
-      
-      /// Print information about this object.
-      void  PrintInfo(std::ostream& OStream) const
-	{
-	  OStream << "GMRES iterative solver [at the moment unfortunately without] with ";
-	  BaseType::GetPreconditioner()->PrintInfo(OStream);
-	}
+    ///@}
+    ///@name Access
+    ///@{
 
-      /// Print object's data.
-      void  PrintData(std::ostream& OStream) const 
-	{
-	  OStream << "GMRES "<<mNumberOfRestarts<<" times restarted"<<std::endl;
-	  BaseType::PrintData(OStream);
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Return information about this object.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GMRES iterative solver [at the moment unfortunately without] with " << BaseType::GetPreconditioner()->Info();
+        return  buffer.str();
+    }
+
+    /// Print information about this object.
+    void  PrintInfo(std::ostream& OStream) const
+    {
+        OStream << "GMRES iterative solver [at the moment unfortunately without] with ";
+        BaseType::GetPreconditioner()->PrintInfo(OStream);
+    }
+
+    /// Print object's data.
+    void  PrintData(std::ostream& OStream) const
+    {
+        OStream << "GMRES "<<mNumberOfRestarts<<" times restarted"<<std::endl;
+        BaseType::PrintData(OStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
 // //******************************************************************************
 // //
 // //  Purpose:
@@ -419,25 +420,25 @@ namespace Kratos
 // //
 // //    Input, int NZ_NUM, the number of nonzeros.
 // //
-      void ax ( long double *a, int *ia, int *ja, long double *x, long double *w, int n, int nz_num )
-	{
-  		int i;
-  		int j;
-  		int k;
+    void ax ( long double *a, int *ia, int *ja, long double *x, long double *w, int n, int nz_num )
+    {
+        int i;
+        int j;
+        int k;
 
-  		for ( i = 0; i < n; i++ )
-  		{
-    			w[i] = 0.0;
-  		}
+        for ( i = 0; i < n; i++ )
+        {
+            w[i] = 0.0;
+        }
 
-  		for ( k = 0; k < nz_num; k++ )
-  		{
-    			i = ia[k];
-    			j = ja[k];
-    			w[i] = w[i] + a[k] * x[j];
-  		}
-  		return;
-	}
+        for ( k = 0; k < nz_num; k++ )
+        {
+            i = ia[k];
+            j = ja[k];
+            w[i] = w[i] + a[k] * x[j];
+        }
+        return;
+    }
 // //******************************************************************************
 // //******************************************************************************
 // //
@@ -463,19 +464,19 @@ namespace Kratos
 // //
 // //    Output, double dot_product, the dot product of the two vectors.
 // //
-	long double dot_product ( long double v0[], long double v1[], int n )
-	{
-  		int i;
-  		long double s;
+    long double dot_product ( long double v0[], long double v1[], int n )
+    {
+        int i;
+        long double s;
 
-  		s = 0.0;
-  		for ( i = 0; i < n; i++ )
-  		{
-    			s = s + v0[i] * v1[i];
-  		}
+        s = 0.0;
+        for ( i = 0; i < n; i++ )
+        {
+            s = s + v0[i] * v1[i];
+        }
 
-  		return s;
-	}
+        return s;
+    }
 // //******************************************************************************
 // //******************************************************************************
 // //
@@ -549,169 +550,169 @@ namespace Kratos
 // //
 // //    Input, double TOL, a tolerance.
 // //
-	bool mgmres ( long double a[], int ia[], int ja[],long double x[],long double rhs[], 
-  		int n, int nz_num, int itrmax, int mr, long double tol )
-	{
-  		long double av;
-  		long double *c;
-  		long double delta = 1.0e-3;
-  		long double *g;
-  		long double *h;
-  		long double htmp;
-		int itr;
-  		int i;
-   		int j;
-  		int k;
-  		long double mu;
-  		long double *r;
-  		long double rho = 0.0;
-  		long double rho_tol = 0.0;
-  		long double *s;
-  		long double *v;
-  		long double *y;
-  		bool isConverged= false;
+    bool mgmres ( long double a[], int ia[], int ja[],long double x[],long double rhs[],
+                  int n, int nz_num, int itrmax, int mr, long double tol )
+    {
+        long double av;
+        long double *c;
+        long double delta = 1.0e-3;
+        long double *g;
+        long double *h;
+        long double htmp;
+        int itr;
+        int i;
+        int j;
+        int k;
+        long double mu;
+        long double *r;
+        long double rho = 0.0;
+        long double rho_tol = 0.0;
+        long double *s;
+        long double *v;
+        long double *y;
+        bool isConverged= false;
 
-  		c = new long double[mr+1];
-  		g = new long double[mr+1];
-  		h = new long double[(mr+1)*mr];
-  		r = new long double[n];
-  		s = new long double[mr+1];
-  		v = new long double[(mr+1)*n];
-  		y = new long double[mr+1];
+        c = new long double[mr+1];
+        g = new long double[mr+1];
+        h = new long double[(mr+1)*mr];
+        r = new long double[n];
+        s = new long double[mr+1];
+        v = new long double[(mr+1)*n];
+        y = new long double[mr+1];
 
-  		for (itr = 0; itr < itrmax; itr++ )
-  		{
-    			ax ( a, ia, ja, x, r, n, nz_num );
+        for (itr = 0; itr < itrmax; itr++ )
+        {
+            ax ( a, ia, ja, x, r, n, nz_num );
 
-    			for ( i = 0; i < n; i++ )
-    			{
-      				r[i] = rhs[i] - r[i];
-    			}
+            for ( i = 0; i < n; i++ )
+            {
+                r[i] = rhs[i] - r[i];
+            }
 
-    			rho = sqrt ( dot_product ( r, r, n ) );
+            rho = sqrt ( dot_product ( r, r, n ) );
 
-    			if ( itr == 0 ) 
-    			{
-      				rho_tol = rho * tol;
-    			}
+            if ( itr == 0 )
+            {
+                rho_tol = rho * tol;
+            }
 
-    			for (i = 0; i < n; i++)
-    			{
-      				v[0*n+i] = r[i] / rho;
-    			}
+            for (i = 0; i < n; i++)
+            {
+                v[0*n+i] = r[i] / rho;
+            }
 
-    			for ( i = 0; i <= mr; i++ )
-    			{
-      				g[i] = 0.0;
-      				for ( j = 0; j < mr; j++ ) 
-      				{
-        				h[i*mr+j] = 0.0;
-      				}
-    			}
+            for ( i = 0; i <= mr; i++ )
+            {
+                g[i] = 0.0;
+                for ( j = 0; j < mr; j++ )
+                {
+                    h[i*mr+j] = 0.0;
+                }
+            }
 
-    			g[0] = rho;
-    			k = 0;
+            g[0] = rho;
+            k = 0;
 
-    			while ( ( rho_tol < rho ) && ( k < mr ) ) 
-    			{
-      				ax ( a, ia, ja, v+k*n, v+(k+1)*n, n, nz_num );
-      				av = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
+            while ( ( rho_tol < rho ) && ( k < mr ) )
+            {
+                ax ( a, ia, ja, v+k*n, v+(k+1)*n, n, nz_num );
+                av = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
 
-      				for ( j = 0; j <= k; j++ )
-      				{
-        				h[j*mr+k] = dot_product ( v+(k+1)*n, v+j*n, n );
-        				for ( i = 0; i < n; i++ ) 
-        				{
-          					v[(k+1)*n+i] = v[(k+1)*n+i] - h[j*mr+k] * v[j*n+i];
-        				}
-      				}
+                for ( j = 0; j <= k; j++ )
+                {
+                    h[j*mr+k] = dot_product ( v+(k+1)*n, v+j*n, n );
+                    for ( i = 0; i < n; i++ )
+                    {
+                        v[(k+1)*n+i] = v[(k+1)*n+i] - h[j*mr+k] * v[j*n+i];
+                    }
+                }
 
-      				h[(k+1)*mr+k] = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
+                h[(k+1)*mr+k] = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
 
-      				if ( ( av + delta * h[(k+1)*mr+k] ) == av )
-      				{
-         				for ( j = 0; j <= k; j++ )
-         				{
-           					htmp = dot_product ( v+(k+1)*n, v+j*n, n );
-           					h[j*mr+k] = h[j*mr+k] + htmp;
-           					for ( i = 0; i < n; i++ )
-           					{
-             						v[(k+1)*n+i] = v[(k+1)*n+i] - htmp * v[j*n+i];
-          	 				}
-         				}
-         				h[(k+1)*mr+k] = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
-      				}
+                if ( ( av + delta * h[(k+1)*mr+k] ) == av )
+                {
+                    for ( j = 0; j <= k; j++ )
+                    {
+                        htmp = dot_product ( v+(k+1)*n, v+j*n, n );
+                        h[j*mr+k] = h[j*mr+k] + htmp;
+                        for ( i = 0; i < n; i++ )
+                        {
+                            v[(k+1)*n+i] = v[(k+1)*n+i] - htmp * v[j*n+i];
+                        }
+                    }
+                    h[(k+1)*mr+k] = sqrt ( dot_product ( v+(k+1)*n, v+(k+1)*n, n ) );
+                }
 
-      				for ( i = 0; i < n; i++ ) 
-      				{
-        				v[(k+1)*n+i] = v[(k+1)*n+i] / h[(k+1)*mr+k];
-      				}
+                for ( i = 0; i < n; i++ )
+                {
+                    v[(k+1)*n+i] = v[(k+1)*n+i] / h[(k+1)*mr+k];
+                }
 
-      				if ( 0 < k )
-      				{
-        				for ( i = 0; i <= k+1; i++ )
-        				{
-          					y[i] = h[i*mr+k];
-        				}
-        				for ( j = 0; j < k; j++ ) 
-        				{
-          					mult_givens ( c[j], s[j], j, y );
-        				}
-        				for ( i = 0; i <= k+1; i++ ) 
-        				{
-          					h[i*mr+k] = y[i];
-        				}
-      				}
-      				mu = sqrt ( pow ( h[k*mr+k], 2 ) + pow ( h[(k+1)*mr+k], 2 ) );
-      				c[k] = h[k*mr+k] / mu;
-      				s[k] = -h[(k+1)*mr+k] / mu;
-      				h[k*mr+k] = c[k] * h[k*mr+k] - s[k] * h[(k+1)*mr+k];
-      				h[(k+1)*mr+k] = 0;
-      				mult_givens ( c[k], s[k], k, g );
-      				rho = fabs ( g[k] );
-      				k = k + 1;
-    			}
-    			k = k-1;
-    			y[k] = g[k] / h[k*mr+k];
+                if ( 0 < k )
+                {
+                    for ( i = 0; i <= k+1; i++ )
+                    {
+                        y[i] = h[i*mr+k];
+                    }
+                    for ( j = 0; j < k; j++ )
+                    {
+                        mult_givens ( c[j], s[j], j, y );
+                    }
+                    for ( i = 0; i <= k+1; i++ )
+                    {
+                        h[i*mr+k] = y[i];
+                    }
+                }
+                mu = sqrt ( pow ( h[k*mr+k], 2 ) + pow ( h[(k+1)*mr+k], 2 ) );
+                c[k] = h[k*mr+k] / mu;
+                s[k] = -h[(k+1)*mr+k] / mu;
+                h[k*mr+k] = c[k] * h[k*mr+k] - s[k] * h[(k+1)*mr+k];
+                h[(k+1)*mr+k] = 0;
+                mult_givens ( c[k], s[k], k, g );
+                rho = fabs ( g[k] );
+                k = k + 1;
+            }
+            k = k-1;
+            y[k] = g[k] / h[k*mr+k];
 
-    			for ( i = k-1; 0 <= i; i-- )
-    			{
-      				y[i] = g[i];
-      				for ( j = k; i < j; j-- ) 
-      				{
-        				y[i] = y[i] - h[i*mr+j] * y[j];
-      				}
-      				y[i] = y[i] / h[i*mr+i];
-    			}
+            for ( i = k-1; 0 <= i; i-- )
+            {
+                y[i] = g[i];
+                for ( j = k; i < j; j-- )
+                {
+                    y[i] = y[i] - h[i*mr+j] * y[j];
+                }
+                y[i] = y[i] / h[i*mr+i];
+            }
 
-    			for ( i = 0; i < n; i++ )
-    			{
-      				for ( j = 0; j < k; j++ )
-      				{
-        				x[i] = x[i] + v[j*n+i] * y[j];
-      				}
-   			}
+            for ( i = 0; i < n; i++ )
+            {
+                for ( j = 0; j < k; j++ )
+                {
+                    x[i] = x[i] + v[j*n+i] * y[j];
+                }
+            }
 
-    			if ( rho <= rho_tol ) 
-    			{
-				isConverged= true;
-      				break;
-    			}
-  		}
+            if ( rho <= rho_tol )
+            {
+                isConverged= true;
+                break;
+            }
+        }
 
-		BaseType::SetIterationsNumber(( itr + 1 ) * mr);
-		BaseType::SetResidualNorm(rho);
+        BaseType::SetIterationsNumber(( itr + 1 ) * mr);
+        BaseType::SetResidualNorm(rho);
 
-  		delete [] c;
-  		delete [] g;
- 		delete [] h;
-  		delete [] r;
-  		delete [] s;
-  		delete [] v;
-  		delete [] y;
+        delete [] c;
+        delete [] g;
+        delete [] h;
+        delete [] r;
+        delete [] s;
+        delete [] v;
+        delete [] y;
 
-  		return isConverged;
-	}
+        return isConverged;
+    }
 // //******************************************************************************
 // //******************************************************************************
 // //
@@ -754,19 +755,19 @@ namespace Kratos
 // //    Input/output, double G[K+2], the vector to be modified.  On output,
 // //    the Givens rotation has been applied to entries G(K) and G(K+1).
 // //
-	void mult_givens ( long double c,long double s, int k, long double g[] )
-	{
-  		long double g1;
-  		long double g2;
+    void mult_givens ( long double c,long double s, int k, long double g[] )
+    {
+        long double g1;
+        long double g2;
 
- 	 	g1 = c * g[k] - s * g[k+1];
-  		g2 = s * g[k] + c * g[k+1];
+        g1 = c * g[k] - s * g[k+1];
+        g2 = s * g[k] + c * g[k+1];
 
-  		g[k]   = g1;
-  		g[k+1] = g2;
+        g[k]   = g1;
+        g[k+1] = g2;
 
-  		return;
-	}
+        return;
+    }
 // //******************************************************************************
 // //******************************************************************************
 // //
@@ -818,79 +819,79 @@ namespace Kratos
 // //
 // //    Output, double R8VEC_UNIFORM_01[N], the vector of pseudorandom values.
 // //
-	long double *r8vec_uniform_01 ( int n, int *seed )
-	{
-  		int i;
-  		int k;
-  		long double *r;
-
-  		if ( *seed == 0 )
-  		{
-    			std::cout<< std::endl;
-    			std::cout << "R8VEC_UNIFORM_01 - Fatal error!"<< std::endl;
-    			std::cout << "  Input value of SEED = 0."<< std::endl;
-  		}
-
-  		r = new long double[n];
-
-  		for ( i = 0; i < n; i++ )
-  		{
-    			k = *seed / 127773;
-
-    			*seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
-
-    			if ( *seed < 0 )
-    			{
-      				*seed = *seed + 2147483647;
-    			}
-
-    			r[i] = ( long double ) ( *seed ) * 4.656612875E-10;
-  		}
-  		return r;
-	}
-
-        unsigned int mNumberOfRestarts;
-
-    }; // Class GMRESSolver 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
-  inline std::istream& operator >> (std::istream& rIStream, 
-				      GMRESSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
+    long double *r8vec_uniform_01 ( int n, int *seed )
     {
-        return rIStream;
+        int i;
+        int k;
+        long double *r;
+
+        if ( *seed == 0 )
+        {
+            std::cout<< std::endl;
+            std::cout << "R8VEC_UNIFORM_01 - Fatal error!"<< std::endl;
+            std::cout << "  Input value of SEED = 0."<< std::endl;
+        }
+
+        r = new long double[n];
+
+        for ( i = 0; i < n; i++ )
+        {
+            k = *seed / 127773;
+
+            *seed = 16807 * ( *seed - k * 127773 ) - k * 2836;
+
+            if ( *seed < 0 )
+            {
+                *seed = *seed + 2147483647;
+            }
+
+            r[i] = ( long double ) ( *seed ) * 4.656612875E-10;
+        }
+        return r;
     }
 
-  /// output stream function
-  template<class TSparseSpaceType, class TDenseSpaceType, 
-    class TPreconditionerType, 
-    class TReordererType>
-  inline std::ostream& operator << (std::ostream& OStream, 
-				    const GMRESSolver<TSparseSpaceType, TDenseSpaceType, 
-				      TPreconditionerType, TReordererType>& rThis)
-    {
-      rThis.PrintInfo(OStream);
-      OStream << std::endl;
-      rThis.PrintData(OStream);
+    unsigned int mNumberOfRestarts;
 
-      return OStream;
-    }
-//   ///@} 
-//   
-//   
+}; // Class GMRESSolver
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType,
+         class TReordererType>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  GMRESSolver<TSparseSpaceType, TDenseSpaceType,
+                                  TPreconditionerType, TReordererType>& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+template<class TSparseSpaceType, class TDenseSpaceType,
+         class TPreconditionerType,
+         class TReordererType>
+inline std::ostream& operator << (std::ostream& OStream,
+                                  const GMRESSolver<TSparseSpaceType, TDenseSpaceType,
+                                  TPreconditionerType, TReordererType>& rThis)
+{
+    rThis.PrintInfo(OStream);
+    OStream << std::endl;
+    rThis.PrintData(OStream);
+
+    return OStream;
+}
+//   ///@}
+//
+//
 }  // namespace Kratos.
 
 #endif // KRATOS_GMRES_SOLVER_H_INCLUDED  defined 

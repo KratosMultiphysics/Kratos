@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,233 +65,233 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-   */
-  template<class TCountedType>
-    class Counter
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+ */
+template<class TCountedType>
+class Counter
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of Counter
+    KRATOS_CLASS_POINTER_DEFINITION(Counter);
+
+    typedef unsigned int SizeType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    // return counter
+    static SizeType GetCounter()
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of Counter
-      KRATOS_CLASS_POINTER_DEFINITION(Counter);
-
-      typedef unsigned int SizeType;
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      // return counter 
-      static SizeType GetCounter() 
-	{ 
-	  return Counter<TCountedType>::msCounter; 
-	} 
-      
-      // return counter 
-      static SizeType Increment() 
-	{ 
-	  return ++Counter<TCountedType>::msCounter; 
-	} 
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  return std::string("Counter");
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info();
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	  rOStream << Counter();
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-      /// Default constructor.
-      Counter() 
-	{ 
-	} 
-            
-      /// Copy constructor.
-      Counter(Counter<TCountedType> const& rOther) 
-	{ 
-	} 
- 
-      /// Destructor.
-      virtual ~Counter() 
-	{
-	} 
- 
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-      /// Number of created objects.
-      static SizeType msCounter;
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      Counter& operator=(Counter const& rOther);
-
-      ///@}    
-        
-    }; // Class Counter 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template<class TCountedType>
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    Counter<TCountedType>& rThis);
-
-  /// output stream function
-  template<class TCountedType>
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Counter<TCountedType>& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << " : ";
-      rThis.PrintData(rOStream);
-
-      return rOStream;
+        return Counter<TCountedType>::msCounter;
     }
-  ///@} 
-  
-  // initialize counter with zero 
-  template<typename TCountedType>  
-    typename Counter<TCountedType>::SizeType Counter<TCountedType>::msCounter = 0; 
-  
+
+    // return counter
+    static SizeType Increment()
+    {
+        return ++Counter<TCountedType>::msCounter;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return std::string("Counter");
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << Counter();
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    /// Default constructor.
+    Counter()
+    {
+    }
+
+    /// Copy constructor.
+    Counter(Counter<TCountedType> const& rOther)
+    {
+    }
+
+    /// Destructor.
+    virtual ~Counter()
+    {
+    }
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    /// Number of created objects.
+    static SizeType msCounter;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    Counter& operator=(Counter const& rOther);
+
+    ///@}
+
+}; // Class Counter
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TCountedType>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  Counter<TCountedType>& rThis);
+
+/// output stream function
+template<class TCountedType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const Counter<TCountedType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << " : ";
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+// initialize counter with zero
+template<typename TCountedType>
+typename Counter<TCountedType>::SizeType Counter<TCountedType>::msCounter = 0;
+
 }  // namespace Kratos.
 
 #endif // KRATOS_COUNTER_H_INCLUDED  defined 

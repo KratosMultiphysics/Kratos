@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,11 +52,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cstddef>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -69,349 +69,369 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Properties : public IndexedObject
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class Properties : public IndexedObject
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of Properties
+    KRATOS_CLASS_POINTER_DEFINITION(Properties);
+
+    typedef IndexedObject BaseType;
+
+    typedef DataValueContainer ContainerType;
+
+    typedef Node<3> NodeType;
+
+    typedef NodeType::IndexType IndexType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Properties(IndexType NewId = 0) : BaseType(NewId), mData() {}
+
+    /// Copy constructor.
+    Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData) {}
+
+    /// Destructor.
+    virtual ~Properties() {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    Properties& operator=(const Properties& rOther)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of Properties
-      KRATOS_CLASS_POINTER_DEFINITION(Properties);
-  
-      typedef IndexedObject BaseType;
-
-      typedef DataValueContainer ContainerType;
-      
-      typedef Node<3> NodeType;
-
-      typedef NodeType::IndexType IndexType;
-
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      Properties(IndexType NewId = 0) : BaseType(NewId), mData(){}
-
-      /// Copy constructor.
-      Properties(const Properties& rOther) : BaseType(rOther), mData(rOther.mData){}
-
-      /// Destructor.
-      virtual ~Properties(){}
-      
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      /// Assignment operator.
-      Properties& operator=(const Properties& rOther)
-	{
-		BaseType::operator=(rOther);
-	  mData = rOther.mData;
-	  return *this;
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type& operator()(const TVariableType& rV)
-	{return GetValue(rV);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type const& operator()(const TVariableType& rV) const
-	{return GetValue(rV);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type& operator[](const TVariableType& rV)
-	{return GetValue(rV);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type const& operator[](const TVariableType& rV) const
-	{return GetValue(rV);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode)
-	{return GetValue(rV, rThisNode);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode) const
-	{return GetValue(rV, rThisNode);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
-	{return GetValue(rV, rThisNode, SolutionStepIndex);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
-	{return GetValue(rV, rThisNode, SolutionStepIndex);}
-
-      template<class TVariableType> 
-	typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, ProcessInfo const& rCurrentProcessInfo)
-	{return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());}
-
-      template<class TVariableType> 
-	typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
-	{return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());}
-
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      template<class TVariableType> 
-	typename TVariableType::Type& GetValue(const TVariableType& rV)
-	{
-	    return mData.GetValue(rV);
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type const& GetValue(const TVariableType& rV) const
-	{
-	    return mData.GetValue(rV);
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode)
-	{
-	  if(mData.Has(rV))
-	    return mData.GetValue(rV);
-
-	  return rThisNode.GetValue(rV);
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode) const
-	{
-	  if(mData.Has(rV))
-	    return mData.GetValue(rV);
-
-	  return rThisNode.GetValue(rV);
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
-	{
-	  if(mData.Has(rV))
-	    return mData.GetValue(rV);
-
-	  return rThisNode.GetValue(rV, SolutionStepIndex);
-	}
-      
-      template<class TVariableType> 
-	typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
-	{
-	  if(mData.Has(rV))
-	    return mData.GetValue(rV);
-
-	  return rThisNode.GetValue(rV, SolutionStepIndex);
-	}
-      
-      template<class TVariableType> 
-	void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
-	{
-	  mData.GetValue(rV) = rValue;
-	}
-
-      ///@}
-      ///@name Access
-      ///@{
-      
-      DataValueContainer& Data()
-	{
-	  return mData;
-	}
-      
-      DataValueContainer const& Data() const
-	{
-	  return mData;
-	}
-      
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      template<class TVariableType> 
-      bool Has(TVariableType const& rThisVariable) const
-	{
-	  return mData.Has(rThisVariable);
-	}
-
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  return "Properties";
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream <<  "Properties";
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	  mData.PrintData(rOStream);
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{
-        
-      ContainerType mData;
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-	  
-      ///@} 
-      ///@name Serialization
-      ///@{ 
-        
-	friend class Serializer;
-	
-	void save(Serializer& rSerializer) const
-	{
- 	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
-	  rSerializer.save("Data", mData);
-	}
-
-	void load(Serializer& rSerializer)
-	{
- 	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
-	  rSerializer.load("Data", mData);
-	}
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-
-        
-      ///@}    
-        
-    }; // Class Properties 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    Properties& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Properties& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
+        BaseType::operator=(rOther);
+        mData = rOther.mData;
+        return *this;
     }
-  ///@} 
-  
-  
+
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rV)
+    {
+        return GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& operator()(const TVariableType& rV) const
+    {
+        return GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& operator[](const TVariableType& rV)
+    {
+        return GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& operator[](const TVariableType& rV) const
+    {
+        return GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode)
+    {
+        return GetValue(rV, rThisNode);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode) const
+    {
+        return GetValue(rV, rThisNode);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    {
+        return GetValue(rV, rThisNode, SolutionStepIndex);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    {
+        return GetValue(rV, rThisNode, SolutionStepIndex);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& operator()(const TVariableType& rV, NodeType& rThisNode, ProcessInfo const& rCurrentProcessInfo)
+    {
+        return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& operator()(const TVariableType& rV, NodeType const& rThisNode, ProcessInfo const& rCurrentProcessInfo) const
+    {
+        return GetValue(rV, rThisNode, rCurrentProcessInfo.GetSolutionStepIndex());
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rV)
+    {
+        return mData.GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& GetValue(const TVariableType& rV) const
+    {
+        return mData.GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode)
+    {
+        if(mData.Has(rV))
+            return mData.GetValue(rV);
+
+        return rThisNode.GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode) const
+    {
+        if(mData.Has(rV))
+            return mData.GetValue(rV);
+
+        return rThisNode.GetValue(rV);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type& GetValue(const TVariableType& rV, NodeType& rThisNode, IndexType SolutionStepIndex)
+    {
+        if(mData.Has(rV))
+            return mData.GetValue(rV);
+
+        return rThisNode.GetValue(rV, SolutionStepIndex);
+    }
+
+    template<class TVariableType>
+    typename TVariableType::Type const& GetValue(const TVariableType& rV, NodeType const& rThisNode, IndexType SolutionStepIndex) const
+    {
+        if(mData.Has(rV))
+            return mData.GetValue(rV);
+
+        return rThisNode.GetValue(rV, SolutionStepIndex);
+    }
+
+    template<class TVariableType>
+    void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
+    {
+        mData.GetValue(rV) = rValue;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    DataValueContainer const& Data() const
+    {
+        return mData;
+    }
+
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    template<class TVariableType>
+    bool Has(TVariableType const& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "Properties";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream <<  "Properties";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        mData.PrintData(rOStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ContainerType mData;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        rSerializer.save("Data", mData);
+    }
+
+    void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        rSerializer.load("Data", mData);
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class Properties
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  Properties& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const Properties& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PROPERTIES_H_INCLUDED  defined 

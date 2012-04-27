@@ -59,7 +59,7 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddUtilitiesToPython();
+void  AddUtilitiesToPython();
 
 }  // namespace Python.
 

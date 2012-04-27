@@ -54,211 +54,211 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///@addtogroup IncompressibleFluidApplication
+///@addtogroup IncompressibleFluidApplication
+///@{
+
+///@name Kratos Classes
+///@{
+
+/// Convergence criteria for fluid problems.
+/**
+ This class implements a convergence control based on nodal velocity and
+ pressure values. The error is evaluated separately for each of them, and
+ relative and absolute tolerances for both must be specified.
+ */
+template<   class TSparseSpace,
+            class TDenseSpace >
+class VelPrCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+{
+public:
+
+    ///@name Type Definitions
     ///@{
 
-    ///@name Kratos Classes
+    KRATOS_CLASS_POINTER_DEFINITION( VelPrCriteria );
+
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+
+    typedef TSparseSpace SparseSpaceType;
+
+    typedef typename BaseType::TDataType TDataType;
+
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+    typedef OpenMPUtils::PartitionVector PartitionVector;
+
+    typedef std::size_t KeyType;
+
+    ///@}
+    ///@name Life Cycle
     ///@{
 
-    /// Convergence criteria for fluid problems.
+    /// Constructor.
     /**
-     This class implements a convergence control based on nodal velocity and
-     pressure values. The error is evaluated separately for each of them, and
-     relative and absolute tolerances for both must be specified.
+     * @param VelRatioTolerance Relative tolerance for velocity error
+     * @param VelAbsTolerance Absolute tolerance for velocity error
+     * @param PrsRatioTolerance Relative tolerance for presssure error
+     * @param PrsAbsTolerance Absolute tolerance for presssure error
      */
-    template<   class TSparseSpace,
-                class TDenseSpace >
-    class VelPrCriteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+    VelPrCriteria(  TDataType VelRatioTolerance,
+                    TDataType VelAbsTolerance,
+                    TDataType PrsRatioTolerance,
+                    TDataType PrsAbsTolerance)
+        : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-    public:
+        mVelRatioTolerance = VelRatioTolerance;
+        mVelAbsTolerance = VelAbsTolerance;
 
-        ///@name Type Definitions
-        ///@{
+        mPrRatioTolerance = PrsRatioTolerance;
+        mPrAbsTolerance = PrsAbsTolerance;
+    }
 
-        KRATOS_CLASS_POINTER_DEFINITION( VelPrCriteria );
+    /// Destructor.
+    virtual ~VelPrCriteria() {}
 
-        typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    ///@}
+    ///@name Operators
+    ///@{
 
-        typedef TSparseSpace SparseSpaceType;
-
-        typedef typename BaseType::TDataType TDataType;
-
-        typedef typename BaseType::DofsArrayType DofsArrayType;
-
-        typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-
-        typedef typename BaseType::TSystemVectorType TSystemVectorType;
-
-        typedef OpenMPUtils::PartitionVector PartitionVector;
-
-        typedef std::size_t KeyType;
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        /// Constructor.
-        /**
-         * @param VelRatioTolerance Relative tolerance for velocity error
-         * @param VelAbsTolerance Absolute tolerance for velocity error
-         * @param PrsRatioTolerance Relative tolerance for presssure error
-         * @param PrsAbsTolerance Absolute tolerance for presssure error
-         */
-        VelPrCriteria(  TDataType VelRatioTolerance,
-                        TDataType VelAbsTolerance,
-			TDataType PrsRatioTolerance,
-			TDataType PrsAbsTolerance)
-            : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
+    /// Compute relative and absoute error.
+    /**
+     * @param rModelPart Reference to the ModelPart containing the fluid problem.
+     * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
+     * @param A System matrix (unused)
+     * @param Dx Vector of results (variations on nodal variables)
+     * @param b RHS vector (residual)
+     * @return true if convergence is achieved, false otherwise
+     */
+    bool PostCriteria(  ModelPart& rModelPart,
+                        DofsArrayType& rDofSet,
+                        const TSystemMatrixType& A,
+                        const TSystemVectorType& Dx,
+                        const TSystemVectorType& b )
+    {
+        if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
-            mVelRatioTolerance = VelRatioTolerance;
-            mVelAbsTolerance = VelAbsTolerance;
+            // Initialize
+            TDataType VelSolutionNorm = 0.0;
+            TDataType PrSolutionNorm = 0.0;
+            TDataType VelIncreaseNorm = 0.0;
+            TDataType PrIncreaseNorm = 0.0;
+            unsigned int VelDofNum(0),PrDofNum(0);
 
-            mPrRatioTolerance = PrsRatioTolerance;
-            mPrAbsTolerance = PrsAbsTolerance;
-        }
+            // Set a partition for OpenMP
+            int NumDofs = rDofSet.size();
+            PartitionVector DofPartition;
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::DivideInPartitions(NumDofs,NumThreads,DofPartition);
 
-        /// Destructor.
-        virtual ~VelPrCriteria(){}
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-        /// Compute relative and absoute error.
-        /**
-         * @param rModelPart Reference to the ModelPart containing the fluid problem.
-         * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-         * @param A System matrix (unused)
-         * @param Dx Vector of results (variations on nodal variables)
-         * @param b RHS vector (residual)
-         * @return true if convergence is achieved, false otherwise
-         */
-        bool PostCriteria(  ModelPart& rModelPart,
-                            DofsArrayType& rDofSet,
-                            const TSystemMatrixType& A,
-                            const TSystemVectorType& Dx,
-                            const TSystemVectorType& b )
-        {
-            if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
+            // Loop over Dofs
+            #pragma omp parallel reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm,VelDofNum,PrDofNum)
             {
-                // Initialize
-                TDataType VelSolutionNorm = 0.0;
-                TDataType PrSolutionNorm = 0.0;
-                TDataType VelIncreaseNorm = 0.0;
-                TDataType PrIncreaseNorm = 0.0;
-                unsigned int VelDofNum(0),PrDofNum(0);
+                int k = OpenMPUtils::ThisThread();
+                typename DofsArrayType::iterator DofBegin = rDofSet.begin() + DofPartition[k];
+                typename DofsArrayType::iterator DofEnd = rDofSet.begin() + DofPartition[k+1];
 
-                // Set a partition for OpenMP
-                int NumDofs = rDofSet.size();
-                PartitionVector DofPartition;
-                int NumThreads = OpenMPUtils::GetNumThreads();
-                OpenMPUtils::DivideInPartitions(NumDofs,NumThreads,DofPartition);
+                std::size_t DofId;
+                TDataType DofValue;
+                TDataType DofIncr;
 
-                // Loop over Dofs
-                #pragma omp parallel reduction(+:VelSolutionNorm,PrSolutionNorm,VelIncreaseNorm,PrIncreaseNorm,VelDofNum,PrDofNum)
+                for (typename DofsArrayType::iterator itDof = DofBegin; itDof != DofEnd; ++itDof)
                 {
-                    int k = OpenMPUtils::ThisThread();
-                    typename DofsArrayType::iterator DofBegin = rDofSet.begin() + DofPartition[k];
-                    typename DofsArrayType::iterator DofEnd = rDofSet.begin() + DofPartition[k+1];
-
-                    std::size_t DofId;
-                    TDataType DofValue;
-                    TDataType DofIncr;
-
-                    for (typename DofsArrayType::iterator itDof = DofBegin; itDof != DofEnd; ++itDof)
+                    if (itDof->IsFree())
                     {
-                        if (itDof->IsFree())
-                        {
-                            DofId = itDof->EquationId();
-                            DofValue = itDof->GetSolutionStepValue(0);
-                            DofIncr = Dx[DofId];
+                        DofId = itDof->EquationId();
+                        DofValue = itDof->GetSolutionStepValue(0);
+                        DofIncr = Dx[DofId];
 
-                            KeyType CurrVar = itDof->GetVariable().Key();
-                            if ((CurrVar == VELOCITY_X) || (CurrVar == VELOCITY_Y) || (CurrVar == VELOCITY_Z))
-                            {
-                                VelSolutionNorm += DofValue * DofValue;
-                                VelIncreaseNorm += DofIncr * DofIncr;
-                                ++VelDofNum;
-                            }
-                            else
-                            {
-                                PrSolutionNorm += DofValue * DofValue;
-                                PrIncreaseNorm += DofIncr * DofIncr;
-                                ++PrDofNum;
-                            }
+                        KeyType CurrVar = itDof->GetVariable().Key();
+                        if ((CurrVar == VELOCITY_X) || (CurrVar == VELOCITY_Y) || (CurrVar == VELOCITY_Z))
+                        {
+                            VelSolutionNorm += DofValue * DofValue;
+                            VelIncreaseNorm += DofIncr * DofIncr;
+                            ++VelDofNum;
+                        }
+                        else
+                        {
+                            PrSolutionNorm += DofValue * DofValue;
+                            PrIncreaseNorm += DofIncr * DofIncr;
+                            ++PrDofNum;
                         }
                     }
                 }
-
-                if(VelSolutionNorm == 0.0)
-                    VelSolutionNorm = 1.0;
-                if(PrSolutionNorm == 0.0)
-                    PrSolutionNorm = 1.0;
-
-                TDataType VelRatio = sqrt(VelIncreaseNorm/VelSolutionNorm);
-                TDataType PrRatio = sqrt(PrIncreaseNorm/PrSolutionNorm);
-
-                TDataType VelAbs = sqrt(VelIncreaseNorm)/ static_cast<TDataType>(VelDofNum);
-                TDataType PrAbs = sqrt(PrIncreaseNorm)/ static_cast<TDataType>(PrDofNum);
-
-                std::cout << "CONVERGENCE CHECK:" << std::endl;
-                std::cout << " VELOCITY: ratio = " << VelRatio <<"; expected ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " expected abs = " << mVelAbsTolerance << std::endl;
-                std::cout << " PRESSURE: ratio = " << PrRatio <<"; expected ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " expected abs = " << mPrAbsTolerance << std::endl;
-
-                if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
-                        (PrRatio <= mPrRatioTolerance || PrAbs <= mPrAbsTolerance) )
-                {
-                    std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
             }
-            else //in this case all the displacements are imposed!
+
+            if(VelSolutionNorm == 0.0)
+                VelSolutionNorm = 1.0;
+            if(PrSolutionNorm == 0.0)
+                PrSolutionNorm = 1.0;
+
+            TDataType VelRatio = sqrt(VelIncreaseNorm/VelSolutionNorm);
+            TDataType PrRatio = sqrt(PrIncreaseNorm/PrSolutionNorm);
+
+            TDataType VelAbs = sqrt(VelIncreaseNorm)/ static_cast<TDataType>(VelDofNum);
+            TDataType PrAbs = sqrt(PrIncreaseNorm)/ static_cast<TDataType>(PrDofNum);
+
+            std::cout << "CONVERGENCE CHECK:" << std::endl;
+            std::cout << " VELOCITY: ratio = " << VelRatio <<"; expected ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " expected abs = " << mVelAbsTolerance << std::endl;
+            std::cout << " PRESSURE: ratio = " << PrRatio <<"; expected ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " expected abs = " << mPrAbsTolerance << std::endl;
+
+            if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
+                    (PrRatio <= mPrRatioTolerance || PrAbs <= mPrAbsTolerance) )
             {
+                std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
                 return true;
             }
+            else
+            {
+                return false;
+            }
         }
-
-        /// Initialize this class before using it
-        /**
-         * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
-         */
-        void Initialize( ModelPart& rModelPart	)
+        else //in this case all the displacements are imposed!
         {
-            BaseType::mConvergenceCriteriaIsInitialized = true;
+            return true;
         }
+    }
 
-        void InitializeSolutionStep(    ModelPart& rModelPart,
-                                        DofsArrayType& rDofSet,
-                                        const TSystemMatrixType& A,
-                                        const TSystemVectorType& Dx,
-                                        const TSystemVectorType& b )
-        {}
+    /// Initialize this class before using it
+    /**
+     * @param rModelPart Reference to the ModelPart containing the fluid problem. (unused)
+     */
+    void Initialize( ModelPart& rModelPart	)
+    {
+        BaseType::mConvergenceCriteriaIsInitialized = true;
+    }
 
-        void FinalizeSolutionStep(  ModelPart& rModelPart,
+    void InitializeSolutionStep(    ModelPart& rModelPart,
                                     DofsArrayType& rDofSet,
                                     const TSystemMatrixType& A,
                                     const TSystemVectorType& Dx,
                                     const TSystemVectorType& b )
-        {}
+    {}
 
-        ///@} // Operations
+    void FinalizeSolutionStep(  ModelPart& rModelPart,
+                                DofsArrayType& rDofSet,
+                                const TSystemMatrixType& A,
+                                const TSystemVectorType& Dx,
+                                const TSystemVectorType& b )
+    {}
 
-    private:
+    ///@} // Operations
 
-        TDataType mVelRatioTolerance;
-        TDataType mVelAbsTolerance;
+private:
 
-        TDataType mPrRatioTolerance;
-        TDataType mPrAbsTolerance;
-    };
+    TDataType mVelRatioTolerance;
+    TDataType mVelAbsTolerance;
 
-    ///@} // Kratos classes
+    TDataType mPrRatioTolerance;
+    TDataType mPrAbsTolerance;
+};
 
-    ///@} // Application group
+///@} // Kratos classes
+
+///@} // Application group
 }
 
 #endif	/* _VEL_PR_CRITERIA_H */

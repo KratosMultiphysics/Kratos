@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-/* *********************************************************   
+/* *********************************************************
  *
  *   Last Modified by:    $Author: rrossi $
  *   Date:                $Date: 2008-10-13 07:00:53 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -72,151 +72,153 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 
-namespace Kratos {
+namespace Kratos
+{
 
-    class PfemContactElement3D
-    : public Element {
-    public:
-
-      
-      
-      
-        // Counted pointer of Ebst
-        KRATOS_CLASS_POINTER_DEFINITION(PfemContactElement3D);
-
-        // Constructor void
-	 PfemContactElement3D(){}
-
-        // Constructor using an array of nodes
-        PfemContactElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
-
-        // Constructor using an array of nodes with properties
-        PfemContactElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-        // Destructor
-        virtual ~PfemContactElement3D();
+class PfemContactElement3D
+    : public Element
+{
+public:
 
 
-        // Name Operations
-        Element::Pointer Create(
-                IndexType NewId,
-                NodesArrayType const& ThisNodes,
-                PropertiesType::Pointer pProperties) const;
-
-        virtual void EquationIdVector(
-                EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo);
-
-        virtual void GetDofList(
-                DofsVectorType& ElementalDofList,
-                ProcessInfo& rCurrentProcessInfo);
-
-        virtual void Initialize();
-
-        virtual void CalculateRightHandSide(
-                VectorType& rRightHandSideVector,
-                ProcessInfo& rCurrentProcessInfo);
-
-        virtual void CalculateLocalSystem(
-                MatrixType& rLeftHandSideMatrix,
-                VectorType& rRightHandSideVector,
-                ProcessInfo& rCurrentProcessInfo);
-
-       /* virtual void CalculateOnIntegrationPoints(
-                const Variable<Matrix>& rVariable,
-                std::vector<Matrix>& Output,
-                const ProcessInfo& rCurrentProcessInfo);*/
-
-        virtual void MassMatrix(
-                MatrixType& rMassMatrix,
-                ProcessInfo& rCurrentProcessInfo);
-
-        virtual void DampMatrix(
-                MatrixType& rDampMatrix,
-                ProcessInfo& rCurrentProcessInfo);
-        
-        virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-        virtual void FinalizeSolutionStep(
-                ProcessInfo& rCurrentProcessInfo);
-
-        virtual void GetValuesVector(
-                Vector& values,
-                int Step = 0);
-
-        virtual void GetFirstDerivativesVector(
-                Vector& values,
-                int Step = 0);
-
-        virtual void GetSecondDerivativesVector(
-                Vector& values,
-                int Step = 0);
-        virtual void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
 
-	            virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
-	/*virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    // Counted pointer of Ebst
+    KRATOS_CLASS_POINTER_DEFINITION(PfemContactElement3D);
+
+    // Constructor void
+    PfemContactElement3D() {}
+
+    // Constructor using an array of nodes
+    PfemContactElement3D(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    // Constructor using an array of nodes with properties
+    PfemContactElement3D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Destructor
+    virtual ~PfemContactElement3D();
+
+
+    // Name Operations
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const;
+
+    virtual void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void GetDofList(
+        DofsVectorType& ElementalDofList,
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void Initialize();
+
+    virtual void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo);
+
+    /* virtual void CalculateOnIntegrationPoints(
+             const Variable<Matrix>& rVariable,
+             std::vector<Matrix>& Output,
+             const ProcessInfo& rCurrentProcessInfo);*/
+
+    virtual void MassMatrix(
+        MatrixType& rMassMatrix,
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void DampMatrix(
+        MatrixType& rDampMatrix,
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    virtual void FinalizeSolutionStep(
+        ProcessInfo& rCurrentProcessInfo);
+
+    virtual void GetValuesVector(
+        Vector& values,
+        int Step = 0);
+
+    virtual void GetFirstDerivativesVector(
+        Vector& values,
+        int Step = 0);
+
+    virtual void GetSecondDerivativesVector(
+        Vector& values,
+        int Step = 0);
+    virtual void Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+
+
+    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    /*virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);*/
 
-        //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-		virtual std::string Info() const
-		{
-			return "PfemContactElement3D #" ;
-		}
+    //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    virtual std::string Info() const
+    {
+        return "PfemContactElement3D #" ;
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << Id();
+    }
 
 
-    protected:
-		
-            virtual void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
+protected:
+
+    virtual void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
                               ProcessInfo& rCurrentProcessInfo,
                               bool CalculateStiffnessMatrixFlag,
                               bool CalculateResidualVectorFlag);
 
 
-	//auxiliary function needed in the calculation of output stresses
-	inline array_1d<double,6> VoigtTensorComponents(
-		array_1d<double,3>& a,
-		array_1d<double,3>& b);
+    //auxiliary function needed in the calculation of output stresses
+    inline array_1d<double,6> VoigtTensorComponents(
+        array_1d<double,3>& a,
+        array_1d<double,3>& b);
 
 
-	  bool mcontact_is_active;
-	  double mpenetration;
+    bool mcontact_is_active;
+    double mpenetration;
 
-          bool Check_image_inside_face(const array_1d<double,3> n, int reference_face, const Geometry< Node<3> >& geom,bool image_inside);
-          bool same_side(const array_1d<double,3> p0, const array_1d<double,3> p1,const array_1d<double,3> a,const array_1d<double,3> b);
-	  void CalculateOldIterationContactHeight(double& H_zero, const int reference_face);
-	  void CalculateMinDistanceAndNormal(double& h,array_1d<double,3>& n,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points);
-          void DetectContact(Geometry< Node<3> >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
-          void CheckIsContactMaster(int& flag);
-	  void FlagVariableCheckForNonSuitableElements(double& accepted);
-     private:
-       
-       
-	    ///@}
-	    ///@name Serialization
-	    ///@{	
-	    friend class Serializer; 
-	    
+    bool Check_image_inside_face(const array_1d<double,3> n, int reference_face, const Geometry< Node<3> >& geom,bool image_inside);
+    bool same_side(const array_1d<double,3> p0, const array_1d<double,3> p1,const array_1d<double,3> a,const array_1d<double,3> b);
+    void CalculateOldIterationContactHeight(double& H_zero, const int reference_face);
+    void CalculateMinDistanceAndNormal(double& h,array_1d<double,3>& n,const boost::numeric::ublas::bounded_matrix<double, 4, 3 > ordered_points);
+    void DetectContact(Geometry< Node<3> >& geom, boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, const unsigned int single_node_index, array_1d<double,3>& n, double& h);
+    void CheckIsContactMaster(int& flag);
+    void FlagVariableCheckForNonSuitableElements(double& accepted);
+private:
 
-	    virtual void save(Serializer& rSerializer) const
-	    {
-	    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-	    }
 
-	    virtual void load(Serializer& rSerializer)
-	    {
-	    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
-	    }
-       
-			
-    }; // class KRATOS_EBST_H_INCLUDED.
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+    }
+
+
+}; // class KRATOS_EBST_H_INCLUDED.
 
 } // namespace Kratos.
 

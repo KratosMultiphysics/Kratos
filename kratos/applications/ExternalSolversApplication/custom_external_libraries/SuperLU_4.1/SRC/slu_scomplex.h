@@ -1,7 +1,7 @@
 
 /*! @file slu_scomplex.h
  * \brief Header file for complex operations
- * <pre> 
+ * <pre>
  *  -- SuperLU routine (version 2.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
  * and Lawrence Berkeley National Lab.
@@ -18,7 +18,10 @@
 #ifndef SCOMPLEX_INCLUDE
 #define SCOMPLEX_INCLUDE
 
-typedef struct { float r, i; } complex;
+typedef struct
+{
+    float r, i;
+} complex;
 
 
 /* Macro definitions */
@@ -57,20 +60,20 @@ typedef struct { float r, i; } complex;
 extern "C" {
 #endif
 
-/* Prototypes for functions in scomplex.c */
-void c_div(complex *, complex *, complex *);
-double c_abs(complex *);     /* exact */
-double c_abs1(complex *);    /* approximate */
-void c_exp(complex *, complex *);
-void r_cnjg(complex *, complex *);
-double r_imag(complex *);
-complex c_sgn(complex *);
-complex c_sqrt(complex *);
+    /* Prototypes for functions in scomplex.c */
+    void c_div(complex *, complex *, complex *);
+    double c_abs(complex *);     /* exact */
+    double c_abs1(complex *);    /* approximate */
+    void c_exp(complex *, complex *);
+    void r_cnjg(complex *, complex *);
+    double r_imag(complex *);
+    complex c_sgn(complex *);
+    complex c_sqrt(complex *);
 
 
 
 #ifdef __cplusplus
-  }
+}
 #endif
 
 #endif

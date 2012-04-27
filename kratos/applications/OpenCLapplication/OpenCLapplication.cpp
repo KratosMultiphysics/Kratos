@@ -1,17 +1,17 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.3 $
 //
-// 
+//
 
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -23,15 +23,15 @@
 namespace Kratos
 {
 
-	KratosOpenCLApplication::KratosOpenCLApplication()
-	{}
- 	
-	void KratosOpenCLApplication::Register()
- 	{
- 		// calling base class register to register Kratos components
- 		KratosApplication::Register();
-		std::cout << "Initializing KratosOpenCLApplication... " << std::endl;
-	}
+KratosOpenCLApplication::KratosOpenCLApplication()
+{}
+
+void KratosOpenCLApplication::Register()
+{
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+    std::cout << "Initializing KratosOpenCLApplication... " << std::endl;
+}
 
 }  // namespace Kratos.
 

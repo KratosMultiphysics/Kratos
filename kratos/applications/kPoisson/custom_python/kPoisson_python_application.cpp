@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1PoissonApplication 
+KratosR1PoissonApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,61 +37,61 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
+*/
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: '''it's me!''' $
 //   Date:                $Date: '''2008-08-08 23:58:38''' $
 //   Revision:            $Revision: '''1.0''' $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "kPoisson.h"
 //#include "custom_python/add_custom_strategies_to_python.h"
 //#include "custom_python/add_custom_utilities_to_python.h"
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosR1PoissonApplication)
-  {
 
-	  class_<KratosR1PoissonApplication, 
-			  KratosR1PoissonApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosR1PoissonApplication")
-			;
+BOOST_PYTHON_MODULE(KratosR1PoissonApplication)
+{
+
+    class_<KratosR1PoissonApplication,
+           KratosR1PoissonApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosR1PoissonApplication")
+           ;
 
 //		AddCustomStrategiesToPython();
 //		AddCustomUtilitiesToPython();
 
-		//registering variables in python
+    //registering variables in python
 
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_UNKNOWN)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_MATERIAL)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_POINT_SOURCE)
-			 
-  }
-  
-  
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_UNKNOWN)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_MATERIAL)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DUMMY_POINT_SOURCE)
+
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -38,224 +38,224 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
-
-	// Variables definition 
-        KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
-	KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)	
-	KRATOS_DEFINE_VARIABLE(double,  HTC)
-        KRATOS_DEFINE_VARIABLE(int, REF_ID)
-	
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name  Enum's
-	///@{
+// Variables definition
+KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
+KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)
+KRATOS_DEFINE_VARIABLE(double,  HTC)
+KRATOS_DEFINE_VARIABLE(int, REF_ID)
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name Type Definitions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosThermoMechanicalApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+///@}
+///@name  Functions
+///@{
 
-		/// Pointer definition of KratosThermoMechanicalApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosThermoMechanicalApplication);
+///@}
+///@name Kratos Classes
+///@{
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosThermoMechanicalApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Default constructor.
-		KratosThermoMechanicalApplication();
 
-		/// Destructor.
-		virtual ~KratosThermoMechanicalApplication(){}
+    /// Pointer definition of KratosThermoMechanicalApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosThermoMechanicalApplication);
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		///@}
-		///@name Operators 
-		///@{
+    /// Default constructor.
+    KratosThermoMechanicalApplication();
 
+    /// Destructor.
+    virtual ~KratosThermoMechanicalApplication() {}
 
-		///@}
-		///@name Operations
-		///@{
 
-		virtual void Register();
+    ///@}
+    ///@name Operators
+    ///@{
 
 
+    ///@}
+    ///@name Operations
+    ///@{
 
-		///@}
-		///@name Access
-		///@{ 
+    virtual void Register();
 
 
-		///@}
-		///@name Inquiry
-		///@{
 
+    ///@}
+    ///@name Access
+    ///@{
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosThermoMechanicalApplication";
-		}
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
 
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in my application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosThermoMechanicalApplication";
+    }
 
-		///@}      
-		///@name Friends
-		///@{
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+    ///@}
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-// 		const Elem2D   mElem2D; 
-// 		const Elem3D   mElem3D; 
- 		const HeatContact2D  mHeatContact2D;
- 		const HeatContact3D  mHeatContact3D;
-		const ThermalFace2D  mThermalFace2D;
-		const ThermalFace3D  mThermalFace3D;
-		const EnvironmentContact  mEnvironmentContact;
-		
- 		const SUPGConvDiff2D  mSUPGConvDiff2D;		
- 		const SUPGConvDiff3D  mSUPGConvDiff3D;	
- 		const SUPGConv3D  mSUPGConv3D;		
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    //       static const ApplicationCondition  msApplicationCondition;
 
+    ///@}
+    ///@name Member Variables
+    ///@{
+// 		const Elem2D   mElem2D;
+// 		const Elem3D   mElem3D;
+    const HeatContact2D  mHeatContact2D;
+    const HeatContact3D  mHeatContact3D;
+    const ThermalFace2D  mThermalFace2D;
+    const ThermalFace3D  mThermalFace3D;
+    const EnvironmentContact  mEnvironmentContact;
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    const SUPGConvDiff2D  mSUPGConvDiff2D;
+    const SUPGConvDiff3D  mSUPGConvDiff3D;
+    const SUPGConv3D  mSUPGConv3D;
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
 
-		/// Assignment operator.
-		KratosThermoMechanicalApplication& operator=(KratosThermoMechanicalApplication const& rOther);
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		/// Copy constructor.
-		KratosThermoMechanicalApplication(KratosThermoMechanicalApplication const& rOther);
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		///@}    
 
-	}; // Class KratosThermoMechanicalApplication 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	///@} 
+    /// Assignment operator.
+    KratosThermoMechanicalApplication& operator=(KratosThermoMechanicalApplication const& rOther);
 
+    /// Copy constructor.
+    KratosThermoMechanicalApplication(KratosThermoMechanicalApplication const& rOther);
 
-	///@name Type Definitions       
-	///@{ 
 
+    ///@}
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+}; // Class KratosThermoMechanicalApplication
 
-	///@} 
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

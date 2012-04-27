@@ -35,35 +35,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-10-23 11:35:13 $
 //   Revision:            $Revision: 1.6 $
 //
-// 
+//
 
 #include "utilities/timer.h"
 
 
 namespace Kratos
 {
-  /// Default constructor.
-  Timer::Timer() {}
+/// Default constructor.
+Timer::Timer() {}
 
-  Timer::ContainerType Timer::msTimeTable;
-  std::ofstream Timer::msOutputFile;
+Timer::ContainerType Timer::msTimeTable;
+std::ofstream Timer::msOutputFile;
 
-  bool Timer::msPrintOnScreen = false;
-  
+bool Timer::msPrintOnScreen = false;
+
 #ifndef _OPENMP
-	double Timer::msGlobalStart = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+double Timer::msGlobalStart = std::clock()/static_cast<double>(CLOCKS_PER_SEC);
 #else
-       double Timer::msGlobalStart = omp_get_wtime();
+double Timer::msGlobalStart = omp_get_wtime();
 #endif
-  
-  
-  
+
+
+
 
 }

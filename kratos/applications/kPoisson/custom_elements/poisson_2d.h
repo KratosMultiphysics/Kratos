@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1PoissonApplication 
+KratosR1PoissonApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2008
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,10 +37,10 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
+*/
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: it's me! $
 //   Date:                $Date: 2008-08-08 23:58:38 $
 //   Revision:            $Revision: 1.0 $
@@ -50,10 +50,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_POISSON_2D_ELEM_H_INCLUDED)
 #define  KRATOS_POISSON_2D_ELEM_H_INCLUDED
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -66,135 +66,135 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
+///@name Kratos Globals
+///@{
 
-  class Poisson2D
- 	  : public Element
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Poisson2D
-      KRATOS_CLASS_POINTER_DEFINITION(Poisson2D);
- 
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-     /// Default constructor.
-      Poisson2D(IndexType NewId, GeometryType::Pointer pGeometry);
-      Poisson2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
- 
-      /// Destructor.
-      virtual ~ Poisson2D();
- 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name  Functions
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+///@}
+///@name Kratos Classes
+///@{
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+class Poisson2D
+    : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-     ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-  
-    
-            
-      ///@}      
-      ///@name Friends
-      ///@{
- 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
+    /// Counted pointer of Poisson2D
+    KRATOS_CLASS_POINTER_DEFINITION(Poisson2D);
 
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Poisson2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    Poisson2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~ Poisson2D();
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 // 		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
 // 		static boost::numeric::ublas::bounded_matrix<double,2,2> Poisson2D::msD;
 //   		static array_1d<double,3> msN; //dimension = number of nodes
@@ -205,57 +205,57 @@ namespace Kratos
 //   		array_1d<double,3> msN; //dimension = number of nodes
 // 		array_1d<double,3> ms_temp; //dimension = number of nodes
 // 		array_1d<double,3> Poisson2D::point_sources; //dimension = number of nodes
-      ///@} 
-      ///@name Member Variables 
-      ///@{        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-          
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-               
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-               
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-            
-      /// Assignment operator.
-      // Poisson2D& operator=(const Poisson2D& rOther);
- 
-      /// Copy constructor.
-      // Poisson2D(const Poisson2D& rOther);
-        
-      ///@}    
-        
-    }; // Class Poisson2D
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-  /// output stream function
- 
-  ///@} 
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    // Poisson2D& operator=(const Poisson2D& rOther);
+
+    /// Copy constructor.
+    // Poisson2D(const Poisson2D& rOther);
+
+    ///@}
+
+}; // Class Poisson2D
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+
+/// output stream function
+
+///@}
 
 }  // namespace Kratos.
 

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,11 +52,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <sstream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -67,217 +67,217 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  template<class TVariableType>
-    class AddDofsNodalProcess : public Process
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TVariableType>
+class AddDofsNodalProcess : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of AddDofsNodalProcess
+    KRATOS_CLASS_POINTER_DEFINITION(AddDofsNodalProcess);
+
+    typedef Node<3> NodeType;
+
+    typedef Dof<typename TVariableType::Type> DofType;
+
+    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+
+    typedef PointerVectorSet<DofType, IndexedObject> DofsContainerType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor.
+    AddDofsNodalProcess(TVariableType const& NewVariable, NodesContainerType & rThisNodes, DofsContainerType& rThisDofs)
+        : mVariable(NewVariable), mNodes(rThisNodes), mDofs(rThisDofs) {}
+
+    /// Destructor.
+    virtual ~AddDofsNodalProcess() {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Execute()
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of AddDofsNodalProcess
-      KRATOS_CLASS_POINTER_DEFINITION(AddDofsNodalProcess);
+        for(typename NodesContainerType::iterator i_node = mNodes.begin() ; i_node != mNodes.end() ; i_node++)
+            mDofs.push_back(i_node->pAddDof(mVariable));
+    }
 
-      typedef Node<3> NodeType;
 
-      typedef Dof<typename TVariableType::Type> DofType;
+    ///@}
+    ///@name Access
+    ///@{
 
-      typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
-      typedef PointerVectorSet<DofType, IndexedObject> DofsContainerType;
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Constructor.
-      AddDofsNodalProcess(TVariableType const& NewVariable, NodesContainerType & rThisNodes, DofsContainerType& rThisDofs) 
-	: mVariable(NewVariable), mNodes(rThisNodes), mDofs(rThisDofs){}
 
-      /// Destructor.
-      virtual ~AddDofsNodalProcess(){}
-      
+    ///@}
+    ///@name Input and output
+    ///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "add "
+               << mVariable.Name()
+               << " dofs nodal process";
+        return buffer.str();
+    }
 
-      
-      ///@}
-      ///@name Operations
-      ///@{
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
 
-      virtual void Execute()
-	{
-	  for(typename NodesContainerType::iterator i_node = mNodes.begin() ; i_node != mNodes.end() ; i_node++)
-	    mDofs.push_back(i_node->pAddDof(mVariable));
-	}
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  std::stringstream buffer;
-	  buffer << "add "
-		 << mVariable.Name()
-		 << " dofs nodal process";
-	  return buffer.str();
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info();
-	}
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-      TVariableType const& mVariable;
+    ///@}
+    ///@name Friends
+    ///@{
 
-      NodesContainerType& mNodes;
 
-      DofsContainerType& mDofs; 
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      AddDofsNodalProcess& operator=(AddDofsNodalProcess const& rOther);
+    ///@}
 
-      /// Copy constructor.
-      AddDofsNodalProcess(AddDofsNodalProcess const& rOther);
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class AddDofsNodalProcess 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    TVariableType const& mVariable;
+
+    NodesContainerType& mNodes;
+
+    DofsContainerType& mDofs;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    AddDofsNodalProcess& operator=(AddDofsNodalProcess const& rOther);
+
+    /// Copy constructor.
+    AddDofsNodalProcess(AddDofsNodalProcess const& rOther);
+
+
+    ///@}
+
+}; // Class AddDofsNodalProcess
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_DOFS_NODAL_PROCESS_H_INCLUDED  defined 

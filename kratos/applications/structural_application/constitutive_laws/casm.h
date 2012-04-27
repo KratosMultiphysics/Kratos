@@ -336,7 +336,7 @@ protected:
 private:
 
     friend class Serializer;
-    
+
     virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw );
@@ -345,7 +345,7 @@ private:
         rSerializer.save( "mOldPlasticStrains", mOldPlasticStrains );
         rSerializer.save( "mCurrentPlasticStrains", mCurrentPlasticStrains );
     }
-    
+
     virtual void load( Serializer& rSerializer )
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );

@@ -71,53 +71,53 @@ namespace Kratos
 
 namespace Python
 {
-    void  AddUtilitiesToPython()
-    {
+void  AddUtilitiesToPython()
+{
 
-        using namespace boost::python;
+    using namespace boost::python;
 
-          class_< OpenCL::DeviceGroup, boost::noncopyable > ("OpenCLDeviceGroup", init<cl_device_type, bool> ())
-						  .def("AddCLSearchPath", &OpenCL::DeviceGroup::AddCLSearchPath)
-						;
+    class_< OpenCL::DeviceGroup, boost::noncopyable > ("OpenCLDeviceGroup", init<cl_device_type, bool> ())
+    .def("AddCLSearchPath", &OpenCL::DeviceGroup::AddCLSearchPath)
+    ;
 
-          class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< OpenCL::DeviceGroup& >() )
-                          .def("ConstructCSRVector",&OpenCLMatrixContainer::ConstructCSRVector)
-                          .def("BuildCSRData",&OpenCLMatrixContainer::BuildCSRData)
-                          .def("Clear",&OpenCLMatrixContainer::Clear)
-                        ;
+    class_< OpenCLMatrixContainer,  boost::noncopyable >   ("OpenCLMatrixContainer3D", init< OpenCL::DeviceGroup& >() )
+    .def("ConstructCSRVector",&OpenCLMatrixContainer::ConstructCSRVector)
+    .def("BuildCSRData",&OpenCLMatrixContainer::BuildCSRData)
+    .def("Clear",&OpenCLMatrixContainer::Clear)
+    ;
 
-          class_< OpenCLPureConvectionEdgeBased3D,  boost::noncopyable >   ("OpenCLPureConvectionEdgeBased3D", init< OpenCLMatrixContainer&, ModelPart& >() )
-                          .def("Initialize", &OpenCLPureConvectionEdgeBased3D::Initialize)
-                          .def("Solve", &OpenCLPureConvectionEdgeBased3D::Solve)
-						  .def("ComputeTimeStep", &OpenCLPureConvectionEdgeBased3D::ComputeTimeStep)
-                        ;
+    class_< OpenCLPureConvectionEdgeBased3D,  boost::noncopyable >   ("OpenCLPureConvectionEdgeBased3D", init< OpenCLMatrixContainer&, ModelPart& >() )
+    .def("Initialize", &OpenCLPureConvectionEdgeBased3D::Initialize)
+    .def("Solve", &OpenCLPureConvectionEdgeBased3D::Solve)
+    .def("ComputeTimeStep", &OpenCLPureConvectionEdgeBased3D::ComputeTimeStep)
+    ;
 
-          class_< OpenCLFluidSolver3D,  boost::noncopyable >   ("OpenCLFluidSolver3D", init< OpenCLMatrixContainer&, ModelPart&, const double, const double, const Vector, bool, double, double, double, double, bool >() )
-						  .def("Initialize", &OpenCLFluidSolver3D::Initialize)
-						  .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
-						  .def("SolveStep1", &OpenCLFluidSolver3D::SolveStep1)
-						  .def("SolveStep2", &OpenCLFluidSolver3D::SolveStep2)
-						  .def("SolveStep3", &OpenCLFluidSolver3D::SolveStep3)
-						  .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
-						  .def("CalculateNormals", &OpenCLFluidSolver3D::CalculateNormals)
-						  .def("UpdateFixedVelocityValues", &OpenCLFluidSolver3D::UpdateFixedVelocityValues)
-                                                  .def("ActivateWallResistance", &OpenCLFluidSolver3D::ActivateWallResistance)
-                                                  .def("LoadDataToGPU", &OpenCLFluidSolver3D::LoadDataToGPU)
-                                                  .def("WriteDataToCPU", &OpenCLFluidSolver3D::WriteDataToCPU)
-                        ;
+    class_< OpenCLFluidSolver3D,  boost::noncopyable >   ("OpenCLFluidSolver3D", init< OpenCLMatrixContainer&, ModelPart&, const double, const double, const Vector, bool, double, double, double, double, bool >() )
+    .def("Initialize", &OpenCLFluidSolver3D::Initialize)
+    .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
+    .def("SolveStep1", &OpenCLFluidSolver3D::SolveStep1)
+    .def("SolveStep2", &OpenCLFluidSolver3D::SolveStep2)
+    .def("SolveStep3", &OpenCLFluidSolver3D::SolveStep3)
+    .def("ComputeTimeStep", &OpenCLFluidSolver3D::ComputeTimeStep)
+    .def("CalculateNormals", &OpenCLFluidSolver3D::CalculateNormals)
+    .def("UpdateFixedVelocityValues", &OpenCLFluidSolver3D::UpdateFixedVelocityValues)
+    .def("ActivateWallResistance", &OpenCLFluidSolver3D::ActivateWallResistance)
+    .def("LoadDataToGPU", &OpenCLFluidSolver3D::LoadDataToGPU)
+    .def("WriteDataToCPU", &OpenCLFluidSolver3D::WriteDataToCPU)
+    ;
 
-          enum_<cl_device_type>("cl_device_type")
-                          .value("CL_DEVICE_TYPE_CPU", CL_DEVICE_TYPE_CPU)
-                          .value("CL_DEVICE_TYPE_GPU", CL_DEVICE_TYPE_GPU)
-                          .value("CL_DEVICE_TYPE_ALL", CL_DEVICE_TYPE_ALL)
-                        ;
+    enum_<cl_device_type>("cl_device_type")
+    .value("CL_DEVICE_TYPE_CPU", CL_DEVICE_TYPE_CPU)
+    .value("CL_DEVICE_TYPE_GPU", CL_DEVICE_TYPE_GPU)
+    .value("CL_DEVICE_TYPE_ALL", CL_DEVICE_TYPE_ALL)
+    ;
 
 //          class_< RenumberByNeighbourCountUtil,  boost::noncopyable >   ("RenumberByNeighbourCountUtil", init< >() )
 //                          .def("Renumber",&RenumberByNeighbourCountUtil::Renumber)
 //                        ;
 
-          def("BenchmarkDevice", OpenCL::BenchmarkDevice);
-  }
+    def("BenchmarkDevice", OpenCL::BenchmarkDevice);
+}
 
 }  // namespace Python.
 

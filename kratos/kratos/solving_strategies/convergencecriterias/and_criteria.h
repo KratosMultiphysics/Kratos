@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: Nelson $
 *   Date:                $Date: 2009-29-06$
 *   Revision:            $Revision: 1.2 $
@@ -47,7 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if !defined(KRATOS_AND_CRITERIA_H)
 #define  KRATOS_AND_CRITERIA_H
- 
+
 
 /* System includes */
 
@@ -64,265 +64,267 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
-	/**@name Kratos Globals */
-	/*@{ */
-	
-	
-	/*@} */
-	/**@name Type Definitions */       
-	/*@{ */
-	
-	/*@} */
-	
-	
-	/**@name  Enum's */       
-	/*@{ */
-	
-	
-	/*@} */
-	/**@name  Functions */       
-	/*@{ */
-	
-	
-	
-	/*@} */
-	/**@name Kratos Classes */
-	/*@{ */
-	
-	/** Short class definition.
-	Detail class definition.
-	
-	      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
-	      \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-	      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-	      \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+/**@name Kratos Globals */
+/*@{ */
 
 
-	      \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+/*@} */
+/**@name Type Definitions */
+/*@{ */
 
-	      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+/*@} */
 
-	      \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
 
-	      \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-		    
-	*/
-	
-	template<class TSparseSpace,
-	class TDenseSpace 
-	>
-	class And_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+/**@name  Enum's */
+/*@{ */
+
+
+/*@} */
+/**@name  Functions */
+/*@{ */
+
+
+
+/*@} */
+/**@name Kratos Classes */
+/*@{ */
+
+/** Short class definition.
+Detail class definition.
+
+      \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
+
+      \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
+
+      \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
+
+      \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
+
+
+      \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
+
+      \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
+
+      \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
+
+      \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
+
+*/
+
+template<class TSparseSpace,
+         class TDenseSpace
+         >
+class And_Criteria : public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
+
+    /** Counted pointer of And_Criteria */
+
+
+    KRATOS_CLASS_POINTER_DEFINITION(And_Criteria );
+
+    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+
+    typedef TSparseSpace SparseSpaceType;
+
+    typedef typename BaseType::TDataType TDataType;
+
+    typedef typename BaseType::DofsArrayType DofsArrayType;
+
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
+
+
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
+
+    /** Constructor.
+    */
+    And_Criteria
+    (
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criteria,
+        typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criteria)
+        :ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
-	      public:
-		/**@name Type Definitions */       
-		/*@{ */
-		
-		/** Counted pointer of And_Criteria */
-				
-				
-		KRATOS_CLASS_POINTER_DEFINITION(And_Criteria );		
-		
-		typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+        mpfirst_criteria   =  first_criteria;
+        mpsecond_criteria  =  second_criteria;
+    }
 
-		typedef TSparseSpace SparseSpaceType;
+    /** Destructor.
+    */
+    virtual ~And_Criteria () {}
 
-		typedef typename BaseType::TDataType TDataType;
 
-		typedef typename BaseType::DofsArrayType DofsArrayType;
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
 
-		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    /*Criterias that need to be called after getting the solution */
+    bool PostCriteria(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        bool first_criteria_result  = mpfirst_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
+        bool second_criteria_result = mpsecond_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
 
-		typedef typename BaseType::TSystemVectorType TSystemVectorType;
-					    
-		
-		/*@} */
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
-		
-		/** Constructor.
-		*/
-		And_Criteria 
-			(	
-			typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer first_criteria,
-			typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer second_criteria)
-			:ConvergenceCriteria< TSparseSpace, TDenseSpace >()
-		{
-			mpfirst_criteria   =  first_criteria;
-			mpsecond_criteria  =  second_criteria;
-		}
-		
-		/** Destructor.
-		*/
-		virtual ~And_Criteria (){}
-		
-		
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
-		
-		/*Criterias that need to be called after getting the solution */
-		bool PostCriteria(
-			ModelPart& r_model_part,
-			DofsArrayType& rDofSet,
-			const TSystemMatrixType& A,
-			const TSystemVectorType& Dx,
-			const TSystemVectorType& b
-			)
-		{
-			bool first_criteria_result  = mpfirst_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
-			bool second_criteria_result = mpsecond_criteria ->PostCriteria(r_model_part,rDofSet,A,Dx,b);
-			
-			return (first_criteria_result && second_criteria_result);
-			
-		}
-		
+        return (first_criteria_result && second_criteria_result);
 
-	  void Initialize(ModelPart& r_model_part)
-		    {
-                      mpfirst_criteria->Initialize(r_model_part);
-                      mpsecond_criteria->Initialize(r_model_part);
-		    }
+    }
 
-	  void InitializeSolutionStep(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					)
-	      {
-		      mpfirst_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-                      mpsecond_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-	      }
 
-	  void FinalizeSolutionStep(
-					ModelPart& r_model_part,
-					DofsArrayType& rDofSet,
-					const TSystemMatrixType& A,
-					const TSystemVectorType& Dx,
-					const TSystemVectorType& b
-					){
-		      mpfirst_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
-                      mpsecond_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);}
+    void Initialize(ModelPart& r_model_part)
+    {
+        mpfirst_criteria->Initialize(r_model_part);
+        mpsecond_criteria->Initialize(r_model_part);
+    }
 
-		
-		
-		
-		/*@} */
-		/**@name Operations */
-		/*@{ */
-		
-		
-		/*@} */  
-		/**@name Access */
-		/*@{ */
-		
-		
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
-		
-		
-		/*@} */      
-		/**@name Friends */
-		/*@{ */
-		
-		
-		/*@} */
-		
-    protected:
-        /**@name Protected static Member Variables */
-        /*@{ */
-        
-		
-        /*@} */
-        /**@name Protected member Variables */
-        /*@{ */
-		
-        
-        /*@} */
-        /**@name Protected Operators*/
-        /*@{ */
-        
-        
-        /*@} */
-        /**@name Protected Operations*/
-        /*@{ */
-        
-        
-        /*@} */
-        /**@name Protected  Access */
-        /*@{ */
-        
-        
-        /*@} */     
-        /**@name Protected Inquiry */
-        /*@{ */
-        
-        
-        /*@} */   
-		/**@name Protected LifeCycle */  
-        /*@{ */
-		
-		
-		
-        /*@} */    
-		
-    private:
-        /**@name Static Member Variables */
-        /*@{ */
-        
-        
-        /*@} */
-        /**@name Member Variables */
-        /*@{ */
-		typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criteria; 
-		typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criteria; 
-		
-		
-        /*@} */
-        /**@name Private Operators*/
-        /*@{ */
-        
-        
-        /*@} */
-        /**@name Private Operations*/
-        /*@{ */
-        
-        
-        /*@} */
-        /**@name Private  Access */
-        /*@{ */
-        
-        
-        /*@} */     
-        /**@name Private Inquiry */
-        /*@{ */
-        
-        
-        /*@} */   
-        /**@name Un accessible methods */
-        /*@{ */
-        
-        
-        /*@} */   
-        
-    }; /* Class ClassName */
-	
-	/*@} */
-	
-	/**@name Type Definitions */       
-	/*@{ */
-	
-	
-	/*@} */
-	
+    void InitializeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        mpfirst_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpsecond_criteria->InitializeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+    }
+
+    void FinalizeSolutionStep(
+        ModelPart& r_model_part,
+        DofsArrayType& rDofSet,
+        const TSystemMatrixType& A,
+        const TSystemVectorType& Dx,
+        const TSystemVectorType& b
+    )
+    {
+        mpfirst_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+        mpsecond_criteria->FinalizeSolutionStep(r_model_part,rDofSet,A,Dx,b);
+    }
+
+
+
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Friends */
+    /*@{ */
+
+
+    /*@} */
+
+protected:
+    /**@name Protected static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
+
+
+
+    /*@} */
+
+private:
+    /**@name Static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpfirst_criteria;
+    typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer mpsecond_criteria;
+
+
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
+
+
+    /*@} */
+
+}; /* Class ClassName */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+
+/*@} */
+
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_NEW_AND_CRITERIA  defined */

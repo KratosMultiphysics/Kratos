@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2008-11-17 14:50:46 $
 //   Revision:            $Revision: 1.6 $
@@ -52,13 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <numeric>
 #include <cstddef>
 
 
 // External includes
-#include <boost/array.hpp>  
+#include <boost/array.hpp>
 
 
 // Project includes
@@ -69,212 +69,227 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    class TetrahedraGaussianIntegrationPoints1
+class TetrahedraGaussianIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints1);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 3;
+        return 1;
+    }
 
-	typedef IntegrationPoint<3> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 1; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType( 0.25,0.25,0.25 , 1.00 / 6.00 );
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "Tetrahedra gaussian quadrature 1 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class TetrahedraGaussianIntegrationPoints1
-
-
-
-
-
-
-    class TetrahedraGaussianIntegrationPoints2
+    static IntegrationPointsArrayType& IntegrationPoints()
     {
-	    public:
-		    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints2);
-		    typedef std::size_t SizeType;
-		    
-		    static const unsigned int Dimension = 3;
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 0.25,0.25,0.25 , 1.00 / 6.00 );
+        return msIntegrationPoints;
+    }
 
-		    typedef IntegrationPoint<3> IntegrationPointType;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Tetrahedra gaussian quadrature 1 ";
+        return buffer.str();
+    }
+protected:
 
-		    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+private:
 
-		    typedef IntegrationPointType::PointType PointType;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-		    static SizeType IntegrationPointsNumber()    {  return 4; }
-		    
-		    static IntegrationPointsArrayType& IntegrationPoints()
-		    {
-		      // This is added to solve the problem of static initialization. Pooyan.
-		      msIntegrationPoints[0] = IntegrationPointType( 0.58541020,0.13819660,0.13819660 , 1.00 / 24.00 );
-		      msIntegrationPoints[1] = IntegrationPointType( 0.13819660,0.58541020,0.13819660 , 1.00 / 24.00 );
-		      msIntegrationPoints[2] = IntegrationPointType( 0.13819660,0.13819660,0.58541020 , 1.00 / 24.00 );
-		      msIntegrationPoints[3] = IntegrationPointType( 0.13819660,0.13819660,0.13819660 , 1.00 / 24.00 );
-			    return msIntegrationPoints;
-		    }
-
-		    std::string Info() const
-		    {
-			    std::stringstream buffer;
-			    buffer << "Tetrahedra gaussian quadrature 2 ";
-			    return buffer.str();
-		    }
-	    protected:
-
-	    private:
-
-		    static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class TetrahedraGaussianIntegrationPoints2
+}; // Class TetrahedraGaussianIntegrationPoints1
 
 
 
 
 
-   class TetrahedraGaussianIntegrationPoints3
-   {
-	   public:
-		   KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints3);
-		   typedef std::size_t SizeType;
-		   
-		   static const unsigned int Dimension = 3;
 
-		   typedef IntegrationPoint<3> IntegrationPointType;
+class TetrahedraGaussianIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints2);
+    typedef std::size_t SizeType;
 
-		   typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+    static const unsigned int Dimension = 3;
 
-		   typedef IntegrationPointType::PointType PointType;
+    typedef IntegrationPoint<3> IntegrationPointType;
 
-		   static SizeType IntegrationPointsNumber()    {  return 5; }
-		    
-		   static IntegrationPointsArrayType& IntegrationPoints()
-		   {
-			   return msIntegrationPoints;
-		   }
+    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
 
-		   std::string Info() const
-		   {
-			   std::stringstream buffer;
-			   buffer << "Tetrahedra gaussian quadrature 3 ";
-			   return buffer.str();
-		   }
-	   protected:
+    typedef IntegrationPointType::PointType PointType;
 
-	   private:
+    static SizeType IntegrationPointsNumber()
+    {
+        return 4;
+    }
 
-		   static IntegrationPointsArrayType msIntegrationPoints;
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 0.58541020,0.13819660,0.13819660 , 1.00 / 24.00 );
+        msIntegrationPoints[1] = IntegrationPointType( 0.13819660,0.58541020,0.13819660 , 1.00 / 24.00 );
+        msIntegrationPoints[2] = IntegrationPointType( 0.13819660,0.13819660,0.58541020 , 1.00 / 24.00 );
+        msIntegrationPoints[3] = IntegrationPointType( 0.13819660,0.13819660,0.13819660 , 1.00 / 24.00 );
+        return msIntegrationPoints;
+    }
 
-   }; // Class TetrahedraGaussianIntegrationPoints3
-   
-   class TetrahedraGaussianIntegrationPoints4
-   {
-	   public:
-		   KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);
-		   typedef std::size_t SizeType;
-		   
-		   static const unsigned int Dimension = 3;
-		   
-		   typedef IntegrationPoint<3> IntegrationPointType;
-		   
-		   typedef boost::array<IntegrationPointType, 10> IntegrationPointsArrayType;
-		   
-		   typedef IntegrationPointType::PointType PointType;
-		   
-		   static SizeType IntegrationPointsNumber()	{ return 10; }
-		   
-		   static IntegrationPointsArrayType& IntegrationPoints()
-		   {
-			   return msIntegrationPoints;
-		   }
-		   
-		   std::string Info() const
-		   {
-			   std::stringstream buffer;
-			   buffer << "Tetrahedra gaussian quadrature 4 ";
-			   return buffer.str();
-		   }
-		   
-	   protected:
-		   
-	   private:
-		   
-		   static IntegrationPointsArrayType msIntegrationPoints;
-		
-   };
-   
-   class TetrahedraGaussianIntegrationPoints5
-   {
-	   public:
-		   KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);
-		   typedef std::size_t SizeType;
-		   
-		   static const unsigned int Dimension = 3;
-		   
-		   typedef IntegrationPoint<3> IntegrationPointType;
-		   
-		   typedef boost::array<IntegrationPointType, 11> IntegrationPointsArrayType;
-		   
-		   typedef IntegrationPointType::PointType PointType;
-		   
-		   static SizeType IntegrationPointsNumber()	{ return 11; }
-		   
-		   static IntegrationPointsArrayType& IntegrationPoints()
-		   {
-			   return msIntegrationPoints;
-		   }
-		   
-		   std::string Info() const
-		   {
-			   std::stringstream buffer;
-			   buffer << "Tetrahedra gaussian quadrature 5 ";
-			   return buffer.str();
-		   }
-		   
-	   protected:
-		   
-	   private:
-		   
-		   static IntegrationPointsArrayType msIntegrationPoints;
-		
-   };
-   
-   
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Tetrahedra gaussian quadrature 2 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class TetrahedraGaussianIntegrationPoints2
+
+
+
+
+
+class TetrahedraGaussianIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints3);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 5;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Tetrahedra gaussian quadrature 3 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class TetrahedraGaussianIntegrationPoints3
+
+class TetrahedraGaussianIntegrationPoints4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 10> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 10;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Tetrahedra gaussian quadrature 4 ";
+        return buffer.str();
+    }
+
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+};
+
+class TetrahedraGaussianIntegrationPoints5
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TetrahedraGaussianIntegrationPoints4);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 3;
+
+    typedef IntegrationPoint<3> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 11> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 11;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Tetrahedra gaussian quadrature 5 ";
+        return buffer.str();
+    }
+
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+};
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_TETRAHEDRA_GAUSSIAN_INTEGRATION_POINTS_H_INCLUDED  defined 

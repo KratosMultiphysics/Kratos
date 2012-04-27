@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,23 +38,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: anonymous $
 //   Date:                $Date: 2009-01-22 17:13:54 $
 //   Revision:            $Revision: 1.5 $
 //
 //
- 
 
-// System includes 
 
-// External includes 
+// System includes
+
+// External includes
 #include <boost/python.hpp>
 
- 
+
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -62,95 +62,95 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #include "custom_processes/pressure_calculate_process.h"
-#include "custom_processes/mass_calculate_process.h"  
-#include "custom_processes/ulf_apply_bc_process.h" 
-#include "custom_processes/ulf_time_step_dec_process.h" 
-#include "custom_processes/mark_fluid_process.h"  
-#include "custom_processes/mark_close_nodes_process.h"  
-#include "custom_processes/mark_outer_nodes_process.h"  
-#include "custom_processes/save_structure_model_part_process.h" 
-#include "custom_processes/save_structure_conditions_process.h" 
+#include "custom_processes/mass_calculate_process.h"
+#include "custom_processes/ulf_apply_bc_process.h"
+#include "custom_processes/ulf_time_step_dec_process.h"
+#include "custom_processes/mark_fluid_process.h"
+#include "custom_processes/mark_close_nodes_process.h"
+#include "custom_processes/mark_outer_nodes_process.h"
+#include "custom_processes/save_structure_model_part_process.h"
+#include "custom_processes/save_structure_conditions_process.h"
 #include "custom_processes/merge_model_parts_process.h"
-#include "custom_processes/save_fluid_only_process.h"  
-#include "custom_processes/lagrangian_inlet_process.h"  
+#include "custom_processes/save_fluid_only_process.h"
+#include "custom_processes/lagrangian_inlet_process.h"
 
 #include "includes/node.h"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-  void  AddProcessesToPython()
-  {
-	using namespace boost::python;
+void  AddProcessesToPython()
+{
+    using namespace boost::python;
 
-/*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
-		 init<ModelPart&>())
-		 ;
-*/
-/*
-	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
-		 init<ModelPart&>())
-		 ;
-*/
-/*	  class_<MoveMeshProcess, bases<Process> >("MoveMeshProcess",
-		 init<ModelPart&>())
-		 ;
-*/
-/*	  class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
-		 init<ModelPart&, double>())
-		 ;
-*/
-/*
-	  class_<CoordinateLaplacianSmootherProcess, bases<Process> >("CoordinateLaplacianSmootherProcess",
-		 init<ModelPart&, int>())
-		 ;
-*/      
-	/*  
-	class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
-		 init<ModelPart&>())
-		 ;
-	 */
-	class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
-		 init<ModelPart&, unsigned int>())
-		 ;
-	class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
-		 init<ModelPart&>())
-		 ;
+    /*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
+    		 init<ModelPart&>())
+    		 ;
+    */
+    /*
+    	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
+    		 init<ModelPart&>())
+    		 ;
+    */
+    /*	  class_<MoveMeshProcess, bases<Process> >("MoveMeshProcess",
+    		 init<ModelPart&>())
+    		 ;
+    */
+    /*	  class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
+    		 init<ModelPart&, double>())
+    		 ;
+    */
+    /*
+    	  class_<CoordinateLaplacianSmootherProcess, bases<Process> >("CoordinateLaplacianSmootherProcess",
+    		 init<ModelPart&, int>())
+    		 ;
+    */
+    /*
+    class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
+    	 init<ModelPart&>())
+    	 ;
+     */
+    class_<PressureCalculateProcess, bases<Process> >("PressureCalculateProcess",
+            init<ModelPart&, unsigned int>())
+    ;
+    class_<MassCalculateProcess, bases<Process> >("MassCalculateProcess",
+            init<ModelPart&>())
+    ;
 
-		 class_<UlfApplyBCProcess, bases<Process> >("UlfApplyBCProcess",
-		 init<ModelPart&>())
-		 ;
-	   class_<UlfTimeStepDecProcess, bases<Process> >("UlfTimeStepDecProcess",init<ModelPart&>())
-		   .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
-		 ;
-	   class_<MarkOuterNodesProcess, bases<Process> >("MarkOuterNodesProcess",init<ModelPart&>())
-		   .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
-		 ;
-	   class_<MarkFluidProcess, bases<Process> >("MarkFluidProcess",
-		 init<ModelPart&>())
-		 ;
-	   class_<MarkCloseNodesProcess, bases<Process> >("MarkCloseNodesProcess", init<ModelPart&>())
-		   .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
-		 ;
-	   class_<SaveStructureModelPartProcess, bases<Process> >("SaveStructureModelPartProcess", init<>())
-		   .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)
-		 ;
-  	class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
-		   .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
-		 ;
-	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
-		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
-		 ;
-	 class_<SaveFluidOnlyProcess, bases<Process> >("SaveFluidOnlyProcess", init<> ())
-		   .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
-		 ;
-	class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
-		 init<ModelPart&, double,  array_1d<double,3> >())
-		 ;
-  }
-	
+    class_<UlfApplyBCProcess, bases<Process> >("UlfApplyBCProcess",
+            init<ModelPart&>())
+    ;
+    class_<UlfTimeStepDecProcess, bases<Process> >("UlfTimeStepDecProcess",init<ModelPart&>())
+    .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
+    ;
+    class_<MarkOuterNodesProcess, bases<Process> >("MarkOuterNodesProcess",init<ModelPart&>())
+    .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
+    ;
+    class_<MarkFluidProcess, bases<Process> >("MarkFluidProcess",
+            init<ModelPart&>())
+    ;
+    class_<MarkCloseNodesProcess, bases<Process> >("MarkCloseNodesProcess", init<ModelPart&>())
+    .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
+    ;
+    class_<SaveStructureModelPartProcess, bases<Process> >("SaveStructureModelPartProcess", init<>())
+    .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)
+    ;
+    class_<SaveStructureConditionsProcess, bases<Process> >("SaveStructureConditionsProcess", init<>())
+    .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
+    ;
+    class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
+    .def("MergeParts", &MergeModelPartsProcess::MergeParts)
+    ;
+    class_<SaveFluidOnlyProcess, bases<Process> >("SaveFluidOnlyProcess", init<> ())
+    .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
+    ;
+    class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
+            init<ModelPart&, double,  array_1d<double,3> >())
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

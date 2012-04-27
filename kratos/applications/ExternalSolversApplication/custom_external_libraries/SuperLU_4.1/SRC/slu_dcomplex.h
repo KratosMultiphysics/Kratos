@@ -1,7 +1,7 @@
 
 /*! @file slu_dcomplex.h
  * \brief Header file for complex operations
- * <pre> 
+ * <pre>
  *  -- SuperLU routine (version 2.0) --
  * Univ. of California Berkeley, Xerox Palo Alto Research Center,
  * and Lawrence Berkeley National Lab.
@@ -18,7 +18,10 @@
 #ifndef DCOMPLEX_INCLUDE
 #define DCOMPLEX_INCLUDE
 
-typedef struct { double r, i; } doublecomplex;
+typedef struct
+{
+    double r, i;
+} doublecomplex;
 
 
 /* Macro definitions */
@@ -57,20 +60,20 @@ typedef struct { double r, i; } doublecomplex;
 extern "C" {
 #endif
 
-/* Prototypes for functions in dcomplex.c */
-void z_div(doublecomplex *, doublecomplex *, doublecomplex *);
-double z_abs(doublecomplex *);     /* exact */
-double z_abs1(doublecomplex *);    /* approximate */
-void z_exp(doublecomplex *, doublecomplex *);
-void d_cnjg(doublecomplex *r, doublecomplex *z);
-double d_imag(doublecomplex *);
-doublecomplex z_sgn(doublecomplex *);
-doublecomplex z_sqrt(doublecomplex *);
+    /* Prototypes for functions in dcomplex.c */
+    void z_div(doublecomplex *, doublecomplex *, doublecomplex *);
+    double z_abs(doublecomplex *);     /* exact */
+    double z_abs1(doublecomplex *);    /* approximate */
+    void z_exp(doublecomplex *, doublecomplex *);
+    void d_cnjg(doublecomplex *r, doublecomplex *z);
+    double d_imag(doublecomplex *);
+    doublecomplex z_sgn(doublecomplex *);
+    doublecomplex z_sqrt(doublecomplex *);
 
 
 
 #ifdef __cplusplus
-  }
+}
 #endif
 
 #endif

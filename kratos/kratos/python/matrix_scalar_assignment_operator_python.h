@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,182 +65,182 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		///@name Kratos Globals
-		///@{ 
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TMatrixType, class TScalarType>
-		class MatrixScalarAssignmentOperatorPython : public def_visitor<MatrixScalarAssignmentOperatorPython<TMatrixType, TScalarType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TMatrixType, class TScalarType>
+class MatrixScalarAssignmentOperatorPython : public def_visitor<MatrixScalarAssignmentOperatorPython<TMatrixType, TScalarType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of MatrixScalarAssignmentOperatorPython
-			KRATOS_CLASS_POINTER_DEFINITION(MatrixScalarAssignmentOperatorPython);
+    /// Pointer definition of MatrixScalarAssignmentOperatorPython
+    KRATOS_CLASS_POINTER_DEFINITION(MatrixScalarAssignmentOperatorPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			MatrixScalarAssignmentOperatorPython(){}
+    /// Default constructor.
+    MatrixScalarAssignmentOperatorPython() {}
 
-			/// Copy constructor.
-			MatrixScalarAssignmentOperatorPython(const MatrixScalarAssignmentOperatorPython& rOther);
+    /// Copy constructor.
+    MatrixScalarAssignmentOperatorPython(const MatrixScalarAssignmentOperatorPython& rOther);
 
-			/// Destructor.
-			virtual ~MatrixScalarAssignmentOperatorPython(){}
-
-
-			///@}
-			///@name Operators 
-			///@{
+    /// Destructor.
+    virtual ~MatrixScalarAssignmentOperatorPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				ThisClass
-					.def("__iadd__", &iadd, return_internal_reference<1>())           
-					.def("__isub__", &isub, return_internal_reference<1>())          
-					.def("__imul__", &imul, return_internal_reference<1>())           
-					.def("__idiv__", &idiv, return_internal_reference<1>())          
-					;
-			}
-
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        ThisClass
+        .def("__iadd__", &iadd, return_internal_reference<1>())
+        .def("__isub__", &isub, return_internal_reference<1>())
+        .def("__imul__", &imul, return_internal_reference<1>())
+        .def("__idiv__", &idiv, return_internal_reference<1>())
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-			static 
-				TMatrixType&
-				iadd(TMatrixType& ThisMatrix, TScalarType ThisScalar)
-			{
-				return ThisMatrix += scalar_matrix<TScalarType>(ThisMatrix.size1(), ThisMatrix.size2(), ThisScalar);
-			}
-
-			static
-				TMatrixType&
-				isub(TMatrixType& ThisMatrix, TScalarType ThisScalar)
-			{
-				return ThisMatrix += scalar_matrix<TScalarType>(ThisMatrix.size1(), ThisMatrix.size2(), ThisScalar);
-			}
-
-			static 
-				TMatrixType&
-				imul(TMatrixType& ThisMatrix, TScalarType ThisScalar)
-			{
-				return ThisMatrix *= ThisScalar;
-			}
-
-			static 
-				TMatrixType&
-				idiv(TMatrixType& ThisMatrix, TScalarType ThisScalar)
-			{
-				return ThisMatrix /= ThisScalar;
-			}
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
+    static
+    TMatrixType&
+    iadd(TMatrixType& ThisMatrix, TScalarType ThisScalar)
+    {
+        return ThisMatrix += scalar_matrix<TScalarType>(ThisMatrix.size1(), ThisMatrix.size2(), ThisScalar);
+    }
+
+    static
+    TMatrixType&
+    isub(TMatrixType& ThisMatrix, TScalarType ThisScalar)
+    {
+        return ThisMatrix += scalar_matrix<TScalarType>(ThisMatrix.size1(), ThisMatrix.size2(), ThisScalar);
+    }
+
+    static
+    TMatrixType&
+    imul(TMatrixType& ThisMatrix, TScalarType ThisScalar)
+    {
+        return ThisMatrix *= ThisScalar;
+    }
+
+    static
+    TMatrixType&
+    idiv(TMatrixType& ThisMatrix, TScalarType ThisScalar)
+    {
+        return ThisMatrix /= ThisScalar;
+    }
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			MatrixScalarAssignmentOperatorPython& operator=(const MatrixScalarAssignmentOperatorPython& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-			///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		}; // Class MatrixScalarAssignmentOperatorPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    /// Assignment operator.
+    MatrixScalarAssignmentOperatorPython& operator=(const MatrixScalarAssignmentOperatorPython& rOther);
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
 
-		///@} 
+}; // Class MatrixScalarAssignmentOperatorPython
 
-	}  // namespace Python.
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

@@ -59,17 +59,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    template<>
-    double SpalartAllmaras<2,3>::ElemSize(const double Area)
-    {
-        return sqrt(2.00 * Area);
-    }
+template<>
+double SpalartAllmaras<2,3>::ElemSize(const double Area)
+{
+    return sqrt(2.00 * Area);
+}
 
-    template<>
-    double SpalartAllmaras<3,4>::ElemSize(const double Volume)
-    {
-        return pow(6.00*Volume,0.3333333);
-    }
+template<>
+double SpalartAllmaras<3,4>::ElemSize(const double Volume)
+{
+    return pow(6.00*Volume,0.3333333);
+}
 
 } // Namespace Kratos
 

@@ -100,8 +100,8 @@ namespace Kratos
     - TReordererType which specify type of the Orderer that performs the reordering of matrix to optimize the solution.
 */
 template<class TSparseSpaceType, class TDenseSpaceType,
-class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
-class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+         class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class IterativeSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
 public:
@@ -127,45 +127,45 @@ public:
 
     /// Default constructor.
     IterativeSolver()
-            : mResidualNorm(0)
-            , mIterationsNumber(0)
-            , mBNorm(0)
-            , mpPreconditioner(new TPreconditionerType())
-            , mTolerance(0)
-            , mMaxIterationsNumber(0)
+        : mResidualNorm(0)
+        , mIterationsNumber(0)
+        , mBNorm(0)
+        , mpPreconditioner(new TPreconditionerType())
+        , mTolerance(0)
+        , mMaxIterationsNumber(0)
     {
     }
 
     IterativeSolver(double NewTolerance)
-            : mResidualNorm(0)
-            , mIterationsNumber(0)
-            , mBNorm(0)
-            , mpPreconditioner(new TPreconditionerType())
-            ,	mTolerance(NewTolerance)
-            , mMaxIterationsNumber(0)
+        : mResidualNorm(0)
+        , mIterationsNumber(0)
+        , mBNorm(0)
+        , mpPreconditioner(new TPreconditionerType())
+        ,	mTolerance(NewTolerance)
+        , mMaxIterationsNumber(0)
     {
     }
 
     IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber)
-            : mResidualNorm(0)
-            , mIterationsNumber(0)
-            , mBNorm(0)
-            , mpPreconditioner(new TPreconditionerType())
-            , mTolerance(NewTolerance)
-            , mMaxIterationsNumber(NewMaxIterationsNumber) {}
+        : mResidualNorm(0)
+        , mIterationsNumber(0)
+        , mBNorm(0)
+        , mpPreconditioner(new TPreconditionerType())
+        , mTolerance(NewTolerance)
+        , mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
     IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
-            mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
-            mpPreconditioner(pNewPreconditioner),
-            mTolerance(NewTolerance),
-            mMaxIterationsNumber(NewMaxIterationsNumber) {}
+        mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
+        mpPreconditioner(pNewPreconditioner),
+        mTolerance(NewTolerance),
+        mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
     /// Copy constructor.
     IterativeSolver(const IterativeSolver& Other) : BaseType(Other),
-            mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
-            mpPreconditioner(Other.mpPreconditioner),
-            mTolerance(Other.mTolerance),
-            mMaxIterationsNumber(Other.mMaxIterationsNumber)
+        mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
+        mpPreconditioner(Other.mpPreconditioner),
+        mTolerance(Other.mTolerance),
+        mMaxIterationsNumber(Other.mMaxIterationsNumber)
     {
 
     }
@@ -212,7 +212,7 @@ public:
     {
         GetPreconditioner()->FinalizeSolutionStep(rA,rX,rB);
     }
-	
+
     /** This function is designed to clean up all internal data in the solver.
      * Clear is designed to leave the solver object as if newly created.
      * After a clear a new Initialize is needed
@@ -507,7 +507,7 @@ private:
 
 /// input stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType,
-class TReordererType>
+         class TReordererType>
 inline std::istream& operator >> (std::istream& IStream,
                                   IterativeSolver<TSparseSpaceType, TDenseSpaceType,
                                   TPreconditionerType, TReordererType>& rThis)
@@ -517,7 +517,7 @@ inline std::istream& operator >> (std::istream& IStream,
 
 /// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType,
-class TReordererType>
+         class TReordererType>
 inline std::ostream& operator << (std::ostream& OStream,
                                   const IterativeSolver<TSparseSpaceType, TDenseSpaceType,
                                   TPreconditionerType, TReordererType>& rThis)

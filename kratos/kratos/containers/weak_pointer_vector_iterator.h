@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 #include <boost/iterator/iterator_adaptor.hpp>
 
 
@@ -66,149 +66,149 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-	template<class TIteratorType, class TDataType>
-  class WeakPointerVectorIterator
-	  : public boost::iterator_adaptor<WeakPointerVectorIterator<TIteratorType, TDataType>,
-	  TIteratorType, TDataType>
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TIteratorType, class TDataType>
+class WeakPointerVectorIterator
+    : public boost::iterator_adaptor<WeakPointerVectorIterator<TIteratorType, TDataType>,
+      TIteratorType, TDataType>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of WeakPointerVectorIterator
+    KRATOS_CLASS_POINTER_DEFINITION(WeakPointerVectorIterator);
+
+    typedef boost::iterator_adaptor<WeakPointerVectorIterator,
+            TIteratorType, TDataType> BaseType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    WeakPointerVectorIterator() {}
+
+    WeakPointerVectorIterator(TIteratorType NewIterator) :BaseType(NewIterator) {}
+
+    WeakPointerVectorIterator(WeakPointerVectorIterator const & NewIterator) :BaseType(NewIterator.base()) {}
+
+    //template<class TOtherIteratorType>
+    //WeakPointerVectorIterator(WeakPointerVectorIterator<TIteratorType> const & NewIterator) :BaseType(NewIterator.base()) {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+private:
+    friend class boost::iterator_core_access;
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    typename BaseType::reference dereference() const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of WeakPointerVectorIterator
-      KRATOS_CLASS_POINTER_DEFINITION(WeakPointerVectorIterator);
+        return *(boost::shared_ptr<TDataType>(*(this->base())));
+    }
 
-	  typedef boost::iterator_adaptor<WeakPointerVectorIterator,
-	  TIteratorType, TDataType> BaseType;
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  WeakPointerVectorIterator(){}
-
-	  WeakPointerVectorIterator(TIteratorType NewIterator) :BaseType(NewIterator) {}
-
-	  WeakPointerVectorIterator(WeakPointerVectorIterator const & NewIterator) :BaseType(NewIterator.base()) {}
-
-	  //template<class TOtherIteratorType>
-	  //WeakPointerVectorIterator(WeakPointerVectorIterator<TIteratorType> const & NewIterator) :BaseType(NewIterator.base()) {}
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    private:
-   friend class boost::iterator_core_access;
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-      typename BaseType::reference dereference() const
-      {
-          return *(boost::shared_ptr<TDataType>(*(this->base())));
-      }
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class WeakPointerVectorIterator 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-   ///@} 
-  
-  
+    ///@}
+
+}; // Class WeakPointerVectorIterator
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_WEAK_POINTER_VECTOR_ITERATOR_H_INCLUDED  defined 

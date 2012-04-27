@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-22 17:13:57 $
 //   Revision:            $Revision: 1.5 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -60,63 +60,63 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/find_conditions_neighbours_process.h"
 #include "processes/find_elements_neighbours_process.h"
 #include "processes/calculate_nodal_area_process.h"
-#include "processes/node_erase_process.h" 
+#include "processes/node_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "includes/node.h"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-  void  AddProcessesToPython()
-  {
-  using namespace boost::python;
-	  class_<Process>("Process")
-		  .def("Execute",&Process::Execute)
-		  .def(self_ns::str(self))
-		  ;
+void  AddProcessesToPython()
+{
+    using namespace boost::python;
+    class_<Process>("Process")
+    .def("Execute",&Process::Execute)
+    .def(self_ns::str(self))
+    ;
 
-	class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
-		   .def("Execute",&FindNodalHProcess::Execute)
-		 ;
-	  class_<FindNodalNeighboursProcess, bases<Process> >("FindNodalNeighboursProcess",
-		 init<ModelPart&, int, int>())
-		  .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
-		 ;
+    class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
+    .def("Execute",&FindNodalHProcess::Execute)
+    ;
+    class_<FindNodalNeighboursProcess, bases<Process> >("FindNodalNeighboursProcess",
+            init<ModelPart&, int, int>())
+    .def("ClearNeighbours",&FindNodalNeighboursProcess::ClearNeighbours)
+    ;
 
-	  class_<FindConditionsNeighboursProcess, bases<Process> >("FindConditionsNeighboursProcess",
-		 init<ModelPart&, int, int>())
-		  .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
-		 ;
+    class_<FindConditionsNeighboursProcess, bases<Process> >("FindConditionsNeighboursProcess",
+            init<ModelPart&, int, int>())
+    .def("ClearNeighbours",&FindConditionsNeighboursProcess::ClearNeighbours)
+    ;
 
-	  class_<FindElementalNeighboursProcess, bases<Process> >("FindElementalNeighboursProcess",
-		 init<ModelPart&, int, int>())
-		  .def("ClearNeighbours",&FindElementalNeighboursProcess::ClearNeighbours)
-		 ;
+    class_<FindElementalNeighboursProcess, bases<Process> >("FindElementalNeighboursProcess",
+            init<ModelPart&, int, int>())
+    .def("ClearNeighbours",&FindElementalNeighboursProcess::ClearNeighbours)
+    ;
 
-	 class_<CalculateNodalAreaProcess, bases<Process> >("CalculateNodalAreaProcess",
-		 init<ModelPart&, unsigned int>())
-		;
-				 
-	  class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
-		 init<ModelPart&>())
-		 ;
-		 
-	  class_<EliminateIsolatedNodesProcess, bases<Process> >("EliminateIsolatedNodesProcess",
-		 init<ModelPart&>())
-		 ;
-		 
-      //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
-      //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
+    class_<CalculateNodalAreaProcess, bases<Process> >("CalculateNodalAreaProcess",
+            init<ModelPart&, unsigned int>())
+    ;
 
-	  //class_<AddDofsNodalProcess<Variable<double> >, bases<Process> >("AddDoubleDofsNodalProcess")
-		 // .def(init<Variable<double>, NodesContainerType&, DofsContainerType&>())
-		 // ;
-	  //class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, bases<Process> >("AddArrayComponentDofsNodalProcess")
-		 // ;
-  }
-	
+    class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
+            init<ModelPart&>())
+    ;
+
+    class_<EliminateIsolatedNodesProcess, bases<Process> >("EliminateIsolatedNodesProcess",
+            init<ModelPart&>())
+    ;
+
+    //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
+    //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
+
+    //class_<AddDofsNodalProcess<Variable<double> >, bases<Process> >("AddDoubleDofsNodalProcess")
+    // .def(init<Variable<double>, NodesContainerType&, DofsContainerType&>())
+    // ;
+    //class_<AddDofsNodalProcess<VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > >, bases<Process> >("AddArrayComponentDofsNodalProcess")
+    // ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

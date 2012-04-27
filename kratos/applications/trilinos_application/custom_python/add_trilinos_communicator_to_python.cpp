@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: janosch $
 //   Date:                $Date: 2008-04-28 16:19:49 $
 //   Revision:            $Revision: 1.2 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include "includes/model_part.h"
 
@@ -59,18 +59,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Python
-    {
-        using namespace boost::python;
-        
-        void  AddTrilinosCommunicatorToPython()
-        {
-            class_<MPICommunicator, bases<Communicator> >
-                    ("MPICommunicator",
-                     init<>() )
-                    ;
-        }	
-    }  // namespace Python.
+namespace Python
+{
+using namespace boost::python;
+
+void  AddTrilinosCommunicatorToPython()
+{
+    class_<MPICommunicator, bases<Communicator> >
+    ("MPICommunicator",
+     init<>() )
+    ;
+}
+}  // namespace Python.
 
 } // namespace Kratos
 

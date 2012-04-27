@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: virginia $
 //   Date:                $Date: 2009-01-23 14:39:59 $
 //   Revision:            $Revision: 1.27 $
@@ -51,112 +51,113 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "custom_elements/pfem_contact_element3D_vel.h"
 #include "utilities/math_utils.h"
-#include "utilities/geometry_utilities.h" 
+#include "utilities/geometry_utilities.h"
 
 
 namespace Kratos
 {
 
-	//************************************************************************************
-	//************************************************************************************
-	PfemContactElement3DVel::PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry)
-		: PfemContactElement3D(NewId, pGeometry)
-	{		
-		//DO NOT ADD DOFS HERE!!!
-	}
-	//************************************************************************************
-	//************************************************************************************
-    PfemContactElement3DVel::PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+//************************************************************************************
+//************************************************************************************
+PfemContactElement3DVel::PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry)
+    : PfemContactElement3D(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
+//************************************************************************************
+//************************************************************************************
+PfemContactElement3DVel::PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : PfemContactElement3D(NewId, pGeometry, pProperties)
+{
+}
+//************************************************************************************
+//************************************************************************************
+Element::Pointer PfemContactElement3DVel::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+{
+    KRATOS_TRY
+    return Element::Pointer(new PfemContactElement3DVel(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    KRATOS_CATCH("");
+}
+
+
+//constructor
+PfemContactElement3DVel::~PfemContactElement3DVel()
+{
+}
+//************************************************************************************
+//************************************************************************************
+
+void PfemContactElement3DVel::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    /*          int nodes_number = 4;
+      int dim = 3;
+      unsigned int matsize = nodes_number * (dim + 1);
+
+      if (rDampMatrix.size1() != matsize)
+          rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
+
+
+      noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);*/
+
+    DampMatrix(rDampMatrix,rCurrentProcessInfo);
+
+
+
+    KRATOS_CATCH("")
+}
+
+
+//************************************************************************************
+//************************************************************************************
+void PfemContactElement3DVel::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_TRY
+    int number_of_nodes = GetGeometry().size();
+    int dim = GetGeometry().WorkingSpaceDimension();
+    unsigned int dim2 = number_of_nodes*dim;
+    if(rResult.size() != dim2)
+        rResult.resize(dim2,false);
+
+    for (int i=0; i<number_of_nodes; i++)
     {
+        int index = i*dim;
+        rResult[index] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[index + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        if(dim == 3)
+            rResult[index + 2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
     }
-	//************************************************************************************
-	//************************************************************************************
-	Element::Pointer PfemContactElement3DVel::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-        KRATOS_TRY
-		return Element::Pointer(new PfemContactElement3DVel(NewId, GetGeometry().Create(ThisNodes), pProperties));
-KRATOS_CATCH("");
-	}
+    KRATOS_CATCH("")
+}
 
+//************************************************************************************
+//************************************************************************************
+void PfemContactElement3DVel::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_TRY
+    ElementalDofList.resize(0);
 
-	//constructor
-	PfemContactElement3DVel::~PfemContactElement3DVel()
-	{
-	}
-   //************************************************************************************
-    //************************************************************************************
-
-    void PfemContactElement3DVel::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
-        KRATOS_TRY
-      /*          int nodes_number = 4;
-        int dim = 3;
-        unsigned int matsize = nodes_number * (dim + 1);
-
-        if (rDampMatrix.size1() != matsize)
-            rDampMatrix.resize(matsize, matsize, false); //false says not to preserve existing storage!!
-
-
-        noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);*/
-
-      DampMatrix(rDampMatrix,rCurrentProcessInfo);
-
-
-
-        KRATOS_CATCH("")
+    for (unsigned int i=0; i<GetGeometry().size(); i++)
+    {
+        ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
+        ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
+        if(GetGeometry().WorkingSpaceDimension() == 3)
+        {
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
+        }
     }
-
-
-	//************************************************************************************
-	//************************************************************************************
-	void PfemContactElement3DVel::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-	{
-	    KRATOS_TRY
-		int number_of_nodes = GetGeometry().size();
-		int dim = GetGeometry().WorkingSpaceDimension();
-		unsigned int dim2 = number_of_nodes*dim;
-		if(rResult.size() != dim2)
-			rResult.resize(dim2,false);
-
-		for (int i=0;i<number_of_nodes;i++)
-		{
-			int index = i*dim;
-			rResult[index] = GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-			rResult[index + 1] = GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-			if(dim == 3)
-				rResult[index + 2] = GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-		}
-	    KRATOS_CATCH("")
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void PfemContactElement3DVel::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-	{
-		KRATOS_TRY
-		ElementalDofList.resize(0);
-
-		for (unsigned int i=0;i<GetGeometry().size();i++)
-		{
-			ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_X));
-			ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Y));
-			if(GetGeometry().WorkingSpaceDimension() == 3)
-                        {
-				ElementalDofList.push_back(GetGeometry()[i].pGetDof(VELOCITY_Z));
-                        }
-		}
-		KRATOS_CATCH("")
-	}
+    KRATOS_CATCH("")
+}
 // 	//************************************************************************************
 // 	//************************************************************************************
 //         void PfemContactElement3DVel::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
@@ -164,7 +165,7 @@ KRATOS_CATCH("");
 // //KRATOS_WATCH("mcontact_is_active");
 //         int flag = 0;
 //       (this)->CheckIsContactMaster(flag);
-// 
+//
 // 	  double sound_velocity = 4700.0;
 // 	  //double hp = (this)->mpenetration;
 // 	  const double hp = GetProperties()[THICKNESS];
@@ -174,14 +175,14 @@ KRATOS_CATCH("");
 // 		KRATOS_WATCH(" XXXXXXXXXXXXXX CONTACT DT XXXXXXXXXXXXX");
 // 		KRATOS_WATCH(Output);
 // 	     }
-// 	  else 
+// 	  else
 // 	      Output = 100.0;
-// 	 
+//
 //         }
 
-	
-	
-	
+
+
+
 } // Namespace Kratos
 
 

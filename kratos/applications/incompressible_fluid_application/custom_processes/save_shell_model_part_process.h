@@ -1,10 +1,10 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-10-02 10:47:21 $
-//   Revision:            $Revision: 1.8 $ 
+//   Revision:            $Revision: 1.8 $
 //
-//  this process save structural elements in a separate list 
+//  this process save structural elements in a separate list
 
 #if !defined(KRATOS_SAVE_SHELL_MODEL_PART_PROCESS_INCLUDED )
 #define  KRATOS_SAVE_SHELL_MODEL_PART_PROCESS_INCLUDED
@@ -13,10 +13,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -30,61 +30,61 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the PRESSURE_FORCE on the nodes
-
-		
-	*/
-
-	class SaveShellModelPartProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of PushStructureProcess
-		KRATOS_CLASS_POINTER_DEFINITION(SaveShellModelPartProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		SaveShellModelPartProcess()
-		{
-		}
-
-		/// Destructor.
-		virtual ~SaveShellModelPartProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+	Update the PRESSURE_FORCE on the nodes
+
+
+*/
+
+class SaveShellModelPartProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of PushStructureProcess
+    KRATOS_CLASS_POINTER_DEFINITION(SaveShellModelPartProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    SaveShellModelPartProcess()
+    {
+    }
+
+    /// Destructor.
+    virtual ~SaveShellModelPartProcess()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
 
 //		void operator()()
 //		{
@@ -92,205 +92,205 @@ namespace Kratos
 //		}
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part,  int domain_size)
-		{
-			KRATOS_TRY
-			structure_model_part.Elements().clear();	
-			//number of structure nodes
+    void  SaveStructure(ModelPart& fluid_model_part, ModelPart& structure_model_part,  int domain_size)
+    {
+        KRATOS_TRY
+        structure_model_part.Elements().clear();
+        //number of structure nodes
 // 			KRATOS_WATCH("SAVING STRUCTURE**********")
-		    for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ; 
-					im != fluid_model_part.ElementsEnd() ; ++im)
-			{		
-				//PointerVector<Element> struct_elements_list;
-				//check number of structure nodes
-				unsigned int n_struct=0;
-				unsigned int n_fluid = 0;
-				for (unsigned int i=0;i<im->GetGeometry().size();i++)
-				{
-					n_struct += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE) );
-					n_fluid += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID) );
-					
-				}
-				
-				if(n_struct==im->GetGeometry().size() && n_struct == 3)
-				{
-					structure_model_part.Elements().push_back(*(im.base()));	
-//KRATOS_WATCH(im->GetGeometry().size());				
-				}
-				
-				//3D problem involving membrane moving in fluid (only for this)
-				
-				/*if (int(domain_size)==3)
-				{
-				//just to check FOR FLUID-MEMBRANE!!!! otherwise th eone above is correct
-				
-					if(n_struct==im->GetGeometry().size() && n_struct!= 4)
-					{
-					//KRATOS_WATCH("Domain size iz 3333333333333333333333333333333333333333333333333333333!!!!!!!")
-					structure_model_part.Elements().push_back(*(im.base()));
-				
-					}
-				}*/
-				
-			}
+        for(ModelPart::ElementsContainerType::iterator im = fluid_model_part.ElementsBegin() ;
+                im != fluid_model_part.ElementsEnd() ; ++im)
+        {
+            //PointerVector<Element> struct_elements_list;
+            //check number of structure nodes
+            unsigned int n_struct=0;
+            unsigned int n_fluid = 0;
+            for (unsigned int i=0; i<im->GetGeometry().size(); i++)
+            {
+                n_struct += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_STRUCTURE) );
+                n_fluid += int( im->GetGeometry()[i].FastGetSolutionStepValue(IS_FLUID) );
+
+            }
+
+            if(n_struct==im->GetGeometry().size() && n_struct == 3)
+            {
+                structure_model_part.Elements().push_back(*(im.base()));
+//KRATOS_WATCH(im->GetGeometry().size());
+            }
+
+            //3D problem involving membrane moving in fluid (only for this)
+
+            /*if (int(domain_size)==3)
+            {
+            //just to check FOR FLUID-MEMBRANE!!!! otherwise th eone above is correct
+
+            	if(n_struct==im->GetGeometry().size() && n_struct!= 4)
+            	{
+            	//KRATOS_WATCH("Domain size iz 3333333333333333333333333333333333333333333333333333333!!!!!!!")
+            	structure_model_part.Elements().push_back(*(im.base()));
+
+            	}
+            }*/
+
+        }
 // KRATOS_WATCH("LLLLLLLLLLLLLLLLLLLLLL  NuMBER OF STRUCTURE ))))))))))))))))))))))))");
 // KRATOS_WATCH((structure_model_part.Elements()).size());
-		KRATOS_CATCH("")
-		}
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-		///@name Access
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "SaveShellModelPartProcess";
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "SaveShellModelPartProcess";
+    }
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "SaveShellModelPartProcess";
-		}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SaveShellModelPartProcess";
+    }
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
-
-
-		///@}      
-		///@name Friends
-		///@{
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		//ModelPart& mr_fluid_model_part;
-		//ModelPart& mr_structure_model_part;
-		
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    //ModelPart& mr_fluid_model_part;
+    //ModelPart& mr_structure_model_part;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		/// Assignment operator.
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		SaveShellModelPartProcess& operator=(SaveShellModelPartProcess const& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		SaveShellModelPartProcess(SaveShellModelPartProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class SaveShellModelPartProcess 
+}; // Class SaveShellModelPartProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		SaveShellModelPartProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const SaveShellModelPartProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  SaveShellModelPartProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const SaveShellModelPartProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

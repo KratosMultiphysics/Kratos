@@ -5,21 +5,21 @@
 
 
 
-class    TetQuality 
+class    TetQuality
 {
 public :
-        double DieAveMax,DieAveMin, FaceAveMax,FaceAveMin ,
-        fVolMax,fVolMin ,
-        fDieMax,fDieMin, fFaceMax,fFaceMin, vol ;
-        int fNumChanges,fiter, nonPositive,fNumElements ;
-        double fOldVMin , fOldVMax ;
-        TMesh* aMesh;
-        TetQuality(TMesh* volMesh);
-		
-        void getQuality();
-		
-		void refresh() ;
+    double DieAveMax,DieAveMin, FaceAveMax,FaceAveMin ,
+           fVolMax,fVolMin ,
+           fDieMax,fDieMin, fFaceMax,fFaceMin, vol ;
+    int fNumChanges,fiter, nonPositive,fNumElements ;
+    double fOldVMin , fOldVMax ;
+    TMesh* aMesh;
+    TetQuality(TMesh* volMesh);
 
-		void print();
-		
+    void getQuality();
+
+    void refresh() ;
+
+    void print();
+
 };

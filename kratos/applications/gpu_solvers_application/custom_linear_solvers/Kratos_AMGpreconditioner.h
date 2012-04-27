@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosGPUApplication 
+KratosGPUApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2009
-Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 isaac.gallego.pla@gmail.com
 mossaiby@yahoo.com
@@ -49,31 +49,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 
 
-class Kratos_AMGpreconditioner : public AMGpreconditioner {
+class Kratos_AMGpreconditioner : public AMGpreconditioner
+{
 public:
-	Kratos_AMGpreconditioner() {};
-    	Kratos_AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps, bool isPreconditioner) : AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, isPreconditioner)
-	{
-		 preSww = new size_t [_numMaxHierarchyLevels];
-		 postSww = new size_t [_numMaxHierarchyLevels];
+    Kratos_AMGpreconditioner() {};
+    Kratos_AMGpreconditioner(double _W, size_t _numLevelsRoh, bool _assumeZerosForEachStep, size_t _numMaxHierarchyLevels, size_t _minimumSizeAllowed, const Kratos::Vector _preSweeps, const Kratos::Vector _postSweeps, bool isPreconditioner) : AMGpreconditioner(_W, _numLevelsRoh, _assumeZerosForEachStep, _numMaxHierarchyLevels, _minimumSizeAllowed, isPreconditioner)
+    {
+        preSww = new size_t [_numMaxHierarchyLevels];
+        postSww = new size_t [_numMaxHierarchyLevels];
 
-		for(size_t i=0; i < _numMaxHierarchyLevels; i++){
-			preSww[i] = (size_t)_preSweeps[i];
-			postSww[i] = (size_t)_postSweeps[i];
-		}
+        for(size_t i=0; i < _numMaxHierarchyLevels; i++)
+        {
+            preSww[i] = (size_t)_preSweeps[i];
+            postSww[i] = (size_t)_postSweeps[i];
+        }
 
-		setPreSweeps( preSww);
-		setPostSweeps( postSww);
-		
-	};
-    	virtual ~Kratos_AMGpreconditioner(){
-		delete[] preSww;
-		delete[] postSww;
-    	};
+        setPreSweeps( preSww);
+        setPostSweeps( postSww);
+
+    };
+    virtual ~Kratos_AMGpreconditioner()
+    {
+        delete[] preSww;
+        delete[] postSww;
+    };
 
 private:
-	size_t* preSww;
-	size_t* postSww;
+    size_t* preSww;
+    size_t* postSww;
 };
 
 #endif	/* _AMGPRECONDITIONER_H */

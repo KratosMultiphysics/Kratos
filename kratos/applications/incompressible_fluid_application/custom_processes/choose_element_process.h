@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-11-19 15:38:01 $
 //   Revision:            $Revision: 1.1 $
@@ -62,82 +62,82 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "kratos/applications/MeshingApplication/meshing_application.h"
 
 namespace Kratos
-{ 
-	class ChooseElementProcess 
-		: public Process 
-	 {
-	   public:
+{
+class ChooseElementProcess
+    : public Process
+{
+public:
 
-	      ChooseElementProcess(ModelPart& model_part, unsigned int domain_size, char* water_element, char*  air_element)
-			:Process(), mr_model_part(model_part), mdomain_size(domain_size), rElWater(KratosComponents<Element>::Get(water_element)), rElAir(KratosComponents<Element>::Get(air_element))
-		{
-		}
+    ChooseElementProcess(ModelPart& model_part, unsigned int domain_size, char* water_element, char*  air_element)
+        :Process(), mr_model_part(model_part), mdomain_size(domain_size), rElWater(KratosComponents<Element>::Get(water_element)), rElAir(KratosComponents<Element>::Get(air_element))
+    {
+    }
 
-	      /// Destructor.
-	      virtual ~ChooseElementProcess()
-		{
-		}
-      
+    /// Destructor.
+    virtual ~ChooseElementProcess()
+    {
+    }
 
-	      ///@}
-	      ///@name Operators 
-	      ///@{
 
-	      void operator()()
-		{
-		  Execute();
-		}
-		
-	   virtual void Execute()
-		 {
-			KRATOS_WATCH("++++++++++++++++++++BEGIN OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
-			ModelPart::ElementsContainerType ElemPart;
-			//KRATOS_WATCH(mr_model_part.Elements().size())
+    ///@}
+    ///@name Operators
+    ///@{
 
-                        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
-	                unsigned int n_elems = mr_model_part.Elements().size();	
+    void operator()()
+    {
+        Execute();
+    }
 
-			ElemPart.reserve(n_elems);		
-			int water_num = 0;
-			int air_num = 0;
+    virtual void Execute()
+    {
+        KRATOS_WATCH("++++++++++++++++++++BEGIN OF CHOOSE PROCESS ^^^^^^^^^^^^^^^^^^^^^^");
+        ModelPart::ElementsContainerType ElemPart;
+        //KRATOS_WATCH(mr_model_part.Elements().size())
 
-			for(unsigned int ii = 0; ii< n_elems; ++ii)
-			  {
-                                ModelPart::ElementsContainerType::iterator Belem = el_begin + ii;
-				Geometry< Node<3> >& geom = Belem->GetGeometry();
-				
-				Element::Pointer p_elem; 
+        ModelPart::ElementsContainerType::iterator el_begin = mr_model_part.ElementsBegin();
+        unsigned int n_elems = mr_model_part.Elements().size();
 
-				if(Belem->GetValue(IS_WATER_ELEMENT) == 1.0)
-				  {
-					p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
-					p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;
-					water_num++;						
+        ElemPart.reserve(n_elems);
+        int water_num = 0;
+        int air_num = 0;
 
-				  }
-			        else
-				  {
-					p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
-					p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
-					air_num++;
+        for(unsigned int ii = 0; ii< n_elems; ++ii)
+        {
+            ModelPart::ElementsContainerType::iterator Belem = el_begin + ii;
+            Geometry< Node<3> >& geom = Belem->GetGeometry();
+
+            Element::Pointer p_elem;
+
+            if(Belem->GetValue(IS_WATER_ELEMENT) == 1.0)
+            {
+                p_elem = rElWater.Create(Belem->Id(),geom, Belem->pGetProperties());
+                p_elem->GetValue(IS_WATER_ELEMENT) = 1.0;
+                water_num++;
+
+            }
+            else
+            {
+                p_elem = rElAir.Create(Belem->Id(), geom, Belem->pGetProperties() );
+                p_elem->GetValue(IS_WATER_ELEMENT) = 0.0;
+                air_num++;
 
 //KRATOS_WATCH("***********ASGSCompressible2D IS CHOSEN ******************");
-				  }
-                        ElemPart.push_back(p_elem);
-				
-			}
+            }
+            ElemPart.push_back(p_elem);
 
-			mr_model_part.Elements() = ElemPart;
+        }
 
-		 }
+        mr_model_part.Elements() = ElemPart;
 
-		private:
-			ModelPart& mr_model_part;
-			unsigned int mdomain_size;
-			Element const& rElWater;
-			Element const& rElAir;
+    }
 
-	};
+private:
+    ModelPart& mr_model_part;
+    unsigned int mdomain_size;
+    Element const& rElWater;
+    Element const& rElAir;
+
+};
 
 }//namespace kratos
 

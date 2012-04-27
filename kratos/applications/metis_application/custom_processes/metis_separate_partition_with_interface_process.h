@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2008-04-21 13:33:42 $
 //   Revision:            $Revision: 1.1 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 #include <defs.h>
 #include <struct.h>
 #include <macros.h>
@@ -75,7 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern "C" {
 
-extern int METIS_PartMeshNodal(int*, int*, int*, int*, int*, int*, int*, int*, int*);
+    extern int METIS_PartMeshNodal(int*, int*, int*, int*, int*, int*, int*, int*, int*);
 };
 
 
@@ -83,303 +83,303 @@ extern int METIS_PartMeshNodal(int*, int*, int*, int*, int*, int*, int*, int*, i
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
-
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-
-	class MetisSeparatePartitionWithInterfaceProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of MetisSeparatePartitionWithInterfaceProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MetisSeparatePartitionWithInterfaceProcess);
-
-		typedef std::size_t SizeType;
-		typedef std::size_t IndexType;
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MetisSeparatePartitionWithInterfaceProcess(ModelPart& model_part, SizeType NumberOfPartitions)
-		    : mrModelPart(model_part), mNumberOfPartitions(NumberOfPartitions)
-		{
-			KRATOS_TRY
-			KRATOS_CATCH("")
-		}
-
-		/// Destructor.
-		virtual ~MetisSeparatePartitionWithInterfaceProcess()
-		{
-		}
-
-
-		///@}
-		///@name Operators 
-		///@{
-
-		void operator()()
-		{
-			Execute();
-		}
-
-
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Execute()
-		{
-			KRATOS_TRY;
-			
-			const IndexType number_of_nodes_per_element = mrModelPart.ElementsBegin()->GetGeometry().size();
-			int i = 0;
-			
-			KRATOS_WATCH(number_of_nodes_per_element);
-
-			int ne = mrModelPart.NumberOfElements();
-			int nn = mrModelPart.NumberOfNodes();
-			idxtype* elmnts = new idxtype[mrModelPart.NumberOfElements() * number_of_nodes_per_element];
-			int etype = 1;
-			int numflag = 0;
-			int number_of_partitions = static_cast<int>(mNumberOfPartitions);
-			int edgecut;
-			idxtype* epart = new idxtype[mrModelPart.NumberOfElements()];
-			idxtype* npart = new idxtype[mrModelPart.NumberOfNodes()];
-			
-			std::cout << "Preparing Data for metis..." << std::endl;
-			// Creating the elmnts array for Metis
-			for(Kratos::ModelPart::ElementIterator i_element = mrModelPart.ElementsBegin() ;
-			    i_element != mrModelPart.ElementsEnd() ; i_element++)
-			    for(int j = 0 ; j < number_of_nodes_per_element ; j++)
-				elmnts[i++] = i_element->GetGeometry()[j].Id()-1;
-			
-			std::cout << "Calling metis..." << std::endl;
-			// Calling Metis to partition
-			METIS_PartMeshNodal(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, epart, npart);
-			std::cout << "Metis Finished!!!" << std::endl;
-			
-			// Updating the calculated partition index for nodes
-/* 			for(IndexType h = 0 ; h < nn ; h++) */
-/* 			    model_part.Nodes()[h+1].GetValue(PARTITION_INDEX) = npart[h]; */
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
 
-			
-/* 			for(Kratos::ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; */
-/* 			    i_node != mrModelPart.NodesEnd() ; i_node++) */
-/* 			    model_part.AddNode(npart */
+///@}
+///@name Kratos Classes
+///@{
 
-			std::cout << "Resizing modelpart meshes" << std::endl;
-			for(int i = mrModelPart.GetMeshes().size() ; i < number_of_partitions + 2  ; i++)
-			    mrModelPart.GetMeshes().push_back(ModelPart::MeshType());
+/// Short class definition.
+/** Detail class definition.
+*/
+
+class MetisSeparatePartitionWithInterfaceProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MetisSeparatePartitionWithInterfaceProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MetisSeparatePartitionWithInterfaceProcess);
+
+    typedef std::size_t SizeType;
+    typedef std::size_t IndexType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MetisSeparatePartitionWithInterfaceProcess(ModelPart& model_part, SizeType NumberOfPartitions)
+        : mrModelPart(model_part), mNumberOfPartitions(NumberOfPartitions)
+    {
+        KRATOS_TRY
+        KRATOS_CATCH("")
+    }
 
+    /// Destructor.
+    virtual ~MetisSeparatePartitionWithInterfaceProcess()
+    {
+    }
 
-			std::cout << "Adding nodes to each partition mesh" << std::endl;
-			// Adding node to each partition mesh
- 			for(IndexType h = 0 ; h < nn ; h++) 
-			    mrModelPart.AddNode(mrModelPart.Nodes()(h+1),npart[h]+1);
 
-			std::cout << "Adding elements to each partition mesh" << std::endl;
-			// Adding elements to each partition mesh
-			idxtype* elmnt_position = elmnts;
-			idxtype* epart_position = epart;
-			for(Kratos::ModelPart::ElementIterator i_element = mrModelPart.ElementsBegin() ;
-			    i_element != mrModelPart.ElementsEnd() ; i_element++)
-			{
-			    int is_interface = 0;
-			    for(IndexType l = 0 ; l < number_of_nodes_per_element ; l++)
-				if(*epart_position != npart[*(elmnt_position++)])
-				    is_interface = 1;
-			    if(is_interface)
-				mrModelPart.AddElement(*(i_element.base()), mNumberOfPartitions + 1);
-			    else
-				mrModelPart.AddElement(*(i_element.base()), *epart_position + 1);
-			    epart_position++;
-			}
+    ///@}
+    ///@name Operators
+    ///@{
 
-				
+    void operator()()
+    {
+        Execute();
+    }
 
 
-			delete[] elmnts;
-			delete[] epart;
-			delete[] npart;
+    ///@}
+    ///@name Operations
+    ///@{
 
-			KRATOS_CATCH("")
-		}
+    virtual void Execute()
+    {
+        KRATOS_TRY;
 
+        const IndexType number_of_nodes_per_element = mrModelPart.ElementsBegin()->GetGeometry().size();
+        int i = 0;
 
-		///@}
-		///@name Access
-		///@{ 
+        KRATOS_WATCH(number_of_nodes_per_element);
+
+        int ne = mrModelPart.NumberOfElements();
+        int nn = mrModelPart.NumberOfNodes();
+        idxtype* elmnts = new idxtype[mrModelPart.NumberOfElements() * number_of_nodes_per_element];
+        int etype = 1;
+        int numflag = 0;
+        int number_of_partitions = static_cast<int>(mNumberOfPartitions);
+        int edgecut;
+        idxtype* epart = new idxtype[mrModelPart.NumberOfElements()];
+        idxtype* npart = new idxtype[mrModelPart.NumberOfNodes()];
 
+        std::cout << "Preparing Data for metis..." << std::endl;
+        // Creating the elmnts array for Metis
+        for(Kratos::ModelPart::ElementIterator i_element = mrModelPart.ElementsBegin() ;
+                i_element != mrModelPart.ElementsEnd() ; i_element++)
+            for(int j = 0 ; j < number_of_nodes_per_element ; j++)
+                elmnts[i++] = i_element->GetGeometry()[j].Id()-1;
 
-		///@}
-		///@name Inquiry
-		///@{
+        std::cout << "Calling metis..." << std::endl;
+        // Calling Metis to partition
+        METIS_PartMeshNodal(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, epart, npart);
+        std::cout << "Metis Finished!!!" << std::endl;
 
+        // Updating the calculated partition index for nodes
+        /* 			for(IndexType h = 0 ; h < nn ; h++) */
+        /* 			    model_part.Nodes()[h+1].GetValue(PARTITION_INDEX) = npart[h]; */
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MetisSeparatePartitionWithInterfaceProcess";
-		}
+        /* 			for(Kratos::ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; */
+        /* 			    i_node != mrModelPart.NodesEnd() ; i_node++) */
+        /* 			    model_part.AddNode(npart */
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MetisSeparatePartitionWithInterfaceProcess";
-		}
+        std::cout << "Resizing modelpart meshes" << std::endl;
+        for(int i = mrModelPart.GetMeshes().size() ; i < number_of_partitions + 2  ; i++)
+            mrModelPart.GetMeshes().push_back(ModelPart::MeshType());
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
 
+        std::cout << "Adding nodes to each partition mesh" << std::endl;
+        // Adding node to each partition mesh
+        for(IndexType h = 0 ; h < nn ; h++)
+            mrModelPart.AddNode(mrModelPart.Nodes()(h+1),npart[h]+1);
 
-		///@}      
-		///@name Friends
-		///@{
+        std::cout << "Adding elements to each partition mesh" << std::endl;
+        // Adding elements to each partition mesh
+        idxtype* elmnt_position = elmnts;
+        idxtype* epart_position = epart;
+        for(Kratos::ModelPart::ElementIterator i_element = mrModelPart.ElementsBegin() ;
+                i_element != mrModelPart.ElementsEnd() ; i_element++)
+        {
+            int is_interface = 0;
+            for(IndexType l = 0 ; l < number_of_nodes_per_element ; l++)
+                if(*epart_position != npart[*(elmnt_position++)])
+                    is_interface = 1;
+            if(is_interface)
+                mrModelPart.AddElement(*(i_element.base()), mNumberOfPartitions + 1);
+            else
+                mrModelPart.AddElement(*(i_element.base()), *epart_position + 1);
+            epart_position++;
+        }
 
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
 
+        delete[] elmnts;
+        delete[] epart;
+        delete[] npart;
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+        KRATOS_CATCH("")
+    }
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MetisSeparatePartitionWithInterfaceProcess";
+    }
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MetisSeparatePartitionWithInterfaceProcess";
+    }
 
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mrModelPart;
-		
-		SizeType mNumberOfPartitions;
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-		///@} 
-		///@name Private Operators
-		///@{ 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		/// Assignment operator.
-		MetisSeparatePartitionWithInterfaceProcess& operator=(MetisSeparatePartitionWithInterfaceProcess const& rOther);
 
-		/// Copy constructor.
-		//MetisSeparatePartitionWithInterfaceProcess(MetisSeparatePartitionWithInterfaceProcess const& rOther);
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@}    
+    ///@}
 
-	}; // Class MetisSeparatePartitionWithInterfaceProcess 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-	///@} 
 
-	///@name Type Definitions       
-	///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mrModelPart;
 
+    SizeType mNumberOfPartitions;
 
-	///@} 
-	///@name Input and output 
-	///@{ 
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MetisSeparatePartitionWithInterfaceProcess& rThis);
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MetisSeparatePartitionWithInterfaceProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    MetisSeparatePartitionWithInterfaceProcess& operator=(MetisSeparatePartitionWithInterfaceProcess const& rOther);
+
+    /// Copy constructor.
+    //MetisSeparatePartitionWithInterfaceProcess(MetisSeparatePartitionWithInterfaceProcess const& rOther);
+
+
+    ///@}
+
+}; // Class MetisSeparatePartitionWithInterfaceProcess
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MetisSeparatePartitionWithInterfaceProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MetisSeparatePartitionWithInterfaceProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

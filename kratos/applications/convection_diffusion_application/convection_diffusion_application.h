@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2008-12-15 15:41:36 $
 //   Revision:            $Revision: 1.5 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -40,241 +40,241 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
+// Variables definition
 //	KRATOS_DEFINE_VARIABLE( Vector, BDF_COEFFICIENTS )
-	//KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
+//KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
 //	KRATOS_DEFINE_VARIABLE(int, AUX_INDEX)
 //	KRATOS_DEFINE_VARIABLE(double,  CONDUCTIVITY)
 //	KRATOS_DEFINE_VARIABLE(double,  SPECIFIC_HEAT)
 //	KRATOS_DEFINE_VARIABLE(double,  HEAT_FLUX)
 //	KRATOS_DEFINE_VARIABLE(double,  TEMP_CONV_PROJ)
 
-	//Added by Pavel and Annelie	
+//Added by Pavel and Annelie
 //	KRATOS_DEFINE_VARIABLE(double,  ENTHALPY)
-	KRATOS_DEFINE_VARIABLE(double,  LATENT_HEAT)
-	KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_1)
-	KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_2)
+KRATOS_DEFINE_VARIABLE(double,  LATENT_HEAT)
+KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_1)
+KRATOS_DEFINE_VARIABLE(double,  MELT_TEMPERATURE_2)
 
-	KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)	
+KRATOS_DEFINE_VARIABLE(double,  AMBIENT_TEMPERATURE)
 //	KRATOS_DEFINE_VARIABLE(double,  EMISSIVITY)
 //	KRATOS_DEFINE_VARIABLE(double,  FACE_HEAT_FLUX)
-			
-	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
-			
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosConvectionDiffusionApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
-
-		/// Pointer definition of KratosConvectionDiffusionApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosConvectionDiffusionApplication);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		KratosConvectionDiffusionApplication();
-
-		/// Destructor.
-		virtual ~KratosConvectionDiffusionApplication(){}
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosConvectionDiffusionApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
 
-		///@}
-		///@name Operations
-		///@{
+    /// Pointer definition of KratosConvectionDiffusionApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosConvectionDiffusionApplication);
 
-		virtual void Register();
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
+    /// Default constructor.
+    KratosConvectionDiffusionApplication();
 
-
-		///@}
-		///@name Access
-		///@{ 
-
-
-		///@}
-		///@name Inquiry
-		///@{
+    /// Destructor.
+    virtual ~KratosConvectionDiffusionApplication() {}
 
 
-		///@}      
-		///@name Input and output
-		///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosConvectionDiffusionApplication";
-		}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
-
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosConvectionDiffusionApplication");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-		///@}      
-		///@name Friends
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Register();
 
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosConvectionDiffusionApplication";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosConvectionDiffusionApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@}
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
 
-//		static const ConvDiff2D  msConvDiff2D; 
-//		static const ConvDiff3D  msConvDiff3D; 
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+//		static const ConvDiff2D  msConvDiff2D;
+//		static const ConvDiff3D  msConvDiff3D;
 //		static const ConvDiff2DChangeOfPhase  msCConvDiff2DChangeOfPhase;
 //		static const ThermalFace2D  msThermalFace2D;
 //		static const ThermalFace3D  msThermalFace3D;
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+    //       static const ApplicationCondition  msApplicationCondition;
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		const ConvDiff2D  mConvDiff2D; 
-		const ConvDiff3D  mConvDiff3D; 
-		const ConvDiffChangeOfPhase2D  mConvDiffChangeOfPhase2D;
-		const ThermalFace2D  mThermalFace2D;
-		const ThermalFace3D  mThermalFace3D;
-
-
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    const ConvDiff2D  mConvDiff2D;
+    const ConvDiff3D  mConvDiff3D;
+    const ConvDiffChangeOfPhase2D  mConvDiffChangeOfPhase2D;
+    const ThermalFace2D  mThermalFace2D;
+    const ThermalFace3D  mThermalFace3D;
 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
-
-		/// Assignment operator.
-		KratosConvectionDiffusionApplication& operator=(KratosConvectionDiffusionApplication const& rOther);
-
-		/// Copy constructor.
-		KratosConvectionDiffusionApplication(KratosConvectionDiffusionApplication const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	}; // Class KratosConvectionDiffusionApplication 
+    /// Assignment operator.
+    KratosConvectionDiffusionApplication& operator=(KratosConvectionDiffusionApplication const& rOther);
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+    /// Copy constructor.
+    KratosConvectionDiffusionApplication(KratosConvectionDiffusionApplication const& rOther);
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+    ///@}
 
-	///@} 
+}; // Class KratosConvectionDiffusionApplication
+
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

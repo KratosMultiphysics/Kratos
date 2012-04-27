@@ -99,19 +99,19 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     /*@} */
     /**@name Life Cycle
-  */
+    */
     /*@{ */
 
     /** Constructor.
-  */
+    */
 
 
     /** Destructor.
-  */
+    */
 
     /*@} */
     /**@name Operators
-  */
+    */
     /*@{ */
 
 
@@ -134,12 +134,12 @@ public:
     {
         KRATOS_TRY
 
-                //resetting the normals
-                array_1d<double,3> zero = Vector(3);
+        //resetting the normals
+        array_1d<double,3> zero = Vector(3);
         noalias(zero) = ZeroVector(3);
 
         for(ConditionsArrayType::iterator it =  rConditions.begin();
-            it !=rConditions.end(); it++)
+                it !=rConditions.end(); it++)
         {
             Element::GeometryType& rNodes = it->GetGeometry();
             for(unsigned int in = 0; in<rNodes.size(); in++)
@@ -152,7 +152,7 @@ public:
         if(dimension == 2)
         {
             for(ConditionsArrayType::iterator it =  rConditions.begin();
-                it !=rConditions.end(); it++)
+                    it !=rConditions.end(); it++)
             {
                 CalculateNormal2D(it,An);
             }
@@ -162,7 +162,7 @@ public:
             array_1d<double,3> v1;
             array_1d<double,3> v2;
             for(ConditionsArrayType::iterator it =  rConditions.begin();
-                it !=rConditions.end(); it++)
+                    it !=rConditions.end(); it++)
             {
                 //calculate the normal on the given condition
                 CalculateNormal3D(it,An,v1,v2);
@@ -171,7 +171,7 @@ public:
 
         //adding the normals to the nodes
         for(ConditionsArrayType::iterator it =  rConditions.begin();
-            it !=rConditions.end(); it++)
+                it !=rConditions.end(); it++)
         {
             Geometry<Node<3> >& pGeometry = (it)->GetGeometry();
             double coeff = 1.00/pGeometry.size();

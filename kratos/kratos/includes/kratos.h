@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -51,10 +51,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ///@defgroup KratosCore Kratos Core
 ///@brief The Kratos core comprises a basic set of classes used by all applications.
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -65,8 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  
-  
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_H_INCLUDED  defined 

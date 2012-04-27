@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -11,7 +11,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -23,32 +23,32 @@
 namespace Kratos
 {
 
-  // Creating variables here
-   KRATOS_CREATE_VARIABLE(double, IS_BODY )
+// Creating variables here
+KRATOS_CREATE_VARIABLE(double, IS_BODY )
 
-      void KratosMultibodyApplication::Register()
-	{
-	  std::cout << "Initializig KratosMultibodyApplication... " << std::endl;
+void KratosMultibodyApplication::Register()
+{
+    std::cout << "Initializig KratosMultibodyApplication... " << std::endl;
 
-	  // Registering variables here
- 	  KRATOS_REGISTER_VARIABLE(IS_BODY);
+    // Registering variables here
+    KRATOS_REGISTER_VARIABLE(IS_BODY);
 
-	// calling base class register to register Kratos components
-	KratosApplication::Register();
-	
-	  // Registering elements and conditions here
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
+
+    // Registering elements and conditions here
 // 	  KRATOS_REGISTER_ELEMENT("ApplicationElementName", msApplicationElement);
 // 	  KRATOS_REGISTER_CONDITION("ApplicationConditionName", msApplicationCondition);
 
-	}
-      
-      
-  // Initializing static members
-//   const ApplicationElement  KratosMultibodyApplication::msApplicationElement(arguments...);
-//   const ApplicationCondition  KratosMultibodyApplication::msApplicationElement(arguments...); 
+}
 
-  
-  
+
+// Initializing static members
+//   const ApplicationElement  KratosMultibodyApplication::msApplicationElement(arguments...);
+//   const ApplicationCondition  KratosMultibodyApplication::msApplicationElement(arguments...);
+
+
+
 }  // namespace Kratos.
 
 

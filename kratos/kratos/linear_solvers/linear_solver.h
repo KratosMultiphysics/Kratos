@@ -153,59 +153,59 @@ public:
     ///@}
     ///@name Operations
     ///@{
-	/** This function is designed to be called as few times as possible. It creates the data structures
-	 * that only depend on the connectivity of the matrix (and not on its coefficients) 
-	 * so that the memory can be allocated once and expensive operations can be done only when strictly
-	 * needed
-	@param rA. System matrix
+    /** This function is designed to be called as few times as possible. It creates the data structures
+     * that only depend on the connectivity of the matrix (and not on its coefficients)
+     * so that the memory can be allocated once and expensive operations can be done only when strictly
+     * needed
+    @param rA. System matrix
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
-	*/
+    */
     virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         mpReorderer->Initialize(rA, rX, rB);
     }
-	
-	/** This function is designed to be called every time the coefficients change in the system
-	 * that is, normally at the beginning of each solve. 
-	 * For example if we are implementing a direct solver, this is the place to do the factorization
-	 * so that then the backward substitution can be performed effectively more than once
-	@param rA. System matrix
+
+    /** This function is designed to be called every time the coefficients change in the system
+     * that is, normally at the beginning of each solve.
+     * For example if we are implementing a direct solver, this is the place to do the factorization
+     * so that then the backward substitution can be performed effectively more than once
+    @param rA. System matrix
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
-	*/
+    */
     virtual void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-	}	
-	
-	/** This function actually performs the solution work, eventually taking advantage of what was done before in the 
-	 * Initialize and InitializeSolutionStep functions.
-	@param rA. System matrix
+    }
+
+    /** This function actually performs the solution work, eventually taking advantage of what was done before in the
+     * Initialize and InitializeSolutionStep functions.
+    @param rA. System matrix
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
-	*/
+    */
     virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-	}	
-	
-	/** This function is designed to be called at the end of the solve step.
-	 * for example this is the place to remove any data that we do not want to save for later
-	@param rA. System matrix
+    }
+
+    /** This function is designed to be called at the end of the solve step.
+     * for example this is the place to remove any data that we do not want to save for later
+    @param rA. System matrix
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
-	*/
+    */
     virtual void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-	}	
+    }
 
-	/** This function is designed to clean up all internal data in the solver. 
-	 * Clear is designed to leave the solver object as if newly created.
-	 * After a clear a new Initialize is needed
-	 */
+    /** This function is designed to clean up all internal data in the solver.
+     * Clear is designed to leave the solver object as if newly created.
+     * After a clear a new Initialize is needed
+     */
     virtual void Clear()
     {
-	}		
-	
+    }
+
 
     /** Normal solve method.
     Solves the linear system Ax=b and puts the result on SystemVector& rX.
@@ -238,37 +238,37 @@ public:
     virtual  void Solve(SparseMatrixType& K,
                         SparseMatrixType& M,
                         DenseVectorType& Eigenvalues,
-                        DenseMatrixType& Eigenvectors) 
-	{}
-		
-	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example 
-	 * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-	 * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers 
-	 * which require knowledge on the spatial position of the nodes associated to a given dof.
-	 * This function tells if the solver requires such data
-	 */
-	virtual bool AdditionalPhysicalDataIsNeeded()
-	{
-		return false;
-	}
-	
-	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example 
-	 * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-	 * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers 
-	 * which require knowledge on the spatial position of the nodes associated to a given dof.
-	 * This function is the place to eventually provide such data
-	 */
-	virtual void ProvideAdditionalData(
-		SparseMatrixType& rA, 
-		VectorType& rX, 
-		VectorType& rB,
-		typename ModelPart::DofsArrayType& rdof_set,  
-		ModelPart& r_model_part 
-		)
-	{}
-	
+                        DenseMatrixType& Eigenvectors)
+    {}
 
-	
+    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function tells if the solver requires such data
+     */
+    virtual bool AdditionalPhysicalDataIsNeeded()
+    {
+        return false;
+    }
+
+    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function is the place to eventually provide such data
+     */
+    virtual void ProvideAdditionalData(
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart& r_model_part
+    )
+    {}
+
+
+
 
     ///@}
     ///@name Access

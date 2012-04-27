@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.4 $
@@ -46,17 +46,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 #if !defined(KRATOS_FIX_DATA_VALUE_CONTAINER_H_INCLUDED )
-#define KRATOS_FIX_DATA_VALUE_CONTAINER_H_INCLUDED 
+#define KRATOS_FIX_DATA_VALUE_CONTAINER_H_INCLUDED
 
 
 
 // System includes
 #include <string>
-#include <iostream> 
-#include <cstddef> 
+#include <iostream>
+#include <cstddef>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -70,341 +70,341 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class FixDataValueContainer
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class FixDataValueContainer
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of FixDataValueContainer
+    KRATOS_CLASS_POINTER_DEFINITION(FixDataValueContainer);
+
+    /// Type of the container used for variables
+    typedef double* ContainerType;
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t SizeType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    FixDataValueContainer() : mSize(0), mpData(0), mpVariablesList(&Globals::DefaultVariablesList) {}
+
+    /// Copy constructor.
+    FixDataValueContainer(FixDataValueContainer const& rOther) : mSize(rOther.Size()), mpData(0), mpVariablesList(rOther.mpVariablesList)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of FixDataValueContainer
-      KRATOS_CLASS_POINTER_DEFINITION(FixDataValueContainer);
-  
-      /// Type of the container used for variables 
-      typedef double* ContainerType;
+        if(mSize == 0)
+            return;
+        mpData = (double*)malloc(mSize * sizeof(double));
 
-      typedef std::size_t IndexType;
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-      typedef std::size_t SizeType;
+        SizeType size = variables.size();
 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      FixDataValueContainer() : mSize(0), mpData(0), mpVariablesList(&Globals::DefaultVariablesList){}
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            if(offset < rOther.mSize)
+                p_variable->Copy(rOther.mpData + offset, mpData + offset);
+            else
+                p_variable->AssignZero(mpData + offset);
+        }
+    }
 
-      /// Copy constructor.
-      FixDataValueContainer(FixDataValueContainer const& rOther) : mSize(rOther.Size()), mpData(0), mpVariablesList(rOther.mpVariablesList)
-	{
-		if(mSize == 0) 
-			return;
-	  mpData = (double*)malloc(mSize * sizeof(double));
+    /// Variables list constructor.
+    FixDataValueContainer(VariablesList*  pVariablesList) : mSize(0), mpData(0), mpVariablesList(pVariablesList)
+    {
+        mpVariablesList = pVariablesList;
 
-	  VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+        mSize = mpVariablesList->DataSize();
 
-	  SizeType size = variables.size();
+        mpData = (double*)malloc(mSize * sizeof(double));
 
-	  for(IndexType i = 0 ; i < size ; ++i)
-	    {
-	      const VariableData* p_variable = variables[i];
-	      std::size_t offset = mpVariablesList->Index(p_variable);
-	      if(offset < rOther.mSize)
-		p_variable->Copy(rOther.mpData + offset, mpData + offset);
-	      else
-		p_variable->AssignZero(mpData + offset);
-	    }
-	}
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-      /// Variables list constructor.
-      FixDataValueContainer(VariablesList*  pVariablesList) : mSize(0), mpData(0), mpVariablesList(pVariablesList)
-	{
-	  mpVariablesList = pVariablesList;
+        SizeType size = variables.size();
 
-	  mSize = mpVariablesList->DataSize();
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            p_variable->AssignZero(mpData + offset);
+        }
+        mSize = variables.size();
+    }
 
-	  mpData = (double*)malloc(mSize * sizeof(double));
+    /// Destructor.
+    virtual ~FixDataValueContainer()
+    {
 
-	  VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	  SizeType size = variables.size();
+        SizeType size = variables.size();
 
-	  for(IndexType i = 0 ; i < size ; ++i)
-	    {
-	      const VariableData* p_variable = variables[i];
-	      std::size_t offset = mpVariablesList->Index(p_variable);
-	      p_variable->AssignZero(mpData + offset);
-	    }
-		mSize = variables.size();
-	}
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            if(offset < mSize)
+                p_variable->Destruct(mpData + offset);
+        }
 
-      /// Destructor.
-      virtual ~FixDataValueContainer()
-      {
+        if(mpData)
+            free(mpData);
+    }
 
-	  VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	  SizeType size = variables.size();
+    ///@}
+    ///@name Operators
+    ///@{
 
-	  for(IndexType i = 0 ; i < size ; ++i)
-	    {
-	      const VariableData* p_variable = variables[i];
-	      std::size_t offset = mpVariablesList->Index(p_variable);
-		  if(offset < mSize)
-	      p_variable->Destruct(mpData + offset);
-	    }
+    template<class TDataType> const TDataType& operator()(const VariableData& rThisVariable) const
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
 
-	  if(mpData)
-	    free(mpData);
-      }
-      
+    template<class TDataType> TDataType& operator()(const Variable<TDataType>& rThisVariable)
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      template<class TDataType> const TDataType& operator()(const VariableData& rThisVariable) const
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TDataType> TDataType& operator()(const Variable<TDataType>& rThisVariable)
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TDataType> const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TAdaptorType> typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TAdaptorType> const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TDataType> const TDataType& operator[](const VariableData& rThisVariable) const
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
-	{
-	  return GetValue<TDataType>(rThisVariable);
-	}
-      
-      template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      /// Assignment operator.
-      FixDataValueContainer& operator=(const FixDataValueContainer& rOther)
-	{
-	  if(rOther.mpVariablesList == 0)
-	    {
-	      //TODO: empty this container
-	    }
-	    
-	  if(mpVariablesList == rOther.mpVariablesList)
-	    {
+    template<class TDataType> const TDataType& operator()(const Variable<TDataType>& rThisVariable) const
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
+
+    template<class TAdaptorType> typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType> const typename TAdaptorType::Type& operator()(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TDataType> TDataType& operator[](const VariableData& rThisVariable)
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
+
+    template<class TDataType> const TDataType& operator[](const VariableData& rThisVariable) const
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
+
+    template<class TDataType> TDataType& operator[](const Variable<TDataType>& rThisVariable)
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
+
+    template<class TDataType> const TDataType& operator[](const Variable<TDataType>& rThisVariable) const
+    {
+        return GetValue<TDataType>(rThisVariable);
+    }
+
+    template<class TAdaptorType> typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    template<class TAdaptorType> const typename TAdaptorType::Type& operator[](const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
+
+    /// Assignment operator.
+    FixDataValueContainer& operator=(const FixDataValueContainer& rOther)
+    {
+        if(rOther.mpVariablesList == 0)
+        {
+            //TODO: empty this container
+        }
+
+        if(mpVariablesList == rOther.mpVariablesList)
+        {
 // 	      std::cout << "using same variables list" << std::endl;
-	      VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+            VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	      SizeType size = variables.size();
-	      
+            SizeType size = variables.size();
+
 // 	      std::cout << size << " ?= " << mSize << std::endl;
-	      if(mpVariablesList->DataSize() != mSize)
-		{
-		  mSize = mpVariablesList->DataSize();
-		  mpData = (double*)realloc(mpData, mSize * sizeof(double));
-		}
+            if(mpVariablesList->DataSize() != mSize)
+            {
+                mSize = mpVariablesList->DataSize();
+                mpData = (double*)realloc(mpData, mSize * sizeof(double));
+            }
 
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		  
-		  if(offset < rOther.mSize)
-		    p_variable->Assign(rOther.mpData + offset, mpData + offset);
-		  else
-		    p_variable->AssignZero(mpData + offset);
-		}
-	    }
-	  else
-	    {
-	      VariablesList::VariablesContainerType const& old_variables = mpVariablesList->Variables();
+            for(IndexType i = 0 ; i < size ; ++i)
+            {
+                const VariableData* p_variable = variables[i];
+                std::size_t offset = mpVariablesList->Index(p_variable);
 
-	      SizeType size = old_variables.size();
+                if(offset < rOther.mSize)
+                    p_variable->Assign(rOther.mpData + offset, mpData + offset);
+                else
+                    p_variable->AssignZero(mpData + offset);
+            }
+        }
+        else
+        {
+            VariablesList::VariablesContainerType const& old_variables = mpVariablesList->Variables();
 
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = old_variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		if(offset < mSize)
-		  p_variable->Destruct(mpData + offset);
-		}
+            SizeType size = old_variables.size();
 
-	      mpVariablesList = rOther.mpVariablesList;
+            for(IndexType i = 0 ; i < size ; ++i)
+            {
+                const VariableData* p_variable = old_variables[i];
+                std::size_t offset = mpVariablesList->Index(p_variable);
+                if(offset < mSize)
+                    p_variable->Destruct(mpData + offset);
+            }
 
-	      mSize = mpVariablesList->DataSize();
+            mpVariablesList = rOther.mpVariablesList;
 
-	      mpData = (double*)realloc(mpData, mSize * sizeof(double));
-	      
-	      VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+            mSize = mpVariablesList->DataSize();
 
-	      size = variables.size();
-	      
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		  if(offset < rOther.mSize)
-		    p_variable->Copy(rOther.mpData + offset, mpData + offset);
-		  else
-		    p_variable->AssignZero(mpData + offset);
-		}
-	      
-	    }
-	  
-	  return *this;
-	}
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      template<class TDataType> TDataType& GetValue(const Variable<TDataType>& rThisVariable)
-	{
-	  if(!mpVariablesList->Has(rThisVariable))
-	    mpVariablesList->Add(rThisVariable);
+            mpData = (double*)realloc(mpData, mSize * sizeof(double));
+
+            VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+
+            size = variables.size();
+
+            for(IndexType i = 0 ; i < size ; ++i)
+            {
+                const VariableData* p_variable = variables[i];
+                std::size_t offset = mpVariablesList->Index(p_variable);
+                if(offset < rOther.mSize)
+                    p_variable->Copy(rOther.mpData + offset, mpData + offset);
+                else
+                    p_variable->AssignZero(mpData + offset);
+            }
+
+        }
+
+        return *this;
+    }
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template<class TDataType> TDataType& GetValue(const Variable<TDataType>& rThisVariable)
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            mpVariablesList->Add(rThisVariable);
 
 //  	  KRATOS_WATCH(rThisVariable)
 
-	  IndexType index = mpVariablesList->Index(rThisVariable);
+        IndexType index = mpVariablesList->Index(rThisVariable);
 
 
-	  if((index >= mSize)||(mSize == 0))
-	    Update();
+        if((index >= mSize)||(mSize == 0))
+            Update();
 
 //  	  KRATOS_WATCH(*(TDataType*)(mpData + index))
-	  return *(TDataType*)(mpData + index);
-	}
+        return *(TDataType*)(mpData + index);
+    }
 
-      template<class TDataType> const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
-	{
-	  if(!mpVariablesList->Has(rThisVariable))
-	    return rThisVariable.Zero();
-	  //std:: cout << "oh oh" << std::endl;
- 	 // KRATOS_WATCH(rThisVariable)
-	  IndexType index = mpVariablesList->Index(rThisVariable);
+    template<class TDataType> const TDataType& GetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        if(!mpVariablesList->Has(rThisVariable))
+            return rThisVariable.Zero();
+        //std:: cout << "oh oh" << std::endl;
+        // KRATOS_WATCH(rThisVariable)
+        IndexType index = mpVariablesList->Index(rThisVariable);
 
 //  	  KRATOS_WATCH(index)
 //  	  KRATOS_WATCH(mSize)
-	  if(index >= mSize)
-	    return rThisVariable.Zero();
+        if(index >= mSize)
+            return rThisVariable.Zero();
 
-	  return *(const TDataType*)(mpData + index);
-	}
+        return *(const TDataType*)(mpData + index);
+    }
 
-	//*******************************************************************************************
-	//by Riccardo: variables are not added
-     template<class TDataType> TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
-	{
-	  IndexType index = mpVariablesList->Index(rThisVariable);
+    //*******************************************************************************************
+    //by Riccardo: variables are not added
+    template<class TDataType> TDataType& FastGetValue(const Variable<TDataType>& rThisVariable)
+    {
+        IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef _DEBUG
-	  //KRATOS_WATCH("attention printing FastGetValue");
-	  if(!mpVariablesList->Has(rThisVariable))
-		  KRATOS_ERROR(std::logic_error,"","");
-	  if(index >= mSize)
-	    KRATOS_ERROR(std::logic_error,"","");
+        //KRATOS_WATCH("attention printing FastGetValue");
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::logic_error,"","");
+        if(index >= mSize)
+            KRATOS_ERROR(std::logic_error,"","");
 #endif
-	  return *(TDataType*)(mpData + index);
-	}
-      template<class TDataType> const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
-	{
-	  IndexType index = mpVariablesList->Index(rThisVariable);
+        return *(TDataType*)(mpData + index);
+    }
+    template<class TDataType> const TDataType& FastGetValue(const Variable<TDataType>& rThisVariable) const
+    {
+        IndexType index = mpVariablesList->Index(rThisVariable);
 #ifdef _DEBUG
-	  //KRATOS_WATCH("attention printing FastGetValue");
-	  if(!mpVariablesList->Has(rThisVariable))
-		  KRATOS_ERROR(std::logic_error,"","");
-	  if(index >= mSize)
-	    KRATOS_ERROR(std::logic_error,"","");
+        //KRATOS_WATCH("attention printing FastGetValue");
+        if(!mpVariablesList->Has(rThisVariable))
+            KRATOS_ERROR(std::logic_error,"","");
+        if(index >= mSize)
+            KRATOS_ERROR(std::logic_error,"","");
 #endif
-	  return *(const TDataType*)(mpData + index);
-	}
-	//*******************************************************************************************
+        return *(const TDataType*)(mpData + index);
+    }
+    //*******************************************************************************************
 
-      template<class TAdaptorType> typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
-      
-      template<class TAdaptorType> const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
-	}
+    template<class TAdaptorType> typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable)
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
 
-      SizeType Size() const
-	{
-	  return mpVariablesList->DataSize();
-	}
+    template<class TAdaptorType> const typename TAdaptorType::Type& GetValue(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable()));
+    }
 
-      template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
-	{
-	  GetValue(rThisVariable) = rValue;
-	}
+    SizeType Size() const
+    {
+        return mpVariablesList->DataSize();
+    }
 
-      template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
-	{
-	  rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
-	}
-      
+    template<class TDataType> void SetValue(const Variable<TDataType>& rThisVariable, TDataType const& rValue)
+    {
+        GetValue(rThisVariable) = rValue;
+    }
+
+    template<class TAdaptorType> void SetValue(const VariableComponent<TAdaptorType>& rThisVariable, typename TAdaptorType::Type const& rValue)
+    {
+        rThisVariable.GetValue(GetValue(rThisVariable.GetSourceVariable())) = rValue;
+    }
+
 //       template<class TDataType> void Erase(const Variable<TDataType>& rThisVariable)
 // 	{
 // 	  typename ContainerType::iterator i;
-      
+
 // 	  if ((i = std::find_if(mpData.begin(), mpData.end(), IndexCheck(rThisVariable.Key())))  != mpData.end())
 // 	    {
 // 	      i->first->Delete(i->second);
@@ -412,268 +412,268 @@ namespace Kratos
 // 	    }
 // 	}
 
-      void Clear()
-	{
-	  VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+    void Clear()
+    {
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	  SizeType size = variables.size();
+        SizeType size = variables.size();
 
-	  for(IndexType i = 0 ; i < size ; ++i)
-	    {
-	      const VariableData* p_variable = variables[i];
-	      std::size_t offset = mpVariablesList->Index(p_variable);
-		  if(offset < mSize)
-	      p_variable->Destruct(mpData + offset);
-	    }
-	  if(mpData)
-	    free(mpData);
-	}
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            if(offset < mSize)
+                p_variable->Destruct(mpData + offset);
+        }
+        if(mpData)
+            free(mpData);
+    }
 
-      void Update()
-	{
-	  SizeType old_size = mSize;
+    void Update()
+    {
+        SizeType old_size = mSize;
 
-	      mSize = mpVariablesList->DataSize();
+        mSize = mpVariablesList->DataSize();
 
-	      if(mpData)
-		mpData = (double*)realloc(mpData, mSize * sizeof(double));
-	      else
-		mpData = (double*)malloc(mSize * sizeof(double));
+        if(mpData)
+            mpData = (double*)realloc(mpData, mSize * sizeof(double));
+        else
+            mpData = (double*)malloc(mSize * sizeof(double));
 
-	      
-	      VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	      SizeType size = variables.size();
-	      
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		  if(offset >= old_size)
-		    p_variable->AssignZero(mpData + offset);
-		}
-	}
-      
-      void UpdateVariablesList(VariablesList* pVariablesList)
-	{
-	      VariablesList::VariablesContainerType const& old_variables = mpVariablesList->Variables();
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-	      SizeType size = old_variables.size();
+        SizeType size = variables.size();
 
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = old_variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		  if(offset < mSize)
-		  p_variable->Destruct(mpData + offset);
-		}
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            if(offset >= old_size)
+                p_variable->AssignZero(mpData + offset);
+        }
+    }
 
-	      mpVariablesList = pVariablesList;
+    void UpdateVariablesList(VariablesList* pVariablesList)
+    {
+        VariablesList::VariablesContainerType const& old_variables = mpVariablesList->Variables();
+
+        SizeType size = old_variables.size();
+
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = old_variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            if(offset < mSize)
+                p_variable->Destruct(mpData + offset);
+        }
+
+        mpVariablesList = pVariablesList;
 // To see if we need to just free the memory when mSize == 0
 //	  if(mpData)
-//	    free(mpData); 
+//	    free(mpData);
 
-	  mpData = (double*)realloc(mpData, mpVariablesList->DataSize() * sizeof(double));
-	      
-	      VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+        mpData = (double*)realloc(mpData, mpVariablesList->DataSize() * sizeof(double));
 
-	      size = variables.size();
-	      
-	      for(IndexType i = 0 ; i < size ; ++i)
-		{
-		  const VariableData* p_variable = variables[i];
-		  std::size_t offset = mpVariablesList->Index(p_variable);
-		  p_variable->AssignZero(mpData + offset);
-		}
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
 
-		//mSize = variables.size();
-	      mSize = mpVariablesList->DataSize();
-	}
-      
-      ///@}
-      ///@name Access
-      ///@{ 
+        size = variables.size();
 
-      VariablesList* pGetVariablesList()
-	  {
-		  return mpVariablesList;
-	  }
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-	{
-	  return mpVariablesList->Has(rThisVariable);
-	}
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            p_variable->AssignZero(mpData + offset);
+        }
 
-      template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
-	{
-	  return mpVariablesList->Has(rThisVariable.GetSourceVariable());
-	}
-      
-      bool IsEmpty()
-	{
-	  return mpVariablesList->IsEmpty();
-	}
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+        //mSize = variables.size();
+        mSize = mpVariablesList->DataSize();
+    }
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  return std::string("data value container");
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << "data value container";
-	}
+    ///@}
+    ///@name Access
+    ///@{
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-	VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+    VariablesList* pGetVariablesList()
+    {
+        return mpVariablesList;
+    }
 
-	SizeType size = variables.size();
-	      
-	for(IndexType i = 0 ; i < size ; ++i)
-	  {
-	    rOStream <<"    ";
-	    const VariableData* p_variable = variables[i];
-	    std::size_t offset = mpVariablesList->Index(p_variable);
-	    p_variable->Print(mpData + offset, rOStream);
-	    rOStream << std::endl;
-	  }
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mpVariablesList->Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mpVariablesList->Has(rThisVariable.GetSourceVariable());
+    }
+
+    bool IsEmpty()
+    {
+        return mpVariablesList->IsEmpty();
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return std::string("data value container");
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "data value container";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        VariablesList::VariablesContainerType const& variables = mpVariablesList->Variables();
+
+        SizeType size = variables.size();
+
+        for(IndexType i = 0 ; i < size ; ++i)
+        {
+            rOStream <<"    ";
+            const VariableData* p_variable = variables[i];
+            std::size_t offset = mpVariablesList->Index(p_variable);
+            p_variable->Print(mpData + offset, rOStream);
+            rOStream << std::endl;
+        }
 // 	for(ConstantIteratorType i = mpData.begin() ; i != mpData.end() ; ++i)
 // 	  {
 // 	    rOStream <<"    ";
 // 	    i->first->Print(i->second, rOStream);
 // 	    rOStream << std::endl;
 // 	  }
-      }
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-
-      ///@name Static Member Variables 
-      ///@{ 
-       
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-
-      SizeType mSize;
-        
-      ContainerType mpData;
-      
-      VariablesList* mpVariablesList;
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class FixDataValueContainer 
-
-  ///@} 
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    FixDataValueContainer& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const FixDataValueContainer& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
     }
-  ///@} 
-  
-  
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    SizeType mSize;
+
+    ContainerType mpData;
+
+    VariablesList* mpVariablesList;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class FixDataValueContainer
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  FixDataValueContainer& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const FixDataValueContainer& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_FIX_DATA_VALUE_CONTAINER_H_INCLUDED  defined 

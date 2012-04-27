@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-08-21 14:11:10 $
 //   Revision:            $Revision: 1.3 $
@@ -7,9 +7,9 @@
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -22,26 +22,26 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-	
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
 
-	  class_<FSIUtils>("FSIUtils", init<>())
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
+
+    class_<FSIUtils>("FSIUtils", init<>())
 //		.def("FSIUtils",&FSIUtils::GenerateCouplingElements)
-		.def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
-		.def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
-		;
+    .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
+    .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
+    ;
 
-	  class_<AitkenUtils>("AitkenUtils", init<>())
-		.def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
-		.def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
-		;
-  }
-	
+    class_<AitkenUtils>("AitkenUtils", init<>())
+    .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
+    .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

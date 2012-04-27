@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosGPUApplication 
+KratosGPUApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2009
-Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Isaac Gallego, Farshid Mossaiby
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 isaac.gallego.pla@gmail.com
 mossaiby@yahoo.com
@@ -48,14 +48,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 using namespace Kratos::GPUSparse;
 
-class Diagonalpreconditioner : public GPUPreconditioner {
+class Diagonalpreconditioner : public GPUPreconditioner
+{
 public:
     Diagonalpreconditioner();
     virtual ~Diagonalpreconditioner();
 
     void initialize(size_t* ptr_cpu, size_t* indices_cpu, double* values_cpu,
-        size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
-        size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged);
+                    size_t* ptr_gpu, size_t* indices_gpu, double* values_gpu,
+                    size_t numRows, size_t numCols, size_t numNNZ, bool dataIsChanged, bool structureIsChanged);
     size_t solve(double* b_cpu, double* b_gpu, double* x_cpu, double* x_gpu, double precision, size_t iterations);
     void singleStep(double* b_gpu, double* x_gpu);
     void cleanPreconditioner() ;

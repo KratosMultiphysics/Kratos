@@ -35,14 +35,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-10-23 11:35:13 $
 //   Revision:            $Revision: 1.6 $
 //
-// 
+//
 
 #include "includes/serializer.h"
 #include "containers/variable.h"
@@ -52,14 +52,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
+Serializer::RegisteredObjectsContainerType Serializer::msRegisteredObjects;
 
-  Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;
+Serializer::RegisteredObjectsNameContainerType Serializer::msRegisteredObjectsName;
 
-  VariableData* Serializer::GetVariableData(std::string const & VariableName)
-  {
+VariableData* Serializer::GetVariableData(std::string const & VariableName)
+{
     return KratosComponents<VariableData>::pGet(VariableName);
-  }
+}
 
 
 

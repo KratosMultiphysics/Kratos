@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2008-10-13 06:58:23 $
 //   Revision:            $Revision: 1.2 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -76,58 +76,58 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
- 	
-
-	class AssignNoSlipCondition
-	{
-	public:
-
-		//**********************************************************************************************
-		//**********************************************************************************************
-		//
-		//template<unsigned int TDim>
-		void AssignNoSlipCondition2D(ModelPart& ThisModelPart)
-		{			
-			KRATOS_TRY;
 
 
-			Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
-			int id = ThisModelPart.Conditions().size();
-                        //const char* ConditionName = "NoSlipCondition2D";
+class AssignNoSlipCondition
+{
+public:
 
-			for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin(); 
-				it!=ThisModelPart.NodesEnd(); it++)
-			 {
-				if( it->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
-				   {	
-	      KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> NOSLIPBOUNDARY <<<<<<<<<<<<<<<<<<<<<");
-				       Condition::NodesArrayType temp;	
-				       temp.reserve(1);
-				       temp.push_back(*(it.base()));	
-		
-									
-			Condition::Pointer p_cond = (KratosComponents<Condition>::Get("NoSlipCondition2D")).Create(id, temp, properties);	
-				
-					//Condition::Pointer p_cond = Condition::Pointer(new NoSlipCondition2D(id, temp, properties) );
-					(ThisModelPart.Conditions()).push_back(p_cond);
+    //**********************************************************************************************
+    //**********************************************************************************************
+    //
+    //template<unsigned int TDim>
+    void AssignNoSlipCondition2D(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
 
-					id++;
-				  }
 
-			}
-			ThisModelPart.Conditions().Sort();
+        Properties::Pointer properties = ThisModelPart.GetMesh().pGetProperties(1);
+        int id = ThisModelPart.Conditions().size();
+        //const char* ConditionName = "NoSlipCondition2D";
 
-			
+        for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin();
+                it!=ThisModelPart.NodesEnd(); it++)
+        {
+            if( it->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+            {
+                KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> NOSLIPBOUNDARY <<<<<<<<<<<<<<<<<<<<<");
+                Condition::NodesArrayType temp;
+                temp.reserve(1);
+                temp.push_back(*(it.base()));
 
-			KRATOS_CATCH("")
-		}
+
+                Condition::Pointer p_cond = (KratosComponents<Condition>::Get("NoSlipCondition2D")).Create(id, temp, properties);
+
+                //Condition::Pointer p_cond = Condition::Pointer(new NoSlipCondition2D(id, temp, properties) );
+                (ThisModelPart.Conditions()).push_back(p_cond);
+
+                id++;
+            }
+
+        }
+        ThisModelPart.Conditions().Sort();
 
 
 
-	private:
+        KRATOS_CATCH("")
+    }
 
 
-	};
+
+private:
+
+
+};
 
 }  // namespace Kratos.
 

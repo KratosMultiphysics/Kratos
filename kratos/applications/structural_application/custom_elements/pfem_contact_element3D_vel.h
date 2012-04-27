@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-/* *********************************************************   
+/* *********************************************************
  *
  *   Last Modified by:    $Author: rrossi $
  *   Date:                $Date: 2008-10-13 07:00:53 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -73,89 +73,91 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/pfem_contact_element3D.h"
 
 
-namespace Kratos {
+namespace Kratos
+{
 
-    class PfemContactElement3DVel
-    : public PfemContactElement3D {
-    public:
+class PfemContactElement3DVel
+    : public PfemContactElement3D
+{
+public:
 
-        // Counted pointer of Ebst
-        KRATOS_CLASS_POINTER_DEFINITION(PfemContactElement3DVel);
+    // Counted pointer of Ebst
+    KRATOS_CLASS_POINTER_DEFINITION(PfemContactElement3DVel);
 
-        // Constructor void
-   //     PfemContactElement3D();
+    // Constructor void
+    //     PfemContactElement3D();
 
-        // Constructor using an array of nodes
-        PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry);
+    // Constructor using an array of nodes
+    PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry);
 
-        // Constructor using an array of nodes with properties
-        PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    // Constructor using an array of nodes with properties
+    PfemContactElement3DVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-        // Destructor
-        virtual ~PfemContactElement3DVel();
+    // Destructor
+    virtual ~PfemContactElement3DVel();
 
 
-        // Name Operations
-        Element::Pointer Create(
-                IndexType NewId,
-                NodesArrayType const& ThisNodes,
-                PropertiesType::Pointer pProperties) const;
+    // Name Operations
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const;
 
-        virtual void EquationIdVector(
-                EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo);
+    virtual void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo);
 
-        virtual void GetDofList(
-                DofsVectorType& ElementalDofList,
-                ProcessInfo& rCurrentProcessInfo);
+    virtual void GetDofList(
+        DofsVectorType& ElementalDofList,
+        ProcessInfo& rCurrentProcessInfo);
 
-       void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
-// 	void Calculate( const Variable<double>& rVariable, 
-// 			      double& Output, 
+// 	void Calculate( const Variable<double>& rVariable,
+// 			      double& Output,
 // 			      const ProcessInfo& rCurrentProcessInfo);
 
-	/*virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    /*virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
                 std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);*/
 
-        //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-        //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-		virtual std::string Info() const
-		{
-			return "PfemContactElement3DVel #" ;
-		}
+    //		void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+    //				std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    virtual std::string Info() const
+    {
+        return "PfemContactElement3DVel #" ;
+    }
 
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << Id();
+    }
 
 
-    protected:
-		
-    private:
+protected:
+
+private:
 
     ///@}
     ///@name Serialization
-    ///@{	
-    friend class Serializer; 
+    ///@{
+    friend class Serializer;
 
-    // A private default constructor necessary for serialization 
-    PfemContactElement3DVel(){}
+    // A private default constructor necessary for serialization
+    PfemContactElement3DVel() {}
 
     virtual void save(Serializer& rSerializer) const
     {
-       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
     }
 
     virtual void load(Serializer& rSerializer)
     {
-       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
     }
-      
-        
-    }; // class KRATOS_EBST_H_INCLUDED.
+
+
+}; // class KRATOS_EBST_H_INCLUDED.
 
 } // namespace Kratos.
 

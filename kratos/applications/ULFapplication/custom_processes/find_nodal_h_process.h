@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,10 +38,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.2 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -73,278 +73,278 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
-
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		calculate the nodal H for all the nodes depending on the min distance
-		of the neighbouring nodes.
-
-		lonely nodes are given the average value of the H
-	*/
-
-	class FindNodalHProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of FindNodalHProcess
-		KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		FindNodalHProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-		}
-
-		/// Destructor.
-		virtual ~FindNodalHProcess()
-		{
-		}
-
-
-		///@}
-		///@name Operators 
-		///@{
-
-		void operator()()
-		{
-			Execute();
-		}
-
-
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Execute()
-		{
-			KRATOS_TRY
-			ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-			//
-
-			double havg = 0.00;
-			double h_nodes = 0;
-
-			for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-			{
-				if((in->GetValue(NEIGHBOUR_NODES)).size() != 0)
-				{
-					double xc = in->X();
-					double yc = in->Y();
-					double zc = in->Z();
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+	calculate the nodal H for all the nodes depending on the min distance
+	of the neighbouring nodes.
+
+	lonely nodes are given the average value of the H
+*/
+
+class FindNodalHProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of FindNodalHProcess
+    KRATOS_CLASS_POINTER_DEFINITION(FindNodalHProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    FindNodalHProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+    }
+
+    /// Destructor.
+    virtual ~FindNodalHProcess()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Execute()
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+        //
+
+        double havg = 0.00;
+        double h_nodes = 0;
+
+        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        {
+            if((in->GetValue(NEIGHBOUR_NODES)).size() != 0)
+            {
+                double xc = in->X();
+                double yc = in->Y();
+                double zc = in->Z();
 
-					double h = 1000.0;
-					for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
-									i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
-					{
-						double x = i->X();
-						double y = i->Y();
-						double z = i->Z();
-						double l = (x-xc)*(x-xc);
-						l += (y-yc)*(y-yc);
-						l += (z-zc)*(z-zc);
+                double h = 1000.0;
+                for( WeakPointerVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin();
+                        i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+                {
+                    double x = i->X();
+                    double y = i->Y();
+                    double z = i->Z();
+                    double l = (x-xc)*(x-xc);
+                    l += (y-yc)*(y-yc);
+                    l += (z-zc)*(z-zc);
 
-						//if(l>h) h = l;
-						if(l<h) h = l;
-					}
-					h = sqrt(h);
-					havg += h;
-					h_nodes += 1;
+                    //if(l>h) h = l;
+                    if(l<h) h = l;
+                }
+                h = sqrt(h);
+                havg += h;
+                h_nodes += 1;
 
-					in->FastGetSolutionStepValue(NODAL_H) = h;
-				} 
-			}
+                in->FastGetSolutionStepValue(NODAL_H) = h;
+            }
+        }
 
-			//calculate average h
-			if(h_nodes == 0)
-				KRATOS_ERROR(std::logic_error,"no node has neighbours!!!!","");
-			havg /= h_nodes;
+        //calculate average h
+        if(h_nodes == 0)
+            KRATOS_ERROR(std::logic_error,"no node has neighbours!!!!","");
+        havg /= h_nodes;
 
-			//set the h to the average to the nodes without neighours
-			for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-			{
-				if((in->GetValue(NEIGHBOUR_NODES)).size() == 0)
-				{
-					in->FastGetSolutionStepValue(NODAL_H) = havg;
-				} 
-			}
-			KRATOS_CATCH("")
-		}
+        //set the h to the average to the nodes without neighours
+        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        {
+            if((in->GetValue(NEIGHBOUR_NODES)).size() == 0)
+            {
+                in->FastGetSolutionStepValue(NODAL_H) = havg;
+            }
+        }
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-		///@name Access
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "FindNodalHProcess";
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "FindNodalHProcess";
+    }
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "FindNodalHProcess";
-		}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "FindNodalHProcess";
+    }
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}      
-		///@name Friends
-		///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}
+    ///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@}
+    ///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		double m_min_h;
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+    double m_min_h;
 
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		/// Assignment operator.
-		FindNodalHProcess& operator=(FindNodalHProcess const& rOther);
+    /// Assignment operator.
+    FindNodalHProcess& operator=(FindNodalHProcess const& rOther);
 
-		/// Copy constructor.
-		//FindNodalHProcess(FindNodalHProcess const& rOther);
+    /// Copy constructor.
+    //FindNodalHProcess(FindNodalHProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class FindNodalHProcess 
+}; // Class FindNodalHProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@}
+///@name Input and output
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		FindNodalHProcess& rThis);
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  FindNodalHProcess& rThis);
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const FindNodalHProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const FindNodalHProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

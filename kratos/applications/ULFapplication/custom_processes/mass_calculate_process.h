@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,17 +38,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-05-16 13:59:01 $
 //   Revision:            $Revision: 1.4 $ 12 November 2007 - 3D added
 //
-//		
+//
 // THIS PROCESS is INVENTED in order to CALCULATE THE MASS and
-//STORE it node-wise. 
+//STORE it node-wise.
 //this is necessary for the projection step of ulf-frac method
 
 #if !defined(KRATOS_MASS_CALCULATE_PROCESS_INCLUDED )
@@ -58,10 +58,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -77,250 +77,250 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
-
-
-	///@} 
-	///@name  Enum's
-	///@{
-
-	///@}
-	///@name  Functions 
-	///@{
-
-	///@}
-	///@name Kratos Classes
-	///@{
-
-	/// Short class definition.
-	/** Detail class definition.
-		Update the MASS_FORCE on the nodes
-
-		
-	*/
-
-	class MassCalculateProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
-
-		/// Pointer definition of MassCalculateProcess
-		KRATOS_CLASS_POINTER_DEFINITION(MassCalculateProcess);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		MassCalculateProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-		}
-
-		/// Destructor.
-		virtual ~MassCalculateProcess()
-		{
-		}
+///@}
+///@name Type Definitions
+///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+///@}
+///@name  Functions
+///@{
 
+///@}
+///@name Kratos Classes
+///@{
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Execute()
-		{
-			KRATOS_TRY
-					
-			ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
-			double dummy;
-			//first initialize the Mass force to the old value
-
-			//set the Mass to the old value
-			for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ; 
-				in != mr_model_part.NodesEnd() ; ++in)
-			{  
-				in->FastGetSolutionStepValue(NODAL_MASS)=0.0;
-			}
-			
-			for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ; 
-					im != mr_model_part.ElementsEnd() ; ++im)
-			{  
-				im->Calculate(NODAL_MASS,dummy,proc_info);
-			}
-			
-			KRATOS_WATCH("Execute of Mass Calulate Process");
-	
-			
-							
-		KRATOS_CATCH("")
-		}
+/// Short class definition.
+/** Detail class definition.
+	Update the MASS_FORCE on the nodes
 
 
-		///@}
-		///@name Access
-		///@{ 
+*/
+
+class MassCalculateProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of MassCalculateProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MassCalculateProcess);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    MassCalculateProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+    }
+
+    /// Destructor.
+    virtual ~MassCalculateProcess()
+    {
+    }
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
+
+    void operator()()
+    {
+        Execute();
+    }
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "MassCalculateProcess";
-		}
+    virtual void Execute()
+    {
+        KRATOS_TRY
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "MassCalculateProcess";
-		}
+        ProcessInfo& proc_info = mr_model_part.GetProcessInfo();
+        double dummy;
+        //first initialize the Mass force to the old value
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+        //set the Mass to the old value
+        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin() ;
+                in != mr_model_part.NodesEnd() ; ++in)
+        {
+            in->FastGetSolutionStepValue(NODAL_MASS)=0.0;
+        }
 
+        for(ModelPart::ElementsContainerType::iterator im = mr_model_part.ElementsBegin() ;
+                im != mr_model_part.ElementsEnd() ; ++im)
+        {
+            im->Calculate(NODAL_MASS,dummy,proc_info);
+        }
 
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+        KRATOS_WATCH("Execute of Mass Calulate Process");
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+
+        KRATOS_CATCH("")
+    }
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "MassCalculateProcess";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MassCalculateProcess";
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		
-
-		///@} 
-		///@name Private Operators
-		///@{ 
-		
-	
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		/// Assignment operator.
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //		MassCalculateProcess& operator=(MassCalculateProcess const& rOther);
 
-		/// Copy constructor.
+    /// Copy constructor.
 //		MassCalculateProcess(MassCalculateProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class MassCalculateProcess 
+}; // Class MassCalculateProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
-
-
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		MassCalculateProcess& rThis);
+///@}
+///@name Input and output
+///@{
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const MassCalculateProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MassCalculateProcess& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MassCalculateProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

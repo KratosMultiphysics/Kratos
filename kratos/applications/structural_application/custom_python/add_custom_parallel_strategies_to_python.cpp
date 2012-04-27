@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: janosch $
 //   Date:                $Date: 2008-10-23 12:48:56 $
 //   Revision:            $Revision: 1.2 $
@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 
 
 // Project includes
@@ -66,76 +66,76 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
 
-	#include "spaces/ublas_space.h"
-	#include "spaces/parallel_ublas_space.h"
+#include "spaces/ublas_space.h"
+#include "spaces/parallel_ublas_space.h"
 
-	//convergence criteria
-	#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+//convergence criteria
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-	//strategies
-	#include "solving_strategies/strategies/solving_strategy.h"
+//strategies
+#include "solving_strategies/strategies/solving_strategy.h"
 
-	//schemes
-	#include "solving_strategies/schemes/scheme.h"
-	#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
-	#include "custom_strategies/schemes/residualbased_newmark_scheme.h"
+//schemes
+#include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/residualbased_predictorcorrector_bossak_scheme.h"
+#include "custom_strategies/schemes/residualbased_newmark_scheme.h"
 
-	//builder_and_solvers
-	#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-	#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+//builder_and_solvers
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 
-	//linear solvers
-	#include "linear_solvers/linear_solver.h"
+//linear solvers
+#include "linear_solvers/linear_solver.h"
 #endif
 
 namespace Kratos
 {
 
-	namespace Python
-	{		
-		using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
-		void  AddCustomParallelStrategiesToPython()
-		{
+void  AddCustomParallelStrategiesToPython()
+{
 #ifdef _OPENMP //nothing will be compiled if an openmp compiler is not found
-			typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
-			typedef ParallelUblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> ParallelLocalSpaceType;
+    typedef ParallelUblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
 //			typedef UblasSpace<double, CompressedMatrix, Vector> ParallelSparseSpaceType;
 //std::cout << "ATTENTION Ublas space used instead of Parallel Ublas Space" << std::endl;
 
-			typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
-			typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
-			typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
-
-			
-
-			typedef ResidualBasedPredictorCorrectorBossakScheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelResidualBasedPredictorCorrectorBossakSchemeType;
-            typedef ResidualBasedNewmarkScheme<ParallelSparseSpaceType, ParallelLocalSpaceType> ParallelResidualBasedNewmarkSchemeType;
-					
-			typedef ConvergenceCriteria< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelConvergenceCriteriaBaseType;
+    typedef LinearSolver<ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelLinearSolverType;
+    typedef SolvingStrategy< ParallelSparseSpaceType, ParallelLocalSpaceType, ParallelLinearSolverType > ParallelBaseSolvingStrategyType;
+    typedef Scheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelBaseSchemeType;
 
 
 
+    typedef ResidualBasedPredictorCorrectorBossakScheme< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelResidualBasedPredictorCorrectorBossakSchemeType;
+    typedef ResidualBasedNewmarkScheme<ParallelSparseSpaceType, ParallelLocalSpaceType> ParallelResidualBasedNewmarkSchemeType;
 
-			//********************************************************************
-            		//********************************************************************
+    typedef ConvergenceCriteria< ParallelSparseSpaceType, ParallelLocalSpaceType > ParallelConvergenceCriteriaBaseType;
 
-			class_< ParallelResidualBasedPredictorCorrectorBossakSchemeType,
-			bases< ParallelBaseSchemeType >,  boost::noncopyable >
-					(
-					"ParallelResidualBasedPredictorCorrectorBossakScheme", init< double >()
-					);
-            
-            class_< ParallelResidualBasedNewmarkSchemeType,
+
+
+
+    //********************************************************************
+    //********************************************************************
+
+    class_< ParallelResidualBasedPredictorCorrectorBossakSchemeType,
+            bases< ParallelBaseSchemeType >,  boost::noncopyable >
+            (
+                "ParallelResidualBasedPredictorCorrectorBossakScheme", init< double >()
+            );
+
+    class_< ParallelResidualBasedNewmarkSchemeType,
             bases<ParallelBaseSchemeType >, boost::noncopyable >
-                    (
-                     "ParallelResidualBasedNewmarkScheme",init<double>()
-                    );
+            (
+                "ParallelResidualBasedNewmarkScheme",init<double>()
+            );
 #endif
-			
-		}
 
-	}  // namespace Python.
+}
+
+}  // namespace Python.
 
 } // Namespace Kratos
 

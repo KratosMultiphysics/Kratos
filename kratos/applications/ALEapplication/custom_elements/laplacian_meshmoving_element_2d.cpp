@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosALEApplication 
+KratosALEApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:31 $
 //   Revision:            $Revision: 1.2 $
@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "custom_elements/laplacian_meshmoving_element_2d.h"
 #include "ale_application.h"
@@ -66,109 +66,109 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-  	array_1d<double,3> msN; 
-  	array_1d<double,3> ms_temp_vec_np; 
-	//************************************************************************************
-	//************************************************************************************
-	LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
-		: Element(NewId, pGeometry)
-	{		
-		//DO NOT ADD DOFS HERE!!!
-	}
+boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+array_1d<double,3> msN;
+array_1d<double,3> ms_temp_vec_np;
+//************************************************************************************
+//************************************************************************************
+LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Element(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
 
-	//************************************************************************************
-	//************************************************************************************
-	LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-		: Element(NewId, pGeometry, pProperties)
-	{
-	}
+//************************************************************************************
+//************************************************************************************
+LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+    : Element(NewId, pGeometry, pProperties)
+{
+}
 
-	Element::Pointer LaplacianMeshMovingElem2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-		return Element::Pointer(new LaplacianMeshMovingElem2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
-	}
+Element::Pointer LaplacianMeshMovingElem2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+{
+    return Element::Pointer(new LaplacianMeshMovingElem2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+}
 
-	LaplacianMeshMovingElem2D::~LaplacianMeshMovingElem2D()
-	{
-	}
+LaplacianMeshMovingElem2D::~LaplacianMeshMovingElem2D()
+{
+}
 
-	//************************************************************************************
-	//************************************************************************************
-	void LaplacianMeshMovingElem2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
-	}	
-	
-  
-	//************************************************************************************
-	//************************************************************************************
-	void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-		unsigned int number_of_points = 3;
+//************************************************************************************
+//************************************************************************************
+void LaplacianMeshMovingElem2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+}
 
-		if(rLeftHandSideMatrix.size1() != number_of_points)
-			rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
-		if(rRightHandSideVector.size() != number_of_points)
-			rRightHandSideVector.resize(number_of_points,false);
+//************************************************************************************
+//************************************************************************************
+void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    unsigned int number_of_points = 3;
 
-		unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
-		
-		boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-		array_1d<double,3> msN; 
-		array_1d<double,3> ms_temp_vec_np; 
-	
-		//getting data for the given geometry
-		double Area;
-		GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
-					
-		const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-		const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
-		const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
+    if(rLeftHandSideMatrix.size1() != number_of_points)
+        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
-		noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
+    if(rRightHandSideVector.size() != number_of_points)
+        rRightHandSideVector.resize(number_of_points,false);
 
-		//dirichlet contribution
-		ms_temp_vec_np[0] = disp0[ComponentIndex]; 
-		ms_temp_vec_np[1] = disp1[ComponentIndex]; 
-		ms_temp_vec_np[2] = disp2[ComponentIndex]; 
-		noalias(rRightHandSideVector) = ZeroVector(number_of_points);
-		noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
+    unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
-		//note that no multiplication by area is performed,
-		//this makes smaller elements more rigid and minimizes the mesh deformation
+    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    array_1d<double,3> msN;
+    array_1d<double,3> ms_temp_vec_np;
 
-		KRATOS_CATCH("");
-	}
+    //getting data for the given geometry
+    double Area;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 
-	//************************************************************************************
-	//************************************************************************************
-	void LaplacianMeshMovingElem2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-	{
-		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		if(rResult.size() != number_of_nodes)
-			rResult.resize(number_of_nodes,false);	
+    const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
 
-		for (unsigned int i=0;i<number_of_nodes;i++)
-				rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();
-	}
+    noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
-	//************************************************************************************
-	//************************************************************************************
-	  void LaplacianMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
-	{
-		const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-		if(ElementalDofList.size() != number_of_nodes)
-			ElementalDofList.resize(number_of_nodes);	
+    //dirichlet contribution
+    ms_temp_vec_np[0] = disp0[ComponentIndex];
+    ms_temp_vec_np[1] = disp1[ComponentIndex];
+    ms_temp_vec_np[2] = disp2[ComponentIndex];
+    noalias(rRightHandSideVector) = ZeroVector(number_of_points);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 
-		for (unsigned int i=0;i<number_of_nodes;i++)
-			ElementalDofList[i] = GetGeometry()[i].pGetDof(AUX_MESH_VAR);
+    //note that no multiplication by area is performed,
+    //this makes smaller elements more rigid and minimizes the mesh deformation
 
-	}
+    KRATOS_CATCH("");
+}
 
-	
+//************************************************************************************
+//************************************************************************************
+void LaplacianMeshMovingElem2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if(rResult.size() != number_of_nodes)
+        rResult.resize(number_of_nodes,false);
+
+    for (unsigned int i=0; i<number_of_nodes; i++)
+        rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();
+}
+
+//************************************************************************************
+//************************************************************************************
+void LaplacianMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+{
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    if(ElementalDofList.size() != number_of_nodes)
+        ElementalDofList.resize(number_of_nodes);
+
+    for (unsigned int i=0; i<number_of_nodes; i++)
+        ElementalDofList[i] = GetGeometry()[i].pGetDof(AUX_MESH_VAR);
+
+}
+
+
 
 } // Namespace Kratos
 

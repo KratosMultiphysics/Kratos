@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -60,48 +60,48 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
-    void  AddSpatialContainersToPython()
-    {
-	
-	static const std::size_t Dim = 3;
+void  AddSpatialContainersToPython()
+{
 
-	typedef Kratos::Point<Dim> 		PointType;
-	typedef Kratos::Tetrahedra3D4<PointType>ObjectType;
+    static const std::size_t Dim = 3;
 
-	typedef PointType*			PtrPointType;
-	typedef ObjectType*			PtrObjectType;
+    typedef Kratos::Point<Dim> 		PointType;
+    typedef Kratos::Tetrahedra3D4<PointType>ObjectType;
 
-	typedef PtrPointType*			PointVector;
-	typedef PtrPointType*			PointIterator;
+    typedef PointType*			PtrPointType;
+    typedef ObjectType*			PtrObjectType;
 
-	typedef PtrObjectType*			ObjectVector;
-	typedef PtrObjectType*			ObjectIterator;
+    typedef PtrPointType*			PointVector;
+    typedef PtrPointType*			PointIterator;
 
-	typedef double*				DistanceVector;
-	typedef double*				DistanceIterator;
-	
-	typedef Kratos::SearchUtils::SquaredDistanceFunction<Dim,PointType> DistanceFunction;
-	
-	typedef Kratos::BinsObjectStaticOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, DistanceFunction > StaticBinsOCL;
-      
-	using namespace boost::python;
-		
-	class_< StaticBinsOCL, boost::noncopyable > ("BinsObjectStaticOCL", init<Kratos::ModelPart * , Kratos::ModelPart * ,OpenCL::DeviceGroup& > ())
-		.def("GenerateBins", 	   		&StaticBinsOCL::GenerateBins)
-		.def("LoadSample", 	   			&StaticBinsOCL::LoadSample)
-		.def("AllocateOCLBuffers", 		&StaticBinsOCL::AllocateOCLBuffers)
-		.def("InitializeBuffers",  		&StaticBinsOCL::InitializeBuffers)
-		.def("SearchParticles",	   		&StaticBinsOCL::SearchParticles)
-		.def("TransferStaticMeshToGPU",	&StaticBinsOCL::TransferStaticMeshToGPU)
-		.def("TransferStaticMeshToCPU",	&StaticBinsOCL::TransferStaticMeshToCPU)
-		.def("CopyStaticmeshData",		&StaticBinsOCL::CopyStaticmeshData)
-		.def("TransferParticMeshToGPU", &StaticBinsOCL::TransferParticMeshToGPU)
-		;
-  }
-	
+    typedef PtrObjectType*			ObjectVector;
+    typedef PtrObjectType*			ObjectIterator;
+
+    typedef double*				DistanceVector;
+    typedef double*				DistanceIterator;
+
+    typedef Kratos::SearchUtils::SquaredDistanceFunction<Dim,PointType> DistanceFunction;
+
+    typedef Kratos::BinsObjectStaticOCL< Dim, PointType, PointVector, PtrPointType, PointIterator, DistanceIterator, DistanceFunction > StaticBinsOCL;
+
+    using namespace boost::python;
+
+    class_< StaticBinsOCL, boost::noncopyable > ("BinsObjectStaticOCL", init<Kratos::ModelPart * , Kratos::ModelPart * ,OpenCL::DeviceGroup& > ())
+    .def("GenerateBins", 	   		&StaticBinsOCL::GenerateBins)
+    .def("LoadSample", 	   			&StaticBinsOCL::LoadSample)
+    .def("AllocateOCLBuffers", 		&StaticBinsOCL::AllocateOCLBuffers)
+    .def("InitializeBuffers",  		&StaticBinsOCL::InitializeBuffers)
+    .def("SearchParticles",	   		&StaticBinsOCL::SearchParticles)
+    .def("TransferStaticMeshToGPU",	&StaticBinsOCL::TransferStaticMeshToGPU)
+    .def("TransferStaticMeshToCPU",	&StaticBinsOCL::TransferStaticMeshToCPU)
+    .def("CopyStaticmeshData",		&StaticBinsOCL::CopyStaticmeshData)
+    .def("TransferParticMeshToGPU", &StaticBinsOCL::TransferParticMeshToGPU)
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

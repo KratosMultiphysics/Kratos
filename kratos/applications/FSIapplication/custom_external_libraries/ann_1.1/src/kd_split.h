@@ -6,12 +6,12 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-2005 University of Maryland and Sunil Arya and
 // David Mount.  All Rights Reserved.
-// 
+//
 // This software and related documentation is part of the Approximate
 // Nearest Neighbor Library (ANN).  This software is provided under
 // the provisions of the Lesser GNU Public License (LGPL).  See the
 // file ../ReadMe.txt for further information.
-// 
+//
 // The University of Maryland (U.M.) and the authors make no
 // representations about the suitability or fitness of this software for
 // any purpose.  It is provided "as is" without express or implied
@@ -33,53 +33,53 @@
 //----------------------------------------------------------------------
 
 void kd_split(							// standard (optimized) kd-splitter
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 void midpt_split(						// midpoint kd-splitter
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 void sl_midpt_split(					// sliding midpoint kd-splitter
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 void fair_split(						// fair-split kd-splitter
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 void sl_fair_split(						// sliding fair-split kd-splitter
-	ANNpointArray		pa,				// point array (unaltered)
-	ANNidxArray			pidx,			// point indices (permuted on return)
-	const ANNorthRect	&bnds,			// bounding rectangle for cell
-	int					n,				// number of points
-	int					dim,			// dimension of space
-	int					&cut_dim,		// cutting dimension (returned)
-	ANNcoord			&cut_val,		// cutting value (returned)
-	int					&n_lo);			// num of points on low side (returned)
+    ANNpointArray		pa,				// point array (unaltered)
+    ANNidxArray			pidx,			// point indices (permuted on return)
+    const ANNorthRect	&bnds,			// bounding rectangle for cell
+    int					n,				// number of points
+    int					dim,			// dimension of space
+    int					&cut_dim,		// cutting dimension (returned)
+    ANNcoord			&cut_val,		// cutting value (returned)
+    int					&n_lo);			// num of points on low side (returned)
 
 #endif

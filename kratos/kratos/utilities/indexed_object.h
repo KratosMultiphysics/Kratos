@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.3 $
@@ -52,12 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <sstream>
 #include <cstddef>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -67,72 +67,72 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class IndexedObject
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class IndexedObject
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of IndexedObject
+    KRATOS_CLASS_POINTER_DEFINITION(IndexedObject);
+
+    typedef std::size_t IndexType;
+
+    typedef std::size_t result_type;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    IndexedObject(IndexType NewId = 0) : mId(NewId) {}
+
+    /// Destructor.
+    virtual ~IndexedObject() {}
+
+    /// Copy constructor.
+    IndexedObject(IndexedObject const& rOther) : mId(rOther.mId) {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    IndexedObject& operator=(IndexedObject const& rOther)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of IndexedObject
-      KRATOS_CLASS_POINTER_DEFINITION(IndexedObject);
+        mId = rOther.mId;
 
-      typedef std::size_t IndexType;
+        return *this;
+    }
 
-      typedef std::size_t result_type;
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      IndexedObject(IndexType NewId = 0) : mId(NewId){}
-
-      /// Destructor.
-      virtual ~IndexedObject(){}
-      
-      /// Copy constructor.
-      IndexedObject(IndexedObject const& rOther) : mId(rOther.mId) {}
-
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      /// Assignment operator.
-      IndexedObject& operator=(IndexedObject const& rOther)
-	{
-	  mId = rOther.mId;
-
-	  return *this;
-	}
-
-      template<class TObjectType>
-	IndexType operator()(TObjectType const& rThisObject) const
-	{
-	  return rThisObject.Id();
-	}
+    template<class TObjectType>
+    IndexType operator()(TObjectType const& rThisObject) const
+    {
+        return rThisObject.Id();
+    }
 
 //       template<class TObjectType>
 // 	IndexType& operator()(TObjectType & rThisObject)
@@ -140,199 +140,199 @@ namespace Kratos
 // 	  return rThisObject.Id();
 // 	}
 
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{
 
-      IndexType Id() const
-      {
-	return mId;
-      }
+    ///@}
+    ///@name Operations
+    ///@{
 
-      IndexType GetId() const
-      {
-	return mId;
-      }
 
-      virtual void SetId(IndexType NewId)
-      {
-	mId = NewId;
-      }
+    ///@}
+    ///@name Access
+    ///@{
 
-        /// TODO: remove this function when removing data_file_io object.
-      IndexType& DepricatedIdAccess()
-      {
-	return mId;
-      }
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  std::stringstream buffer;
-	  buffer << "indexed object # "
-		 << mId;
-	  return buffer.str();
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info();
-	}
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{
-      
-      IndexType mId;
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-	  
-      ///@} 
-      ///@name Serialization
-      ///@{ 
-        
- 	friend class Serializer;
-	
-	virtual void save(Serializer& rSerializer) const
-	{
-	  rSerializer.save("Id",mId);
-	}
-
-	virtual void load(Serializer& rSerializer)
-	{
-	  rSerializer.load("Id",mId);
-	}
-	
-	
-        
-       
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-        
-      ///@}    
-        
-    }; // Class IndexedObject 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    IndexedObject& rThis);
-
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const IndexedObject& rThis)
+    IndexType Id() const
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
+        return mId;
     }
-  ///@} 
-  
-  
+
+    IndexType GetId() const
+    {
+        return mId;
+    }
+
+    virtual void SetId(IndexType NewId)
+    {
+        mId = NewId;
+    }
+
+    /// TODO: remove this function when removing data_file_io object.
+    IndexType& DepricatedIdAccess()
+    {
+        return mId;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "indexed object # "
+               << mId;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    IndexType mId;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Id",mId);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        rSerializer.load("Id",mId);
+    }
+
+
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
+
+}; // Class IndexedObject
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  IndexedObject& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const IndexedObject& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_INDEXED_OBJECT_H_INCLUDED  defined 

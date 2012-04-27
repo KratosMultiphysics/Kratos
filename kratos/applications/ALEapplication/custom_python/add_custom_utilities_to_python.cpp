@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-11-14 15:25:09 $
 //   Revision:            $Revision: 1.2 $
@@ -48,9 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -68,40 +68,40 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-	
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
+
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
 
 
-		typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-		typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
-        class_< BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving2D", init<	>() )
-               .def("ConstructSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
-               .def("BuildAndSolveSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
-               .def("ClearSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
-        ;
-
-
-	class_< BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving3D", init<	>() )
-			.def("ConstructSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
-			.def("BuildAndSolveSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
-			.def("ClearSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
-			;
+    class_< BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving2D", init<	>() )
+    .def("ConstructSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("BuildAndSolveSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
+    .def("ClearSystem",&BallVertexMeshMoving< 2, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
 
 
-	class_< MoveMeshUtilities,  boost::noncopyable >	("MoveMeshUtilities", init<	>() )
-			.def("BDF_MoveMesh",&MoveMeshUtilities::BDF_MoveMesh)
-			;
+    class_< BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >,  boost::noncopyable >	("BallVertexMeshMoving3D", init<	>() )
+    .def("ConstructSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ConstructSystem)
+    .def("BuildAndSolveSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::BuildAndSolveSystem)
+    .def("ClearSystem",&BallVertexMeshMoving3D< 3, SparseSpaceType, LinearSolverType >::ClearSystem)
+    ;
 
-  }
-	
+
+    class_< MoveMeshUtilities,  boost::noncopyable >	("MoveMeshUtilities", init<	>() )
+    .def("BDF_MoveMesh",&MoveMeshUtilities::BDF_MoveMesh)
+    ;
+
+}
+
 
 
 

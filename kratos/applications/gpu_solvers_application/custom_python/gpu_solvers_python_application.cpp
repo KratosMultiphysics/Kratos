@@ -38,45 +38,45 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "gpu_solvers_application.h"
 #include "custom_python/add_linear_solvers_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosGPUSolversApplication)
-  {
 
-	  class_<KratosGPUSolversApplication, 
-			  KratosGPUSolversApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosGPUSolversApplication")
-			;
+BOOST_PYTHON_MODULE(KratosGPUSolversApplication)
+{
 
-	AddLinearSolversToPython();
+    class_<KratosGPUSolversApplication,
+           KratosGPUSolversApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosGPUSolversApplication")
+           ;
+
+    AddLinearSolversToPython();
 
 
-  }
-  
-  
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

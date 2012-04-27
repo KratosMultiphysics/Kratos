@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-05-06 14:55:41 $
 //   Revision:            $Revision: 1.5 $
@@ -51,9 +51,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_CONTACT_LINK_3D_CONDITION_H_INCLUDED )
 #define  KRATOS_CONTACT_LINK_3D_CONDITION_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -68,170 +68,170 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+/**
+ * Contact link element for 3D contact problems.
+ * This condition links two contact surfaces (one master and
+ * one slave element) to a condition which may be assembled
+ * at once by the builder.
+ * Within this condition all system contribution with regard to
+ * the gap function, the contact stress, the normal vectors
+ * and their linearizations are calculated.
+ */
+class ContactLink3D : public Condition
+{
+public:
+    // Counted pointer of ContactLink3D
+    KRATOS_CLASS_POINTER_DEFINITION(ContactLink3D);
+
     /**
-     * Contact link element for 3D contact problems.
-     * This condition links two contact surfaces (one master and
-     * one slave element) to a condition which may be assembled
-     * at once by the builder.
-     * Within this condition all system contribution with regard to
-     * the gap function, the contact stress, the normal vectors
-     * and their linearizations are calculated.
+     * Default constructor.
      */
-    class ContactLink3D : public Condition
-    {
-        public:
-            // Counted pointer of ContactLink3D
-            KRATOS_CLASS_POINTER_DEFINITION(ContactLink3D);
-            
-            /** 
-             * Default constructor.
-             */
-            ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry);
-            
-            ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,  
-                           PropertiesType::Pointer pProperties
-                         );
-            
-            
-            ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,  
-                                          PropertiesType::Pointer pProperties,
-                                          Condition::Pointer Master, 
-                                          Condition::Pointer Slave,
-                                          Point<3>& MasterContactLocalPoint,
-                                          Point<3>& SlaveContactLocalPoint,
-                                          int SlaveIntegrationPointIndex
-                         );
-            /**
-             * Destructor.
-             */
-            virtual ~ContactLink3D();
-      
-            /**
-             * Operations.
-             */
-            
-            
-            
-            Condition::Pointer Create( IndexType NewId, 
-                                       NodesArrayType const& ThisNodes,  
-                                       PropertiesType::Pointer pProperties) const;
-            
-            /**
-             * Calculates the local system contributions for this contact element
-             */
-            void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
-                                       VectorType& rRightHandSideVector, 
-                                       ProcessInfo& rCurrentProcessInfo);
-            
-            void CalculateRightHandSide( VectorType& rRightHandSideVector, 
-                                         ProcessInfo& rCurrentProcessInfo);
+    ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry);
 
-	    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-            
-            void EquationIdVector( EquationIdVectorType& rResult, 
-                                   ProcessInfo& rCurrentProcessInfo);
-            
-            void GetDofList( DofsVectorType& ConditionalDofList,
-                             ProcessInfo& CurrentProcessInfo);
-            
-      
-            /**
-             * Print information about this object.
-             */
-            virtual void PrintInfo(std::ostream& rOStream) const;
+    ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,
+                   PropertiesType::Pointer pProperties
+                 );
 
-            /**
-             * Print object's data.
-             */
-            virtual void PrintData(std::ostream& rOStream) const;
-      
-        protected:
-        
-        
-        private:
-            void CalculateAll( MatrixType& rLeftHandSideMatrix, 
+
+    ContactLink3D( IndexType NewId, GeometryType::Pointer pGeometry,
+                   PropertiesType::Pointer pProperties,
+                   Condition::Pointer Master,
+                   Condition::Pointer Slave,
+                   Point<3>& MasterContactLocalPoint,
+                   Point<3>& SlaveContactLocalPoint,
+                   int SlaveIntegrationPointIndex
+                 );
+    /**
+     * Destructor.
+     */
+    virtual ~ContactLink3D();
+
+    /**
+     * Operations.
+     */
+
+
+
+    Condition::Pointer Create( IndexType NewId,
+                               NodesArrayType const& ThisNodes,
+                               PropertiesType::Pointer pProperties) const;
+
+    /**
+     * Calculates the local system contributions for this contact element
+     */
+    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
                                VectorType& rRightHandSideVector,
-                               ProcessInfo& rCurrentProcessInfo,
-                               bool CalculateStiffnessMatrixFlag,
-                               bool CalculateResidualVectorFlag);
-            
-            
-            /////////////////////////
-            ///// 
-            //////////////////////////
-            /*void CalculateAndAdd_RHS( 
-                    Vector& residualvector,
-                    const Vector& NMaster,
-                    const Vector& NSlave,
-                    const Vector& vMaster,
-                    double normalStress,
-                    double SlaveIntegrationWeight,
-            double dASlave ); */
-            
-    void CalculateAndAdd_RHS( Vector& residualvector,
+                               ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide( VectorType& rRightHandSideVector,
+                                 ProcessInfo& rCurrentProcessInfo);
+
+    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector( EquationIdVectorType& rResult,
+                           ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList( DofsVectorType& ConditionalDofList,
+                     ProcessInfo& CurrentProcessInfo);
+
+
+    /**
+     * Print information about this object.
+     */
+    virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /**
+     * Print object's data.
+     */
+    virtual void PrintData(std::ostream& rOStream) const;
+
+protected:
+
+
+private:
+    void CalculateAll( MatrixType& rLeftHandSideMatrix,
+                       VectorType& rRightHandSideVector,
+                       ProcessInfo& rCurrentProcessInfo,
+                       bool CalculateStiffnessMatrixFlag,
+                       bool CalculateResidualVectorFlag);
+
+
+    /////////////////////////
+    /////
+    //////////////////////////
+    /*void CalculateAndAdd_RHS(
+            Vector& residualvector,
             const Vector& NMaster,
             const Vector& NSlave,
             const Vector& vMaster,
-            const Matrix& T,
-            const Vector& tangentialStresses,
-            double Gap,
             double normalStress,
             double SlaveIntegrationWeight,
-            double dASlave);
-            
-            
-            
-            
-            /**
-             * This function calculates updates the local and global coordinates 
-             * of the master contact partner in order to follow the movement of
-             * the slave surface along the master surface
-             */
-            void UpdateMasterLocalPoint( );
+    double dASlave ); */
 
-            
-            Vector NormalVector( Condition::Pointer Surface, 
-                                 const GeometryType::CoordinatesArrayType& LocalPoint );
-            
-            Matrix TangentialVectors( Condition::Pointer Surface,
-                                      const GeometryType::CoordinatesArrayType& LocalPoint );
-            
-            Matrix TangentialVectorsGlobal( Condition::Pointer Surface,
-                                      const GeometryType::CoordinatesArrayType& LocalPoint );
-            
-    	    Matrix TangentialVectors_inOrigin( Condition::Pointer Surface, 
-                                             const GeometryType::CoordinatesArrayType& rPoint );
-
-     	    Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
+    void CalculateAndAdd_RHS( Vector& residualvector,
+                              const Vector& NMaster,
+                              const Vector& NSlave,
+                              const Vector& vMaster,
+                              const Matrix& T,
+                              const Vector& tangentialStresses,
+                              double Gap,
+                              double normalStress,
+                              double SlaveIntegrationWeight,
+                              double dASlave);
 
 
-	   Vector GetRelativTangentialVelocity(Matrix& T);
 
-	   Vector GetRelativVelocity();
-            /**
-             * Assignment operator.
-             * (DEACTIVATED)
-             */
-            //ContactLink3D& operator=(const ContactLink3D& rOther);
-            
-            /**
-             * Copy constructor.
-             * (DEACTIVATED)
-             */
-            //ContactLink3D(const ContactLink3D& rOther);
-            
-            
-            /**
-             * private members
-             */
-            
+
+    /**
+     * This function calculates updates the local and global coordinates
+     * of the master contact partner in order to follow the movement of
+     * the slave surface along the master surface
+     */
+    void UpdateMasterLocalPoint( );
+
+
+    Vector NormalVector( Condition::Pointer Surface,
+                         const GeometryType::CoordinatesArrayType& LocalPoint );
+
+    Matrix TangentialVectors( Condition::Pointer Surface,
+                              const GeometryType::CoordinatesArrayType& LocalPoint );
+
+    Matrix TangentialVectorsGlobal( Condition::Pointer Surface,
+                                    const GeometryType::CoordinatesArrayType& LocalPoint );
+
+    Matrix TangentialVectors_inOrigin( Condition::Pointer Surface,
+                                       const GeometryType::CoordinatesArrayType& rPoint );
+
+    Point<3>& GlobalCoordinates(Condition::Pointer Surface, Point<3>& rResult, Point<3> const& LocalCoordinates);
+
+
+    Vector GetRelativTangentialVelocity(Matrix& T);
+
+    Vector GetRelativVelocity();
+    /**
+     * Assignment operator.
+     * (DEACTIVATED)
+     */
+    //ContactLink3D& operator=(const ContactLink3D& rOther);
+
+    /**
+     * Copy constructor.
+     * (DEACTIVATED)
+     */
+    //ContactLink3D(const ContactLink3D& rOther);
+
+
+    /**
+     * private members
+     */
+
 //             Condition::Pointer mpSlave;
 //             Condition::Pointer mpMaster;
 //             Point<3> mMasterContactLocalPoint;
 //             Point<3> mSlaveContactLocalPoint;
 //             Point<3> mMasterContactGlobalPoint;
 //             Point<3> mSlaveContactGlobalPoint;
-    }; // Class ContactLink3D 
+}; // Class ContactLink3D
 }  // namespace Kratos.
 
 #endif // KRATOS_CONTACT_LINK_3D_CONDITION_H_INCLUDED  defined 

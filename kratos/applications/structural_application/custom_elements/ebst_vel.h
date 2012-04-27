@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -42,7 +42,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-/* *********************************************************   
+/* *********************************************************
  *
  *   Last Modified by:    $Author: rrossi $
  *   Date:                $Date: 2008-10-13 07:00:53 $
@@ -56,10 +56,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -72,74 +72,76 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 
-namespace Kratos {
+namespace Kratos
+{
 
-    class EbstVel
+class EbstVel
     :
-    public Ebst {
-    public:
+public Ebst
+{
+public:
 
-        // Counted pointer of EbstVel
-        KRATOS_CLASS_POINTER_DEFINITION(EbstVel);
-
-
-        // Constructor using an array of nodes
-        EbstVel(IndexType NewId, GeometryType::Pointer pGeometry);
-
-        // Constructor using an array of nodes with properties
-        EbstVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
-
-        // Destructor
-        virtual ~EbstVel();
+    // Counted pointer of EbstVel
+    KRATOS_CLASS_POINTER_DEFINITION(EbstVel);
 
 
-        // Name Operations
+    // Constructor using an array of nodes
+    EbstVel(IndexType NewId, GeometryType::Pointer pGeometry);
 
-        Element::Pointer Create(
-                IndexType NewId,
-                NodesArrayType const& ThisNodes,
-                PropertiesType::Pointer pProperties) const;
+    // Constructor using an array of nodes with properties
+    EbstVel(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-        void EquationIdVector(
-                EquationIdVectorType& rResult,
-                ProcessInfo& rCurrentProcessInfo);
-
-        void GetDofList(
-                DofsVectorType& ElementalDofList,
-                ProcessInfo& rCurrentProcessInfo);
-
-        void Calculate( const Variable<array_1d<double,3> >& rVariable, 
-		      array_1d<double,3>& Output, 
-		      const ProcessInfo& rCurrentProcessInfo);
-
-	void Calculate( const Variable<double>& rVariable, 
-			      double& Output, 
-			      const ProcessInfo& rCurrentProcessInfo);
-
-    protected:
+    // Destructor
+    virtual ~EbstVel();
 
 
-      private:
+    // Name Operations
 
-      ///@}
-      ///@name Serialization
-      ///@{	
-      friend class Serializer; 
-      // A private default constructor necessary for serialization 
-       EbstVel(){}
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties) const;
 
-      virtual void save(Serializer& rSerializer) const
-      {
-         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
-      }
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        ProcessInfo& rCurrentProcessInfo);
 
-      virtual void load(Serializer& rSerializer)
-      {
+    void GetDofList(
+        DofsVectorType& ElementalDofList,
+        ProcessInfo& rCurrentProcessInfo);
+
+    void Calculate( const Variable<array_1d<double,3> >& rVariable,
+                    array_1d<double,3>& Output,
+                    const ProcessInfo& rCurrentProcessInfo);
+
+    void Calculate( const Variable<double>& rVariable,
+                    double& Output,
+                    const ProcessInfo& rCurrentProcessInfo);
+
+protected:
+
+
+private:
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+    // A private default constructor necessary for serialization
+    EbstVel() {}
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer,  Element );
-      }
-      
-      
-    }; // class KRATOS_EbstVel_H_INCLUDED.
+    }
+
+
+}; // class KRATOS_EbstVel_H_INCLUDED.
 
 } // namespace Kratos.
 

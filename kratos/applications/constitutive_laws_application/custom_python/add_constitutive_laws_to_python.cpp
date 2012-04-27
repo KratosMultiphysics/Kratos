@@ -31,23 +31,23 @@
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        using namespace boost::python;
+using namespace boost::python;
 
-        typedef ConstitutiveLaw ConstitutiveLawBaseType;
-        typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef ConstitutiveLaw ConstitutiveLawBaseType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 
-        void  AddConstitutiveLawsToPython()
-        {
-            class_< ConstitutiveLaw, boost::noncopyable >
-            ( "ConstitutiveLaw", init<>() )
-            ;
+void  AddConstitutiveLawsToPython()
+{
+    class_< ConstitutiveLaw, boost::noncopyable >
+    ( "ConstitutiveLaw", init<>() )
+    ;
 
-            class_< Umat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-            ( "Umat", init<>() )
-            ;
-        }
-    }  // namespace Python.
+    class_< Umat, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "Umat", init<>() )
+    ;
+}
+}  // namespace Python.
 } // Namespace Kratos

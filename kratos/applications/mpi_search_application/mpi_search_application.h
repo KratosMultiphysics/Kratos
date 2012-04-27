@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: croig $
 //   Date:                $Date: 2012-02-10 11:11:35 $
 //   Revision:            $Revision: 1.16 $
@@ -16,10 +16,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -30,102 +30,102 @@
 
 namespace Kratos
 {
-    ///@addtogroup MPISerchApplication
-    ///@{
+///@addtogroup MPISerchApplication
+///@{
 
-    ///@name Kratos Globals
-    ///@{
+///@name Kratos Globals
+///@{
 
-    ///@}
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+ */
+class KratosMPISearchApplication : public KratosApplication
+{
+public:
     ///@name Type Definitions
     ///@{
 
-    ///@}
-    ///@name  Enum's
-    ///@{
+
+    /// Pointer definition of KratosMPISolverApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosMPISearchApplication);
 
     ///@}
-    ///@name  Functions
+    ///@name Life Cycle
     ///@{
 
-    ///@}
-    ///@name Kratos Classes
-    ///@{
+    /// Default constructor.
+    KratosMPISearchApplication();
 
-    /// Short class definition.
-    /** Detail class definition.
-     */
-    class KratosMPISearchApplication : public KratosApplication
+    /// Destructor.
+
+    virtual ~KratosMPISearchApplication()
     {
-    public:
-        ///@name Type Definitions
-        ///@{
+    }
 
 
-        /// Pointer definition of KratosMPISolverApplication
-        KRATOS_CLASS_POINTER_DEFINITION(KratosMPISearchApplication);
-
-        ///@}
-        ///@name Life Cycle
-        ///@{
-
-        /// Default constructor.
-        KratosMPISearchApplication();
-
-        /// Destructor.
-
-        virtual ~KratosMPISearchApplication()
-        {
-        }
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-        ///@}
-        ///@name Operators
-        ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-
-        ///@}
-        ///@name Operations
-        ///@{
-
-        virtual void Register();
+    virtual void Register();
 
 
 
-        ///@}
-        ///@name Access
+    ///@}
+    ///@name Access
 
-        ///@{
-
-
-        ///@}
-        ///@name Inquiry
-        ///@{
+    ///@{
 
 
-        ///@}
-        ///@name Input and output
-        ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-        /// Turn back information as a string.
 
-        virtual std::string Info() const
-        {
-            return "KratosMPISearchApplication";
-        }
+    ///@}
+    ///@name Input and output
+    ///@{
 
-        /// Print information about this object.
+    /// Turn back information as a string.
 
-        virtual void PrintInfo(std::ostream& rOStream) const
-        {
-            rOStream << Info();
-            PrintData(rOStream);
-        }
+    virtual std::string Info() const
+    {
+        return "KratosMPISearchApplication";
+    }
 
-        ///// Print object's data.
+    /// Print information about this object.
 
-        virtual void PrintData(std::ostream& rOStream) const
-        {
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+
+    virtual void PrintData(std::ostream& rOStream) const
+    {
 //             KRATOS_WATCH("in KratosMPISearchApplication");
 //             KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 //             rOStream << "Variables:" << std::endl;
@@ -136,116 +136,116 @@ namespace Kratos
 //             rOStream << std::endl;
 //             rOStream << "Conditions:" << std::endl;
 //             KratosComponents<Condition > ().PrintData(rOStream);
-        }
+    }
 
 
-        ///@}
-        ///@name Friends
-        ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-        ///@}
+    ///@}
 
-    protected:
-        ///@name Protected static Member Variables
-        ///@{
-
-
-        ///@}
-        ///@name Protected member Variables
-        ///@{
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-        ///@}
-        ///@name Protected Operators
-        ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-        ///@}
-        ///@name Protected Operations
-        ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-        ///@}
-        ///@name Protected  Access
-        ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-        ///@}
-        ///@name Protected Inquiry
-        ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-        ///@}
-        ///@name Protected LifeCycle
-        ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-        ///@}
-
-    private:
-        ///@name Static Member Variables
-        ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-        //       static const ApplicationCondition  msApplicationCondition;
+    ///@}
 
-        ///@}
-        ///@name Member Variables
-        ///@{
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-        ///@}
-        ///@name Private Operators
-        ///@{
+    //       static const ApplicationCondition  msApplicationCondition;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 //        const Fluid2Dlevelset mFluid2Dlevelset;
 
-        //const ABC2D mABC2D;
-
-        ///@}
-        ///@name Private Operations
-        ///@{
-
-
-        ///@}
-        ///@name Private  Access
-        ///@{
-
-
-        ///@}
-        ///@name Private Inquiry
-        ///@{
-
-
-        ///@}
-        ///@name Un accessible methods
-        ///@{
-
-        /// Assignment operator.
-        KratosMPISearchApplication & operator=(KratosMPISearchApplication const& rOther);
-
-        /// Copy constructor.
-        KratosMPISearchApplication(KratosMPISearchApplication const& rOther);
-
-
-        ///@}
-
-    }; // Class KratosMPISerchApplication
+    //const ABC2D mABC2D;
 
     ///@}
-
-
-    ///@name Type Definitions
+    ///@name Private Operations
     ///@{
 
 
     ///@}
-    ///@name Input and output
+    ///@name Private  Access
     ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    KratosMPISearchApplication & operator=(KratosMPISearchApplication const& rOther);
+
+    /// Copy constructor.
+    KratosMPISearchApplication(KratosMPISearchApplication const& rOther);
+
 
     ///@}
 
-    ///@} KratosMPISearchApplication group
+}; // Class KratosMPISerchApplication
+
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+///@} KratosMPISearchApplication group
 
 } // namespace Kratos.
 

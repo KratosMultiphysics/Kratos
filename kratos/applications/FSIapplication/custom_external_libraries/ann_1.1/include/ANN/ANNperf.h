@@ -9,16 +9,16 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-1998 University of Maryland and Sunil Arya and David
 // Mount.  All Rights Reserved.
-// 
-// This software and related documentation is part of the 
+//
+// This software and related documentation is part of the
 // Approximate Nearest Neighbor Library (ANN).
-// 
-// Permission to use, copy, and distribute this software and its 
-// documentation is hereby granted free of charge, provided that 
-// (1) it is not a component of a commercial product, and 
+//
+// Permission to use, copy, and distribute this software and its
+// documentation is hereby granted free of charge, provided that
+// (1) it is not a component of a commercial product, and
 // (2) this notice appears in all copies of the software and
-//     related documentation. 
-// 
+//     related documentation.
+//
 // The University of Maryland (U.M.) and the authors make no representations
 // about the suitability or fitness of this software for any purpose.  It is
 // provided "as is" without express or implied warranty.
@@ -45,31 +45,36 @@
 //	or bd-tree.
 //----------------------------------------------------------------------
 
-class ANNkdStats {			// stats on kd-tree
+class ANNkdStats  			// stats on kd-tree
+{
 public:
-	int		dim;			// dimension of space
-	int		n_pts;			// no. of points
-	int		bkt_size;		// bucket size
-	int		n_lf;			// no. of leaves (including trivial)
-	int		n_tl;			// no. of trivial leaves (no points)
-	int		n_spl;			// no. of splitting nodes
-	int		n_shr;			// no. of shrinking nodes (for bd-trees)
-	int		depth;			// depth of tree
-	float	sum_ar;			// sum of leaf aspect ratios
-	float	avg_ar;			// average leaf aspect ratio
- //
-							// reset stats
-	void reset(int d=0, int n=0, int bs=0)
-	{
-		dim = d; n_pts = n; bkt_size = bs;
-		n_lf = n_tl = n_spl = n_shr = depth = 0;
-		sum_ar = avg_ar = 0.0;
-	}
+    int		dim;			// dimension of space
+    int		n_pts;			// no. of points
+    int		bkt_size;		// bucket size
+    int		n_lf;			// no. of leaves (including trivial)
+    int		n_tl;			// no. of trivial leaves (no points)
+    int		n_spl;			// no. of splitting nodes
+    int		n_shr;			// no. of shrinking nodes (for bd-trees)
+    int		depth;			// depth of tree
+    float	sum_ar;			// sum of leaf aspect ratios
+    float	avg_ar;			// average leaf aspect ratio
+//
+    // reset stats
+    void reset(int d=0, int n=0, int bs=0)
+    {
+        dim = d;
+        n_pts = n;
+        bkt_size = bs;
+        n_lf = n_tl = n_spl = n_shr = depth = 0;
+        sum_ar = avg_ar = 0.0;
+    }
 
-	ANNkdStats()			// basic constructor
-	{ reset(); }
+    ANNkdStats()			// basic constructor
+    {
+        reset();
+    }
 
-	void merge(const ANNkdStats &st);	// merge stats from child 
+    void merge(const ANNkdStats &st);	// merge stats from child
 };
 
 //----------------------------------------------------------------------
@@ -85,38 +90,59 @@ public:
 //		min()		Return minimum of samples.
 //		max()		Return maximum of samples.
 //----------------------------------------------------------------------
-class DLL_API ANNsampStat {
-	int				n;				// number of samples
-	double			sum;			// sum
-	double			sum2;			// sum of squares
-	double			minVal, maxVal;	// min and max
+class DLL_API ANNsampStat
+{
+    int				n;				// number of samples
+    double			sum;			// sum
+    double			sum2;			// sum of squares
+    double			minVal, maxVal;	// min and max
 public :
-	void reset()				// reset everything
-	{  
-		n = 0;
-		sum = sum2 = 0;
-		minVal = ANN_DBL_MAX;
-		maxVal = -ANN_DBL_MAX; 
-	}
+    void reset()				// reset everything
+    {
+        n = 0;
+        sum = sum2 = 0;
+        minVal = ANN_DBL_MAX;
+        maxVal = -ANN_DBL_MAX;
+    }
 
-	ANNsampStat() { reset(); }		// constructor
+    ANNsampStat()
+    {
+        reset();    // constructor
+    }
 
-	void operator+=(double x)		// add sample
-	{
-		n++;  sum += x;  sum2 += x*x;
-		if (x < minVal) minVal = x;
-		if (x > maxVal) maxVal = x;
-	}
+    void operator+=(double x)		// add sample
+    {
+        n++;
+        sum += x;
+        sum2 += x*x;
+        if (x < minVal) minVal = x;
+        if (x > maxVal) maxVal = x;
+    }
 
-	int samples() { return n; }		// number of samples
+    int samples()
+    {
+        return n;    // number of samples
+    }
 
-	double mean() { return sum/n; } // mean
+    double mean()
+    {
+        return sum/n;    // mean
+    }
 
-									// standard deviation
-	double stdDev() { return sqrt((sum2 - (sum*sum)/n)/(n-1));}
+    // standard deviation
+    double stdDev()
+    {
+        return sqrt((sum2 - (sum*sum)/n)/(n-1));
+    }
 
-	double min() { return minVal; } // minimum
-	double max() { return maxVal; } // maximum
+    double min()
+    {
+        return minVal;    // minimum
+    }
+    double max()
+    {
+        return maxVal;    // maximum
+    }
 };
 
 //----------------------------------------------------------------------
@@ -124,19 +150,19 @@ public :
 //----------------------------------------------------------------------
 
 #ifdef ANN_PERF
-  #define ANN_FLOP(n)	{ann_Nfloat_ops += (n);}
-  #define ANN_LEAF(n)	{ann_Nvisit_lfs += (n);}
-  #define ANN_SPL(n)	{ann_Nvisit_spl += (n);}
-  #define ANN_SHR(n)	{ann_Nvisit_shr += (n);}
-  #define ANN_PTS(n)	{ann_Nvisit_pts += (n);}
-  #define ANN_COORD(n)	{ann_Ncoord_hts += (n);}
+#define ANN_FLOP(n)	{ann_Nfloat_ops += (n);}
+#define ANN_LEAF(n)	{ann_Nvisit_lfs += (n);}
+#define ANN_SPL(n)	{ann_Nvisit_spl += (n);}
+#define ANN_SHR(n)	{ann_Nvisit_shr += (n);}
+#define ANN_PTS(n)	{ann_Nvisit_pts += (n);}
+#define ANN_COORD(n)	{ann_Ncoord_hts += (n);}
 #else
-  #define ANN_FLOP(n)
-  #define ANN_LEAF(n)
-  #define ANN_SPL(n)
-  #define ANN_SHR(n)
-  #define ANN_PTS(n)
-  #define ANN_COORD(n)
+#define ANN_FLOP(n)
+#define ANN_LEAF(n)
+#define ANN_SPL(n)
+#define ANN_SHR(n)
+#define ANN_PTS(n)
+#define ANN_COORD(n)
 #endif
 
 //----------------------------------------------------------------------
@@ -165,7 +191,7 @@ public :
 //				is the number of points for which distance
 //				calculations are performed.
 //
-//	coord_hts	The number of times a coordinate of a 
+//	coord_hts	The number of times a coordinate of a
 //				data point is accessed. This is generally
 //				less than visit_pts*d if partial distance
 //				calculation is used.  This count is low

@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosTestApplication 
+KratosTestApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date:  $
 //   Revision:            $Revision: 1.2 $
@@ -51,13 +51,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 
 
 // Project includes
@@ -77,31 +77,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{		
-		using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
-		void  AddCustomStrategiesToPython()
-		{
-			typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-			typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+void  AddCustomStrategiesToPython()
+{
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-			typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
-			//********************************************************************
-			//********************************************************************
-// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
+    //********************************************************************
+    //********************************************************************
+// 			class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 // 					bases< BaseSolvingStrategyType >,  boost::noncopyable >
-// 				("TestStrategy", 
+// 				("TestStrategy",
 // 				init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
 // 				.def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
 // 				;
-		 
-		}
 
-	}  // namespace Python.
+}
+
+}  // namespace Python.
 
 } // Namespace Kratos
 

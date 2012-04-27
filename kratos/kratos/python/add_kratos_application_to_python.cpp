@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -60,18 +60,18 @@ namespace Kratos
 {
 namespace Python
 {
- using namespace boost::python;
-	
-	
-  void  AddKratosApplicationToPython()
-  {
-	  class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication")
-		  .def("Register",&KratosApplication::Register)
-		  //.def("",&Kernel::Initialize)
-		  .def(self_ns::str(self))
-	 ;
- 	}
-	
+using namespace boost::python;
+
+
+void  AddKratosApplicationToPython()
+{
+    class_<KratosApplication, KratosApplication::Pointer, boost::noncopyable >("KratosApplication")
+    .def("Register",&KratosApplication::Register)
+    //.def("",&Kernel::Initialize)
+    .def(self_ns::str(self))
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

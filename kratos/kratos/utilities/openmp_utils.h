@@ -55,170 +55,170 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    ///@addtogroup KratosCore
+///@addtogroup KratosCore
+///@{
+
+///@name Kratos Classes
+///@{
+
+/// Implements basic tasks for OpenMP parallelism and suitable scalar alternatives
+/**
+ This class defines utility functions that implement some basic OpenMP
+ capabilities and an equivalent scalar alternative to use in compilations
+ where OpenMP is not enabled. The idea is to allow Kratos developers to
+ design their code in parallel, knowing that it will work in scalar runs
+ as well.
+ */
+class OpenMPUtils
+{
+public:
+
+    ///@name Type definitions
     ///@{
 
-    ///@name Kratos Classes
-    ///@{
-
-    /// Implements basic tasks for OpenMP parallelism and suitable scalar alternatives
+    /// Vector type for the output of DivideInPartitions method
     /**
-     This class defines utility functions that implement some basic OpenMP
-     capabilities and an equivalent scalar alternative to use in compilations
-     where OpenMP is not enabled. The idea is to allow Kratos developers to
-     design their code in parallel, knowing that it will work in scalar runs
-     as well.
+     *  @see OpenMPUtils::DivideInPartitions
      */
-    class OpenMPUtils
+    typedef std::vector<int> PartitionVector;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Wrapper for omp_get_max_threads().
+    /**
+     @return Maximum number of OpenMP threads that will be used in
+     parallel regions.
+     */
+    static inline int GetNumThreads()
     {
-    public:
-
-        ///@name Type definitions
-        ///@{
-
-        /// Vector type for the output of DivideInPartitions method
-        /**
-         *  @see OpenMPUtils::DivideInPartitions
-         */
-        typedef std::vector<int> PartitionVector;
-
-        ///@}
-        ///@name Operations
-        ///@{
-
-        /// Wrapper for omp_get_max_threads().
-        /**
-         @return Maximum number of OpenMP threads that will be used in
-         parallel regions.
-         */
-        static inline int GetNumThreads()
-        {
-            #ifdef _OPENMP
-            return omp_get_max_threads();
-            #else
-            return 1;
-            #endif
-        }
-
-        /// Wrapper for omp_get_thread_num().
-        /**
-         @return The thread number for this thread, 0 if scalar run.
-         */
-        static inline int ThisThread()
-        {
-            #ifdef _OPENMP
-            return omp_get_thread_num();
-            #else
-            return 0;
-            #endif
-        }
-
-        /// Timing routine.
-        /**
-         Determine the current time by calling an appropiate
-         (scalar or parallel) timer class.
-         @return Current time
-         */
-        static double GetCurrentTime()
-	{
-	    #ifndef _OPENMP
-		  return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
-	    #else
-		  return  omp_get_wtime();
-	    #endif
-	}
-
-        /// Divide an array of length NumTerms between NumThreads threads.
-        /**
-         Creates a std::vector containing NumThreads + 1 terms, where term k
-         is the first and position of the array that corresponds to thread k.
-         The k+1 term is the end of the array, so that the vector can be used
-         to iterate the array between 'k' and 'k+1' in each thread.
-         @param NumTerms Number of objects to be divided between the threads.
-         @param NumThreads The number of parallel threads that will be used.
-         @param Partitions This object will contain the begin and end positions
-         for each thread.
-         */
-        static inline void DivideInPartitions(
-                const int NumTerms,
-                const int NumThreads,
-                PartitionVector& Partitions)
-        {
-            #ifdef _OPENMP
-            Partitions.resize(NumThreads + 1);
-            int PartitionSize = NumTerms / NumThreads;
-            Partitions[0] = 0;
-            Partitions[NumThreads] = NumTerms;
-            for(int i = 1; i < NumThreads; i++)
-                Partitions[i] = Partitions[i-1] + PartitionSize ;
-            #else
-            Partitions.resize(2);
-            Partitions[0] = 0;
-            Partitions[1] = NumTerms;
-            #endif
-        }
-
-        /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
-        /** This function assumes that the vector class will have an iterator type and implement begin(), end() and size() methods.
-          * @param rVector An arary containing the elements to be distributed between the threads.
-          * @param rBegin Iterator pointing to the first element in rVector to be used in the current thread.
-          * @param rEnd Iterator pointing to the end position for the current thread in rVector.
-          */
-        template< class TVector >
-        static void PartitionedIterators(TVector& rVector,
-                                         typename TVector::iterator& rBegin,
-                                         typename TVector::iterator& rEnd)
-        {
 #ifdef _OPENMP
-            int NumTerms = rVector.size();
-            int ThreadNum = omp_get_thread_num();
-            int NumThreads = omp_get_max_threads();
-            int PartitionSize = NumTerms / NumThreads;
-            // Set Partition start
-            rBegin = rVector.begin() + ThreadNum * PartitionSize;
-            // Partition ends after 'PartitionSize' terms, except if this is the last partition
-            if ( (ThreadNum + 1) != NumThreads )
-                rEnd = rBegin + PartitionSize;
-            else
-                rEnd = rVector.end();
+        return omp_get_max_threads();
 #else
-            rBegin = rVector.begin();
-            rEnd = rVector.end();
+        return 1;
 #endif
-        }
+    }
 
-        /// A function to set the number of threads from Python.
-        /**
-         This is an auxiliary mainly intended for test purposes, to help with the
-         detection of race conditions.
-         @param NumThreads Number of threads to use in parallel regions. Note
-         that values greater than the environment variable OMP_NUM_THREADS
-         will be ignored.
-         */
-        static inline void SetNumThreads(int NumThreads)
-        {
-            #ifdef _OPENMP
-            omp_set_num_threads(NumThreads);
-            std::cout << "Maximum number of threads is now " << omp_get_max_threads() << std::endl;
-            #endif
-        }
+    /// Wrapper for omp_get_thread_num().
+    /**
+     @return The thread number for this thread, 0 if scalar run.
+     */
+    static inline int ThisThread()
+    {
+#ifdef _OPENMP
+        return omp_get_thread_num();
+#else
+        return 0;
+#endif
+    }
 
-       static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
-       {
-         partitions.resize(number_of_threads+1);
-         int partition_size = number_of_rows / number_of_threads;
-         partitions[0] = 0;
-         partitions[number_of_threads] = number_of_rows;
-         for(unsigned int i = 1; i<number_of_threads; i++)
+    /// Timing routine.
+    /**
+     Determine the current time by calling an appropiate
+     (scalar or parallel) timer class.
+     @return Current time
+     */
+    static double GetCurrentTime()
+    {
+#ifndef _OPENMP
+        return std::clock()/static_cast<double>(CLOCKS_PER_SEC);
+#else
+        return  omp_get_wtime();
+#endif
+    }
+
+    /// Divide an array of length NumTerms between NumThreads threads.
+    /**
+     Creates a std::vector containing NumThreads + 1 terms, where term k
+     is the first and position of the array that corresponds to thread k.
+     The k+1 term is the end of the array, so that the vector can be used
+     to iterate the array between 'k' and 'k+1' in each thread.
+     @param NumTerms Number of objects to be divided between the threads.
+     @param NumThreads The number of parallel threads that will be used.
+     @param Partitions This object will contain the begin and end positions
+     for each thread.
+     */
+    static inline void DivideInPartitions(
+        const int NumTerms,
+        const int NumThreads,
+        PartitionVector& Partitions)
+    {
+#ifdef _OPENMP
+        Partitions.resize(NumThreads + 1);
+        int PartitionSize = NumTerms / NumThreads;
+        Partitions[0] = 0;
+        Partitions[NumThreads] = NumTerms;
+        for(int i = 1; i < NumThreads; i++)
+            Partitions[i] = Partitions[i-1] + PartitionSize ;
+#else
+        Partitions.resize(2);
+        Partitions[0] = 0;
+        Partitions[1] = NumTerms;
+#endif
+    }
+
+    /// Generate a partition for an std::vector-like array, providing iterators to the begin and end positions for each thread.
+    /** This function assumes that the vector class will have an iterator type and implement begin(), end() and size() methods.
+      * @param rVector An arary containing the elements to be distributed between the threads.
+      * @param rBegin Iterator pointing to the first element in rVector to be used in the current thread.
+      * @param rEnd Iterator pointing to the end position for the current thread in rVector.
+      */
+    template< class TVector >
+    static void PartitionedIterators(TVector& rVector,
+                                     typename TVector::iterator& rBegin,
+                                     typename TVector::iterator& rEnd)
+    {
+#ifdef _OPENMP
+        int NumTerms = rVector.size();
+        int ThreadNum = omp_get_thread_num();
+        int NumThreads = omp_get_max_threads();
+        int PartitionSize = NumTerms / NumThreads;
+        // Set Partition start
+        rBegin = rVector.begin() + ThreadNum * PartitionSize;
+        // Partition ends after 'PartitionSize' terms, except if this is the last partition
+        if ( (ThreadNum + 1) != NumThreads )
+            rEnd = rBegin + PartitionSize;
+        else
+            rEnd = rVector.end();
+#else
+        rBegin = rVector.begin();
+        rEnd = rVector.end();
+#endif
+    }
+
+    /// A function to set the number of threads from Python.
+    /**
+     This is an auxiliary mainly intended for test purposes, to help with the
+     detection of race conditions.
+     @param NumThreads Number of threads to use in parallel regions. Note
+     that values greater than the environment variable OMP_NUM_THREADS
+     will be ignored.
+     */
+    static inline void SetNumThreads(int NumThreads)
+    {
+#ifdef _OPENMP
+        omp_set_num_threads(NumThreads);
+        std::cout << "Maximum number of threads is now " << omp_get_max_threads() << std::endl;
+#endif
+    }
+
+    static inline void CreatePartition(unsigned int number_of_threads, const int number_of_rows, vector<unsigned int>& partitions)
+    {
+        partitions.resize(number_of_threads+1);
+        int partition_size = number_of_rows / number_of_threads;
+        partitions[0] = 0;
+        partitions[number_of_threads] = number_of_rows;
+        for(unsigned int i = 1; i<number_of_threads; i++)
             partitions[i] = partitions[i-1] + partition_size ;
-        }
+    }
 
-        ///@} //Operations
-    };
+    ///@} //Operations
+};
 
-    ///@} //Kratos classes
+///@} //Kratos classes
 
-    ///@} addtogroup block
+///@} addtogroup block
 }
 
 #endif	/* KRATOS_OPENMP_UTILS_H */

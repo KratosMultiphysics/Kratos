@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -39,8 +39,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
  */
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2008-11-10 14:23:33 $
 //   Revision:            $Revision: 1.2 $
@@ -48,9 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -62,9 +62,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_processes_to_python.h"
 #include "python/vector_python_interface.h"
 
-#include "custom_processes/metis_partitioning_process.h" 
+#include "custom_processes/metis_partitioning_process.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-#include "custom_processes/metis_contact_partitioning_process.h" 
+#include "custom_processes/metis_contact_partitioning_process.h"
 #include "custom_processes/metis_partitioning_process_quadratic.h"
 #include "custom_processes/set_mpi_communicator_process.h"
 #include "custom_processes/metis_scalar_reorder_process.h"
@@ -73,59 +73,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        int GetRank()
-        {
-            int rank;
-            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+int GetRank()
+{
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-            std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! rank = " << rank << std::endl;
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! rank = " << rank << std::endl;
 
-            return rank;
-        }
+    return rank;
+}
 
-        void AddProcessesToPython()
-        {
-            using namespace boost::python;
+void AddProcessesToPython()
+{
+    using namespace boost::python;
 
-            class_<std::vector<int> >("IndicesVector")
-                    .def(vector_indexing_suite<std::vector<int> >())
-                    ;
+    class_<std::vector<int> >("IndicesVector")
+    .def(vector_indexing_suite<std::vector<int> >())
+    ;
 
-            class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
-                    ;
+    class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
+    ;
 
-            class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
-                    init<ModelPart&, IO&, unsigned int, unsigned int>())
-                    .def(init<ModelPart&, IO&, unsigned int>())
-                    ;
+    class_<MetisPartitioningProcess, bases<Process> >("MetisPartitioningProcess",
+            init<ModelPart&, IO&, unsigned int, unsigned int>())
+    .def(init<ModelPart&, IO&, unsigned int>())
+    ;
 
-            class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
-                    init<IO&, unsigned int, unsigned int>())
-                    .def(init<IO&, unsigned int>())
-                    ;
+    class_<MetisDivideInputToPartitionsProcess, bases<Process> >("MetisDivideInputToPartitionsProcess",
+            init<IO&, unsigned int, unsigned int>())
+    .def(init<IO&, unsigned int>())
+    ;
 
-            class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
-                    init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
-                    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
-                    ;
+    class_<MetisContactPartitioningProcess, bases<MetisPartitioningProcess> >("MetisContactPartitioningProcess",
+            init<ModelPart&, IO&, unsigned int, std::vector<int>, unsigned int>())
+    .def(init<ModelPart&, IO&, unsigned int, std::vector<int> >())
+    ;
 
-            class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
-                    init<ModelPart&, IO&, unsigned int, unsigned int>())
-                    .def(init<ModelPart&, IO&, unsigned int>())
-                    ;
+    class_<MetisPartitioningProcessQuadratic, bases<MetisPartitioningProcess> >("MetisPartitioningProcessQuadratic",
+            init<ModelPart&, IO&, unsigned int, unsigned int>())
+    .def(init<ModelPart&, IO&, unsigned int>())
+    ;
 
-            def("GetRank", GetRank);
+    def("GetRank", GetRank);
 
-            class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
-                    init<ModelPart&>())
-                    ;
+    class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
+            init<ModelPart&>())
+    ;
 
-        }
+}
 
-    } // namespace Python.
+} // namespace Python.
 
 } // Namespace Kratos
 

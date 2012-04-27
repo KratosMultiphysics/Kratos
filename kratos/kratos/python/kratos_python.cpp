@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: janosch $
 //   Date:                $Date: 2008-03-05 14:35:19 $
 //   Revision:            $Revision: 1.8 $
@@ -45,29 +45,29 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 // #define KRATOS_CG_SOLVER_H_EXCLUDED
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
-#include "add_vector_to_python.h" 
+#include "add_vector_to_python.h"
 //#include "add_mapped_vector_to_python.h"
-#include "add_matrix_to_python.h" 
-#include "add_geometries_to_python.h" 
-//#include "add_quadratures_to_python.h" 
-#include "add_containers_to_python.h" 
-#include "add_processes_to_python.h" 
-#include "add_model_part_to_python.h" 
-#include "add_io_to_python.h" 
-#include "add_mesh_to_python.h" 
-#include "add_kernel_to_python.h" 
-#include "add_kratos_application_to_python.h" 
+#include "add_matrix_to_python.h"
+#include "add_geometries_to_python.h"
+//#include "add_quadratures_to_python.h"
+#include "add_containers_to_python.h"
+#include "add_processes_to_python.h"
+#include "add_model_part_to_python.h"
+#include "add_io_to_python.h"
+#include "add_mesh_to_python.h"
+#include "add_kernel_to_python.h"
+#include "add_kratos_application_to_python.h"
 //#include "add_equation_systems_to_python.h"
-#include "add_linear_solvers_to_python.h" 
+#include "add_linear_solvers_to_python.h"
 #include "add_process_info_to_python.h"
 #include "add_constitutive_law_to_python.h"
 #include "add_serializer_to_python.h"
@@ -77,9 +77,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pointer_vector_set_python_interface.h"
 #include "solution_step_variable_indexing_python.h"
 
-#include "add_linear_solvers_to_python.h" 
-#include "add_strategies_to_python.h" 
-#include "add_utilities_to_python.h" 
+#include "add_linear_solvers_to_python.h"
+#include "add_strategies_to_python.h"
+#include "add_utilities_to_python.h"
 
 #include "add_parallel_strategies_to_python.h"
 #include "add_parallel_linear_solvers_to_python.h"
@@ -87,21 +87,21 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "add_matrix_market_interface_to_python.h"
 
 namespace Kratos
-{ 
+{
 
-namespace Python 
-{ 
+namespace Python
+{
 
-  char const* greet()
-  {
+char const* greet()
+{
     return "Hello, I am Kratos new release :-)";
-  }
-  
-  using namespace boost::python;
-  
-  BOOST_PYTHON_MODULE(Kratos)
-  {
-    AddVectorToPython();     
+}
+
+using namespace boost::python;
+
+BOOST_PYTHON_MODULE(Kratos)
+{
+    AddVectorToPython();
 //    AddSparseVectorToPython();
     AddMatrixToPython();
     AddBandedMatrixToPython();
@@ -119,36 +119,36 @@ namespace Python
     AddCoordinateMatrixToPython();
 #endif
     AddPointsToPython();
-  //  AddQuadraturesToPython();
-  //  AddIntegrationPointsToPython();
+    //  AddQuadraturesToPython();
+    //  AddIntegrationPointsToPython();
     AddContainersToPython();
-	AddProcessesToPython();
-	AddIOToPython();
-	AddModelPartToPython();
-	AddNodeToPython();
-	AddPropertiesToPython();
-	AddMeshToPython();
-	AddKernelToPython();
-	AddKratosApplicationToPython();
+    AddProcessesToPython();
+    AddIOToPython();
+    AddModelPartToPython();
+    AddNodeToPython();
+    AddPropertiesToPython();
+    AddMeshToPython();
+    AddKernelToPython();
+    AddKratosApplicationToPython();
 //	AddEquationSystemsToPython();
-	AddLinearSolversToPython();
-	AddStrategiesToPython();
-	AddUtilitiesToPython();
-	AddProcessInfoToPython();
-	AddConstitutiveLawToPython();
-        AddSerializerToPython();
-        AddTableToPython();
+    AddLinearSolversToPython();
+    AddStrategiesToPython();
+    AddUtilitiesToPython();
+    AddProcessInfoToPython();
+    AddConstitutiveLawToPython();
+    AddSerializerToPython();
+    AddTableToPython();
 
-	AddParallelStrategiesToPython();
-	AddParallelLinearSolversToPython();
-	AddMatrixMarketInterfaceToPython();
+    AddParallelStrategiesToPython();
+    AddParallelLinearSolversToPython();
+    AddMatrixMarketInterfaceToPython();
 
     def("Hello", greet);
-  }
-  
-  
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 

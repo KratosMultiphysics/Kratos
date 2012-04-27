@@ -80,7 +80,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~ResidualBasedIncrementalAitkenStaticScheme(){}
+    virtual ~ResidualBasedIncrementalAitkenStaticScheme() {}
 
 
     ///@}
@@ -288,10 +288,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    ResidualBasedIncrementalAitkenStaticScheme& operator=(ResidualBasedIncrementalAitkenStaticScheme const& rOther){}
+    ResidualBasedIncrementalAitkenStaticScheme& operator=(ResidualBasedIncrementalAitkenStaticScheme const& rOther) {}
 
     /// Copy constructor.
-    ResidualBasedIncrementalAitkenStaticScheme(ResidualBasedIncrementalAitkenStaticScheme const& rOther){}
+    ResidualBasedIncrementalAitkenStaticScheme(ResidualBasedIncrementalAitkenStaticScheme const& rOther) {}
 
 
     ///@}

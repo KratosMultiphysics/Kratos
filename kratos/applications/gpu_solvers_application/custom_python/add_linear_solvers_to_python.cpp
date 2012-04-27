@@ -38,15 +38,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
 // Project includes
 #include "includes/define.h"
-#include "python/add_equation_systems_to_python.h" 
+#include "python/add_equation_systems_to_python.h"
 #include "spaces/ublas_space.h"
 
 #include "linear_solvers/direct_solver.h"
@@ -62,73 +62,73 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    
+
 namespace Python
 {
-    void  AddLinearSolversToPython()
-    {
-        typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-        typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
-        typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
-        typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
-        typedef GPUBICGSTABSolver GPUBICGSTABSolverType;
-	typedef GPUCGSolver<SpaceType,  LocalSpaceType> GPUCGSolverType;
-	typedef AMGSolver<SpaceType,  LocalSpaceType> AMGSolverType;
+void  AddLinearSolversToPython()
+{
+    typedef UblasSpace<double, CompressedMatrix, Vector> SpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+    typedef DirectSolver<SpaceType,  LocalSpaceType> DirectSolverType;
+    typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
+    typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
+    typedef GPUBICGSTABSolver GPUBICGSTABSolverType;
+    typedef GPUCGSolver<SpaceType,  LocalSpaceType> GPUCGSolverType;
+    typedef AMGSolver<SpaceType,  LocalSpaceType> AMGSolverType;
 
-	typedef GPUPreconditioner GPUPreconditionerType;
-	typedef AMGpreconditioner AMGPreconditionerType;
-	typedef Kratos_AMGpreconditioner Kratos_AMGPreconditionerType;
-	typedef Diagonalpreconditioner GpuDiagonalPreconditionerType;
-
-        
-        using namespace boost::python; 
-        
-        //***************************************************************************
-        //linear solvers
-        //***************************************************************************
-        
-        class_<GPUBICGSTABSolverType, GPUBICGSTABSolverType::Pointer,
-        bases<LinearSolverType> >( "GPUBICGSTABSolver" )
-                .def(init<double, unsigned int>() )
-                .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
-		.def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
-                .def(self_ns::str(self))
-                ;
-	
-	class_<GPUPreconditionerType >( "GPUPreconditioner" )
-                .def(init<>() )
-                ;
-
-	class_<AMGPreconditionerType, bases<GPUPreconditionerType> >( "AMGPreconditioner" )
-		//.def(init<>() )
-                .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*, bool>() )
-                ;
-	class_<GpuDiagonalPreconditionerType, bases<GPUPreconditionerType> >( "GPUDiagonalPreconditioner" )
-		.def(init<>() )
-	        ;
-
-	class_<Kratos_AMGPreconditionerType, bases<AMGPreconditionerType> >( "KratosAMGPreconditioner" )
-                .def(init<double, size_t, bool, size_t, size_t, const Vector, const Vector, bool>() )
-                ;
+    typedef GPUPreconditioner GPUPreconditionerType;
+    typedef AMGpreconditioner AMGPreconditionerType;
+    typedef Kratos_AMGpreconditioner Kratos_AMGPreconditionerType;
+    typedef Diagonalpreconditioner GpuDiagonalPreconditionerType;
 
 
-	class_<GPUCGSolverType, GPUCGSolverType::Pointer,
-        bases<LinearSolverType> >( "GPUCGSolver" )
-                .def(init<double, unsigned int>() )
-                .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
-		.def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
-                .def(self_ns::str(self))
-                ;
-	
-	class_<AMGSolverType, AMGSolverType::Pointer,
-        bases<LinearSolverType> >( "AMGSolver" )
-                .def(init<double, unsigned int, double, unsigned int, bool, unsigned int, unsigned int, const Vector, const Vector>() )
-                .def(self_ns::str(self))
-                ;	
-  }
-	
+    using namespace boost::python;
+
+    //***************************************************************************
+    //linear solvers
+    //***************************************************************************
+
+    class_<GPUBICGSTABSolverType, GPUBICGSTABSolverType::Pointer,
+           bases<LinearSolverType> >( "GPUBICGSTABSolver" )
+           .def(init<double, unsigned int>() )
+           .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
+           .def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
+           .def(self_ns::str(self))
+           ;
+
+    class_<GPUPreconditionerType >( "GPUPreconditioner" )
+    .def(init<>() )
+    ;
+
+    class_<AMGPreconditionerType, bases<GPUPreconditionerType> >( "AMGPreconditioner" )
+    //.def(init<>() )
+    .def(init<double, size_t, bool, size_t, size_t, size_t*, size_t*, bool>() )
+    ;
+    class_<GpuDiagonalPreconditionerType, bases<GPUPreconditionerType> >( "GPUDiagonalPreconditioner" )
+    .def(init<>() )
+    ;
+
+    class_<Kratos_AMGPreconditionerType, bases<AMGPreconditionerType> >( "KratosAMGPreconditioner" )
+    .def(init<double, size_t, bool, size_t, size_t, const Vector, const Vector, bool>() )
+    ;
+
+
+    class_<GPUCGSolverType, GPUCGSolverType::Pointer,
+           bases<LinearSolverType> >( "GPUCGSolver" )
+           .def(init<double, unsigned int>() )
+           .def(init<double, unsigned int, Kratos_AMGPreconditionerType& >() )
+           .def(init<double, unsigned int, GpuDiagonalPreconditionerType& >() )
+           .def(self_ns::str(self))
+           ;
+
+    class_<AMGSolverType, AMGSolverType::Pointer,
+           bases<LinearSolverType> >( "AMGSolver" )
+           .def(init<double, unsigned int, double, unsigned int, bool, unsigned int, unsigned int, const Vector, const Vector>() )
+           .def(self_ns::str(self))
+           ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

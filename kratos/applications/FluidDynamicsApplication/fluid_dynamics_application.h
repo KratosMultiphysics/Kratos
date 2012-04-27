@@ -38,8 +38,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ==============================================================================
 */
 
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: jcotela $
 //   Date:                $Date: 2010-11-11 $
 //   Revision:            $Revision: 1.0 $
@@ -60,10 +60,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -85,239 +85,239 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-        ///@addtogroup FluidDynamicsApplication
-        ///@{
+///@addtogroup FluidDynamicsApplication
+///@{
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Main class of the Fluid Dynamics Application
-	class KratosFluidDynamicsApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
-
-		/// Pointer definition of KratosFluidMechanicsApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosFluidDynamicsApplication);
-
-		///@}
-		///@name Life Cycle 
-		///@{ 
-
-		/// Default constructor.
-		KratosFluidDynamicsApplication();
-
-		/// Destructor.
-		virtual ~KratosFluidDynamicsApplication(){}
+/// Main class of the Fluid Dynamics Application
+class KratosFluidDynamicsApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
 
-		///@}
-		///@name Operators 
-		///@{
+    /// Pointer definition of KratosFluidMechanicsApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosFluidDynamicsApplication);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    KratosFluidDynamicsApplication();
+
+    /// Destructor.
+    virtual ~KratosFluidDynamicsApplication() {}
 
 
-		///@}
-		///@name Operations
-		///@{
-
-		virtual void Register();
+    ///@}
+    ///@name Operators
+    ///@{
 
 
+    ///@}
+    ///@name Operations
+    ///@{
 
-		///@}
-		///@name Access
-		///@{ 
-
-
-		///@}
-		///@name Inquiry
-		///@{
-
-
-		///@}      
-		///@name Input and output
-		///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosFluidDynamicsApplication";
-		}
-
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
-
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in Fluid Dynamics application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
-
-
-		///@}      
-		///@name Friends
-		///@{
-
-
-		///@}
-
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operators
-		///@{ 
-
-
-		///@} 
-		///@name Protected Operations
-		///@{ 
-
-
-		///@} 
-		///@name Protected  Access 
-		///@{ 
-
-
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
-
-
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
-
-
-		///@}
-
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    virtual void Register();
 
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
+    ///@}
+    ///@name Access
+    ///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{
 
-                /// 2D instance of the VMS element
- 		const VMS<2> mVMS2D;
-                /// 3D instance of the VMS element
- 		const VMS<3> mVMS3D;
-                /// 2D instance of the BinghamVMS element
- 		const BinghamVMS<2> mBinghamVMS2D;
-                /// 3D instance of the BinghamVMS element
- 		const BinghamVMS<3> mBinghamVMS3D;
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosFluidDynamicsApplication";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in Fluid Dynamics application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+
+    //       static const ApplicationCondition  msApplicationCondition;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    /// 2D instance of the VMS element
+    const VMS<2> mVMS2D;
+    /// 3D instance of the VMS element
+    const VMS<3> mVMS3D;
+    /// 2D instance of the BinghamVMS element
+    const BinghamVMS<2> mBinghamVMS2D;
+    /// 3D instance of the BinghamVMS element
+    const BinghamVMS<3> mBinghamVMS3D;
 //                /// 2D instance of the Dynamic Subscale version of the VMS element
 //                 const DynamicVMS<2> mDynamicVMS2D;
 //                 /// 3D instance of the Dynamic Subscale version of the VMS element
 //                 const DynamicVMS<3> mDynamicVMS3D;
-                /// 3D instance of the two-fluid VMS element
-                const TwoFluidVMS<3,4> mTwoFluidVMS3D;
+    /// 3D instance of the two-fluid VMS element
+    const TwoFluidVMS<3,4> mTwoFluidVMS3D;
 
-                /// 2D Spalart-Allmaras turbulent viscosity transport equation element
-                const SpalartAllmaras mSpalartAllmaras2D;
-                /// 3D Spalart-Allmaras turbulent viscosity transport equation element
-                const SpalartAllmaras mSpalartAllmaras3D;
+    /// 2D Spalart-Allmaras turbulent viscosity transport equation element
+    const SpalartAllmaras mSpalartAllmaras2D;
+    /// 3D Spalart-Allmaras turbulent viscosity transport equation element
+    const SpalartAllmaras mSpalartAllmaras3D;
 
-                /// 2D slip condition using Nitsche's method
-                const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
-                /// 3D slip condition using Nitsche's method
-                const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
+    /// 2D slip condition using Nitsche's method
+    const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
+    /// 3D slip condition using Nitsche's method
+    const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
 
-                /// Periodic Condition (implemented using penalization)
-                const PeriodicCondition mPeriodicCondition;
+    /// Periodic Condition (implemented using penalization)
+    const PeriodicCondition mPeriodicCondition;
 
-		///@} 
-		///@name Private Operators
-		///@{ 
-
-
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
-
-		/// Assignment operator.
-		KratosFluidDynamicsApplication& operator=(KratosFluidDynamicsApplication const& rOther);
-
-		/// Copy constructor.
-		KratosFluidDynamicsApplication(KratosFluidDynamicsApplication const& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-	}; // Class KratosFluidDynamicsApplication 
+    /// Assignment operator.
+    KratosFluidDynamicsApplication& operator=(KratosFluidDynamicsApplication const& rOther);
 
-	///@} Kratos classes
-
-
-	///@name Type Definitions       
-	///@{ 
+    /// Copy constructor.
+    KratosFluidDynamicsApplication(KratosFluidDynamicsApplication const& rOther);
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+    ///@}
 
-	///@}
+}; // Class KratosFluidDynamicsApplication
 
-        ///@} FluidDynamicsApplication group
+///@} Kratos classes
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+///@} FluidDynamicsApplication group
 
 }  // namespace Kratos.
 

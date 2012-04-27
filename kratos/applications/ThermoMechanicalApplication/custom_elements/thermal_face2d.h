@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosConvectionDiffusionApplication 
+KratosConvectionDiffusionApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,25 +37,25 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
- 
+
 #if !defined(KRATOS_THERMAL_FACE2D_CONDITION_H_INCLUDED )
-#define  KRATOS_THERMAL_FACE2D_CONDITION_H_INCLUDED 
+#define  KRATOS_THERMAL_FACE2D_CONDITION_H_INCLUDED
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -70,229 +70,229 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Evaluates the term  \f$ \overline{q_n} = q_n - \varepsilon \sigma (T^4 - T_0^4) - \alpha_c (T - T_0)\f$ .
-  /** Detail class definition.
-  */
-  class ThermalFace2D
-	  : public Condition
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of ThermalFace2D
-      KRATOS_CLASS_POINTER_DEFINITION(ThermalFace2D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	  ThermalFace2D(IndexType NewId, GeometryType::Pointer pGeometry);
-      ThermalFace2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+///@name Kratos Globals
+///@{
 
-      /// Destructor.
-      virtual ~ThermalFace2D();
-      
+///@}
+///@name Type Definitions
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name  Functions
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+///@}
+///@name Kratos Classes
+///@{
 
-	  void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+/// Evaluates the term  \f$ \overline{q_n} = q_n - \varepsilon \sigma (T^4 - T_0^4) - \alpha_c (T - T_0)\f$ .
+/** Detail class definition.
+*/
+class ThermalFace2D
+    : public Condition
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Counted pointer of ThermalFace2D
+    KRATOS_CLASS_POINTER_DEFINITION(ThermalFace2D);
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    ThermalFace2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    ThermalFace2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~ThermalFace2D();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 ///Evaluates  \f$ L h s =  4 \epsilon \sigma T^3 \left\langle W, N \right\rangle + \alpha \left\langle W, N \right\rangle \f$ and \f$ R h s = \left\langle W, q \right\rangle - \epsilon \sigma \left\langle W, T^4 - T_0^4 \right\rangle - \left\langle W, \alpha (T - T_0) \right\rangle \f$
-		void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, 
-										ProcessInfo& rCurrentProcessInfo,
-										bool CalculateStiffnessMatrixFlag,
-										bool CalculateResidualVectorFlag);
-        
-      
-
-	///@}
-        ///@name Serialization
-        ///@{	
-	friend class Serializer;
-
-        // A private default constructor necessary for serialization
-        ThermalFace2D() : Condition()
-	{
-	}
-	
-        virtual void save(Serializer& rSerializer) const
-	{
-	KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
-	}
-	
-	virtual void load(Serializer& rSerializer)
-	{
-	KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
-	}
+    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+                      ProcessInfo& rCurrentProcessInfo,
+                      bool CalculateStiffnessMatrixFlag,
+                      bool CalculateResidualVectorFlag);
 
 
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //ThermalFace2D& operator=(const ThermalFace2D& rOther);
 
-      /// Copy constructor.
-      //ThermalFace2D(const ThermalFace2D& rOther);
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
-        
-      ///@}    
-        
-    }; // Class ThermalFace2D 
+    // A private default constructor necessary for serialization
+    ThermalFace2D() : Condition()
+    {
+    }
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+    }
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //ThermalFace2D& operator=(const ThermalFace2D& rOther);
+
+    /// Copy constructor.
+    //ThermalFace2D(const ThermalFace2D& rOther);
+
+
+    ///@}
+
+}; // Class ThermalFace2D
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    ThermalFace2D& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const ThermalFace2D& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -301,7 +301,7 @@ namespace Kratos
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

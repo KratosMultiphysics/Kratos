@@ -21,24 +21,24 @@
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        using namespace boost::python;
+using namespace boost::python;
 
-        BOOST_PYTHON_MODULE( KratosConstitutiveLawsApplication )
-        {
+BOOST_PYTHON_MODULE( KratosConstitutiveLawsApplication )
+{
 
-            class_ < KratosConstitutiveLawsApplication,
-            KratosConstitutiveLawsApplication::Pointer,
-            bases<KratosApplication>, boost::noncopyable > ( "KratosConstitutiveLawsApplication" )
-            ;
+    class_ < KratosConstitutiveLawsApplication,
+           KratosConstitutiveLawsApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable > ( "KratosConstitutiveLawsApplication" )
+           ;
 
-            AddConstitutiveLawsToPython();
-        }
+    AddConstitutiveLawsToPython();
+}
 
 
-    }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.
 

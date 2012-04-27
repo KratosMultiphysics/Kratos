@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-04-24 10:30:22 $
 //   Revision:            $Revision: 1.4 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
@@ -65,72 +65,72 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Python
-    {
-        using namespace boost::python;
-        
-        typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-        typedef ConstitutiveLaw ConstitutiveLawBaseType;
-        
-        template< class TContainerType, class TVariableType > void SetValueHelperFunction1(
-                TContainerType& el, 
-                const TVariableType& rVar,
-                const typename TVariableType::Type& Data)
-        {
-            el.SetValue(rVar,Data);
-        }
-        
-        template< class TContainerType, class TVariableType > 
-                typename TVariableType::Type GetValueHelperFunction1( TContainerType& el, 
-                        const TVariableType& rVar )
-        {
-            return el.GetValue(rVar);
-        }
-        
-        void  AddPropertiesToPython()
-        {
-            class_<Properties, Properties::Pointer, bases<Properties::BaseType > >("Properties", init<int>())
-                    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 6> > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
+namespace Python
+{
+using namespace boost::python;
 
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 3> > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Matrix > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Matrix > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Matrix > >)
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< int > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< int > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< int > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< int > >)
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< double > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< double > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< double > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< double > >)
-                    
-                    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-                    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-                    .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-                    .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
-                    
-                    .def(self_ns::str(self))
-                    ;
-            
-            PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>::CreateInterface("PropertiesArray")
-                    ;
-        }
-    }  // namespace Python.
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef ConstitutiveLaw ConstitutiveLawBaseType;
+
+template< class TContainerType, class TVariableType > void SetValueHelperFunction1(
+    TContainerType& el,
+    const TVariableType& rVar,
+    const typename TVariableType::Type& Data)
+{
+    el.SetValue(rVar,Data);
+}
+
+template< class TContainerType, class TVariableType >
+typename TVariableType::Type GetValueHelperFunction1( TContainerType& el,
+        const TVariableType& rVar )
+{
+    return el.GetValue(rVar);
+}
+
+void  AddPropertiesToPython()
+{
+    class_<Properties, Properties::Pointer, bases<Properties::BaseType > >("Properties", init<int>())
+    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 6> > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 6> > >)
+
+
+    .def("__setitem__", SetValueHelperFunction1< Element, Variable< array_1d<double, 3> > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< array_1d<double, 3> > >)
+
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Vector > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Vector > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Vector > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Vector > >)
+
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< Matrix > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< Matrix > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< Matrix > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< Matrix > >)
+
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< int > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< int > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< int > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< int > >)
+
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< double > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< double > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< double > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< double > >)
+
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< ConstitutiveLawBaseType::Pointer > >)
+
+    .def(self_ns::str(self))
+    ;
+
+    PointerVectorSetPythonInterface<MeshType::PropertiesContainerType>::CreateInterface("PropertiesArray")
+    ;
+}
+}  // namespace Python.
 } // Namespace Kratos

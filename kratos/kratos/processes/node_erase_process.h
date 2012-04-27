@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2009-01-22 17:13:57 $
 //   Revision:            $Revision: 1.2 $
@@ -55,10 +55,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -72,242 +72,242 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@}
+///@name Type Definitions
+///@{
 
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Short class definition.
-	//erases the nodes marked as 
-	/** Detail class definition.
-	*/
+/// Short class definition.
+//erases the nodes marked as
+/** Detail class definition.
+*/
 
-	class NodeEraseProcess 
-		: public Process
-	{
-	public:
-		///@name Type Definitions
-		///@{
+class NodeEraseProcess
+    : public Process
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Pointer definition of NodeEraseProcess
-		KRATOS_CLASS_POINTER_DEFINITION(NodeEraseProcess);
+    /// Pointer definition of NodeEraseProcess
+    KRATOS_CLASS_POINTER_DEFINITION(NodeEraseProcess);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		/// Default constructor.
-		NodeEraseProcess(ModelPart& model_part)
-			: mr_model_part(model_part)
-		{
-			KRATOS_TRY
-			KRATOS_CATCH("")
-		}
+    /// Default constructor.
+    NodeEraseProcess(ModelPart& model_part)
+        : mr_model_part(model_part)
+    {
+        KRATOS_TRY
+        KRATOS_CATCH("")
+    }
 
-		/// Destructor.
-		virtual ~NodeEraseProcess()
-		{
-		}
+    /// Destructor.
+    virtual ~NodeEraseProcess()
+    {
+    }
 
 
-		///@}
-		///@name Operators 
-		///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-		void operator()()
-		{
-			Execute();
-		}
+    void operator()()
+    {
+        Execute();
+    }
 
 
-		///@}
-		///@name Operations
-		///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-		virtual void Execute()
-		{
-			KRATOS_TRY;
+    virtual void Execute()
+    {
+        KRATOS_TRY;
 
-			ModelPart::NodesContainerType temp_nodes_container;
-			temp_nodes_container.reserve(mr_model_part.Nodes().size());
+        ModelPart::NodesContainerType temp_nodes_container;
+        temp_nodes_container.reserve(mr_model_part.Nodes().size());
 
-			temp_nodes_container.swap(mr_model_part.Nodes());
+        temp_nodes_container.swap(mr_model_part.Nodes());
 
 
 
-			for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
-			{
-				if( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
-					(mr_model_part.Nodes()).push_back(*(i_node.base()));
-			}
+        for(ModelPart::NodesContainerType::iterator i_node = temp_nodes_container.begin() ; i_node != temp_nodes_container.end() ; i_node++)
+        {
+            if( static_cast<bool>(i_node->GetValue(ERASE_FLAG)) == false)
+                (mr_model_part.Nodes()).push_back(*(i_node.base()));
+        }
 
-			KRATOS_CATCH("")
-		}
+        KRATOS_CATCH("")
+    }
 
 
-		///@}
-		///@name Access
-		///@{ 
+    ///@}
+    ///@name Access
+    ///@{
 
 
-		///@}
-		///@name Inquiry
-		///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-		///@}      
-		///@name Input and output
-		///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "NodeEraseProcess";
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "NodeEraseProcess";
+    }
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << "NodeEraseProcess";
-		}
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "NodeEraseProcess";
+    }
 
-		/// Print object's data.
-		virtual void PrintData(std::ostream& rOStream) const
-		{
-		}
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+    }
 
 
-		///@}      
-		///@name Friends
-		///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		///@}
+    ///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
-		///@}
+    ///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		ModelPart& mr_model_part;
-		PointerVector<Node<3> > mTrashedNodes;
+    ///@}
+    ///@name Member Variables
+    ///@{
+    ModelPart& mr_model_part;
+    PointerVector<Node<3> > mTrashedNodes;
 
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		/// Assignment operator.
-		NodeEraseProcess& operator=(NodeEraseProcess const& rOther);
+    /// Assignment operator.
+    NodeEraseProcess& operator=(NodeEraseProcess const& rOther);
 
-		/// Copy constructor.
-		//NodeEraseProcess(NodeEraseProcess const& rOther);
+    /// Copy constructor.
+    //NodeEraseProcess(NodeEraseProcess const& rOther);
 
 
-		///@}    
+    ///@}
 
-	}; // Class NodeEraseProcess 
+}; // Class NodeEraseProcess
 
-	///@} 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
+///@name Type Definitions
+///@{
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@}
+///@name Input and output
+///@{
 
 
-	/// input stream function
-	inline std::istream& operator >> (std::istream& rIStream, 
-		NodeEraseProcess& rThis);
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  NodeEraseProcess& rThis);
 
-	/// output stream function
-	inline std::ostream& operator << (std::ostream& rOStream, 
-		const NodeEraseProcess& rThis)
-	{
-		rThis.PrintInfo(rOStream);
-		rOStream << std::endl;
-		rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const NodeEraseProcess& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-		return rOStream;
-	}
-	///@} 
+    return rOStream;
+}
+///@}
 
 
 }  // namespace Kratos.

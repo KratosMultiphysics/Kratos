@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-04-24 10:30:22 $
 //   Revision:            $Revision: 1.3 $
@@ -53,10 +53,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 //#include <string>
 //#include <iostream>
-//#include <sstream> 
+//#include <sstream>
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -67,186 +67,186 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-  using namespace boost::python;
-		///@name Kratos Globals
-		///@{ 
+using namespace boost::python;
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TContainerType, class TVariableType>
-		class VariableIndexingPython : public def_visitor<VariableIndexingPython<TContainerType, TVariableType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TContainerType, class TVariableType>
+class VariableIndexingPython : public def_visitor<VariableIndexingPython<TContainerType, TVariableType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of VariableIndexingPython
-			KRATOS_CLASS_POINTER_DEFINITION(VariableIndexingPython);
+    /// Pointer definition of VariableIndexingPython
+    KRATOS_CLASS_POINTER_DEFINITION(VariableIndexingPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			VariableIndexingPython(){}
+    /// Default constructor.
+    VariableIndexingPython() {}
 
-			/// Copy constructor.
-			VariableIndexingPython(const VariableIndexingPython& rOther);
+    /// Copy constructor.
+    VariableIndexingPython(const VariableIndexingPython& rOther);
 
-			/// Destructor.
-			virtual ~VariableIndexingPython(){}
-
-
-			///@}
-			///@name Operators 
-			///@{
+    /// Destructor.
+    virtual ~VariableIndexingPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				ThisClass
-					.def("__contains__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerHas)
-					.def("__setitem__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerSetValue)
-					.def("__getitem__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerGetValue)
-					.def("Has", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerHas)
-				.def("SetValue", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerSetValue)
-					.def("GetValue", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerGetValue)
-					//.def("__delitem__", &DataValueContainerDeleteValue)
-					//.def("Erase", &DataValueContainerDeleteValue)
-					;
-			}
- 
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        ThisClass
+        .def("__contains__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerHas)
+        .def("__setitem__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerSetValue)
+        .def("__getitem__", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerGetValue)
+        .def("Has", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerHas)
+        .def("SetValue", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerSetValue)
+        .def("GetValue", &VariableIndexingPython<TContainerType, TVariableType>::DataValueContainerGetValue)
+        //.def("__delitem__", &DataValueContainerDeleteValue)
+        //.def("Erase", &DataValueContainerDeleteValue)
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-  static void DataValueContainerSetValue(TContainerType&  rData, TVariableType const& rV, typename TVariableType::Type const& rValue)
-  {
-    rData.SetValue(rV, rValue);
-  }
-
-  static typename TVariableType::Type DataValueContainerGetValue(TContainerType const& rData, TVariableType const& rV)
-  {
-    return rData.GetValue(rV);
-  }
-	
-inline
-  static typename TVariableType::Type const& DataValueContainerGetReference(TContainerType const& rData, TVariableType const& rV)
-  {
-    return rData.GetValue(rV);
-  }
-	
-  //static void DataValueContainerDeleteValue(TContainerType& rData, TVariableType const& rV)
-  //{
-  //  rData.Erase(rV);
-  //}
-	
-  static bool DataValueContainerHas(TContainerType const& rData, TVariableType const& rV)
-  {
-    return rData.Has(rV);
-  }
-			
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
+    static void DataValueContainerSetValue(TContainerType&  rData, TVariableType const& rV, typename TVariableType::Type const& rValue)
+    {
+        rData.SetValue(rV, rValue);
+    }
+
+    static typename TVariableType::Type DataValueContainerGetValue(TContainerType const& rData, TVariableType const& rV)
+    {
+        return rData.GetValue(rV);
+    }
+
+    inline
+    static typename TVariableType::Type const& DataValueContainerGetReference(TContainerType const& rData, TVariableType const& rV)
+    {
+        return rData.GetValue(rV);
+    }
+
+    //static void DataValueContainerDeleteValue(TContainerType& rData, TVariableType const& rV)
+    //{
+    //  rData.Erase(rV);
+    //}
+
+    static bool DataValueContainerHas(TContainerType const& rData, TVariableType const& rV)
+    {
+        return rData.Has(rV);
+    }
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			VariableIndexingPython& operator=(const VariableIndexingPython& rOther);
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-
-		}; // Class VariableIndexingPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		///@} 
+    /// Assignment operator.
+    VariableIndexingPython& operator=(const VariableIndexingPython& rOther);
 
-	}  // namespace Python.
+
+    ///@}
+
+}; // Class VariableIndexingPython
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

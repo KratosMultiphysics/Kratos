@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,10 +41,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-/* *********************************************************   
-*          
+/* *********************************************************
+*
 *   Last Modified by:    $Author: nelson $
-*   Date:                $Date: 2008-09-03 
+*   Date:                $Date: 2008-09-03
 *   Revision:            $Revision: 1.1 $
 *
 * ***********************************************************/
@@ -52,9 +52,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_PLASTICITY_2D_H_INCLUDED )
 #define  KRATOS_PLASTICITY_2D_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -68,156 +68,156 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	/**
-	 * Defines a linear elastic isotropic constitutive law in 3D space.
-	 * This material law is defined by the parameters E (Young's modulus) 
-	 * and NU (Poisson ratio)
-	 * As there are no further parameters the functionality is limited 
-	 * to linear elasticity.
-	 */
-	class Plasticity2D : public ConstitutiveLaw
-	{
-		public:
-
-		      
-		        ///@name Type Definitions
-		        typedef ConstitutiveLaw BaseType;
-			/**
-			 * Counted pointer of Plasticity2D
-			 */
-			typedef boost::shared_ptr<Plasticity2D> Pointer;
-
-			typedef FluencyCriteria::Pointer FluencyCriteriaPointer;  
-                         
-                        typedef Properties::Pointer PropertiesPointer;
-
-		        //const ProcessInfo  *mCurrentProcessInfo;
-			/**
-			 * Life Cycle 
-			 */
-			/**
-			 * Default constructor.
-			 */
-			Plasticity2D();
-			
-                        virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
-			{
-				boost::shared_ptr<ConstitutiveLaw> p_clone(new Plasticity2D(
-				mpFluencyCriteria->Clone(),
-				mpProperties));
-				return p_clone;
-			}
+/**
+ * Defines a linear elastic isotropic constitutive law in 3D space.
+ * This material law is defined by the parameters E (Young's modulus)
+ * and NU (Poisson ratio)
+ * As there are no further parameters the functionality is limited
+ * to linear elasticity.
+ */
+class Plasticity2D : public ConstitutiveLaw
+{
+public:
 
 
-                        Plasticity2D(FluencyCriteriaPointer FluencyCriteria, PropertiesPointer Property);
-			/**
-			 * Destructor.
-			 */
-			virtual ~Plasticity2D();
-			
-			/**
-			 * Operators 
-			 */
-			/**
-			 * Operations
-			 */
-		  bool Has( const Variable<double>& rThisVariable );
-		  bool Has( const Variable<Vector>& rThisVariable );
-		  bool Has( const Variable<Matrix>& rThisVariable );
+    ///@name Type Definitions
+    typedef ConstitutiveLaw BaseType;
+    /**
+     * Counted pointer of Plasticity2D
+     */
+    typedef boost::shared_ptr<Plasticity2D> Pointer;
 
-		  double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-                  Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-                  Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+    typedef FluencyCriteria::Pointer FluencyCriteriaPointer;
 
-		  void SetValue( const Variable<double>& rVariable, const double& Value, const ProcessInfo& rCurrentProcessInfo );
-		  void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
-		  void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo );
+    typedef Properties::Pointer PropertiesPointer;
 
+    //const ProcessInfo  *mCurrentProcessInfo;
+    /**
+     * Life Cycle
+     */
+    /**
+     * Default constructor.
+     */
+    Plasticity2D();
 
-		  void InitializeMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues );
-		  void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
-		  void CalculateStress( const Vector& StrainVector,  Vector& StressVector);
-
-		  void CalculateCauchyStresses( Vector& Cauchy_StressVector,
-		                                const Matrix& F,
-						const Vector& PK2_StressVector,
-						const Vector& GreenLagrangeStrainVector);
+    virtual boost::shared_ptr<ConstitutiveLaw> Clone() const
+    {
+        boost::shared_ptr<ConstitutiveLaw> p_clone(new Plasticity2D(
+                    mpFluencyCriteria->Clone(),
+                    mpProperties));
+        return p_clone;
+    }
 
 
-		  void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
+    Plasticity2D(FluencyCriteriaPointer FluencyCriteria, PropertiesPointer Property);
+    /**
+     * Destructor.
+     */
+    virtual ~Plasticity2D();
 
-		  void InitializeSolutionStep( const Properties& props,
-					       const GeometryType& geom,
-					       const Vector& ShapeFunctionsValues ,
-					       const ProcessInfo& CurrentProcessInfo);
+    /**
+     * Operators
+     */
+    /**
+     * Operations
+     */
+    bool Has( const Variable<double>& rThisVariable );
+    bool Has( const Variable<Vector>& rThisVariable );
+    bool Has( const Variable<Matrix>& rThisVariable );
 
-		  void FinalizeSolutionStep( const Properties& props,
-					     const GeometryType& geom, 
-					     const Vector& ShapeFunctionsValues ,
-					     const ProcessInfo& CurrentProcessInfo);
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
 
-		  void CalculateStressAndTangentMatrix( Vector& StressVector, const Vector& StrainVector, Matrix& AlgorithmicTangent);
+    void SetValue( const Variable<double>& rVariable, const double& Value, const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue, const ProcessInfo& rCurrentProcessInfo );
 
-		  void Calculate( const Variable<double>& rVariable,  double& Output,  const ProcessInfo& rCurrentProcessInfo);
 
-                  void UpdateMaterial( const Vector& StrainVector,
-                                       const Properties& props,
-                                       const GeometryType& geom,
-                                       const Vector& ShapeFunctionsValues,
-                                       const ProcessInfo& CurrentProcessInfo);
-				     
-		 int   Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
-                 
-		 void  CalculateMaterialResponse( 
-		    const Vector& StrainVector,
-		    const Matrix& DeformationGradient,
-		    Vector& StressVector,
-		    Matrix& AlgorithmicTangent,
-		    const ProcessInfo& CurrentProcessInfo,
-		    const Properties& props, 
-		    const GeometryType& geom,
-		    const Vector& ShapeFunctionsValues,
-		    bool CalculateStresses,
-		    int CalculateTangent,
-		    bool SaveInternalVariables);
+    void InitializeMaterial( const Properties& props, const GeometryType& geom, const Vector& ShapeFunctionsValues );
+    void CalculateConstitutiveMatrix(const Vector& StrainVector, Matrix& rResult);
+    void CalculateStress( const Vector& StrainVector,  Vector& StressVector);
 
-      
-	private:
+    void CalculateCauchyStresses( Vector& Cauchy_StressVector,
+                                  const Matrix& F,
+                                  const Vector& PK2_StressVector,
+                                  const Vector& GreenLagrangeStrainVector);
 
-	///@}
-	///@name Serialization
-	///@{	
-	friend class Serializer;
 
-	virtual void save(Serializer& rSerializer) const
-	{
-	   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-	}
+    void Calculate(const Variable<Matrix >& rVariable, Matrix& rResult, const ProcessInfo& rCurrentProcessInfo);
 
-	virtual void load(Serializer& rSerializer)
-	{
-	   KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-	}
+    void InitializeSolutionStep( const Properties& props,
+                                 const GeometryType& geom,
+                                 const Vector& ShapeFunctionsValues ,
+                                 const ProcessInfo& CurrentProcessInfo);
 
-    protected:
-   
+    void FinalizeSolutionStep( const Properties& props,
+                               const GeometryType& geom,
+                               const Vector& ShapeFunctionsValues ,
+                               const ProcessInfo& CurrentProcessInfo);
+
+    void CalculateStressAndTangentMatrix( Vector& StressVector, const Vector& StrainVector, Matrix& AlgorithmicTangent);
+
+    void Calculate( const Variable<double>& rVariable,  double& Output,  const ProcessInfo& rCurrentProcessInfo);
+
+    void UpdateMaterial( const Vector& StrainVector,
+                         const Properties& props,
+                         const GeometryType& geom,
+                         const Vector& ShapeFunctionsValues,
+                         const ProcessInfo& CurrentProcessInfo);
+
+    int   Check(const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo);
+
+    void  CalculateMaterialResponse(
+        const Vector& StrainVector,
+        const Matrix& DeformationGradient,
+        Vector& StressVector,
+        Matrix& AlgorithmicTangent,
+        const ProcessInfo& CurrentProcessInfo,
+        const Properties& props,
+        const GeometryType& geom,
+        const Vector& ShapeFunctionsValues,
+        bool CalculateStresses,
+        int CalculateTangent,
+        bool SaveInternalVariables);
+
+
+private:
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+protected:
+
     // Atributos  Privados
 
     bool   ComputeTangentMatrix;
     double mNU;
     double mE;
     double mDE;
-   
+
     FluencyCriteriaPointer mpFluencyCriteria;
     PropertiesPointer mpProperties;
 
-    
-   void CalculateElasticStress(const Vector& Strain, array_1d<double,4>& Stress);
+
+    void CalculateElasticStress(const Vector& Strain, array_1d<double,4>& Stress);
 
 
 
-   
 
-	}; // Class Plasticity2D 
+
+}; // Class Plasticity2D
 }  // namespace Kratos.
 #endif // KRATOS_ISOTROPIC_2D_H_INCLUDED  defined 

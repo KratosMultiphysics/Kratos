@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.3 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,39 +65,39 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	namespace Globals
-	{
+namespace Globals
+{
 
 /*		class VariableData;
 		class Element;
 		class Condition;
 	*/
-  ///@name Kratos Globals
-  ///@{
-  //
-  // This variable is NOT synchronized between different applications threads
-		extern VariablesList DefaultVariablesList;
+///@name Kratos Globals
+///@{
+//
+// This variable is NOT synchronized between different applications threads
+extern VariablesList DefaultVariablesList;
 /*
 		extern KratosComponents<VariableData> VariableDataComponents;
 		extern KratosComponents<Condition> ConditionComponents;
 		extern KratosComponents<Element> ElementComponents;
   */
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  
-	}
-  
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+
+}
+
 }  // namespace Kratos.
 
 #endif // KRATOS_GLOBAL_VARIABLES_H_INCLUDED  defined 

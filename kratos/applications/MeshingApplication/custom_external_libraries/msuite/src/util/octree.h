@@ -44,39 +44,40 @@
 
 class caja;
 
-class octree{
+class octree
+{
 
 private:
-  caja *child; // caja mayor
+    caja *child; // caja mayor
 
 public:
 
-  const int dim,nchild,maxlen; // dimension, 1<<dim y puntos/caja
-  punto pmin, pmax; // bounding caja
-  const _OCTREE_PTARRAY *plist; // puntero al array de puntos
+    const int dim,nchild,maxlen; // dimension, 1<<dim y puntos/caja
+    punto pmin, pmax; // bounding caja
+    const _OCTREE_PTARRAY *plist; // puntero al array de puntos
 
-  octree(const _OCTREE_PTARRAY &p, // si ya se conoce el bbox
-         const punto &ipmin,const punto &ipmax,
-         int idim=3, int imaxlen=15);
-  octree(const _OCTREE_PTARRAY &plist, int plen, // calcula el bbox
-         int idim=3, int imaxlen=15);
- ~octree(); // el destruuctor de caja borra todos los subboxes
+    octree(const _OCTREE_PTARRAY &p, // si ya se conoce el bbox
+           const punto &ipmin,const punto &ipmax,
+           int idim=3, int imaxlen=15);
+    octree(const _OCTREE_PTARRAY &plist, int plen, // calcula el bbox
+           int idim=3, int imaxlen=15);
+    ~octree(); // el destruuctor de caja borra todos los subboxes
 
-  bool check_interior(const punto& p) const; // interior del bbox
+    bool check_interior(const punto& p) const; // interior del bbox
 
-  // cercano al punto o, si esta fuera del bbox, cercano al
-  // punto mas cercano a p del bbox
-  // las distancias son max_delta(x,y,z) (esferas cuadradas)
-  int close(punto p) const; // misma caja (o del parent si no hay)
-  int closest(punto p, double &d) const; // el punto (puesto) mas cercano
-  void add // agrega solo si no coincide dentro de e con cualquiera (O??)
+    // cercano al punto o, si esta fuera del bbox, cercano al
+    // punto mas cercano a p del bbox
+    // las distancias son max_delta(x,y,z) (esferas cuadradas)
+    int close(punto p) const; // misma caja (o del parent si no hay)
+    int closest(punto p, double &d) const; // el punto (puesto) mas cercano
+    void add // agrega solo si no coincide dentro de e con cualquiera (O??)
     (int in, int &nc, bool &puesto, double e=ERRADM);
-  void add_no_rep // si no coincide dentro de e en la caja (O(log(n)))
+    void add_no_rep // si no coincide dentro de e en la caja (O(log(n)))
     (int in, int &nc, bool &puesto, double e=ERRADM);
-  int add(int in);// agrega y devuelve un nodo cercano (O(log(n)))
+    int add(int in);// agrega y devuelve un nodo cercano (O(log(n)))
 
-  void remove(int in); // si no estaba no hace nada
-  bool swap_n(int in1, int in2);// intercambia indices
+    void remove(int in); // si no estaba no hace nada
+    bool swap_n(int in1, int in2);// intercambia indices
 };
 
 #endif

@@ -72,121 +72,121 @@ namespace Kratos
 {
 
 
-    /**
-     * TO BE TESTED!!!
-     */
-    DummyConstitutiveLaw::DummyConstitutiveLaw()
-            : ConstitutiveLaw()
-    {
-    }
+/**
+ * TO BE TESTED!!!
+ */
+DummyConstitutiveLaw::DummyConstitutiveLaw()
+    : ConstitutiveLaw()
+{
+}
 
-    /**
-     * TO BE TESTED!!!
-     */
-    DummyConstitutiveLaw::~DummyConstitutiveLaw()
-    {
-    }
+/**
+ * TO BE TESTED!!!
+ */
+DummyConstitutiveLaw::~DummyConstitutiveLaw()
+{
+}
 
-    bool DummyConstitutiveLaw::Has( const Variable<double>& rThisVariable )
-    {
-        return false;
-    }
+bool DummyConstitutiveLaw::Has( const Variable<double>& rThisVariable )
+{
+    return false;
+}
 
-    bool DummyConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
-    {
-        return false;
-    }
+bool DummyConstitutiveLaw::Has( const Variable<Vector>& rThisVariable )
+{
+    return false;
+}
 
-    bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
-    {
-        return false;
-    }
+bool DummyConstitutiveLaw::Has( const Variable<Matrix>& rThisVariable )
+{
+    return false;
+}
 
-    double& DummyConstitutiveLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
-    {
-        KRATOS_ERROR( std::logic_error, "this variable is not supported", "" );
-    }
+double& DummyConstitutiveLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+    KRATOS_ERROR( std::logic_error, "this variable is not supported", "" );
+}
 
-    Vector& DummyConstitutiveLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
-    {
-        KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
-    }
+Vector& DummyConstitutiveLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+{
+    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+}
 
-    Matrix& DummyConstitutiveLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-    {
-        KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
-    }
+Matrix& DummyConstitutiveLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+{
+    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+}
 
-    void DummyConstitutiveLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-                                         const ProcessInfo& rCurrentProcessInfo )
-    {
-    }
+void DummyConstitutiveLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
+}
 
-    void DummyConstitutiveLaw::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
-                                         const array_1d<double, 3>& rValue,
-                                         const ProcessInfo& rCurrentProcessInfo )
-    {
-    }
+void DummyConstitutiveLaw::SetValue( const Variable<array_1d<double, 3> >& rThisVariable,
+                                     const array_1d<double, 3>& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
+}
 
-    void DummyConstitutiveLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-                                         const ProcessInfo& rCurrentProcessInfo )
-    {
-    }
+void DummyConstitutiveLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
+}
 
-    void DummyConstitutiveLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-                                         const ProcessInfo& rCurrentProcessInfo )
-    {
-    }
-
-
-    void DummyConstitutiveLaw::InitializeMaterial( const Properties& props,
-            const GeometryType& geom,
-            const Vector& ShapeFunctionsValues )
-    {
-    }
-
-    void DummyConstitutiveLaw::ResetMaterial( const Properties& props,
-                                     const GeometryType& geom,
-                                     const Vector& ShapeFunctionsValues )
-    {
-    }
-
-    void DummyConstitutiveLaw::InitializeSolutionStep( const Properties& props,
-            const GeometryType& geom, //this is just to give the array of nodes
-            const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo )
-    {
-    }
-
-    void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
-            const GeometryType& geom, //this is just to give the array of nodes
-            const Vector& ShapeFunctionsValues ,
-            const ProcessInfo& CurrentProcessInfo )
-    {
-    }
+void DummyConstitutiveLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+                                     const ProcessInfo& rCurrentProcessInfo )
+{
+}
 
 
-    void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
-            const Matrix& DeformationGradient,
-            Vector& StressVector,
-            Matrix& AlgorithmicTangent,
-            const ProcessInfo& CurrentProcessInfo,
-            const Properties& props,
-            const GeometryType& geom,
-            const Vector& ShapeFunctionsValues,
-            bool CalculateStresses,
-            int CalculateTangent,
-            bool SaveInternalVariables )
-    {
-    }
+void DummyConstitutiveLaw::InitializeMaterial( const Properties& props,
+        const GeometryType& geom,
+        const Vector& ShapeFunctionsValues )
+{
+}
 
-    //**********************************************************************
-    int DummyConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
-    {
-        KRATOS_TRY
+void DummyConstitutiveLaw::ResetMaterial( const Properties& props,
+        const GeometryType& geom,
+        const Vector& ShapeFunctionsValues )
+{
+}
 
-        return 0;
+void DummyConstitutiveLaw::InitializeSolutionStep( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
+{
+}
 
-        KRATOS_CATCH( "" );
-    }
+void DummyConstitutiveLaw::FinalizeSolutionStep( const Properties& props,
+        const GeometryType& geom, //this is just to give the array of nodes
+        const Vector& ShapeFunctionsValues ,
+        const ProcessInfo& CurrentProcessInfo )
+{
+}
+
+
+void  DummyConstitutiveLaw::CalculateMaterialResponse( const Vector& StrainVector,
+        const Matrix& DeformationGradient,
+        Vector& StressVector,
+        Matrix& AlgorithmicTangent,
+        const ProcessInfo& CurrentProcessInfo,
+        const Properties& props,
+        const GeometryType& geom,
+        const Vector& ShapeFunctionsValues,
+        bool CalculateStresses,
+        int CalculateTangent,
+        bool SaveInternalVariables )
+{
+}
+
+//**********************************************************************
+int DummyConstitutiveLaw::Check( const Properties& props, const GeometryType& geom, const ProcessInfo& CurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    return 0;
+
+    KRATOS_CATCH( "" );
+}
 } // Namespace Kratos

@@ -58,8 +58,8 @@ namespace GPUSparse
 
 enum CopyDirection
 {
-	CPU_GPU,
-	GPU_CPU
+    CPU_GPU,
+    GPU_CPU
 };
 
 //
@@ -70,20 +70,20 @@ enum CopyDirection
 class GPUVector
 {
 public:
-	size_t Size;
-	double *CPU_Values;
-	double *GPU_Values;
-	bool Allocated;
+    size_t Size;
+    double *CPU_Values;
+    double *GPU_Values;
+    bool Allocated;
 
-	GPUVector(size_t _Size, double *_CPU_Values);
-	GPUVector(size_t _Size);
-	~GPUVector();
+    GPUVector(size_t _Size, double *_CPU_Values);
+    GPUVector(size_t _Size);
+    ~GPUVector();
 
-	bool GPU_Allocate();
-	bool GPU_Free();
+    bool GPU_Allocate();
+    bool GPU_Free();
 
-	bool Copy(CopyDirection Direction);
-	bool CopyFromGPU(GPUVector &V);
+    bool Copy(CopyDirection Direction);
+    bool CopyFromGPU(GPUVector &V);
 };
 
 //
@@ -93,33 +93,33 @@ public:
 class GPUCSRMatrix
 {
 public:
-	size_t NNZ, Size1, Size2;
+    size_t NNZ, Size1, Size2;
 
-	size_t *CPU_Columns, *CPU_RowIndices;
-	double *CPU_Values;
+    size_t *CPU_Columns, *CPU_RowIndices;
+    double *CPU_Values;
 
-	size_t *GPU_Columns, *GPU_RowIndices;
-	double *GPU_Values;
+    size_t *GPU_Columns, *GPU_RowIndices;
+    double *GPU_Values;
 
-	//variables for a dense representation
-	bool haveDenseRepresentation;
-	double* matAuxValues;
-	size_t numValuesDenseRep;
+    //variables for a dense representation
+    bool haveDenseRepresentation;
+    double* matAuxValues;
+    size_t numValuesDenseRep;
 
-	bool Allocated;
+    bool Allocated;
 
-	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16 = true);
-	GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2);
-	~GPUCSRMatrix();
+    GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2, size_t *_CPU_Columns, size_t *_CPU_RowIndices, double *_CPU_Values, bool _NZMultiple16 = true);
+    GPUCSRMatrix(size_t _NNZ, size_t _Size1, size_t _Size2);
+    ~GPUCSRMatrix();
 
-	bool GPU_Allocate();
-	bool GPU_Free();
+    bool GPU_Allocate();
+    bool GPU_Free();
 
-	//function for dense conversion
-	bool GenerateDenseRepresentation(bool FortranRep = false);
+    //function for dense conversion
+    bool GenerateDenseRepresentation(bool FortranRep = false);
 
-	bool Copy(CopyDirection Direction, bool CopyValuesOnly);
-	bool CopyFromGPU(GPUCSRMatrix &M, bool CopyStructure, bool CopyValues);
+    bool Copy(CopyDirection Direction, bool CopyValuesOnly);
+    bool CopyFromGPU(GPUCSRMatrix &M, bool CopyStructure, bool CopyValues);
 };
 
 // Operations defined on GPUCSRMatrix and GPUVector
@@ -258,9 +258,9 @@ void calculateInstantVector(GPUVector& u, const GPUVector& b, const GPUCSRMatrix
 void generateResidualGPUVectorized(const GPUCSRMatrix& R, const GPUVector& b, const GPUCSRMatrix& A, const GPUVector& u, GPUVector& r);
 void calculateInstantVectorGPUVectorized(GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const GPUCSRMatrix& G);
 void multilevel(GPUCSRMatrix**& A, GPUCSRMatrix**& P, GPUCSRMatrix**& R, GPUCSRMatrix**& G, GPUVector& b, GPUVector& u,
-			unsigned short lvl, unsigned short maxLevels, size_t* preSweeps, size_t* postSweeps, bool assumeZeros);
+                unsigned short lvl, unsigned short maxLevels, size_t* preSweeps, size_t* postSweeps, bool assumeZeros);
 size_t generateHierarchy(GPUCSRMatrix**& Matrices, GPUCSRMatrix**& Pmat, GPUCSRMatrix**& Qmat,
-        GPUCSRMatrix**& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size);
+                         GPUCSRMatrix**& Gmat, double W, size_t numLevelsRoh, size_t max_levels, size_t min_system_size);
 void generateP_vCPU(const GPUCSRMatrix& A, const GPUVector& diag, double W, size_t numLevelsRoh, size_t &pNNZ, size_t &pSize1, size_t &pSize2, size_t *&pindices, size_t *&pptr, double *&pvalues);
 void generateQ(const GPUCSRMatrix &P, size_t &NNZ, size_t &Size1, size_t &Size2, size_t *&indices, size_t *&ptr, double *&values);
 
@@ -270,13 +270,13 @@ void createDiagonal_vCPU(const GPUCSRMatrix& A, size_t &NNZ, size_t &Size1, size
 void computeDenseMatrix(const GPUCSRMatrix& A, double *& vec);
 void subIdentityMatrix_cpu(const GPUCSRMatrix& A, size_t* CPU_RowIndices, size_t* CPU_Columns, double* CPU_Values);
 void csr_tocsc(const size_t n_row,
-	           const size_t n_col,
-	           const size_t Ap[],
-	           const size_t Aj[],
-	           const double Ax[],
-	                 size_t*& Bp,
-	                 size_t* Bi,
-	                 double* Bx);
+               const size_t n_col,
+               const size_t Ap[],
+               const size_t Aj[],
+               const double Ax[],
+               size_t*& Bp,
+               size_t* Bi,
+               double* Bx);
 double checkResidual(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A);
 double roh(const GPUCSRMatrix& A, size_t iter);
 bool checkConvergence(const GPUVector& u, const GPUVector& b, const GPUCSRMatrix& A, const double lastResidual, const double threshold);

@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1ElectrostaticApplication 
+KratosR1ElectrostaticApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2010
 Pooyan Dadvand, Riccardo Rossi, Javier Mora
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,24 +37,24 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi , jmora$
 //   Date:                $Date: 2010-02-02  $
 //   Revision:            $Revision: 1.2 $
 //
 //
- 
+
 
 #if !defined(KRATOS_ELECTROSTATIC_3D_ELEM_H_INCLUDED )
 #define  KRATOS_ELECTROSTATIC_3D_ELEM_H_INCLUDED
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -68,217 +68,217 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class Electrostatic3D
-	  : public Element
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of Electrostatic3D
-      KRATOS_CLASS_POINTER_DEFINITION(Electrostatic3D);
+///@name Kratos Globals
+///@{
 
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      Electrostatic3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      Electrostatic3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+///@}
+///@name Type Definitions
+///@{
 
-      /// Destructor.
-      virtual ~ Electrostatic3D();
+///@}
+///@name  Enum's
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
+///@}
+///@name  Functions
+///@{
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+///@}
+///@name Kratos Classes
+///@{
 
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+/// Short class definition.
+/** Detail class definition.
+*/
+class Electrostatic3D
+    : public Element
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-	  void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    /// Counted pointer of Electrostatic3D
+    KRATOS_CLASS_POINTER_DEFINITION(Electrostatic3D);
 
-	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-	  void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
-                                           std::vector<array_1d<double,3> >& rValues, 
-                                           const ProcessInfo& rCurrentProcessInfo);
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-      void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
-	
+    /// Default constructor.
+    Electrostatic3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    Electrostatic3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    /// Destructor.
+    virtual ~ Electrostatic3D();
 
-      /// Turn back information as a string.
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    void CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+                                       std::vector<array_1d<double,3> >& rValues,
+                                       const ProcessInfo& rCurrentProcessInfo);
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3> >& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
 //      virtual String Info() const;
-      
-      /// Print information about this object.
+
+    /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
 
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-		/*static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-		static boost::numeric::ublas::bounded_matrix<double,2,3> Electrostatic2D::msB;
-		static boost::numeric::ublas::bounded_matrix<double,2,2> Electrostatic2D::msD;
-  		static array_1d<double,3> msN; //dimension = number of nodes
-		static array_1d<double,3> ms_temp; //dimension = number of nodes
-		static array_1d<double,3> Electrostatic2D::point_sources; //dimension = number of nodes
-*/
 
 
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-		
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-          
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-            
-      /// Assignment operator.
-      // Electrostatic3D& operator=(const Electrostatic3D& rOther);
+    ///@}
+    ///@name Friends
+    ///@{
 
-      /// Copy constructor.
-      // Electrostatic3D(const Electrostatic3D& rOther);
 
-        
-      ///@}    
-        
-    }; // Class Electrostatic3D
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    /*static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    static boost::numeric::ublas::bounded_matrix<double,2,3> Electrostatic2D::msB;
+    static boost::numeric::ublas::bounded_matrix<double,2,2> Electrostatic2D::msD;
+    static array_1d<double,3> msN; //dimension = number of nodes
+    static array_1d<double,3> ms_temp; //dimension = number of nodes
+    static array_1d<double,3> Electrostatic2D::point_sources; //dimension = number of nodes
+    */
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    // Electrostatic3D& operator=(const Electrostatic3D& rOther);
+
+    /// Copy constructor.
+    // Electrostatic3D(const Electrostatic3D& rOther);
+
+
+    ///@}
+
+}; // Class Electrostatic3D
+
+
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    Electrostatic3D& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const Electrostatic3D& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -287,7 +287,7 @@ namespace Kratos
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

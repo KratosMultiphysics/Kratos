@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: anonymous $
 //   Date:                $Date: 2009-01-22 16:37:10 $
 //   Revision:            $Revision: 1.2 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -31,211 +31,211 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
-        //KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
-	KRATOS_DEFINE_VARIABLE(double, COUNTER)
-	///@} 
-	///@name Type Definitions
-	///@{ 
+// Variables definition
+//KRATOS_DEFINE_VARIABLE(double, WEIGHT_FATHER_NODES ) // Moved to variables.h so trilinos application can use it too
+KRATOS_DEFINE_VARIABLE(double, COUNTER)
+///@}
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosMeshingApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosMeshingApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Pointer definition of KratosMeshingApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosMeshingApplication);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+    /// Pointer definition of KratosMeshingApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosMeshingApplication);
 
-		/// Default constructor.
-		KratosMeshingApplication();
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		/// Destructor.
-		virtual ~KratosMeshingApplication(){}
+    /// Default constructor.
+    KratosMeshingApplication();
 
+    /// Destructor.
+    virtual ~KratosMeshingApplication() {}
 
-		///@}
-		///@name Operators 
-		///@{
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-		///@}
-		///@name Operations
-		///@{
 
-		virtual void Register();
+    ///@}
+    ///@name Operations
+    ///@{
 
+    virtual void Register();
 
 
-		///@}
-		///@name Access
-		///@{ 
 
+    ///@}
+    ///@name Access
+    ///@{
 
-		///@}
-		///@name Inquiry
-		///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosMeshingApplication";
-		}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosMeshingApplication";
+    }
 
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosMeshingApplication");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosMeshingApplication");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
-		///@}      
-		///@name Friends
-		///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
 
+private:
+    ///@name Static Member Variables
+    ///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
-		const Element mTestElement2D;
-		const Element mTestElement3D;
-		
 
-		///@} 
-		///@name Private Operators
-		///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
+    const Element mTestElement2D;
+    const Element mTestElement3D;
 
 
-		///@} 
-		///@name Private Operations
-		///@{ 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		/// Assignment operator.
-		KratosMeshingApplication& operator=(KratosMeshingApplication const& rOther);
 
-		/// Copy constructor.
-		KratosMeshingApplication(KratosMeshingApplication const& rOther);
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
+    /// Assignment operator.
+    KratosMeshingApplication& operator=(KratosMeshingApplication const& rOther);
 
-		///@}    
+    /// Copy constructor.
+    KratosMeshingApplication(KratosMeshingApplication const& rOther);
 
-	}; // Class KratosMeshingApplication 
 
-	///@} 
+    ///@}
 
+}; // Class KratosMeshingApplication
 
-	///@name Type Definitions       
-	///@{ 
+///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+///@name Type Definitions
+///@{
 
-	///@} 
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

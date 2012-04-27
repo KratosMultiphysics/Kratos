@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,164 +65,168 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		///@name Kratos Globals
-		///@{ 
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TContainerType, class TOtherContainerType>
-		class VectorVectorAssignmentOperatorPython : public def_visitor<VectorVectorAssignmentOperatorPython<TContainerType, TOtherContainerType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TContainerType, class TOtherContainerType>
+class VectorVectorAssignmentOperatorPython : public def_visitor<VectorVectorAssignmentOperatorPython<TContainerType, TOtherContainerType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of VectorVectorAssignmentOperatorPython
-			KRATOS_CLASS_POINTER_DEFINITION(VectorVectorAssignmentOperatorPython);
+    /// Pointer definition of VectorVectorAssignmentOperatorPython
+    KRATOS_CLASS_POINTER_DEFINITION(VectorVectorAssignmentOperatorPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			VectorVectorAssignmentOperatorPython(){}
+    /// Default constructor.
+    VectorVectorAssignmentOperatorPython() {}
 
-			/// Copy constructor.
-			VectorVectorAssignmentOperatorPython(const VectorVectorAssignmentOperatorPython& rOther);
+    /// Copy constructor.
+    VectorVectorAssignmentOperatorPython(const VectorVectorAssignmentOperatorPython& rOther);
 
-			/// Destructor.
-			virtual ~VectorVectorAssignmentOperatorPython(){}
-
-
-			///@}
-			///@name Operators 
-			///@{
+    /// Destructor.
+    virtual ~VectorVectorAssignmentOperatorPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				implicitly_convertible<TOtherContainerType, TContainerType>();
-				ThisClass
-					.def("__iadd__", &iadd, return_internal_reference<1>())          
-					.def("__isub__", &isub, return_internal_reference<1>())          
-					;
-			}
-
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        implicitly_convertible<TOtherContainerType, TContainerType>();
+        ThisClass
+        .def("__iadd__", &iadd, return_internal_reference<1>())
+        .def("__isub__", &isub, return_internal_reference<1>())
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-			static 
-				TContainerType&
-				iadd(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
-			{return ThisContainer += OtherContainer;}
-
-			static
-				TContainerType&
-				isub(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
-			{return ThisContainer -= OtherContainer;}
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    static
+    TContainerType&
+    iadd(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
+    {
+        return ThisContainer += OtherContainer;
+    }
+
+    static
+    TContainerType&
+    isub(TContainerType& ThisContainer, TOtherContainerType const& OtherContainer)
+    {
+        return ThisContainer -= OtherContainer;
+    }
 
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			VectorVectorAssignmentOperatorPython& operator=(const VectorVectorAssignmentOperatorPython& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-			///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		}; // Class VectorVectorAssignmentOperatorPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    /// Assignment operator.
+    VectorVectorAssignmentOperatorPython& operator=(const VectorVectorAssignmentOperatorPython& rOther);
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
 
-		///@} 
+}; // Class VectorVectorAssignmentOperatorPython
 
-	}  // namespace Python.
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

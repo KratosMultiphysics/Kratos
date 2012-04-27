@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,223 +65,229 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-	namespace Python
-	{
+namespace Python
+{
 
-		///@name Kratos Globals
-		///@{ 
+///@name Kratos Globals
+///@{
 
-		///@} 
-		///@name Type Definitions
-		///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-		///@} 
-		///@name  Enum's
-		///@{
+///@}
+///@name  Enum's
+///@{
 
-		///@}
-		///@name  Functions 
-		///@{
+///@}
+///@name  Functions
+///@{
 
-		///@}
-		///@name Kratos Classes
-		///@{
+///@}
+///@name Kratos Classes
+///@{
 
-		/// Short class definition.
-		/** Detail class definition.
-		*/
-		template<class TContainerType, class TScalarType, class TResultType>
-		class VectorScalarOperatorPython : public def_visitor<VectorScalarOperatorPython<TContainerType, TScalarType, TResultType> >
-		{
-		public:
-			///@name Type Definitions
-			///@{
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TContainerType, class TScalarType, class TResultType>
+class VectorScalarOperatorPython : public def_visitor<VectorScalarOperatorPython<TContainerType, TScalarType, TResultType> >
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-			/// Pointer definition of VectorScalarOperatorPython
-			KRATOS_CLASS_POINTER_DEFINITION(VectorScalarOperatorPython);
+    /// Pointer definition of VectorScalarOperatorPython
+    KRATOS_CLASS_POINTER_DEFINITION(VectorScalarOperatorPython);
 
-			///@}
-			///@name Life Cycle 
-			///@{ 
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-			/// Default constructor.
-			VectorScalarOperatorPython(){}
+    /// Default constructor.
+    VectorScalarOperatorPython() {}
 
-			/// Copy constructor.
-			VectorScalarOperatorPython(const VectorScalarOperatorPython& rOther);
+    /// Copy constructor.
+    VectorScalarOperatorPython(const VectorScalarOperatorPython& rOther);
 
-			/// Destructor.
-			virtual ~VectorScalarOperatorPython(){}
-
-
-			///@}
-			///@name Operators 
-			///@{
+    /// Destructor.
+    virtual ~VectorScalarOperatorPython() {}
 
 
-			///@}
-			///@name Operations
-			///@{
-
-			template <class TClassType>
-				void visit(TClassType& ThisClass) const
-			{
-				ThisClass
-					.def("__add__", &add)           
-					.def("__sub__", &sub)           
-					.def("__mul__", &mul)          
-					.def("__div__", &div)          
-					.def("__radd__", &radd)           
-					.def("__rsub__", &rsub)           
-					.def("__rmul__", &rmul)          
-					.def("__rdiv__", &rdiv)          
-					;
-			}
-
-			///@}
-			///@name Access
-			///@{ 
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-			///@}
-			///@name Inquiry
-			///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    template <class TClassType>
+    void visit(TClassType& ThisClass) const
+    {
+        ThisClass
+        .def("__add__", &add)
+        .def("__sub__", &sub)
+        .def("__mul__", &mul)
+        .def("__div__", &div)
+        .def("__radd__", &radd)
+        .def("__rsub__", &rsub)
+        .def("__rmul__", &rmul)
+        .def("__rdiv__", &rdiv)
+        ;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
 
 
-			///@}      
-			///@name Input and output
-			///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-			///@}      
-			///@name Friends
-			///@{
+    ///@}
+    ///@name Input and output
+    ///@{
 
 
-			///@}
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-		private:
-			///@name Static Member Variables 
-			///@{ 
+    ///@}
 
 
-			///@} 
-			///@name Member Variables 
-			///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operators
-			///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-			///@} 
-			///@name Private Operations
-			///@{
-
-			static 
-				TResultType
-				add(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				TResultType result(ThisContainer);
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					result[i] += ThisScalar;
-				return result;
-			}
-
-			static
-				TResultType
-				sub(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				TResultType result(ThisContainer);
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					result[i] -= ThisScalar;
-				return result;
-			}
-
-			static 
-				TResultType
-				mul(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{return ThisContainer * ThisScalar;}
-
-			static 
-				TResultType
-				div(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{return ThisContainer / ThisScalar;}
-
-			static 
-				TResultType
-				radd(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				TResultType result(ThisContainer);
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					result[i] += ThisScalar;
-				return result;
-			}
-
-			static 
-				TResultType
-				rsub(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				TResultType result(ThisContainer);
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					result[i] = ThisScalar - result[i];
-				return result;
-			}
-
-			static 
-				TResultType
-				rmul(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{return ThisScalar * ThisContainer;}
-
-			static 
-				TResultType
-				rdiv(TContainerType& ThisContainer, TScalarType ThisScalar)
-			{
-				TResultType result(ThisContainer);
-				for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
-					result[i] = ThisScalar / result[i];
-				return result;
-			}
+    ///@}
+    ///@name Private Operators
+    ///@{
 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-			///@} 
-			///@name Private  Access 
-			///@{ 
+    static
+    TResultType
+    add(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        TResultType result(ThisContainer);
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            result[i] += ThisScalar;
+        return result;
+    }
+
+    static
+    TResultType
+    sub(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        TResultType result(ThisContainer);
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            result[i] -= ThisScalar;
+        return result;
+    }
+
+    static
+    TResultType
+    mul(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        return ThisContainer * ThisScalar;
+    }
+
+    static
+    TResultType
+    div(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        return ThisContainer / ThisScalar;
+    }
+
+    static
+    TResultType
+    radd(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        TResultType result(ThisContainer);
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            result[i] += ThisScalar;
+        return result;
+    }
+
+    static
+    TResultType
+    rsub(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        TResultType result(ThisContainer);
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            result[i] = ThisScalar - result[i];
+        return result;
+    }
+
+    static
+    TResultType
+    rmul(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        return ThisScalar * ThisContainer;
+    }
+
+    static
+    TResultType
+    rdiv(TContainerType& ThisContainer, TScalarType ThisScalar)
+    {
+        TResultType result(ThisContainer);
+        for(typename TContainerType::size_type i = 0 ; i < ThisContainer.size() ; i++)
+            result[i] = ThisScalar / result[i];
+        return result;
+    }
 
 
-			///@}    
-			///@name Private Inquiry 
-			///@{ 
+
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-			///@}    
-			///@name Un accessible methods 
-			///@{ 
-
-			/// Assignment operator.
-			VectorScalarOperatorPython& operator=(const VectorScalarOperatorPython& rOther);
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-			///@}    
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		}; // Class VectorScalarOperatorPython 
-
-		///@} 
-
-		///@name Type Definitions       
-		///@{ 
+    /// Assignment operator.
+    VectorScalarOperatorPython& operator=(const VectorScalarOperatorPython& rOther);
 
 
-		///@} 
-		///@name Input and output 
-		///@{ 
+    ///@}
 
-		///@} 
+}; // Class VectorScalarOperatorPython
 
-	}  // namespace Python.
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+}  // namespace Python.
 
 }  // namespace Kratos.
 

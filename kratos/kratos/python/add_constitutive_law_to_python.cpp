@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-04-24 10:30:22 $
 //   Revision:            $Revision: 1.3 $
@@ -45,12 +45,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include "python/add_constitutive_law_to_python.h"
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -70,23 +70,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Python
-    {
-        using namespace boost::python;
-        
-        typedef ConstitutiveLaw ConstitutiveLawBaseType;
-        typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
-        
-        void  AddConstitutiveLawToPython()
-        {
-            class_< ConstitutiveLaw, ConstitutiveLaw::Pointer, boost::noncopyable >
-                    ("ConstitutiveLaw",
-                     init<>() )
-                    .def("Clone",&ConstitutiveLaw::Clone)
-                    ;
-            
-            class_<Variable<ConstitutiveLawBaseType::Pointer> , bases<VariableData>, boost::noncopyable >("ConstitutiveLawVariable", no_init)
-                    ;
-        }
-    }  // namespace Python.
+namespace Python
+{
+using namespace boost::python;
+
+typedef ConstitutiveLaw ConstitutiveLawBaseType;
+typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+
+void  AddConstitutiveLawToPython()
+{
+    class_< ConstitutiveLaw, ConstitutiveLaw::Pointer, boost::noncopyable >
+    ("ConstitutiveLaw",
+     init<>() )
+    .def("Clone",&ConstitutiveLaw::Clone)
+    ;
+
+    class_<Variable<ConstitutiveLawBaseType::Pointer> , bases<VariableData>, boost::noncopyable >("ConstitutiveLawVariable", no_init)
+    ;
+}
+}  // namespace Python.
 }  // namespace Kratos.

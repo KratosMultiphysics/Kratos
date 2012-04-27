@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -53,32 +53,32 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 namespace Kratos
-  {
+{
 
-    	
-      class Rankine_Yield_Function: public FluencyCriteria    
-      { 
-    
-        public:
 
-	    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector		  
-	    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
-			  
-            typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
-			  
-	    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
+class Rankine_Yield_Function: public FluencyCriteria
+{
 
-            virtual boost::shared_ptr<FluencyCriteria> Clone() const
-	        {
-		      boost::shared_ptr<FluencyCriteria> p_clone(new Rankine_Yield_Function(mState));
-		      return p_clone;
-		}
-  
-            Rankine_Yield_Function(myState State);
-	   
-            ~Rankine_Yield_Function();
+public:
 
-            KRATOS_CLASS_POINTER_DEFINITION( Rankine_Yield_Function );
+    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
+    typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
+
+    typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
+
+    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz
+
+    virtual boost::shared_ptr<FluencyCriteria> Clone() const
+    {
+        boost::shared_ptr<FluencyCriteria> p_clone(new Rankine_Yield_Function(mState));
+        return p_clone;
+    }
+
+    Rankine_Yield_Function(myState State);
+
+    ~Rankine_Yield_Function();
+
+    KRATOS_CLASS_POINTER_DEFINITION( Rankine_Yield_Function );
 
 //***********************************************************************
 //***********************************************************************
@@ -86,50 +86,50 @@ namespace Kratos
 // Diferent limits in traccion and compresion
 
 
-		     void InitializeMaterial(const Properties& props);
-		     
-
-		    void CalculateEquivalentUniaxialStress(  
-		    const Vector& StressVector,double& Result); 
+    void InitializeMaterial(const Properties& props);
 
 
-		    void CalculateEquivalentUniaxialStressViaPrincipalStress(
-		    const Vector& StressVector,double& Result);
+    void CalculateEquivalentUniaxialStress(
+        const Vector& StressVector,double& Result);
+
+
+    void CalculateEquivalentUniaxialStressViaPrincipalStress(
+        const Vector& StressVector,double& Result);
 
 
 
-		    void CalculateEquivalentUniaxialStressViaInvariants(
-		    const Vector& StressVector,double& Result);
+    void CalculateEquivalentUniaxialStressViaInvariants(
+        const Vector& StressVector,double& Result);
 
 
-		    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
-		    const Vector& StressVector,double& Result);
+    void CalculateEquivalentUniaxialStressViaCilindricalCoordinate(
+        const Vector& StressVector,double& Result);
 
 
-		    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
+    void CalculateDerivateFluencyCriteria(const Vector& StressVector, Vector& DerivateFluencyCriteria);
 
-                    void UpdateVariables(const Vector& Variables); 
+    void UpdateVariables(const Vector& Variables);
 
-                    void ReturnMapping(const Vector& StressVector, 
-                    const Vector& StrainVector, 
-                    Vector& delta_lamda,
-                    array_1d<double,3>& Result);
+    void ReturnMapping(const Vector& StressVector,
+                       const Vector& StrainVector,
+                       Vector& delta_lamda,
+                       array_1d<double,3>& Result);
 
-                    void GetValue(Vector& Result);
+    void GetValue(Vector& Result);
 
-		    
 
-      
-	protected:
 
-	  array_1d<double,3> mFt;
-          array_1d<double,3> mcurrent_Ft;
-          double mH;
-          bool  minitialize;     
-           
-           
 
-    };
+protected:
+
+    array_1d<double,3> mFt;
+    array_1d<double,3> mcurrent_Ft;
+    double mH;
+    bool  minitialize;
+
+
+
+};
 }
 #endif
 

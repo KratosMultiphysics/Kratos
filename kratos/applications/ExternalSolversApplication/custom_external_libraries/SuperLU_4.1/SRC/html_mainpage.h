@@ -1,5 +1,5 @@
 /*! \mainpage SuperLU Documentation
- 
+
 SuperLU is a general purpose library for the direct solution of large,
 sparse, nonsymmetric systems of linear equations on high performance
 machines. The library is written in C and is callable from either C or
@@ -16,6 +16,6 @@ sparsity is completely separate from the factorization. Working
 precision iterative refinement subroutines are provided for improved
 backward stability. Routines are also provided to equilibrate the
 system, estimate the condition number, calculate the relative backward
-error, and estimate error bounds for the refined solutions. 
- 
+error, and estimate error bounds for the refined solutions.
+
  */

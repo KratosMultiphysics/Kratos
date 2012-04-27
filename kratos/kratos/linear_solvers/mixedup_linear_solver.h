@@ -74,10 +74,10 @@ namespace Kratos
  * and uses "standard" linear solvers for the different blocks as well as a GMRES for the outer part
 */
 template<class TSparseSpaceType, class TDenseSpaceType,
-class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
-class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+         class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
+         class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class MixedUPLinearSolver :
-        public IterativeSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>
+    public IterativeSolver<TSparseSpaceType, TDenseSpaceType,TPreconditionerType, TReordererType>
 {
 public:
     ///@name Type Definitions
@@ -671,7 +671,7 @@ private:
     {
         if (ru.size() != mother_indices.size() )
             ru.resize (mother_indices.size(), false);
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(ru.size()); i++)
             ru[i] = rtot[mother_indices[i]];
     }
@@ -682,21 +682,21 @@ private:
     {
         if (rp.size() != mpressure_indices.size() )
             rp.resize (mpressure_indices.size(), false);
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i<static_cast<int>(rp.size()); i++)
             rp[i] = rtot[mpressure_indices[i]];
     }
 
     void WriteUPart (VectorType& rtot, const VectorType& ru)
     {
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(ru.size()); i++)
             rtot[mother_indices[i]] = ru[i];
     }
 
     void WritePPart (VectorType& rtot, const VectorType& rp)
     {
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(rp.size()); i++)
             rtot[mpressure_indices[i]] = rp[i];
     }
@@ -710,7 +710,7 @@ private:
 //        const std::size_t* index2 = A.index2_data().begin();
         const double*	   values = A.value_data().begin();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i=0; i< static_cast<int>(A.size1()); i++)
         {
             unsigned int row_begin = index1[i];
@@ -787,7 +787,7 @@ private:
         //correct u block
         //u = G*p
         TSparseSpaceType::Mult (mG,p,uaux);
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i=0; i< static_cast<int>(u.size()); i++)
             u[i] += uaux[i]/diagK[i];
 
@@ -825,13 +825,13 @@ private:
         typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
 
         int DiagSize = int (diagK.size()); // to avoid comparison between int & unsigned int
-#pragma omp parallel for
+        #pragma omp parallel for
         for ( int i = 0; i < DiagSize; i++)
             rIDiagS[i] = 1.0/diagK[i];
         OpenMPUtils::PartitionVector Partition;
         int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::DivideInPartitions (A.size1(),NumThreads,Partition);
-#pragma omp parallel
+        #pragma omp parallel
         {
             int k = OpenMPUtils::ThisThread();
             VectorType CurrentRow(K.size2());
@@ -976,7 +976,7 @@ private:
         {
             // This code is serial, the pragma is here to ensure that each
             // row block is assigned to the processor that will fill it
-#pragma omp parallel
+            #pragma omp parallel
             if ( OpenMPUtils::ThisThread() == k)
             {
                 boost::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );

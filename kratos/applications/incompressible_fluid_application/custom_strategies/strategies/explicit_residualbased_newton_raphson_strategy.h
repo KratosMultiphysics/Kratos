@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: rrossi $
 *   Date:                $Date: 2008-11-10 14:23:33 $
 *   Revision:            $Revision: 1.12 $
@@ -72,190 +72,190 @@ namespace Kratos
 {
 
 
-	template<class TSparseSpace,
-	class TDenseSpace, // = DenseSpace<double>,
-	class TLinearSolver> //= LinearSolver<TSparseSpace,TDenseSpace>
+template<class TSparseSpace,
+         class TDenseSpace, // = DenseSpace<double>,
+         class TLinearSolver> //= LinearSolver<TSparseSpace,TDenseSpace>
 
-	class ExplicitResidualBasedNewtonRaphsonStrategy : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
-	{
-	public:
-		/**@name Type Definitions */       
-		/*@{ */
-		typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
+class ExplicitResidualBasedNewtonRaphsonStrategy : public ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
+{
+public:
+    /**@name Type Definitions */
+    /*@{ */
+    typedef ConvergenceCriteria<TSparseSpace,TDenseSpace> TConvergenceCriteriaType;
 
-		/** Counted pointer of ClassName */
-		//typedef boost::shared_ptr< ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-		KRATOS_CLASS_POINTER_DEFINITION( ExplicitResidualBasedNewtonRaphsonStrategy );
+    /** Counted pointer of ClassName */
+    //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( ExplicitResidualBasedNewtonRaphsonStrategy );
 
-		typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-                typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> NewtonBaseType;
-		typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+    typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> NewtonBaseType;
+    typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
-		typedef typename BaseType::TDataType TDataType;
-		
-		typedef TSparseSpace SparseSpaceType;
-		
-		typedef typename BaseType::TSchemeType TSchemeType;
+    typedef typename BaseType::TDataType TDataType;
 
-		//typedef typename BaseType::DofSetType DofSetType;
+    typedef TSparseSpace SparseSpaceType;
 
-		typedef typename BaseType::DofsArrayType DofsArrayType;
+    typedef typename BaseType::TSchemeType TSchemeType;
 
-		typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
+    //typedef typename BaseType::DofSetType DofSetType;
 
-		typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::DofsArrayType DofsArrayType;
 
-		typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
 
-		typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-		typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-		typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
-		/*@} */
-		/**@name Life Cycle 
-		*/    
-		/*@{ */
-
-		/** Constructor.
-		*/
-		ExplicitResidualBasedNewtonRaphsonStrategy(
-			ModelPart& model_part, 
-			typename TSchemeType::Pointer pScheme,
-			typename TLinearSolver::Pointer pNewLinearSolver,
-			typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
-			int MaxIterations = 30,
-			bool CalculateReactions = false,
-			bool ReformDofSetAtEachStep = false,
-			bool MoveMeshFlag = false
-			)
-			: ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, 
-				pScheme,
-				pNewLinearSolver,
-				pNewConvergenceCriteria,
-				MaxIterations,
-				CalculateReactions,
-				ReformDofSetAtEachStep,
-				MoveMeshFlag)
-		{
-			KRATOS_TRY
-				//set flags to default values
-				NewtonBaseType::SetMaxIterationNumber(MaxIterations);
-			NewtonBaseType::mCalculateReactionsFlag = CalculateReactions;
-			
-			
-			NewtonBaseType::mReformDofSetAtEachStep = ReformDofSetAtEachStep;
-
-			//saving the convergence criteria to be used 
-			NewtonBaseType::mpConvergenceCriteria = pNewConvergenceCriteria;
-
-			//saving the scheme
-			NewtonBaseType::mpScheme = pScheme;
-
-			//saving the linear solver
-			NewtonBaseType::mpLinearSolver = pNewLinearSolver;
-
-			//setting up the default builder and solver
-			NewtonBaseType::mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-				(
-				new ExplicitResidualBasedBuilder<TSparseSpace,TDenseSpace,TLinearSolver>(NewtonBaseType::mpLinearSolver)
-				);
-
-			//set flags to start correcty the calculations
-			NewtonBaseType::mSolutionStepIsInitialized = false;
-			NewtonBaseType::mInitializeWasPerformed = false;
-
-			//tells to the builder and solver if the reactions have to be Calculated or not
-			NewtonBaseType::GetBuilderAndSolver()->SetCalculateReactionsFlag(NewtonBaseType::mCalculateReactionsFlag);
-
-			//tells to the Builder And Solver if the system matrix and vectors need to
-			//be reshaped at each step or not
-			NewtonBaseType::GetBuilderAndSolver()->SetReshapeMatrixFlag(NewtonBaseType::mReformDofSetAtEachStep);
-
-			//set EchoLevel to the default value (only time is displayed)
-			NewtonBaseType::SetEchoLevel(1);
-
-			//by default the matrices are rebuilt at each iteration
-			NewtonBaseType::SetRebuildLevel(2);
-
-			KRATOS_CATCH("")			
-		}
+    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
 
-		/** Destructor.
-		*/
-		virtual ~ExplicitResidualBasedNewtonRaphsonStrategy() {}
+    /*@} */
+    /**@name Life Cycle
+    */
+    /*@{ */
 
-		/** Destructor.
-		*/
-		void Predict()
-		{
-			KRATOS_TRY
-				//OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-				//if the operations needed were already performed this does nothing
-				if(NewtonBaseType::mInitializeWasPerformed == false)
-					NewtonBaseType::Initialize();
-KRATOS_WATCH("0000000000000000000000");
-			//initialize solution step
-			if (NewtonBaseType::mSolutionStepIsInitialized == false)
-				NewtonBaseType::InitializeSolutionStep();
-KRATOS_WATCH("111111111111111111111111111111");
-			DofsArrayType& rDofSet = NewtonBaseType::GetBuilderAndSolver()->GetDofSet();
-
-			TSystemMatrixType& mA = *NewtonBaseType::mpA;
-			TSystemVectorType& mDx = *NewtonBaseType::mpDx;
-			TSystemVectorType& mb = *NewtonBaseType::mpb;
-
-
-			NewtonBaseType::GetScheme()->Predict(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-KRATOS_WATCH("222222222222222222222222222222222222");
-			//move the mesh if needed
-			if(this->MoveMeshFlag() == true) BaseType::MoveMesh();
-
-			KRATOS_CATCH("")
-		}
+    /** Constructor.
+    */
+    ExplicitResidualBasedNewtonRaphsonStrategy(
+        ModelPart& model_part,
+        typename TSchemeType::Pointer pScheme,
+        typename TLinearSolver::Pointer pNewLinearSolver,
+        typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
+        int MaxIterations = 30,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = false
+    )
+        : ResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,
+                pScheme,
+                pNewLinearSolver,
+                pNewConvergenceCriteria,
+                MaxIterations,
+                CalculateReactions,
+                ReformDofSetAtEachStep,
+                MoveMeshFlag)
+    {
+        KRATOS_TRY
+        //set flags to default values
+        NewtonBaseType::SetMaxIterationNumber(MaxIterations);
+        NewtonBaseType::mCalculateReactionsFlag = CalculateReactions;
 
 
-		//*********************************************************************************
-		/** 
-		the problem of interest is solved
-		*/
-		//**********************************************************************
-		double Solve()
-		{
-			KRATOS_TRY
+        NewtonBaseType::mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+
+        //saving the convergence criteria to be used
+        NewtonBaseType::mpConvergenceCriteria = pNewConvergenceCriteria;
+
+        //saving the scheme
+        NewtonBaseType::mpScheme = pScheme;
+
+        //saving the linear solver
+        NewtonBaseType::mpLinearSolver = pNewLinearSolver;
+
+        //setting up the default builder and solver
+        NewtonBaseType::mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
+                                             (
+                                                     new ExplicitResidualBasedBuilder<TSparseSpace,TDenseSpace,TLinearSolver>(NewtonBaseType::mpLinearSolver)
+                                             );
+
+        //set flags to start correcty the calculations
+        NewtonBaseType::mSolutionStepIsInitialized = false;
+        NewtonBaseType::mInitializeWasPerformed = false;
+
+        //tells to the builder and solver if the reactions have to be Calculated or not
+        NewtonBaseType::GetBuilderAndSolver()->SetCalculateReactionsFlag(NewtonBaseType::mCalculateReactionsFlag);
+
+        //tells to the Builder And Solver if the system matrix and vectors need to
+        //be reshaped at each step or not
+        NewtonBaseType::GetBuilderAndSolver()->SetReshapeMatrixFlag(NewtonBaseType::mReformDofSetAtEachStep);
+
+        //set EchoLevel to the default value (only time is displayed)
+        NewtonBaseType::SetEchoLevel(1);
+
+        //by default the matrices are rebuilt at each iteration
+        NewtonBaseType::SetRebuildLevel(2);
+
+        KRATOS_CATCH("")
+    }
 
 
-				//pointers needed in the solution
-				typename TSchemeType::Pointer pScheme = NewtonBaseType::GetScheme();
-			typename TBuilderAndSolverType::Pointer pBuilderAndSolver = NewtonBaseType::GetBuilderAndSolver();
+    /** Destructor.
+    */
+    virtual ~ExplicitResidualBasedNewtonRaphsonStrategy() {}
 
-			DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+    /** Destructor.
+    */
+    void Predict()
+    {
+        KRATOS_TRY
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        //if the operations needed were already performed this does nothing
+        if(NewtonBaseType::mInitializeWasPerformed == false)
+            NewtonBaseType::Initialize();
+        KRATOS_WATCH("0000000000000000000000");
+        //initialize solution step
+        if (NewtonBaseType::mSolutionStepIsInitialized == false)
+            NewtonBaseType::InitializeSolutionStep();
+        KRATOS_WATCH("111111111111111111111111111111");
+        DofsArrayType& rDofSet = NewtonBaseType::GetBuilderAndSolver()->GetDofSet();
 
-			//OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
-			//if the operations needed were already performed this does nothing
-			if(NewtonBaseType::mInitializeWasPerformed == false)
-				NewtonBaseType::Initialize();
+        TSystemMatrixType& mA = *NewtonBaseType::mpA;
+        TSystemVectorType& mDx = *NewtonBaseType::mpDx;
+        TSystemVectorType& mb = *NewtonBaseType::mpb;
 
-			//prints informations about the current time
-			if (this->GetEchoLevel()!=0)
-			{
-				std::cout << " " << std::endl;
-				std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
-			}
 
-			//updates the database with a prediction of the solution
-KRATOS_WATCH("BEFORE PREDICt");
-			Predict();
-KRATOS_WATCH("AFTER PREDICt");
-			//initialize solution step
-			if (NewtonBaseType::mSolutionStepIsInitialized == false)
-				NewtonBaseType::InitializeSolutionStep();
-// 
-			TSystemMatrixType& mA = *NewtonBaseType::mpA;
-			TSystemVectorType& mDx = *NewtonBaseType::mpDx;
-			TSystemVectorType& mb = *NewtonBaseType::mpb;
+        NewtonBaseType::GetScheme()->Predict(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+        KRATOS_WATCH("222222222222222222222222222222222222");
+        //move the mesh if needed
+        if(this->MoveMeshFlag() == true) BaseType::MoveMesh();
+
+        KRATOS_CATCH("")
+    }
+
+
+    //*********************************************************************************
+    /**
+    the problem of interest is solved
+    */
+    //**********************************************************************
+    double Solve()
+    {
+        KRATOS_TRY
+
+
+        //pointers needed in the solution
+        typename TSchemeType::Pointer pScheme = NewtonBaseType::GetScheme();
+        typename TBuilderAndSolverType::Pointer pBuilderAndSolver = NewtonBaseType::GetBuilderAndSolver();
+
+        DofsArrayType& rDofSet = pBuilderAndSolver->GetDofSet();
+
+        //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
+        //if the operations needed were already performed this does nothing
+        if(NewtonBaseType::mInitializeWasPerformed == false)
+            NewtonBaseType::Initialize();
+
+        //prints informations about the current time
+        if (this->GetEchoLevel()!=0)
+        {
+            std::cout << " " << std::endl;
+            std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
+        }
+
+        //updates the database with a prediction of the solution
+        KRATOS_WATCH("BEFORE PREDICt");
+        Predict();
+        KRATOS_WATCH("AFTER PREDICt");
+        //initialize solution step
+        if (NewtonBaseType::mSolutionStepIsInitialized == false)
+            NewtonBaseType::InitializeSolutionStep();
+//
+        TSystemMatrixType& mA = *NewtonBaseType::mpA;
+        TSystemVectorType& mDx = *NewtonBaseType::mpDx;
+        TSystemVectorType& mb = *NewtonBaseType::mpb;
 
 // KRATOS_WATCH(mA);
 // KRATOS_WATCH(mDx);
@@ -263,234 +263,234 @@ KRATOS_WATCH("AFTER PREDICt");
 
 
 // 			//initializing the parameters of the Newton-Raphson cicle
-			unsigned int iteration_number=1; 
-			BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
+        unsigned int iteration_number=1;
+        BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
 // //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
- 			bool is_converged = false;
-			//bool ResidualIsUpdated = false;
-			pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-			is_converged = NewtonBaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+        bool is_converged = false;
+        //bool ResidualIsUpdated = false;
+        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+        is_converged = NewtonBaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
-			//function to perform the building 
-
-
-KRATOS_WATCH("BEFORE BuildRHS");
-			pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
-KRATOS_WATCH("AfTER BuildRHS");
+        //function to perform the building
 
 
-
-			//update results
-			pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-			//move the mesh if needed
-			if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-			pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-			is_converged = NewtonBaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
- 
+        KRATOS_WATCH("BEFORE BuildRHS");
+        pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
+        KRATOS_WATCH("AfTER BuildRHS");
 
 
-			//Iteration Cicle... performed only for NonLinearProblems
-			while(	is_converged == false &&
-				iteration_number++<NewtonBaseType::mMaxIterationNumber) 
-			{
-				//setting the number of iteration
-				BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;	
 
-				pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+        //update results
+        pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+        //move the mesh if needed
+        if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-				is_converged = NewtonBaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
-
-				//call the linear system solver to find the correction mDx for the 
-				//it is not called if there is no system to solve
-
-				KRATOS_WATCH(iteration_number);
-				pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);			
+        pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+        is_converged = NewtonBaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
 
-				//Updating the results stored in the database
+
+        //Iteration Cicle... performed only for NonLinearProblems
+        while(	is_converged == false &&
+                iteration_number++<NewtonBaseType::mMaxIterationNumber)
+        {
+            //setting the number of iteration
+            BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
+
+            pScheme->InitializeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+
+            is_converged = NewtonBaseType::mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+
+            //call the linear system solver to find the correction mDx for the
+            //it is not called if there is no system to solve
+
+            KRATOS_WATCH(iteration_number);
+            pBuilderAndSolver->BuildRHS(pScheme,BaseType::GetModelPart(),mb);
+
+
+            //Updating the results stored in the database
 // 				rDofSet = pBuilderAndSolver->GetDofSet();
-				pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+            pScheme->Update(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
-				//move the mesh if needed
-				if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+            //move the mesh if needed
+            if(BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
-				pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
-				is_converged = NewtonBaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(),mA,mDx,mb);
+            is_converged = NewtonBaseType::mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(),rDofSet,mA,mDx,mb);
 
 // 				ResidualIsUpdated = false;
 
-			}
+        }
 
 
 
-			//Finalisation of the solution step, 
-			//operations to be done after achieving convergence, for example the 
-			//Final Residual Vector (mb) has to be saved in there 
-			//to avoid error accumulation
-			pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
-			pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
+        //Finalisation of the solution step,
+        //operations to be done after achieving convergence, for example the
+        //Final Residual Vector (mb) has to be saved in there
+        //to avoid error accumulation
+        pScheme->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
+        pBuilderAndSolver->FinalizeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
 
-			//Cleaning memory after the solution
-			pScheme->Clean();
+        //Cleaning memory after the solution
+        pScheme->Clean();
 
-			//reset flags for next step
-			NewtonBaseType::mSolutionStepIsInitialized = false;
-
-
-
-			return 0.00;
-
-			KRATOS_CATCH("")
-
-		}
-
-
-		/*@} */
-		/**@name Operators 
-		*/  
-		/*@{ */
-
-		/*@} */
-		/**@name Operations */
-		/*@{ */
-
-
-		/*@} */  
-		/**@name Access */
-		/*@{ */
-		
+        //reset flags for next step
+        NewtonBaseType::mSolutionStepIsInitialized = false;
 
 
 
-		/*@} */
-		/**@name Inquiry */
-		/*@{ */
+        return 0.00;
+
+        KRATOS_CATCH("")
+
+    }
 
 
-		/*@} */      
-		/**@name Friends */
-		/*@{ */
+    /*@} */
+    /**@name Operators
+    */
+    /*@{ */
+
+    /*@} */
+    /**@name Operations */
+    /*@{ */
 
 
-		/*@} */
-
-	private:
-		/**@name Protected static Member Variables */
-		/*@{ */
-
-
-		/*@} */
-		/**@name Protected member Variables */
-		/*@{ */
-
-
-		/*@} */
-		/**@name Protected Operators*/
-		/*@{ */
-
-
-		/*@} */
-		/**@name Protected Operations*/
-		/*@{ */
+    /*@} */
+    /**@name Access */
+    /*@{ */
 
 
 
-		/*@} */
-		/**@name Protected  Access */
-		/*@{ */
+
+    /*@} */
+    /**@name Inquiry */
+    /*@{ */
 
 
-		/*@} */     
-		/**@name Protected Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Friends */
+    /*@{ */
 
 
-		/*@} */   
-		/**@name Protected LifeCycle */  
-		/*@{ */
+    /*@} */
+
+private:
+    /**@name Protected static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Operators*/
+    /*@{ */
+
+
+    /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
 
 
 
-		/*@} */    
-
-	protected:
-		/**@name Static Member Variables */
-		/*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
 
 
-		/*@} */
-		/**@name Member Variables */
-		/*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
 
-		//**********************************************************************
-		//**********************************************************************
+
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
+
+
+
+    /*@} */
+
+protected:
+    /**@name Static Member Variables */
+    /*@{ */
+
+
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+
+    //**********************************************************************
+    //**********************************************************************
 // 		void InitializeSolutionStep()
 // 		{
 // 			KRATOS_TRY
-// 
+//
 // 				typename TBuilderAndSolverType::Pointer pBuilderAndSolver = NewtonBaseType::GetBuilderAndSolver();
 // 			typename TSchemeType::Pointer pScheme = NewtonBaseType::GetScheme();
-// 
+//
 // KRATOS_WATCH("EXPLICITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT");
 // KRATOS_WATCH("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-// 			//setting up the Vectors involved to the correct size 
+// 			//setting up the Vectors involved to the correct size
 // 			pBuilderAndSolver->ResizeAndInitializeVectors(mpA,mpDx,mpb,BaseType::GetModelPart().Elements(),BaseType::GetModelPart().Conditions(),BaseType::GetModelPart().GetProcessInfo());
 // KRATOS_WATCH("QQQQQQQQQQQQQQQQQQQQQQQQQ");
 // 			TSystemMatrixType& mA = *NewtonBaseType::mpA;
 // 			TSystemVectorType& mDx = *NewtonBaseType::mpDx;
 // 			TSystemVectorType& mb = *NewtonBaseType::mpb;
-// 
-// 
+//
+//
 // 			//initial operations ... things that are constant over the Solution Step
 // 			pBuilderAndSolver->InitializeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
 // KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 // 			//initial operations ... things that are constant over the Solution Step
 // 			pScheme->InitializeSolutionStep(BaseType::GetModelPart(),mA,mDx,mb);
 // KRATOS_WATCH("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS");
-// 			NewtonBaseType::mSolutionStepIsInitialized = true;			
-// 
+// 			NewtonBaseType::mSolutionStepIsInitialized = true;
+//
 // 			KRATOS_CATCH("")
-// 		}	
+// 		}
 
 
-		//**********************************************************************
+    //**********************************************************************
 
-		/*@} */
-		/**@name Private Operations*/
-		/*@{ */
-
-
-		/*@} */
-		/**@name Private  Access */
-		/*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
 
 
-		/*@} */     
-		/**@name Private Inquiry */
-		/*@{ */
+    /*@} */
+    /**@name Private  Access */
+    /*@{ */
 
 
-		/*@} */   
-		/**@name Un accessible methods */
-		/*@{ */
-
-		/** Copy constructor.
-		*/
-		ExplicitResidualBasedNewtonRaphsonStrategy(const ExplicitResidualBasedNewtonRaphsonStrategy& Other);
+    /*@} */
+    /**@name Private Inquiry */
+    /*@{ */
 
 
-		/*@} */   
+    /*@} */
+    /**@name Un accessible methods */
+    /*@{ */
 
-	}; /* Class ResidualBasedNewtonRaphsonStrategy */
-
-	/*@} */
-
-	/**@name Type Definitions */       
-	/*@{ */
+    /** Copy constructor.
+    */
+    ExplicitResidualBasedNewtonRaphsonStrategy(const ExplicitResidualBasedNewtonRaphsonStrategy& Other);
 
 
-	/*@} */
+    /*@} */
+
+}; /* Class ResidualBasedNewtonRaphsonStrategy */
+
+/*@} */
+
+/**@name Type Definitions */
+/*@{ */
+
+
+/*@} */
 
 }  /* namespace Kratos.*/
 

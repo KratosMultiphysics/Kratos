@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosThermoMechanicalApplication 
+KratosThermoMechanicalApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,65 +41,65 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author:  $
 //   Date:                $Date: $
 //   Revision:            $Revision: 1.3 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "thermo_mechanical_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosThermoMechanicalApplication)
-  {
 
-	  class_<KratosThermoMechanicalApplication, 
-			  KratosThermoMechanicalApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosThermoMechanicalApplication")
-			;
+BOOST_PYTHON_MODULE(KratosThermoMechanicalApplication)
+{
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-	AddCustomProcessesToPython();
-	
-	//registering variables in python
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  NODE_PROPERTY_ID )
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AMBIENT_TEMPERATURE )
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  HTC )
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(  REF_ID )
-	
+    class_<KratosThermoMechanicalApplication,
+           KratosThermoMechanicalApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosThermoMechanicalApplication")
+           ;
+
+    AddCustomStrategiesToPython();
+    AddCustomUtilitiesToPython();
+    AddCustomProcessesToPython();
+
+    //registering variables in python
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  NODE_PROPERTY_ID )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  AMBIENT_TEMPERATURE )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  HTC )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(  REF_ID )
 
 
-  }
-  
-  
+
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

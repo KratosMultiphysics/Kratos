@@ -4,17 +4,17 @@
 #include <cstddef> // size_t
 
 #ifdef _DEBUG
-  #ifdef _MSC_VER
-    // windows
-    #define _revienta(cond) if (cond) __asm int 3;
-  #else
-    // no - windows
-    #include <cassert>
-    #define _revienta(cond) assert(!(cond));
-  #endif
+#ifdef _MSC_VER
+// windows
+#define _revienta(cond) if (cond) __asm int 3;
 #else
-  // release
-  #define _revienta(cond) ((void)0)
+// no - windows
+#include <cassert>
+#define _revienta(cond) assert(!(cond));
+#endif
+#else
+// release
+#define _revienta(cond) ((void)0)
 #endif
 
 #ifdef _WIN32
@@ -31,8 +31,8 @@ typedef unsigned int uint;
 // float        4 3.4E +/- 38   (7 digits)
 // double       8 1.7E +/- 308  (15 digits)
 // long double 10 1.2E +/- 4932 (19 digits)
-  #define REAL double
-  #define real double
+#define REAL double
+#define real double
 #endif
 static const double ERRADM=1e-12;
 static const double MINREAL=1e-300;
@@ -57,7 +57,11 @@ static const size_t SZD=sizeof(double);
 static const size_t SZP=sizeof(void *);
 
 static inline int ciclo(int indice, int longitud)
-  {int j=(indice%longitud); if (j<0) return j+longitud; else return j;}
+{
+    int j=(indice%longitud);
+    if (j<0) return j+longitud;
+    else return j;
+}
 
 //================================
 // bits el primero es el 0 (b es numero (1,2,4,8...), no bit)
@@ -69,55 +73,120 @@ static inline int ciclo(int indice, int longitud)
 #define _is0_all(n,b) ~n&b==b
 
 //================================
-static inline REAL g2r(REAL x) {return (G2R*x);}
-static inline REAL r2g(REAL x) {return (R2G*x);}
+static inline REAL g2r(REAL x)
+{
+    return (G2R*x);
+}
+static inline REAL r2g(REAL x)
+{
+    return (R2G*x);
+}
 
 //================================
 // indice vectorial de matriz triangular superior con diagonal (c>=f)
-static inline int TSD(int f,int c, int n) {return ((f*((n<<1)-f+1))>>1)+c;}
+static inline int TSD(int f,int c, int n)
+{
+    return ((f*((n<<1)-f+1))>>1)+c;
+}
 // indice vectorial de matriz triangular superior sin diagonal (c>f)
-static inline int TS(int f,int c, int n) {return ((f*(((n-1)<<1)-f+1))>>1)+c-1;}
+static inline int TS(int f,int c, int n)
+{
+    return ((f*(((n-1)<<1)-f+1))>>1)+c-1;
+}
 
 // cambia el contenido y no la direccion (lento pero seguro)
 template <class T> static inline void Swap(T&t1, T&t2) //swap en conflicto con stl
-  {T t0=t1; t1=t2; t2=t0;}
+{
+    T t0=t1;
+    t1=t2;
+    t2=t0;
+}
 
 //#define min(a,b)  (((a) < (b)) ? (a) : (b)) // en stdlib, pero...
 // minimo
 //#define Min(t1, t2)  {(t1<t2) ? t1 : t2;}
 template <class T> static inline const T &Min(const T &t1,const T &t2)
-{if (t1<t2) return t1; else return t2;}
+{
+    if (t1<t2) return t1;
+    else return t2;
+}
 template <class T> static inline const T &Min3(const T &t1,const T &t2,const T &t3)
-{if (t1<t2) {if (t1<t3) return t1; else return t3;} else {if (t2<t3) return t2; else return t3;}}
+{
+    if (t1<t2)
+    {
+        if (t1<t3) return t1;
+        else return t3;
+    }
+    else
+    {
+        if (t2<t3) return t2;
+        else return t3;
+    }
+}
 // maximo
 template <class T> static inline const T &Max(const T &t1,const T &t2)
-{if (t1>t2) return t1; else return t2;}
+{
+    if (t1>t2) return t1;
+    else return t2;
+}
 template <class T> static inline const T &Max3(const T &t1,const T &t2,const T &t3)
-{if (t1>t2) {if (t1>t3) return t1; else return t3;} else {if (t2>t3) return t2; else return t3;}}
+{
+    if (t1>t2)
+    {
+        if (t1>t3) return t1;
+        else return t3;
+    }
+    else
+    {
+        if (t2>t3) return t2;
+        else return t3;
+    }
+}
 
 
 // potencia >0
 template <class T> static inline T pown(T inp, int p)
-{T ret=1;  while (p--) ret*=inp; return ret;} // ojo el 1
+{
+    T ret=1;     // ojo el 1
+    while (p--) ret*=inp;
+    return ret;
+}
 
 // combinatorio (solo un test de validez)
 static inline long unsigned int Comb(int qty, int total)
 {
-  if (!qty||(qty==total)) return 1;
-  return Comb(qty-1,total-1)+Comb(qty,total-1);
+    if (!qty||(qty==total)) return 1;
+    return Comb(qty-1,total-1)+Comb(qty,total-1);
 }
 
 template <class T> inline bool set_min(T& tminguardado,const T& tcompare)
-{if (tcompare<tminguardado) {tminguardado=tcompare; return true;} else return false;}
+{
+    if (tcompare<tminguardado)
+    {
+        tminguardado=tcompare;
+        return true;
+    }
+    else return false;
+}
 template <class T> inline bool set_max(T& tmaxguardado,const T& tcompare)
-{if (tcompare>tmaxguardado) {tmaxguardado=tcompare; return true;} else return false;}
-template <class T> inline void set_min_max(T& tminguardado,T& tmaxguardado,const T& tcompare){
-  if (tcompare>tmaxguardado) tmaxguardado=tcompare;
-  if (tcompare<tminguardado) tminguardado=tcompare;
+{
+    if (tcompare>tmaxguardado)
+    {
+        tmaxguardado=tcompare;
+        return true;
+    }
+    else return false;
+}
+template <class T> inline void set_min_max(T& tminguardado,T& tmaxguardado,const T& tcompare)
+{
+    if (tcompare>tmaxguardado) tmaxguardado=tcompare;
+    if (tcompare<tminguardado) tminguardado=tcompare;
 }
 
 static inline double redondea(double value,double r)
-{return (int(value/r+.5))*r;}
+{
+    return (int(value/r+.5))*r;
+}
 
 
 // guarda temporariamente el valor de un bool

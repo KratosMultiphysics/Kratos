@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-04-28 16:19:49 $
 //   Revision:            $Revision: 1.2 $
@@ -50,10 +50,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -63,13 +63,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython();
 
-    }  // namespace Python.
-  
+}  // namespace Python.
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_CUSTOM_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

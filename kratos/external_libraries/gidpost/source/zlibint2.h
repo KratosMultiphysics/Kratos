@@ -1,6 +1,6 @@
 /* infblock.h -- header to use infblock.c
  * Copyright (C) 1995-1998 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -12,36 +12,36 @@ struct inflate_blocks_state;
 typedef struct inflate_blocks_state FAR inflate_blocks_statef;
 
 extern inflate_blocks_statef * inflate_blocks_new OF((
-    z_streamp z,
-    check_func c,               /* check function */
-    uInt w));                   /* window size */
+            z_streamp z,
+            check_func c,               /* check function */
+            uInt w));                   /* window size */
 
 extern int inflate_blocks OF((
-    inflate_blocks_statef *,
-    z_streamp ,
-    int));                      /* initial return code */
+                                 inflate_blocks_statef *,
+                                 z_streamp ,
+                                 int));                      /* initial return code */
 
 extern void inflate_blocks_reset OF((
-    inflate_blocks_statef *,
-    z_streamp ,
-    uLongf *));                  /* check value on output */
+                                        inflate_blocks_statef *,
+                                        z_streamp ,
+                                        uLongf *));                  /* check value on output */
 
 extern int inflate_blocks_free OF((
-    inflate_blocks_statef *,
-    z_streamp));
+                                      inflate_blocks_statef *,
+                                      z_streamp));
 
 extern void inflate_set_dictionary OF((
-    inflate_blocks_statef *s,
-    const Bytef *d,  /* dictionary */
-    uInt  n));       /* dictionary length */
+        inflate_blocks_statef *s,
+        const Bytef *d,  /* dictionary */
+        uInt  n));       /* dictionary length */
 
 extern int inflate_blocks_sync_point OF((
-    inflate_blocks_statef *s));
+        inflate_blocks_statef *s));
 
 
 /* inftrees.h -- header to use inftrees.c
  * Copyright (C) 1995-1998 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -54,15 +54,18 @@ extern int inflate_blocks_sync_point OF((
 
 typedef struct inflate_huft_s FAR inflate_huft;
 
-struct inflate_huft_s {
-  union {
-    struct {
-      Byte Exop;        /* number of extra bits or operation */
-      Byte Bits;        /* number of bits in this code or subcode */
-    } what;
-    uInt pad;           /* pad structure to a power of 2 (4 bytes for */
-  } word;               /*  16-bit, 8 bytes for 32-bit int's) */
-  uInt base;            /* literal, length base, distance base,
+struct inflate_huft_s
+{
+    union
+    {
+        struct
+        {
+            Byte Exop;        /* number of extra bits or operation */
+            Byte Bits;        /* number of bits in this code or subcode */
+        } what;
+        uInt pad;           /* pad structure to a power of 2 (4 bytes for */
+    } word;               /*  16-bit, 8 bytes for 32-bit int's) */
+    uInt base;            /* literal, length base, distance base,
                            or table offset */
 };
 
@@ -74,35 +77,35 @@ struct inflate_huft_s {
 #define MANY 1440
 
 extern int inflate_trees_bits OF((
-    uIntf *,                    /* 19 code lengths */
-    uIntf *,                    /* bits tree desired/actual depth */
-    inflate_huft * FAR *,       /* bits tree result */
-    inflate_huft *,             /* space for trees */
-    z_streamp));                /* for messages */
+                                     uIntf *,                    /* 19 code lengths */
+                                     uIntf *,                    /* bits tree desired/actual depth */
+                                     inflate_huft * FAR *,       /* bits tree result */
+                                     inflate_huft *,             /* space for trees */
+                                     z_streamp));                /* for messages */
 
 extern int inflate_trees_dynamic OF((
-    uInt,                       /* number of literal/length codes */
-    uInt,                       /* number of distance codes */
-    uIntf *,                    /* that many (total) code lengths */
-    uIntf *,                    /* literal desired/actual bit depth */
-    uIntf *,                    /* distance desired/actual bit depth */
-    inflate_huft * FAR *,       /* literal/length tree result */
-    inflate_huft * FAR *,       /* distance tree result */
-    inflate_huft *,             /* space for trees */
-    z_streamp));                /* for messages */
+                                        uInt,                       /* number of literal/length codes */
+                                        uInt,                       /* number of distance codes */
+                                        uIntf *,                    /* that many (total) code lengths */
+                                        uIntf *,                    /* literal desired/actual bit depth */
+                                        uIntf *,                    /* distance desired/actual bit depth */
+                                        inflate_huft * FAR *,       /* literal/length tree result */
+                                        inflate_huft * FAR *,       /* distance tree result */
+                                        inflate_huft *,             /* space for trees */
+                                        z_streamp));                /* for messages */
 
 extern int inflate_trees_fixed OF((
-    uIntf *,                    /* literal desired/actual bit depth */
-    uIntf *,                    /* distance desired/actual bit depth */
-    inflate_huft * FAR *,       /* literal/length tree result */
-    inflate_huft * FAR *,       /* distance tree result */
-    z_streamp));                /* for memory allocation */
+                                      uIntf *,                    /* literal desired/actual bit depth */
+                                      uIntf *,                    /* distance desired/actual bit depth */
+                                      inflate_huft * FAR *,       /* literal/length tree result */
+                                      inflate_huft * FAR *,       /* distance tree result */
+                                      z_streamp));                /* for memory allocation */
 
 
 
 /* infcodes.h -- header to use infcodes.c
  * Copyright (C) 1995-1998 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -114,24 +117,24 @@ struct inflate_codes_state;
 typedef struct inflate_codes_state FAR inflate_codes_statef;
 
 extern inflate_codes_statef *inflate_codes_new OF((
-    uInt, uInt,
-    inflate_huft *, inflate_huft *,
-    z_streamp ));
+            uInt, uInt,
+            inflate_huft *, inflate_huft *,
+            z_streamp ));
 
 extern int inflate_codes OF((
-    inflate_blocks_statef *,
-    z_streamp ,
-    int));
+                                inflate_blocks_statef *,
+                                z_streamp ,
+                                int));
 
 extern void inflate_codes_free OF((
-    inflate_codes_statef *,
-    z_streamp ));
+                                      inflate_codes_statef *,
+                                      z_streamp ));
 
 
 
 /* infutil.h -- types and macros common to blocks and codes
  * Copyright (C) 1995-1998 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -142,52 +145,58 @@ extern void inflate_codes_free OF((
 #ifndef _INFUTIL_H
 #define _INFUTIL_H
 
-typedef enum {
-      TYPE,     /* get type bits (3, including end bit) */
-      LENS,     /* get lengths for stored */
-      STORED,   /* processing stored block */
-      TABLE,    /* get table lengths */
-      BTREE,    /* get bit lengths tree for a dynamic block */
-      DTREE,    /* get length, distance trees for a dynamic block */
-      CODES,    /* processing fixed or dynamic block */
-      DRY,      /* output remaining window bytes */
-      DONE,     /* finished last block, done */
-      BAD}      /* got a data error--stuck here */
+typedef enum
+{
+    TYPE,     /* get type bits (3, including end bit) */
+    LENS,     /* get lengths for stored */
+    STORED,   /* processing stored block */
+    TABLE,    /* get table lengths */
+    BTREE,    /* get bit lengths tree for a dynamic block */
+    DTREE,    /* get length, distance trees for a dynamic block */
+    CODES,    /* processing fixed or dynamic block */
+    DRY,      /* output remaining window bytes */
+    DONE,     /* finished last block, done */
+    BAD
+}      /* got a data error--stuck here */
 inflate_block_mode;
 
 /* inflate blocks semi-private state */
-struct inflate_blocks_state {
+struct inflate_blocks_state
+{
 
-  /* mode */
-  inflate_block_mode  mode;     /* current inflate_block mode */
+    /* mode */
+    inflate_block_mode  mode;     /* current inflate_block mode */
 
-  /* mode dependent information */
-  union {
-    uInt left;          /* if STORED, bytes left to copy */
-    struct {
-      uInt table;               /* table lengths (14 bits) */
-      uInt index;               /* index into blens (or border) */
-      uIntf *blens;             /* bit lengths of codes */
-      uInt bb;                  /* bit length tree depth */
-      inflate_huft *tb;         /* bit length decoding tree */
-    } trees;            /* if DTREE, decoding info for trees */
-    struct {
-      inflate_codes_statef 
-         *codes;
-    } decode;           /* if CODES, current state */
-  } sub;                /* submode */
-  uInt last;            /* true if this block is the last block */
+    /* mode dependent information */
+    union
+    {
+        uInt left;          /* if STORED, bytes left to copy */
+        struct
+        {
+            uInt table;               /* table lengths (14 bits) */
+            uInt index;               /* index into blens (or border) */
+            uIntf *blens;             /* bit lengths of codes */
+            uInt bb;                  /* bit length tree depth */
+            inflate_huft *tb;         /* bit length decoding tree */
+        } trees;            /* if DTREE, decoding info for trees */
+        struct
+        {
+            inflate_codes_statef
+            *codes;
+        } decode;           /* if CODES, current state */
+    } sub;                /* submode */
+    uInt last;            /* true if this block is the last block */
 
-  /* mode independent information */
-  uInt bitk;            /* bits in bit buffer */
-  uLong bitb;           /* bit buffer */
-  inflate_huft *hufts;  /* single malloc for tree space */
-  Bytef *window;        /* sliding window */
-  Bytef *end;           /* one byte after sliding window */
-  Bytef *read;          /* window read pointer */
-  Bytef *write;         /* window write pointer */
-  check_func checkfn;   /* check function */
-  uLong check;          /* check on output */
+    /* mode independent information */
+    uInt bitk;            /* bits in bit buffer */
+    uLong bitb;           /* bit buffer */
+    inflate_huft *hufts;  /* single malloc for tree space */
+    Bytef *window;        /* sliding window */
+    Bytef *end;           /* one byte after sliding window */
+    Bytef *read;          /* window read pointer */
+    Bytef *write;         /* window write pointer */
+    check_func checkfn;   /* check function */
+    uLong check;          /* check on output */
 
 };
 
@@ -220,9 +229,9 @@ extern uInt inflate_mask[17];
 
 /* copy as much as possible from the sliding window to the output area */
 extern int inflate_flush OF((
-    inflate_blocks_statef *,
-    z_streamp ,
-    int));
+                                inflate_blocks_statef *,
+                                z_streamp ,
+                                int));
 
 /*struct internal_state      {int dummy;};*/ /* for buggy compilers */
 
@@ -231,7 +240,7 @@ extern int inflate_flush OF((
 
 /* inffast.h -- header to use inffast.c
  * Copyright (C) 1995-1998 Mark Adler
- * For conditions of distribution and use, see copyright notice in zlib.h 
+ * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
 /* WARNING: this file should *not* be used by applications. It is
@@ -240,11 +249,11 @@ extern int inflate_flush OF((
  */
 
 extern int inflate_fast OF((
-    uInt,
-    uInt,
-    inflate_huft *,
-    inflate_huft *,
-    inflate_blocks_statef *,
-    z_streamp ));
+                               uInt,
+                               uInt,
+                               inflate_huft *,
+                               inflate_huft *,
+                               inflate_blocks_statef *,
+                               z_streamp ));
 
 

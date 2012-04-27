@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -50,10 +50,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -67,10 +67,10 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddVectorialSpacesToPython();
+void  AddVectorialSpacesToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_VECTORIAL_SPACES_PYTHON_H_INCLUDED  defined 

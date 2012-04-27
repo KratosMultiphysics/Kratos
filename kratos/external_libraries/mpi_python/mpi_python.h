@@ -7,7 +7,8 @@
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
 
-namespace Kratos {
+namespace Kratos
+{
 
 /// A wrapper arround the MPI_Comm MPI communicator class.
 /** This class is used to provide basic MPI communication

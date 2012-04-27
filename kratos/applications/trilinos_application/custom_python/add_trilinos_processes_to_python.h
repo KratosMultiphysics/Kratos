@@ -68,10 +68,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    namespace Python
-    {
-        void  AddProcesses();
-    }  // namespace Python.
+namespace Python
+{
+void  AddProcesses();
+}  // namespace Python.
 
 }  // namespace Kratos.
 

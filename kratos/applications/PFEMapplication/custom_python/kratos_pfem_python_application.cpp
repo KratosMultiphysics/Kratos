@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosPFEMApplication 
+KratosPFEMApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,23 +38,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2008-03-05 09:39:14 $
 //   Revision:            $Revision: 1.6 $
 //
 //
 
-// System includes 
+// System includes
 
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "PFEM_application.h"
 #include "custom_python/add_meshers_to_python.h"
@@ -62,47 +62,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_processes_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 
- 
+
 namespace Kratos
 {
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
 
-  
-  BOOST_PYTHON_MODULE(KratosPFEMApplication)
-  {
 
-	  class_<KratosPFEMApplication, 
-			  KratosPFEMApplication::Pointer, 
-			  bases<KratosApplication>, boost::noncopyable >("KratosPFEMApplication")
-			;
-		AddMeshersToPython();
-		AddCustomUtilitiesToPython();
-		AddCustomIOToPython();
-		AddProcessesToPython();
+BOOST_PYTHON_MODULE(KratosPFEMApplication)
+{
 
-		//registering variables in python
-/*		KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_H)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_STRUCTURE)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_FLUID)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_BOUNDARY)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_FREE_SURFACE)
-*/	
+    class_<KratosPFEMApplication,
+           KratosPFEMApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosPFEMApplication")
+           ;
+    AddMeshersToPython();
+    AddCustomUtilitiesToPython();
+    AddCustomIOToPython();
+    AddProcessesToPython();
+
+    //registering variables in python
+    /*		KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
+    		KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_H)
+    		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_STRUCTURE)
+    		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_FLUID)
+    		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_BOUNDARY)
+    		KRATOS_REGISTER_IN_PYTHON_VARIABLE(IS_FREE_SURFACE)
+    */
 //		KRATOS_REGISTER_VARIABLE( PRESSURE_OLD_IT)
 //		KRATOS_REGISTER_VARIABLE( NODAL_MASS)
 //		KRATOS_REGISTER_IN_PYTHON_VARIABLE(FRACT_VEL)
-		KRATOS_REGISTER_IN_PYTHON_VARIABLE(VAUX)
-		
-  }
-  
-  
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(VAUX)
+
+}
+
+
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

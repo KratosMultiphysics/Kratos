@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:33 $
 //   Revision:            $Revision: 1.2 $
@@ -52,12 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <sstream>
 #include <cstddef>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -68,310 +68,312 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  template<class TNodeType, class TElementType>
-  class Neighbours
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+template<class TNodeType, class TElementType>
+class Neighbours
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of Neighbours
+    KRATOS_CLASS_POINTER_DEFINITION(Neighbours);
+
+    typedef std::size_t IndexType;
+
+    typedef boost::weak_ptr<TNodeType> NodeWeakPointer;
+
+    typedef boost::weak_ptr<TElementType> ElementWeakPointer;
+
+    /** An array of pointers to elements. */
+    typedef WeakPointerVector<TElementType> NeighbourElementsArrayType;
+
+    /** An array of pointers to nodes. */
+    typedef WeakPointerVector<TNodeType> NeighbourNodesArrayType;
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Neighbours() {}
+
+    /// Copy constructor.
+    Neighbours(const Neighbours& rOther)
+        : mIndex(rOther.mIndex)
+        , mpNeighbourElements(rOther.mpNeighbourElements)
+        , mpNeighbourNodes(rOther.mpNeighbourNodes)
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of Neighbours
-      KRATOS_CLASS_POINTER_DEFINITION(Neighbours);
-  
-      typedef std::size_t IndexType;
+    }
 
-      typedef boost::weak_ptr<TNodeType> NodeWeakPointer;
-      
-      typedef boost::weak_ptr<TElementType> ElementWeakPointer;
-      
-      /** An array of pointers to elements. */
-      typedef WeakPointerVector<TElementType> NeighbourElementsArrayType;
-  
-      /** An array of pointers to nodes. */
-      typedef WeakPointerVector<TNodeType> NeighbourNodesArrayType;
+    Neighbours(IndexType NewIndex,
+               typename NeighbourElementsArrayType::Pointer pNewNeighbourElements,
+               typename NeighbourNodesArrayType::Pointer pNewNeighbourNodes)
+        : mIndex(NewIndex)
+        , mpNeighbourElements(pNewNeighbourElements)
+        , mpNeighbourNodes(pNewNeighbourNodes)
+    {
+    }
 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      Neighbours(){}
+    Neighbours(IndexType NewIndex)
+        :  mIndex(NewIndex)
+    {
+    }
 
-      /// Copy constructor.
-      Neighbours(const Neighbours& rOther) 
-	: mIndex(rOther.mIndex)
-	, mpNeighbourElements(rOther.mpNeighbourElements)
-	, mpNeighbourNodes(rOther.mpNeighbourNodes) 
-      {
-      }
-      
-      Neighbours(IndexType NewIndex, 
-		 typename NeighbourElementsArrayType::Pointer pNewNeighbourElements, 
-		 typename NeighbourNodesArrayType::Pointer pNewNeighbourNodes)
-	: mIndex(NewIndex)
-	, mpNeighbourElements(pNewNeighbourElements)
-	, mpNeighbourNodes(pNewNeighbourNodes) 
-      {
-      }
+    /// Destructor.
+    virtual ~Neighbours() {}
 
-      Neighbours(IndexType NewIndex) 
-	:  mIndex(NewIndex)
-      {
-      }
 
-      /// Destructor.
-      virtual ~Neighbours(){}
-      
+    ///@}
+    ///@name Operators
+    ///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      /// Assignment operator.
-      Neighbours& operator=(const Neighbours& rOther)
-	{
-	  mIndex = rOther.mIndex;
-	  mpNeighbourElements = rOther.mpNeighbourElements;
-	  mpNeighbourNodes = rOther.mpNeighbourNodes;
+    /// Assignment operator.
+    Neighbours& operator=(const Neighbours& rOther)
+    {
+        mIndex = rOther.mIndex;
+        mpNeighbourElements = rOther.mpNeighbourElements;
+        mpNeighbourNodes = rOther.mpNeighbourNodes;
 
-	  return *this;
-	}
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      Neighbours Clone()
-      {
-	typename NeighbourElementsArrayType::Pointer p_neighbour_elements(new NeighbourElementsArrayType(*mpNeighbourElements)); 
-	typename NeighbourNodesArrayType::Pointer p_neighbour_nodes(new NeighbourNodesArrayType(*mpNeighbourNodes));
+        return *this;
+    }
 
-	return Neighbours(mIndex, p_neighbour_elements, p_neighbour_nodes);
-      }
-            
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      IndexType Index()
-      {return mIndex;}
 
-      
-      const typename NeighbourElementsArrayType::Pointer pNeighbourElements() const
-	{
-	  return mpNeighbourElements;
-	}
-      
-      typename NeighbourElementsArrayType::Pointer pNeighbourElements()
-	{
-	  return mpNeighbourElements;
-	}
-      
-      NeighbourElementsArrayType const& NeighbourElements() const
-	{
-	  return *mpNeighbourElements;
-	}
-      
-      NeighbourElementsArrayType& NeighbourElements()
-	{
-	  return *mpNeighbourElements;
-	}
-      
-      const typename NeighbourNodesArrayType::Pointer pNeighbourNodes() const
-	{
-	  return mpNeighbourNodes;
-	}
-      
-      typename NeighbourNodesArrayType::Pointer pNeighbourNodes()
-	{
-	  return mpNeighbourNodes;
-	}
-      
-      NeighbourNodesArrayType const& NeighbourNodes() const
-	{
-	  return *mpNeighbourNodes;
-	}
-      
-      NeighbourNodesArrayType& NeighbourNodes()
-	{
-	  return *mpNeighbourNodes;
-	}
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const
-	{
-	  return "Neighbours";
-	}
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info();
-	}
+    Neighbours Clone()
+    {
+        typename NeighbourElementsArrayType::Pointer p_neighbour_elements(new NeighbourElementsArrayType(*mpNeighbourElements));
+        typename NeighbourNodesArrayType::Pointer p_neighbour_nodes(new NeighbourNodesArrayType(*mpNeighbourNodes));
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-	{
-	  rOStream << "Number of neighbour nodes    : " << mpNeighbourNodes->size() << std::endl;
-	  rOStream << "Number of neighbour elements : " << mpNeighbourElements->size() << std::endl;
+        return Neighbours(mIndex, p_neighbour_elements, p_neighbour_nodes);
+    }
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    IndexType Index()
+    {
+        return mIndex;
+    }
+
+
+    const typename NeighbourElementsArrayType::Pointer pNeighbourElements() const
+    {
+        return mpNeighbourElements;
+    }
+
+    typename NeighbourElementsArrayType::Pointer pNeighbourElements()
+    {
+        return mpNeighbourElements;
+    }
+
+    NeighbourElementsArrayType const& NeighbourElements() const
+    {
+        return *mpNeighbourElements;
+    }
+
+    NeighbourElementsArrayType& NeighbourElements()
+    {
+        return *mpNeighbourElements;
+    }
+
+    const typename NeighbourNodesArrayType::Pointer pNeighbourNodes() const
+    {
+        return mpNeighbourNodes;
+    }
+
+    typename NeighbourNodesArrayType::Pointer pNeighbourNodes()
+    {
+        return mpNeighbourNodes;
+    }
+
+    NeighbourNodesArrayType const& NeighbourNodes() const
+    {
+        return *mpNeighbourNodes;
+    }
+
+    NeighbourNodesArrayType& NeighbourNodes()
+    {
+        return *mpNeighbourNodes;
+    }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "Neighbours";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << "Number of neighbour nodes    : " << mpNeighbourNodes->size() << std::endl;
+        rOStream << "Number of neighbour elements : " << mpNeighbourElements->size() << std::endl;
 // 	  rOStream << "Neighbour nodes : " <<;
 // 	  for(
 // 	  rOStream << "Neighbour elements : " << mpNeighbourElements->size() << std::endl;
-	  
-	}
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-      IndexType mIndex;
-        
-      typename NeighbourElementsArrayType::Pointer mpNeighbourElements;
-        
-      typename NeighbourNodesArrayType::Pointer mpNeighbourNodes;
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      ///@}    
-        
-    }; // Class Neighbours 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  template<class TNodeType, class TElementType>
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    Neighbours<TNodeType, TElementType>& rThis);
-
-  /// output stream function
-  template<class TNodeType, class TElementType>
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const Neighbours<TNodeType, TElementType>& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
     }
-  ///@} 
-  
-  
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    IndexType mIndex;
+
+    typename NeighbourElementsArrayType::Pointer mpNeighbourElements;
+
+    typename NeighbourNodesArrayType::Pointer mpNeighbourNodes;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    ///@}
+
+}; // Class Neighbours
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TNodeType, class TElementType>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  Neighbours<TNodeType, TElementType>& rThis);
+
+/// output stream function
+template<class TNodeType, class TElementType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const Neighbours<TNodeType, TElementType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_NEIGHBOURS_H_INCLUDED  defined 

@@ -3,24 +3,28 @@
 #include <time.h>
 #include <stdio.h>
 /*
-struct timeval 
+struct timeval
 {
 time_t tv_sec;
 suseconds_t tv_usec;
 }
 */
-class TTimeSignal 
+class TTimeSignal
 {
-public : 
-	clock_t _start, _end ;
-	double minTime, maxTime,acum ,last ,prop;
-	int counter;
-	TTimeSignal* parent;
-	char* name;
-	TTimeSignal(char* name){ this->name = name; acum = 0;}
-	void startTime();
-	void endTime();
-	double elapsedTime(); // in ms
+public :
+    clock_t _start, _end ;
+    double minTime, maxTime,acum ,last ,prop;
+    int counter;
+    TTimeSignal* parent;
+    char* name;
+    TTimeSignal(char* name)
+    {
+        this->name = name;
+        acum = 0;
+    }
+    void startTime();
+    void endTime();
+    double elapsedTime(); // in ms
 
 };
 

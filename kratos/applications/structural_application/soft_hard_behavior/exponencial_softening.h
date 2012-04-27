@@ -52,10 +52,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -65,207 +65,207 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  
-  class Exponential_Softening: public SofteningHardeningCriteria                
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+
+class Exponential_Softening: public SofteningHardeningCriteria
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of SofteningHardeningCriteria
+    KRATOS_CLASS_POINTER_DEFINITION(Exponential_Softening);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Exponential_Softening();
+
+    /// Destructor.
+    ~Exponential_Softening();
+
+    virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of SofteningHardeningCriteria
-      KRATOS_CLASS_POINTER_DEFINITION(Exponential_Softening);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-       Exponential_Softening();
+        boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Exponential_Softening());
+        return p_clone;
+    }
 
-      /// Destructor.
-       ~Exponential_Softening();
-      
-        virtual boost::shared_ptr<SofteningHardeningCriteria> Clone() const
-         {
-           boost::shared_ptr<SofteningHardeningCriteria> p_clone(new Exponential_Softening());
-           return p_clone;
-         }
- 
-       double Calculate(const Vector& Imput_Parameters);
-       double FunctionBehavior(const Vector& Imput_Parameters);
-       double FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
-       
-       
-       //void   InitializeMaterial(const Properties& props);  
-	
-  
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+    double Calculate(const Vector& Imput_Parameters);
+    double FunctionBehavior(const Vector& Imput_Parameters);
+    double FirstDerivateFunctionBehavior(const Vector& Imput_Parameters);
 
-      /// Turn back information as a string.
-      std::string Info() const
-      {
-	return "Exponential Sosftening";
-	
-      }
-      
-      /// Print information about this object.
-      void PrintInfo(std::ostream& rOStream)const
-      {
-	 rOStream << Info();
-      }
 
-      /// Print object's data.
-      void PrintData(std::ostream& rOStream) const
-      {
-	 return;
-      }
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-      
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      //double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
-	
-      /// Assignment operator.
+    //void   InitializeMaterial(const Properties& props);
 
-        
-      ///@}    
-        
-    }; // Class SofteningHardeningCriteria 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  ///@} 
-  
-  
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const
+    {
+        return "Exponential Sosftening";
+
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream)const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const
+    {
+        return;
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    //double FunctionSofteningHardeningBehavior(const double& A, const double& r_o, const double& r);
+
+    /// Assignment operator.
+
+
+    ///@}
+
+}; // Class SofteningHardeningCriteria
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_SOFTENING_HARDENING_CRITERIA defined 

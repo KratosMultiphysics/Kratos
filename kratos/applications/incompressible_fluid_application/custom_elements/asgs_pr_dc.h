@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: kazem $
 //   Date:                $Date: 2009-01-21 14:14:49 $
 //   Revision:            $Revision: 1.4 $
@@ -52,12 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_ASGS_PR_DC_H_INCLUDED
 
 
-// System includes  
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
- 
+
 
 // Project includes
 #include "includes/define.h"
@@ -69,227 +69,227 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class ASGSPRDC
-	  : public ASGS2D
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class ASGSPRDC
+    : public ASGS2D
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of ASGSPRDC
+    KRATOS_CLASS_POINTER_DEFINITION(ASGSPRDC);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    ASGSPRDC(IndexType NewId, GeometryType::Pointer pGeometry);
+    ASGSPRDC(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~ASGSPRDC();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    //    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of ASGSPRDC
-      KRATOS_CLASS_POINTER_DEFINITION(ASGSPRDC);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      ASGSPRDC(IndexType NewId, GeometryType::Pointer pGeometry);
-      ASGSPRDC(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+        return "ASGSPRDC #" ;
+    }
 
-      /// Destructor.
-      virtual ~ASGSPRDC();
-      
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << Id();
+    }
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
-
-  //    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-      void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-
-
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "ASGSPRDC #" ;
-		}
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
-
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        /*void calculatedensity(Geometry< Node<3> > geom, double& density);*/
-	void CalculateResidual(const MatrixType& K, VectorType& F);
-        void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time);
-        virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
-     
- ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-       ///@}
-      ///@name Serialization
-      ///@{
 
-	friend class Serializer;
+    ///@}
+    ///@name Friends
+    ///@{
 
-        ASGSPRDC() : ASGS2D() {}
 
-        ///@}
-      ///@name Member Variables 
-      ///@{ 
-	/*	
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    /*void calculatedensity(Geometry< Node<3> > geom, double& density);*/
+    void CalculateResidual(const MatrixType& K, VectorType& F);
+    void ComputeProjections(array_1d<double,6>& adv_proj , array_1d<double,3>& div_proj, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const double tauone,const double tautwo,const array_1d<double,3>& N,const double area, const double time);
+    virtual void calculatedensity(Geometry< Node<3> > geom, double& density, double& viscosity);
+
+///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    ASGSPRDC() : ASGS2D() {}
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+    /*
         double m_tauone;
         double m_tautwo ;
-        
-      ///@} 
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        void CalculateMassContribution(MatrixType& K,const double time,const double area); 
-	void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
-	void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, double& tauone, double& tautwo, const double time,const double area);
-	void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
+      ///@{
+        void CalculateMassContribution(MatrixType& K,const double time,const double area);
+    void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double area);
+    void CalculateAdvectiveTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, double& tauone, double& tautwo, const double time,const double area);
+    void CalculatePressureTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double time ,const double area);
 
-	void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tautwo,const double area);
-	void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double tauone,const double time,const double area);
-	void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double tauone,const double area);
-	void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,3>& N, const double time,const double area);
+    void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double tautwo,const double area);
+    void CalculateAdvStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX,const array_1d<double,3>& N, const double tauone,const double time,const double area);
+    void CalculateGradStblAllTerms(MatrixType& K,VectorType& F,const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double time,const double tauone,const double area);
+    void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,3>& N, const double time,const double area);
 
 
-	
-	void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area);
-	*/
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //ASGSPRDC& operator=(const ASGSPRDC& rOther);
 
-      /// Copy constructor.
-      //ASGSPRDC(const ASGSPRDC& rOther);
+    void AddProjectionForces(VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& msDN_DX, const double area);
+    */
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class ASGSPRDC 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream, 
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    //ASGSPRDC& operator=(const ASGSPRDC& rOther);
+
+    /// Copy constructor.
+    //ASGSPRDC(const ASGSPRDC& rOther);
+
+
+    ///@}
+
+}; // Class ASGSPRDC
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+/*  inline std::istream& operator >> (std::istream& rIStream,
 				    ASGSPRDC& rThis);
 */
-  /// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream, 
+/// output stream function
+/*  inline std::ostream& operator << (std::ostream& rOStream,
 				    const ASGSPRDC& rThis)
     {
       rThis.PrintInfo(rOStream);
@@ -298,7 +298,7 @@ namespace Kratos
 
       return rOStream;
     }*/
-  ///@} 
+///@}
 
 }  // namespace Kratos.
 

@@ -25,12 +25,12 @@
 namespace Kratos
 {
 
-    namespace Python
-    {
+namespace Python
+{
 
-        void  AddConstitutiveLawsToPython();
+void  AddConstitutiveLawsToPython();
 
-    }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.
 

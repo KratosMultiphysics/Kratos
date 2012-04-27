@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,9 +41,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-/* *********************************************************   
-*          
+
+/* *********************************************************
+*
 *   Last Modified by:    $Author: janosch $
 *   Date:                $Date: 2008-10-23 13:03:25 $
 *   Revision:            $Revision: 1.1 $
@@ -68,59 +68,59 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    class OutputUtility
+class OutputUtility
+{
+public:
+    typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+    typedef Geometry<Node<3> >::GeometryType GeometryType;
+    typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
+
+    /**
+     * Constructor.
+                 */
+    OutputUtility()
     {
-        public:
-            typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
-            typedef Geometry<Node<3> >::GeometryType GeometryType;
-            typedef Geometry<Node<3> >::CoordinatesArrayType CoordinatesArrayType;
-            
-			/** 
-             * Constructor.
-                         */
-            OutputUtility()
-            {
-                std::cout << "OutputUtility created" << std::endl;
-            }
-			
-			/** 
-             * Destructor.
-                         */
-            virtual ~OutputUtility()
-            {}
-            
-            Vector GetStrain( ModelPart& rModelPart, Element& element, int gp_index )
-            {
-                std::vector<Matrix> output;
-                Vector result = ZeroVector(6);
-                element.CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, output, 
-                        rModelPart.GetProcessInfo() );
-                for( int i=0; i<6; i++ )
-                    result[i] = output[gp_index](0,i);
-                return( result );
-            }
-            
-            Vector GetStress( ModelPart& rModelPart, Element& element, int gp_index )
-            {
-                std::vector<Matrix> output;
-                Vector result = ZeroVector(6);
-                element.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, output, 
-                        rModelPart.GetProcessInfo() );
-                for( int i=0; i<6; i++ )
-                    result[i] = output[gp_index](0,i);
-                return( result );
-            }
-            
-            Vector GetInternalVariables( ModelPart& rModelPart, Element& element, int gp_index )
-            {
-                std::vector<Vector> output;
-                element.CalculateOnIntegrationPoints(INTERNAL_VARIABLES, output, 
-                        rModelPart.GetProcessInfo() );
-                return( output[gp_index] );
-            }
-            
-            
-    };//Class OutputUtility
+        std::cout << "OutputUtility created" << std::endl;
+    }
+
+    /**
+     * Destructor.
+                 */
+    virtual ~OutputUtility()
+    {}
+
+    Vector GetStrain( ModelPart& rModelPart, Element& element, int gp_index )
+    {
+        std::vector<Matrix> output;
+        Vector result = ZeroVector(6);
+        element.CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR, output,
+                                             rModelPart.GetProcessInfo() );
+        for( int i=0; i<6; i++ )
+            result[i] = output[gp_index](0,i);
+        return( result );
+    }
+
+    Vector GetStress( ModelPart& rModelPart, Element& element, int gp_index )
+    {
+        std::vector<Matrix> output;
+        Vector result = ZeroVector(6);
+        element.CalculateOnIntegrationPoints(PK2_STRESS_TENSOR, output,
+                                             rModelPart.GetProcessInfo() );
+        for( int i=0; i<6; i++ )
+            result[i] = output[gp_index](0,i);
+        return( result );
+    }
+
+    Vector GetInternalVariables( ModelPart& rModelPart, Element& element, int gp_index )
+    {
+        std::vector<Vector> output;
+        element.CalculateOnIntegrationPoints(INTERNAL_VARIABLES, output,
+                                             rModelPart.GetProcessInfo() );
+        return( output[gp_index] );
+    }
+
+
+};//Class OutputUtility
 }//namespace Kratos.
 
 #endif /* KRATOS_OUTPUT_UTILITY_INCLUDED defined */

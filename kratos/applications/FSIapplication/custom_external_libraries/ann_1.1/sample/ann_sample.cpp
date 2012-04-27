@@ -6,16 +6,16 @@
 //----------------------------------------------------------------------
 // Copyright (c) 1997-1998 University of Maryland and Sunil Arya and David
 // Mount All Rights Reserved.
-// 
-// This software and related documentation is part of the 
+//
+// This software and related documentation is part of the
 // Approximate Nearest Neighbor Library (ANN).
-// 
-// Permission to use, copy, and distribute this software and its 
-// documentation is hereby granted free of charge, provided that 
-// (1) it is not a component of a commercial product, and 
+//
+// Permission to use, copy, and distribute this software and its
+// documentation is hereby granted free of charge, provided that
+// (1) it is not a component of a commercial product, and
 // (2) this notice appears in all copies of the software and
-//	   related documentation. 
-// 
+//	   related documentation.
+//
 // The University of Maryland (U.M.) and the authors make no representations
 // about the suitability or fitness of this software for any purpose.  It is
 // provided "as is" without express or implied warranty.
@@ -34,7 +34,7 @@ using namespace std;					// make std:: accessible
 //
 // This is a simple sample program for the ANN library.	 After compiling,
 // it can be run as follows.
-// 
+//
 // ann_sample [-d dim] [-max mpts] [-nn k] [-e eps] [-df data] [-qf query]
 //
 // where
@@ -63,73 +63,78 @@ istream*		queryIn			= NULL;			// input for query points
 
 bool readPt(istream &in, ANNpoint p)			// read point (false on EOF)
 {
-	for (int i = 0; i < dim; i++) {
-		if(!(in >> p[i])) return false;
-	}
-	return true;
+    for (int i = 0; i < dim; i++)
+    {
+        if(!(in >> p[i])) return false;
+    }
+    return true;
 }
 
 void printPt(ostream &out, ANNpoint p)			// print point
 {
-	out << "(" << p[0];
-	for (int i = 1; i < dim; i++) {
-		out << ", " << p[i];
-	}
-	out << ")\n";
+    out << "(" << p[0];
+    for (int i = 1; i < dim; i++)
+    {
+        out << ", " << p[i];
+    }
+    out << ")\n";
 }
 
 int main(int argc, char **argv)
 {
-	int					nPts;					// actual number of data points
-	ANNpointArray		dataPts;				// data points
-	ANNpoint			queryPt;				// query point
-	ANNidxArray			nnIdx;					// near neighbor indices
-	ANNdistArray		dists;					// near neighbor distances
-	ANNkd_tree*			kdTree;					// search structure
+    int					nPts;					// actual number of data points
+    ANNpointArray		dataPts;				// data points
+    ANNpoint			queryPt;				// query point
+    ANNidxArray			nnIdx;					// near neighbor indices
+    ANNdistArray		dists;					// near neighbor distances
+    ANNkd_tree*			kdTree;					// search structure
 
-	getArgs(argc, argv);						// read command-line arguments
+    getArgs(argc, argv);						// read command-line arguments
 
-	queryPt = annAllocPt(dim);					// allocate query point
-	dataPts = annAllocPts(maxPts, dim);			// allocate data points
-	nnIdx = new ANNidx[k];						// allocate near neigh indices
-	dists = new ANNdist[k];						// allocate near neighbor dists
+    queryPt = annAllocPt(dim);					// allocate query point
+    dataPts = annAllocPts(maxPts, dim);			// allocate data points
+    nnIdx = new ANNidx[k];						// allocate near neigh indices
+    dists = new ANNdist[k];						// allocate near neighbor dists
 
-	nPts = 0;									// read data points
+    nPts = 0;									// read data points
 
-	cout << "Data Points:\n";
-	while (nPts < maxPts && readPt(*dataIn, dataPts[nPts])) {
-		printPt(cout, dataPts[nPts]);
-		nPts++;
-	}
+    cout << "Data Points:\n";
+    while (nPts < maxPts && readPt(*dataIn, dataPts[nPts]))
+    {
+        printPt(cout, dataPts[nPts]);
+        nPts++;
+    }
 
-	kdTree = new ANNkd_tree(					// build search structure
-					dataPts,					// the data points
-					nPts,						// number of points
-					dim);						// dimension of space
+    kdTree = new ANNkd_tree(					// build search structure
+        dataPts,					// the data points
+        nPts,						// number of points
+        dim);						// dimension of space
 
-	while (readPt(*queryIn, queryPt)) {			// read query points
-		cout << "Query point: ";				// echo query point
-		printPt(cout, queryPt);
+    while (readPt(*queryIn, queryPt))  			// read query points
+    {
+        cout << "Query point: ";				// echo query point
+        printPt(cout, queryPt);
 
-		kdTree->annkSearch(						// search
-				queryPt,						// query point
-				k,								// number of near neighbors
-				nnIdx,							// nearest neighbors (returned)
-				dists,							// distance (returned)
-				eps);							// error bound
+        kdTree->annkSearch(						// search
+            queryPt,						// query point
+            k,								// number of near neighbors
+            nnIdx,							// nearest neighbors (returned)
+            dists,							// distance (returned)
+            eps);							// error bound
 
-		cout << "\tNN:\tIndex\tDistance\n";
-		for (int i = 0; i < k; i++) {			// print summary
-			dists[i] = sqrt(dists[i]);			// unsquare distance
-			cout << "\t" << i << "\t" << nnIdx[i] << "\t" << dists[i] << "\n";
-		}
-	}
+        cout << "\tNN:\tIndex\tDistance\n";
+        for (int i = 0; i < k; i++)  			// print summary
+        {
+            dists[i] = sqrt(dists[i]);			// unsquare distance
+            cout << "\t" << i << "\t" << nnIdx[i] << "\t" << dists[i] << "\n";
+        }
+    }
     delete [] nnIdx;							// clean things up
     delete [] dists;
     delete kdTree;
-	annClose();									// done with ANN
+    annClose();									// done with ANN
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 
 //----------------------------------------------------------------------
@@ -138,64 +143,76 @@ int main(int argc, char **argv)
 
 void getArgs(int argc, char **argv)
 {
-	static ifstream dataStream;					// data file stream
-	static ifstream queryStream;				// query file stream
+    static ifstream dataStream;					// data file stream
+    static ifstream queryStream;				// query file stream
 
-	if (argc <= 1) {							// no arguments
-		cerr << "Usage:\n\n"
-		<< "  ann_sample [-d dim] [-max m] [-nn k] [-e eps] [-df data]"
-		   " [-qf query]\n\n"
-		<< "  where:\n"
-		<< "    dim      dimension of the space (default = 2)\n"
-		<< "    m        maximum number of data points (default = 1000)\n"
-		<< "    k        number of nearest neighbors per query (default 1)\n"
-		<< "    eps      the error bound (default = 0.0)\n"
-		<< "    data     name of file containing data points\n"
-		<< "    query    name of file containing query points\n\n"
-		<< " Results are sent to the standard output.\n"
-		<< "\n"
-		<< " To run this demo use:\n"
-		<< "    ann_sample -df data.pts -qf query.pts\n";
-		exit(0);
-	}
-	int i = 1;
-	while (i < argc) {							// read arguments
-		if (!strcmp(argv[i], "-d")) {			// -d option
-			dim = atoi(argv[++i]);				// get dimension to dump
-		}
-		else if (!strcmp(argv[i], "-max")) {	// -max option
-			maxPts = atoi(argv[++i]);			// get max number of points
-		}
-		else if (!strcmp(argv[i], "-nn")) {		// -nn option
-			k = atoi(argv[++i]);				// get number of near neighbors
-		}
-		else if (!strcmp(argv[i], "-e")) {		// -e option
-			sscanf(argv[++i], "%lf", &eps);		// get error bound
-		}
-		else if (!strcmp(argv[i], "-df")) {		// -df option
-			dataStream.open(argv[++i], ios::in);// open data file
-			if (!dataStream) {
-				cerr << "Cannot open data file\n";
-				exit(1);
-			}
-			dataIn = &dataStream;				// make this the data stream
-		}
-		else if (!strcmp(argv[i], "-qf")) {		// -qf option
-			queryStream.open(argv[++i], ios::in);// open query file
-			if (!queryStream) {
-				cerr << "Cannot open query file\n";
-				exit(1);
-			}
-			queryIn = &queryStream;			// make this query stream
-		}
-		else {									// illegal syntax
-			cerr << "Unrecognized option.\n";
-			exit(1);
-		}
-		i++;
-	}
-	if (dataIn == NULL || queryIn == NULL) {
-		cerr << "-df and -qf options must be specified\n";
-		exit(1);
-	}
+    if (argc <= 1)  							// no arguments
+    {
+        cerr << "Usage:\n\n"
+             << "  ann_sample [-d dim] [-max m] [-nn k] [-e eps] [-df data]"
+             " [-qf query]\n\n"
+             << "  where:\n"
+             << "    dim      dimension of the space (default = 2)\n"
+             << "    m        maximum number of data points (default = 1000)\n"
+             << "    k        number of nearest neighbors per query (default 1)\n"
+             << "    eps      the error bound (default = 0.0)\n"
+             << "    data     name of file containing data points\n"
+             << "    query    name of file containing query points\n\n"
+             << " Results are sent to the standard output.\n"
+             << "\n"
+             << " To run this demo use:\n"
+             << "    ann_sample -df data.pts -qf query.pts\n";
+        exit(0);
+    }
+    int i = 1;
+    while (i < argc)  							// read arguments
+    {
+        if (!strcmp(argv[i], "-d"))  			// -d option
+        {
+            dim = atoi(argv[++i]);				// get dimension to dump
+        }
+        else if (!strcmp(argv[i], "-max"))  	// -max option
+        {
+            maxPts = atoi(argv[++i]);			// get max number of points
+        }
+        else if (!strcmp(argv[i], "-nn"))  		// -nn option
+        {
+            k = atoi(argv[++i]);				// get number of near neighbors
+        }
+        else if (!strcmp(argv[i], "-e"))  		// -e option
+        {
+            sscanf(argv[++i], "%lf", &eps);		// get error bound
+        }
+        else if (!strcmp(argv[i], "-df"))  		// -df option
+        {
+            dataStream.open(argv[++i], ios::in);// open data file
+            if (!dataStream)
+            {
+                cerr << "Cannot open data file\n";
+                exit(1);
+            }
+            dataIn = &dataStream;				// make this the data stream
+        }
+        else if (!strcmp(argv[i], "-qf"))  		// -qf option
+        {
+            queryStream.open(argv[++i], ios::in);// open query file
+            if (!queryStream)
+            {
+                cerr << "Cannot open query file\n";
+                exit(1);
+            }
+            queryIn = &queryStream;			// make this query stream
+        }
+        else  									// illegal syntax
+        {
+            cerr << "Unrecognized option.\n";
+            exit(1);
+        }
+        i++;
+    }
+    if (dataIn == NULL || queryIn == NULL)
+    {
+        cerr << "-df and -qf options must be specified\n";
+        exit(1);
+    }
 }

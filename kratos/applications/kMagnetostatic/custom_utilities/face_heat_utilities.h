@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosR1ConvectionDiffusionApplication 
+KratosR1ConvectionDiffusionApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -37,9 +37,9 @@ TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
-*/ 
-//   
-//   Project Name:        Kratos       
+*/
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:32 $
 //   Revision:            $Revision: 1.2 $
@@ -54,10 +54,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <algorithm>
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -70,36 +70,36 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	class FaceHeatUtilities
-	{
-	public:
+class FaceHeatUtilities
+{
+public:
 
-		//**********************************************************************************************
-		//**********************************************************************************************
-		void ApplyFaceHeat(
-			ModelPart::ConditionsContainerType& conditions , 
-			double face_heat_source
-			)
-		{
-			KRATOS_TRY
-			for(ModelPart::ConditionsContainerType::iterator iii = conditions.begin(); iii != conditions.end(); iii++)
-			{
-				Geometry< Node<3> >& geom = iii->GetGeometry();
+    //**********************************************************************************************
+    //**********************************************************************************************
+    void ApplyFaceHeat(
+        ModelPart::ConditionsContainerType& conditions ,
+        double face_heat_source
+    )
+    {
+        KRATOS_TRY
+        for(ModelPart::ConditionsContainerType::iterator iii = conditions.begin(); iii != conditions.end(); iii++)
+        {
+            Geometry< Node<3> >& geom = iii->GetGeometry();
 
-				for(unsigned int k = 0; k<geom.size(); k++)
-					geom[k].FastGetSolutionStepValue(FACE_HEAT_FLUX) = face_heat_source;
-				
-			}
-			std::cout << "Conditions are generated" << std::endl;
-			
-			KRATOS_CATCH("");		
-		}
+            for(unsigned int k = 0; k<geom.size(); k++)
+                geom[k].FastGetSolutionStepValue(FACE_HEAT_FLUX) = face_heat_source;
+
+        }
+        std::cout << "Conditions are generated" << std::endl;
+
+        KRATOS_CATCH("");
+    }
 
 
 
-	private:
+private:
 
-	};
+};
 
 }  // namespace Kratos.
 

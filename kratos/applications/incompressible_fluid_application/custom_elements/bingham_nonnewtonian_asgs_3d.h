@@ -1,6 +1,6 @@
 /*
 ==============================================================================
-KratosIncompressibleFluidApplication 
+KratosIncompressibleFluidApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
@@ -8,7 +8,7 @@ Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,9 +38,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: antonia $
 //   Date:                $Date: 2010-10-26 14:14:49 $
 //   Revision:            $Revision: 1.4 $
@@ -52,12 +52,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_BINGHAM_NONNEWTONIAN_ASGS_3D_H_INCLUDED
 
 
-// System includes  
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
- 
+
 
 // Project includes
 #include "includes/define.h"
@@ -70,227 +70,227 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  ///@addtogroup IncompressibleFluidApplication
-  ///@{
-  
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// This class allows the calculation of a Non-Newtonian  fluid using a BINGHAM constitutive model.
-  /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
-  * 
-  * This class implements a 3D linear tetrahedron element. A non-newtonian constituve law is developed using a BINGHAM model.
-  * It is a derived class @see NoNewtonianASGS3D
-  * The only difference between the two approaches is in the calculation of the variable viscosity. In the present element a 
-  * Bingham plastic is used with the help of an exponencial variation of the viscosity in function of the strain rate
-  * Reference Papanastasiou, T. C. Flows of materials with yield. Journal of Rheology, 1987, 31, 385-404
+///@addtogroup IncompressibleFluidApplication
+///@{
 
-  */
-  class BinghamNonNewtonianASGS3D
-	  : public NoNewtonianASGS3D
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// This class allows the calculation of a Non-Newtonian  fluid using a BINGHAM constitutive model.
+/** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+*
+* This class implements a 3D linear tetrahedron element. A non-newtonian constituve law is developed using a BINGHAM model.
+* It is a derived class @see NoNewtonianASGS3D
+* The only difference between the two approaches is in the calculation of the variable viscosity. In the present element a
+* Bingham plastic is used with the help of an exponencial variation of the viscosity in function of the strain rate
+* Reference Papanastasiou, T. C. Flows of materials with yield. Journal of Rheology, 1987, 31, 385-404
+
+*/
+class BinghamNonNewtonianASGS3D
+    : public NoNewtonianASGS3D
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of BinghamNonNewtonianASGS3D
+    KRATOS_CLASS_POINTER_DEFINITION(BinghamNonNewtonianASGS3D);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    BinghamNonNewtonianASGS3D(IndexType NewId, GeometryType::Pointer pGeometry);
+    BinghamNonNewtonianASGS3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~BinghamNonNewtonianASGS3D();
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Counted pointer of BinghamNonNewtonianASGS3D
-      KRATOS_CLASS_POINTER_DEFINITION(BinghamNonNewtonianASGS3D);
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-	 BinghamNonNewtonianASGS3D(IndexType NewId, GeometryType::Pointer pGeometry);
-      BinghamNonNewtonianASGS3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+        return "BinghamNonNewtonianASGS3D #" ;
+    }
 
-      /// Destructor.
-      virtual ~BinghamNonNewtonianASGS3D();
-      
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info() << Id();
+    }
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
-
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "BinghamNonNewtonianASGS3D #" ;
-		}
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const
-	{
-	  rOStream << Info() << Id();
-	}
-
-      /// Print object's data.
+    /// Print object's data.
 //      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-       virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu, const double & m_coef);
-
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-   private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
- 		
-       
-      ///@}
-      ///@name Serialization
-      ///@{
-
-      friend class Serializer;
-
-      // A private default constructor necessary for serialization
-      BinghamNonNewtonianASGS3D() : NoNewtonianASGS3D()
-      {
-      }
-
-      virtual void save(Serializer& rSerializer) const
-      {
-	  KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NoNewtonianASGS3D);
-      }
-
-      virtual void load(Serializer& rSerializer)
-      {
-	  KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NoNewtonianASGS3D);
-      }	
-      
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
 
 
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-
-      /// Copy constructor.
-
-        
-      ///@}    
-        
-    }; // Class Fluid2DASGS 
-
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-  /// output stream function
+    ///@}
 
-  ///@} 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-  ///@} IncompressibleFluidApplication group
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative , array_1d<double,6> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 6, 12 > & B, const double & mu, const double & m_coef);
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    BinghamNonNewtonianASGS3D() : NoNewtonianASGS3D()
+    {
+    }
+
+    virtual void save(Serializer& rSerializer) const
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NoNewtonianASGS3D);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NoNewtonianASGS3D);
+    }
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+
+    /// Copy constructor.
+
+
+    ///@}
+
+}; // Class Fluid2DASGS
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+
+
+/// output stream function
+
+///@}
+
+///@} IncompressibleFluidApplication group
 
 }  // namespace Kratos.
 

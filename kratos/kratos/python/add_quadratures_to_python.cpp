@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: janosch $
 //   Date:                $Date: 2007-12-13 14:50:05 $
 //   Revision:            $Revision: 1.4 $
@@ -45,12 +45,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 #include <cstddef>
 #include <iostream>
 #include <sstream>
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
@@ -66,37 +66,37 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-  template<class TStream, std::size_t TDimension>
-  TStream& operator << (TStream& rOStream,
-				  std::vector<IntegrationPoint<TDimension> > const & rThis)
-    { 
- 	typename std::vector<IntegrationPoint<TDimension> >::size_type i;
- 	for(i = 0 ; i < rThis.size() - 1 ; i++)
-	  rOStream << rThis[i] << " , " << std::endl;
- 	rOStream << rThis[i];
-      return rOStream;
-    }
+template<class TStream, std::size_t TDimension>
+TStream& operator << (TStream& rOStream,
+                      std::vector<IntegrationPoint<TDimension> > const & rThis)
+{
+    typename std::vector<IntegrationPoint<TDimension> >::size_type i;
+    for(i = 0 ; i < rThis.size() - 1 ; i++)
+        rOStream << rThis[i] << " , " << std::endl;
+    rOStream << rThis[i];
+    return rOStream;
+}
 
 namespace Python
 {
 
-  using namespace boost::python;
+using namespace boost::python;
 
-  template<class TArrayType>
-  void AddIntegrationPointsArray(std::string const& rArrayName, TArrayType const & Dummy)
-  {
+template<class TArrayType>
+void AddIntegrationPointsArray(std::string const& rArrayName, TArrayType const & Dummy)
+{
     ContainerFromPython< TArrayType >();
 
-     class_<TArrayType>(rArrayName.c_str(), init<int>())
-	.def(init<const TArrayType&>())
-	.def(vector_indexing_suite<TArrayType>())
-        	.def(self_ns::str(self))
-	;
+    class_<TArrayType>(rArrayName.c_str(), init<int>())
+    .def(init<const TArrayType&>())
+    .def(vector_indexing_suite<TArrayType>())
+    .def(self_ns::str(self))
+    ;
 
-  }
+}
 
-  void  AddQuadraturesToPython()
-  {
+void  AddQuadraturesToPython()
+{
     AddIntegrationPointsArray("IntegrationPointsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,1,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
     //AddIntegrationPointsArray("IntegrationPoint2DsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints<1>,2,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
     //AddIntegrationPointsArray("IntegrationPoint3DsArray", Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints<1>,3,Kratos::IntegrationPoint<3> >::IntegrationPointsArrayType());
@@ -111,8 +111,8 @@ namespace Python
     scope().attr("GaussLegendreQuadrature3D1") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints1,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
     scope().attr("GaussLegendreQuadrature3D2") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints2,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
     scope().attr("GaussLegendreQuadrature3D3") = Kratos::Quadrature<Kratos::GaussLegendreIntegrationPoints3,3,Kratos::IntegrationPoint<3> >::IntegrationPoints();
-  }
-	
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-03-06 10:30:34 $
 //   Revision:            $Revision: 1.2 $
@@ -45,9 +45,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -61,47 +61,47 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-  template<class TPointType> inline
-  void PointSetX(TPointType& ThisPoint, double Value)
-  {
+template<class TPointType> inline
+void PointSetX(TPointType& ThisPoint, double Value)
+{
     ThisPoint.X() = Value;
-  }
-  
-  template<class TPointType> inline
-  void PointSetY(TPointType& ThisPoint, double Value)
-  {
+}
+
+template<class TPointType> inline
+void PointSetY(TPointType& ThisPoint, double Value)
+{
     ThisPoint.Y() = Value;
-  }
-  
-  template<class TPointType> inline
-  void PointSetZ(TPointType& ThisPoint, double Value)
-  {
+}
+
+template<class TPointType> inline
+void PointSetZ(TPointType& ThisPoint, double Value)
+{
     ThisPoint.Z() = Value;
-  }
-  
-  template<class TPointType> inline
-  double PointGetX(TPointType& ThisPoint)
-  {
+}
+
+template<class TPointType> inline
+double PointGetX(TPointType& ThisPoint)
+{
     return ThisPoint.X();
-  }
-  
-  template<class TPointType> inline
-  double PointGetY(TPointType& ThisPoint)
-  {
+}
+
+template<class TPointType> inline
+double PointGetY(TPointType& ThisPoint)
+{
     return ThisPoint.Y();
-  }
-  
-  template<class TPointType> inline
-  double PointGetZ(TPointType& ThisPoint)
-  {
+}
+
+template<class TPointType> inline
+double PointGetZ(TPointType& ThisPoint)
+{
     return ThisPoint.Z();
-  }
-  
-  void  AddPointsToPython()
-  {
+}
+
+void  AddPointsToPython()
+{
     /*
     BoundedVectorPythonInterface<Point<1>, 1>::CreateInterface("Point1D")
       .def(init<double>())
@@ -116,7 +116,7 @@ namespace Python
       .def(VectorVectorOperatorPython<Point<1>, compressed_vector<double>, Point<1> >())
       .def(VectorVectorOperatorPython<Point<1>, coordinate_vector<double>, Point<1> >())
        ;
-    
+
      BoundedVectorPythonInterface<Point<2>, 2>::CreateInterface("Point2D")
        .def(init<double>())
        .def(init<double, double>())
@@ -133,25 +133,25 @@ namespace Python
        .def(VectorVectorOperatorPython<Point<2>, coordinate_vector<double>, Point<2> >())
         ;
     */
-     BoundedVectorPythonInterface<Point<3>, 3>::CreateInterface("Point3D")
-       .def(init<double>())
-       .def(init<double, double>())
-       .def(init<double, double, double>())
-       .def(init<vector_expression<vector<double> > >())
-       .add_property("X", PointGetX<Point<3> >, PointSetX<Point<3> >)
-       .add_property("Y", PointGetY<Point<3> >, PointSetY<Point<3> >)
-       .add_property("Z", PointGetZ<Point<3> >, PointSetZ<Point<3> >)
-       .def(VectorScalarOperatorPython<Point<3>, double, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, zero_vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, unit_vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, scalar_vector<double>, Point<3> >())
-       .def(VectorVectorOperatorPython<Point<3>, vector<double>, Point<3> >())
-       //.def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
-       //.def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
-       //       .def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
-        ;
-  }
-	
+    BoundedVectorPythonInterface<Point<3>, 3>::CreateInterface("Point3D")
+    .def(init<double>())
+    .def(init<double, double>())
+    .def(init<double, double, double>())
+    .def(init<vector_expression<vector<double> > >())
+    .add_property("X", PointGetX<Point<3> >, PointSetX<Point<3> >)
+    .add_property("Y", PointGetY<Point<3> >, PointSetY<Point<3> >)
+    .add_property("Z", PointGetZ<Point<3> >, PointSetZ<Point<3> >)
+    .def(VectorScalarOperatorPython<Point<3>, double, Point<3> >())
+    .def(VectorVectorOperatorPython<Point<3>, zero_vector<double>, Point<3> >())
+    .def(VectorVectorOperatorPython<Point<3>, unit_vector<double>, Point<3> >())
+    .def(VectorVectorOperatorPython<Point<3>, scalar_vector<double>, Point<3> >())
+    .def(VectorVectorOperatorPython<Point<3>, vector<double>, Point<3> >())
+    //.def(VectorVectorOperatorPython<Point<3>, mapped_vector<double>, Point<3> >())
+    //.def(VectorVectorOperatorPython<Point<3>, compressed_vector<double>, Point<3> >())
+    //       .def(VectorVectorOperatorPython<Point<3>, coordinate_vector<double>, Point<3> >())
+    ;
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

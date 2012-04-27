@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: antonia $
 //   Date:                $Date: 2008-10-02 09:16:31 $
 //   Revision:            $Revision: 1.1 $
@@ -12,10 +12,10 @@
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -28,10 +28,10 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddCustomUtilitiesToPython();
+void  AddCustomUtilitiesToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED  defined 

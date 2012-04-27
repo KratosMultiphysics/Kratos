@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: janosch $
 //   Date:                $Date: 2008-07-23 14:55:54 $
 //   Revision:            $Revision: 1.1 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -29,211 +29,211 @@
 namespace Kratos
 {
 
-	///@name Kratos Globals
-	///@{ 
+///@name Kratos Globals
+///@{
 
-	// Variables definition 
+// Variables definition
 
-	///@} 
-	///@name Type Definitions
-	///@{ 
+///@}
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name  Enum's
-	///@{
+///@}
+///@name  Enum's
+///@{
 
-	///@}
-	///@name  Functions 
-	///@{
+///@}
+///@name  Functions
+///@{
 
-	///@}
-	///@name Kratos Classes
-	///@{
+///@}
+///@name Kratos Classes
+///@{
 
-	/// Short class definition.
-	/** Detail class definition.
-	*/
-	class KratosMKLSolversApplication : public KratosApplication
-	{
-	public:
-		///@name Type Definitions
-		///@{
-		
+/// Short class definition.
+/** Detail class definition.
+*/
+class KratosMKLSolversApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
 
-		/// Pointer definition of KratosMKLSolversApplication
-		KRATOS_CLASS_POINTER_DEFINITION(KratosMKLSolversApplication);
 
-		///@}
-		///@name Life Cycle 
-		///@{ 
+    /// Pointer definition of KratosMKLSolversApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosMKLSolversApplication);
 
-		/// Default constructor.
-		KratosMKLSolversApplication(){}
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-		/// Destructor.
-		virtual ~KratosMKLSolversApplication(){}
+    /// Default constructor.
+    KratosMKLSolversApplication() {}
 
+    /// Destructor.
+    virtual ~KratosMKLSolversApplication() {}
 
-		///@}
-		///@name Operators 
-		///@{
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-		///@}
-		///@name Operations
-		///@{
 
-		virtual void Register();
+    ///@}
+    ///@name Operations
+    ///@{
 
+    virtual void Register();
 
 
-		///@}
-		///@name Access
-		///@{ 
 
+    ///@}
+    ///@name Access
+    ///@{
 
-		///@}
-		///@name Inquiry
-		///@{
 
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-		///@}      
-		///@name Input and output
-		///@{
 
-		/// Turn back information as a string.
-		virtual std::string Info() const
-		{
-			return "KratosMKLSolversApplication";
-		}
+    ///@}
+    ///@name Input and output
+    ///@{
 
-		/// Print information about this object.
-		virtual void PrintInfo(std::ostream& rOStream) const
-		{
-			rOStream << Info();
-			PrintData(rOStream);
-		}
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosMKLSolversApplication";
+    }
 
-		///// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const
-      {
-      	KRATOS_WATCH("in KratosPardiso application");
-      	KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-		rOStream << "Variables:" << std::endl;
-		KratosComponents<VariableData>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Elements:" << std::endl;
-		KratosComponents<Element>().PrintData(rOStream);
-		rOStream << std::endl;
-		rOStream << "Conditions:" << std::endl;
-		KratosComponents<Condition>().PrintData(rOStream);
-      }
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
 
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        KRATOS_WATCH("in KratosPardiso application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
 
-		///@}      
-		///@name Friends
-		///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
 
-		///@}
 
-	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+    ///@}
 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
-		///@} 
-		///@name Protected Operators
-		///@{ 
 
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-		///@} 
-		///@name Protected Operations
-		///@{ 
 
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
-		///@}
 
-	private:
-		///@name Static Member Variables 
-		///@{ 
+    ///@}
 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
-		//       static const ApplicationCondition  msApplicationCondition; 
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+    //       static const ApplicationCondition  msApplicationCondition;
 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
-		///@} 
-		///@name Private Operators
-		///@{ 
 
+    ///@}
+    ///@name Private Operators
+    ///@{
 
-		///@} 
-		///@name Private Operations
-		///@{ 
 
+    ///@}
+    ///@name Private Operations
+    ///@{
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
 
-		/// Assignment operator.
-		KratosMKLSolversApplication& operator=(KratosMKLSolversApplication const& rOther);
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
-		/// Copy constructor.
-		KratosMKLSolversApplication(KratosMKLSolversApplication const& rOther);
+    /// Assignment operator.
+    KratosMKLSolversApplication& operator=(KratosMKLSolversApplication const& rOther);
 
+    /// Copy constructor.
+    KratosMKLSolversApplication(KratosMKLSolversApplication const& rOther);
 
-		///@}    
 
-	}; // Class KratosMKLSolversApplication 
+    ///@}
 
-	///@} 
+}; // Class KratosMKLSolversApplication
 
+///@}
 
-	///@name Type Definitions       
-	///@{ 
 
+///@name Type Definitions
+///@{
 
-	///@} 
-	///@name Input and output 
-	///@{ 
 
-	///@} 
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

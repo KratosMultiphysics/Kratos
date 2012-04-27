@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosULFApplication 
+KratosULFApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
- 
+
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi, Pawel Ryzhakov
-pooyan@cimne.upc.edu 
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
@@ -38,10 +38,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
- 
-//   
-//   Project Name:        Kratos       
+
+
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: anonymous $
 //   Date:                $Date: 2009-01-15 14:50:24 $
 //   Revision:            $Revision: 1.6 $
@@ -49,9 +49,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
@@ -64,66 +64,66 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
-	void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
-	{
-		if(domain_size == 2)
-		{
-			NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
-				KratosComponents<Element>::Get("ConvDiff2D"),
-				KratosComponents<Condition>::Get("ThermalFace2D")	); 
-		}
-		else if(domain_size == 3)
-		{
-			NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
-				KratosComponents<Element>::Get("ConvDiff3D"),
-				KratosComponents<Condition>::Get("ThermalFace3D")	); 
-		}
-	}
-	
-  void  AddCustomUtilitiesToPython()
-  {
-	using namespace boost::python;
- 
-	  class_<UlfUtils>("UlfUtils", init<>())
-		.def ("CalculateFreeSurfaceArea", &UlfUtils::CalculateFreeSurfaceArea)
-		.def("ApplyBoundaryConditions",&UlfUtils::ApplyBoundaryConditions)
-		.def("ApplyMinimalPressureConditions",&UlfUtils::ApplyMinimalPressureConditions)
-		.def("EstimateDeltaTime",&UlfUtils::EstimateDeltaTime)
-		.def("MarkOuterNodes",&UlfUtils::MarkOuterNodes)
-		.def("Predict",&UlfUtils::Predict)
-		.def("MoveLonelyNodes",&UlfUtils::MoveLonelyNodes)
-		.def("CalculateVolume",&UlfUtils::CalculateVolume)
-		.def("CalculateNodalArea",&UlfUtils::CalculateNodalArea)
-		.def("IdentifyFluidNodes",&UlfUtils::IdentifyFluidNodes)
-		.def("ReduceTimeStep",&UlfUtils::ReduceTimeStep)
-		.def("MarkExcessivelyCloseNodes",&UlfUtils::MarkExcessivelyCloseNodes)
-		.def("NodalIncrementalPressureCalculation",&UlfUtils::NodalIncrementalPressureCalculation)
-		.def("SaveNodalArea",&UlfUtils::SaveNodalArea)
-		.def("SaveLagrangianInlet", &UlfUtils::SaveLagrangianInlet)
-		.def("InjectNodesAtInlet", &UlfUtils::InjectNodesAtInlet)
-		.def("MoveInletNodes", &UlfUtils::MoveInletNodes)
-		.def("MarkNodesCloseToWall", &UlfUtils::MarkNodesCloseToWall)
-		.def("MarkNodesTouchingWall", &UlfUtils::MarkNodesTouchingWall)
-		.def("MarkNodesCloseToWallForBladder", &UlfUtils::MarkNodesCloseToWallForBladder)
-		.def("MarkNodesCloseToFS", &UlfUtils::MarkNodesCloseToFS)
-		.def ("MarkLonelyNodesForErasing", &UlfUtils::MarkLonelyNodesForErasing)
-		.def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
-		.def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
-		.def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)		
+void GenerateModelPart(NistUtils& NistUtils,ModelPart& origin_model_part,ModelPart& destination_model_part,unsigned int domain_size )
+{
+    if(domain_size == 2)
+    {
+        NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
+                                    KratosComponents<Element>::Get("ConvDiff2D"),
+                                    KratosComponents<Condition>::Get("ThermalFace2D")	);
+    }
+    else if(domain_size == 3)
+    {
+        NistUtils.GenerateModelPart(origin_model_part, destination_model_part,
+                                    KratosComponents<Element>::Get("ConvDiff3D"),
+                                    KratosComponents<Condition>::Get("ThermalFace3D")	);
+    }
+}
 
-		 ;
-	  
-	  class_<NistUtils>("NistUtils", init<>())
-		.def("GenerateModelPart",GenerateModelPart)
-		.def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
-		.def("FindFluidLevel",&NistUtils::FindFluidLevel)
-		;	
-	
-  }
-	
+void  AddCustomUtilitiesToPython()
+{
+    using namespace boost::python;
+
+    class_<UlfUtils>("UlfUtils", init<>())
+    .def ("CalculateFreeSurfaceArea", &UlfUtils::CalculateFreeSurfaceArea)
+    .def("ApplyBoundaryConditions",&UlfUtils::ApplyBoundaryConditions)
+    .def("ApplyMinimalPressureConditions",&UlfUtils::ApplyMinimalPressureConditions)
+    .def("EstimateDeltaTime",&UlfUtils::EstimateDeltaTime)
+    .def("MarkOuterNodes",&UlfUtils::MarkOuterNodes)
+    .def("Predict",&UlfUtils::Predict)
+    .def("MoveLonelyNodes",&UlfUtils::MoveLonelyNodes)
+    .def("CalculateVolume",&UlfUtils::CalculateVolume)
+    .def("CalculateNodalArea",&UlfUtils::CalculateNodalArea)
+    .def("IdentifyFluidNodes",&UlfUtils::IdentifyFluidNodes)
+    .def("ReduceTimeStep",&UlfUtils::ReduceTimeStep)
+    .def("MarkExcessivelyCloseNodes",&UlfUtils::MarkExcessivelyCloseNodes)
+    .def("NodalIncrementalPressureCalculation",&UlfUtils::NodalIncrementalPressureCalculation)
+    .def("SaveNodalArea",&UlfUtils::SaveNodalArea)
+    .def("SaveLagrangianInlet", &UlfUtils::SaveLagrangianInlet)
+    .def("InjectNodesAtInlet", &UlfUtils::InjectNodesAtInlet)
+    .def("MoveInletNodes", &UlfUtils::MoveInletNodes)
+    .def("MarkNodesCloseToWall", &UlfUtils::MarkNodesCloseToWall)
+    .def("MarkNodesTouchingWall", &UlfUtils::MarkNodesTouchingWall)
+    .def("MarkNodesCloseToWallForBladder", &UlfUtils::MarkNodesCloseToWallForBladder)
+    .def("MarkNodesCloseToFS", &UlfUtils::MarkNodesCloseToFS)
+    .def ("MarkLonelyNodesForErasing", &UlfUtils::MarkLonelyNodesForErasing)
+    .def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
+    .def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
+    .def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)
+
+    ;
+
+    class_<NistUtils>("NistUtils", init<>())
+    .def("GenerateModelPart",GenerateModelPart)
+    .def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
+    .def("FindFluidLevel",&NistUtils::FindFluidLevel)
+    ;
+
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos

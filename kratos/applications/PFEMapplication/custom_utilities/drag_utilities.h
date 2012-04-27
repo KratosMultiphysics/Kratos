@@ -179,7 +179,8 @@ public:
                 double fluid_vel_norm = norm_2(fluid_vel);
                 double structure_vel_norm = norm_2(structure_vel);
                 array_1d<double,3> str_fl_vel= ZeroVector(3);
-                for (unsigned int  k= 0; k < 3; k++) {
+                for (unsigned int  k= 0; k < 3; k++)
+                {
                     str_fl_vel[k] = fluid_vel[k] * structure_vel[k];
                 }
 

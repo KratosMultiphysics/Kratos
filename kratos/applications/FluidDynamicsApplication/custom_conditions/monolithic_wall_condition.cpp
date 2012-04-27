@@ -11,7 +11,7 @@ namespace Kratos
  */
 template <>
 void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     const unsigned int NumNodes = 2;
     const unsigned int LocalSize = 6;
@@ -33,7 +33,7 @@ void MonolithicWallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
-                                                    ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;
@@ -56,7 +56,7 @@ void MonolithicWallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResul
  */
 template <>
 void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 2;
     const SizeType LocalSize = 6;
@@ -79,7 +79,7 @@ void MonolithicWallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
  */
 template <>
 void MonolithicWallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
-                                              ProcessInfo& rCurrentProcessInfo)
+        ProcessInfo& rCurrentProcessInfo)
 {
     const SizeType NumNodes = 3;
     const SizeType LocalSize = 12;

@@ -1,4 +1,4 @@
-/*          
+/*
 * =======================================================================*
 * kkkk   kkkk  kkkkkkkkkk   kkkkk    kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
 * kkkk  kkkk   kkkk   kkkk  kkkkkk   kkkkkkkkkk kkkkkkkkkk kkkkkkkkkK    *
@@ -47,7 +47,7 @@
 
 // #define BOOST_NUMERIC_BINDINGS_SUPERLU_PRINT
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -61,145 +61,145 @@
 
 namespace Kratos
 {
-    template< class TSparseSpaceType, class TDenseSpaceType, 
-              class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-        class AmesosSolver : public LinearSolver< TSparseSpaceType, 
-              TDenseSpaceType, TReordererType>
-    {
-        public:
-            /**
-             * Counted pointer of AmesosSolver
-             */
-            typedef boost::shared_ptr<AmesosSolver> Pointer;
-            
-            typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType; 
-            
-            typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
-            
-            typedef typename TSparseSpaceType::VectorType VectorType;
-            
-            typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
-            
-            /**
-             * Default constructor
-             */
-            AmesosSolver(const std::string& SolverName, Teuchos::ParameterList& parameter_list)
-		{
-			mparameter_list = parameter_list;
-			mSolverName = SolverName;
-		}
-            
-            /**
-             * Destructor
-             */
-            virtual ~AmesosSolver(){}
-            
-            /** 
-             * Normal solve method.
-             * Solves the linear system Ax=b and puts the result on SystemVector& rX.
-             * rX is also th initial guess for iterative methods.
-             * @param rA. System matrix
-             * @param rX. Solution vector.
-             * @param rB. Right hand side vector.
-             */
-            bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-            {
-		KRATOS_TRY
-                rA.Comm().Barrier();
-		Epetra_LinearProblem Problem(&rA,&rX,&rB);
-		Amesos_BaseSolver* Solver;
-		Amesos Factory;
-		Solver = Factory.Create(mSolverName, Problem);
-		if (Solver == 0) 
-			std::cout << "Specified solver is not available" << std::endl;
-
-		Solver->SetParameters( mparameter_list );
-
-		Solver->SymbolicFactorization();
-		Solver->NumericFactorization();
-		Solver->Solve();
-
-		delete Solver;
-
-                rA.Comm().Barrier();
-                
-                return true;
-		KRATOS_CATCH("");
-            }
-            
-            /** 
-             * Multi solve method for solving a set of linear systems with same coefficient matrix.
-             * Solves the linear system Ax=b and puts the result on SystemVector& rX. 
-             * rX is also th initial guess for iterative methods.
-             * @param rA. System matrix
-             * @param rX. Solution vector.
-             * @param rB. Right hand side vector.
-             */
-            bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-            {
-
-                return false;
-            }
-            
-            /**
-             * Print information about this object.
-             */
-            void  PrintInfo(std::ostream& rOStream) const
-            {
-                rOStream << "Amesos solver finished.";
-            }
-            
-            /**
-             * Print object's data.
-             */
-            void  PrintData(std::ostream& rOStream) const 
-            {
-            }
-        
-        private:
-
-	    Teuchos::ParameterList mparameter_list;
-	    std::string mSolverName;
-            
-            /**
-             * Assignment operator.
-             */
-            AmesosSolver& operator=(const AmesosSolver& Other);
-            
-            /**
-             * Copy constructor.
-             */
-            AmesosSolver(const AmesosSolver& Other);
-    
-    }; // Class SkylineLUFactorizationSolver 
-
-    
+template< class TSparseSpaceType, class TDenseSpaceType,
+          class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
+class AmesosSolver : public LinearSolver< TSparseSpaceType,
+    TDenseSpaceType, TReordererType>
+{
+public:
     /**
-     * input stream function
+     * Counted pointer of AmesosSolver
      */
-    template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-    inline std::istream& operator >> (std::istream& rIStream, AmesosSolver< TSparseSpaceType, 
-                                      TDenseSpaceType, TReordererType>& rThis)
-    {
-        return rIStream;
-    }
-    
-    /**
-     * output stream function
-     */
-    template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
-    inline std::ostream& operator << (std::ostream& rOStream, 
-                                      const AmesosSolver<TSparseSpaceType, 
-                                      TDenseSpaceType, TReordererType>& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+    typedef boost::shared_ptr<AmesosSolver> Pointer;
 
-        return rOStream;
+    typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
+
+    typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
+
+    typedef typename TSparseSpaceType::VectorType VectorType;
+
+    typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
+
+    /**
+     * Default constructor
+     */
+    AmesosSolver(const std::string& SolverName, Teuchos::ParameterList& parameter_list)
+    {
+        mparameter_list = parameter_list;
+        mSolverName = SolverName;
     }
- 
-  
+
+    /**
+     * Destructor
+     */
+    virtual ~AmesosSolver() {}
+
+    /**
+     * Normal solve method.
+     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
+     * rX is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector.
+     * @param rB. Right hand side vector.
+     */
+    bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    {
+        KRATOS_TRY
+        rA.Comm().Barrier();
+        Epetra_LinearProblem Problem(&rA,&rX,&rB);
+        Amesos_BaseSolver* Solver;
+        Amesos Factory;
+        Solver = Factory.Create(mSolverName, Problem);
+        if (Solver == 0)
+            std::cout << "Specified solver is not available" << std::endl;
+
+        Solver->SetParameters( mparameter_list );
+
+        Solver->SymbolicFactorization();
+        Solver->NumericFactorization();
+        Solver->Solve();
+
+        delete Solver;
+
+        rA.Comm().Barrier();
+
+        return true;
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Multi solve method for solving a set of linear systems with same coefficient matrix.
+     * Solves the linear system Ax=b and puts the result on SystemVector& rX.
+     * rX is also th initial guess for iterative methods.
+     * @param rA. System matrix
+     * @param rX. Solution vector.
+     * @param rB. Right hand side vector.
+     */
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    {
+
+        return false;
+    }
+
+    /**
+     * Print information about this object.
+     */
+    void  PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Amesos solver finished.";
+    }
+
+    /**
+     * Print object's data.
+     */
+    void  PrintData(std::ostream& rOStream) const
+    {
+    }
+
+private:
+
+    Teuchos::ParameterList mparameter_list;
+    std::string mSolverName;
+
+    /**
+     * Assignment operator.
+     */
+    AmesosSolver& operator=(const AmesosSolver& Other);
+
+    /**
+     * Copy constructor.
+     */
+    AmesosSolver(const AmesosSolver& Other);
+
+}; // Class SkylineLUFactorizationSolver
+
+
+/**
+ * input stream function
+ */
+template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
+inline std::istream& operator >> (std::istream& rIStream, AmesosSolver< TSparseSpaceType,
+                                  TDenseSpaceType, TReordererType>& rThis)
+{
+    return rIStream;
+}
+
+/**
+ * output stream function
+ */
+template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const AmesosSolver<TSparseSpaceType,
+                                  TDenseSpaceType, TReordererType>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_AMESOS_SOLVER_H_INCLUDED  defined 

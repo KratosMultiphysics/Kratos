@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: rrossi $
 //   Date:                $Date: 2007-04-25 15:49:12 $
 //   Revision:            $Revision: 1.1 $
@@ -50,10 +50,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -66,10 +66,10 @@ namespace Kratos
 namespace Python
 {
 
-  void  AddParallelLinearSolversToPython();
+void  AddParallelLinearSolversToPython();
 
 }  // namespace Python.
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_PARALLEL_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED  defined 

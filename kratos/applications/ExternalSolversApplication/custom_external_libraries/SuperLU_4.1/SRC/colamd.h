@@ -1,7 +1,7 @@
 /*! @file colamd.h
     \brief Colamd prototypes and definitions
 
-	<pre> 
+	<pre>
     ==========================================================================
     === colamd/symamd prototypes and definitions =============================
     ==========================================================================
@@ -37,7 +37,7 @@
 	this program, provided that the Copyright, this License, and the
 	Availability of the original version is retained on all copies and made
 	accessible to the end-user of any code or package that includes COLAMD
-	or any modified version of COLAMD. 
+	or any modified version of COLAMD.
 
     Availability:
 
@@ -83,7 +83,7 @@
 /* stats [3]: colamd status:  zero OK, > 0 warning or notice, < 0 error */
 #define COLAMD_STATUS 3
 
-/* stats [4..6]: error info, or info on jumbled columns */ 
+/* stats [4..6]: error info, or info on jumbled columns */
 #define COLAMD_INFO1 4
 #define COLAMD_INFO2 5
 #define COLAMD_INFO3 6
@@ -114,32 +114,32 @@
 typedef struct Colamd_Col_struct
 {
     int start ;		/* index for A of first row in this column, or DEAD */
-			/* if column is dead */
+    /* if column is dead */
     int length ;	/* number of rows in this column */
     union
     {
-	int thickness ;	/* number of original columns represented by this */
-			/* col, if the column is alive */
-	int parent ;	/* parent in parent tree super-column structure, if */
-			/* the column is dead */
+        int thickness ;	/* number of original columns represented by this */
+        /* col, if the column is alive */
+        int parent ;	/* parent in parent tree super-column structure, if */
+        /* the column is dead */
     } shared1 ;
     union
     {
-	int score ;	/* the score used to maintain heap, if col is alive */
-	int order ;	/* pivot ordering of this column, if col is dead */
+        int score ;	/* the score used to maintain heap, if col is alive */
+        int order ;	/* pivot ordering of this column, if col is dead */
     } shared2 ;
     union
     {
-	int headhash ;	/* head of a hash bucket, if col is at the head of */
-			/* a degree list */
-	int hash ;	/* hash value, if col is not in a degree list */
-	int prev ;	/* previous column in degree list, if col is in a */
-			/* degree list (but not at the head of a degree list) */
+        int headhash ;	/* head of a hash bucket, if col is at the head of */
+        /* a degree list */
+        int hash ;	/* hash value, if col is not in a degree list */
+        int prev ;	/* previous column in degree list, if col is in a */
+        /* degree list (but not at the head of a degree list) */
     } shared3 ;
     union
     {
-	int degree_next ;	/* next column, if col is in a degree list */
-	int hash_next ;		/* next column, if col is in a hash list */
+        int degree_next ;	/* next column, if col is in a degree list */
+        int hash_next ;		/* next column, if col is in a hash list */
     } shared4 ;
 
 } Colamd_Col ;
@@ -150,13 +150,13 @@ typedef struct Colamd_Row_struct
     int length ;	/* number of principal columns in this row */
     union
     {
-	int degree ;	/* number of principal & non-principal columns in row */
-	int p ;		/* used as a row pointer in init_rows_cols () */
+        int degree ;	/* number of principal & non-principal columns in row */
+        int p ;		/* used as a row pointer in init_rows_cols () */
     } shared1 ;
     union
     {
-	int mark ;	/* for computing set differences and marking dead rows*/
-	int first_column ;/* first column in row (used in garbage collection) */
+        int mark ;	/* for computing set differences and marking dead rows*/
+        int first_column ;/* first column in row (used in garbage collection) */
     } shared2 ;
 
 } Colamd_Row ;
@@ -197,7 +197,7 @@ typedef struct Colamd_Row_struct
 /* ========================================================================== */
 
 int colamd_recommended		/* returns recommended value of Alen, */
-				/* or (-1) if input arguments are erroneous */
+/* or (-1) if input arguments are erroneous */
 (
     int nnz,			/* nonzeros in A */
     int n_row,			/* number of rows in A */
@@ -229,11 +229,11 @@ int symamd				/* return (1) if OK, (0) otherwise */
     double knobs [COLAMD_KNOBS],	/* parameters (uses defaults if NULL) */
     int stats [COLAMD_STATS],		/* output statistics and error codes */
     void * (*allocate) (size_t, size_t),
-    					/* pointer to calloc (ANSI C) or */
-					/* mxCalloc (for MATLAB mexFunction) */
+    /* pointer to calloc (ANSI C) or */
+    /* mxCalloc (for MATLAB mexFunction) */
     void (*release) (void *)
-    					/* pointer to free (ANSI C) or */
-    					/* mxFree (for MATLAB mexFunction) */
+    /* pointer to free (ANSI C) or */
+    /* mxFree (for MATLAB mexFunction) */
 ) ;
 
 void colamd_report

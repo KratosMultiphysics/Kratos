@@ -1,14 +1,14 @@
 /*
 ==============================================================================
-KratosStructuralApplication 
+KratosStructuralApplication
 A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
-pooyan@cimne.upc.edu 
+Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel
+pooyan@cimne.upc.edu
 rrossi@cimne.upc.edu
 janosch.stascheit@rub.de
 nagel@sd.rub.de
@@ -41,8 +41,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last modified by:    $Author: kazem $
 //   Date:                $Date: 2008-07-24 16:46:55 $
 //   Revision:            $Revision: 1.1 $
@@ -50,13 +50,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "custom_conditions/pointforce2D.h"
 #include "structural_application.h"
@@ -64,104 +64,104 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-	//************************************************************************************
-	//************************************************************************************
-	PointForce2D::PointForce2D(IndexType NewId, GeometryType::Pointer 
-pGeometry)
-		: Condition(NewId, pGeometry)
-	{		
-		//DO NOT ADD DOFS HERE!!!
-	}
+//************************************************************************************
+//************************************************************************************
+PointForce2D::PointForce2D(IndexType NewId, GeometryType::Pointer
+                           pGeometry)
+    : Condition(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
 
-	//************************************************************************************
-	//************************************************************************************
-	PointForce2D::PointForce2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-		: Condition(NewId, pGeometry, pProperties)
-	{
-	}
+//************************************************************************************
+//************************************************************************************
+PointForce2D::PointForce2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
+{
+}
 
-	Condition::Pointer PointForce2D::Create(IndexType NewId, NodesArrayType 
-const& ThisNodes,  PropertiesType::Pointer pProperties) const
-	{
-		return Condition::Pointer(new PointForce2D(NewId, 
-GetGeometry().Create(ThisNodes), pProperties));
-	}
+Condition::Pointer PointForce2D::Create(IndexType NewId, NodesArrayType
+                                        const& ThisNodes,  PropertiesType::Pointer pProperties) const
+{
+    return Condition::Pointer(new PointForce2D(NewId,
+                              GetGeometry().Create(ThisNodes), pProperties));
+}
 
-	PointForce2D::~PointForce2D()
-	{
-	}
-
-
-	//************************************************************************************
-	//************************************************************************************
-	void PointForce2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-		if(rRightHandSideVector.size() != 2)
-			rRightHandSideVector.resize(2,false);
-
-		array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
-		rRightHandSideVector[0] = force[0];
-		rRightHandSideVector[1] = force[1];
-		
-		KRATOS_CATCH("")
-	}
-
-	//************************************************************************************
-	//************************************************************************************
-	void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-	{
-		KRATOS_TRY
-
-		if(rLeftHandSideMatrix.size1() != 2)
-			rLeftHandSideMatrix.resize(2,2,false);
-		noalias(rLeftHandSideMatrix) = ZeroMatrix(2,2);
-
-		if(rRightHandSideVector.size() != 2)
-			rRightHandSideVector.resize(2,false);
-
-		array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
-		rRightHandSideVector[0] = force[0];
-		rRightHandSideVector[1] = force[1];
-		
-		KRATOS_CATCH("")
-	}
+PointForce2D::~PointForce2D()
+{
+}
 
 
-	//************************************************************************************
-	//************************************************************************************
-	void PointForce2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-	{
-		int number_of_nodes = GetGeometry().PointsNumber();
-		unsigned int index;
-		unsigned int dim = 2;
-		rResult.resize(number_of_nodes*dim);
-		for (int i=0;i<number_of_nodes;i++)
-		{
-			index = i*dim;
-			rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
-			rResult[index+1] = (GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId());
-			
-		}
-	}
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    if(rRightHandSideVector.size() != 2)
+        rRightHandSideVector.resize(2,false);
 
-	//************************************************************************************
-	//************************************************************************************
-	  void PointForce2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
-	{
-		unsigned int dim = 2;
-		ConditionalDofList.resize(GetGeometry().size()*dim);
-		unsigned int index;
-		for (unsigned int i=0;i<GetGeometry().size();i++)
-		{
-			
-			index = i*dim;
-			ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-			ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-			
-		}
-	}
+    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
+    rRightHandSideVector[0] = force[0];
+    rRightHandSideVector[1] = force[1];
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if(rLeftHandSideMatrix.size1() != 2)
+        rLeftHandSideMatrix.resize(2,2,false);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(2,2);
+
+    if(rRightHandSideVector.size() != 2)
+        rRightHandSideVector.resize(2,false);
+
+    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
+    rRightHandSideVector[0] = force[0];
+    rRightHandSideVector[1] = force[1];
+
+    KRATOS_CATCH("")
+}
+
+
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
+    int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int index;
+    unsigned int dim = 2;
+    rResult.resize(number_of_nodes*dim);
+    for (int i=0; i<number_of_nodes; i++)
+    {
+        index = i*dim;
+        rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
+        rResult[index+1] = (GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId());
+
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+void PointForce2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+{
+    unsigned int dim = 2;
+    ConditionalDofList.resize(GetGeometry().size()*dim);
+    unsigned int index;
+    for (unsigned int i=0; i<GetGeometry().size(); i++)
+    {
+
+        index = i*dim;
+        ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+        ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+
+    }
+}
 } // Namespace Kratos
 
- 
+
 

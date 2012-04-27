@@ -35,9 +35,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ==============================================================================
 */
- 
-//   
-//   Project Name:        Kratos       
+
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2008-11-17 17:46:04 $
 //   Revision:            $Revision: 1.6 $
@@ -52,13 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <numeric>
 #include <cstddef>
 
 
 // External includes
-#include <boost/array.hpp>  
+#include <boost/array.hpp>
 
 
 // Project includes
@@ -68,208 +68,221 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-    class GaussLegendreIntegrationPoints1
+class GaussLegendreIntegrationPoints1
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints1);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints1);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 1;
+        return 1;
+    }
 
-	typedef IntegrationPoint<1> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 1; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType(0.00, 2.00);
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "GaussLegendre quadrature 1 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints1
-
-
-   class GaussLegendreIntegrationPoints2
+    static IntegrationPointsArrayType& IntegrationPoints()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints2);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 1;
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(0.00, 2.00);
+        return msIntegrationPoints;
+    }
 
-	typedef IntegrationPoint<1> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 2; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType(-std::sqrt(1.00 / 3.00), 1.00);
-	  msIntegrationPoints[1] = IntegrationPointType( std::sqrt(1.00 / 3.00), 1.00);
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "GaussLegendre quadrature 2 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints2
-    
-
-   class GaussLegendreIntegrationPoints3
+    std::string Info() const
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints3);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 1;
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 1 ";
+        return buffer.str();
+    }
+protected:
 
-	typedef IntegrationPoint<1> IntegrationPointType;
+private:
 
-      	typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 3; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType(-std::sqrt(3.00 / 5.00), 5.00 / 9.00);
-	  msIntegrationPoints[1] = IntegrationPointType( 0.00                  , 8.00 / 9.00);
-	  msIntegrationPoints[2] = IntegrationPointType( std::sqrt(3.00 / 5.00), 5.00 / 9.00);
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "GaussLegendre quadrature 3 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints3
+}; // Class QuadrilateralGaussianIntegrationPoints1
 
 
+class GaussLegendreIntegrationPoints2
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints2);
+    typedef std::size_t SizeType;
 
-   class GaussLegendreIntegrationPoints4
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 2> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints4);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 1;
+        return 2;
+    }
 
-	typedef IntegrationPoint<1> IntegrationPointType;
-
-      	typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
-
-      	typedef IntegrationPointType::PointType PointType;
-
-      	static SizeType IntegrationPointsNumber(){  return 4; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType(-0.861136311594053, 0.347854845137454);
-	  msIntegrationPoints[1] = IntegrationPointType(-0.339981043584856, 0.652145154862546);
-	  msIntegrationPoints[2] = IntegrationPointType( 0.339981043584856, 0.652145154862546);
-	  msIntegrationPoints[3] = IntegrationPointType( 0.861136311594053, 0.347854845137454);
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "GaussLegendre quadrature 4 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints4
-
-
-   
-   class GaussLegendreIntegrationPoints5
+    static IntegrationPointsArrayType& IntegrationPoints()
     {
-    public:
-      	KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints5);
-  	typedef std::size_t SizeType;
-	
-	static const unsigned int Dimension = 1;
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-std::sqrt(1.00 / 3.00), 1.00);
+        msIntegrationPoints[1] = IntegrationPointType( std::sqrt(1.00 / 3.00), 1.00);
+        return msIntegrationPoints;
+    }
 
-	typedef IntegrationPoint<1> IntegrationPointType;
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 2 ";
+        return buffer.str();
+    }
+protected:
 
-      	typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+private:
 
-      	typedef IntegrationPointType::PointType PointType;
+    static IntegrationPointsArrayType msIntegrationPoints;
 
-      	static SizeType IntegrationPointsNumber(){  return 5; }
-	
-      	static IntegrationPointsArrayType& IntegrationPoints()
-	{
-	  // This is added to solve the problem of static initialization. Pooyan.
-	  msIntegrationPoints[0] = IntegrationPointType(-0.906179845938664, 0.236926885056189);
-	  msIntegrationPoints[1] = IntegrationPointType(-0.538469310105683, 0.478628670499366);
-	  msIntegrationPoints[2] = IntegrationPointType( 0.000000000000000, 0.568888888888889);
-	  msIntegrationPoints[3] = IntegrationPointType( 0.538469310105683, 0.478628670499366);
-	  msIntegrationPoints[4] = IntegrationPointType( 0.906179845938664, 0.236926885056189);
-	  return msIntegrationPoints;
-	}
-
-     	std::string Info() const
-      	{
-	  std::stringstream buffer;
-	  buffer << "GaussLegendre quadrature 5 ";
-	  return buffer.str();
-      	}
-    protected:
-
-    private:
-
-    	static IntegrationPointsArrayType msIntegrationPoints;
-
-    }; // Class QuadrilateralGaussianIntegrationPoints4
+}; // Class QuadrilateralGaussianIntegrationPoints2
 
 
+class GaussLegendreIntegrationPoints3
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints3);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 3> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 3;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-std::sqrt(3.00 / 5.00), 5.00 / 9.00);
+        msIntegrationPoints[1] = IntegrationPointType( 0.00                  , 8.00 / 9.00);
+        msIntegrationPoints[2] = IntegrationPointType( std::sqrt(3.00 / 5.00), 5.00 / 9.00);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 3 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints3
+
+
+
+class GaussLegendreIntegrationPoints4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints4);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 4> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 4;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.861136311594053, 0.347854845137454);
+        msIntegrationPoints[1] = IntegrationPointType(-0.339981043584856, 0.652145154862546);
+        msIntegrationPoints[2] = IntegrationPointType( 0.339981043584856, 0.652145154862546);
+        msIntegrationPoints[3] = IntegrationPointType( 0.861136311594053, 0.347854845137454);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 4 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints4
+
+
+
+class GaussLegendreIntegrationPoints5
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints5);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 1;
+
+    typedef IntegrationPoint<1> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 5> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()
+    {
+        return 5;
+    }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType(-0.906179845938664, 0.236926885056189);
+        msIntegrationPoints[1] = IntegrationPointType(-0.538469310105683, 0.478628670499366);
+        msIntegrationPoints[2] = IntegrationPointType( 0.000000000000000, 0.568888888888889);
+        msIntegrationPoints[3] = IntegrationPointType( 0.538469310105683, 0.478628670499366);
+        msIntegrationPoints[4] = IntegrationPointType( 0.906179845938664, 0.236926885056189);
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "GaussLegendre quadrature 5 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints4
 
 
 
@@ -277,177 +290,179 @@ namespace Kratos
 
 
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
+
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
 // 	template<std::size_t TOrder>
 //     class GaussLegendreIntegrationPoints
 //     {
 //     public:
 //      ///@name Type Definitions
 //       ///@{
-//       
+//
 //       /// Pointer definition of GaussLegendreIntegrationPoints
 //       KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints);
-// 
+//
 // 	  typedef std::size_t SizeType;
-//   
+//
 // 	  static const SizeType Dimension = 1;
-// 
+//
 //       typedef IntegrationPoint<Dimension> IntegrationPointType;
-// 
+//
 //       typedef boost::array<IntegrationPointType, TOrder> IntegrationPointsArrayType;
-// 
+//
 //       typedef typename IntegrationPointType::PointType PointType;
- 
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      ///@}
-      ///@name Operations
-      ///@{
+
+///@}
+///@name Life Cycle
+///@{
+
+///@}
+///@name Operators
+///@{
+
+///@}
+///@name Operations
+///@{
 
 //       static SizeType IntegrationPointsNumber()
 // 	{
 // 	  return TOrder;
 // 	}
-//       
+//
 //       static IntegrationPointsArrayType& IntegrationPoints()
 // 	{
 // 	  return msIntegrationPoints;
 // 	}
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
 
-      /// Turn back information as a string.
+///@}
+///@name Access
+///@{
+
+
+///@}
+///@name Inquiry
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+/// Turn back information as a string.
 //       std::string Info() const
 //       {
 // 	  std::stringstream buffer;
 // 	  buffer << "Gauss-Legendre Integration points with order " << TOrder;
 // 	  return buffer.str();
 //       }
-      
-      
-      ///@}      
-      ///@name Friends
-      ///@{
 
-            
-      ///@}
-      
+
+///@}
+///@name Friends
+///@{
+
+
+///@}
+
 //     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+///@name Protected static Member Variables
+///@{
+
+
+///@}
+///@name Protected member Variables
+///@{
+
+
+///@}
+///@name Protected Operators
+///@{
+
+
+///@}
+///@name Protected Operations
+///@{
+
+
+///@}
+///@name Protected  Access
+///@{
+
+
+///@}
+///@name Protected Inquiry
+///@{
+
+
+///@}
+///@name Protected LifeCycle
+///@{
+
+
+///@}
+
 //     private:
-      ///@name Static Member Variables 
-      ///@{
+///@name Static Member Variables
+///@{
 
 //       static IntegrationPointsArrayType msIntegrationPoints;
 
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{
+///@}
+///@name Member Variables
+///@{
 
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      ///@}    
-        
-//     }; // Class GaussLegendreIntegrationPoints 
 
-  ///@}
+///@}
+///@name Private Operators
+///@{
+
+
+///@}
+///@name Private Operations
+///@{
+
+
+///@}
+///@name Private  Access
+///@{
+
+
+///@}
+///@name Private Inquiry
+///@{
+
+
+///@}
+///@name Un accessible methods
+///@{
+
+///@}
+
+//     }; // Class GaussLegendreIntegrationPoints
+
+///@}
 
 
 
@@ -457,7 +472,7 @@ namespace Kratos
 // 		IntegrationPointType(0.00, 2.00)
 // 		}
 //     };
-  
+
 //   template<> GaussLegendreIntegrationPoints<2>::IntegrationPointsArrayType GaussLegendreIntegrationPoints<2>::msIntegrationPoints =
 //     {
 // 		{
@@ -465,7 +480,7 @@ namespace Kratos
 //       IntegrationPointType( std::sqrt(1.00 / 3.00), 1.00)
 // 		}
 //     };
-/*  
+/*
   template<> GaussLegendreIntegrationPoints<3>::IntegrationPointsArrayType GaussLegendreIntegrationPoints<3>::msIntegrationPoints =
     {
 		{
@@ -475,18 +490,18 @@ namespace Kratos
 		}
     };
 */
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  ///@} 
-  
-  
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+///@}
+
+
 }  // namespace Kratos.
 
 #endif // KRATOS_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
