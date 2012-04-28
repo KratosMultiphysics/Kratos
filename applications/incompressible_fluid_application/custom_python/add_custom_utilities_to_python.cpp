@@ -127,16 +127,10 @@ void AddCustomUtilitiesToPython()
     .def("SubscaleErrorEstimate", &RefinementUtilities::SubscaleErrorEstimate)
     ;
 
-<<<<<<< .mine
+
     class_<AssignNoSlipCondition > ("AssignNoSlipCondition", init<>())
     .def("AssignNoSlipCondition2D", &AssignNoSlipCondition::AssignNoSlipCondition2D)
     ;
-=======
-            class_<AssignNoSlipCondition > ("AssignNoSlipCondition", init<>())
-                    .def("AssignNoSlipCondition2D", &AssignNoSlipCondition::AssignNoSlipCondition2D)
-
-                    ;
->>>>>>> .r5031
 
 
 
@@ -378,33 +372,18 @@ void AddCustomUtilitiesToPython()
     ;
 
 
-<<<<<<< .mine
+    class_<CombustionUtilities >("CombustionUtilities", init<>())
+    .def("Mixture_Fraction",&CombustionUtilities::Mixture_Fraction)
+    .def("Enthalpy",&CombustionUtilities::Enthalpy)
+    .def("Temperature",&CombustionUtilities::Temperature)
+    ;
+
+
     class_<FluidThermalSolverUtilities>("FluidThermalSolverUtilities", init<ModelPart&, ModelPart&>())
     .def("ProjectFromThermalToFluid",&FluidThermalSolverUtilities::ProjectFromThermalToFluid)
     .def("ProjectFromFluidToThermal",&FluidThermalSolverUtilities::ProjectFromFluidToThermal)
     .def("ApplyTables",&FluidThermalSolverUtilities::ApplyTables)
     ;
-=======
-	    class_<CombustionUtilities >("CombustionUtilities", init<>())
-	      .def("Mixture_Fraction",&CombustionUtilities::Mixture_Fraction)
-	      .def("Enthalpy",&CombustionUtilities::Enthalpy)
-	      .def("Temperature",&CombustionUtilities::Temperature)
-	      ;
-
-            class_<FluidThermalSolverUtilities>("FluidThermalSolverUtilities", init<ModelPart&, ModelPart&>())
-                    .def("ProjectFromThermalToFluid",&FluidThermalSolverUtilities::ProjectFromThermalToFluid)
-                    .def("ProjectFromFluidToThermal",&FluidThermalSolverUtilities::ProjectFromFluidToThermal)
-                    .def("ApplyTables",&FluidThermalSolverUtilities::ApplyTables)
-                    ;
-                    
-                    
-            class_< MoveParticleUtility<2> > ("MoveParticleUtility2D", init<ModelPart& , ModelPart& >())
-                    .def("MountBin", &MoveParticleUtility<2>::MountBin)
-                    .def("MoveParticles", &MoveParticleUtility<2>::MoveParticles)
-                    ;      
-              
-        }
->>>>>>> .r5031
 
 
     class_< MoveParticleUtility<2> > ("MoveParticleUtility2D", init<ModelPart& , ModelPart& >())
