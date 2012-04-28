@@ -1,5 +1,6 @@
 #include "../opencl_linear_solver.h"
 #include "includes/matrix_market_interface.h"
+#include "includes/ublas_interface.h"
 
 //#include "viennacl/compressed_matrix.hpp"
 //#include "viennacl/linalg/cg.hpp"
