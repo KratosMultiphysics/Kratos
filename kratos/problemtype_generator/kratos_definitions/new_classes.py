@@ -298,10 +298,11 @@ class point_element(core_definitions.element):
 
     questions='QUESTION: ID#FUNC#(NumEntity)\n'+\
                'VALUE: 0\n'+\
-               'STATE: HIDDEN\n'
-##    questions='QUESTION: Material\n'+\
-##               'VALUE: None\n'+\
-##               'TKWIDGET: TkwidgetGetMaterial\n'
+               'STATE: HIDDEN\n'#+\
+#               'QUESTION: Material\n'+\
+#               'VALUE: None\n'+\
+#               'TKWIDGET: TkwidgetGetMaterial\n'+\
+#               'STATE: HIDDEN\n'
 
     def valuestring(self,extra_input):
         return '0'

@@ -455,11 +455,8 @@ class condition(base):
 # A finite element template
 
 # Note that GiD doesn't handle point elements assigned to point entities in the same way as the other
-# element types, as they can't be meshed via the mesh menu and materials aren't transferred to points
-# Also, point conditions can be looped over 'elems' in bas files. All of this can be solved using tcl,
-# but the different syntax in bas files means that they need to be defined as a different custom class,
-# with an additional QUESTION field, and reading its template code from a different definition file.
-# See the new_kratos definition folder for an example implementation.
+# element types. I have implemented them as nodal values, but this has the important limitation that
+# I don't know how to assing them a material
 
 class element(base):
     
@@ -519,13 +516,14 @@ class element(base):
 ##        else:
 ##            mode='elem'
         if 'point' in self.entities: ## This if should be removed once GiD supports point elements. Then, always execute the 'else' clause
-            # If we are creating a point element, write a call to the point meshing procedure
-            tcl_string='\tcreate_point_elems '+self.name+'\n'
-            tcl_code=code(tcl_string,'','.tcl','\t# After Mesh Generation')
-            code_db.add_code(self.name,tcl_code,'write')
-            # For elements to work properly in GID 9.1.1b (and older), point entities are assigned a nodal condition by the user and then recieve an
-            # elemental condition when the point elements are created. Because of this, their *set command is different
-            bascode='*set cond element_'+self.name+' elem\n'
+##            # If we are creating a point element, write a call to the point meshing procedure
+##            tcl_string='\tcreate_point_elems '+self.name+'\n'
+##            tcl_code=code(tcl_string,'','.tcl','\t# After Mesh Generation')
+##            code_db.add_code(self.name,tcl_code,'write')
+##            # For elements to work properly in GID 9.1.1b (and older), point entities are assigned a nodal condition by the user and then recieve an
+##           # elemental condition when the point elements are created. Because of this, their *set command is different
+##            bascode='*set cond element_'+self.name+' elem\n'
+            bascode=self.bas_entity_code(self.entities,self.name,'node') # generate *Set and *Add clauses
         else:
             # For other entities, we will want to loop over elements
             bascode=self.bas_entity_code(self.entities,self.name,'elem') # generate *Set and *Add clauses
