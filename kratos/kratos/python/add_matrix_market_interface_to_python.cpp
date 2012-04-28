@@ -47,6 +47,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/matrix_market_interface.h"
+#include "includes/ublas_interface.h"
 #include "python/add_matrix_market_interface_to_python.h"
 
 namespace Kratos
@@ -59,11 +60,11 @@ void  AddMatrixMarketInterfaceToPython()
 
     using namespace boost::python;
 
-    def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix);
-    def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix);
+    def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix <Kratos::CompressedMatrix>);
+    def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix <Kratos::CompressedMatrix>);
 
-    def("ReadMatrixMarketVector", ReadMatrixMarketVector);
-    def("WriteMatrixMarketVector", WriteMatrixMarketVector);
+    def("ReadMatrixMarketVector", ReadMatrixMarketVector <Kratos::Vector>);
+    def("WriteMatrixMarketVector", WriteMatrixMarketVector <Kratos::Vector>);
 
 }
 
