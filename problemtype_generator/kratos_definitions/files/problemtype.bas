@@ -1,5 +1,6 @@
-*# Define a condition index, which will be used to enforce that condition numbering begins from 1
-*set var condbase=-1
+*# Element and condition indices. We renumber them so each type is numbered from one.
+*set var ielem=0
+*set var icond=0
 Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
