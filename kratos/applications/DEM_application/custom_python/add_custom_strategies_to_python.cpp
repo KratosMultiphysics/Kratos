@@ -81,6 +81,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
+#include "custom_strategies/schemes/foward_euler_scheme.h"
+#include "custom_strategies/schemes/mid_point_scheme.h"
 
 
 //builder_and_solvers
@@ -104,9 +106,16 @@ void  AddCustomStrategiesToPython()
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
+    class_< FowardEulerScheme, bases< >,  boost::noncopyable>
+    ("FowardEuler", init< >())
+    ;
+    
+    class_< MidPointScheme, bases< >,  boost::noncopyable>
+    ("MidPoint", init< >())
+    ;  
 
+    
     typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
-
     class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
     (
         "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, bool, BaseSchemeType::Pointer>())
