@@ -117,8 +117,8 @@ namespace Kratos
 	#pragma omp parallel for private(aux) shared(delta_t) 
 	for(int k=0; k<number_of_threads; k++)
 	{
-	  typename ElementsArrayType::iterator i_begin=pElements.ptr_begin() + elem_partition[k];
-	  typename ElementsArrayType::iterator i_end=pElements.ptr_begin()+ elem_partition[k+1];
+	  ElementsArrayType::iterator i_begin=pElements.ptr_begin() + elem_partition[k];
+	  ElementsArrayType::iterator i_end=pElements.ptr_begin()+ elem_partition[k+1];
 	  for(ModelPart::ElementIterator i=i_begin; i!= i_end; ++i)      
 	  {
 	    Element::GeometryType& geom           = i->GetGeometry(); 

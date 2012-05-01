@@ -109,8 +109,8 @@ namespace Kratos
 	#pragma omp parallel for firstprivate(aux) shared(delta_t) 
 	for(int k=0; k<number_of_threads; k++)
 	{
-	  typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	  typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	  NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	  {
 	     array_1d<double, 3 > & vel          = i->FastGetSolutionStepValue(VELOCITY);
