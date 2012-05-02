@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/constitutive_law.h"
 #include "constitutive_laws/dummy_constitutive_law.h"
+#include "constitutive_laws/tutorial_damage_model.h"
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
 #include "constitutive_laws/hyperelastic_3d.h"
@@ -139,6 +140,11 @@ void  AddConstitutiveLawsToPython()
     ( "DummyConstitutiveLaw",
       init<>() )
     ;
+            
+            class_< TutorialDamageModel, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+            ( "TutorialDamageModel",
+             init<>() )
+            ;
 
     class_< Isotropic2D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "Isotropic2D",
