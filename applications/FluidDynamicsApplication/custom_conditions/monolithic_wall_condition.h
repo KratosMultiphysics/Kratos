@@ -187,7 +187,7 @@ public:
     ///@name Operators
     ///@{
 
-    /// Copy constructor
+    /// Assignment operator
     MonolithicWallCondition & operator=(MonolithicWallCondition const& rOther)
     {
         Condition::operator=(rOther);
@@ -329,7 +329,7 @@ public:
             if(IS_STRUCTURE.Key() == 0)
                 KRATOS_ERROR(std::invalid_argument,"IS_STRUCTURE Key is 0. Check if the application was correctly registered.","");
             if(Y_WALL.Key() == 0)
-                KRATOS_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","")
+                KRATOS_ERROR(std::invalid_argument,"Y_WALL Key is 0. Check if the application was correctly registered.","");
 
                 // Checks on nodes
 
