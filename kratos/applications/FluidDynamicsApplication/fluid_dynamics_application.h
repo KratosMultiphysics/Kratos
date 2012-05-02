@@ -78,8 +78,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/bingham_vms.h"
 //#include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
+#include "custom_elements/fractional_step.h"
 //#include "custom_elements/spalart_allmaras_element.h"
 #include "custom_elements/spalart_allmaras.h"
+#include "custom_conditions/wall_condition.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/periodic_condition.h"
 
@@ -249,21 +251,30 @@ private:
     const BinghamVMS<2> mBinghamVMS2D;
     /// 3D instance of the BinghamVMS element
     const BinghamVMS<3> mBinghamVMS3D;
-//                /// 2D instance of the Dynamic Subscale version of the VMS element
-//                 const DynamicVMS<2> mDynamicVMS2D;
-//                 /// 3D instance of the Dynamic Subscale version of the VMS element
-//                 const DynamicVMS<3> mDynamicVMS3D;
+//    /// 2D instance of the Dynamic Subscale version of the VMS element
+//    const DynamicVMS<2> mDynamicVMS2D;
+//    /// 3D instance of the Dynamic Subscale version of the VMS element
+//    const DynamicVMS<3> mDynamicVMS3D;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
+
+    /// 2D instance of the fractional step element
+    const FractionalStep<2> mFractionalStep2D;
+    /// 3D instance of the fractional step element
+    const FractionalStep<3> mFractionalStep3D;
 
     /// 2D Spalart-Allmaras turbulent viscosity transport equation element
     const SpalartAllmaras mSpalartAllmaras2D;
     /// 3D Spalart-Allmaras turbulent viscosity transport equation element
     const SpalartAllmaras mSpalartAllmaras3D;
 
-    /// 2D slip condition using Nitsche's method
+    /// Exact 2D slip condition using rotated coordinates (fractional step version)
+    const  WallCondition<2,2> mWallCondition2D;
+    /// Exact 3D slip condition using rotated coordinates (fractional step version)
+    const  WallCondition<3,3> mWallCondition3D;
+    /// Exact 2D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
-    /// 3D slip condition using Nitsche's method
+    /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
 
     /// Periodic Condition (implemented using penalization)

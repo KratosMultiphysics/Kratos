@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/strategies/fs_strategy.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 
@@ -95,6 +96,13 @@ void  AddCustomStrategiesToPython()
 
     //********************************************************************
     //********************************************************************
+
+    class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
+            ("FSStrategy",init<ModelPart&,typename LinearSolverType::Pointer,typename LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
+            .def("CalculateReactions",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
+            ;
+
+
     class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
             bases< BaseSchemeType >,  boost::noncopyable >
             ("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",init<double,double,unsigned int,Process::Pointer >() )
