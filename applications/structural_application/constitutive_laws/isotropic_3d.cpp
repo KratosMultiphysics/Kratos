@@ -153,7 +153,7 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 
 Matrix& Isotropic3D::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
-    KRATOS_ERROR( std::logic_error, "Vector Variable case not considered", "" );
+        KRATOS_ERROR( std::logic_error, "Matrix Variable case not considered", "" );
 }
 
 void Isotropic3D::SetValue( const Variable<double>& rThisVariable, const double& rValue,
