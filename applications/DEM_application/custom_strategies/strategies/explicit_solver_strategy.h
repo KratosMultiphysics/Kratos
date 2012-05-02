@@ -18,6 +18,7 @@
 #include "utilities/timer.h"
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_utilities/spheric_particle_hertzian.h"
+#include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 
 /* System includes */
 #include <limits>
@@ -115,10 +116,12 @@ namespace Kratos
 		              const bool       MoveMeshFlag,
 		              typename         TSchemeType::Pointer pScheme
 			)
-			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag)
-			{
-			  
-			   mdimension                 = dimension;
+			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
+                        
+                            mdimension(dimension) //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual.
+
+                        {
+			 
                            mElementsAreInitialized    = false;
 			   mConditionsAreInitialized  = false;
 			   mCalculateOldTime          = false;
@@ -170,17 +173,6 @@ namespace Kratos
         std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           << CurrentProcessInfo[TIME_STEPS]     <<std::endl;                                                    
 	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	
-
-        /*
-	///Inicializa los elementos y condiciones. Crea los elementos del Boundary y los Joints para Heuristic o DG
-	if(mInitializeWasPerformed == false){
-	   
-             Set_Initial_Contacts();
-	
-             Initialize();
-	}
-        */
-
         ///Initialize solution step
 	InitializeSolutionStep(); 
 	
@@ -224,20 +216,12 @@ namespace Kratos
         {
             KRATOS_TRY
 
-              ///Initializing elements
-	  if(mElementsAreInitialized == false)
-	     InitializeElements();
-	  mInitializeWasPerformed   = true;
+       //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
-        //ModelPart& r_model_part           = BaseType::GetModelPart();
-        //ProcessInfo& CurrentProcessInfo   = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
-        //ElementsArrayType& pElements     = r_model_part.Elements();
-        //ElementsContainerType& pElements  = r_model_part.ElementsArray();
-
-
-
-        typedef Element                                                         ParticleType;
-        typedef Element::Pointer                                                ParticlePointerType;
+        ModelPart& r_model_part           = BaseType::GetModelPart();
+          
+        typedef DiscreteElement                                                 ParticleType;
+        typedef ParticleType::Pointer                                           ParticlePointerType;
         typedef ElementsContainerType                                           ParticleContainerType;
         typedef WeakPointerVector<Element>                                      ParticleWeakVectorType;  //hauria de ser Discrete_Element
         typedef typename std::vector<ParticlePointerType>                       ParticlePointerVectorType;
@@ -248,19 +232,18 @@ namespace Kratos
         typedef std::vector<double>::iterator                                   DistanceIteratorType;
 
 
-        //double search_radius = 1.0;
-/*
-        Neighbours_Calculator<2, ParticleType, ParticlePointerType, ParticleContainerType, ParticleWeakVectorType, ParticlePointerVectorType,
-        ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
-        Search_Neighbours(pElements, r_model_part, search_radius);
-*/
-        //const double search_radius       = CurrentProcessInfo[SEARCH_RADIUS];  //DEMANAR A POOYAN COM OBTING AIXO.
-        //Search_Neighbours(pElements, r_model_part, search_radius);   //M: pk fa falta enviar el modelpart al search neighbours?
-        //Set_Initial_Contacts();
+        if (mdimension == 2)
+            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part);
+        else if (mdimension == 3)
+            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part);
+        
 
-	  ///WARNING = Initializing CONDITION
+         ///Initializing elements
+	  if(mElementsAreInitialized == false)
+	     InitializeElements();
+	  mInitializeWasPerformed   = true;
 
- 
+
           KRATOS_CATCH("")
 	}
 	
@@ -380,7 +363,7 @@ namespace Kratos
       ///@{ 
         
 
-    unsigned int    mdimension;
+    const unsigned int    mdimension;
     unsigned int    minitial_conditions_size;  
     unsigned int    mcontact_conditions_size;  
     bool   mInitialCalculations;
@@ -432,9 +415,10 @@ namespace Kratos
 	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
 	  {
-	    //Element::GeometryType& geom = it->GetGeometry(); 
+	    Element::GeometryType& geom = it->GetGeometry(); 
 	    (it)->Initialize(); 
-	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo);
+	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo); //NELSON: fa falta????
+           
             /*
 	    const unsigned int& dim   = geom.WorkingSpaceDimension();
 	    index = 0;
@@ -453,7 +437,7 @@ namespace Kratos
      KRATOS_CATCH("")
 }
       
-      
+       /*
       void Set_Initial_Contacts()
       {
 	 ///particula->GetValue(NEIGHBOUR_ELEMENTS)).push_back( *(particula.base()));
@@ -461,7 +445,7 @@ namespace Kratos
         //aqui he de guardar els veins inicials i per cada un la distancia delta de la tolerancia.
 
        KRATOS_TRY
-       /*
+      
        ModelPart& r_model_part          = BaseType::GetModelPart();  
        ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
        ElementsArrayType& pElements     = r_model_part.Elements(); 
@@ -496,12 +480,12 @@ namespace Kratos
 
          } // loop over particle_it
  
-            */
+            
         KRATOS_CATCH("")
 
 	//  get continun vecinos
       }
-      
+   */
       
       ///@} 
       ///@name Private  Access 
