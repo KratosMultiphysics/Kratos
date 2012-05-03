@@ -89,7 +89,7 @@ namespace Kratos
 
 ///@}
 ///@name Kratos Classes
-///@{
+///@{ 
 
 /// This class allows the calculation of a Non-Newtonian fluid using a visco rigid constitutive model.
 /** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
@@ -112,7 +112,7 @@ public:
 
     /// Counted pointer of NoNewtonianASGS2D
     KRATOS_CLASS_POINTER_DEFINITION(NoNewtonianASGS2D);
-
+/*comment*/
     ///@}
     ///@name Life Cycle
     ///@{
