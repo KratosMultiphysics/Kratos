@@ -41,9 +41,6 @@
 #define KRATOS_OCL_4_ITR_W(Arr)		((*Arr).s[3])
 #endif
 
-#define KRATOS_ENABLE_OMP(t)		omp_set_num_threads(t);
-#define KRATOS_DISABLE_OMP			omp_set_num_threads(1);
-
 #define PARTICLE_BUFFER	(116736)
 #define MAX_BINS_ELEMENTS  64
 
@@ -58,6 +55,7 @@ memcpy((void *)(buffer),(const void *)(host_ptr[0]),size*sizeof(pointer_type));
 #include "processes/node_erase_process.h"
 #include "includes/model_part.h"
 #include "utilities/timer.h"
+#include "utilities/openmp_utils.h"
 
 #include <malloc.h>
 #include <stdio.h>
@@ -1092,7 +1090,8 @@ public:
     void TransferParticMeshToGPU()
     {
         //Prevent malfunction while used with openMP
-        KRATOS_DISABLE_OMP
+        int num_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::SetNumThreads(1);
 
         if(mParticleBufferSize < mParticMesh->NumberOfNodes())
         {
@@ -1182,7 +1181,7 @@ public:
 
         mIndexSelection = (int *)malloc(sizeof(int) * mIndexSelectionSize);
 
-        KRATOS_ENABLE_OMP(2)
+        OpenMPUtils::SetNumThreads(num_threads);
     }
 
     /// Allocate main gpu memory_objects
@@ -1309,7 +1308,8 @@ public:
     void SearchParticles(array_1d<double, 3 > & body_force, const double density, const double dt, const double substeps, const int ConcurrentPoints, const int use_eulerian, const int copy_data, const int reseed)
     {
         //Prevent malfunction while used with openMP
-        KRATOS_DISABLE_OMP
+        int num_threads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::SetNumThreads(1);
 
         unsigned int oldParticleNum = 0;
 
@@ -1570,7 +1570,7 @@ public:
 
         if(reseed)
         {
-            KRATOS_ENABLE_OMP(2)
+            OpenMPUtils::SetNumThreads(num_threads);
             mMaxParticles = 7;
             mMinParticles = 1;
 
@@ -1631,7 +1631,8 @@ public:
                 }
             }
 
-            KRATOS_DISABLE_OMP
+            num_threads = OpenMPUtils::GetNumThreads();
+            OpenMPUtils::SetNumThreads(1);
 
             ModelPart::ElementsContainerType::iterator el_it = mStaticMesh->ElementsBegin();
 
@@ -1794,7 +1795,7 @@ public:
         free(mIndexSelection);
 
         //Restore default number of ompThreads
-        KRATOS_ENABLE_OMP(2)
+        OpenMPUtils::SetNumThreads(num_threads);
     }
 
     /// Search nearest point
