@@ -98,7 +98,7 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
 
     class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
-            ("FSStrategy",init<ModelPart&,typename LinearSolverType::Pointer,typename LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
+            ("FSStrategy",init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
             .def("CalculateReactions",&FSStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType>::CalculateReactions)
             ;
 
