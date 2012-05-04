@@ -179,7 +179,7 @@ namespace Kratos
 
 	  
 	  for (ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in){
-	    if( in->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0 or in->FastGetSolutionStepValue(FLAG_VARIABLE)==2.0){
+	    if( in->FastGetSolutionStepValue(FLAG_VARIABLE)==1.0 || in->FastGetSolutionStepValue(FLAG_VARIABLE)==2.0){
 	      
 	      T=in->FastGetSolutionStepValue(TEMPERATURE);
 	      yf=in->FastGetSolutionStepValue(Yfuel);
