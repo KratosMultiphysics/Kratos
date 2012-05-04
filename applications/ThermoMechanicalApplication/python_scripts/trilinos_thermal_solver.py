@@ -106,7 +106,7 @@ class Solver:
         
     #######################################################################
     def Initialize(self):
-        self.duplicate_and_create_conditions = DuplicateInterfaceNodesCreateConditionsProcess(self.model_part,"HeatContact2D", self.Nmax, self.contact_matix )        
+        #self.duplicate_and_create_conditions = DuplicateInterfaceNodesCreateConditionsProcess(self.model_part,"HeatContact2D", self.Nmax, self.contact_matix )        
 
         (self.neigh_finder).ClearNeighbours();
         (self.neigh_finder).Execute();
@@ -116,9 +116,9 @@ class Solver:
         print "INSIDE INITIALIZE"           
         
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
-        (self.duplicate_and_create_conditions).Execute()
+        #(self.duplicate_and_create_conditions).Execute()
         
-        self.normal_tools.CalculateBodyNormals(self.model_part,2);       	
+        self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);       	
  	
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
