@@ -250,9 +250,10 @@ public:
         TLocalMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
         TLocalVectorType Vel(mDomainSize);
         TLocalVectorType Tmp(mDomainSize);
+	
 
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-        {
+        {	  
             const NodeType& rNode = *itNode; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
             if( rNode.GetValue(mrFlagVariable) != mZero )
             {
@@ -271,9 +272,10 @@ public:
         TLocalMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
         TLocalVectorType Vel(mDomainSize);
         TLocalVectorType Tmp(mDomainSize);
+	
 
         for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-        {
+        {   
             const NodeType& rNode = *itNode; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
             if( rNode.GetValue(mrFlagVariable) != mZero )
             {

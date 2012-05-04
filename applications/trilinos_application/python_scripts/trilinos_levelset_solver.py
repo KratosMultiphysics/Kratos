@@ -36,6 +36,7 @@ def AddVariables(model_part ):
     trilinos_monolithic_solver_eulerian.AddVariables(model_part)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
 
     #variables needed for the distance solver
     trilinos_pureconvection_solver.AddVariables(model_part,distance_settings)
@@ -91,6 +92,7 @@ class TrilinosLevelSetSolver:
 
         #constructing the convection solver for the distance
         self.convection_solver = trilinos_pureconvection_solver.Solver(self.convection_model_part,self.domain_size,distance_settings)
+        self.convection_solver.max_iterations = 8
 
         #constructing the convection solver for the distance
         self.thermal_solver = trilinos_thermal_solver.Solver(self.thermal_model_part,self.domain_size,temperature_settings)
@@ -227,6 +229,23 @@ class TrilinosLevelSetSolver:
         self.convection_solver.Initialize()
         self.thermal_solver.Initialize()
         self.fluid_solver.Initialize()
+        
+        ##CHAPUZA to set the non historical value of IS_STRUCTURE correctly... to be improved
+        for condition in self.model_part.Conditions:
+	    if condition.GetValue(IS_STRUCTURE) == 1.0:
+	      for node in condition.GetNodes():
+		node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
+	self.model_part.GetCommunicator().AssembleCurrentData(IS_STRUCTURE)
+	mpi.world.barrier()
+	for node in self.model_part.Nodes:
+	  if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
+	    node.SetValue(IS_STRUCTURE,1.0)
+        
+        ##compute normals "correctly"
+        self.normal_calculator = NormalCalculationUtils()
+	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+        
+            
 
         self.thermal_solver.SetEchoLevel(0)
         self.convection_solver.SetEchoLevel(1)
@@ -356,6 +375,7 @@ class TrilinosLevelSetSolver:
             print "finished thermal solution"
             
     def ComputeFluidSolution(self):
+	mpi.world.barrier()
 	#snap distance to grid
         #eps = 1e-3*self.max_edge_size;
         #for node in self.model_part.Nodes:
