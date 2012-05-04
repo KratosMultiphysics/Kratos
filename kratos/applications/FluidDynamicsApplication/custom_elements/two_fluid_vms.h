@@ -422,6 +422,24 @@ public:
 
             double Viscosity;
             this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+			
+/*			if(this->Id() == 9109)
+			{
+				KRATOS_WATCH(DN_DX)
+				KRATOS_WATCH(Density)
+				KRATOS_WATCH(Viscosity)
+				KRATOS_WATCH(KinViscosity)
+				KRATOS_WATCH(this->FilterWidth(DN_DX))
+				KRATOS_WATCH( this->SymmetricGradientNorm(DN_DX) );
+				
+				for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+				{
+					KRATOS_WATCH(this->GetGeometry()[i].Id());
+					KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
+					KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(NORMAL));
+					
+				}
+			}*/
             // Get Advective velocity
             array_1d<double, 3 > AdvVel;
             this->GetAdvectiveVel(AdvVel, N);
@@ -457,22 +475,27 @@ public:
                         enrichment_terms_horizontal[base_index + TDim] += temp;
                     }
                     //add acceleration enrichment term
+					//const array_1d<double,3>& vnode = this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
                     const array_1d<double,3>& old_vnode = this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY,1);
                     for (unsigned int k = 0; k < TDim; k++)
                     {
-                        double coeff = wGauss * TauOne *Density *  gauss_gradients[igauss](0,k)*N[inode]/ Dt;
+                        double coeff = wGauss * TauOne *Density *  gauss_gradients[igauss](0,k)*N[inode] * 2.0/ Dt;
                         enrichment_terms_horizontal[base_index + k] += coeff;
-                        enriched_rhs += coeff * old_vnode[k];
+                        enriched_rhs += coeff * (old_vnode[k]);
 //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
 //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
                     }
                 }
                 //compute diagonal enrichment term
+				array_1d<double,3> OldAcceleration = N[0]*this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
+				for(unsigned int jjj=0; jjj<(this->GetGeometry()).size(); jjj++)
+					OldAcceleration += N[jjj]*(this->GetGeometry())[jjj].FastGetSolutionStepValue(ACCELERATION,1);
+
                 for (unsigned int k = 0; k < TDim; k++)
                 {
                     const Matrix& enriched_grad = gauss_gradients[igauss];
                     enrichment_diagonal += wGauss  * TauOne * pow(enriched_grad(0, k), 2);
-                    enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]/*-Acceleration[k]*/);
+                    enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]+OldAcceleration[k]);
                 }
             }
         }
