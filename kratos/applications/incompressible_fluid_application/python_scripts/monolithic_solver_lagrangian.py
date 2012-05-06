@@ -77,9 +77,9 @@ class MonolithicSolver:
         
         #definition of the convergence criteria
 ##	The argument order: VelRatioTolerance;	VelAbsTolerance; PrsRatioTolerance; PrsAbsTolerance;
-##        self.conv_criteria = UPCriteria(1e-7,1e-7,1e-4,1e-7)
-        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
-       # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
+
+        self.conv_criteria = VelPrCriteria(1e-7,1e-9,1e-7,1e-9)
+
 
 
         self.dynamic_tau = 0.0
@@ -201,33 +201,32 @@ class MonolithicSolver:
     ########################################################################
     def Remesh(self):
 
-        if (self.remeshing_flag==True):
+        ##if (self.remeshing_flag==True):
            # (self.PfemUtils).MoveLonelyNodes(self.model_part)
-            (self.MeshMover).Execute();
+        (self.MeshMover).Execute();
 
-            (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-            (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.05)   
-            (self.node_erase_process).Execute();
-            
-            (self.neigh_finder).ClearNeighbours();
+        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+        (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.05)   
+        (self.node_erase_process).Execute();
+        
+        (self.neigh_finder).ClearNeighbours();
 
-            ((self.model_part).Elements).clear();
-            ((self.model_part).Conditions).clear();
-            
-            ##remesh
-            if(self.domain_size == 2):
-                (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
-##    	        (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
-            elif(self.domain_size == 3):
-                (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
-					      
+        ((self.model_part).Elements).clear();
+        ((self.model_part).Conditions).clear();
+        
+        ##remesh
+        if(self.domain_size == 2):
+            (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+        elif(self.domain_size == 3):
+            (self.Mesher).ReGenerateMesh("ASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)			
+                                          
 
-             #calculating fluid neighbours before applying boundary conditions
-            (self.neigh_finder).Execute();
+         #calculating fluid neighbours before applying boundary conditions
+        (self.neigh_finder).Execute();
 
-            #(self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
-            (self.PfemUtils).IdentifyFluidNodes(self.model_part);
-            #(self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
+        (self.PfemUtils).ApplyBoundaryConditions(self.model_part,2);
+        (self.PfemUtils).IdentifyFluidNodes(self.model_part);
+        (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part);
 
         
 ##            for node in self.model_part.Nodes:
