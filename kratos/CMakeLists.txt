@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project (KratosBaseProject)
+project (KratosMultiphysics)
 
 #set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX}) 
@@ -233,7 +233,7 @@ sys.path.append(kratos_scripts)
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
     #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libblas3gf | libblas.so.3gf | libatlas3gf-base, libc6 (>= 2.7), libgcc1 (>= 1:4.1.1), libgfortran3 (>= 4.6), libgomp1 (>= 4.4), liblapack3gf | liblapack.so.3gf | libatlas3gf-base, libopenmpi1.3, libparmetis3.1, libstdc++6 (>= 4.4.0), ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
+    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libblas3gf | libblas.so.3gf | libatlas3gf-base, libc6 (>= 2.7), libgcc1 (>= 1:4.1.1), libgfortran3 (>= 4.6), libgomp1 (>= 4.4), liblapack3gf | liblapack.so.3gf | libatlas3gf-base, libopenmpi1.3, libparmetis3.1, libstdc++6 (>= 4.4.0), openmpi-bin ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
 #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
     Set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
     set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/packaging_aux/postinst;${CMAKE_SOURCE_DIR}/packaging_aux/prerm;")
