@@ -1,0 +1,401 @@
+#####################################################################################
+#
+#  NAME: kmpropsgroups.tcl
+#
+#  PURPOSE: Manage the group options in the kratos main model window 
+#
+#  QUANTECH ATZ-DEVELOPMENT DEPARTMENT
+#
+#  AUTHORS : G. Socorro and L. Calvo
+#
+#  CREATED AT: 29/03/2012
+#
+#  HISTORY:
+# 
+#   0.3- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
+#   0.2- 02/04/12-G. Socorro, correct a bug with the combobox path (update the autoNewGroup proc)
+#   0.1- 29/03/12-G. Socorro, create a base source code from the kmprops.tcl script
+#
+######################################################################################
+#                      Procedures that belong to this file
+###############################################################################
+#         Name                      |        Functionality
+#------------------------------------------------------------------------------
+# 1.            | 
+
+
+proc ::KMProps::changeGroups { entityList f {fullname ""} } {
+    set valores [Cond_Groups list]
+    #set valores [::KMProps::getGroups $entityList $fullname]
+    $f configure -values $valores
+    
+    if { !($::KMProps::selGroup in $valores) } {
+	
+	if {[string range $::KMProps::selGroup 0 8] == "AutoGroup"} {
+	    WarnWin [= "The new group '%s' has not any usefull entity assigned." $::KMProps::selGroup]
+	}
+	set ::KMProps::selGroup ""
+    } 
+}
+
+proc ::KMProps::cmbChangeCheckGroups { f } {
+    #
+    global KPriv
+    #msg "entro a cambio de grupos"
+    if { [winfo exists $f.cGroups] } {
+	set Groups [Cond_Groups list]
+	if { [llength $Groups] } {
+	    
+	    $f.cGroups configure -values $Groups
+	    if { $::KMProps::selGroup ni $Groups} {
+		set ::KMProps::selGroup [lindex $Groups 0]
+	    }
+	} else {
+	    $f.cGroups configure -values {}
+	    set ::KMProps::selGroup ""
+	}
+    }
+}
+
+proc ::KMProps::setNoActiveGroups { node } {
+    
+    if {[$node getAttribute class ""] == "Groups" } {
+	
+	foreach nod [$node childNodes] {
+	    if {[$nod getAttribute class ""] == "Group" } {
+		$nod setAttribute active 0
+	    }
+	}
+    }
+}
+
+proc ::KMProps::getGroups { entityList {fullname ""}} {
+    
+    global KPriv
+    
+    # Switch state
+    if { $entityList == "" } {
+	set PState [GiD_Info Project ViewMode]
+	if {($PState == "GEOMETRYUSE")} {
+	    set entityList {point line surface volume}
+	} else {
+	    set entityList {nodes elements}
+	}
+    }
+    
+    set grupos {}
+    
+    foreach groupId [Cond_Groups list] {
+	foreach entity $entityList {
+	    if { [::KEGroups::getGroupGiDEntities $groupId $entity "hasEntities"] } {
+		if { !( $groupId in $grupos) } {
+		    lappend grupos $groupId
+		}
+	    }
+	}
+    }
+    
+    #foreach groupId $KPriv(groupsId) {
+    #set gEntities [::KEGroups::getAssignedGiDEntities $groupId]
+    #set geomEntities [lindex $gEntities 0]
+    #foreach "points lines surfaces volumes" $geomEntities {
+    #        
+    #        # Si el grupo tiene alguna de esas entidades asignadas lo añadirá al combo
+    #        if { "point" in $entityList && [llength $points] } {
+    #        lappend grupos $groupId
+    #        } elseif {"line" in $entityList && [llength $lines] } {
+    #        lappend grupos $groupId
+    #        } elseif {"surface" in $entityList && [llength $surfaces] } {
+    #        lappend grupos $groupId
+    #        } elseif {"volume" in $entityList && [llength $volumes] } {
+    #        lappend grupos $groupId
+    #        }
+    #}
+    #}
+    
+    if {$fullname != ""} {
+	
+	#Eliminamos de la lista los grupos ya asignados a esta propiedad
+	set assignedGroups [::xmlutils::setXmlContainerIds $fullname]
+	foreach g $assignedGroups {
+	    if { $g != $::KMProps::selGroup } {
+		set grupos [::KEGroups::listReplace $grupos $g]
+	    }
+	}
+    }
+    return $grupos
+}
+
+proc ::KMProps::autoNewGroup { id } {
+    variable NbPropsPath; variable winpath
+    variable selGroup
+    global KPriv
+    
+    set GroupId [::KEGroups::GetAutomaticGroupName "Auto"]
+    
+    # Assign the selected group identifier
+    set selGroup $GroupId 
+   
+    # Create the new group
+    Cond_Groups create $GroupId
+    
+    # Selection the entities to be assigned
+    ::KEGroups::SelectionAssign $::KMProps::selectedEntity $GroupId $winpath
+    
+    # Ponemos el foco en la ventana de propiedades
+    #focus $winpath
+    
+}
+
+proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGroups} {
+    variable selGroup
+    variable NbPropsPath
+
+    set grupo $selGroup
+    
+    if { $grupo == "" } {
+	WarnWin [= "You have to choose one group\n (you can create a new one pushing the button on the right)"]
+    } else {
+	
+	#Primero comprobamos q el grupo aun no exista
+	set id [::xmlutils::setXml "$fullname//c.$grupo" id]
+	
+	if { $id != "" } {
+	    
+	    WarnWin [= "This group it is already assigned to this condition."]
+	} else {
+	    
+	    #Validamos que haya alguna propiedad seleccionada
+	    if {[info exists ::KMProps::cmbProperty]} {
+		if {$::KMProps::cmbProperty == "" } {
+		    WarnWin [= "You must define a Property before!"]
+		    return ""
+		}
+	    }
+	    
+	    #Comprobamos que el grupo no sea un AutoGroup sin entidades
+	    ::KMProps::changeGroups $entityList $fGroups
+	    if { $::KMProps::selGroup == "" } {
+		return ""
+	    }
+	    
+	    set template [::KMProps::copyTemplate ${idTemplate} $fullname "$grupo" "Group"]
+	    #Validamos que haya algún combo de "properties" en el template
+	    if {[string match "*GCV=\"Properties*" $template]} {
+		
+		#Miramos si hay alguna propiedad dada de alta (si la hay,obligatoriamente estará seleccionada)
+		set props [::xmlutils::setXmlContainerIds "[::KMProps::getApplication $fullname]//c.Properties"]
+		if { [llength $props] < 1 } {
+		    WarnWin [= "You must define a Property before."]
+		    #::KMProps::deleteProps $T $itemSel $newPropertyName
+		    return  ""
+		}
+	    }
+	    
+	    
+	    #
+	    # Ahora debemos actualizar todos los valores en el xml
+	    #
+	    set fBottom ${NbPropsPath}.fBottom
+	    
+	    if {[llength $listT] >= 1 } {
+		
+		#Lista de listas con formato {idContainer idItem1 idItem2...}
+		foreach listContainer $listT {
+		    
+		    #Si tiene como mínimo el container y un item entramos
+		    if {[llength $listContainer] >= 2} {
+		        
+		        set idContainer [lindex $listContainer 0]
+		        
+		        #set id [::KMProps::getPropTemplate $idTemplate id $idContainer]
+		        
+		        #Recorremos los items
+		        for {set i 1} { $i < [llength $listContainer] } {incr i} {
+		            
+		            set id [lindex $listContainer $i]
+		            
+		            #Cuando tengamos nodos ocultos o incompatibles la variable no existirá
+		            if {[info exists ::KMProps::cmb$id]} {
+		                
+		                set fullNombre "$fullname//c.$grupo//c.$idContainer//i.$id"
+		                
+		                set f "${fBottom}.nb.f${idContainer}.cmb${id}"
+		                
+		                if { [winfo exists $f] } {
+		                    
+		                    if { [$f cget -state] == "readonly" } {
+		                        
+		                        set value [::xmlutils::getComboDv $f $fullNombre]
+		                    } else {
+		                        
+		                        set value [set ::KMProps::cmb$id]                                                                          
+		                    }
+		                    
+		                    if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
+		                        
+		                        set activeId "A[string range $id 1 1]"
+		                        set fullActive "$fullname//c.$grupo//c.Activation//i.$activeId"
+		                        set active [::xmlutils::setXml $fullActive dv "read"]
+		                        
+		                        if { $active == 0 } {
+		                            ::xmlutils::setXml $fullNombre state "write" "disabled"
+		                        } else {
+		                            ::xmlutils::setXml $fullNombre state "write" "normal"
+		                        }
+		                    }
+		                    #Comprobamos si el combo tiene una función asignada
+		                    set function [::xmlutils::setXml $fullNombre function]
+		                    if { $function != "" && [$f cget -state] == "disabled"} {
+		                        
+		                        ::xmlutils::setXml $fullNombre function "write" 1
+		                        ::xmlutils::setXml $fullNombre state "write" "disabled"
+		                    } 
+		                    
+		                    #Guarda el nuevo valor en el xml
+		                    ::xmlutils::setXml $fullNombre dv "write" $value
+		                }
+		            }
+		        }
+		    }
+		}
+	    }
+
+	    #Destruimos el frame inferior
+	    ::KMProps::DestroyBottomFrame
+	    
+	    ::KMProps::RefreshTree $T
+	    
+	    $T selection add $item
+	    $T item expand $item
+	}
+    }
+}
+
+#
+# Borrar el grupo de la condición preguntando si lo queremos borrar completamente
+#
+proc ::KMProps::deleteGroupCondition { T item } {
+    #msg "$T $item"
+    set fullname [DecodeName [$T item tag names $item]]
+    set GroupId [$T item text $item 0]
+    
+    set aviso "Removing group $GroupId. Please, choose the properly option:\n\n\n Yes: Desassign this group (recomended)\n\n No: Complete group removing (with all its descendants).\n\n Cancel: Keep the group assigned."
+    set answer [::WinUtils::confirmBox "." "$aviso" "yesnocancel"]
+    if { $answer == "yes" } {
+	
+	#Desasigna de la gemoetría el item seleccionado
+	#::KEGroups::UnAssignCondition $GroupId
+	
+	#Elimina el grupo del xml
+	::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
+	
+	#Elimina el grupo del árbol
+	::KMProps::deleteItem $T $item
+	
+    } elseif {$answer == "no" } {
+	
+	#Consultamos el grupo a eliminar
+	set GroupId [$T item text $item 0]
+	
+	set visibleGroups "[winfo exists $::KEGroups::WinPath]"
+	#Iniciamos la ventana de grupos
+	::KEGroups::InitBaseWindow 
+	
+	#Seleccionamos el item correspondiente de grupos
+	set TG $::KEGroups::TreePath
+	
+	$TG selection clear
+	
+	set grupos [$TG item descendants "root"]
+	foreach grup $grupos {
+	    set gId [$TG item text $grup 0]
+	    if { $gId == $GroupId } {
+		$TG selection add $grup
+	    }
+	}
+	
+	#Borramos recursivamente el grupo seleccionado y sus hijos
+	::KEGroups::DeleteGroupsId $TG
+	
+	#Esto ya se hace desde Grupos y para todo el árbol de propiedades
+	#Elimina el grupo del xml
+	#::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
+	
+	#Elimina el grupo del árbol
+	#$T item delete $item
+	
+	#Si la ventana no estaba visible la volvemos a ocultar (destruir)
+	if { !$visibleGroups } {
+	    
+	    destroy $::KEGroups::WinPath                 
+	} else {
+	    focus $T
+	}
+	
+    } else {
+    }
+    
+}
+
+#
+# Busca en el arbol de propiedades, todos los grupos que se llamen $GroupId
+#
+proc ::KMProps::findGroups { GroupId } {
+    
+    global KPriv
+    
+    set ElemList { }
+    set bool 0
+    #Primero hay que asegurarse de que exista el árbol
+    if { [winfo exists $::KMProps::WinPath] } {
+	
+	#Si está el frameBottom activo nos lo cargamos
+	::KMProps::DestroyBottomFrame
+	
+	set T $::KMProps::TreePropsPath
+	# Recorremos tooodo el árbol
+	set grupos [$T item descendants "root"]
+	foreach item $grupos {
+	    #Comprobamos q el item aun exista
+	    if { [$T item id $item] != "" } {
+		set itemId [$T item text $item 0]
+		#msg $GroupId
+		#msg $itemId
+		if { $itemId == $GroupId } {
+		    set fullname [DecodeName [$T item tag names $item]]     
+		    lappend ElemList $fullname $T $item
+		    set bool 1
+		    #::KMProps::deleteGroupCondition $T $item
+		}
+	    }
+	}
+	#Cierra la ventana de propiedades y la vuelve a cargar para q se renombren
+	# los items automáticamente
+	#::KMProps::RefreshTree $T
+	
+    } else {
+	
+	#Si no está abierta la ventana, deberemos recorrer el xml a mano
+	set nodes [$KPriv(xml) getElementsByTagName "Container"]
+	
+	foreach node $nodes {
+	    
+	    catch {
+		#Si encuentra el grupo intenta borrar el nodo y su descendencia
+		if { [$node getAttribute id ""] == "$GroupId" } {
+		    if { [$node getAttribute class ""] == "Group" } {
+		        lappend ElemList $node
+		        set bool 1
+		    }
+		}
+	    }
+	}
+	
+    }
+    if { $bool == 0 } {
+	set ElemList 0
+    }
+    return $ElemList
+}
+
