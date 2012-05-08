@@ -11,7 +11,13 @@
 #    CREATED AT: 01/11/09
 #
 #    HISTORY: 
-#
+# 
+#     1.4- 07/05/12- G. Socorro, update the proc BeforeMeshGeneration to write the Condition2D and Condition3D properties
+#     1.3- 04/05/12- G. Socorro, update the proc BeforeDeleteGroup
+#     1.2- 03/05/12- J. Garate, proc EndGIDPostProces
+#     1.1- 03/05/12- G. Socorro, load the new gid_groups package
+#     1.0- 23/03/12- J.Gárate, No se puede cancelar un renombre
+#     0.9- 20/03/12- J.Gárate, Group Event Procedures
 #     0.8- 16/11/11- G. Socorro, add the global variable KPriv(SRCConfig) to use TCL or TBE file distribution
 #     0.7- 22/06/11- G. Socorro, add the proc KLoadTBEFiles to load the sources from TBE files
 #     0.6- 03/02/11- G. Socorro, update the procedure UnsetGlobalVars
@@ -43,7 +49,7 @@ proc CheckRequiredGiDVersion {VersionRequired} {
 	set comp [::GidUtils::VersionCmp $VersionRequired]
     }
     if { $comp < 0 } {
-	WarnWin [= "Error: This interface requires GiD %s or later" $VersionRequired].
+	msg "Error: This interface requires GiD $VersionRequired or later"
     }
 }
 
@@ -60,7 +66,7 @@ proc UnsetGlobalVars {} {
 }
 
 proc LoadGIDProject {filename} {
-    
+
     ::kfiles::LoadSPD $filename
 }
 
@@ -72,7 +78,7 @@ proc SaveGIDProject {filename} {
 proc AfterTransformProblemType { file oldproblemtype newproblemtype } {
 	
 	set name [lindex [split $file "/"] end]
-	msg "${file}/${name}.spd"
+	#msg "${file}/${name}.spd"
 	LoadGIDProject "${file}.gid/${name}.spd"
 	
 	return 0
@@ -114,8 +120,12 @@ proc InitGIDProject { dir } {
     set VersionRequired "$MinimumGiDVersion"
     CheckRequiredGiDVersion $VersionRequired
     
+    # Init packages
+    SRC gid_groups_public.tcl
+    gid_groups_conds::init_package
+    
     # For release/debug options [Release =>1|Debug => 0]
-    set KPriv(RDConfig) 1
+    set KPriv(RDConfig) 0
     # For distribution srctcl/srctbe options [srctbe =>1|srctcl => 0]
     set KPriv(SRCConfig) 0
 
@@ -141,6 +151,7 @@ proc InitGIDProject { dir } {
 
     # Init problem type
     ::kipt::InitPType $dir
+    
     
 }
 
@@ -177,6 +188,11 @@ proc msg {mesage} {
     WarnWinText $mesage
 }
 
+proc wa {mesage} {
+    
+    WarnWinText $mesage
+}
+
 proc BeforeMeshGeneration {elementsize} { 
 
     set ndime "3D"
@@ -186,15 +202,68 @@ proc BeforeMeshGeneration {elementsize} {
     catch { set ndime [::xmlutils::setXml $cxpath $cproperty] }
     
     if {$ndime =="2D"} {
-	::wkcf::AlignLineNormals Outwards 	
+
+	# Align the normal
+	::wkcf::AlignLineNormals Outwards 
+	
+	# Reset Automatic Conditions from previous executions 
+	set what "UseAllWhereField"
+	set entitytype "line"
+	set groupid "-@kratos@b2d"
+	# Old groups
+	set fieldname "groupid"
+	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	# New groups
+	set fieldname "name"
+	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+
+	# Find boundaries
+	set blinelist [::wkcf::FindBoundaries $entitytype]
+	# wa "belist:$blinelist"
+
+	# Assign the boundary condition
+	::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
+
     } elseif {$ndime =="3D"} {
+	
+	# Align the normal
 	::wkcf::AlignSurfNormals Outwards
+	
+	# Reset Automatic Conditions from previous executions 
+	set what "UseAllWhereField"
+	set entitytype "surface"
+	set groupid "-@kratos@b3d"
+	# Old groups
+	set fieldname "groupid"
+	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	# New groups
+	set fieldname "name"
+	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+
+	# Find boundaries
+	set bsurfacelist [::wkcf::FindBoundaries $entitytype]
+	# WarnWinText "bsurfacelist:$bsurfacelist"
+
+	# Assign the boundary condition
+	::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
+
     }
 
 }
 
 proc InitGIDPostProcess {} { 
- 
+
+    set ::KMProps::RestoreWinFromPost 0
+    if {[info exists ::KMProps::Layout]} {
+	if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
+	    set w ".gid.kmprops" 
+	    if {[winfo exists $w]} {
+		destroy $w
+		set ::KMProps::RestoreWinFromPost 1
+	    }
+    	}
+    }
+
     # Get application type
     # Structural analysis
     set cxpath "GeneralApplicationData//c.ApplicationTypes//i.StructuralAnalysis"
@@ -291,9 +360,38 @@ proc KLoadTBEFiles {dir} {
     }
 } 
 
- 
- 
- 
- 
- 
- 
+proc BeforeDeleteGroup { name } {
+    # wa "delete name:$name"
+    
+    set DeleteGroup "Delete" 
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+	if {$::KPriv(Groups,DeleteGroup)} {
+	    set DeleteGroup [::KEGroups::BorraGrupo $name]
+	} 
+    }
+    if { $DeleteGroup eq "-cancel-" } {
+	return $DeleteGroup
+    }
+}
+
+proc AfterCreateGroup { name } {
+     #wa "name:$name"
+}
+
+proc AfterRenameGroup { oldname newname } {
+    #wa "oldname:$oldname newname:$newname"
+    ::KEGroups::RenombraGrupo $oldname $newname 1
+    #Si se renombra un grupo, no nos queda otra... no se puede impedir.
+    #return
+}
+
+proc EndGIDPostProcess { } {
+    
+    # Try to restore the properties window
+    if {[info exists ::KMProps::RestoreWinFromPost]} {
+	if {$::KMProps::RestoreWinFromPost} {
+	    ::KMProps::StartBaseWindow
+	    
+    	}
+    }
+}

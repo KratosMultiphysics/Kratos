@@ -26,7 +26,7 @@
         </Function>
         <Function id="asdfas_____asd_fas" pid="asdfas     asd fas" icon="" help="">
             <Item id="AppliedTo" pid="AppliedTo" dv="onElements" values="aNodos,aElementos,aCaras,aCondiciones" ivalues="onNodes,onElements,onFaces,onConditions"/>
-            <Item id="FunctionType" pid="Function type" dv="Update" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
+            <Item id="FunctionType" pid="Function type" dv="Postprocess" values="Inicial,Actualizar,Postproceso" ivalues="Initial,Update,Postprocess"/>
             <Item id="Definition" pid="Definition" sourceCode=""/>
         </Function>
         <Function id="funcion_de_prueba" pid="funcion de prueba" icon="" help="">
