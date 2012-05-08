@@ -11,7 +11,7 @@
 #	CREATED AT: 09/06/2010
 #
 #	HISTORY:
-#
+#       0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
 #       0.5- 25/01/11-GSM, show the warning/error message only when find some error
 #       0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
 #	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
@@ -350,6 +350,9 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 			}
 			$tpath insert end "\n***** End lines without decoding *****\n\n" big
 		}
+	} else {
+	
+		 ::KMValid::CreateReportWindowbClose $w
 	}
 	
 	$w.fr.t see end
@@ -471,14 +474,13 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
 			
 			set grNodeXPath "${groupsXPath}\[@id='$group'\]"
 			set active [::xmlutils::getAttribute $xml $grNodeXPath active]
-			
+			#WarnWinText "$grNodeXPath"
 			if {$active} {
-			
-			
-				if {[::KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
+				#WarnWinText "Existe active en grNodeXPath $group"
+				if {[KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
 					#Si uno de los grupos tiene entidades ya no sacaremos ese error
 					
-					#Pero además tiene que estar activo para esa convinación de filtros (visible en el árbol)
+					#Pero además tiene que estar activo para esa combinación de filtros (visible en el árbol)
 					#set isActiveGroup $groupsXPath...
 					
 					

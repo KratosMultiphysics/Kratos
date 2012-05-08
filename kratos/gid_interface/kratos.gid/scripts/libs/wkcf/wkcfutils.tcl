@@ -11,7 +11,12 @@
 #    CREATED AT: 10/05/10
 #
 #    HISTORY:
-#
+#	
+#     1.8- 07/05/12-G. Socorro, add the CleanAutomatic, CleanAutomaticConditionGroup and AssignConditionToGroup
+#     1.7- 20/04/12-G. Socorro, update the proc GetBoundaryConditionProperties to include is-slip and walllaw boundary conditions
+#     1.6- 10/03/12-G. Socorro, pass some proc to fluid or structural analysis script (WriteFluidSolvers,etc.)
+#     1.5- 27/03/12-G. Socorro, modify some structural analysis application properties (constitutive modeling)	
+#     1.4- 20/02/12-J. Garate, añadida una opcion para corregir un bug con Solid 2D
 #     1.3- 30/06/11-G. Socorro, add the new condition Flag-Variable to the fluid application
 #     1.2- 07/06/11-G. Socorro, correct a bug when defined many properties which different thickness => proc GetMaterialProperties
 #     1.1- 24/05/11-G. Socorro, update some procedure to use the membrane element => Use thickness property
@@ -103,8 +108,13 @@ proc ::wkcf::Preprocess {} {
     
     # Create the kratos global properties identifier
     ::wkcf::CreateKratosPropertiesIdentifier
-    
-    # Debug/Release variable
+
+    # 0 => Metodo antiguo (Poco eficiente)
+    # 1 => Metodo nuevo (write_calc_data)
+    variable wmethod 
+    set wmethod 1
+
+    # Debug/Release variable [0 => Debug, 1 => Release] Timers
     set pflag 1
 
     # ::WinUtils::PrintArray dprops
@@ -306,6 +316,26 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 				lappend proplist $CValue
 			    }
 			}
+			"Is-Slip" {
+			    # Get properties
+			    foreach citem [list "Activate"] {
+				# set xpath
+				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+				set cproperty "dv"
+				set CValue [::xmlutils::setXml $pcxpath $cproperty]
+				lappend proplist $CValue
+			    }
+			}
+			"WallLaw" {
+			    # Get properties
+			    foreach citem [list "ConstantValue"] {
+				# set xpath
+				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+				set cproperty "dv"
+				set CValue [::xmlutils::setXml $pcxpath $cproperty]
+				lappend proplist $CValue
+			    }
+			}
 		    }
 		    # WarnWinText "proplist:$proplist"
 		    # Kratos BC to group link
@@ -409,7 +439,7 @@ proc ::wkcf::GetPropertiesData {} {
 			set cptype "Isotropic2D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
-		    } elseif {(($ptype eq "Solid")||($ptype eq "Shell")||($ptype eq "Membrane")) && ($ndime =="3D")} {
+		    } elseif {(($ptype eq "Solid")||($ptype eq "Shell")||($ptype eq "Membrane")||($ptype eq "Beam")) && ($ndime =="3D")} {
 			set usethick "No"
 			set cptype "Isotropic3D"
 			if {($ptype eq "Shell") || ($ptype eq "Membrane")} {
@@ -432,6 +462,12 @@ proc ::wkcf::GetPropertiesData {} {
 			set cptype "Plasticity2D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+			# Get the material behavior and fluency properties
+			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+		} elseif {($ptype=="Solid") && ($ndime =="2D")} {
+			set cptype "Plasticity2D"
+			# Get the material properties
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
@@ -466,100 +502,6 @@ proc ::wkcf::GetPropertiesData {} {
 	    }
 	}
     }
-}
-
-proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
-    # Get the behavior and fluency material properties
-    variable dprops
-    variable ndime
-
-    # WarnWinText "AppId:$AppId MatId:$MatId cptype:$cptype ptype:$ptype"
-    # Xpath for constitutive laws
-    set clxpath "CLawProperties"
-    # Get all material properties
-    set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
-    # WarnWinText "mpxpath:$mpxpath"
-
-    # Set fluency and behavior variables
-    set dprops($AppId,Material,$MatId,UseFluency) "Yes"
-    set dprops($AppId,Material,$MatId,UseBehavior) "Yes"
-    # Get the softening behavior
-    set mbehavior [::xmlutils::getKKWord $clxpath $ptype "mbehavior"]
-    # Get the softening behavior xpath values
-    set mbxpath [::xmlutils::getKKWord $clxpath $ptype "mbxpath"]
-    # WarnWinText "mbehavior:$mbehavior mbxpath:$mbxpath"
-    # Get the current behavior 
-    set cbvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mbxpath//p.$mbehavior"] 0 1]
-    # Get the internal behavior properties
-    set mbivalues [split [::xmlutils::getKKWord $clxpath $ptype "mbivalues"] ,]
-    # Get the write behavior properties
-    set mbwritev [split [::xmlutils::getKKWord $clxpath $ptype "mbwritev"] ,]
-    # WarnWinText "mbwritev:$mbwritev mbivalues:$mbivalues\n$mpxpath//$mbxpath//p.$mbehavior cbvalue:$cbvalue"
-    foreach mbiv $mbivalues mbwv $mbwritev {
-	if {$mbiv ==$cbvalue} {
-	    set dprops($AppId,Material,$MatId,Behavior) "$mbwv"
-	    break
-	}
-    }
-    # WarnWinText "dprops($AppId,Material,$MatId,Behavior):$dprops($AppId,Material,$MatId,Behavior)"
-    if {$MatModel =="Damage"} {
-	# Damage models
-	# Get the energy yield function
-	# Get the internal state properties
-	set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
-	# Get the write behavior properties
-	set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
-	# WarnWinText "mswritev:$mswritev msivalues:$msivalues"
-	foreach msiv $msivalues mswv $mswritev {
-	    # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
-	    if {$msiv ==$cptype} {
-		set dprops($AppId,Material,$MatId,Fluency) "EnergyYieldFunction(myState.${mswv})"
-		break
-	    }
-	}
-    } elseif {$MatModel == "Elasto-Plastic"} {
-	# Elasto-plastic models
-	# Get the internal state properties
-	set msivalues [split [::xmlutils::getKKWord $clxpath "MState" "msivalues"] ,]
-	# Get the write behavior properties
-	set mswritev [split [::xmlutils::getKKWord $clxpath "MState" "mswritev"] ,]
-	# WarnWinText "mswritev:$mswritev msivalues:$msivalues"
-	set cstate ""
-	foreach msiv $msivalues mswv $mswritev {
-	    # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
-	    if {$msiv ==$cptype} {
-		set cstate "myState.${mswv}"
-		break
-	    }
-	}
-	# WarnWinText "cstate:$cstate"
-	# Get the yield function properties
-	# Get the yield criteria
-	set yfid "YieldFunctions"
-	set myieldcriteria [::xmlutils::getKKWord "$clxpath" $ptype "myieldcriteria"]
-	# Get the yield criteria xpath values
-	set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
-	# Get the current yield criteria
-	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
-	# WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
-	# Get the yield function options
-	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
-	# Get the write yield function properties
-	set yfwritev [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfwritev"] ,]
-	# WarnWinText "yfwritev:$yfwritev yfivalues:$yfivalues"
-	set cyf ""
-	foreach yfiv $yfivalues yfwv $yfwritev {
-	    # WarnWinText "yfiv:$yfiv cycvalue:$cycvalue yfwv:$yfwv" 
-	    if {$yfiv ==$cycvalue} {
-		set cyf "$yfwv"
-		break
-	    }
-	}
-	# WarnWinText "cyf:$cyf"
-	
-	set dprops($AppId,Material,$MatId,Fluency) "${cyf}(${cstate},myPotencialPlastic.Associated)"
-    }
-    # WarnWinText "dprops($AppId,Material,$MatId,Fluency):$dprops($AppId,Material,$MatId,Fluency)"
 }
 
 proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick "No"}} {
@@ -779,9 +721,13 @@ proc ::wkcf::GetElementProperties {} {
 
 proc ::wkcf::UnsetLocalVariables {} {
     variable dprops
-
+    variable AppId
+   
+    if {[info exists AppId]} {
+	unset AppId
+    }
     if {[info exists dprops]} {
-    unset dprops
+	unset dprops
     }
 }
 
@@ -835,6 +781,7 @@ proc ::wkcf::FindBoundaries {entity} {
     # Note: This procedure in the same used in the fluid_only problem type
 
     set boundarylist [list]
+    
     # Generate some names
     set Entity [string toupper $entity 0 0]
     set entities [format "%ss" $entity]
@@ -842,15 +789,15 @@ proc ::wkcf::FindBoundaries {entity} {
     # Get the number of the last entity
     set instruction [format "MaxNum%ss" $Entity]
     set Max [GiD_Info Geometry $instruction]
-    
+    # wa "entities:$entities instruction:$instruction Max:$Max"
     # Generate a list containing all entities and record their id and number of HigerEntities
     set EntityList [GiD_Info list_entities $entities 1:$Max]
     set candidates [regexp -all -inline {Num: ([0-9]*) HigherEntity: ([0-9]*)} $EntityList]
-    
+    # wa "EntityList:$EntityList candidates:$candidates"
     # Find ids of entities with exactly 1 HigherEntity (this means they are in the boundary)
     for {set i 1} {$i < [llength $candidates] } {incr i 3} {
-    set j [expr {$i + 1}]
-    if {[lindex $candidates $j] == 1} {lappend boundarylist [lindex $candidates $i]}
+	set j [expr {$i + 1}]
+	if {[lindex $candidates $j] == 1} {lappend boundarylist [lindex $candidates $i]}
     }
     return $boundarylist
 }
@@ -983,49 +930,48 @@ proc ::wkcf::WriteBatFile {} {
     close $f
 }
 
-proc ::wkcf::WriteFluidSolvers {rootid fileid vartype} {
-    # Write fluid velocity and pressure solvers
-    
-    # Kratos key word xpath
-    set kxpath "Applications/$rootid"
-    # Set default value xml variable
-    set cproperty "dv"
-
-    puts $fileid "# $vartype solver"
-    
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}LinearSolverType"
-    set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
-    if {$LinearSolverType =="Direct"} {
-	# Direct solver type
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}DirectSolverType"
-	set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
-	# WarnWinText "DirectSolverType:$DirectSolverType"
-	set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
-	puts $fileid "${vartype}_Linear_Solver = \"$cDirectSolverType\""
-    
-    } elseif {$LinearSolverType =="Iterative"} {
-	
-	# Iterative solver type 
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}IterativeSolverType"
-	set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
-	# Tolerance
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISTolerance"
-	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
-	# Maximum iteration
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISMaximumIteration"
-	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
-	# preconditioner type
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}PreconditionerType"
-	set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
-	# WarnWinText "IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
-    
-	# Solver type
-	set lsolver [::xmlutils::getKKWord $kxpath $IterativeSolverType]
-	puts $fileid "${vartype}_Linear_Solver = \"$lsolver\""
-	puts $fileid "${vartype}_Iterative_Tolerance = $Tolerance"
-	puts $fileid "${vartype}_Solver_Max_Iteration = $MaximumIteration"
-	# Preconditioner
-	set precond [::xmlutils::getKKWord $kxpath $PreconditionerType]
-	puts $fileid "${vartype}_Preconditioner_type = \"$precond\""
+# From Fluid_only problem type: Unassigns automatically assigned GiD Conditions (Model Parts, Conditions, Elements) from given entity types
+proc ::wkcf::CleanAutomatic {Condition args} {
+    foreach entity $args {
+	set autolist {}
+	set infolist [GiD_Info conditions ${entity}_${Condition} geometry]
+	foreach item $infolist {
+	    set id [regexp -inline {^E ([0-9]*) - ([0-9]*)} $item]
+	    # If it's "automatic" value is >0 (its always 0 for user-assigned data), store its id
+	    if {[lindex $id 2] > 0} {lappend autolist [lindex $id 1]}
+	}
+	GiD_UnAssignData Condition ${entity}_${Condition} ${entity}s $autolist
     }
- }
+} 
+
+proc ::wkcf::CleanAutomaticConditionGroup {what args {fieldname ""} {fieldvalue ""}} {
+    set Condition "groups"
+
+    switch -- -exact $what {
+	"SelectEntity" {
+	    foreach entity $args {
+		set autolist {}
+		set infolist [GiD_Info conditions ${entity}_${Condition} geometry]
+		foreach item $infolist {
+		    set id [regexp -inline {^E ([0-9]*) - ([0-9]*)} $item]
+		    # If it's "automatic" value is >0 (its always 0 for user-assigned data), store its id
+		    if {[lindex $id 2] > 0} {lappend autolist [lindex $id 1]}
+		}
+		# wa "autolist:$autolist"
+		GiD_UnAssignData Condition ${entity}_${Condition} ${entity}s $autolist
+	    }
+	}
+	"UseAllWhereField" {
+	    foreach entity $args {
+		GiD_UnAssignData Condition ${entity}_${Condition} ${entity}s all $fieldname $fieldvalue
+	    }
+	}
+    }
+}
+
+proc ::wkcf::AssignConditionToGroup {entity elist groupid} {
+    set Condition "groups"
+
+    GiD_AssignData Condition ${entity}_${Condition} ${entity}s $groupid $elist
+
+}

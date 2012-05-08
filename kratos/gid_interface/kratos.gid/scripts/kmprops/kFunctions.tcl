@@ -583,7 +583,7 @@ proc ::KFun::nodeDefinition { id {action "read"} {value ""} } {
 		                $childNodes nodeValue $value
 		        } else {
 		                set nodetext [$node asXML]
-		                msg $nodetext
+		                #msg $nodetext
 		                #$node nodeValue $value
 		        }
 		        return ""

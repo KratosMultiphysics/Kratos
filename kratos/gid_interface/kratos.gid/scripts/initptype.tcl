@@ -12,6 +12,12 @@
 #
 #    HISTORY:
 #
+#     0.7-04/05/12-G. Socorro, add a new variable to control the group deletion (when exists from the problem type)  
+#     0.6-03/05/12-G. Socorro, Delete all group identifier using ::KUtils::DeleteAllGroupIdentifier and 
+#                              close all group window Cond_Groups window close
+#     0.5-10/04/12-G. Socorro, load new script in the (wkcffluid.tcl, etc.)
+#     0.4-02/04/12-J.Garate, icon path change to adapt to GiD Themes
+#     0.3-29/03/12-G. Socorro, load the new kmprops scripts
 #     0.2-22/06/11-G. Socorro, delete KPriv(release) and create KPriv(RDConfig) in the Kratos.tcl
 #     0.1-01/02/10-G. Socorro, create the base source code
 #
@@ -28,20 +34,28 @@ proc kipt::InitPType { dir } {
     global KPriv ProgramName
     
     # kipt::CheckLicense
-
+    
     # Set dir to a global variable
     set KPriv(dir) $dir
     set KPriv(problemTypeDir) $dir
     
+    # Variable to control the group deletion (when exists from the problem type)  
+    set KPriv(Groups,DeleteGroup) 1
+
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
     set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
     
     # Set images directory
-    set imagespath "$dir/images"
+    ###########Aqui hay que separar entre GiD Classic y GiD Dark #########
+    set imagespath "images/Classic"
+    if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
+	set imagespath "images/Dark"
+    }
     set KPriv(imagesdir) $imagespath
     
     # Change system menu
     # Preprocess
+    # scripts/menus.tcl
     ::kmtb::ChangePreprocessMenu $dir
     
     # Postprocess
@@ -82,8 +96,6 @@ proc kipt::InitGlobalXMLVariables {} {
     
     # List of material Id´s
     set KPriv(materialsId) {}
-    set KPriv(materialsList) {}
-
     
     # Xml root
     set KPriv(xml) ""
@@ -145,20 +157,40 @@ proc kipt::FreePType {} {
     ::kmtb::EndCreatePreprocessTBar
     
     # Postprocess 
-    
-    #Limpiar los objetos tDom si aun existían
+
+    # Set the delete group variable to 0 => Not delete group identifier from the properties tree
+    set KPriv(Groups,DeleteGroup) 0
+
+    # Delete all group identifier
+    ::KUtils::DeleteAllGroupIdentifier
+  
+    # Close all group window
+    Cond_Groups window close
+
+    # Limpiar los objetos tDom si aun existían
     catch { [$KPriv(xml) delete] }
     
     catch { [$KPriv(xmlMat) delete] }
+
+    if { [info exists KPriv(xmlDoc) ] } { 
+	$KPriv(xmlDoc) delete
+    }
+    
+    if { [info exists KPriv(xml) ] } { 
+	unset KPriv(xml)
+    }
     
     # Unset the problem type global variables
     UnsetGlobalVars
-
+  
     # Reset namespaces
-
+  
     global GidPriv
     set GidPriv(ProgName) "GiD"
     ChangeWindowTitle ""
+
+    # Set the delete group variable to 1 => delete group identifier from the properties tree
+    set KPriv(Groups,DeleteGroup) 1
 }
 
 proc kipt::LoadSourceMessage {tclfname} {
@@ -233,7 +265,18 @@ proc kipt::LoadSourceFiles {dir} {
 	::kipt::LoadSourceMessage wkcfutils.tcl
 	return ""
     }
-
+    if { [catch {source $wkcfpath/wkcffluid.tcl}] } {
+	::kipt::LoadSourceMessage wkcffluid.tcl
+	return ""
+    }
+    if { [catch {source $wkcfpath/wkcfstructuralanalysis.tcl}] } {
+	::kipt::LoadSourceMessage wkcfstructuralanalysis.tcl
+	return ""
+    }
+    if { [catch {source $wkcfpath/wkcfgroups.tcl}] } {
+	::kipt::LoadSourceMessage wkcfgroups.tcl
+	return ""
+    }
     # Load kegroups
     set kegrouppath "$dir/scripts/kegroups"
     if { [catch {source $kegrouppath/kegroups.tcl}] } {
@@ -252,6 +295,26 @@ proc kipt::LoadSourceFiles {dir} {
     
     if { [catch {source $kPropsPath/kmprops.tcl}] } {
 	::kipt::LoadSourceMessage kmprops.tcl
+	return ""
+    }
+    if { [catch {source $kPropsPath/kmpropswin.tcl}] } {
+	::kipt::LoadSourceMessage kmpropswin.tcl
+	return ""
+    }
+    if { [catch {source $kPropsPath/kmpropsfwg.tcl}] } {
+	::kipt::LoadSourceMessage kmpropsfwg.tcl
+	return ""
+    }
+    if { [catch {source $kPropsPath/kmpropstree.tcl}] } {
+	::kipt::LoadSourceMessage kmpropstree.tcl
+	return ""
+    }
+    if { [catch {source $kPropsPath/kmpropsgroups.tcl}] } {
+	::kipt::LoadSourceMessage kmpropsgroups.tcl
+	return ""
+    }
+    if { [catch {source $kPropsPath/kmpropscbwd.tcl}] } {
+	::kipt::LoadSourceMessage kmpropscbwd.tcl
 	return ""
     }
     if { [catch {source $kPropsPath/kmaterials.tcl} er] } {

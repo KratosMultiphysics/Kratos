@@ -16,6 +16,8 @@
 #
 #    HISTORY:
 #
+#     0.8- 07/05/12- J. Garate, update renaming groups restrictions
+#     0.7- 03/05/12-GS, add the procedure DeleteAllGroupIdentifier
 #     0.6- 22/06/11-GS, create the proc CreateTBEFiles and DeleteTBEFiles to work with the TBE files
 #     0.5- 09/12/10-GS, modify the procedure GetDefinedMeshGiDEntities to get all nodes that defined a surface when using shell elements
 #     0.4- 14/09/10-GS, modify ReadResultsFromFiles procedure to load lst GiD files ${appid}.post.lst
@@ -29,6 +31,15 @@
 
 namespace eval ::KUtils:: {
  
+}
+
+proc ::KUtils::DeleteAllGroupIdentifier { } {
+ 
+    foreach groupid [Cond_Groups list] {
+	# Cond_Groups delete $groupid
+	# wa "que groupid:$groupid"
+	gid_groups_conds::delete_group -check_entities 0 $groupid
+    }
 }
 
 proc ::KUtils::CreateTBEFiles {} {
@@ -873,7 +884,7 @@ proc ::KUtils::parseTreeStr { texto } {
 	
 	set Ltexto [split $texto ""]
 	
-	if { ":" in $Ltexto || "/" in $Ltexto || "$" in $Ltexto  || "." in $Ltexto || "\\" in $Ltexto  || "%" in $Ltexto } {
+	if { ":" in $Ltexto || "$" in $Ltexto || "@" in $Ltexto  || "." in $Ltexto || "\\" in $Ltexto  || "%" in $Ltexto || "\ " in $Ltexto } {
 		return -1
 	}
 	#Para reducir el número de espacios
