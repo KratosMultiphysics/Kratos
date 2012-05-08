@@ -1,0 +1,360 @@
+###############################################################################
+#
+#    NAME: wkcfgroups.tcl
+#
+#    PURPOSE: Useful procedures to work with groups
+#
+#    QUANTECH ATZ-DEVELOPMENT DEPARTMENT
+#
+#    AUTHOR : G. Socorro
+#
+#    CREATED AT: 02/04/12
+#
+#    HISTORY:
+#
+#     0.3- 05/05/12-G. Socorro, write the group properties using the fast method 
+#     0.2- 03/04/12-G. Socorro, change Group by GroupNodes
+#     0.1- 02/04/12-G. Socorro, create a base source code from wkcf.tcl
+#
+###############################################################################
+
+proc ::wkcf::WriteGroupProperties {AppId} {
+    # ABSTRACT: Write the group properties file
+    variable wmethod
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+	set inittime [clock seconds]
+    }
+    switch -exact -- $wmethod {
+	"0" {
+	    ::wkcf::WriteGroupProperties_m0 $AppId
+	}
+	"1" {
+	    ::wkcf::WriteGroupProperties_m1 $AppId
+	}
+    }
+    # For debug
+    if {!$::wkcf::pflag} {
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write group in nodes: [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteGroupProperties_m1 {AppId} {
+    # ABSTRACT: Write the group properties file
+    variable dprops
+
+    set filename "GroupDefinition.txt"
+    set PDir [::KUtils::GetPaths "PDir"]
+
+    set fullname [file native [file join $PDir $filename]]
+    
+    # Use the write_calc_data procedure from the GiD kernel
+    # Init
+    write_calc_data init $fullname
+
+    #
+    # Write assigned group to the elements
+    #
+    set ggroupid 0
+     
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+	# For all defined kratos elements        
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # Check for all defined group identifier for this element
+	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+		# wa "celemid:$celemid"
+		# For all defined group identifier for this element
+		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    # Group properties format 
+		    set gprop [dict create]
+		    set f "%10i\n"
+		    set f [subst $f]
+		    dict set gprop $cgroupid "$f"
+		    if {[write_calc_data nodes -count $gprop]>0} {
+			incr ggroupid 1
+			write_calc_data puts "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid"
+			write_calc_data nodes -sorted $gprop
+			write_calc_data puts "End GroupNodes"
+		        write_calc_data puts ""
+		    }
+		    unset gprop
+		}
+	    }
+	}
+    }
+   
+    #
+    # Write the group assigned to the boundary condition
+    #
+  
+    # Check for all defined condition type
+    if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)])} {
+	variable gidentitylist; variable useqelem; variable ndime
+	# For all defined condition identifier
+	foreach ccondid $dprops($AppId,AllBCTypeId) {
+	    # wa "ccondid:$ccondid"
+	    # Check for all defined group identifier inside this condition type
+	    if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
+		# For each group of this BC 	
+		foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
+		    # Group properties format for the boundary condition groups
+		    set gprop_bc [dict create]
+		    set f "%10i\n"
+		    set f [subst $f]
+		    dict set gprop_bc $cgroupid "$f"
+		    if {[write_calc_data nodes -count $gprop_bc]>0} {
+			incr ggroupid 1
+			write_calc_data puts "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid"
+			write_calc_data nodes -sorted $gprop_bc
+			write_calc_data puts "End GroupNodes"
+		        write_calc_data puts ""
+		    }
+		    # Unset the dictionaries
+		    unset gprop_bc
+		}
+	    }
+	}
+    }
+     
+    # End
+    write_calc_data end
+}
+
+proc ::wkcf::WriteGroupProperties_m0 {AppId} {
+    # ABSTRACT: Write the group properties file
+    variable dprops
+
+    set filename "GroupDefinition.txt"
+    set PDir [::KUtils::GetPaths "PDir"]
+
+    set fullname [file native [file join $PDir $filename]]
+    
+    # First delete the file
+    if {[file exists $fullname]} {
+	set res [file delete -force $fullname]
+    }
+
+    if { [catch { set fileid [open $fullname w+] }] } {
+	WarnWin [= "Cannot write file %s. Permission denied" $fullname].
+	return 0
+    }
+
+    # Write the group properties
+    puts $fileid ""
+    
+    #
+    # Write assigned group to the elements
+    #
+    set ggroupid 0
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+	# For all defined kratos elements        
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # Check for all defined group identifier for this element
+	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+		# wa "celemid:$celemid"
+		# For all defined group identifier for this element
+		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    # Get the GiD entity type, element type and property identifier
+		    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+		    # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+		    # Get all defined entities for this group identifier
+		    set allnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity Nodes]
+		    if {[llength $allnlist]} {
+			set pgroup ""
+			incr ggroupid 1
+			puts $fileid "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid"
+			foreach nid [lsort -integer $allnlist] {
+			    append pgroup "$nid\n" 
+			}
+			# Write the group nodes entities list
+			puts $fileid "[string trimright $pgroup]"
+			puts $fileid "End GroupNodes"
+			puts $fileid ""
+		    }
+		    unset allnlist
+		}
+	    }
+	}
+    }
+  
+    #
+    # Write the group assigned to the boundary condition
+    #
+ 
+    # Check for all defined condition type
+    if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)])} {
+	variable gidentitylist; variable useqelem; variable ndime
+	# For all defined condition identifier
+	foreach ccondid $dprops($AppId,AllBCTypeId) {
+	    # wa "ccondid:$ccondid"
+	    # Check for all defined group identifier inside this condition type
+	    if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
+		# For each group of this BC 	
+		foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
+		    set NodeList [list]
+		    foreach GiDEntity $gidentitylist {
+			# Get all defined entities for this group identifier
+			switch $GiDEntity {
+			    "point" {
+				set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+				if {[llength $callnlist]} {
+				    lappend NodeList {*}$callnlist
+				}
+			    }
+			    "line" - "surface" {
+				set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+				if {[llength $callnlist]} {
+				    lappend NodeList {*}$callnlist
+				}
+			    }
+			    "volume" {
+				if {$ndime =="3D"} {
+				    set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
+				    if {[llength $callnlist]} {
+					lappend NodeList {*}$callnlist
+				    }
+				}
+			    }
+			} 
+		    }
+		    # wa "groupid:$cgroupid NodeList:$NodeList"
+		    if {[llength $NodeList]} {
+		       	set pgroup ""
+			incr ggroupid 1
+			puts $fileid "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid BC Type: $ccondid"
+			foreach nid [lsort -integer $NodeList] {
+			    append pgroup "$nid\n" 
+			}
+			# Write the group nodes entities list
+			puts $fileid "[string trimright $pgroup]"
+			puts $fileid "End GroupNodes"
+			puts $fileid ""
+		    }
+		    unset NodeList
+		}
+	    }
+	}
+    }
+
+    close $fileid
+}
+
+proc ::wkcf::WritePythonGroupProperties {} {
+    # Write the python group properties file
+    variable dprops;  variable ActiveAppList
+
+    set filename "ProjectGroups.py"
+    set PDir [::KUtils::GetPaths "PDir"]
+
+    set fullname [file native [file join $PDir $filename]]
+    
+    # First delete the file
+    if {[file exists $fullname]} {
+	set res [file delete -force $fullname]
+    }
+
+    if { [catch { set fileid [open $fullname w+] }] } {
+	WarnWin [= "Cannot write file %s. Permission denied" $fullname].
+	return 0
+    }
+
+    # Write the group properties
+    puts $fileid "from Kratos import *"
+    puts $fileid ""
+    puts $fileid ""
+    puts $fileid "## This part to be configured for each problem"
+    # Group identifier
+    #project_groups_names=["support", "Load"]
+     puts $fileid ""
+    # Group nodes identifier
+    #project_groups_nodes_ids={"support" : [1,3,6,11],"Load" : [314]}
+     puts $fileid ""
+    # Group element identifier
+    #project_groups_elements_ids={"support" : [74,511,509,21],"Load":[]}
+
+    # Check for all defined kratos elements
+    set pgeids "project_groups_elements_ids=\{"
+    # For each active application
+    foreach AppId $ActiveAppList {
+	if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
+	    # For all defined kratos elements        
+	    foreach celemid $dprops($AppId,AllKElemId) {
+		# Check for all defined group identifier for this element
+		if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
+		    # WarnWinText "celemid:$celemid"
+		    # For all defined group identifier for this element
+		    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		        # Get the GiD entity type, element type and property identifier
+		        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+		        # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+		        
+		        # Get all defined entities for this group identifier
+		        set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
+		        # WarnWinText "alllist:$allelist"
+		        if {[llength $allelist]>0} {
+		            append pgeids "\"$cgroupid\":\[[join $allelist ,]\],"
+		        }
+		    }
+		}
+	    }
+	}
+    }
+    set findcomma [string index $pgeids end]
+    # WarnWinText "findcomma:$findcomma"
+    if {$findcomma ==","} {
+	set pgeids [string range $pgeids 0 end-1]
+    }
+    append pgeids "\}"
+    puts $fileid "$pgeids"
+    
+    puts $fileid ""
+    # Group condition identifier
+    #project_groups_conditions_ids={"support" : [],"Load":[]}
+
+    # This part is always the same for all problems
+    puts $fileid "## This part is always the same for all problems"
+    puts $fileid ""
+    puts $fileid "model_groups = \{\}"
+    puts $fileid ""
+    puts $fileid "def InitializeGroups(model_part):"
+    puts $fileid "    for group_name in project_groups_names:"
+    puts $fileid "        mesh = Mesh()"
+    puts $fileid ""
+    puts $fileid "        for node_id in project_groups_nodes_ids\[group_name\]:"
+    puts $fileid "            mesh.Nodes\[node_id\]=model_part.Nodes\[node_id\]"
+    puts $fileid ""
+    puts $fileid "        for element_id in project_groups_elements_ids\[group_name\]:"
+    puts $fileid "            mesh.Elements\[element_id\]=model_part.Elements\[element_id\]"
+    puts $fileid ""
+    puts $fileid "        for condition_id in project_groups_conditions_ids\[group_name\]:"
+    puts $fileid "            mesh.Conditions\[condition_id\]=model_part.Conditions\[condition_id\]"
+    puts $fileid ""
+    puts $fileid ""
+    puts $fileid "        print group_name, \"mesh:\", mesh"
+    puts $fileid ""       
+    puts $fileid "        model_groups\[group_name\]=mesh"
+    puts $fileid ""
+
+    close $fileid
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
