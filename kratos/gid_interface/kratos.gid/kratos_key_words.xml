@@ -2,15 +2,15 @@
 <Kratos_KWords version="1.0">
     <Applications>
     <StructuralAnalysis>
-        <Item id="TotalLagrangian" kkword="TotalLagrangian" />
-        <Item id="TotalLagrangian3D" kkword="TotalLagrangian" />
-        <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement" />
-        <Item id="ShellIsotropic" kkword="IsoShellElement" />
-        <Item id="ShellAnisotropic" kkword="ShellAnisotropic" />
-        <Item id="LinearElement" kkword="LinearElement" />
-        <Item id="LinearElement3D" kkword="LinearElement" />
-	<Item id="Membrane" kkword="MembraneElement" />
-        <Item id="EBST" kkword="EBST" />
+        <Item id="TotalLagrangian" kkword="TotalLagrangian" usennode="Yes" />
+        <Item id="TotalLagrangian3D" kkword="TotalLagrangian" usennode="Yes" />
+        <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement" usennode="Yes" />
+        <Item id="ShellIsotropic" kkword="IsoShellElement" usennode="No" />
+        <Item id="ShellAnisotropic" kkword="ShellAnisotropic" usennode="No" />
+        <Item id="LinearElement" kkword="LinearElement" usennode="Yes" />
+        <Item id="LinearElement3D" kkword="LinearElement" usennode="Yes" />
+	   <Item id="Membrane" kkword="MembraneElement" usennode="No" />
+        <Item id="EBST" kkword="EBST" usennode="No" />
         <Item id="Thickness" kkword="THICKNESS" />
         <Item id="Dx" kkword="DISPLACEMENT_X" />
         <Item id="Dy" kkword="DISPLACEMENT_Y" />
@@ -21,8 +21,8 @@
         <Item id="Fx" kkword="FORCE_X" />
         <Item id="Fy" kkword="FORCE_Y" />
         <Item id="Fz" kkword="FORCE_Z" />
-	<Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
-	<Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
+	   <Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
+	   <Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
         <Item id="Displacements" kkword="DISPLACEMENT" />
         <Item id="Forces" kkword="FORCE" />
         <Item id="Reactions" kkword="REACTION" />
@@ -40,47 +40,54 @@
         <Item id="ConjugateGradient" kkword="CG" />
         <Item id="Diagonal" kkword="DIAG" />
         <Item id="ILU0" kkword="ILU0" />
-	<Item id="GiDPostMode" kkword="GiDPostMode" />
-	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
-	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
-	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+	    <Item id="GiDPostMode" kkword="GiDPostMode" />
+	   <Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+	   <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+	   <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
     </StructuralAnalysis>
     <Fluid>
-        <Item id="ASGS2D" kkword="ASGS2D" />
-        <Item id="ASGS3D" kkword="ASGS3D" />
-        <Item id="Fluid2D" kkword="Fluid2D" />
-        <Item id="Fluid3D" kkword="Fluid3D" />
+        <Item id="ASGS2D" kkword="ASGS2D" usennode="No" />
+        <Item id="ASGS3D" kkword="ASGS3D" usennode="No" />
+        <Item id="Fluid2D" kkword="Fluid2D" usennode="No" />
+        <Item id="Fluid3D" kkword="Fluid3D" usennode="No" />
+        <Item id="Fluid2DMonolithic" kkword="VMS2D" usennode="No" />
+        <Item id="Fluid3DMonolithic" kkword="VMS3D" usennode="No" />
+	<Item id="VMS2D" kkword="FractionalStep2D" usennode="No" /> 
+        <Item id="VMS3D" kkword="FractionalStep3D" usennode="No" /> 
         <Item id="Vx" kkword="VELOCITY_X" />
         <Item id="Vy" kkword="VELOCITY_Y" />
         <Item id="Vz" kkword="VELOCITY_Z" />
         <Item id="Velocity" kkword="VELOCITY" />
+        <Item id="Velocity_x" kkword="VELOCITY_X" />
+        <Item id="Velocity_y" kkword="VELOCITY_Y" />
+        <Item id="Velocity_z" kkword="VELOCITY_Z" />
         <Item id="Pressure" kkword="PRESSURE" />
-	<Item id="Reactions" kkword="REACTION" />
-	<Item id="Distance" kkword="DISTANCE" />
+	    <Item id="Reactions" kkword="REACTION" />
+	    <Item id="Distance" kkword="DISTANCE" />
         <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
         <Item id="SuperLU" kkword="Super LU" />
         <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
-	<Item id="GiDPostMode" kkword="GiDPostMode" />
-	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
-	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
-	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
-	<Item id="Monolithic" kkword="monolithic_solver_eulerian" />
-	<Item id="PressureSplitting" kkword="pressure_splitting" />
-	<Item id="ElementBased" kkword="FractionalStep" />
-	<Item id="EdgeBased" kkword="FractionalStep" />
-	<Item id="Continuous" kkword="1" />
-	<Item id="Discrete" kkword="2" />
-	<Item id="DiscreteWithDt" kkword="3" />
-	<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+	    <Item id="GiDPostMode" kkword="GiDPostMode" />
+	    <Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+		<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+		<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+		<Item id="Monolithic" kkword="monolithic_solver_eulerian" />
+		<Item id="PressureSplitting" kkword="pressure_splitting" />
+		<Item id="ElementBased" kkword="FractionalStep" />
+		<Item id="EdgeBased" kkword="FractionalStep" />
+		<Item id="Continuous" kkword="1" />
+		<Item id="Discrete" kkword="2" />
+		<Item id="DiscreteWithDt" kkword="3" />
+		<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
         <Item id="ConjugateGradient" kkword="Conjugate gradient" />
         <Item id="Diagonal" kkword="Diagonal" />
         <Item id="ILU0" kkword="ILU0" />
-	<Item id="GMRES" kkword="GMRES" />
-	<Item id="None" kkword="None" />
-	<Item id="RelativeVelocityTolerance" kkword="velocity_relative_tolerance" />
-	<Item id="AbsoluteVelocityTolerance" kkword="velocity_absolute_tolerance" />
-	<Item id="RelativePressureTolerance" kkword="pressure_relative_tolerance" />
-	<Item id="AbsolutePressureTolerance" kkword="pressure_absolute_tolerance" />
+		<Item id="GMRES" kkword="GMRES" />
+		<Item id="None" kkword="None" />
+		<Item id="RelativeVelocityTolerance" kkword="velocity_relative_tolerance" />
+		<Item id="AbsoluteVelocityTolerance" kkword="velocity_absolute_tolerance" />
+		<Item id="RelativePressureTolerance" kkword="pressure_relative_tolerance" />
+		<Item id="AbsolutePressureTolerance" kkword="pressure_absolute_tolerance" />
     </Fluid>
     <ConvectionDiffusion>
     </ConvectionDiffusion>
@@ -160,7 +167,7 @@
         <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
         <Item id="Beam" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
-	<Item id="Membrane" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
+		<Item id="Membrane" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Shell" ivalues="Elastic-Isotropic,Elastic-Anisotropic" values="Elastic-Isotropic,Elastic-Anisotropic"/>
         <Item id="EBST" ivalues="Elastic-Isotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elasto-Plastic,Damage"/>
         <Item id="Solid" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />

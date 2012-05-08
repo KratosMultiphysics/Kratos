@@ -4,7 +4,7 @@
   <Program>
     <Name>Kratos</Name>
     <Version>1.0.0</Version>
-    <MinimumGiDVersion>10.0</MinimumGiDVersion>
+    <MinimumGiDVersion>10.2.1</MinimumGiDVersion>
     <SplashImage>images/splash_kratos.gif</SplashImage>
     <ImageFileBrowser>images/ImageFileBrowser.gif</ImageFileBrowser>
     <ShortDescription>Kratos - Kratos is a framework for building multi-disciplinary finite element programs. It provides several tools for easy implementation of finite element applications and a common platform for natural interaction of the same in different ways.</ShortDescription>
