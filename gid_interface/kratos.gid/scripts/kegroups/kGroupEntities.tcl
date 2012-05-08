@@ -294,9 +294,6 @@ proc ::LEntities::InsertNewItem { T text {icon ""} {parentitem root} {childs 1}}
     return $item
 }
 
-#
-# 
-#
 proc ::LEntities::listEntities { T } {
     
     global KPriv
@@ -339,10 +336,10 @@ proc ::LEntities::listEntities { T } {
 		$w.pro configure -maximum $max
 		#set ::LEntities::totalEntities [llength $geomEntities]
 		foreach entity [list point line surface volume] title [list Points Lines Surfaces Volumes] {
-		    
-		    
+		    #msg $entity
 		    set entityList [::KEGroups::getGroupGiDEntities $groupId $entity]
 		    #msg $entityList
+		#WarnWinText "$entityList Geometria" 
 		    if { [llength $entityList]} {
 			#msg "i:$gItem g:$groupId: e:$entity t:$title"
 			::LEntities::insEntity $T $entityList "$title" $gItem "${entity}16x16.gif"
@@ -358,9 +355,10 @@ proc ::LEntities::listEntities { T } {
 		set max [expr [llength $groups] * 2]
 		$w.pro configure -maximum $max
 		
-		foreach entity [list node element] title [list Nodes Elements] {	
-		    
+		foreach entity [list node element] title [list Nodes Elements] {
+			#msg $entity
 		    set entityList [::KEGroups::getGroupGiDEntities $groupId "${entity}s"]	
+		    #WarnWinText "$entityList Mesh" 
 		    if { [llength $entityList]} {
 			
 			::LEntities::insEntity $T $entityList "$title" $gItem "${entity}16x16.gif"

@@ -1,8 +1,8 @@
 ###############################################################################
 #
-#	NAME: kmprop.tcl
+#	NAME: kmaterials.tcl
 #
-#	PURPOSE: Main window to manage model properties
+#	PURPOSE: Main window to manage material properties
 #
 #	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
@@ -12,8 +12,9 @@
 #
 #	HISTORY:
 #
-#       0.8- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
-#       0.7- 07/06/11 GS, add composite and plastic material to the structural analysis application
+#   0.9- 30/03/12-G. Socorro, add the variables TreeMatsPath and NbMatsPath
+#   0.8- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
+#   0.7- 07/06/11 GS, add composite and plastic material to the structural analysis application
 #	0.6- 27/09/10 LC, Correct bugs inserting new materials and double click in containers
 #	0.5- 08/06/10 KS, New materials database structure + template for add material.
 #	0.4- 11/05/10 KS, varius bugs fixed.
@@ -32,9 +33,11 @@ namespace eval ::KMat:: {
     
     # Path of the base window 
     variable WinPath ".gid.kmprops"
-    # Path of the Materials Tree
-    variable TreeMatPath 
-    
+    # Tree material properties path
+    variable TreeMatsPath
+    # Notebook material properties path
+    variable NbMatsPath
+
     variable WinLayout 
     variable SystemHighlight
     variable SystemHighlightText
@@ -250,11 +253,11 @@ proc ::KMat::CreateTreeProperties {w} {
 #----------------------------------------------------------------------------------------------
 proc ::KMat::FillTreeMat { } {
     
-    variable abdlist
+    variable abdlist; variable TreeMatsPath
     global KPriv
     set KPriv(materialsId) {}
     
-    set T $::KMat::TreeMatPath
+    set T $TreeMatsPath
     set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
     
     foreach node $nodes {			  
@@ -559,7 +562,7 @@ proc ::KMat::DeleteMaterial { {T ""} {name ""} } {
 		catch { ::xmlutils::unsetXml [DecodeName [$T item tag names [lindex $items $i]]] "mat" }			   
 		
 		#Resetea todas las ocurrencias del material en las propiedades del .spd
-		::KMProps::chekMaterials [$T item text $item 0]
+		::KMProps::checkMaterials [$T item text $item 0]
 		
 		#Elimina el grupo del árbol
 		::KMProps::deleteItem $T $item
@@ -573,14 +576,14 @@ proc ::KMat::DeleteMaterial { {T ""} {name ""} } {
 
 
 proc ::KMat::DeleteTree { {T ""} } {
+    variable TreeMatsPath
 
     if { $T == "" } {
-	global KPriv
-	set T $::KMat::TreeMatPath
+	set T $TreeMatsPath
     }
-    if { [winfo exists $::KMProps::WinPath] } {
+    if { [winfo exists $::KMProps::winpath] } {
 	foreach item [$T item range 0 end] {	  
-	    #Elimina el item del árbol
+	    # Elimina el item del árbol
 	    catch {$T item delete $item}						
 	}
     }		
@@ -866,7 +869,7 @@ proc ::KMat::SetMatToRename { T item newtext } {
     ::KMat::editTag $T $item $fullname $newtext
     
     #Renombramos también todas las ocurrencias del material en el .spd de propiedades
-    ::KMProps::chekMaterials $oldId $newtext
+    ::KMProps::checkMaterials $oldId $newtext
     
     
     return ""
@@ -1160,11 +1163,10 @@ proc ::KMat::insertIcon { item T fullname {type "mat"}} {
 
 
 proc ::KMat::refreshTree { {T ""} } {
-    
-    #::KMat::findMaterialParent "S1"
-    
+    variable TreeMatsPath; variable lastSelected
+
     if {$T == ""} {
-	set T $::KMat::TreeMatPath
+	set T $TreeMatsPath
     }
     
     #Primero hay que asegurarse de que exista la ventana
@@ -1183,7 +1185,7 @@ proc ::KMat::refreshTree { {T ""} } {
     ::KMat::DeleteTree		
     ::KMat::FillTreeMat
     
-    set ::KMat::lastSelected {}
+    set lastSelected {}
 }
 
 proc ::KMat::findMaterialParent { matid } {
@@ -1205,10 +1207,11 @@ proc ::KMat::findMaterialParent { matid } {
 }
 
 proc ::KMat::getMaterials {{application ""}} {
-
+    variable TreeMatsPath
     global KPriv
+   
     set KPriv(materialsList) {}
-    set T $::KMat::TreeMatPath
+    set T $TreeMatsPath
     
     set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
     

@@ -1,19 +1,22 @@
 ###############################################################################
 #
-#	NAME: xmlutils.tcl
+#        NAME: xmlutils.tcl
 #
-#	PURPOSE: Utilities procedures to work with XML files
+#        PURPOSE: Utilities procedures to work with XML files
 #
-#	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
+#        QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#	AUTHOR : G. Socorro
+#        AUTHOR : G. Socorro
 #
-#	CREATED AT: 01/11/09
+#        CREATED AT: 01/11/09
 #
-#	LAST MODIFICATION : Correct an error with outfd
+#        LAST MODIFICATION : Correct an error with outfd
 #
-#	HISTORY:
+#        HISTORY:
 #
+#     0.6- 04/05/12-J. Garate, cambio en el log
+#     0.5- 26/04/12-J. Garate, ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
+#     0.4- 27/02/12-J. Garate, Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
 #     0.3- 03/09/10-G. Socorro, correct an error with outfd
 #     0.2- 24/12/09-G. Socorro, add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
 #     0.1- 01/11/09-G. Socorro, create a base source code
@@ -34,13 +37,13 @@ proc ::xmlutils::initKKWord { } {
 	#
 	#if { $KPriv(xmlKKW) == "" } {
 	#
-	#		set filePath "$KPriv(dir)/kratos_key_words.xml"
-	#		set xmlArray [::xmlutils::openFile "." "$filePath" 0]
-	#		
-	#		set KPriv(xmlKKW) [lindex $xmlArray 0]
-	#		set KPriv(xmlDocKKW) [lindex $xmlArray 2]
-	#		#No es necesario porque solo lo necesitamos para leer
-	#		#set KPriv(encrXml) [lindex $xmlArray 1]
+	#                set filePath "$KPriv(dir)/kratos_key_words.xml"
+	#                set xmlArray [::xmlutils::openFile "." "$filePath" 0]
+	#                
+	#                set KPriv(xmlKKW) [lindex $xmlArray 0]
+	#                set KPriv(xmlDocKKW) [lindex $xmlArray 2]
+	#                #No es necesario porque solo lo necesitamos para leer
+	#                #set KPriv(encrXml) [lindex $xmlArray 1]
 	#
 	#}
 }
@@ -102,7 +105,7 @@ proc ::xmlutils::openFile {w fullname {encodeFile 1}} {
 	catch {
 		#Si está vacío es que falló porque no estaba encriptado, lo intentamos leer normal
 		if { $xmlDoc == "" } {
-			set xmlDoc  [dom parse [string trim $xml]]
+		        set xmlDoc  [dom parse [string trim $xml]]
 		}
 	}
 	if { $xmlDoc == "" } {
@@ -111,7 +114,7 @@ proc ::xmlutils::openFile {w fullname {encodeFile 1}} {
 	}
 	
 	#Devolvemos las 3 variables la primera "xml" para utilizar el documento, 
-	# y las dos siguientes "encr" y "xmlDoc" para cuando lo guardemos	
+	# y las dos siguientes "encr" y "xmlDoc" para cuando lo guardemos        
 	
 	set xmlList [$xmlDoc documentElement]
 	set xmlList [lappend xmlList $encriptStr]
@@ -133,9 +136,9 @@ proc ::xmlutils::writeFile {outputfile iniDir encStr xmlDoc {release 1} {encrypt
 		
 		#Si estamos en modo DEBUG, guardamos el archivo de las dos formas
 		if { !$release } {
-			
-			::xmlutils::writeFile "${outputfile}_debug" $iniDir $encStr $xmlDoc 1
-			#set outputfile "${outputfile}"
+		        
+		        ::xmlutils::writeFile "${outputfile}_debug" $iniDir $encStr $xmlDoc 1
+		        #set outputfile "${outputfile}"
 		}
 	}
 	
@@ -213,27 +216,27 @@ proc ::xmlutils::getLanguageWords { } {
 	#Recorremos todos los nodos del xml
 	foreach listNodes $nodes {
 		foreach node $listNodes {
-			
-			#Palabras clave de usuario PID
-			set pid [$node getAttribute pid ""]
-			if { $pid != "" } {
-			
-			dict set word $pid val ""
-			}
-			
-			#Palabras clave de usuario PID
-			set help [$node getAttribute help ""]
-			if { $help != "" } {
-			
-			dict set word $help val ""
-			}
-			
-			#Contenido de los combos
-			set values [$node getAttribute values ""]
-			set Lvalues [split $values ","]
-			foreach cmbVal $Lvalues {
-			dict set word $cmbVal val ""
-			}
+		        
+		        #Palabras clave de usuario PID
+		        set pid [$node getAttribute pid ""]
+		        if { $pid != "" } {
+		        
+		        dict set word $pid val ""
+		        }
+		        
+		        #Palabras clave de usuario PID
+		        set help [$node getAttribute help ""]
+		        if { $help != "" } {
+		        
+		        dict set word $help val ""
+		        }
+		        
+		        #Contenido de los combos
+		        set values [$node getAttribute values ""]
+		        set Lvalues [split $values ","]
+		        foreach cmbVal $Lvalues {
+		        dict set word $cmbVal val ""
+		        }
 		}
 	}
 	
@@ -260,7 +263,7 @@ proc ::xmlutils::getLanguageWords { } {
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#														 ---- UPDATE SPD -----
+#                                                                                                                 ---- UPDATE SPD -----
 # Compara la versión del problemTypeName.spd abierto con la versión de kratos_default.spd
 # Y si son distintas crea un nuevo problemTypeName.spd copia del default, y luego le añade
 # las diferencias como grupos, properties y valores de combos (atributo "dv")
@@ -290,9 +293,8 @@ proc ::xmlutils::checkSpdVersion { filename } {
 	#Comprobamos las versiones
 	set pTypeVersion [::xmlutils::xmlVersion]
 	set defaultVersion [::xmlutils::xmlVersion $xmlDef]
-	
 	if {$pTypeVersion != $defaultVersion } {
-		
+
 		variable logChanges {}
 		
 		set xmlDocNew [dom parse [$xmlDef asXML]]
@@ -301,138 +303,142 @@ proc ::xmlutils::checkSpdVersion { filename } {
 		
 		set path [GiD_Info problemtypepath]
 		set name [lindex [split $path "/"] end]
+		msg "You are working on the $pTypeVersion Kratos version and the current version is $defaultVersion ."
 		set aviso [= "This model version it is older than the problem type one. The file: \n '$filename'\n it is going to be updated.\n A back-up of the original file will be generated."]
-		#set answer [WarnWin "$aviso" "."]
-		
+		msg $aviso
 		
 		#--------------------------------------------------------------------
 		# RECORRER TODOS LOS NODOS COMPROBANDO EL VALOR DV (tb open y state)
 		#--------------------------------------------------------------------
 		
 		set baseNodePaths {}
+		#set basenodepaths [$xmlNew selectNodes "/Kratos_Data/RootData"]
+		#foreach node $basenodepaths {
+		#        set id [$node getAttribute id]
+		#        lappend baseNodePaths  "/Kratos_Data/RootData\[@id='$id'\]"
+		#}
 		lappend baseNodePaths "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]"
 		lappend baseNodePaths "/Kratos_Data/RootData\[@id='StructuralAnalysis'\]"
 		lappend baseNodePaths "/Kratos_Data/RootData\[@id='Fluid'\]"
-		
+		#msg $baseNodePaths
 		
 		
 		foreach baseNodePath $baseNodePaths {
-			set numLogs 0
-			#lappend ::xmlutils::logChanges "Sección $baseNodePath:"
-			
-			#Para cada item, buscamos su correspondiente por partes 
-			set baseNodeOld [$xmlOld selectNodes $baseNodePath]
-			
-			#Recorremos el nuevo xml también por partes
-			set baseNodeNew [$xmlNew selectNodes $baseNodePath]
-			set xmlNewPartial [[dom parse [$baseNodeNew asXML]] documentElement]
-			
-			#Para actualizar los rootData
-			$baseNodeNew setAttribute state [$baseNodeOld getAttribute state ""]
-			$baseNodeNew setAttribute open [$baseNodeOld getAttribute open ""]
-			
-			set nodes [$xmlNewPartial getElementsByTagName "Item"]
-			set nodes [concat $nodes [$xmlNewPartial getElementsByTagName "Container"]]
-			
-			#Cada node aux es un nodo del documento auxiliar que utilizamos para recorrer por partes
-			foreach nodeAux $nodes {
-				
-				set attributes [list state dv open]
-				foreach att $attributes {
-					
-					#Si tiene dv actualizamos su valor
-					if { [$nodeAux hasAttribute $att] } {
-						
-						#Buscamos el valor en el antiguo spd para actualizarlo
-						set id [$nodeAux getAttribute id ""]
-						set foundNode [$baseNodeOld find id $id]
-						if { $foundNode != "" && [$foundNode nodeName] == [$nodeAux nodeName] } {
-						
-						#Hemos encontrado el mismo nodo en el modelo del problemtype
-						
-						set dvOld [$foundNode getAttribute $att ""]
-						set dvNew [$nodeAux getAttribute $att ""]
-						
-						if { $dvOld != $dvNew } {
-							
-							#Estamos en condiciones de acutalizar el valor DV de xmlOld en xmlNew
-							set xPath [$nodeAux toXPath]
-							set xPath [string map [list "/RootData" $baseNodePath] $xPath]
-							set nodeNew [$xmlNew selectNodes $xPath]
-							
-							if {$nodeNew != "" } {
-								#msg "  .. . .  newid: [$nodeNew getAttribute id 0]"
-								#Actualizamos el valor de DV validando si es existen iValores
-								set ivalues [split [$nodeNew getAttribute ivalues ""] ","]
-								
-								if { [llength $ivalues] } {
-									
-									if { ($dvOld in $ivalues) } {
-									
-									$nodeNew setAttribute $att $dvOld
-									lappend ::xmlutils::logChanges "UPDATE $att (COMBO): $id  default $att: $dvOld  new $att: $dvNew"
-									lappend ::xmlutils::logChanges "	  path:[::xmlutils::printPathFromNode $nodeNew]\n"
-									}
-								} else {
-									
-									lappend ::xmlutils::logChanges "UPDATE $att: $id  default $att: $dvOld  new $att: $dvNew"
-									lappend ::xmlutils::logChanges "	 path:[::xmlutils::printPathFromNode $nodeNew]\n"																
-									$nodeNew setAttribute $att $dvOld
-								}
-							}
-							incr numLogs
-						}
-						}
-					}
-				}
-				##Si tiene dv actualizamos su valor
-				#if { [$nodeAux hasAttribute dv] } {
-				#	
-				#	#Buscamos el valor en el antiguo spd para actualizarlo
-				#	set id [$nodeAux getAttribute id ""]
-				#	set foundNode [$baseNodeOld find id $id]
-				#	if { $foundNode != "" && [$foundNode nodeName] == [$nodeAux nodeName] } {
-				#	
-				#	#Hemos encontrado el mismo nodo en el modelo del problemtye
-				#	
-				#	set dvOld [$foundNode getAttribute dv ""]
-				#	set dvNew [$nodeAux getAttribute dv ""]
-				#	
-				#	if { $dvOld != $dvNew } {
-				#		
-				#		#Estamos en condiciones de acutalizar el valor DV de xmlOld en xmlNew
-				#		set xPath [$nodeAux toXPath]
-				#		set xPath [string map [list "/RootData" $baseNodePath] $xPath]
-				#		set nodeNew [$xmlNew selectNodes $xPath]
-				#		
-				#		if {$nodeNew != "" } {
-				#			#msg "  .. . .  newid: [$nodeNew getAttribute id 0]"
-				#			#Actualizamos el valor de DV validando si es existen iValores
-				#			set ivalues [split [$nodeNew getAttribute ivalues ""] ","]
-				#			
-				#			if { [llength $ivalues] } {
-				#				
-				#				if { ($dvOld in $ivalues) } {
-				#				
-				#				$nodeNew setAttribute dv $dvOld
-				#				lappend ::xmlutils::logChanges "UPDATE DV (NOT IN IVALUES): $id  defaultDV: $dvOld newDV: $dvNew"
-				#				lappend ::xmlutils::logChanges "	  path:[::xmlutils::printPathFromNode $nodeNew]\n"
-				#				}
-				#			} else {
-				#				
-				#				lappend ::xmlutils::logChanges "UPDATE DV: $id  defaultDV: $dvOld newDV: $dvNew"
-				#				lappend ::xmlutils::logChanges "	 path:[::xmlutils::printPathFromNode $nodeNew]\n"																
-				#				$nodeNew setAttribute dv $dvOld
-				#			}
-				#		}
-				#		incr numLogs
-				#	}
-				#	}
-				#}
-			}
-			if {$numLogs == 0} {
-				#lappend ::xmlutils::logChanges "\nThere are no diferences in this section.\n"
-			}
+		        set numLogs 0
+		        #lappend ::xmlutils::logChanges "Sección $baseNodePath:"
+		        
+		        #Para cada item, buscamos su correspondiente por partes 
+		        set baseNodeOld [$xmlOld selectNodes $baseNodePath]
+		        
+		        #Recorremos el nuevo xml también por partes
+		        set baseNodeNew [$xmlNew selectNodes $baseNodePath]
+		        set xmlNewPartial [[dom parse [$baseNodeNew asXML]] documentElement]
+		        
+		        #Para actualizar los rootData
+		        $baseNodeNew setAttribute state [$baseNodeOld getAttribute state ""]
+		        $baseNodeNew setAttribute open [$baseNodeOld getAttribute open ""]
+		        
+		        set nodes [$xmlNewPartial getElementsByTagName "Item"]
+		        set nodes [concat $nodes [$xmlNewPartial getElementsByTagName "Container"]]
+		        
+		        #Cada node aux es un nodo del documento auxiliar que utilizamos para recorrer por partes
+		        foreach nodeAux $nodes {
+		                
+		                set attributes [list state dv open]
+		                foreach att $attributes {
+		                        
+		                        #Si tiene dv actualizamos su valor
+		                        if { [$nodeAux hasAttribute $att] } {
+		                                
+		                                #Buscamos el valor en el antiguo spd para actualizarlo
+		                                set id [$nodeAux getAttribute id ""]
+		                                set foundNode [$baseNodeOld find id $id]
+		                                if { $foundNode != "" &&  [$foundNode nodeName] == [$nodeAux nodeName]  } {
+		                                
+		                                        #Hemos encontrado el mismo nodo en el modelo del problemtype
+		                                
+		                                        set dvOld [$foundNode getAttribute $att ""]
+		                                        set dvNew [$nodeAux getAttribute $att ""]
+		                                
+		                                        if { $dvOld != $dvNew } {
+		                                        
+		                                                #Estamos en condiciones de acutalizar el valor DV de xmlOld en xmlNew
+		                                                set xPath [$nodeAux toXPath]
+		                                                set xPath [string map [list "/RootData" $baseNodePath] $xPath]
+		                                                set nodeNew [$xmlNew selectNodes $xPath]
+		                                        
+		                                                if {$nodeNew != "" } {
+		                                                        #msg "  .. . .  newid: [$nodeNew getAttribute id 0]"
+		                                                        #Actualizamos el valor de DV validando si es existen iValores
+		                                                        set ivalues [split [$nodeNew getAttribute ivalues ""] ","]
+		                                                
+		                                                        if { [llength $ivalues] } {
+		                                                        
+		                                                                if { ($dvOld in $ivalues) } {
+		                                                                $nodeNew setAttribute $att $dvOld
+		                                                                lappend ::xmlutils::logChanges "UPDATE $att (COMBO): $id  default $att: $dvNew  new $att: $dvOld"
+		                                                                lappend ::xmlutils::logChanges "          path:[::xmlutils::printPathFromNode $nodeNew]\n"
+		                                                                }
+		                                                        } else {
+		                                                        
+		                                                                lappend ::xmlutils::logChanges "UPDATE $att: $id  default $att: $dvNew  new $att: $dvOld"
+		                                                                lappend ::xmlutils::logChanges "         path:[::xmlutils::printPathFromNode $nodeNew]\n"                                                                                                                                
+		                                                                $nodeNew setAttribute $att $dvOld
+		                                                        }
+		                                                }
+		                                                incr numLogs
+		                                        }
+		                                }
+		                        }
+		                }
+		                ##Si tiene dv actualizamos su valor
+		                #if { [$nodeAux hasAttribute dv] } {
+		                #        
+		                #        #Buscamos el valor en el antiguo spd para actualizarlo
+		                #        set id [$nodeAux getAttribute id ""]
+		                #        set foundNode [$baseNodeOld find id $id]
+		                #        if { $foundNode != "" && [$foundNode nodeName] == [$nodeAux nodeName] } {
+		                #        
+		                #        #Hemos encontrado el mismo nodo en el modelo del problemtye
+		                #        
+		                #        set dvOld [$foundNode getAttribute dv ""]
+		                #        set dvNew [$nodeAux getAttribute dv ""]
+		                #        
+		                #        if { $dvOld != $dvNew } {
+		                #                
+		                #                #Estamos en condiciones de acutalizar el valor DV de xmlOld en xmlNew
+		                #                set xPath [$nodeAux toXPath]
+		                #                set xPath [string map [list "/RootData" $baseNodePath] $xPath]
+		                #                set nodeNew [$xmlNew selectNodes $xPath]
+		                #                
+		                #                if {$nodeNew != "" } {
+		                #                        #msg "  .. . .  newid: [$nodeNew getAttribute id 0]"
+		                #                        #Actualizamos el valor de DV validando si es existen iValores
+		                #                        set ivalues [split [$nodeNew getAttribute ivalues ""] ","]
+		                #                        
+		                #                        if { [llength $ivalues] } {
+		                #                                
+		                #                                if { ($dvOld in $ivalues) } {
+		                #                                
+		                #                                $nodeNew setAttribute dv $dvOld
+		                #                                lappend ::xmlutils::logChanges "UPDATE DV (NOT IN IVALUES): $id  defaultDV: $dvOld newDV: $dvNew"
+		                #                                lappend ::xmlutils::logChanges "          path:[::xmlutils::printPathFromNode $nodeNew]\n"
+		                #                                }
+		                #                        } else {
+		                #                                
+		                #                                lappend ::xmlutils::logChanges "UPDATE DV: $id  defaultDV: $dvOld newDV: $dvNew"
+		                #                                lappend ::xmlutils::logChanges "         path:[::xmlutils::printPathFromNode $nodeNew]\n"                                                                                                                                
+		                #                                $nodeNew setAttribute dv $dvOld
+		                #                        }
+		                #                }
+		                #                incr numLogs
+		                #        }
+		                #        }
+		                #}
+		        }
+		        if {$numLogs == 0} {
+		                #lappend ::xmlutils::logChanges "\nThere are no diferences in this section.\n"
+		        }
 		}
 		
 		#------------------------------------------------------------------------
@@ -443,7 +449,7 @@ proc ::xmlutils::checkSpdVersion { filename } {
 		set newNodeGroups [$xmlNew selectNodes "/Kratos_Data/Groups"]
 		
 		foreach node $nodeGroups {
-			$newNodeGroups appendChild $node
+		        $newNodeGroups appendChild $node
 		}
 		
 		
@@ -453,63 +459,65 @@ proc ::xmlutils::checkSpdVersion { filename } {
 		lappend baseNodePaths "/Kratos_Data/RootData\[@id='StructuralAnalysis'\]"
 		lappend baseNodePaths "/Kratos_Data/RootData\[@id='Fluid'\]"
 		foreach baseNodePath $baseNodePaths {
-			
-			lappend ::xmlutils::logChanges "\nGroups and properties ($baseNodePath):\n"
-			set baseNodeOld [$xmlOld selectNodes $baseNodePath]
-			
-			#Recorremos el nuevo xml también por partes
-			set baseNodeNew [$xmlNew selectNodes $baseNodePath]
-			set xmlNewPartial [[dom parse [$baseNodeNew asXML]] documentElement]
+		        
+		        lappend ::xmlutils::logChanges "\nGroups and properties ($baseNodePath):\n"
+		        set baseNodeOld [$xmlOld selectNodes $baseNodePath]
+		        
+		        #Recorremos el nuevo xml también por partes
+		        set baseNodeNew [$xmlNew selectNodes $baseNodePath]
+		        set xmlNewPartial [[dom parse [$baseNodeNew asXML]] documentElement]
 
-			#Para cada container de clase groups, comprobamos si tiene grupos
-			set nodes [$xmlNewPartial getElementsByTagName "Container"]
-			#Cada node aux es un nodo del documento auxiliar que utilizamos para recorrer por partes
-			foreach nodeAux $nodes {
-			set class [$nodeAux getAttribute class ""]
-			if { $class == "Groups" || $class == "Properties"} {	
-				
-				set idTemplate [$nodeAux getAttribute idTemplate ""]
-				set xpath [::xmlutils::getPathFromNode $nodeAux]
-				set nodes [$xmlOld selectNodes "${xpath}/Container"]
-				foreach groupNode $nodes {
-				#msg "copy $xmlNew $groupNode $xpath $idTemplate"
-				::xmlutils::copyGroupNode $xmlNew $groupNode $xpath $idTemplate [$nodeAux getAttribute class ""]
-				
-				}
-			}
-			}
+		        #Para cada container de clase groups, comprobamos si tiene grupos
+		        set nodes [$xmlNewPartial getElementsByTagName "Container"]
+		        #Cada node aux es un nodo del documento auxiliar que utilizamos para recorrer por partes
+		        foreach nodeAux $nodes {
+		        set class [$nodeAux getAttribute class ""]
+		        if { $class == "Groups" || $class == "Properties"} {        
+		                
+		                set idTemplate [$nodeAux getAttribute idTemplate ""]
+		                set xpath [::xmlutils::getPathFromNode $nodeAux]
+		                set nodes [$xmlOld selectNodes "${xpath}/Container"]
+		                foreach groupNode $nodes {
+		                #msg "copy $xmlNew $groupNode $xpath $idTemplate"
+		                ::xmlutils::copyGroupNode $xmlNew $groupNode $xpath $idTemplate $nodeAux [$nodeAux getAttribute class ""] 
+		                
+		                }
+		        }
+		        }
 		}
 		
 		set KPriv(xml) $xmlNew
+		#msg "xmlNew Final"
+		#msg [$KPriv(xml) asXML]
 		set KPriv(xmlDoc) $xmlDocNew
 		set KPriv(encrXml) $encrXmlDef
 		
 		#Crea un archivo de log con los cambios realizados
 		if { [llength $logChanges] } {
-			
-			set ptypeName "updateSPD.log"
-			catch {
-			set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
-			
-			#set ptypeName $KPriv(problemTypeName)
-			}
-			
-			#msg "llength logChanges: [llength $logChanges]\nptypename: $ptypeName"
-			
-			set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
-			set outfd [open $fullname w+]
-			
-			puts $outfd "#----------------------------------------------------------------"
-			puts $outfd "# Changes in configuration file '.spd'"
-			puts $outfd "# converting $pTypeVersion to $defaultVersion version."
-			puts $outfd "#----------------------------------------------------------------"
-			puts $outfd ""
-			foreach line $logChanges {
-				#La escribe en el fichero de salida
-				puts $outfd $line
-			}
-			
-			close $outfd
+		        
+		        set ptypeName "updateSPD.log"
+		        catch {
+		        set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
+		        
+		        #set ptypeName $KPriv(problemTypeName)
+		        }
+		        
+		        #msg "llength logChanges: [llength $logChanges]\nptypename: $ptypeName"
+		        
+		        set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
+		        set outfd [open $fullname w+]
+		        
+		        puts $outfd "#----------------------------------------------------------------"
+		        puts $outfd "# Changes in configuration file '.spd'"
+		        puts $outfd "# converting $pTypeVersion to $defaultVersion version."
+		        puts $outfd "#----------------------------------------------------------------"
+		        puts $outfd ""
+		        foreach line $logChanges {
+		                #La escribe en el fichero de salida
+		                puts $outfd $line
+		        }
+		        
+		        close $outfd
 		}
 		
 		#Esto ya no haría falta ya que se heredará la versión del _default.spd
@@ -520,7 +528,8 @@ proc ::xmlutils::checkSpdVersion { filename } {
 	
 }
 
-proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate {class "Groups"}} {
+proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate oldXmlNode {class "Groups"}} {
+	
 	
 	set idGroup [$groupNode getAttribute id ""]
 	
@@ -535,7 +544,9 @@ proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate {class "
 	
 	#msg [$groupNode asXML]
 	set newNode [$xml selectNodes "${nodeClassPath}/Container\[@id='$idGroup'\]"]
+	#msg "New Nodes"
 	foreach node [$newNode childNodes] {
+		#msg [$node asXML]
 		$node delete
 	}
 	
@@ -543,55 +554,77 @@ proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate {class "
 		$newNode appendXML [$node asXML]
 	}
 	
-	set dvNodes {}
+	#msg [$newNode asXML]
+
 	foreach node [$newNode childNodes] {
-		if {[$node hasAttribute dv]} {
-			lappend dvNodes $node
-		}
+	    ::xmlutils::GetOldDvFromNewNode $node
 		foreach node2 [$node childNodes] {
-			if {[$node2 hasAttribute dv]} {
-				lappend dvNodes $node2
-			}
-			foreach node3 [$node2 childNodes] {
-				if {[$node3 hasAttribute dv]} {
-					lappend dvNodes $node3
-				}
-			}
+		        ::xmlutils::GetOldDvFromNewNode $node2
+		        foreach node3 [$node2 childNodes] {
+		                ::xmlutils::GetOldDvFromNewNode $node3
+		        }
+		}
+	}
+	#msg [$newNode asXML]
+	lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"
+}
+
+
+ proc ::xmlutils::GetOldDvFromNewNode { node } {        
+	global KPriv
+	
+	if {[$node hasAttribute dv]} {
+		
+		set path [::xmlutils::myPathFromNode $node]
+		
+		#set path "/Kratos_Data/RootData\[@id='StructuralAnalysis'\]/Container\[@id='Properties'\]/Container\[@id='Property1'\]/Container\[@id='MainProperties'\]/Item\[@id='Material'\]"
+		#msg "Path $path"
+		set oldNodeDv [$KPriv(xml) selectNodes $path]
+		
+		#msg "Default node Old= $oldNodeDv "
+		if { $oldNodeDv != "" } {
+		        set dvOld [$oldNodeDv getAttribute dv ""]
+		        $node setAttribute dv $dvOld
+		        #msg "DVOLD $dvOld !!!!!!!!!!!!!!!!!!!!"
+		}
+	}
+}
+proc ::xmlutils::myPathFromNode { finalNode {includeFinal 1}} {
+	
+	set path ""
+	
+	set nodes [$finalNode ancestor all]
+	#msg "$finalNode $nodes"
+	set i 0
+	foreach node $nodes {
+		
+		set id [$node getAttribute id ""]
+		if { $id != "" } {
+		        set path "c.$id//$path"
 		}
 	}
 	
-	lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"
+	if {$path != ""} {
+		set path [string range $path 2 end]
+		if { $includeFinal } {
+		        set path "${path}i.[$finalNode getAttribute id 0]"
+		} else {
+		        set path [string range $path 0 end-2]
+		}
+		
+		return [::xmlutils::setXPath $path]
+	}
+	return ""
 	
-	
-	#Código antiguo para guardar en el log de cambios que se había colado
-	#global KPriv
-	#if { [llength $dvNodes] && [info exists KPriv(problemTypeDir)] } {
-	#	
-	#	set fullname [file native [file join $KPriv(problemTypeDir) updateSPD.log]]
-	#	set outfd [open $fullname w+]
-	#	    
-	#	foreach node $dvNodes {
-	#	    
-	#	    puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
-	#	    puts $outfd ""
-	#	    foreach line $logChanges {
-	#	    	#La escribe en el fichero de salida
-	#	    	puts $outfd $line
-	#	    }
-	#	    
-	#	    close $outfd
-	#	 }
-	#}
-	#lappend ::xmlutils::logChanges "[$targetNode getAttribute id 0] --> $idGroup"  
 }
-
+		
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#														 ---- UPDATE SPD -----
+#                                                                                                                 ---- UPDATE SPD -----
 # Compara la versión del problemTypeName.spd abierto con la versión de kratos_default.spd
 # Y si son distintas añade al spd los nodos y atributos nuevos del default
 #
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-proc ::xmlutils::checkSpdVersion_OLD { filename } {
+proc ::xmlutils::checkSpdVersion_ { filename } {
 	
 	global KPriv
 	
@@ -625,27 +658,27 @@ proc ::xmlutils::checkSpdVersion_OLD { filename } {
 		set nodeNames {RootData Container Item Template}
 		
 		foreach nodeName $nodeNames {
-			
-			set nodes [$xml getElementsByTagName "$nodeName"]
-			foreach node $nodes {
-			
-			#Bloqueamos los posibles errores intentando eliminar nodos ya eliminados
-			catch {
-				set class [$node getAttribute class ""]
-				if { $nodeName != "Container" || ($class != "Group" && $class != "Property") } {
-				
-				set id [$node getAttribute id ""]
-				set foundNode [$baseNode find id $id]
-				if { $foundNode == "" } {
-					
-					lappend ::xmlutils::logChanges "DELETE NODE [$node nodeName] Id: [$node getAttribute id 0]"
-					
-					#Si el nodo ya no está lo borramos
-					$node delete
-				}
-				}
-			}
-			}		
+		        
+		        set nodes [$xml getElementsByTagName "$nodeName"]
+		        foreach node $nodes {
+		        
+		        #Bloqueamos los posibles errores intentando eliminar nodos ya eliminados
+		        catch {
+		                set class [$node getAttribute class ""]
+		                if { $nodeName != "Container" || ($class != "Group" && $class != "Property") } {
+		                
+		                set id [$node getAttribute id ""]
+		                set foundNode [$baseNode find id $id]
+		                if { $foundNode == "" } {
+		                        
+		                        lappend ::xmlutils::logChanges "DELETE NODE [$node nodeName] Id: [$node getAttribute id 0]"
+		                        
+		                        #Si el nodo ya no está lo borramos
+		                        $node delete
+		                }
+		                }
+		        }
+		        }                
 		}
 		
 		#----------------------------------------------------------------
@@ -659,63 +692,63 @@ proc ::xmlutils::checkSpdVersion_OLD { filename } {
 		set baseNodePaths [list $generalAppliDataPath $structPath $fluidPath $templatePath ]
 		
 		foreach baseNodePath $baseNodePaths {
-			
-			#Buscaremos los nodos de default solo donde sea necesario
-			set baseNode [$xml selectNodes $baseNodePath]
-			
-			#Recorremos el xmlDefault por partes
-			set defXml [$xmlDef selectNodes $baseNodePath]
-			set xmlDefPartial [[dom parse [$defXml asXML]] documentElement]
-			
-			#Tipos de nodos a actualizar
-			set nodeNames { Template RootData Container Item}
-			
-			foreach nodeName $nodeNames {
-			
-			set nodes [$xmlDefPartial getElementsByTagName "$nodeName"]
-			
-			foreach node $nodes {
-				
-				set id [$node getAttribute id ""]
-				
-				set foundNode [$baseNode find id $id]
-				
-				if { $foundNode != "" } {
-				
-				if { [$foundNode nodeName] == [$node nodeName] } {
-					
-					::xmlutils::updateAtributesRecursive $baseNode $foundNode $node $id
-				}
-				
-				} else {
-				
-				#Copia el node de Kratos_default q no aparece en el problemtype
-				::xmlutils::copyNode $node $baseNode
-				}
-			}
-			}
-			
+		        
+		        #Buscaremos los nodos de default solo donde sea necesario
+		        set baseNode [$xml selectNodes $baseNodePath]
+		        
+		        #Recorremos el xmlDefault por partes
+		        set defXml [$xmlDef selectNodes $baseNodePath]
+		        set xmlDefPartial [[dom parse [$defXml asXML]] documentElement]
+		        
+		        #Tipos de nodos a actualizar
+		        set nodeNames { Template RootData Container Item}
+		        
+		        foreach nodeName $nodeNames {
+		        
+		        set nodes [$xmlDefPartial getElementsByTagName "$nodeName"]
+		        
+		        foreach node $nodes {
+		                
+		                set id [$node getAttribute id ""]
+		                
+		                set foundNode [$baseNode find id $id]
+		                
+		                if { $foundNode != "" } {
+		                
+		                if { [$foundNode nodeName] == [$node nodeName] } {
+		                        
+		                        ::xmlutils::updateAtributesRecursive $baseNode $foundNode $node $id
+		                }
+		                
+		                } else {
+		                
+		                #Copia el node de Kratos_default q no aparece en el problemtype
+		                ::xmlutils::copyNode $node $baseNode
+		                }
+		        }
+		        }
+		        
 		}
 		
 		##Crea un archivo de log con los cambios realizados
 		#if { [llength $logChanges] } {
-		#	
-		#	set ptypeName "updateSPD.log"
-		#	catch {
-		#	set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
-		#	}
-		#	
-		#	set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
-		#	set outfd [open $fullname w+]
-		#	
-		#	puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
-		#	puts $outfd ""
-		#	foreach line $logChanges {
-		#		#La escribe en el fichero de salida
-		#		puts $outfd $line
-		#	}
-		#	
-		#	close $outfd
+		#        
+		#        set ptypeName "updateSPD.log"
+		#        catch {
+		#        set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
+		#        }
+		#        
+		#        set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
+		#        set outfd [open $fullname w+]
+		#        
+		#        puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
+		#        puts $outfd ""
+		#        foreach line $logChanges {
+		#                #La escribe en el fichero de salida
+		#                puts $outfd $line
+		#        }
+		#        
+		#        close $outfd
 		#}
 		#
 		#
@@ -738,10 +771,10 @@ proc ::xmlutils::updateAtributesRecursive { baseNode targetNode sourceNode id } 
 		
 		set nodes [$baseNode descendant all]
 		foreach node $nodes {
-			set fNode [$node find id $id]
-			if { $fNode != "" } {
-			::xmlutils::updateAtributesRecursive $node $fNode $sourceNode $id
-			}
+		        set fNode [$node find id $id]
+		        if { $fNode != "" } {
+		        ::xmlutils::updateAtributesRecursive $node $fNode $sourceNode $id
+		        }
 		}
 		return
 	}
@@ -752,26 +785,26 @@ proc ::xmlutils::updateAtributesRecursive { baseNode targetNode sourceNode id } 
 		
 		set atributes [$sourceNode attributes]
 		foreach atr $atributes {
-			
-			if { ![$targetNode hasAttribute $atr] } {
-			
-			set value [$sourceNode @$atr]				
-			$targetNode setAttribute $atr $value
-			
-			lappend logChanges "INSERT ATTRIBUTE [$targetNode nodeName] Id: [$targetNode getAttribute id ""] -> $atr=\"$value\""
-			}
+		        
+		        if { ![$targetNode hasAttribute $atr] } {
+		        
+		        set value [$sourceNode @$atr]                                
+		        $targetNode setAttribute $atr $value
+		        
+		        lappend logChanges "INSERT ATTRIBUTE [$targetNode nodeName] Id: [$targetNode getAttribute id ""] -> $atr=\"$value\""
+		        }
 		}
 		
 		set atributes [$targetNode attributes]
 		foreach atr $atributes {
-			
-			if { ![$sourceNode hasAttribute $atr] } {
-			
-			#Si el nodo original ya no lo tiene, es que se ha borrado
-			$targetNode removeAttribute $atr
-			
-			lappend ::xmlutils::logChanges "DELETE ATTRIBUTE [$targetNode nodeName] Id: [$targetNode getAttribute id ""] -> atr:$atr"
-			}
+		        
+		        if { ![$sourceNode hasAttribute $atr] } {
+		        
+		        #Si el nodo original ya no lo tiene, es que se ha borrado
+		        $targetNode removeAttribute $atr
+		        
+		        lappend ::xmlutils::logChanges "DELETE ATTRIBUTE [$targetNode nodeName] Id: [$targetNode getAttribute id ""] -> atr:$atr"
+		        }
 		}
 	}
 }
@@ -794,16 +827,16 @@ proc ::xmlutils::getPathFromNode { finalNode {includeFinal 1}} {
 		
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-			set path "c.$id//$path"
+		        set path "c.$id//$path"
 		}
 	}
 	
 	if {$path != ""} {
 		set path [string range $path 2 end]
 		if { $includeFinal } {
-			set path "${path}c.[$finalNode getAttribute id 0]"
+		        set path "${path}c.[$finalNode getAttribute id 0]"
 		} else {
-			set path [string range $path 0 end-2]
+		        set path [string range $path 0 end-2]
 		}
 		
 		return [::xmlutils::setXPath $path]
@@ -830,16 +863,16 @@ proc ::xmlutils::printPathFromNode { finalNode {includeFinal 1}} {
 		
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-			set path "$id/$path"
+		        set path "$id/$path"
 		}
 	}
 	
 	if {$path != ""} {
 		
 		if { $includeFinal } {
-			set path "${path}[$finalNode getAttribute id 0]"
+		        set path "${path}[$finalNode getAttribute id 0]"
 		} else {
-			set path [string range $path 0 end-1]
+		        set path [string range $path 0 end-1]
 		}
 		
 		return $path
@@ -888,36 +921,36 @@ proc ::xmlutils::copyNode { sourceNode baseNode } {
 		
 		#Si no es vacío ya sabemos donde meter "sourceNode"
 		if { $foundParentNode != "" } {
-			
-			set nodoSiguiente [$sourceNode nextSibling]
-			
-			if {$nodoSiguiente != "" } {
-			
-			set idSiguiente [$nodoSiguiente getAttribute id ""]
-			
-			#Buscamos si también está este nodo donde lo vamos a insertar,
-			# y si no está, lo pondremos el último
-			set foundBro [$foundParentNode find id $idSiguiente]
-			
-			set insertOK 0
-			catch {
-				#Intentamos insertarlo en su sitio
-				$foundParentNode insertBefore $sourceNode $foundBro
-				set insertOK 1
-			}
-			#Si ha fallado insertándolo en su lugar, lo ponemos el último
-			if { !$insertOK } {
-				$foundParentNode appendChild $sourceNode
-			}
-			
-			lappend ::xmlutils::logChanges "INSERT NODE [$sourceNode nodeName] Id: [$sourceNode getAttribute id 0]"
-			
-			} else {
-			#Si no tiene nodo siguiente lo ponemos el último
-			$foundParentNode appendChild $sourceNode
-			lappend ::xmlutils::logChanges "INSERT NODE [$sourceNode nodeName] Id: [$sourceNode getAttribute id 0]"
-			
-			}
+		        
+		        set nodoSiguiente [$sourceNode nextSibling]
+		        
+		        if {$nodoSiguiente != "" } {
+		        
+		        set idSiguiente [$nodoSiguiente getAttribute id ""]
+		        
+		        #Buscamos si también está este nodo donde lo vamos a insertar,
+		        # y si no está, lo pondremos el último
+		        set foundBro [$foundParentNode find id $idSiguiente]
+		        
+		        set insertOK 0
+		        catch {
+		                #Intentamos insertarlo en su sitio
+		                $foundParentNode insertBefore $sourceNode $foundBro
+		                set insertOK 1
+		        }
+		        #Si ha fallado insertándolo en su lugar, lo ponemos el último
+		        if { !$insertOK } {
+		                $foundParentNode appendChild $sourceNode
+		        }
+		        
+		        lappend ::xmlutils::logChanges "INSERT NODE [$sourceNode nodeName] Id: [$sourceNode getAttribute id 0]"
+		        
+		        } else {
+		        #Si no tiene nodo siguiente lo ponemos el último
+		        $foundParentNode appendChild $sourceNode
+		        lappend ::xmlutils::logChanges "INSERT NODE [$sourceNode nodeName] Id: [$sourceNode getAttribute id 0]"
+		        
+		        }
 		}
 	}
 	return ""
@@ -927,7 +960,7 @@ proc ::xmlutils::copyNode { sourceNode baseNode } {
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #              #   #    #     #     #
 #               # #     # # # #     #
-#                #      #  #  #     #
+#                #       #  #  #     #
 #               # #     #     #     #
 #              #   #    #     #     ######
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -955,41 +988,41 @@ proc ::xmlutils::setXPath { path { type "props"} } {
 	if { $type != "props"} {
 		set i 0
 		foreach itemId $splitted {
-			if { $i == 0 } {				
-			#set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"												  
-			set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='$itemId'\]"												  
-			
-			} else {
-			if { [string index $itemId 0] == "p" } {
-				set xpath "$xpath/Property\[@id='[string range $itemId 2 end]'\]"
-			}
-			if { [string index $itemId 0] == "m" } {
-				set xpath "$xpath/Material\[@id='[string range $itemId 2 end]'\]"
-			}
-			if { [string index $itemId 0] == "c" } {
-				set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
-			}
-			}		
-			incr i
+		        if { $i == 0 } {                                
+		        #set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"                                                                                                  
+		        set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='$itemId'\]"                                                                                                  
+		        
+		        } else {
+		        if { [string index $itemId 0] == "p" } {
+		                set xpath "$xpath/Property\[@id='[string range $itemId 2 end]'\]"
+		        }
+		        if { [string index $itemId 0] == "m" } {
+		                set xpath "$xpath/Material\[@id='[string range $itemId 2 end]'\]"
+		        }
+		        if { [string index $itemId 0] == "c" } {
+		                set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
+		        }
+		        }                
+		        incr i
 		}
 		return $xpath
 	} else {
 		set i 0
 		#msg "s:$splitted"
 		foreach itemId $splitted {
-			
-			if { $i == 0 } {				
-			#El primer elemento será siempre del nivel 'RootData'
-			set xpath "/Kratos_Data/RootData\[@id='$itemId'\]"
-			} else {
-			
-			if { [string index $itemId 0] == "c" } {
-				set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
-			} else {
-				set xpath "$xpath/Item\[@id='[string range $itemId 2 end]'\]"
-			}
-			}
-			incr i
+		        
+		        if { $i == 0 } {                                
+		        #El primer elemento será siempre del nivel 'RootData'
+		        set xpath "/Kratos_Data/RootData\[@id='$itemId'\]"
+		        } else {
+		        
+		                if { [string index $itemId 0] == "c" } {
+		                set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
+		                } else {
+		                set xpath "$xpath/Item\[@id='[string range $itemId 2 end]'\]"
+		                }
+		        }
+		        incr i
 		}
 	}
 	return $xpath
@@ -1009,33 +1042,33 @@ proc ::xmlutils::setXml { path property {command "read"} {value ""} } {
 		set value [$KPriv(xml) set "$xpath/@$property" ]
 		
 		if { $property == "dvText" } {
-			
-			#En vez de devolver el valor de dv, devuelve su equivalente traducible
-			set value [$KPriv(xml) set "$xpath/@dv" ]
-			
-			if { [lindex $value 0] != "" } {
-			
-			set values [::xmlutils::getXMLValues $path]
-			set ivalues [::xmlutils::getXMLValues $path "" "iValues"]
-			
-			if { [llength $ivalues] > 0 } { 
-				
-				set index [::xmlutils::getSelected $value $ivalues]
-				set value [lindex $values $index]
-			}
-			}
+		        
+		        #En vez de devolver el valor de dv, devuelve su equivalente traducible
+		        set value [$KPriv(xml) set "$xpath/@dv" ]
+		        
+		        if { [lindex $value 0] != "" } {
+		        
+		        set values [::xmlutils::getXMLValues $path]
+		        set ivalues [::xmlutils::getXMLValues $path "" "iValues"]
+		        
+		        if { [llength $ivalues] > 0 } { 
+		                
+		                set index [::xmlutils::getSelected $value $ivalues]
+		                set value [lindex $values $index]
+		        }
+		        }
 		}
 		
 		#Cuando hay espacios el xml devuelve una lista y si la imprimes tal cual aparecen corchetes
 		if { [llength $value] == 1 } {
-			set value [lindex $value 0]
+		        set value [lindex $value 0]
 		}
 		return $value
 		
 	} else {
 		
 		$KPriv(xml) set "$xpath/@$property" "$value"
-		return "1"						
+		return "1"                                                
 	}
 }
 
@@ -1102,13 +1135,13 @@ proc ::xmlutils::setXmlContainerPairs { path {id ""} {atributo "dv"} {tagname "I
 
 	set node [$xml selectNodes "${xpath}"]
 	
-	#		set items [$node descendant all "Item"]
+	#                set items [$node descendant all "Item"]
 	set items [$node descendant all $tagname]
 	
 	foreach node $items {
 		
 		if { $id != "" && $id == [$node getAttribute id ""] } {
-			return  [$node getAttribute $atributo ""]
+		        return  [$node getAttribute $atributo ""]
 		}
 		lappend listPares [list [$node getAttribute id ""] [$node getAttribute $atributo ""]]
 	}
@@ -1133,14 +1166,14 @@ proc ::xmlutils::GetMatXmlContainerId {path} {
 
 proc ::xmlutils::unsetXml { path { type "props" } } {
 	
-	global KPriv				
+	global KPriv                                
 	if { $type == "props" } {
 		set xpath "[::xmlutils::setXPath $path]"
 		$KPriv(xml) unset $xpath
 		
 	} else {
 		set xpath "[::xmlutils::setXPath $path $type]"
-		$KPriv(xmlMat) unset $xpath		
+		$KPriv(xmlMat) unset $xpath                
 	}
 }
 
@@ -1167,11 +1200,11 @@ proc ::xmlutils::insertXml { path nodeName properties {xml ""} } {
 
 #
 #*************************************************************
-#*          #####	 #####  #	  #  ####   #####
+#*          #####         #####  #          #  ####   #####
 #*          #      #   #  # # # #  #   #  #   #
 #*          #      #   #  #  #  #  ####   #   #
 #*          #      #   #  #     #  #   #  #   #
-#*          #####	 #####  #     #  ####   #####
+#*          #####         #####  #     #  ####   #####
 #*************************************************************
 #
 # Accede al XML al nodo con path 'fullname' y coge el 
@@ -1202,29 +1235,29 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 	if { $specialList == "" } {
 		
 		if { $idTemplate == "" } {
-			set comboList [split [::xmlutils::setXml $fullname $atrValues] ","]
+		        set comboList [split [::xmlutils::setXml $fullname $atrValues] ","]
 		} else {
-			set comboList [split [::KMProps::getPropTemplate $idTemplate $atrValues "$fullname"] ","]
+		        set comboList [split [::KMProps::getPropTemplate $idTemplate $atrValues "$fullname"] ","]
 		}
 		
 	} elseif { $specialList == "Materials" } {
 		
 		if {$idTemplateFull == "" } {
-			set application [::KMProps::getApplication $fullname]
+		        set application [::KMProps::getApplication $fullname]
 		} else {
-			set application [::KMProps::getApplication $idTemplateFull]
+		        set application [::KMProps::getApplication $idTemplateFull]
 		}
 		
-		set comboList [::KMat::getMaterials $application]				
+		set comboList [::KMat::getMaterials $application]                                
 		
 	} elseif { $specialList == "Properties" } {
 		
 		if {$idTemplateFull != "" } {
-			
-			set comboList [::KMProps::getProps $idTemplateFull]
+		        
+		        set comboList [::KMProps::getProps $idTemplateFull]
 		} else {
-			
-			set comboList [::KMProps::getProps $fullname]
+		        
+		        set comboList [::KMProps::getProps $fullname]
 		}
 		
 	} elseif { $specialList == "ElemType" } {
@@ -1234,40 +1267,40 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 		set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
 		
 		if { $node != "" } {
-			set comboList [split [$node getAttribute $atrValues ""] ","]
-			$node setAttribute dv "$specialFilter"
+		        set comboList [split [$node getAttribute $atrValues ""] ","]
+		        $node setAttribute dv "$specialFilter"
 		}
 		
 	} elseif { $specialList == "MatModel" } {
 		
 		set dvElemFilter ""
 		if { $specialFilter == "" } {
-			#Caso especial para los combos dinámicos:
-			#Mira a ver si el elemento anterior era ElemType para utilizar su valor
-			set elemtypeFullname [string map {"MatModel" "ElemType"} $fullname]
-			set dvElemFilter [::xmlutils::setXml $elemtypeFullname dv]
+		        #Caso especial para los combos dinámicos:
+		        #Mira a ver si el elemento anterior era ElemType para utilizar su valor
+		        set elemtypeFullname [string map {"MatModel" "ElemType"} $fullname]
+		        set dvElemFilter [::xmlutils::setXml $elemtypeFullname dv]
 		}
 		#Caso estándard: accede al valor dv de element type para coger el matModel filtrando por este elementType
 		if { $dvElemFilter == "" } {
-			#Si el valor no existe, miramos el que hay en el xml KKWORDS
-			set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
-			if { $node != "" } {
-			set dvElemFilter [$node getAttribute dv ""]
-			}
+		        #Si el valor no existe, miramos el que hay en el xml KKWORDS
+		        set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
+		        if { $node != "" } {
+		        set dvElemFilter [$node getAttribute dv ""]
+		        }
 		}
 		#Cogemos la lista correspondiente
 		set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='$dvElemFilter'\]"]
 		if { $node != "" } {
-			set comboList [split [$node getAttribute $atrValues ""] ","]
+		        set comboList [split [$node getAttribute $atrValues ""] ","]
 		}
 	}
 	#Si sacamos los ids no los traducimos
 	if { $iValues == "" } {
 		set resultList {}
 		foreach val $comboList {
-			set traduction "[= $val ]"
-			#set traduction "$val"
-			lappend resultList $traduction
+		        set traduction "[= $val ]"
+		        #set traduction "$val"
+		        lappend resultList $traduction
 		}
 		return $resultList
 	} else {
@@ -1292,14 +1325,14 @@ proc ::xmlutils::getComboDv { fcmb fullname {value "id"} {idTemplate ""}} {
 	if { $index < [llength $icomboList] } {
 		
 		if { $value == "id" } {
-			return [lindex $icomboList $index]
+		        return [lindex $icomboList $index]
 		} else {
-			return [lindex $comboList $index]
+		        return [lindex $comboList $index]
 		}
 	} else {
 		#El valor
 		if {[winfo exists $fcmb] } {
-			return [$fcmb get]
+		        return [$fcmb get]
 		}
 		msg "Fuera de índice $index (length: [llength $comboList])"
 	}
@@ -1317,7 +1350,7 @@ proc ::xmlutils::getSelected { comboItem comboList} {
 	set i 0
 	foreach iElem $comboList {
 		if {$iElem == $comboItem} {
-			return $i
+		        return $i
 		}
 		set i [expr $i + 1]
 	}
@@ -1359,11 +1392,11 @@ proc ::xmlutils::AsXml {content {action toXml}} {
 # The basic idea is that values from an xml document can be read and modified using XPath queries. 
 # This really just amounts to a simpler interface to the domNode object than what tDOM provides.
 # Creation command:
-#	* xmlstruct::create xml - Returns an extended domNode object command
+#        * xmlstruct::create xml - Returns an extended domNode object command
 # The following methods are supported in addition to those the tDOM domNode object already provides:
-#	* $node set xpathQuery ?value? - retrieves or modifies portions of the xml document that match the given xpathQuery
-#	* $node unset xpathQuery - deletes the portions of the xml document that match the given xpathQuery
-#	* $node lappend xpathQuery value ?value? ?value? ... - appends the given values to the node(s) that match the given xpathQuery
+#        * $node set xpathQuery ?value? - retrieves or modifies portions of the xml document that match the given xpathQuery
+#        * $node unset xpathQuery - deletes the portions of the xml document that match the given xpathQuery
+#        * $node lappend xpathQuery value ?value? ?value? ... - appends the given values to the node(s) that match the given xpathQuery
 
 # By placing these procs in the ::dom::domNode namespace, they automatically become add-on domNode methods
 proc ::dom::domNode::unset {node query} {
@@ -1408,24 +1441,24 @@ proc ::xmlstruct::getvalue {node query} {
 	::set resultNodes [$node selectNodes $query type]
 	switch $type {
 		attrnodes {
-			::set retVal {}
-			foreach attrVal $resultNodes {
-			lappend retVal [lindex $attrVal 1]
-			}
-			return $retVal
+		        ::set retVal {}
+		        foreach attrVal $resultNodes {
+		                lappend retVal [lindex $attrVal 1]
+		        }
+		        return $retVal
 		}
 		nodes {
-			::set retVal {}
-			foreach node $resultNodes {
-			::set xml ""
-			foreach child [$node childNodes] {
-				append xml [$child asXML]
-			}
-			lappend retVal $xml
-			}
-			# This is so the curly braces are not there due to the above lappend
-			if {[llength $resultNodes] == 1} {::set retVal [lindex $retVal 0]}
-			return $retVal
+		        ::set retVal {}
+		        foreach node $resultNodes {
+		        ::set xml ""
+		        foreach child [$node childNodes] {
+		                append xml [$child asXML]
+		        }
+		        lappend retVal $xml
+		        }
+		        # This is so the curly braces are not there due to the above lappend
+		        if {[llength $resultNodes] == 1} {::set retVal [lindex $retVal 0]}
+		        return $retVal
 		}
 		empty {return ""}
 		default {error "$type is an unsupported query result type"}
@@ -1457,17 +1490,17 @@ proc ::xmlstruct::setnew {node query value} {
 	set nodes [$node selectNodes [join $possibleMatch /] type]
 	switch $type {
 		nodes {
-			if {[string index $unmatched 0] == "@"} {
-			foreach node $nodes {
-				$node setAttribute [string range $unmatched 1 end] $value
-			}
-			} else {
-			foreach node $nodes {
-				$node appendXML "<$unmatched/>"
-				set newNode [$node lastChild]
-				$newNode set . $value
-			}
-			}
+		        if {[string index $unmatched 0] == "@"} {
+		        foreach node $nodes {
+		                $node setAttribute [string range $unmatched 1 end] $value
+		        }
+		        } else {
+		        foreach node $nodes {
+		                $node appendXML "<$unmatched/>"
+		                set newNode [$node lastChild]
+		                $newNode set . $value
+		        }
+		        }
 		}
 		attrnodes {error "Can't add children to attributes ($possibleMatch)"}
 		empty {error "Create elements matching $possibleMatch first"}
@@ -1565,28 +1598,28 @@ proc ::xmlutils::getAttribute { xml xPath {attribute ""} {value ""} } {
 	if { $nodes != "" } {
 		
 		if { $attribute == "" } {
-			return $nodes
+		        return $nodes
 		} else {
-			if { [llength $nodes] == 1 } {
-			
-			if { $value != "" } {
-				return [$nodes setAttribute $attribute $value]
-			} else {		
-				return [$nodes getAttribute $attribute ""]
-			}
-			} else {
-			set listAttr {}
-			foreach node $nodes {
-				if { $value != "" } {
-				$nodes setAttribute $attribute $value
-				} else {		
-				lappend listAttr [$node getAttribute $attribute ""]
-				}
-				
-			}
-			return $listAttr
-			}
-		}		
+		        if { [llength $nodes] == 1 } {
+		        
+		        if { $value != "" } {
+		                return [$nodes setAttribute $attribute $value]
+		        } else {                
+		                return [$nodes getAttribute $attribute ""]
+		        }
+		        } else {
+		        set listAttr {}
+		        foreach node $nodes {
+		                if { $value != "" } {
+		                $nodes setAttribute $attribute $value
+		                } else {                
+		                lappend listAttr [$node getAttribute $attribute ""]
+		                }
+		                
+		        }
+		        return $listAttr
+		        }
+		}                
 	} else {
 		return "No_node_in_xml"
 	}
@@ -1621,9 +1654,9 @@ proc ::xmlutils::getValues { xml xpath {iValues ""} } {
 	if { $iValues == "" } {
 		set resultList {}
 		foreach val $comboList {
-			set traduction "[= $val ]"
-			#set traduction "$val"
-			lappend resultList $traduction
+		        set traduction "[= $val ]"
+		        #set traduction "$val"
+		        lappend resultList $traduction
 		}
 		return $resultList
 	} else {
@@ -1649,9 +1682,9 @@ proc ::xmlutils::getValueText { xml xpath {attribute "dv"} } {
 		set ivalues [::xmlutils::getValues $xml $xpath "iValues"]
 		
 		if { [llength $ivalues] > 0 } { 
-			
-			set index [::xmlutils::getSelected $value $ivalues]
-			set value [lindex $values $index]
+		        
+		        set index [::xmlutils::getSelected $value $ivalues]
+		        set value [lindex $values $index]
 		}
 	}
 	#Retorna el valor traducible equivalente o simplemente "dv" si no hay ivalues
@@ -1676,9 +1709,9 @@ proc ::xmlutils::getComboValue { xml xpath fcmb {value "id"} } {
 	if { $index < [llength $icomboList] } {
 		
 		if { $value == "id" } {
-			return [lindex $icomboList $index]
+		        return [lindex $icomboList $index]
 		} else {
-			return [lindex $comboList $index]
+		        return [lindex $comboList $index]
 		}
 	} else {
 		msg "Fuera de índice $index (length: [llength $comboList])"
@@ -1707,14 +1740,14 @@ proc ::xmlutils::getComboState { xml xpath } {
 proc ::xmlutils::copyTemplate { xml xpath templatePath idTemplate nodeName attributesArray} {
 	
 	#set idTemplate "Forces"
-	#	set id [::xmlutils::getPropTemplate "$idTemplate" id]
-	#	set pid [::xmlutils::getPropTemplate "$idTemplate" pid]
-	#	set help [::xmlutils::getPropTemplate "$idTemplate" help]
-	#	set icon [::xmlutils::getPropTemplate "$idTemplate" icon]
+	#        set id [::xmlutils::getPropTemplate "$idTemplate" id]
+	#        set pid [::xmlutils::getPropTemplate "$idTemplate" pid]
+	#        set help [::xmlutils::getPropTemplate "$idTemplate" help]
+	#        set icon [::xmlutils::getPropTemplate "$idTemplate" icon]
 	
-	#	set xpath "[::xmlutils::setXPath $fullname]"
+	#        set xpath "[::xmlutils::setXPath $fullname]"
 	
-	#	set node [$xml selectNodes "${templatePath}\[@id='noPath'\]"]
+	#        set node [$xml selectNodes "${templatePath}\[@id='noPath'\]"]
 	set template [$xml set "${templatePath}\[@id='$idTemplate'\]"]
 	
 	#No se puede insertar en el xml un fragmento con mas de un nodo, por eso utilizamos 
@@ -1729,7 +1762,7 @@ proc ::xmlutils::copyTemplate { xml xpath templatePath idTemplate nodeName attri
 	$xml lappend "$xpath/$nodeName $textAttr" $template
 
 	#Eliminamos ahora las etiquetas auxiliares "<gouptemplate></gouptemplate>"
-	#	::xmlutils::replaceTemplate
+	#        ::xmlutils::replaceTemplate
 	
 	return $template
 }
@@ -1761,7 +1794,7 @@ proc ::xmlutils::getXmlChildIds { xml xpath } {
 		
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-			lappend listIds $id
+		        lappend listIds $id
 		}
 	}
 	

@@ -10,12 +10,13 @@
 #
 #    CREATED AT: 04/11/09
 #
-#    LAST MODIFICATION : create the base source code
+#    LAST MODIFICATION : Change image path to KPriv(imagesdir) en ::WinUtils::GetImage
 #
 #    VERSION : 0.1
 #
 #    HISTORY:
 #
+#     0.2- 10/04/12- J. Garate Change image path to KPriv(imagesdir) en ::WinUtils::GetImage
 #     0.1-04/11/09-G. Socorro, create the base source code
 #
 ###############################################################################
@@ -94,9 +95,10 @@ proc ::WinUtils::GetImage { imageid } {
     # Get images from the image subdirectory
     global KPriv
 	
-	if { $imageid != "" && [file exists [file native "$KPriv(dir)/images/${imageid}"]] } {
-	    #msg "imgId:$imageid [Bitmap::get $KPriv(dir)/images/${imageid}]"
-	    return [Bitmap::get [file native "$KPriv(dir)/images/${imageid}"]]
+	if { $imageid != "" && [file exists [file native "$KPriv(dir)/$KPriv(imagesdir)/${imageid}"]] } {
+	    #msg $KPriv(dir)/$KPriv(imagesdir)/${imageid}
+	    #msg "imgId:$imageid [Bitmap::get $KPriv(dir)/$KPriv(imagesdir)/${imageid}]"
+	    return [Bitmap::get [file native "$KPriv(dir)/$KPriv(imagesdir)/${imageid}"]]
     } else {
 	    #msg "NoImage(-1)"
 	    return -1

@@ -11,12 +11,15 @@
 #
 #    CREATED AT: 29/03/06
 #
-#    LAST MODIFICATION : add more options to the Kratos preprocess toolbar
-#
-#    VERSION : 0.2
-#
 #    HISTORY:
 #
+#     1.0-26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
+#     0.9-29/03/12- J.Garate, icon path change to adapt to GiD Themes
+#     0.8-29/03/12-G. Socorro, update the call to the model and material window using "::KMProps::StartBaseWindow"
+#     0.7-22/03/12-J. Gárate, Cambio a funciones públicas de los grupos de GiD
+#     0.6-12/03/12-J. Gárate, Adaptacion a los nuevos grupos de GiD
+#     0.4-01/03/12-J. Gárate, Añadidos los botones de recarga del PT, en modo Debugger
+#     0.3-27/02/12-J. Gárate, Cambio el boton de Toolbar y del menu de "Grupos" a los grupos de GiD
 #     0.2-08/06/10-G. Socorro, add more options to the Kratos preprocess toolbar
 #     0.1-01/02/10-G. Socorro, create a base source code
 #
@@ -85,11 +88,13 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
 			       --- \
 			       [= "Function editor#C#menu"] \
 			       [= "Project settings#C#menu"]]
-    
-    set MenuCommands($pos) [list [list -np- ::KEGroups::InitBaseWindow] \
+
+    #set gr [list "::KEGroups::InitBaseWindow"]
+  
+    set MenuCommands($pos) [list [list -np- Cond_Groups window open] \
 				"" \
-				[list -np- ::KMProps::InitBaseWindow] \
-				[list -np- ::KMProps::InitBaseWindow Materials] \
+				[list -np- ::KMProps::StartBaseWindow] \
+				[list -np- ::KMProps::StartBaseWindow Materials] \
 				"" \
 				[list ] \
 				[list  -np- ::kps::InitSettingWindow]]
@@ -180,18 +185,20 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
     
     catch { unset KBitmapsNames KBitmapsCommands KBitmapsHelp }
     
-    set KBitmapsNames(0) "images/groups.gif images/new_props.gif images/maticon.gif --- images/openrunsim.gif images/runsimulation.gif images/runsiminfo.gif images/stop.gif"
-    
+    set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif \
+				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
+				$KPriv(imagesdir)/stop.gif"
+	
     set KBitmapsCommands(0) [list \
-				 [list -np- ::KEGroups::InitBaseWindow] \
-				 [list -np- ::KMProps::InitBaseWindow] \
-				 [list -np- ::KMProps::InitBaseWindow Materials] \
+				 [list -np- Cond_Groups window open] \
+				 [list -np- ::KMProps::StartBaseWindow] \
+				 [list -np- ::KMProps::StartBaseWindow Materials] \
 				 "" \
 				 [list -np- RunWin] \
 				 {Utilities Calculate} \
 				 [list -np- PWViewOutput] \
-				 {Utilities CancelProcess} ]
-
+				 {Utilities CancelProcess}]
+				 
     set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
 			     [= "Define the model properties"] \
 			     [= "Define the material properties"] \
@@ -199,8 +206,8 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
 			     [= "Open the process control window"] \
 			     [= "Run the simulation"] \
 			     [= "View process info"] \
-			     [= "Cancel process"]]	     
-
+			     [= "Cancel process"]] 
+			     
     # prefix values:
     # Pre        Only active in the preprocessor
     # Post       Only active in the postprocessor
