@@ -3,8 +3,6 @@
 #import the configuration data as read from the GiD
 import ProjectParameters
 
-
-
 def PrintResults(model_part):
     print "Writing results. Please run Gid for viewing results of analysis."
     for variable_name in ProjectParameters.nodal_results:
@@ -19,12 +17,7 @@ def PrintResults(model_part):
 domain_size = ProjectParameters.domain_size
 
 ##################################################################
-
-#including kratos path
-import sys
-sys.path.append(ProjectParameters.kratos_path)
-
-#importing Kratos and applications
+##################################################################
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
@@ -49,17 +42,17 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 ##importing the solvers needed
 SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
-    import fractional_step_solver
-    fractional_step_solver.AddVariables(fluid_model_part)
+    import fractional_step_solver as solver
+    solver.AddVariables(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
-    import decoupled_solver_eulerian
-    decoupled_solver_eulerian.AddVariables(fluid_model_part)
+    import decoupled_solver_eulerian as solver
+    solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    import monolithic_solver_eulerian
-    monolithic_solver_eulerian.AddVariables(fluid_model_part)
+    import monolithic_solver_eulerian as solver
+    solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    import monolithic_solver_eulerian_compressible
-    monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
+    import monolithic_solver_eulerian_compressible as solver
+    solver.AddVariables(fluid_model_part)
 else:
     raise NameError("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
 
@@ -109,13 +102,13 @@ else:
 
 ##adding dofs
 if(SolverType == "FractionalStep"):
-    fractional_step_solver.AddDofs(fluid_model_part)
+    solver.AddDofs(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
-    decoupled_solver_eulerian.AddDofs(fluid_model_part)
+    solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    monolithic_solver_eulerian.AddDofs(fluid_model_part)
+    solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
+    solver.AddDofs(fluid_model_part)
 
 # If Lalplacian form = 2, free all pressure Dofs
 laplacian_form = ProjectParameters.laplacian_form 
@@ -243,23 +236,23 @@ oss_switch = ProjectParameters.use_orthogonal_subscales
 #creating the solvers
 #fluid solver
 if(SolverType == "FractionalStep"):
-    fluid_solver = fractional_step_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
-    fluid_solver.max_val_its = ProjectParameters.max_vel_its
-    fluid_solver.max_press_its = ProjectParameters.max_press_its
-    fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
-    fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
-    fluid_solver.use_dt_in_stabilization = False
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
-    fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
-    # Solver definition
-    fluid_solver.velocity_linear_solver = velocity_linear_solver
-    fluid_solver.pressure_linear_solver = pressure_linear_solver
+    fluid_solver = solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
+    #fluid_solver.max_val_its = ProjectParameters.max_vel_its
+    #fluid_solver.max_press_its = ProjectParameters.max_press_its
+    #fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
+    #fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
+    #fluid_solver.use_dt_in_stabilization = False
+    #fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
+    #fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    #fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
+    #fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
+    ##fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
+    ## Solver definition
+    #fluid_solver.velocity_linear_solver = velocity_linear_solver
+    #fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 if(SolverType == "pressure_splitting"):
-    fluid_solver = decoupled_solver_eulerian.DecoupledSolver(fluid_model_part,domain_size)
+    fluid_solver = solver.DecoupledSolver(fluid_model_part,domain_size)
     fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
     fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
@@ -274,7 +267,7 @@ if(SolverType == "pressure_splitting"):
     fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
-    fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
+    fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
     fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
     fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
@@ -288,7 +281,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     # fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
-    fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
+    fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
     fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
     fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
