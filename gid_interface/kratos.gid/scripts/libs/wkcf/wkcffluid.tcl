@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.7- 08/05/12-G. Socorro, update the condition IS-SLIP to delete the fixity value
 #     0.6- 06/05/12-G. Socorro, modify the procs WriteFluidProjectParameters and WriteFluidSolvers to write using the 
 #                               new and old fluid solver format, modify the proc WriteOutLetPressureBC to write using (write_calc_data)
 #     0.5- 05/05/12-G. Socorro, modify the procs WriteFluidFlagVariableBC and ::wkcf::WriteFluidInletNoSlipBC_m1 to write the properties using the fast method (write_calc_data) 
@@ -1070,7 +1071,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
     if {!$::wkcf::pflag} {
 	set inittime [clock seconds]
     }
-    set fixedvalue "0.0"
+
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	# wa "cgroupid:$cgroupid"
@@ -1084,7 +1085,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	    dict set gprop $cgroupid "$f"
 	    if {$ndime == "2D"} {
 		if {[write_calc_data has_elements -elemtype "Linear" $gprop]} {
-		    set f "%10i [format "%4i" $activateval] [format "%10.5f" $fixedvalue]\n"
+		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
 		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
