@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     4.5- 08/05/12-G. Socorro, change IS-SLIP keyword by IS_STRUCTURE, propose by Riccardo Rossi, update the proc WriteConditions write condid from 1 to n
 #     4.4- 07/05/12-G. Socorro, Modify the proc WriteConditions, improve others procs ([write_calc_data) 
 #     4.3- 16/04/12-G. Socorro, New procedure to Write Coordinates.
 #     4.2- 12/04/12-G. Socorro, New procedure to Write Connectivities.
@@ -125,6 +126,12 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 
 	# Write elements block 
 	::wkcf::WriteElementConnectivities $AppId
+	
+	# For fluid application
+	if {$AppId == "Fluid"} {
+	    # Write conditions (Condition2D and Condition3D)
+	    ::wkcf::WriteConditions $AppId  
+	}
 
 	# Write boundary condition block
 	::wkcf::WriteBoundaryConditions $AppId
@@ -143,8 +150,6 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	    # Write the cutting and point history properties
 	    ::wkcf::WriteCutAndGraph $AppId
 	 
-	    # Write conditions (Condition2D and Condition3D)
-	    ::wkcf::WriteConditions $AppId  
 	}
 	
 	# End
@@ -614,7 +619,8 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 		    }
 		    "Is-Slip" {
 			# Write is-slip boundary condition
-			set kwordlist [list "IS-SLIP"]
+			# set kwordlist [list "IS-SLIP"]
+			set kwordlist [list "IS_STRUCTURE"]
 			::wkcf::WriteFluidIsSlipBC $AppId $ccondid $kwordlist
 		    }
 		    "WallLaw" {
@@ -663,7 +669,13 @@ proc ::wkcf::WriteConditions {AppId} {
 		dict set gprop $cgroupid "$f"
 		# Write the pressure value
 		write_calc_data puts "Begin Conditions Condition2D"
-		write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+		set condid 0
+		foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+		    incr condid 1 
+		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
+		    write_calc_data puts "[format "%10d %4d %10d %10d" $condid $cfixval $nodei $nodej]"
+		}
 		write_calc_data puts "End Conditions"
 		write_calc_data puts ""
 	    }
@@ -679,9 +691,15 @@ proc ::wkcf::WriteConditions {AppId} {
 		set f "%10d [format "%4d" $fixval] %10d %10d %10d\n"
 		set f [subst $f]
 		dict set gprop $cgroupid "$f"
-		# Write the pressure value
+		# Write the condition3D
 		write_calc_data puts "Begin Conditions Condition3D"
-		write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+		set condid 0
+		foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+		    incr condid 1 
+		    wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
+		    write_calc_data puts "[format "%10d %4d %10d %10d %10d" $condid $cfixval $nodei $nodej $nodek]"
+		}
 		write_calc_data puts "End Conditions"
 		write_calc_data puts ""
 	    }
