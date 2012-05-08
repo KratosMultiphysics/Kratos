@@ -19,32 +19,16 @@ def PrintResults(model_part):
 domain_size = ProjectParameters.domain_size
 
 ##################################################################
-##################################################################
-## ATTENTION: here the order is important
 
 #including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
+sys.path.append(ProjectParameters.kratos_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
-
+#importing Kratos and applications
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 ## defining variables to be used
 
@@ -65,8 +49,8 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 ##importing the solvers needed
 SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
-    import incompressible_fluid_solver
-    incompressible_fluid_solver.AddVariables(fluid_model_part)
+    import fractional_step_solver
+    fractional_step_solver.AddVariables(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
     import decoupled_solver_eulerian
     decoupled_solver_eulerian.AddVariables(fluid_model_part)
@@ -125,7 +109,7 @@ else:
 
 ##adding dofs
 if(SolverType == "FractionalStep"):
-    incompressible_fluid_solver.AddDofs(fluid_model_part)
+    fractional_step_solver.AddDofs(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
     decoupled_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
@@ -259,7 +243,7 @@ oss_switch = ProjectParameters.use_orthogonal_subscales
 #creating the solvers
 #fluid solver
 if(SolverType == "FractionalStep"):
-    fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
+    fluid_solver = fractional_step_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.max_val_its = ProjectParameters.max_vel_its
     fluid_solver.max_press_its = ProjectParameters.max_press_its
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
