@@ -135,9 +135,13 @@ void  AddVectorToPython()
 //       .def(VectorVectorOperatorPython<vector<double>, unit_vector<double>, vector<double> >())
 //       .def(VectorVectorOperatorPython<vector<double>, scalar_vector<double>, vector<double> >())
 //       .def(VectorVectorOperatorPython<vector<double>, mapped_vector<double>, vector<double> >())
-    ;
-}
+   ;
+    
+      VectorPythonInterface<vector<int>, UblasVectorModifier<vector<int> > >::CreateInterface("IntegerVector")
+      .def(init<vector<int>::size_type>())
+   ;
 
+}
 }  // namespace Python.
 
 } // Namespace Kratos
