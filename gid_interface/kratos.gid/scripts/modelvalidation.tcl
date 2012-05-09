@@ -11,14 +11,15 @@
 #	CREATED AT: 09/06/2010
 #
 #	HISTORY:
+#       0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
 #       0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
 #       0.5- 25/01/11-GSM, show the warning/error message only when find some error
 #       0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
-#	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
+#		0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
 #		se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
 #		y se valida que el path de Kratos exista en la computadora.
-#	0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
-#	0.1- 25/02/10 KS, create a base source code
+#		0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
+#		0.1- 25/02/10 KS, create a base source code
 #
 ###############################################################################
 
@@ -700,18 +701,18 @@ proc ::KMValid::ValidateProjectInformation { allreportlist } {
 		lappend allreportlist "Warning:\n"
 	}
 	
-	set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ProjectConfiguration'\]/Item\[@id='KratosPath']"
-	set node [$xml selectNodes $xpath]
+	#set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ProjectConfiguration'\]/Item\[@id='KratosPath']"
+	#set node [$xml selectNodes $xpath]
 	
-	if {$node != "" } {
-		set dv [$node getAttribute dv ""]
+	#if {$node != "" } {
+	#	set dv [$node getAttribute dv ""]
 		
-		if { ![file isdirectory $dv] } {
-			lappend allreportlist ""
-			lappend allreportlist "Error: The kratos path '$dv' does not exists."
-			lappend allreportlist "Error:"
-		}
-	}
+	#	if { ![file isdirectory $dv] } {
+	#		lappend allreportlist ""
+	#		lappend allreportlist "Error: The kratos path '$dv' does not exists."
+	#		lappend allreportlist "Error:"
+	#	}
+	#}
 	
 	set line1 ""
 	set line2 ""
