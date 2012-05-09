@@ -21,30 +21,16 @@ domain_size = ProjectParameters.domain_size
 ##################################################################
 ##################################################################
 ## ATTENTION: here the order is important
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
 
-#including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
 
 if(ProjectParameters.LinearSolver == "SuperLUSolver"):
-    from KratosExternalSolversApplication import *
+    from KratosMultiphysics.ExternalSolversApplication import *
 
 if(ProjectParameters.LinearSolver == "MKLPardisoSolver"):
-    applications_interface.Import_KratosMKLSolversApplication = True
-    from KratosMKLSolversApplication import *
+    from KratosMultiphysics.MKLSolversApplication import *
+    
 ## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
@@ -69,35 +55,20 @@ if(ProjectParameters.Rotational_Dofs == "True"):
 if( ProjectParameters.Solution_method=="Newton-Raphson"):
    if(ProjectParameters.SolverType == "DynamicSolver"):
         if(ProjectParameters.Rotational_Dofs == "False"):
-	  import structural_solver_dynamic
-	  structural_solver_dynamic.AddVariables(model_part)
+	  import structural_solver_dynamic as SolverType
         else:
-	  import structural_solver_dynamic_rotation
-	  structural_solver_dynamic_rotation.AddVariables(model_part)
-   elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
-        if(ProjectParameters.Rotational_Dofs == "False"):
-	  import structural_solver_relaxation
-	  structural_solver_relaxation.AddVariables(model_part)
-        else:
-	  import structural_solver_relaxation_rotation
-	  structural_solver_relaxation_rotation.AddVariables(model_part)
-
+	  import structural_solver_dynamic_rotation as SolverType
+	  
+	  
 if( ProjectParameters.Solution_method=="LineSearch"):
    if(ProjectParameters.SolverType == "DynamicSolver"):
         if(ProjectParameters.Rotational_Dofs == "False"):
-	  import structural_solver_dynamic_general
-	  structural_solver_dynamic_general.AddVariables(model_part)
-        else:
-	  import structural_solver_dynamic_rotation_general
-	  structural_solver_dynamic_rotation_general.AddVariables(model_part)
-   elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
-        if(ProjectParameters.Rotational_Dofs == "False"):
-	  import structural_solver_relaxation
-	  structural_solver_relaxation.AddVariables(model_part)
-        else:
-	  import structural_solver_relaxation_rotation
-	  structural_solver_relaxation_rotation.AddVariables(model_part)
+	  import structural_solver_dynamic_general as SolverType
+	else:
+	  import structural_solver_dynamic_rotation_general as SolverType
+	  
 
+SolverType.AddVariables(model_part)
 
 #reading a model
 name = ProjectParameters.problem_name
@@ -140,53 +111,14 @@ if(ProjectParameters.Rotational_Dofs == "True"):
     node.AddDof(ROTATION_Z)
 
 #importing the solver files
-if( ProjectParameters.Solution_method=="Newton-Raphson"):
-    if(ProjectParameters.SolverType == "DynamicSolver"):
-         if(ProjectParameters.Rotational_Dofs == "False"):
-	     structural_solver_dynamic.AddDofs(model_part)
-	     solver = structural_solver_dynamic.DynamicStructuralSolver(model_part,domain_size)
-         else:
- 	     structural_solver_dynamic_rotation.AddDofs(model_part)
-	     solver = structural_solver_dynamic_rotation.DynamicStructuralSolver(model_part,domain_size)
-    if(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
-         if(ProjectParameters.Rotational_Dofs == "False"):
-	     structural_solver_relaxation.AddDofs(model_part)
-	     solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
-         else:
- 	     structural_solver_relaxation_rotation.AddDofs(model_part)
-	     solver = structural_solver_relaxation_rotation.RelaxationStructuralSolver(model_part,domain_size)
 
-if( ProjectParameters.Solution_method== "LineSearch" ):
-      if(ProjectParameters.SolverType == "DynamicSolver"):
-            if(ProjectParameters.Rotational_Dofs == "False"):
-	        structural_solver_dynamic_general.AddDofs(model_part)
-	        solver = structural_solver_dynamic_general.DynamicStructuralSolver(model_part,domain_size)
-            else:
-	        structural_solver_dynamic_rotation_general.AddDofs(model_part)
-	        solver = structural_solver_dynamic_rotation_general.DynamicStructuralSolver(model_part,domain_size)
-      if(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
-         if(ProjectParameters.Rotational_Dofs == "False"):
-	     structural_solver_relaxation.AddDofs(model_part)
-	     solver = structural_solver_relaxation.RelaxationStructuralSolver(model_part,domain_size)
-         else:
- 	     structural_solver_relaxation_rotation.AddDofs(model_part)
-	     solver = structural_solver_relaxation_rotation.RelaxationStructuralSolver(model_part,domain_size)
+SolverType.AddDofs(model_part)
+solver = SolverType.DynamicStructuralSolver(model_part,domain_size)
 
+from materials import *
+AssignMaterial(model_part.Properties)
+print model_part.Properties
 
-
-
-##choosing the default value for the constitutive law 
-if(domain_size == 2):
-  for prop in model_part.Properties:
-    prop.SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-else:
-  for prop in model_part.Properties:
-    prop.SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
-#creating a fluid solver object
-#model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
-#model_part.Properties[2].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
-
-print "Linear elastic model selected"
 
 #solver.structure_linear_solver = ProjectParameters.problem_name.LinearSolver()  
 if(ProjectParameters.LinearSolver == "SkylineLUFactorization"):
@@ -230,8 +162,7 @@ elif(ProjectParameters.Convergence_Criteria == "Or_Criteria"):
     solver.conv_criteria  = OrCriteria(Residual, Displacement)
         
 
-
-  
+   
 solver.Initialize()
 (solver.solver).SetEchoLevel(2);
 
