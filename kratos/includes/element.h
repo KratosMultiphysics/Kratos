@@ -783,6 +783,7 @@ private:
      * pointer to the element's geometry
      */
     GeometryType::Pointer mpGeometry;
+    KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, INITIAL_NEIGHBOUR_ELEMENTS)
 
     /**
      * pointer to the element's properties
