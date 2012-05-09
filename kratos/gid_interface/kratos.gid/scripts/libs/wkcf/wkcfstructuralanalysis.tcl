@@ -1121,11 +1121,11 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	    puts $fileid "    behavior = $dprops($AppId,Material,$MatId,Behavior)"
 	}
 	# Write the property identifier
-	puts $fileid "    prop_id = $propid;"
-	puts $fileid "    prop = Properties(prop_id)"
+	puts $fileid "    prop_id = $propid\;"
+	puts $fileid "    prop = Properties\[prop_id\]"
 	# Write material model
-	puts $fileid "    mat = $dprops($AppId,Material,$MatId,MatModel);"
-	puts $fileid "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone());"
+	puts $fileid "    mat = $dprops($AppId,Material,$MatId,MatModel)\;"
+	puts $fileid "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())\;"
 	
     }
 
