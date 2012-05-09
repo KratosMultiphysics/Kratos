@@ -542,7 +542,7 @@ proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
 	
 	set usepointforce "No"
 	# Diccionario gpointforce
-	set f "%4i"
+	set f "%10i"
 	set f [subst $f]
 	dict set gpointforce $cgroupid $f
 	
@@ -573,7 +573,7 @@ proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
 	    write_calc_data puts "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
 	    foreach output [write_calc_data nodes -return -sorted $gpointforce] {
 		incr jj
-		set cf "[format "%4i %4i %4i" $jj 1 $output]\n"
+		set cf "[format "%4i %4i %10i" $jj 1 $output]"
 		write_calc_data puts "$cf"
 	    }
 	    write_calc_data puts "End Conditions"
