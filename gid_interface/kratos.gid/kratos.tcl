@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     1.5- 09/05/12- G. Socorro, use conditions only in the fluid application
 #     1.4- 07/05/12- G. Socorro, update the proc BeforeMeshGeneration to write the Condition2D and Condition3D properties
 #     1.3- 04/05/12- G. Socorro, update the proc BeforeDeleteGroup
 #     1.2- 03/05/12- J. Garate, proc EndGIDPostProces
@@ -201,52 +202,61 @@ proc BeforeMeshGeneration {elementsize} {
     set cproperty "dv"
     catch { set ndime [::xmlutils::setXml $cxpath $cproperty] }
     
-    if {$ndime =="2D"} {
+    # Get application type
+  
+    # Fuild application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
+    set cproperty "dv"
+    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
 
-	# Align the normal
-	::wkcf::AlignLineNormals Outwards 
-	
-	# Reset Automatic Conditions from previous executions 
-	set what "UseAllWhereField"
-	set entitytype "line"
-	set groupid "-@kratos@b2d"
-	# Old groups
-	set fieldname "groupid"
-	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-	# New groups
-	set fieldname "name"
-	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-
-	# Find boundaries
-	set blinelist [::wkcf::FindBoundaries $entitytype]
-	# wa "belist:$blinelist"
-
-	# Assign the boundary condition
-	::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
-
-    } elseif {$ndime =="3D"} {
-	
-	# Align the normal
-	::wkcf::AlignSurfNormals Outwards
-	
-	# Reset Automatic Conditions from previous executions 
-	set what "UseAllWhereField"
-	set entitytype "surface"
-	set groupid "-@kratos@b3d"
-	# Old groups
-	set fieldname "groupid"
-	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-	# New groups
-	set fieldname "name"
-	::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-
-	# Find boundaries
-	set bsurfacelist [::wkcf::FindBoundaries $entitytype]
-	# WarnWinText "bsurfacelist:$bsurfacelist"
-
-	# Assign the boundary condition
-	::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
-
+    if {$FluidApplication eq "Yes"} {
+	if {$ndime =="2D"} {
+	    
+	    # Align the normal
+	    ::wkcf::AlignLineNormals Outwards 
+	    
+	    # Reset Automatic Conditions from previous executions 
+	    set what "UseAllWhereField"
+	    set entitytype "line"
+	    set groupid "-@kratos@b2d"
+	    # Old groups
+	    set fieldname "groupid"
+	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	    # New groups
+	    set fieldname "name"
+	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	    
+	    # Find boundaries
+	    set blinelist [::wkcf::FindBoundaries $entitytype]
+	    # wa "belist:$blinelist"
+	    
+	    # Assign the boundary condition
+	    ::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
+	    
+	} elseif {$ndime =="3D"} {
+	    
+	    # Align the normal
+	    ::wkcf::AlignSurfNormals Outwards
+	    
+	    # Reset Automatic Conditions from previous executions 
+	    set what "UseAllWhereField"
+	    set entitytype "surface"
+	    set groupid "-@kratos@b3d"
+	    # Old groups
+	    set fieldname "groupid"
+	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	    # New groups
+	    set fieldname "name"
+	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
+	    
+	    # Find boundaries
+	    set bsurfacelist [::wkcf::FindBoundaries $entitytype]
+	    # WarnWinText "bsurfacelist:$bsurfacelist"
+	    
+	    # Assign the boundary condition
+	    ::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
+	    
+	}
     }
 
 }
