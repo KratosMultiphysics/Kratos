@@ -4,6 +4,10 @@
 import ProjectParameters
 
 
+def ChangeCondition(model_part, lamda):
+        for node in model_part.Nodes:
+            new_load = node.GetSolutionStepValue(FORCE)*lamda;
+            node.SetSolutionStepValue(FORCE,0,new_load)
 
 def PrintResults(model_part):
         print "Writing results. Please run Gid for viewing results of analysis."
@@ -22,29 +26,15 @@ domain_size = ProjectParameters.domain_size
 ##################################################################
 ## ATTENTION: here the order is important
 
-#including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
 
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_StructuralApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-from KratosStructuralApplication import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
 
 if(ProjectParameters.LinearSolver == "SuperLUSolver"):
-    from KratosExternalSolversApplication import *
+    from  KratosMultiphysics.ExternalSolversApplication import *
 
 if(ProjectParameters.LinearSolver == "ParallelMKLPardisoSolver"  or  ProjectParameters.LinearSolver == "MKLPardisoSolver"):
-    applications_interface.Import_KratosMKLSolversApplication = True
-    from KratosMKLSolversApplication import *
+    from KratosMultiphysics.MKLSolversApplication import *
 
 
 ## from now on the order is not anymore crucial
@@ -72,24 +62,17 @@ if(ProjectParameters.Rotational_Dofs == "True"):
 if( ProjectParameters.Solution_method=="Newton-Raphson"):
        if(ProjectParameters.SolverType == "StaticSolver"):
               if(ProjectParameters.LinearSolver == "ParallelMKLPardisoSolver"):
-                      import structural_solver_static_parallel
-                      structural_solver_static_parallel.AddVariables(model_part)    
+                      import structural_solver_static_parallel as SolverType                          
               else:
-                      import structural_solver_static
-                      structural_solver_static.AddVariables(model_part) 
+                      import structural_solver_static as SolverType 
                         
-
-
 if( ProjectParameters.Solution_method== "ArcLength" ):
-    import structural_solver_static_arc_length
-    structural_solver_static_arc_length.AddVariables(model_part)
-
-
+    import structural_solver_static_arc_length as SolverType
+    
 if( ProjectParameters.Solution_method== "LineSearch" ):
-    import structural_solver_static_general
-    structural_solver_static_general.AddVariables(model_part)
+    import structural_solver_static_general as SolverType
 
-
+SolverType.AddVariables(model_part)
 
 #reading a model
 name = ProjectParameters.problem_name
@@ -131,44 +114,20 @@ if(ProjectParameters.Rotational_Dofs == "True"):
     node.AddDof(ROTATION_Y)
     node.AddDof(ROTATION_Z)
 
+
 #importing the solver files
-if( ProjectParameters.Solution_method=="Newton-Raphson"):
-       if(ProjectParameters.SolverType == "StaticSolver"):
-              if(ProjectParameters.LinearSolver == "ParallelMKLPardisoSolver"):
-                       structural_solver_static_parallel.AddDofs(model_part)
-                       solver = structural_solver_static_parallel.StaticStructuralSolver(model_part,domain_size)
-              else:
-                       structural_solver_static.AddDofs(model_part);
-                       solver = structural_solver_static.StaticStructuralSolver(model_part,domain_size) 
+SolverType.AddDofs(model_part)
+solver = SolverType.StaticStructuralSolver(model_part,domain_size)
 
+if(ProjectParameters.Solution_method== "ArcLength" ):              
+   model_part.ProcessInfo[LAMNDA] = 0.00;  
 
-if( ProjectParameters.Solution_method== "ArcLength" ):
-    structural_solver_static_arc_length.AddDofs(model_part)
-    solver = structural_solver_static_arc_length.StaticStructuralSolver(model_part,domain_size)
-    model_part.ProcessInfo[LAMNDA] = 0.00;  
-
-    def ChangeCondition(model_part, lamda):
-        for node in model_part.Nodes:
-            new_load = node.GetSolutionStepValue(FORCE)*lamda;
-            node.SetSolutionStepValue(FORCE,0,new_load)
-
-
-if( ProjectParameters.Solution_method== "LineSearch" ):
-    structural_solver_static_general.AddDofs(model_part)
-    solver = structural_solver_static_general.StaticStructuralSolver(model_part,domain_size)
 
 ##choosing the default value for the constitutive law 
-if(domain_size == 2):
-  for prop in model_part.Properties:
-    prop.SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-else:
-  for prop in model_part.Properties:
-    prop.SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
-#creating a fluid solver object
-#model_part.Properties[1].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
-#model_part.Properties[2].SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
+from materials import *
+AssignMaterial(model_part.Properties)
 
-print "Linear elastic model selected"
+print model_part.Properties
 
 #solver.structure_linear_solver = ProjectParameters.problem_name.LinearSolver()  
 if(ProjectParameters.LinearSolver == "SkylineLUFactorization"):
@@ -199,7 +158,6 @@ RAT = ProjectParameters.Residual_Absolute_Tolerance ;
 
 
 
-
 if(ProjectParameters.Convergence_Criteria == "Displacement_Criteria"):
     solver.conv_criteria  =  DisplacementCriteria(DCT,DAT)
 elif(ProjectParameters.Convergence_Criteria == "Residual_Criteria"): 
@@ -213,7 +171,6 @@ elif(ProjectParameters.Convergence_Criteria == "Or_Criteria"):
     Residual       =   ResidualCriteria(RCT,RAT)
     solver.conv_criteria  = OrCriteria(Residual, Displacement)
         
-
 
   
 solver.Initialize()
@@ -236,6 +193,7 @@ PrintResults(model_part)
 
 print "Analysis Completed "
 gid_io.FinalizeResults()
+
 
           
         
