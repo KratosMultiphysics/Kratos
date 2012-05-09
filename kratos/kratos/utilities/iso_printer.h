@@ -169,7 +169,7 @@ public:
     /// ************************************************************************************************
 
     //this is the function to create isosurfaces from a scalar variable. the other (a component from a vectorial variable) will be added later
-    void AddScalarVarIsosurface( Variable<double>& variable, double isovalue, float tolerance)
+    void AddScalarVarIsosurface( Variable<double>& variable, double isovalue)
     {
         KRATOS_TRY
 
@@ -224,16 +224,8 @@ public:
                         diff_neigh_value = isovalue - neigh_value;
                         diff_node_neigh = node_value - neigh_value;
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
-                        if (fabs(diff_node_value) < (tolerance)  ) //then our node is part of the plane (this should have been done before the loop on neighbours, but this way it is easier to read .
-                        {
-                            number_of_cuts += 2; //since its neighbour wont take this case as a cut, we must save 2 cuts instead of one. (to reach number_of_cuts=6),
-                            ++exact_nodes;
-                            list_matching_nodes[i] = geom[i].Id();
-                            if ((diff_node_value * diff_neigh_value) > 0.0) //if true, it means that this node, despite being close, is actually outside the element. So if we have 2 or more ouside, we will not add this triangle in this element because we consider it property of another element
-                                ++outside_nodes;
-                            break; //we exit the j loop.
-                        }
-                        if ((diff_node_value * diff_neigh_value) < 0.0 && (fabs(diff_neigh_value)>(tolerance))) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
+
+                        if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
                         {
                             ++number_of_cuts;
                         }
@@ -265,6 +257,219 @@ public:
         KRATOS_CATCH("")
     }
 
+    
+    //**********************************************************************************************************************
+
+
+    //this is the function to create isosurfaces from a scalar variable. the other (a component from a vectorial variable) will be added later
+    void AddScalarVarIsosurfaceAndLower( Variable<double>& variable, double isovalue)
+    {
+        KRATOS_TRY
+
+        /*
+        cout <<"Printing Isosurface Nodes with the following data:"<<endl;
+        KRATOS_WATCH(variable);
+        KRATOS_WATCH(isovalue);
+        */
+
+        ModelPart& this_model_part = mr_model_part;
+        //ModelPart& new_model_part = mr_new_model_part;
+
+        ElementsArrayType& rElements = this_model_part.Elements();
+
+        //first of all create a matrix with no overlap
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin(); //+element_partition[k];
+        ElementsArrayType::iterator it_end = rElements.ptr_end(); //+element_partition[k+1];
+
+        NodesArrayType& rNodes_old = this_model_part.Nodes();        //needed to find the position of the node in the node array
+        NodesArrayType::iterator it_begin_node_old = rNodes_old.ptr_begin();
+
+        double node_value; // node to closest point in the plane
+        double neigh_value; //other node of the edge (neighbour) to closest point in the plane
+        double diff_node_value;                // difference between the imposed value of the variable and its value in the node
+        double diff_neigh_value;; //distance between the two nodes of the edge
+        double diff_node_neigh;
+        array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
+        unsigned int exact_nodes = 0;
+        unsigned int outside_nodes = 0;
+        int current_element=0;
+        int number_of_cuts=0;
+
+        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        {
+            bool print_element=false;
+            ++current_element;
+            number_of_cuts = 0;
+            exact_nodes = 0;
+            outside_nodes = 0;
+            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
+                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+            {
+                node_value= geom[i].FastGetSolutionStepValue(variable);
+                diff_node_value = isovalue - node_value; // dist = (xnode-xp)*versor closest point-plane distance
+                for (unsigned int j = 0; j < it->GetGeometry().size(); j++) //  looping on the neighbours
+                {
+                    //unsigned int this_node_cutted_edges=0;
+                    if (i != j) //(cant link node with itself)
+                    {
+                        neigh_value= geom[j].FastGetSolutionStepValue(variable);
+                        diff_neigh_value = isovalue - neigh_value;
+                        diff_node_neigh = node_value - neigh_value;
+                        //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
+
+                        if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
+                        {
+                            ++number_of_cuts;
+                        }
+                    } //closing the i!=j if
+                } //closing the neighbour (j) loop
+            } //closing the nodes (i) loop
+
+
+            //now we have to save the data. we should get a list with the elements that will genereate triangles and the total number of triangles
+            if (exact_nodes < 4 || outside_nodes<2 )   //this means at least one new node has to be generated
+            {
+                if (number_of_cuts == 6 || number_of_cuts == 6) //it can be 8, in that case we have 2 triangles (the cut generates a square)
+                    print_element=true;
+
+            }
+            if (print_element==true)
+            {
+                for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
+                    //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+                {
+                    int node_position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old;
+                    m_used_nodes[node_position]=true;
+                }
+            }
+        } //closing the elem loop
+
+	//looping the nodes, =true if below isovalue
+        for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+        {
+            //if (m_used_nodes[i]==true)
+            node_value= it->FastGetSolutionStepValue(variable);
+	    if (node_value<isovalue)
+	    {
+		int node_position = it- mr_model_part.NodesBegin();
+                m_used_nodes[node_position]=true;
+            }
+            //*++i;
+        }//closing node loop
+
+        //cout << "Added nodes that are part of the isosurface to the priting list" << endl;
+
+        KRATOS_CATCH("")
+    }
+
+
+
+ /// ************************************************************************************************
+    //this is the function to create isosurfaces from a scalar variable. the other (a component from a vectorial variable) will be added later
+    void AddScalarVarIsosurfaceAndHigher( Variable<double>& variable, double isovalue)
+    {
+        KRATOS_TRY
+
+        /*
+        cout <<"Printing Isosurface Nodes with the following data:"<<endl;
+        KRATOS_WATCH(variable);
+        KRATOS_WATCH(isovalue);
+        */
+
+        ModelPart& this_model_part = mr_model_part;
+        //ModelPart& new_model_part = mr_new_model_part;
+
+        ElementsArrayType& rElements = this_model_part.Elements();
+
+        //first of all create a matrix with no overlap
+        ElementsArrayType::iterator it_begin = rElements.ptr_begin(); //+element_partition[k];
+        ElementsArrayType::iterator it_end = rElements.ptr_end(); //+element_partition[k+1];
+
+        NodesArrayType& rNodes_old = this_model_part.Nodes();        //needed to find the position of the node in the node array
+        NodesArrayType::iterator it_begin_node_old = rNodes_old.ptr_begin();
+
+        double node_value; // node to closest point in the plane
+        double neigh_value; //other node of the edge (neighbour) to closest point in the plane
+        double diff_node_value;                // difference between the imposed value of the variable and its value in the node
+        double diff_neigh_value;; //distance between the two nodes of the edge
+        double diff_node_neigh;
+        array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
+        unsigned int exact_nodes = 0;
+        unsigned int outside_nodes = 0;
+        int current_element=0;
+        int number_of_cuts=0;
+
+        for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+        {
+            bool print_element=false;
+            ++current_element;
+            number_of_cuts = 0;
+            exact_nodes = 0;
+            outside_nodes = 0;
+            Geometry<Node < 3 > >&geom = it->GetGeometry(); //geometry of the element
+            for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
+                //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+            {
+                node_value= geom[i].FastGetSolutionStepValue(variable);
+                diff_node_value = isovalue - node_value; // dist = (xnode-xp)*versor closest point-plane distance
+                for (unsigned int j = 0; j < it->GetGeometry().size(); j++) //  looping on the neighbours
+                {
+                    //unsigned int this_node_cutted_edges=0;
+                    if (i != j) //(cant link node with itself)
+                    {
+                        neigh_value= geom[j].FastGetSolutionStepValue(variable);
+                        diff_neigh_value = isovalue - neigh_value;
+                        diff_node_neigh = node_value - neigh_value;
+                        //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
+
+                        if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
+                        {
+                            ++number_of_cuts;
+                        }
+                    } //closing the i!=j if
+                } //closing the neighbour (j) loop
+            } //closing the nodes (i) loop
+
+
+            //now we have to save the data. we should get a list with the elements that will genereate triangles and the total number of triangles
+            if (exact_nodes < 4 || outside_nodes<2 )   //this means at least one new node has to be generated
+            {
+                if (number_of_cuts == 6 || number_of_cuts == 6) //it can be 8, in that case we have 2 triangles (the cut generates a square)
+                    print_element=true;
+
+            }
+            if (print_element==true)
+            {
+                for (unsigned int i = 0; i < it->GetGeometry().size(); i++) //size = 4 ; nodes per element. NOTICE WE'LL BE LOOPING THE EDGES TWICE. THIS IS A WASTE OF TIME BUT MAKES IT EASIER TO IDENTITY ELEMENTS. LOOK BELOW.
+                    //when we have a triangle inside a thetraedra, its edges (or nodes) must be cut 3 times by the plane. if we loop all 2 times we can have a counter. when it's = 6 then we have a triangle. when tetraedras are cutted 8 times then we have 2 triangles (or a cuatrilateral, the same)
+                {
+                    int node_position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old;
+                    m_used_nodes[node_position]=true;
+                }
+            }
+        } //closing the elem loop
+
+	//looping the nodes, =true if below isovalue
+        for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+        {
+            //if (m_used_nodes[i]==true)
+            node_value= it->FastGetSolutionStepValue(variable);
+	    if (node_value>isovalue)
+	    {
+		int node_position = it- mr_model_part.NodesBegin();
+                m_used_nodes[node_position]=true;
+            }
+            //*++i;
+        }//closing node loop
+
+        //cout << "Added nodes that are part of the isosurface to the priting list" << endl;
+
+        KRATOS_CATCH("")
+    }
+
+
+    /// ************************************************************************************************
 
     /// ************************************************************************************************
 
