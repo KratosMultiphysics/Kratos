@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     4.6- 09/05/12-G. Socorro, update the procedure WriteElementConnectivities to write the format for each gid element type
 #     4.5- 08/05/12-G. Socorro, change IS-SLIP keyword by IS_STRUCTURE, propose by Riccardo Rossi, update the proc WriteConditions write condid from 1 to n
 #     4.4- 07/05/12-G. Socorro, Modify the proc WriteConditions, improve others procs ([write_calc_data) 
 #     4.3- 16/04/12-G. Socorro, New procedure to Write Coordinates.
@@ -522,9 +523,24 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 			    set kelemtype "[string trim ${KEKWord}${etbf}]"
 			    set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
 			    write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
-			    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
+			    switch -exact -- $GiDElemType {
+				"Triangle" {
+				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
+				}
+				"Quadrilateral" {
+				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+				}
+				"Tetrahedra" {
+				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+				}
+				"Hexahedra" {
+				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d %10d %10d %10d %10d\n"
+				}
+			    }
+			    # wa "f:$f"
 			    set f [subst $f]
 			    dict set gprop $cgroupid "$f"
+			    # wa "GiDElemType:$GiDElemType"
 			    write_calc_data connectivities -elemtype "$GiDElemType" $gprop
 			    write_calc_data puts "End Elements"
 			    write_calc_data puts ""
