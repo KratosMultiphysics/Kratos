@@ -112,6 +112,12 @@ public:
     */
     Kernel()
     {
+	std::cout << " |  /           |             " << std::endl;
+	std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
+	std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
+	std::cout << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
+	std::cout << "           Multi-Physics 3.0.0" << std::endl;
+
         mKratosApplication.RegisterVariables();
     }
 
