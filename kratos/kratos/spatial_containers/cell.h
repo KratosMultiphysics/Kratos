@@ -271,6 +271,33 @@ public:
             }
         }
     }
+    
+//************************************************************************
+//************************************************************************
+
+    void SearchObjectsInRadiusInner(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, DistanceIteratorType& Distances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+    {
+        for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
+        {
+            if( rThisObject != *i_object )
+            {
+                if(TConfigure::Intersection(rThisObject, *i_object, Radius))
+                {
+                    ResultIteratorType repeated_object = std::find(Result-NumberOfResults, Result, *i_object);
+                    if(repeated_object==Result)
+                    {
+                        double distance = 0;
+                        TConfigure::Distance(rThisObject,*i_object,distance); // squared distance function
+                        *Result   = *i_object;
+                        Result++;
+                        *Distances = distance;
+                        Distances++;
+                        NumberOfResults++;
+                    }
+                }
+            }
+        }
+    }
 
 //************************************************************************
 //************************************************************************
