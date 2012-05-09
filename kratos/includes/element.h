@@ -783,8 +783,7 @@ private:
      * pointer to the element's geometry
      */
     GeometryType::Pointer mpGeometry;
-    KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, INITIAL_NEIGHBOUR_ELEMENTS)
-
+    
     /**
      * pointer to the element's properties
      */
@@ -855,6 +854,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
  * definition of NEIGHBOUR_ELEMENTS variable
  */
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, INITIAL_NEIGHBOUR_ELEMENTS)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined 
