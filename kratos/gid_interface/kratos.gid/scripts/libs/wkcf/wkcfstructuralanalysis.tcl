@@ -1097,11 +1097,12 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
     }
 
     # Write the group properties
-    puts $fileid "import os, sys"
+    # puts $fileid "import os, sys"
     puts $fileid ""
     puts $fileid "# Importing the Kratos Library"
-    puts $fileid "from Kratos import *"
-    puts $fileid "from KratosStructuralApplication import *"
+    puts $fileid "from KratosMultiphysics import *"
+    puts $fileid "from KratosMultiphysics.StructuralApplication import *"
+  
 
     puts $fileid "def AssignMaterial(Properties):"
     
