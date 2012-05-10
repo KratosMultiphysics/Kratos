@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     4.7- 10/05/12-G. Socorro, comment a warning message in the proc WriteConditions
 #     4.6- 09/05/12-G. Socorro, update the procedure WriteElementConnectivities to write the format for each gid element type
 #     4.5- 08/05/12-G. Socorro, change IS-SLIP keyword by IS_STRUCTURE, propose by Riccardo Rossi, update the proc WriteConditions write condid from 1 to n
 #     4.4- 07/05/12-G. Socorro, Modify the proc WriteConditions, improve others procs ([write_calc_data) 
@@ -713,7 +714,7 @@ proc ::wkcf::WriteConditions {AppId} {
 		set condid 0
 		foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
 		    incr condid 1 
-		    wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
+		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
 		    write_calc_data puts "[format "%10d %4d %10d %10d %10d" $condid $cfixval $nodei $nodej $nodek]"
 		}
 		write_calc_data puts "End Conditions"
