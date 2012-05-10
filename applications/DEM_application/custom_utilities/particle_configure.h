@@ -47,7 +47,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-
+/*
 template <class T>
 class ContactPair
 {
@@ -106,7 +106,8 @@ public:
         return OStream;
     }
 };
-
+*/
+    
 template <class TParticle>
 class ParticleConfigure
 {

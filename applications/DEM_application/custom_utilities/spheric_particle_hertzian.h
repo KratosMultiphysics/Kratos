@@ -227,7 +227,7 @@ public:
     {
         return (mZeta);
     };
-    double& GetNumberOfNeighbours()
+    std::size_t& GetNumberOfNeighbours()
     {
         return(mpCenterNode->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));
     };
