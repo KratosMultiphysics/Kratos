@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.8- 10/05/12-G. Socorro, correct a bug for 3D case when write IS-SLIP boundary condition
 #     0.7- 08/05/12-G. Socorro, update the condition IS-SLIP to delete the fixity value
 #     0.6- 06/05/12-G. Socorro, modify the procs WriteFluidProjectParameters and WriteFluidSolvers to write using the 
 #                               new and old fluid solver format, modify the proc WriteOutLetPressureBC to write using (write_calc_data)
@@ -1095,7 +1096,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 		}
 	    } elseif {$ndime == "3D"} {
 		if {[write_calc_data has_elements -elemtype "Triangle" $gprop]} {
-		    set f "%10i [format "%4i" $activateval] [format "%10.5f" $fixedvalue]\n"
+		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
 		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
