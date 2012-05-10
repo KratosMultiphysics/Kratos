@@ -42,7 +42,7 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 ##importing the solvers needed
 SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
-    import fractional_step_solver as solver
+    import vms_fractional_step_solver as solver
     solver.AddVariables(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
     import decoupled_solver_eulerian as solver
@@ -109,12 +109,6 @@ elif(SolverType == "monolithic_solver_eulerian"):
     solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     solver.AddDofs(fluid_model_part)
-
-# If Lalplacian form = 2, free all pressure Dofs
-laplacian_form = ProjectParameters.laplacian_form 
-if(laplacian_form >= 2):
-    for node in fluid_model_part.Nodes:
-        node.Free(PRESSURE)
 
 ## Commented out for efficiency, problem type assigns the values automatically
 ####check to ensure that no node has zero density or pressure
