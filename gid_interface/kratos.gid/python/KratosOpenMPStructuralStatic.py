@@ -102,7 +102,12 @@ if(ProjectParameters.FindElementalNeighbours == "True"):
 
 
 print model_part
+
+##choosing the default value for the constitutive law 
+from materials import *
+AssignMaterial(model_part.Properties)
 print model_part.Properties
+
 
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(2)
@@ -122,12 +127,6 @@ solver = SolverType.StaticStructuralSolver(model_part,domain_size)
 if(ProjectParameters.Solution_method== "ArcLength" ):              
    model_part.ProcessInfo[LAMNDA] = 0.00;  
 
-
-##choosing the default value for the constitutive law 
-from materials import *
-AssignMaterial(model_part.Properties)
-
-print model_part.Properties
 
 #solver.structure_linear_solver = ProjectParameters.problem_name.LinearSolver()  
 if(ProjectParameters.LinearSolver == "SkylineLUFactorization"):
