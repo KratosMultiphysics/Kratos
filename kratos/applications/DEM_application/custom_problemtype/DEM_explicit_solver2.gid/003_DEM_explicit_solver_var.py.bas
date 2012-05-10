@@ -6,6 +6,8 @@ DampRatioType = "*GenData(DampRatioType)"
 *format "%10.5e"
 search_step = *GenData(search_step)
 *format "%10.5e"
+search_radius = *GenData(search_radius)
+*format "%10.5e"
 max_time = *GenData(max_time)
 *format "%10.5e"
 dt_safety_factor = *GenData(dt_safety_factor)
