@@ -128,8 +128,15 @@ class MonolithicSolver:
         Hfinder.Execute();
 
         #runtime box
-        self.box_corner1 = box_corner1
-        self.box_corner2 = box_corner2
+        self.box_corner1 = Array3()
+        self.box_corner1[0] = box_corner1[0]
+        self.box_corner1[1] = box_corner1[1]
+        self.box_corner1[2] = box_corner1[2]
+        
+        self.box_corner2 = Array3()
+        self.box_corner2[0] = box_corner2[0]
+        self.box_corner2[1] = box_corner2[1]
+        self.box_corner2[2] = box_corner2[2]
     
 
         
