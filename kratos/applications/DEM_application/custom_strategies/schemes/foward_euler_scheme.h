@@ -21,6 +21,7 @@
 
 
 // Project includes
+#include "integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
@@ -54,7 +55,7 @@ namespace Kratos
   /** Detail class definition.
   */
   
-  class FowardEulerScheme  
+  class FowardEulerScheme :  public IntegrationScheme
     {
     public:
       ///@name Type Definitions
@@ -92,8 +93,7 @@ namespace Kratos
      void Calculate(ModelPart& model_part)
      {
         KRATOS_TRY
-        
-	
+        	
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
@@ -122,20 +122,21 @@ namespace Kratos
 	     aux = delta_t / mass;
 	     
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
-	     if(i->pGetDof(DISPLACEMENT_X)->IsFixed() == false){
+	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
+             {
 	         vel[0]    += aux * force[0]; 
 	         displ[0]  += delta_t * vel[0];  
 	         coor[0]   += initial_coor[0] + displ[0];
 	     }
 	     
-	     if( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
-	     {
+	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
+             {
 	         vel[1]    += aux * force[1];
 	         displ[1]  += delta_t * vel[1];  
 	         coor[1]   += initial_coor[1] + displ[1];
 	     }
 	     
-	     if( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
+             if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Z))== false ) )
 	     {
 	         vel[2]    += aux * force[2];
 	         displ[2]  += delta_t * vel[2];  
