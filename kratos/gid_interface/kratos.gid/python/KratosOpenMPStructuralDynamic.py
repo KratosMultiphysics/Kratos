@@ -96,8 +96,11 @@ if(ProjectParameters.FindElementalNeighbours == "True"):
     neighbour_calculator = FindElementalNeighboursProcess(model_part,2,10);
     neighbour_calculator.Execute()
 
-
 print model_part
+
+from materials import *
+AssignMaterial(model_part.Properties)
+
 print model_part.Properties
 
 #the buffer size should be set up here after the mesh is read for the first time
@@ -114,10 +117,6 @@ if(ProjectParameters.Rotational_Dofs == "True"):
 
 SolverType.AddDofs(model_part)
 solver = SolverType.DynamicStructuralSolver(model_part,domain_size)
-
-from materials import *
-AssignMaterial(model_part.Properties)
-print model_part.Properties
 
 
 #solver.structure_linear_solver = ProjectParameters.problem_name.LinearSolver()  
