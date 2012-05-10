@@ -19,6 +19,8 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_utilities/spheric_particle_hertzian.h"
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
+#include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
+#include "includes/variables.h"
 
 /* System includes */
 #include <limits>
@@ -42,7 +44,7 @@
 
 
 #include "custom_utilities/neighbours_calculator.h"
-
+#include "custom_strategies/schemes/integration_scheme.h"
 
 namespace Kratos
 {
@@ -114,49 +116,35 @@ namespace Kratos
                               const double     fraction_delta_time,
                               const double     max_delta_time,
 		              const bool       MoveMeshFlag,
-		              typename         TSchemeType::Pointer pScheme
+                              const bool       delta_option,
+                              const bool       continuum_simulating_option,
+		              typename         IntegrationScheme::Pointer pScheme
 			)
 			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
                         
                             mdimension(dimension) //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual.
 
                         {
-			 
-                           mElementsAreInitialized    = false;
-			   mConditionsAreInitialized  = false;
-			   mCalculateOldTime          = false;
-                           mSolutionStepIsInitialized = false; 
-			   mInitializeWasPerformed    = false;
-                           mComputeTime               = false;
-			   mInitialConditions         = false;
-                           mdamping_ratio             = damping_ratio;
-                           mfraction_delta_time       = fraction_delta_time; 
-                           mmax_delta_time            = max_delta_time;
-                           molddelta_time             = 0.00;
-                           mtimestep                  = 0.00;
+
+                           mdelta_option                = delta_option;
+                           mcontinuum_simulating_option = continuum_simulating_option;
+                           mElementsAreInitialized      = false;
+			   mConditionsAreInitialized    = false;
+			   mCalculateOldTime            = false;
+                           mSolutionStepIsInitialized   = false;
+			   mInitializeWasPerformed      = false;
+                           mComputeTime                 = false;
+			   mInitialConditions           = false;
+                           mdamping_ratio               = damping_ratio;
+                           mfraction_delta_time         = fraction_delta_time;
+                           mmax_delta_time              = max_delta_time;
+                           molddelta_time               = 0.00;
+                           mtimestep                    = 0.00;
+                           mpScheme                     = pScheme;
 			}
       /// Destructor.
       virtual ~ExplicitSolverStrategy(){}
-      
-
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-	/*
-      void Search_Neighbours()
-          {
-             Neighbours_Calculator<TDim, ParticleType, ParticlePointerType, ParticleVectorType, ParticleWeakVectorType, ParticlePointerVectorType,
-             ParticleWeakIteratorType, ParticleIteratorType, ParticlePointerIteratorType, DistanceVectorType, DistanceIteratorType>::
-             Search_Neighbours(mListOfParticlePointers, *mModelPart, mRadiusSearch, mProximityTol);
-          }	 
-       */
-	
+       
       double Solve()
       {
 	KRATOS_TRY
@@ -164,49 +152,62 @@ namespace Kratos
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
 	
-	
+	/*
 	#ifdef _OPENMP
 	double start_prod = omp_get_wtime();   
 	#endif
-	
+	*/
         std::cout<<"------------------------------------------------------------------------"<<std::endl;
         std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           << CurrentProcessInfo[TIME_STEPS]     <<std::endl;                                                    
 	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	
+
+        //STRATEGY:
+
+        //0.PREVIOUS OPERATIONS
+
+        //ComputeCriticalTime(); //R: falta omplir questa.
+
+        //1. Get and Calculate the forces
+        GetForce();
+
+        //2. Motion Integration
+        ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
+
+        //3. Búsqueda de veins
+        SearchNeighbours(r_model_part);
+
+	
+        /*
         ///Initialize solution step
-	InitializeSolutionStep(); 
-	
-        ComputeCriticalTime();
-	
+	InitializeSolutionStep();
+
 	if(mInitialConditions==false){
 	   ComputeInitialConditions();
 	   GetForce();
 	}
-	
-        /// Predict displacements
-	ComputeIntermedialVelocityAndNewDisplacement();
-	
-	/// Computa los valores del paso de las velocidades y aceleraciones	
+
+        /// Computa los valores del paso de las velocidades y aceleraciones
         ComputeOldVelocitiesAndAccelerations();
-	
+
 	/// Actualizacion de los desplazamientos
         MoveMesh();
-	
+
         ///Computing The new internal and external forces  for n+1 step
-	GetForce();
-	
+
         ///Finalize solution step
 	FinalizeSolutionStep();
 	
 	///Computing energies
 	CalculateEnergies();
-	
+
         #ifdef _OPENMP
 	double stop_prod = omp_get_wtime();
 	std::cout << "  Time solving                                 = "<<   stop_prod - start_prod    << "  seconds" << std::endl; 
 	#endif
-	
-	std::cout <<"FINISHED SOLVE"<<std::endl;
+        */
+
+        std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
 	KRATOS_CATCH("")
 	
@@ -219,54 +220,92 @@ namespace Kratos
        //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
-          
-        typedef DiscreteElement                                                 ParticleType;
-        typedef ParticleType::Pointer                                           ParticlePointerType;
-        typedef ElementsContainerType                                           ParticleContainerType;
-        typedef WeakPointerVector<Element>                                      ParticleWeakVectorType;  //hauria de ser Discrete_Element
-        typedef typename std::vector<ParticlePointerType>                       ParticlePointerVectorType;
-        typedef WeakPointerVector<Element>::iterator                            ParticleWeakIteratorType;
-        typedef typename std::vector<ParticleType>::iterator                    ParticleIteratorType;
-        typedef typename std::vector<ParticlePointerType>::iterator             ParticlePointerIteratorType;
-        typedef std::vector<double>                                             DistanceVectorType;
-        typedef std::vector<double>::iterator                                   DistanceIteratorType;
+        //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
 
 
-        if (mdimension == 2)
-            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part);
-        else if (mdimension == 3)
-            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part);
-        
+        SearchNeighbours(r_model_part);
 
-         ///Initializing elements
+                        
+        ///Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
 	  mInitializeWasPerformed   = true;
 
+          // if (self.delta_OPTION==True or self.continuum_simulating_OPTION==True):
+          if(mdelta_option || mcontinuum_simulating_option){
+             Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
+          }
+
+
 
           KRATOS_CATCH("")
-	}
-	
-      void  ComputeCriticalTime()
-	{
-	}
-	
-	void ComputeInitialConditions()
-	{
-	}
-	
-	void InitializeSolutionStep()
-	{
-	}
+        }
 	
 	void GetForce()
 	{
+          KRATOS_TRY
+
+          //dummy variables
+          const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
+          double Output;
+          //M: aixo es una xapuza
+
+          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+          ElementsArrayType& pElements     = r_model_part.Elements();
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          unsigned int index = 0;
+
+          #pragma omp parallel for private(index)
+          for(int k=0; k<number_of_threads; k++)
+
+          {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+
+                (it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
+                //we use this function to call the calculate forces in general funct.
+
+             } //loop over particles
+
+          }// loop threads OpenMP
+
+        KRATOS_CATCH("")
+
+
+
 	}
 	
 	void ComputeIntermedialVelocityAndNewDisplacement()
 	{
+            ModelPart& r_model_part = BaseType::GetModelPart();
+            mpScheme->Calculate(r_model_part);
 	}
-	  
+
+        /*
+        void  ComputeCriticalTime()
+	{
+	}
+
+	void ComputeInitialConditions()
+	{
+	}
+
+	void InitializeSolutionStep()
+	{
+	}
 	void ComputeOldVelocitiesAndAccelerations()
 	{
 	}
@@ -282,86 +321,15 @@ namespace Kratos
 	void CalculateEnergies()
 	{
 	}
-	
+	*/
       
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
-      /* 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-      */
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
       
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+
+
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
+            
 
     const unsigned int    mdimension;
     unsigned int    minitial_conditions_size;  
@@ -374,6 +342,9 @@ namespace Kratos
     bool   mComputeTime;
     bool   mInitializeWasPerformed;
     bool   mInitialConditions;
+    bool   mdelta_option;
+    bool   mcontinuum_simulating_option;
+    
     double mdamping_ratio;
     double malpha_damp;
     double mbeta_damp; 
@@ -382,145 +353,116 @@ namespace Kratos
     double molddelta_time;
     double mtimestep;  /// la suma de los delta time
 
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
+    typename IntegrationScheme::Pointer mpScheme;
+
+     
            
       void InitializeElements()
-{
-      KRATOS_TRY
-      ModelPart& r_model_part          = BaseType::GetModelPart();
-      ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  
-      ElementsArrayType& pElements     = r_model_part.Elements(); 
-
-      Matrix MassMatrix;
-      #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-      #else
-      int number_of_threads = 1;
-       #endif
-
-      vector<unsigned int> element_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-      unsigned int index = 0;
-      
-      #pragma omp parallel for private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
-      for(int k=0; k<number_of_threads; k++)
       {
-	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	  {
-	    Element::GeometryType& geom = it->GetGeometry(); 
-	    (it)->Initialize(); 
-	    (it)->MassMatrix(MassMatrix, CurrentProcessInfo); //NELSON: fa falta????
-           
-            /*
-	    const unsigned int& dim   = geom.WorkingSpaceDimension();
-	    index = 0;
-	    for (unsigned int i = 0; i <geom.size(); i++)
-	     {
-	        double& mass = geom(i)->FastGetSolutionStepValue(NODAL_MASS);
-		index = i*dim;
-		mass  = mass + MassMatrix(index,index);
-	     }
-	     */
-	 }
-      }
-      
-     //r_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS); 
-     mElementsAreInitialized   = true;
-     KRATOS_CATCH("")
-}
-      
-       /*
-      void Set_Initial_Contacts()
-      {
-	 ///particula->GetValue(NEIGHBOUR_ELEMENTS)).push_back( *(particula.base()));
-	//  busqueda vecinos inicial amb tolerancia
-        //aqui he de guardar els veins inicials i per cada un la distancia delta de la tolerancia.
+          KRATOS_TRY
+          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements     = r_model_part.Elements();
 
-       KRATOS_TRY
+          Matrix MassMatrix;
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          unsigned int index = 0;
+
+          #pragma omp parallel for private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
+          for(int k=0; k<number_of_threads; k++)
+          {
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+              //  Element::GeometryType& geom = it->GetGeometry(); ///WARNING: COMMENTED AVOIDING WARNING COMPILATION
+                (it)->Initialize();
+                (it)->MassMatrix(MassMatrix, rCurrentProcessInfo); //NELSON: fa falta????
+             
+             }
+          }
+
+         //r_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS);
+         mElementsAreInitialized   = true;
+         KRATOS_CATCH("")
+        }
       
-       ModelPart& r_model_part          = BaseType::GetModelPart();  
-       ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
-       ElementsArrayType& pElements     = r_model_part.Elements(); 
        
-      #ifdef _OPENMP
-      int number_of_threads = omp_get_max_threads();
-      #else
-      int number_of_threads = 1;
-       #endif
-
-      vector<unsigned int> element_partition;
-      OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-     
-      unsigned int index = 0;
-      
-      #pragma omp parallel for private(index)
-      for(int k=0; k<number_of_threads; k++)
+      void Set_Initial_Contacts(const bool& delta_OPTION, const bool& continuum_simulating_OPTION)
       {
-	typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-	typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-	for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-	  {
-	    Element::GeometryType& geom = it->GetGeometry(); 
-	    (it)->Initialize(); //add , set initals...
-	    KRATOS_WATCH(geom)
-       
-       int size = pElements.size();
-
-       ///pragma omp parallel for
-
-          
-
-         } // loop over particle_it
- 
             
+          KRATOS_TRY
+
+          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+          ElementsArrayType& pElements     = r_model_part.Elements();
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          unsigned int index = 0;
+
+          #pragma omp parallel for private(index)
+          for(int k=0; k<number_of_threads; k++)
+
+          {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+                //Element::GeometryType& geom = it->GetGeometry();
+                
+                (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+              
+                           
+             } //loop over particles
+
+          }// loop threads OpenMP
+
         KRATOS_CATCH("")
+      }  //Set_Initial_Contacts
 
-	//  get continun vecinos
-      }
-   */
-      
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      //ExplicitSolverStrategy& operator=(ExplicitSolverStrategy const& rOther);
 
-      /// Copy constructor.
-      //ExplicitSolverStrategy(ExplicitSolverStrategy const& rOther);
+      void SearchNeighbours(ModelPart r_model_part)
+      {
 
-        
-      ///@}    
-        
+        typedef DiscreteElement                                                 ParticleType;
+        typedef ParticleType::Pointer                                           ParticlePointerType;
+        typedef ElementsContainerType                                           ParticleContainerType;
+        typedef WeakPointerVector<Element>                                      ParticleWeakVectorType;  //R:hauria de ser Discrete_Element??
+        typedef typename std::vector<ParticlePointerType>                       ParticlePointerVectorType;
+        typedef WeakPointerVector<Element>::iterator                            ParticleWeakIteratorType;
+        typedef typename std::vector<ParticleType>::iterator                    ParticleIteratorType;
+        typedef typename std::vector<ParticlePointerType>::iterator             ParticlePointerIteratorType;
+        typedef std::vector<double>                                             DistanceVectorType;
+        typedef std::vector<double>::iterator                                   DistanceIteratorType;
+
+
+        if (mdimension == 2)
+            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part);
+        else if (mdimension == 3)
+            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part);
+
+      }//SearchNeighbours
+
+    
     }; // Class ExplicitSolverStrategy 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
+
         
  /*
   /// input stream function
