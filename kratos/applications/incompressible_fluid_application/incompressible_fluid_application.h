@@ -31,7 +31,7 @@
 
 #include "custom_conditions/fluid3d_neumann.h"
 #include "custom_conditions/monolithic2d_neumann.h"
-//#include "custom_conditions/monolithic3d_neumann.h"
+#include "custom_conditions/monolithic3d_neumann.h"
 
 #include "custom_conditions/no_slip_condition_2d.h"
 //#include "custom_conditions/no_slip_fract_step.h"
@@ -48,11 +48,14 @@
 #include "custom_elements/NDfluid_2d_CrankNicolson.h"
 
 #include "custom_elements/asgs_2d.h"
+#include "custom_elements/v-p-precond_2d.h"
 #include "custom_elements/asgs_pr_dc_2d.h"
 #include "custom_elements/asgs_compressible_2d.h"
 #include "custom_elements/asgs_comp_pr_dc_2d.h"
 
 #include "custom_elements/asgs_3d.h"
+#include "custom_elements/asgs_3d_enriched.h"
+#include "custom_elements/asgs_3d_comp_enriched.h"
 #include "custom_elements/asgs_compressible_3d.h"
 #include "custom_elements/asgs_comp_pr_dc_3d.h"
 
@@ -124,10 +127,13 @@ KRATOS_DEFINE_VARIABLE(int, ACTIVATE_TAU2)
 
 
 
+
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RHS_VECTOR)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VECTOR)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL1)
+
 
 
 ///@}
@@ -308,13 +314,19 @@ private:
     const NDFluid3D mNDFluid3D;
     const NDFluid2DCrankNicolson mNDFluid2DCrankNicolson;
 
-    const ASGS2D mASGS2D;
-    const ASGSPRDC2D mASGSPRDC2D;
+
+        const ASGS2D mASGS2D;
+	const VP_PRECOND2D mVP_PRECOND2D;
+        const ASGSPRDC2D mASGSPRDC2D;
+
 
     const ASGSCompressible2D mASGSCompressible2D;
 
-    const ASGS3D mASGS3D;
-    const ASGSCompressible3D mASGSCompressible3D;
+
+        const ASGS3D mASGS3D;
+        const ASGS3D_ENR mASGS3D_ENR;
+        const ASGS3D_COMP_ENR mASGS3D_COMP_ENR;
+        const ASGSCompressible3D mASGSCompressible3D;
 
 
 
@@ -323,8 +335,9 @@ private:
     const ASGSCOMPPRDC2D mASGSCOMPPRDC2D;
     const ASGSCOMPPRDC3D mASGSCOMPPRDC3D;
 
-    const Monolithic2DNeumann mMonolithic2DNeumann;
-    //const Monolithic3DNeumann  mMonolithic3DNeumann;
+
+        const Monolithic2DNeumann mMonolithic2DNeumann;
+        //const Monolithic3DNeumann  mMonolithic3DNeumann;
 
 
     const Fluid2DGLS_expl mFluid2DGLS_expl;
