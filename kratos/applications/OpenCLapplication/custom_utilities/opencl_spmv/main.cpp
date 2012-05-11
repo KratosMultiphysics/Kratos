@@ -1,6 +1,7 @@
 #include <iostream>
-#include "opencl_interface.h"
+#include "../opencl_interface.h"
 #include "includes/matrix_market_interface.h"
+#include "includes/ublas_interface.h"
 
 #define ROWS_PER_WORKGROUP_BITS 5
 #define ROWS_PER_WORKGROUP (1 << ROWS_PER_WORKGROUP_BITS)
@@ -28,7 +29,7 @@ int main(int argc, char *argv[])
 
     Kratos::OpenCL::DeviceGroup DeviceGroup(CL_DEVICE_TYPE_GPU, true);
 
-    DeviceGroup.AddCLSearchPath("/home/mossaiby/kratos/applications/OpenCLapplication/custom_utilities");
+    DeviceGroup.AddCLSearchPath("../");
     cl_uint Program = DeviceGroup.BuildProgramFromFile("opencl_spmv.cl", "-cl-fast-relaxed-math");
     cl_uint Kernel = DeviceGroup.RegisterKernel(Program, "CSR_Matrix_Vector_Multiply", WORKGROUP_SIZE);
 
