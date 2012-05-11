@@ -50,13 +50,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // System includes
 
-
+ 
 // External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <boost/timer.hpp>
-
-
+ 
+ 
 // Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
@@ -70,13 +70,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-//convergence criterias
+//convergence criterias 
 //#include "custom_strategies/strategies/residualbased_fluid_strategy.h"
 #include "custom_strategies/strategies/residualbased_ND_fluid_strategy.h"
 //#include "custom_strategies/strategies/residualbased_fluid_strategy_coupled.h"
 #include "custom_strategies/strategies/residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_compressible.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_compressible_pavel.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_2step.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_crni_scheme_compressible.h"
 #include "custom_strategies/convergencecriterias/UP_criteria.h"
 #include "custom_strategies/convergencecriterias/vel_pr_criteria.h"
@@ -129,11 +131,16 @@ void AddCustomStrategiesToPython()
     typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > TConvergenceCriteriaType;
     typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
+
     typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
+    typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressiblePavel< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressiblePavelType;
+    typedef ResidualBasedPredictorCorrectorVelocityBossakScheme2step< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityBossakScheme2stepType;
     typedef ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible< SparseSpaceType, LocalSpaceType > ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType;
     typedef ExplicitResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
+
     typedef ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressible< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType;
+	   
 
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
     typedef PressureSplittingBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > PressureSplittingBuilderAndSolverType;
@@ -281,11 +288,27 @@ void AddCustomStrategiesToPython()
                 "ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
             );
 
-    class_< ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType,
+
+
+	 class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressiblePavelType,
+                    bases< BaseSchemeType >, boost::noncopyable >
+                    (
+                    "ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressiblePavel", init< double, double >()
+                    );
+
+	 class_< ResidualBasedPredictorCorrectorVelocityBossakScheme2stepType,
+                    bases< BaseSchemeType >, boost::noncopyable >
+                    (
+                    "ResidualBasedPredictorCorrectorVelocityBossakScheme2step", init< double, double >()
+                    );
+
+ class_< ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressibleType,
             bases< ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible<SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
             (
                 "ExplicitResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible", init< double, double >()
             );
+
+          
 
     class_< ResidualBasedPredictorCorrectorVelocityCrNiSchemeCompressibleType,
             bases< BaseSchemeType >, boost::noncopyable >
