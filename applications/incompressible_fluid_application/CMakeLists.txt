@@ -20,6 +20,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fluid3d_neumann.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/no_slip_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic2d_neumann.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic3d_neumann.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_2d_split.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_3d.cpp 
@@ -36,6 +37,9 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_3dGLS_expl_comp.cpp   
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_2d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d_enriched.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d_comp_enriched.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/v-p-precond_2d.cpp   	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_pr_dc_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_compressible_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_compressible_3d.cpp
