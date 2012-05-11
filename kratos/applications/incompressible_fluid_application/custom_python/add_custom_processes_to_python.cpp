@@ -108,6 +108,30 @@ void  AddCustomProcessesToPython()
     class_<ChooseElementProcess, bases<Process>  >("ChooseElementProcess",init<ModelPart& , unsigned int,char*, char* >())
     ;
 
+
+	class_<ApplyProjDirichletProcess, bases<Process> >("ApplyProjDirichletProcess", init<>())
+		   .def("ApplyProjDirichlet", &ApplyProjDirichletProcess::ApplyProjDirichlet)
+		 ;
+	class_<FindIntersectionsProcess, bases<Process> >("FindIntersectionsProcess", init<>())
+		   .def("FindIntersectionOfEdges", &FindIntersectionsProcess::FindIntersectionOfEdges)
+		 ;
+	class_<FindInterfaceProcess, bases<Process> >("FindInterfaceProcess", init<>())
+			.def("FindInterface", &FindInterfaceProcess::FindInterface)
+		 ;
+	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
+		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
+		   //.def("SaveReducedPart1", &SubdomainDisableProcess::SaveReducedPart1)
+		 ;	
+	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
+		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
+		 ;
+		 
+	class_<GenerateSlipConditionProcess, bases<Process> >("GenerateSlipConditionProcess", init<ModelPart&, int >())
+		    .def("Execute", &GenerateSlipConditionProcess::Execute)
+		    .def("SetNormalVelocityToZero", &GenerateSlipConditionProcess::SetNormalVelocityToZero)
+		    .def("ApplyEdgeConstraints", &GenerateSlipConditionProcess::ApplyEdgeConstraints)
+		 ;
+
     class_<CFLProcess <2>, bases<Process> >("CFLProcess2D", init<ModelPart&>())
     .def("EstimateTime", &CFLProcess<2>::EstimateTime)
     ;
