@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     0.9- 13/05/12-G. Socorro, modify the proc WriteFluidIsSlipBC to use the dictionary ctbclink to link conditions 
+#                               with the No-Slip boundary condition
 #     0.8- 10/05/12-G. Socorro, correct a bug for 3D case when write IS-SLIP boundary condition
 #     0.7- 08/05/12-G. Socorro, update the condition IS-SLIP to delete the fixity value
 #     0.6- 06/05/12-G. Socorro, modify the procs WriteFluidProjectParameters and WriteFluidSolvers to write using the 
@@ -1066,7 +1068,7 @@ proc ::wkcf::WriteFluidFlagVariableBC_m0 {AppId flagvariablelist} {
 proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
     # ASTRACT: Write is-slip boundary conditions => Conditional data
     variable dprops; variable wmethod 
-    variable ndime
+    variable ndime; variable ctbclink
     
     # For debug
     if {!$::wkcf::pflag} {
@@ -1085,22 +1087,38 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	    set f ""
 	    dict set gprop $cgroupid "$f"
 	    if {$ndime == "2D"} {
-		if {[write_calc_data has_elements -elemtype "Linear" $gprop]} {
+		set GiDElemType "Linear"
+		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
 		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
-		    write_calc_data connectivities -sorted $gprop
+		    # write_calc_data connectivities -sorted $gprop
+		    foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+			# Check that exists this element in the dictionary with the condition indentifier links
+			if {[dict exists $ctbclink $elemid]} {
+			    set condid [dict get $ctbclink $elemid]
+			    write_calc_data puts "[format "%10d %4d" $condid $cfixval]"
+			}
+		    }
 		    write_calc_data puts "End ConditionalData"
 		    write_calc_data puts ""
 		}
 	    } elseif {$ndime == "3D"} {
-		if {[write_calc_data has_elements -elemtype "Triangle" $gprop]} {
+		set GiDElemType "Triangle"
+		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
 		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
-		    write_calc_data connectivities -sorted $gprop
+		    # write_calc_data connectivities -sorted $gprop
+		    foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+			# Check that exists this element in the dictionary with the condition indentifier links
+			if {[dict exists $ctbclink $elemid]} {
+			    set condid [dict get $ctbclink $elemid]
+			    write_calc_data puts "[format "%10d %4d" $condid $cfixval]"
+			}
+		    }
 		    write_calc_data puts "End ConditionalData"
 		    write_calc_data puts ""
 		} 
