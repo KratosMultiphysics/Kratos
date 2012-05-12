@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     1.9- 13/05/12-G. Socorro, set/unset the local variable ctbclink (condition to bc linker)
 #     1.8- 07/05/12-G. Socorro, add the CleanAutomatic, CleanAutomaticConditionGroup and AssignConditionToGroup
 #     1.7- 20/04/12-G. Socorro, update the proc GetBoundaryConditionProperties to include is-slip and walllaw boundary conditions
 #     1.6- 10/03/12-G. Socorro, pass some proc to fluid or structural analysis script (WriteFluidSolvers,etc.)
@@ -116,6 +117,10 @@ proc ::wkcf::Preprocess {} {
 
     # Debug/Release variable [0 => Debug, 1 => Release] Timers
     set pflag 1
+
+    # Conditions to BC link
+    variable ctbclink
+    set ctbclink [dict create]
 
     # ::WinUtils::PrintArray dprops
 }
@@ -720,14 +725,18 @@ proc ::wkcf::GetElementProperties {} {
 }
 
 proc ::wkcf::UnsetLocalVariables {} {
-    variable dprops
-    variable AppId
-   
+    variable dprops;    variable AppId
+    variable ctbclink
+  
     if {[info exists AppId]} {
 	unset AppId
     }
     if {[info exists dprops]} {
 	unset dprops
+    }
+ 
+    if {[info exists ctbclink]} {
+	unset ctbclink
     }
 }
 
