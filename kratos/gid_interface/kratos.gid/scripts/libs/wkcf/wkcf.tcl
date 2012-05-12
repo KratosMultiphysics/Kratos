@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     4.8- 13/05/12-G. Socorro, create a new variable to link the conditions with others BC applied are the boundary of the body
 #     4.7- 10/05/12-G. Socorro, comment a warning message in the proc WriteConditions
 #     4.6- 09/05/12-G. Socorro, update the procedure WriteElementConnectivities to write the format for each gid element type
 #     4.5- 08/05/12-G. Socorro, change IS-SLIP keyword by IS_STRUCTURE, propose by Riccardo Rossi, update the proc WriteConditions write condid from 1 to n
@@ -87,6 +88,9 @@ namespace eval ::wkcf:: {
     # Properties array
     variable dprops
     
+    # Conditions to BC link
+    variable ctbclink
+
     # Debug/Release variable
     variable pflag 
     
@@ -669,9 +673,14 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 proc ::wkcf::WriteConditions {AppId} {
     # ABSTRACT: Write condition properties
     variable dprops; variable ndime
-    
+    variable ctbclink
+
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
 	set fixval "0"
 	# Write conditions
 	if {$ndime =="2D"} {
@@ -692,6 +701,9 @@ proc ::wkcf::WriteConditions {AppId} {
 		    incr condid 1 
 		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
 		    write_calc_data puts "[format "%10d %4d %10d %10d" $condid $cfixval $nodei $nodej]"
+		    
+		    # Update the link between the condition id. and the BC element id
+		    dict set ctbclink $elemid $condid
 		}
 		write_calc_data puts "End Conditions"
 		write_calc_data puts ""
@@ -716,11 +728,22 @@ proc ::wkcf::WriteConditions {AppId} {
 		    incr condid 1 
 		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
 		    write_calc_data puts "[format "%10d %4d %10d %10d %10d" $condid $cfixval $nodei $nodej $nodek]"
+
+		    # Update the link between the condition id. and the BC element id
+		    dict set ctbclink $elemid $condid
 		}
 		write_calc_data puts "End Conditions"
 		write_calc_data puts ""
 	    }
 	    unset gprop
+	}
+
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    # WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Write conditions: [::KUtils::Duration $ttime]"
 	}
     }
 }
