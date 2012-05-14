@@ -15,7 +15,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MASS)
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ZETA)
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
@@ -52,11 +52,11 @@ class ExplicitStrategy:
         self.MoveMeshFlag                   = True;
         self.time_scheme                    = FowardEulerScheme();
         self.gravity                        = (0.0,-9.81,0.0)
-        self.delta_time                     = 0.0001;
+        self.delta_time                     = 0.00001;
 
         #type of problem:
 
-        self.delta_OPTION                   = False
+        self.delta_OPTION                   = True
         self.continuum_simulating_OPTION    = False
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
 
@@ -66,6 +66,8 @@ class ExplicitStrategy:
         self.damp_id                        =1
         self.solver_id                      =1
         self.search_radius_extension        = 0.0
+
+        self.dummy_switch                   =0
 
       
     #######################################################################
@@ -100,6 +102,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)    #M: = a type_id
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)                                   #M: = a damp_type
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+
+        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         #self.model_part.ProcessInfo.SetValue(SOLVER_ID, self.solver_id) AIXO NO ES TA FET PERO NOSE SI SA DE FER AIXI O NO.
 
 

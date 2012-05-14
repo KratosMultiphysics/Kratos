@@ -93,12 +93,14 @@ namespace Kratos
      void Calculate(ModelPart& model_part)
      {
         KRATOS_TRY
-        	
+
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  CurrentProcessInfo[DELTA_TIME];  
+	double delta_t =  CurrentProcessInfo[DELTA_TIME];
+        KRATOS_WATCH(delta_t)
+
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
 	NodesArrayType::iterator it_end   = pNodes.ptr_end();
@@ -113,21 +115,33 @@ namespace Kratos
 	  NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
 	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	  {
+               
 	     array_1d<double, 3 > & vel          = i->FastGetSolutionStepValue(VELOCITY);
 	     array_1d<double, 3 > & displ        = i->FastGetSolutionStepValue(DISPLACEMENT);
 	     array_1d<double, 3 > & coor         = i->Coordinates();
   	     array_1d<double, 3 > & initial_coor = i->GetInitialPosition();
   	     array_1d<double, 3 > & force        = i->FastGetSolutionStepValue(FORCE);
-	     const double& mass                  = i->FastGetSolutionStepValue(NODAL_MASS); 
+	     const double mass                  = i->FastGetSolutionStepValue(NODAL_MASS);
+
 	     aux = delta_t / mass;
-	     
+
+
+             KRATOS_WATCH(i->Id())
+             KRATOS_WATCH(mass)
+             KRATOS_WATCH(vel)
+             KRATOS_WATCH(displ)
+             KRATOS_WATCH(coor)
+             KRATOS_WATCH(initial_coor)
+             KRATOS_WATCH(force)
+             KRATOS_WATCH("-----------------")
+
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
              {
 	         vel[0]    += aux * force[0]; 
 	         displ[0]  += delta_t * vel[0];  
 	         coor[0]   += initial_coor[0] + displ[0];
-	     }
+             }
 	     
 	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
              {

@@ -59,7 +59,7 @@ namespace Kratos {
 
             typedef WeakPointerVector<Element>                      ParticleWeakVector;
             typedef typename ParticleWeakVector::iterator           ParticleWeakIterator;
-
+            typedef ParticleWeakVector::ptr_iterator ParticleWeakIteratorType_ptr;
 /*
             //typedef PointerVector<Particle>                    ParticleVector;
             typedef WeakPointerVector<Particle>                ParticleWeakVector;
@@ -73,7 +73,7 @@ namespace Kratos {
             typedef std::vector<double>                        DistanceVector;
             typename DistanceVector::iterator                  DistanceIterator;
 
-            
+
 
         typedef std::vector<array_1d<double, 3 > > TangDisplacementsVectorType;
         typedef TangDisplacementsVectorType::iterator TangDisplacementsIteratorType;
@@ -99,13 +99,42 @@ namespace Kratos {
             KRATOS_TRY
             //typedef ModelPart::ElementsContainerType LocalParticleVector;
 
-            ProcessInfo& CurrentProcessInfo     = r_model_part.GetProcessInfo();
-            ContainerType& pElements            = r_model_part.ElementsArray();
-            const double radius_extend          = CurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
-            const bool delta_OPTION             = CurrentProcessInfo[DELTA_OPTION];
-           // bool delta_OPTION = true;
+            ProcessInfo& rCurrentProcessInfo         = r_model_part.GetProcessInfo();
+            ContainerType& pElements                = r_model_part.ElementsArray();
+            const double radius_extend              = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
+            const int case_OPTION                   = rCurrentProcessInfo[CASE_OPTION];
+            bool delta_OPTION                 = false;
+            bool continuum_simulating_OPTION  = false;
 
-                    
+
+
+            /* as we don't accept bool variables we need the CASE_OPTION
+             * this has to be improved...
+             */
+
+            switch (case_OPTION)
+            {
+                case 0:
+                    delta_OPTION                    =   false;
+                    continuum_simulating_OPTION     =   false;
+                    break;
+                case 1:
+                    delta_OPTION                    =   true;
+                    continuum_simulating_OPTION     =   false;
+                    break;
+                case 2:
+                    delta_OPTION                    =   true;
+                    continuum_simulating_OPTION     =   true;
+                    break;
+                case 3:
+                    delta_OPTION                    =   false;
+                    continuum_simulating_OPTION     =   true;
+                    break;
+                default:
+                    delta_OPTION                    =   false;
+                    continuum_simulating_OPTION     =   false;
+            }
+                         
             
             boost::timer kdtree_construction;
             
@@ -131,7 +160,7 @@ namespace Kratos {
                 particle_pointer_it != pElements.end(); ++particle_pointer_it)
 
             {
-         
+       
                 Element::GeometryType& geom         =(*particle_pointer_it)->GetGeometry();
                 double search_radius = (1+radius_extend) *geom(0)->GetSolutionStepValue(RADIUS);
           
@@ -155,10 +184,10 @@ namespace Kratos {
 
           // SAVING THE OLD NEIGHBOURS, FORCES, FAILURE TYPES AND NUMBER OF NEIGHBOURS.
 
-                               size_t num_neighbours = (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS);
+                               int num_neighbours = (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS);
 
                                const int& particle_id = (*particle_pointer_it)->Id();
-
+                               KRATOS_WATCH("NOVA BUSQUEDA")
                                KRATOS_WATCH(particle_id)
                                KRATOS_WATCH(search_radius)
                                KRATOS_WATCH((*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS))
@@ -168,6 +197,7 @@ namespace Kratos {
                                 {
 
                                 KRATOS_WATCH((*iterador_out)->Id())
+                                KRATOS_WATCH((*iterador_out)->GetGeometry()(0)->Coordinates() )
 
                                 }
 
@@ -212,14 +242,13 @@ namespace Kratos {
 
                            (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
 
-                            // LOOP TO EXTEND THE VECTORS AND SET A 0.0 VALUE EACH TIME
+                           // LOOP TO EXTEND THE VECTORS AND SET A 0.0 VALUE EACH TIME
 
                             size_t Notemp = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size(); //Notemp its an index that will be amplified for every step of the loop as the NEIGHBOUR_ELEMENTS.size() is getting larger
  
    
                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1] = ZeroVector(3);
- 
-                        
+                         
                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1] = 1;
    
                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[Notemp-1] = 0.0;
@@ -236,7 +265,7 @@ namespace Kratos {
                                    
                                     if ( (old_neighbour.base())->expired() == false )
                                     {
-                                        //if ((*neighbour_it)->Id() == old_neighbour->Id() )  // MIQUEL COMPROBA SI EL TROBES O NO
+                                       if ((*neighbour_it)->Id() == old_neighbour->Id() )  // MIQUEL COMPROBA SI EL TROBES O NO
                                         {
                                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][0] = TempContactForce[OldNeighbourCounter][0];
                                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][1] = TempContactForce[OldNeighbourCounter][1];
@@ -254,35 +283,35 @@ namespace Kratos {
 
                         
 
-                        if(delta_OPTION)
-                        {
+                            if(delta_OPTION)
+                            {
 
                             //r: FALTA REVISAR
 
 
-                            // LOOP OVER THE INITIAL NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN INITIAL ONE AND THEN COPYING THE DELTA DATA
-                            int InitialNeighboursCounter = 0;
+                                // LOOP OVER THE INITIAL NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN INITIAL ONE AND THEN COPYING THE DELTA DATA
+                                int InitialNeighboursCounter = 0;
                                     
-                                for (ParticleWeakIterator ini_neighbour = ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).begin(); ini_neighbour != ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).end(); ini_neighbour++)
+                                    for (ParticleWeakIterator ini_neighbour = ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).begin(); ini_neighbour != ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).end(); ini_neighbour++)
 
-                                    {
-                                      
-                                        if ( (ini_neighbour.base())->expired() == false )
                                         {
-                                            if ((*neighbour_it)->Id() == ini_neighbour->Id())  // IF IT'S AN INITIAL NEIGHBOUR //POOOOOYAN, ESTARA BÉ AIXO???? TINDRAN DIFERENTS IDS??? INI NEIGH TINDRA ID??
+                                      
+                                            if ( (ini_neighbour.base())->expired() == false )
                                             {
+                                                if ((*neighbour_it)->Id() == ini_neighbour->Id())  // IF IT'S AN INITIAL NEIGHBOUR //POOOOOYAN, ESTARA BÉ AIXO???? TINDRAN DIFERENTS IDS??? INI NEIGH TINDRA ID??
+                                                {
                                              
-                                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[Notemp] =  (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[InitialNeighboursCounter];
+                                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[Notemp] =  (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[InitialNeighboursCounter];
 
-                                        break;
+                                            break;
 
 
+                                        }
                                     }
-                                }
-                                InitialNeighboursCounter++;
-                            } // for initial neighbours
-                        }//deltaOPTION
-                    
+                                    InitialNeighboursCounter++;
+                                } // for initial neighbours
+                            }//deltaOPTION
+            
 
                         }//end of the: if((*particle_pointer_it)->Id() != (*neighbour_it)->Id()
 
@@ -301,10 +330,7 @@ namespace Kratos {
 
 			{
 
-                          KRATOS_WATCH("HOLAA1")
-
-
-			 if (TempContactFailureId[TempNeighbourCounter] == 0) // if they are not detached.
+                       if (TempContactFailureId[TempNeighbourCounter] == 0) // if they are not detached.
 			    {
 			      if ( (temp_neighbour.base())->expired() == false )
 				

@@ -148,6 +148,8 @@ namespace Kratos
       double Solve()
       {
 	KRATOS_TRY
+
+                       
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
@@ -222,10 +224,8 @@ namespace Kratos
         ModelPart& r_model_part           = BaseType::GetModelPart();
         //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
 
-
         SearchNeighbours(r_model_part);
-
-                        
+                       
         ///Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
@@ -233,10 +233,8 @@ namespace Kratos
 
           // if (self.delta_OPTION==True or self.continuum_simulating_OPTION==True):
           if(mdelta_option || mcontinuum_simulating_option){
-             Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
+              Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
           }
-
-
 
           KRATOS_CATCH("")
         }
@@ -274,8 +272,8 @@ namespace Kratos
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
-
-                (it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
+                              
+                        (it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
                 //we use this function to call the calculate forces in general funct.
 
              } //loop over particles
@@ -292,7 +290,15 @@ namespace Kratos
 	{
             ModelPart& r_model_part = BaseType::GetModelPart();
             mpScheme->Calculate(r_model_part);
-	}
+	
+            
+         
+
+
+
+
+
+        }
 
         /*
         void  ComputeCriticalTime()
@@ -361,10 +367,10 @@ namespace Kratos
       {
           KRATOS_TRY
           ModelPart& r_model_part          = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements     = r_model_part.Elements();
 
-          Matrix MassMatrix;
+          //Matrix MassMatrix;
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
           #else
@@ -373,9 +379,9 @@ namespace Kratos
 
           vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-          unsigned int index = 0;
+          //unsigned int index = 0;
 
-          #pragma omp parallel for private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
+          #pragma omp parallel for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
           for(int k=0; k<number_of_threads; k++)
           {
             typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
@@ -384,7 +390,7 @@ namespace Kratos
               {
               //  Element::GeometryType& geom = it->GetGeometry(); ///WARNING: COMMENTED AVOIDING WARNING COMPILATION
                 (it)->Initialize();
-                (it)->MassMatrix(MassMatrix, rCurrentProcessInfo); //NELSON: fa falta????
+                //(it)->MassMatrix(MassMatrix, rCurrentProcessInfo); //NELSON: fa falta????
              
              }
           }
@@ -427,12 +433,15 @@ namespace Kratos
                 //Element::GeometryType& geom = it->GetGeometry();
                 
                 (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
-              
-                           
+                                           
              } //loop over particles
 
           }// loop threads OpenMP
 
+        //modifying a switch
+
+         rCurrentProcessInfo[DUMMY_SWITCH]++;
+         
         KRATOS_CATCH("")
       }  //Set_Initial_Contacts
 
