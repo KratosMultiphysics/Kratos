@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#   1.0- 14/05/12-J. Garate, corrected bug, material combobox
 #   0.9- 30/03/12-G. Socorro, add the variables TreeMatsPath and NbMatsPath
 #   0.8- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
 #   0.7- 07/06/11 GS, add composite and plastic material to the structural analysis application
@@ -1118,7 +1119,7 @@ proc ::KMat::cmbSelectChange { item T {remove 1} {selectVal current}  } {
     if { !$remove } {
 	#::KMat::refreshTree $T
     }
-    ::KMat::refreshTree $T
+    #::KMat::refreshTree $T
 }
 
 proc ::KMat::cmbCancel { item T  } {
