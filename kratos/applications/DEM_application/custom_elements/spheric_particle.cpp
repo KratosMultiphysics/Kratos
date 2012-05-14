@@ -49,14 +49,19 @@ namespace Kratos
 
         mDimension = this->GetGeometry().WorkingSpaceDimension();
 
-        double density   = GetGeometry()(0)->FastGetSolutionStepValue(DENSITY);
-        double radius   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-        double & mass   = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+        double density   = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
+        double radius    = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double& mass     = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
         
         if(mDimension ==2)
         {
             mass     = M_PI * radius * radius * density;
 
+
+            KRATOS_WATCH(GetGeometry()(0)->Id())
+            KRATOS_WATCH(GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS))
+            KRATOS_WATCH("-----------------")
+                    
             mRealMass = mass;
 
             mInertia = 0.25 * M_PI * radius * radius * radius  * radius ;
@@ -99,20 +104,19 @@ namespace Kratos
       void SphericParticle::SetInitialContacts(int case_opt) //vull ficar que sigui zero si no son veins cohesius.
       {
 
-          //KRATOS_WATCH("AAAAAAAAAAAAAAAAAAAAAA")
-
+          
           // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
           Node<3>& my_node = GetGeometry()[0];
            //typedef WeakPointerVector<SphericContinuumParticle > ParticleWeakVectorType;  // per exemple per als initials neighbours teniem definida akest tipus pero.. on ho hauria de fer el el typedef, en el h del objecte oi=??
 
-           ParticleWeakVectorType& r_neighbours             = my_node.GetValue(NEIGHBOUR_ELEMENTS);
-           ParticleWeakVectorType& r_initial_neighbours     = my_node.GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
-           
-           vector<int>& r_VectorContactFailureId            = my_node.GetValue(PARTICLE_CONTACT_FAILURE_ID);
+           ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
+           ParticleWeakVectorType& r_initial_neighbours     = this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
+          
+           vector<int>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID);
            r_VectorContactFailureId.resize(r_neighbours.size());
 
-           vector<double>& r_VectorContactInitialDelta       = my_node.GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
+           vector<double>& r_VectorContactInitialDelta       = this->GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
            r_VectorContactInitialDelta.resize(r_neighbours.size()); //the initial neighbours are the neighbours at the first step.
 
            unsigned int i=0;
@@ -132,6 +136,8 @@ namespace Kratos
 
                     double radius_sum                   = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS) + ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                     double initial_delta                = radius_sum - distance;
+
+                    KRATOS_WATCH(initial_delta)
 
                     int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_CONTINUUM);
 
@@ -562,7 +568,7 @@ namespace Kratos
             //M: si mFailureId = 1 already I think we dont need to do GetFailureId() = mFailureId; becouse the h declatation will be applyied for new objects of the class.
          KRATOS_CATCH("")
 
-        }
+        }//ComputeForcesGeneral
 
 
         void SphericParticle::SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
@@ -587,15 +593,14 @@ namespace Kratos
         {
 
           int case_opt         = rCurrentProcessInfo[CASE_OPTION];
+          int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
 
           if( (mSwitch==0) && (case_opt!=0) ){
 
                   SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
 
-              mSwitch++;
           }
-
-
+          
         }
         void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
 
@@ -603,7 +608,7 @@ namespace Kratos
 
             if(rVariable==DUMMY_FORCES) {
 
-                ComputeForcesGeneral(rCurrentProcessInfo); //ERROR PK ES CONST AIXO????
+                ComputeForcesGeneral(rCurrentProcessInfo); 
             }
         }
 
