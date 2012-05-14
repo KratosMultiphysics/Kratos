@@ -226,7 +226,8 @@ public:
 
         mEps.resize(n_nodes);
         mr_matrix_container.SetToZero(mEps);
-        //mD.resize(n_nodes); mr_matrix_container.SetToZero(mD);
+//         mD.resize(n_nodes); 
+// 	mr_matrix_container.SetToZero(mD);
         mA.resize(n_nodes);
         mr_matrix_container.SetToZero(mA);
         mB.resize(n_nodes);
@@ -392,7 +393,7 @@ public:
         mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-        mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+//         mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
@@ -501,6 +502,17 @@ public:
 
         KRATOS_CATCH("")
     }
+    
+    void ApplySmagorinsky(double MolecularViscosity, double Cs)
+    {
+      if(Cs != 0)
+      {
+	 if(TDim == 3)
+	   ApplySmagorinsky3D(MolecularViscosity, Cs);
+	 else
+	   KRATOS_ERROR(std::logic_error,"smagorinsky not yet implemented in 2D","");
+      }
+    }
 
     void UpdateFixedVelocityValues()
     {
@@ -550,7 +562,7 @@ public:
         mr_matrix_container.FillOldScalarFromDatabase(PRESSURE, mPn, rNodes);
 
         mr_matrix_container.FillScalarFromDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
-        mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
+//         mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
@@ -2141,7 +2153,7 @@ public:
         mphi_n1.clear();
 
         mEps.clear();
-        //mD.clear();
+//         mD.clear();
         mA.clear();
         mB.clear();
         mdiv_error.clear();
@@ -2790,7 +2802,7 @@ private:
     IndicesVectorType mcorner_nodes;
 
     ValuesVectorType mEps;
-    ValuesVectorType mD;
+//     ValuesVectorType mD;
     ValuesVectorType mA;
     ValuesVectorType mB;
 
@@ -3230,24 +3242,35 @@ private:
         KRATOS_CATCH("")
     }
 
-    double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps, const double& d)
+//     double ComputePorosityCoefficient(const double& viscosity, const double& vel_norm, const double& eps, const double& d)
+//     {
+//         //             const double d = 0.01; //to be changed
+//         double linear;
+//         double non_linear;
+//         if (eps < 1.0)
+//         {
+//             double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
+//             linear = eps * viscosity * k_inv;
+//             non_linear = (1.75 * vel_norm) * sqrt(k_inv / (150.0 * eps));
+//             //             double linear = viscosity * k_inv;
+//             //             double non_linear = (1.75 * vel_norm / eps) * sqrt(k_inv / (150.0 * eps));
+//         }
+//         else
+//         {
+//             linear = 0.0;
+//             non_linear = 0.0;
+//         }
+//         return linear + non_linear;
+//     }
+    
+        double ComputePorosityCoefficient(const double& vel_norm, const double& eps, const double& a, const double& b)
     {
-        //             const double d = 0.01; //to be changed
         double linear;
         double non_linear;
-        if (eps < 1.0)
-        {
-            double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
-            linear = eps * viscosity * k_inv;
-            non_linear = (1.75 * vel_norm) * sqrt(k_inv / (150.0 * eps));
-            //             double linear = viscosity * k_inv;
-            //             double non_linear = (1.75 * vel_norm / eps) * sqrt(k_inv / (150.0 * eps));
-        }
-        else
-        {
-            linear = 0.0;
-            non_linear = 0.0;
-        }
+
+        linear = eps * a;
+        non_linear =  eps * b * vel_norm;
+
         return linear + non_linear;
     }
 
@@ -3388,6 +3411,95 @@ private:
 
             }
         }
+    }
+    
+    
+    
+    void ApplySmagorinsky3D(double MolecularViscosity, double Cs)
+    {
+      KRATOS_TRY
+      
+      ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+      
+      //calculating the RHS
+        array_1d<double, TDim> grad_vx;
+        array_1d<double, TDim> grad_vy;
+	array_1d<double, TDim> grad_vz;
+	int n_nodes = rNodes.size();
+	
+	mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
+	
+        array_1d<double, TDim> stab_high;
+        #pragma omp parallel for private(grad_vx,grad_vy,grad_vz)
+        for (int i_node = 0; i_node < n_nodes; i_node++)
+        {
+	  //set to zero the gradients
+	  for (unsigned int comp = 0; comp < TDim; comp++)
+	  {
+                    grad_vx[comp] = 0.0 ;
+		    grad_vy[comp] = 0.0 ;
+		    grad_vz[comp] = 0.0 ;
+	  }
+	  
+	  //compute node by node the gradients
+	  const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+	  const double h = mHmin[i_node];
+	  const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+	  
+	  for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+                {
+                    unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+                    const array_1d<double, TDim>& U_j = mvel_n1[j_neighbour];
+
+                    CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
+
+                    edge_ij.Add_grad_p(grad_vx, U_i[0], U_j[0]);
+                    edge_ij.Add_grad_p(grad_vy, U_i[1], U_j[1]);
+		    edge_ij.Add_grad_p(grad_vz, U_i[2], U_j[2]);
+		    
+		    
+		}
+		
+	   //finalize computation of the gradients
+	  //set to zero the gradients
+	  for (unsigned int comp = 0; comp < TDim; comp++)
+	  {
+                    grad_vx[comp] *= m_inv ;
+		    grad_vy[comp] *= m_inv ;
+		    grad_vz[comp] *= m_inv ;
+	  }
+	  
+	  //symmetrize and multiply by 2
+	  grad_vx[1] += grad_vy[0]; 
+	  grad_vx[2] += grad_vz[0];
+	  grad_vy[2] += grad_vz[1]; 
+	  grad_vy[0] = grad_vx[1];
+	  grad_vz[0] = grad_vx[2];
+	  grad_vz[1] = grad_vy[2];
+	  
+	  //compute smagorinsky term
+	  double aux = 0.0;
+	  for (unsigned int comp = 0; comp < TDim; comp++)
+	  {
+                    aux += grad_vx[comp] * grad_vx[comp] ;
+		    aux += grad_vy[comp] * grad_vy[comp] ;
+		    aux += grad_vz[comp] * grad_vz[comp] ;
+	  }		  
+	  aux *= 0.5; 
+	  if(aux < 0.0 ) aux=0.0;
+	  
+	  double turbulent_viscosity = Cs*h*h*sqrt(aux);
+	  
+// 	  KRATOS_WATCH(aux);
+// 	  KRATOS_WATCH(turbulent_viscosity);
+	  
+	  mViscosity[i_node] = turbulent_viscosity + MolecularViscosity;
+	   
+	}
+		
+	mr_matrix_container.WriteScalarToDatabase(VISCOSITY, mViscosity, rNodes);
+  
+      KRATOS_CATCH("");
     }
 
 

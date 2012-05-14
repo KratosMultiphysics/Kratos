@@ -161,6 +161,7 @@ void  AddCustomEdgeBasedLevelSetToPython()
     .def("ComputeVolumeVariation",&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
     .def("ComputeWetVolume"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
     .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
+    .def("ApplySmagorinsky"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ApplySmagorinsky)
 //                           .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
     ;
 
@@ -187,6 +188,7 @@ void  AddCustomEdgeBasedLevelSetToPython()
     .def("ComputeVolumeVariation",&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeVolumeVariation)
     .def("ComputeWetVolume"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeWetVolume)
     .def("DiscreteVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::DiscreteVolumeCorrection)
+    .def("ApplySmagorinsky"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ApplySmagorinsky)
 //                           .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
     ;
 

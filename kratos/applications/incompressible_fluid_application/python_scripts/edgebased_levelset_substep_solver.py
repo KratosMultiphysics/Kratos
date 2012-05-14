@@ -14,9 +14,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POROSITY)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
 
-
-#    model_part.AddNodalSolutionStepVariable(ACCELERATION)
-    model_part.AddNodalSolutionStepVariable(DIAMETER)
+    model_part.AddNodalSolutionStepVariable(DIAMETER);
+    model_part.AddNodalSolutionStepVariable(LIN_DARCY_COEF);
+    model_part.AddNodalSolutionStepVariable(NONLIN_DARCY_COEF);
 
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
