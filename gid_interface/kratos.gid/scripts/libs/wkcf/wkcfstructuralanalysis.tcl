@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     0.7- 14/05/12-G. Socorro, modify the proc WriteDispRotBC_m1 to write many groups with displacement/rotation bc
 #     0.6- 06/05/12-G. Socorro, update the proc WritePressureLoads to write using the fast method (write_calc_data)   
 #     0.5- 05/05/12-G. Socorro, improve the proc WriteDispRotBC to write using the fast method (write_calc_data)
 #     0.4- 20/04/12-J. Garate, Acabada ::wkcf::WritePuntualLoads_m1, empezada Pressure
@@ -47,19 +48,19 @@ proc ::wkcf::WriteDispRotBC_m1 {AppId ccondid kwordlist} {
     # Write displacements or rotation boundary condition
     variable ndime; variable dprops
 
-    # Create the dictionary formats
-    set gpropdx [dict create]
-    set gpropdy [dict create]
-    if {$ndime eq "3D"} {
-	set gpropdz [dict create]
-    }
-    
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	    
 	# Get the condition properties
 	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fix_x xval fix_y yval fix_z zval
 	# WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval
+
+	# Create the dictionary formats
+	set gpropdx [dict create]
+	set gpropdy [dict create]
+	if {$ndime eq "3D"} {
+	    set gpropdz [dict create]
+	}
 		
 	# For X
 	set f "%10i [format "%4i" $fix_x] [format "%10.5f" $xval]\n"
@@ -102,13 +103,15 @@ proc ::wkcf::WriteDispRotBC_m1 {AppId ccondid kwordlist} {
 	    write_calc_data puts "End NodalData"
 	    write_calc_data puts ""        
 	}
+
+	# Unset Local Variables
+	unset gpropdx
+	unset gpropdy
+	if {$ndime ne "2D"} {
+	    unset gpropdz
+	}
     }  
-    # Unset Local Variables
-    unset gpropdx
-    unset gpropdy
-    if {$ndime ne "2D"} {
-	unset gpropdz
-    }
+   
 }
 
 proc ::wkcf::WriteDispRotBC_m0 {AppId ccondid kwordlist} {
