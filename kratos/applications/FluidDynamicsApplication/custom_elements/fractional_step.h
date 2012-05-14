@@ -276,6 +276,76 @@ namespace Kratos
         virtual void GetDofList(DofsVectorType& rElementalDofList,
                                 ProcessInfo& rCurrentProcessInfo);
 
+        /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
+        /**
+         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
+         * @param rVariable Kratos vector variable to get
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                std::vector<array_1d<double, 3 > >& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+            this->GetElementalValueForOutput< array_1d<double,3> >(rVariable,rValues);
+        }
+
+        /// Obtain a double elemental variable, evaluated on gauss points.
+        /**
+         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
+         * @param rVariable Kratos vector variable to compute
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                std::vector<double>& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+            this->GetElementalValueForOutput<double>(rVariable,rValues);
+        }
+
+        /// Obtain a double elemental variable, evaluated on gauss points.
+        /**
+         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
+         * @param rVariable Kratos vector variable to compute
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                std::vector<array_1d<double, 6 > >& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+            this->GetElementalValueForOutput< array_1d<double,6> >(rVariable,rValues);
+        }
+
+        /// Obtain a double elemental variable, evaluated on gauss points.
+        /**
+         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
+         * @param rVariable Kratos vector variable to compute
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                std::vector<Vector>& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+            this->GetElementalValueForOutput< Vector >(rVariable,rValues);
+        }
+
+        /// Obtain a double elemental variable, evaluated on gauss points.
+        /**
+         * Implemented for a single gauss point only, gets the value of chosen variable in the elemental database
+         * @param rVariable Kratos vector variable to compute
+         * @param Output Will be filled with the values of the variable on integrartion points
+         * @param rCurrentProcessInfo Process info instance
+         */
+        virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                std::vector<Matrix>& rValues,
+                const ProcessInfo& rCurrentProcessInfo)
+        {
+            this->GetElementalValueForOutput< Matrix >(rVariable,rValues);
+        }
+
         ///@}
         ///@name Access
         ///@{
@@ -538,6 +608,25 @@ namespace Kratos
             }
         }
 
+        /// Helper function to print results on gauss points
+        /** Reads a variable from the element's database and returns it in a format
+          * that can be used by GetValueOnIntegrationPoints functions.
+          * @see GetValueOnIntegrationPoints
+          */
+        template<class TValueType>
+        void GetElementalValueForOutput(const Kratos::Variable<TValueType>& rVariable,
+                                        std::vector<TValueType>& rOutput)
+        {
+            rOutput.resize(1);
+            /*
+             The cast is done to avoid modification of the element's data. Data modification
+             would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+             with associated value of 0.0). This is catastrophic if the variable referenced
+             goes out of scope.
+             */
+            const FractionalStep<TDim>* const_this = static_cast<const FractionalStep<TDim>*> (this);
+            rOutput[0] = const_this->GetValue(rVariable);
+        }
 
         ///@}
         ///@name Protected  Access

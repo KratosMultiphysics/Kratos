@@ -21,17 +21,41 @@ void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessIn
 template< unsigned int TDim >
 void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
-//    const SizeType NumNodes = TDim + 1;
-//    GeometryType& rGeom = this->GetGeometry();
+//    this->CalculateGeometryData();
+    double Csmag = this->GetValue(C_SMAGORINSKY);
 
-//    array_1d<double,3> Zero(3,0.0);
+    // Total viscosity
+    const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
 
-//    for(SizeType i = 0; i < NumNodes; ++i)
-//    {
-//        rGeom[i].SetLock();
-//        rGeom[i].GetValue(VELOCITY) = Zero;
-//        rGeom[i].UnSetLock();
-//    }
+    double Viscosity = 0.0;
+    this->EvaluateInPoint(Viscosity,VISCOSITY,N);
+
+    if (Csmag != 0.0 )
+    {
+        const unsigned int NumNodes = TDim + 1;
+
+        // Calculate Symetric gradient
+        MatrixType S = ZeroMatrix(TDim,TDim);
+        for (unsigned int n = 0; n < NumNodes; ++n)
+        {
+            const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int i = 0; i < TDim; ++i)
+                for (unsigned int j = 0; j < TDim; ++j)
+                    S(i,j) += 0.5 * ( mDN_DX(n,j) * rVel[i] + mDN_DX(n,i) * rVel[j] );
+        }
+
+        // Norm of symetric gradient
+        double NormS = 0.0;
+        for (unsigned int i = 0; i < TDim; ++i)
+            for (unsigned int j = 0; j < TDim; ++j)
+                NormS += S(i,j) * S(i,j);
+        NormS = sqrt(2.0*NormS);
+
+        // Nu_sgs = (Csmag * Delta)^2 * (2*Sij*Sij)^(1/2)
+        Viscosity += Csmag * Csmag * mElemSize * mElemSize * NormS;
+    }
+
+    this->SetValue(VISCOSITY,Viscosity);
 }
 
 template< unsigned int TDim >
@@ -324,7 +348,6 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
         // Evaluate required variables at the integration point
         double Density;
-        double Viscosity;
         double MassProjection;
         array_1d<double,3> Velocity(3,0.0);
         array_1d<double,3> MeshVelocity(3,0.0);
@@ -332,7 +355,6 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         array_1d<double,3> MomentumProjection(3,0.0);
 
         this->EvaluateInPoint(Density,DENSITY,N);
-        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
         this->EvaluateInPoint(MassProjection,DIVPROJ,N);
         this->EvaluateInPoint(Velocity,VELOCITY,N);
         this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
@@ -369,10 +391,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     const double CenterWeight = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1)[0].Weight();
 
     double Density;
-    double Viscosity;
-
     this->EvaluateInPoint(Density,DENSITY,CenterN);
-    this->EvaluateInPoint(Viscosity,VISCOSITY,CenterN);
+    double Viscosity = this->GetValue(VISCOSITY);
 
     const double ViscousCoeff = Density * Viscosity * CenterWeight * mDetJ;
     this->AddViscousTerm(rLeftHandSideMatrix,mDN_DX,ViscousCoeff);
@@ -433,29 +453,29 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 
         // Evaluate required variables at the integration point
         double Density;
-        double Viscosity;
-        array_1d<double,3> Velocity(3,0.0);
-        array_1d<double,3> MeshVelocity(3,0.0);
+//        double Viscosity;
+//        array_1d<double,3> Velocity(3,0.0);
+//        array_1d<double,3> MeshVelocity(3,0.0);
         array_1d<double,3> BodyForce(3,0.0);
         array_1d<double,3> MomentumProjection(3,0.0);
 
         this->EvaluateInPoint(Density,DENSITY,N);
-        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
-        this->EvaluateInPoint(Velocity,VELOCITY,N);
-        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
+//        this->EvaluateInPoint(Viscosity,VISCOSITY,N);
+//        this->EvaluateInPoint(Velocity,VELOCITY,N);
+//        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 //        this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
         this->EvaluateInPoint(MomentumProjection,PRESS_PROJ,N);
 
-        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
-        double OldPressure;
-        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
+//        // Evaluate the pressure and pressure gradient at this point (for the G * P_n term)
+//        double OldPressure;
+//        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
         array_1d<double,TDim> OldPressureGradient(TDim,0.0);
         this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,mDN_DX);
 
-        // For ALE: convective velocity
-        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
+//        // For ALE: convective velocity
+//        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
 
 //        // Stabilization parameters
 //        double TauOne;
@@ -817,6 +837,27 @@ void FractionalStep<TDim>::CalculateGeometryData()
             if (Length < mElemSize) mElemSize = Length;
         }
     mElemSize = sqrt(mElemSize);
+
+//    // calculate minimum element height (for stabilization and Smagorinsky)
+//    mElemSize = 0.0;
+//    for ( unsigned int d = 0; d < TDim; ++d)
+//    {
+//        double hd = 1.0 / mDN_DX(1,d);
+//        mElemSize += hd * hd;
+//    }
+
+//    for (unsigned int i = 1; i < NumNodes; ++i)
+//    {
+//        double Height = 0.0;
+//        for ( unsigned int d = 0; d < TDim; ++d)
+//        {
+//            double hd = 1.0 / mDN_DX(i,d);
+//            Height += hd * hd;
+//        }
+//        if (Height < mElemSize) mElemSize = Height;
+//    }
+
+//    mElemSize = sqrt(mElemSize);
 }
 
 template< unsigned int TDim >
@@ -989,12 +1030,11 @@ void FractionalStep<TDim>::CalculateTau(double &TauOne,
     const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
 
     double Density = 0.0;
-    double Viscosity = 0.0;
+    double Viscosity = this->GetValue(VISCOSITY);
     array_1d<double,3> Velocity(3,0.0);
     array_1d<double,3> MeshVelocity(3,0.0);
 
     this->EvaluateInPoint(Density,DENSITY,N);
-    this->EvaluateInPoint(Viscosity,VISCOSITY,N);
     this->EvaluateInPoint(Velocity,VELOCITY,N);
     this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
     Velocity -= MeshVelocity;
