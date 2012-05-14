@@ -79,11 +79,11 @@ class Solver:
  	
         self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
-        (self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
+        #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
-        (self.duplicate_and_create_conditions).Execute()
+        #(self.duplicate_and_create_conditions).Execute()
 	#a = Matrix(2,3)
 
 	#a[0,0] = 3
