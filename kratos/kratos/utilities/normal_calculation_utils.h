@@ -227,7 +227,7 @@ public:
         {
             Condition::GeometryType& rGeom = itCond->GetGeometry();
             for ( Condition::GeometryType::iterator itNode = rGeom.begin(); itNode != rGeom.end(); ++itNode)
-                itNode->GetValue(NORMAL) = ZeroNormal;
+                itNode->FastGetSolutionStepValue(NORMAL) = ZeroNormal;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
