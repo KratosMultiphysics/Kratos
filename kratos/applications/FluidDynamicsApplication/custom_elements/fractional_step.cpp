@@ -599,7 +599,7 @@ int FractionalStep<TDim>::Check(const ProcessInfo &rCurrentProcessInfo)
         if(this->GetGeometry()[i].HasDofFor(PRESSURE) == false)
             KRATOS_ERROR(std::invalid_argument,"missing PRESSURE component degree of freedom on node ",this->GetGeometry()[i].Id());
     }
-
+    
     // If this is a 2D problem, check that nodes are in XY plane
     if (this->GetGeometry().WorkingSpaceDimension() == 2)
     {

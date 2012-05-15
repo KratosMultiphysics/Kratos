@@ -240,11 +240,17 @@ class TrilinosLevelSetSolver:
 	for node in self.model_part.Nodes:
 	  if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
 	    node.SetValue(IS_STRUCTURE,1.0)
+	    node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
         
         ##compute normals "correctly"
         self.normal_calculator = NormalCalculationUtils()
 	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+	
+	(BodyNormalCalculationUtils()).CalculateBodyNormals(self.model_part,self.domain_size)
         
+        #for node in self.model_part.Nodes:
+	   #normal = node.GetSolutionStepValue(NORMAL,0)
+	   #node.SetValue(NORMAL,normal)
             
 
         self.thermal_solver.SetEchoLevel(0)
