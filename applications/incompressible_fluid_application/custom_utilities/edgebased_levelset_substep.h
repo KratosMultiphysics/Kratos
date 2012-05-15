@@ -254,6 +254,8 @@ public:
         std::vector< unsigned int> tempFixedVelocities;
         std::vector< array_1d<double,TDim> > tempFixedVelocitiesValues;
         std::vector< unsigned int> tempPressureOutletList;
+	std::vector< unsigned int> tempDistanceList;
+	
         for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
                 inode != mr_model_part.NodesEnd();
                 inode++)
@@ -271,6 +273,9 @@ public:
                 tempFixedVelocities.push_back(index);
                 tempFixedVelocitiesValues.push_back(mvel_n1[index]);
             }
+            
+            if(inode->IsFixed(DISTANCE))
+	      tempDistanceList.push_back(index);
 
             if (inode->IsFixed(PRESSURE))
             {
@@ -281,6 +286,8 @@ public:
         mFixedVelocities.resize(tempFixedVelocities.size(),false);
         mFixedVelocitiesValues.resize(tempFixedVelocitiesValues.size(),false);
         mPressureOutletList.resize(tempPressureOutletList.size(),false);
+        mDistanceBoundaryList.resize(tempDistanceList.size(),false);
+	mDistanceValuesList.resize(tempDistanceList.size(),false);
 
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(tempFixedVelocities.size()); i++)
@@ -293,7 +300,12 @@ public:
         {
             mPressureOutletList[i] = tempPressureOutletList[i];
         }
-
+        
+        for(int i=0; i<static_cast<int>(tempDistanceList.size()); i++)
+        {
+            mDistanceBoundaryList[i] = tempDistanceList[i];
+        }
+        
         //compute slip normals and fill SlipList
         CalculateNormals(mr_model_part.Conditions());
         mr_matrix_container.WriteVectorToDatabase(NORMAL, mSlipNormal, mr_model_part.Nodes());
@@ -1409,6 +1421,22 @@ public:
         KRATOS_CATCH("")
     }
 
+    void ApplyDistanceBC()
+    {
+        KRATOS_TRY
+
+        //slip condition
+        int size = mDistanceBoundaryList.size();
+        #pragma omp parallel for firstprivate(size)
+        for (int i_dist = 0; i_dist < size; i_dist++)
+        {
+            unsigned int i_node = mSlipBoundaryList[i_dist];
+            double& dist = mdistances[i_node];
+	    dist = mDistanceValuesList[i_dist];
+        }
+
+        KRATOS_CATCH("")
+    }
 
     //************************************
 
@@ -2186,6 +2214,14 @@ public:
 
         mr_matrix_container.FillScalarFromDatabase(DISTANCE, mphi_n1, mr_model_part.Nodes());
         mr_matrix_container.FillOldScalarFromDatabase(DISTANCE, mphi_n, mr_model_part.Nodes());
+	
+	//get the "fresh" values to be fixed_size
+	for(unsigned int i=0; i< mDistanceValuesList.size(); i++)
+	{
+	  mDistanceValuesList[ i ] = mphi_n1[ mDistanceBoundaryList[i] ];
+	}
+	
+	
         //mr_matrix_container.AssignVectorToVector(mphi_n1, mphi_n); //mWork = mphi_n
         //            //chapuza
         //            //set the distance to zero when it tries to go out of the pressure boundary
@@ -2317,23 +2353,27 @@ public:
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
             mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
             mr_matrix_container.Add_Minv_value(mphi_n1, mphi_n, 0.5 * delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+	    ApplyDistanceBC();
 
             //second step
             mr_matrix_container.SetToZero(rhs);
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
             mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 3.0, mr_matrix_container.GetInvertedMass(), rhs);
             mr_matrix_container.Add_Minv_value(mphi_n1, mphi_n, 0.5 * delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+	    ApplyDistanceBC();
 
             //third step
             mr_matrix_container.SetToZero(rhs);
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
             mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 3.0, mr_matrix_container.GetInvertedMass(), rhs);
             mr_matrix_container.Add_Minv_value(mphi_n1, mphi_n, delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+	    ApplyDistanceBC();
 
             //fourth step
             mr_matrix_container.SetToZero(rhs);
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
             mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
+	    ApplyDistanceBC();
 
             //compute right-hand side
             mr_matrix_container.AssignVectorToVector(WorkConvection, mphi_n1);
@@ -2586,6 +2626,7 @@ public:
                             {
                                 first_outside.push_back(i_node);
                                 layer_volume += nodal_mass;
+				break;
                             }
 
                             //const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
@@ -2769,8 +2810,11 @@ private:
 
     //flag to differentiate interior and boundary nodes
     ValuesVectorType mNodalFlag;
+    
+    
     //lists of nodes with different types of boundary conditions
-    IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocities, mInOutBoundaryList;
+    IndicesVectorType mSlipBoundaryList, mPressureOutletList, mFixedVelocities, mInOutBoundaryList,mDistanceBoundaryList;
+    ValuesVectorType mDistanceValuesList;
     CalcVectorType mFixedVelocitiesValues;
     //	ValuesVectorType mPressureOutlet;
 
