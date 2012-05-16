@@ -163,14 +163,20 @@ public:
 
         //resetting the normals - only for the nodes on which we will do the calculate
         array_1d<double,3> zero = ZeroVector(3);
-
-        for(ModelPart::ElementsContainerType::iterator it =  rElements.begin();
-                it !=rElements.end(); it++)
+	
+	for(ModelPart::NodesContainerType::iterator it =  r_model_part.NodesBegin();
+                it !=r_model_part.NodesEnd(); it++)
         {
-            Element::GeometryType& rNodes = it->GetGeometry();
-            for(unsigned int in = 0; in<rNodes.size(); in++)
-                noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+            noalias(it->FastGetSolutionStepValue(NORMAL)) = zero;
         }
+
+//         for(ModelPart::ElementsContainerType::iterator it =  rElements.begin();
+//                 it !=rElements.end(); it++)
+//         {
+//             Element::GeometryType& rNodes = it->GetGeometry();
+//             for(unsigned int in = 0; in<rNodes.size(); in++)
+//                 noalias((rNodes[in]).FastGetSolutionStepValue(NORMAL)) = zero;
+//         }
 
 
         //calculating the normals and storing on the conditions
