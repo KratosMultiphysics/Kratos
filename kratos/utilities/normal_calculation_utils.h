@@ -223,11 +223,10 @@ public:
         // Reset normals
         const array_1d<double,3> ZeroNormal(3,0.0);
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
+                it !=rModelPart.NodesEnd(); it++)
         {
-            Condition::GeometryType& rGeom = itCond->GetGeometry();
-            for ( Condition::GeometryType::iterator itNode = rGeom.begin(); itNode != rGeom.end(); ++itNode)
-                itNode->FastGetSolutionStepValue(NORMAL) = ZeroNormal;
+            noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
