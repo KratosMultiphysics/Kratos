@@ -5,7 +5,7 @@ A library based on:
 Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
-
+ 
 Copyright 2007
 Pooyan Dadvand, Riccardo Rossi
 pooyan@cimne.upc.edu 
@@ -250,9 +250,8 @@ namespace Kratos
 	        /**
 		    It is assembeled directly to LHS and RHS
 		 */  		 
-		 virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area, const ProcessInfo& CurrentProcessInfo);
-
-		virtual void AddPressureMassTermsPrediction(MatrixType& K, VectorType& F, const double area, const ProcessInfo& CurrentProcessInfo);
+		 virtual void CalculateGradMassStblTerms(MatrixType& M, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double thawone,const double area, const ProcessInfo& CurrentProcessInfo);
+		
 
       ///@name Protected Operators
       ///@{ 
