@@ -246,7 +246,7 @@ class TrilinosLevelSetSolver:
         self.normal_calculator = NormalCalculationUtils()
 	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
 	
-	(BodyNormalCalculationUtils()).CalculateBodyNormals(self.model_part,self.domain_size)
+	#(BodyNormalCalculationUtils()).CalculateBodyNormals(self.model_part,self.domain_size)
         
         #for node in self.model_part.Nodes:
 	   #normal = node.GetSolutionStepValue(NORMAL,0)
