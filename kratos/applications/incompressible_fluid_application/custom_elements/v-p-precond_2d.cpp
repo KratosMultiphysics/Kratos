@@ -7,7 +7,7 @@ A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
 Copyright 2007
-Pooyan Dadvand, Riccardo Rossi
+Pooyan Dadvand, Riccardo Rossi 
 pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
@@ -172,7 +172,7 @@ namespace Kratos {
 		//add stablilization terms due to advective term (a)grad(V) * ro*Acce
 		CalculateAdvMassStblTerms(rLeftHandSideMatrix, rRightHandSideVector, DN_DX, N, tauone, Area, rCurrentProcessInfo);
 		//add stablilization terms due to grad term grad(q) * ro*Acce
-		//CalculateGradMassStblTerms(rLeftHandSideMatrix, DN_DX,N, tauone, Area, rCurrentProcessInfo);
+		CalculateGradMassStblTerms(rLeftHandSideMatrix, rRightHandSideVector, DN_DX,N, tauone, Area, rCurrentProcessInfo);
 
 		CalculateResidual(rLeftHandSideMatrix, rRightHandSideVector);
 
@@ -219,7 +219,7 @@ namespace Kratos {
 
 	double delta_t = rCurrentProcessInfo[DELTA_TIME];
 
-        int nodes_number = 3;
+        int nodes_number = 3; 
         int dof = 2;
 
 	int FractionalStepNumber =  rCurrentProcessInfo[FRACTIONAL_STEP];
@@ -229,14 +229,13 @@ namespace Kratos {
 	if (FractionalStepNumber==2)
 		factor=1.0/delta_t;
 		
-
         for (int nd = 0; nd < nodes_number; nd++) {
             int row = nd * (dof + 1);
             for (int jj = 0; jj < dof; jj++)
                 K(row + jj, row + jj) += density  * lump_mass_fac * factor;
 
 		//add pressure mass
-		double SV2=10.0;
+		double SV2=100.0;
 		
 		if (FractionalStepNumber==1)
 			K(row + dof , row + dof ) += (1.0/SV2)*lump_mass_fac;
@@ -306,9 +305,7 @@ namespace Kratos {
 
 
 		noalias(rDampMatrix) = ZeroMatrix(matsize, matsize);
-
 		double delta_t = rCurrentProcessInfo[DELTA_TIME];
-
 
 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
 		array_1d<double, 3 > N; 
@@ -316,7 +313,6 @@ namespace Kratos {
 		//getting data for the given geometry
 		double Area;
 		GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
-
 
 		//viscous term
 		CalculateViscousTerm(rDampMatrix, DN_DX, Area, rCurrentProcessInfo);
@@ -676,15 +672,15 @@ namespace Kratos {
 	double factor=1.0;
 	double delta_t=CurrentProcessInfo[DELTA_TIME];
 	int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-	double SV2=10.0;
+	double SV2=100.0;
 	if (FractionalStepNumber==1)
 		factor=1.0;
 	//double alpha_bossak=-0.2;
 	if (FractionalStepNumber==2)
 		factor=1.0/delta_t;
 
-	Matrix TEMP = ZeroMatrix(9,9);
-
+	boost::numeric::ublas::bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9, 9);
+	
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
             int loc_row = ii*dof;
@@ -700,17 +696,19 @@ namespace Kratos {
             }
         }
 
-	Vector Old_Vels=ZeroVector(9);
-	for (int i=0;i<3;i++)
-	{
-		int index=i*3;
-		Old_Vels[index]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1);
-		Old_Vels[index+1]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1);
-
-	}
 	//And now the for time integration in the second step: Pavel: -> we have to add also the RHS term by hand (as we are using linear static strategy)
 	if (FractionalStepNumber==2)
 		{
+
+		//Vector Old_Vels=ZeroVector(9);
+		array_1d<double, 9 > Old_Vels;
+		for (int i=0;i<3;i++)
+		{
+			int index=i*3;
+			Old_Vels[index]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1);
+			Old_Vels[index+1]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1);
+
+		}
 		F+=prod(TEMP, Old_Vels);
 		}
 
@@ -775,7 +773,7 @@ namespace Kratos {
     //************************************************************************************
     //************************************************************************************
 
-    void VP_PRECOND2D::CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double tauone,const double area, const ProcessInfo& CurrentProcessInfo) {
+    void VP_PRECOND2D::CalculateGradMassStblTerms(MatrixType& M, VectorType& F, const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const array_1d<double,3>& N,const double tauone,const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
                 int nodes_number = 3;
         int dof = 2;
@@ -799,6 +797,8 @@ namespace Kratos {
 	if (FractionalStepNumber==2)
 		factor=1.0/(delta_t);
 
+	boost::numeric::ublas::bounded_matrix<double, 9, 9 > TEMP = ZeroMatrix(9,9);
+
         for (int ii = 0; ii < nodes_number; ii++) {
             int row = ii * (dof + 1);
             for (int jj = 0; jj < nodes_number; jj++) {
@@ -806,11 +806,31 @@ namespace Kratos {
 
                 //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
                 M(column, row) += area * fac * N[ii] * DN_DX(jj, 0)* factor;
+                TEMP(column, row) = area * fac * N[ii] * DN_DX(jj, 0)* factor;
 
                 //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
                 M(column, row + 1) += area * fac * N[ii] * DN_DX(jj, 1)* factor;
+                TEMP(column, row + 1) = area * fac * N[ii] * DN_DX(jj, 1)* factor;
             }
-        }
+        }	      
+	
+	//And now the for time integration in the second step: Pavel: -> we have to add also the RHS term by hand (as we are using linear static strategy)
+	if (FractionalStepNumber==2)
+		{
+	//Vector Old_Vels=ZeroVector(9);
+		array_1d<double,9> Old_Vels = ZeroVector(9);
+		for (int i=0;i<3;i++)
+		{
+			int index=i*3;
+			Old_Vels[index]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, 1);
+			Old_Vels[index+1]=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, 1);
+
+		}
+		F+=prod(TEMP, Old_Vels);
+		}
+
+
+
 
         KRATOS_CATCH("")
 
@@ -866,88 +886,7 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     }
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////This function manages the time integration of pressure within the quasi-inc. prediction step
-	void VP_PRECOND2D::AddPressureMassTermsPrediction(MatrixType& K, VectorType& F, const double area, const ProcessInfo& CurrentProcessInfo ) {
-        KRATOS_TRY
-	//this is a monolithic solver. "FRACTIONAL_STEP" SWITCH IS used to distinguish between the prediction and the solution step!
-        unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-	double delta_t = CurrentProcessInfo[DELTA_TIME];
-
-	if (FractionalStepNumber==1)
-	{
-		int nodes_number = 3;
-		int dof = 2;
-
-
-		double lump_mass_fac = area * 0.333333333333333333333333;
-
-		double density;
-		double mu;
-		calculatedensity(GetGeometry(), density, mu);        
-
-
-		//double SV2=100.0;
-
-		double alpha_bossak=-0.2;
-		
-
-		//FIRST CHANGING THE LHS
-		//in the prediction step we use the quasi-inc hypothesis=> the continuity eq. has the shape: rho*c^2  + M(pn+1) = Mpn
-		//we also add the pressure mass matrix here - assuming Backward Euler for the continuity equation in the prediction step
-
-		//NOW THIS IS DONE INSIDE OF THE STRATEGY!!!
-		/*
-		for (int ii = 0; ii < nodes_number; ii++) {
-		    int row = ii * (dof + 1);
-		   	//in the prediction step we assume slight compressibility, thus mass matrix for the pressure 
-			K(row + dof , row + dof ) += lump_mass_fac;//(1.0+alpha_bossak)*lump_mass_fac;//(1.0/delta_t)*
-		}
-		*/
-		//AND NOW RHS
-		/////////////////////////////////////////////////////////////////THIS IS FOR THE SLIGHTLY COMPRESSIBLE PREDICTION/////////////////////
-		//this is a monolithic solver. "FRACTIONAL_STEP" SWITCH IS used to distinguish between the prediction and the solution step!
-		
-		
-
-		//consistent mass matrix
-		Matrix Mass(3,3);
-		Mass(0,0)=2.0;
-		Mass(1,1)=2.0;
-		Mass(2,2)=2.0;
-		Mass(0,1)=1.0;
-		Mass(0,2)=1.0;
-		Mass(1,0)=1.0;
-		Mass(1,2)=1.0;
-		Mass(2,0)=1.0;
-		Mass(2,1)=1.0;
-		Mass/=12.0;
 	
-		array_1d<double,3> ms_temp_vec_np = ZeroVector(3);
-		//should it be p_n or p_old_iteration?????????????????????????????????????
-		ms_temp_vec_np[0] = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE, 1);
-		ms_temp_vec_np[1] = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE, 1);
-		ms_temp_vec_np[2] = GetGeometry()[2].FastGetSolutionStepValue(PRESSURE, 1);
-
-		array_1d<double,3> pres_rhs = ZeroVector(3);
-		pres_rhs = area*prod(Mass, ms_temp_vec_np);
-		//KRATOS_WATCH(Mass)
-		//KRATOS_WATCH(ms_temp_vec_np)
-		//KRATOS_WATCH(pres_rhs)
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-		//body  & momentum term force
-		for (int ii = 0; ii < nodes_number; ii++) {
-			int index = ii * (dof + 1);
-		    	//if we are in the prediction step, we must add the pressure contribution: M*p_n .. note that we are using a consistent mass here
-			F[index+2]+=alpha_bossak*pres_rhs[ii];
-			}
-
-		
-
-	}
-        KRATOS_CATCH("")
-    }
 
     //************************************************************************************
     //************************************************************************************
