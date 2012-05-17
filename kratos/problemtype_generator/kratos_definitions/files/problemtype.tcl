@@ -69,6 +69,8 @@ proc GetKratosPath { } {
 # Main condition assignation procedure
 proc BeforeMeshGeneration {elementsize} {
 
+    ::GidUtils::DisableGraphics
+
 	global surf_elemtype_check
 	global vol_elemtype_check
 	set surf_elemtype_check 0
@@ -152,6 +154,8 @@ proc BeforeMeshGeneration {elementsize} {
 
 	# Assign Non-Default Mesh Criteria to Entities
 	# End Meshing Block
+
+	::GidUtils::EnableGraphics
 }
 
 proc AfterMeshGeneration {fail} {
