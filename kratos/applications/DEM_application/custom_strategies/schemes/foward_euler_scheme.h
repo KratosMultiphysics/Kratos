@@ -29,31 +29,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
-
-  ///@name Kratos Globals
-  ///@{ 
   
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
   
   class FowardEulerScheme :  public IntegrationScheme
     {
@@ -78,15 +54,6 @@ namespace Kratos
       virtual ~FowardEulerScheme(){}
       
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
 
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
@@ -99,12 +66,11 @@ namespace Kratos
         
 	double aux     = 0;
 	double delta_t =  CurrentProcessInfo[DELTA_TIME];
-        KRATOS_WATCH(delta_t)
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
 	NodesArrayType::iterator it_end   = pNodes.ptr_end();
-	int number_of_threads             = OpenMPUtils::GetNumThreads();
+	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 	
 	
@@ -121,40 +87,40 @@ namespace Kratos
 	     array_1d<double, 3 > & coor         = i->Coordinates();
   	     array_1d<double, 3 > & initial_coor = i->GetInitialPosition();
   	     array_1d<double, 3 > & force        = i->FastGetSolutionStepValue(FORCE);
+       
 	     const double mass                  = i->FastGetSolutionStepValue(NODAL_MASS);
 
 	     aux = delta_t / mass;
 
-
-             KRATOS_WATCH(i->Id())
-             KRATOS_WATCH(mass)
-             KRATOS_WATCH(vel)
-             KRATOS_WATCH(displ)
-             KRATOS_WATCH(coor)
-             KRATOS_WATCH(initial_coor)
-             KRATOS_WATCH(force)
-             KRATOS_WATCH("-----------------")
-
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
              {
-	         vel[0]    += aux * force[0]; 
-	         displ[0]  += delta_t * vel[0];  
-	         coor[0]   += initial_coor[0] + displ[0];
+	         vel[0]    += aux * force[0];
+               
+	         displ[0]  += delta_t * vel[0];
+                 
+	         coor[0]   = initial_coor[0] + displ[0];
+                 
              }
 	     
 	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
              {
 	         vel[1]    += aux * force[1];
-	         displ[1]  += delta_t * vel[1];  
-	         coor[1]   += initial_coor[1] + displ[1];
+
+                 displ[1]  += delta_t * vel[1];
+           
+	         coor[1]   = initial_coor[1] + displ[1];
+         
 	     }
 	     
              if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Z))== false ) )
 	     {
 	         vel[2]    += aux * force[2];
-	         displ[2]  += delta_t * vel[2];  
-	         coor[2]   += initial_coor[2] + displ[2];
+                
+	         displ[2]  += delta_t * vel[2];
+                
+	         coor[2]   = initial_coor[2] + displ[2];
+                
 	     }
 	   }
 	}
@@ -162,20 +128,7 @@ namespace Kratos
      }  
     
     
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
-
+     
       /// Turn back information as a string.
       virtual std::string Info() const
       {

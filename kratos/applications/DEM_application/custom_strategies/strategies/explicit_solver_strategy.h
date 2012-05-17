@@ -149,7 +149,7 @@ namespace Kratos
       {
 	KRATOS_TRY
 
-                       
+     //    KRATOS_WATCH("NO HA FALLAT0")
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
@@ -172,12 +172,55 @@ namespace Kratos
 
         //1. Get and Calculate the forces
         GetForce();
-
+       
+                
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
-        //3. Búsqueda de veins
-        SearchNeighbours(r_model_part);
+       //3. Búsqueda de veins
+        SearchNeighbours(r_model_part,false); //extension option false;
+     
+/*
+       ElementsArrayType& pElements     = r_model_part.Elements();
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          unsigned int index = 0;
+
+          #pragma omp parallel for private(index)
+          for(int k=0; k<number_of_threads; k++)
+
+          {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+                KRATOS_WATCH("   ")
+                KRATOS_WATCH("despresss DE LA BUSQUEDA")
+
+                    size_t num_neighbours = (it)->GetValue(NUMBER_OF_NEIGHBOURS);
+                    const int& particle_id = (it)->Id();
+
+                KRATOS_WATCH(particle_id)
+                KRATOS_WATCH(num_neighbours)
+                KRATOS_WATCH((it)->GetGeometry()(0)->FastGetSolutionStepValue(FORCE));
+                KRATOS_WATCH("   ")
+
+
+             } //loop over particles
+
+          }// loop threads OpenMP
+
+
+*/
 
 	
         /*
@@ -224,7 +267,8 @@ namespace Kratos
         ModelPart& r_model_part           = BaseType::GetModelPart();
         //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
 
-        SearchNeighbours(r_model_part);
+        bool extension_option = true;
+        SearchNeighbours(r_model_part,extension_option);
                        
         ///Initializing elements
 	  if(mElementsAreInitialized == false)
@@ -242,7 +286,7 @@ namespace Kratos
 	void GetForce()
 	{
           KRATOS_TRY
-
+   // KRATOS_WATCH("AKI HI ARRIBO")
           //dummy variables
           const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
           double Output;
@@ -272,7 +316,7 @@ namespace Kratos
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
-                              
+                     
                         (it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
                 //we use this function to call the calculate forces in general funct.
 
@@ -291,13 +335,6 @@ namespace Kratos
             ModelPart& r_model_part = BaseType::GetModelPart();
             mpScheme->Calculate(r_model_part);
 	
-            
-         
-
-
-
-
-
         }
 
         /*
@@ -406,6 +443,8 @@ namespace Kratos
             
           KRATOS_TRY
 
+
+
           ModelPart& r_model_part          = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
           ElementsArrayType& pElements     = r_model_part.Elements();
@@ -446,7 +485,7 @@ namespace Kratos
       }  //Set_Initial_Contacts
 
 
-      void SearchNeighbours(ModelPart r_model_part)
+      void SearchNeighbours(ModelPart r_model_part,bool extension_option)
       {
 
         typedef DiscreteElement                                                 ParticleType;
@@ -460,11 +499,10 @@ namespace Kratos
         typedef std::vector<double>                                             DistanceVectorType;
         typedef std::vector<double>::iterator                                   DistanceIteratorType;
 
-
         if (mdimension == 2)
-            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part);
+            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part,extension_option);
         else if (mdimension == 3)
-            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part);
+            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part,extension_option);
 
       }//SearchNeighbours
 

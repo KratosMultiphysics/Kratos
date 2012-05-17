@@ -127,13 +127,13 @@ namespace Kratos
        
        //double mInitialDelta;
        //vector<int> mVectorContactFailureId;
-       int mContactFailureId;
+       //int mContactFailureId;
 
        //vector< double > mVectorContactInitialDelta; R: cal cridar-ho cada cop per no fer copia!!
        double mContactInitialDelta;
 
        vector<array_1d<double,3> > mVectorContactForces;
-       array_1d<double,3> mContactForces;
+       //array_1d<double,3>& mContactForces;
 
        int mContinuumGroup;
        int mFailureId;
