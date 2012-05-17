@@ -518,10 +518,10 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE ( DAMP_TYPE )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_CONTACT_INITIAL_DELTA )
-//         KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_CONTACT_FAILURE_ID )
-//         KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_CONTACT_FORCES )
-//      M.Santasusana: python don't recognize these types. variables added in c++ but not registered in python.
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_CONTACT_FAILURE_ID )
 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DUMMY_SWITCH)
+    //         KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_CONTACT_FORCES )
 
 
     class_< ConvectionDiffusionSettings, ConvectionDiffusionSettings::Pointer, boost::noncopyable >	("ConvectionDiffusionSettings", init<	>() )
