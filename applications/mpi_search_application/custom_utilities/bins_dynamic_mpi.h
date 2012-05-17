@@ -10,6 +10,8 @@
 #if !defined(KRATOS_BINS_DYNAMIC_MPI_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_DYNAMIC_MPI_CONTAINER_H_INCLUDE
 
+#include <bitset>
+
 #include "mpi.h"
 #include "spatial_containers/tree.h"
 #include "containers/buffer.h"
@@ -98,6 +100,8 @@ namespace Kratos {
             MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           
             IteratorType mPointIterator;
+            
+            this->StaticMesh = StaticMesh;
             
             mPointBegin = new PointType* [StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes()];
             mPointEnd = mPointBegin + StaticMesh->GetCommunicator().LocalMesh().NumberOfNodes();
@@ -263,7 +267,14 @@ namespace Kratos {
             MPI_Allgather(MyMinPoint,TDimension,MPI_DOUBLE,MpiMinPoints,TDimension,MPI_DOUBLE,MPI_COMM_WORLD);
             MPI_Allgather(MyMaxPoint,TDimension,MPI_DOUBLE,MpiMaxPoints,TDimension,MPI_DOUBLE,MPI_COMM_WORLD);
             
-            // Test all intersections
+            if(mpi_rank == 1)
+              for(int i = 0; i < mpi_size; i++)
+              {
+                  std::cout << "Process " << i << ": " << "Min: " <<  MpiMinPoints[i * TDimension + 0] << "," << MpiMinPoints[i * TDimension + 1] << "," << MpiMinPoints[i * TDimension + 2] << std::endl;
+                  std::cout << "        "     << "   " << "Max: " <<  MpiMaxPoints[i * TDimension + 0] << "," << MpiMaxPoints[i * TDimension + 1] << "," << MpiMaxPoints[i * TDimension + 2] << std::endl;
+              }
+            
+            //Test all intersections
             for(int i = 0; i < mpi_size; i++) 
             {
                 mpi_connectivity[i] = 0;
@@ -683,39 +694,53 @@ namespace Kratos {
         {
             //MultiSearch Test
             Timer::Start("ALL");
-            PointerType  PointInput = new PointType[NumberOfPoints];
-            for(size_t i = 0; i < NumberOfPoints; i++) 
+            PointerType PointInput = new PointType[NumberOfPoints];
+            
+            for (ModelPart::ElementsContainerType::iterator el_it = StaticMesh->ElementsBegin();
+                el_it != StaticMesh->ElementsEnd(); el_it++)
             {
                 PointType temp;
+                Geometry<Node < 3 > >& geom = el_it->GetGeometry();
                 
-                const double& xMin = mMinPoint[0];
-                const double& xMax = mMaxPoint[0];
-                const double& yMin = mMinPoint[1];
-                const double& yMax = mMaxPoint[1];
-                const double& zMin = mMinPoint[2];
-                const double& zMax = mMaxPoint[2];
+                temp[0] = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X())/4;
+                temp[1] = (geom[0].Y() + geom[1].Y() + geom[2].Y() + geom[3].Y())/4;
+                temp[2] = (geom[0].Z() + geom[1].Z() + geom[2].Z() + geom[3].Z())/4;
                 
-                temp[0] = ((xMax-xMin)*((double)rand()/RAND_MAX))+xMin;
-                temp[1] = ((yMax-yMin)*((double)rand()/RAND_MAX))+yMin;
-                temp[2] = ((zMax-zMin)*((double)rand()/RAND_MAX))+zMin;
-
-                PointInput[i] = PointType(temp);
+                PointInput[el_it-StaticMesh->ElementsBegin()] = PointType(temp);
             }
-            
+
+//             for(size_t i = 0; i < NumberOfPoints; i++) 
+//             {
+//                 PointType temp;
+//                 
+//                 const double& xMin = mMinPoint[0];
+//                 const double& xMax = mMaxPoint[0];
+//                 const double& yMin = mMinPoint[1];
+//                 const double& yMax = mMaxPoint[1];
+//                 const double& zMin = mMinPoint[2];
+//                 const double& zMax = mMaxPoint[2];
+//                 
+//                 temp[0] = xMin + ((double)rand() / (double)RAND_MAX) * (xMax - xMin);
+//                 temp[1] = yMin + ((double)rand() / (double)RAND_MAX) * (yMax - yMin);
+//                 temp[2] = zMin + ((double)rand() / (double)RAND_MAX) * (zMax - zMin);
+// 
+//                 PointInput[i] = PointType(temp);
+//             }
+
             for(size_t i = 0; i < times; i++)
             {
                 vector<SizeType>             NumberOfResults(NumberOfPoints);
                 vector<vector<PointerType> > Results(NumberOfPoints, vector<PointerType>(MaxNumberOfResults));
                 vector<vector<double> >      ResultsDistances(NumberOfPoints, vector<double>(MaxNumberOfResults,0));
-            
+
                 MPI_SearchInRadius(PointInput, NumberOfPoints, Radius, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
                 MPI_Barrier(MPI_COMM_WORLD);
                 
                 if(i == times-1) 
                 {
                     int rest = 0;
-                    int max = 0;
-                    int min = MaxNumberOfResults;
+                    size_t max = 0;
+                    size_t min = MaxNumberOfResults;
                     //Check Results
                     for(size_t i = 0; i < NumberOfPoints; i++) 
                     {
@@ -723,11 +748,10 @@ namespace Kratos {
                         max = NumberOfResults[i] > max ? NumberOfResults[i] : max;
                         min = NumberOfResults[i] < min ? NumberOfResults[i] : min;
                     }
-                    std::cout << "(" << mpi_rank << ") Found aprox " << rest/NumberOfPoints << " results per point. Max: " << max << " Min: " << min << std::endl;
+                    std::cout << "(" << mpi_rank << ") Found: " << rest << " results,  aprox " << rest/NumberOfPoints << " results per point. Max: " << max << " Min: " << min << std::endl;
                 }
             }
             Timer::Stop("ALL");
-//                 std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
         }
     
         void MPI_SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, vector<vector<PointerType> >& Results, 
@@ -792,9 +816,9 @@ namespace Kratos {
                         {
                             int intersect = 0;
                             for(int k = 0; k < TDimension; k++)
-                                if((ThisPoints[i][k]+Radius > mpi_MaxPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MaxPoints[j][k]) || 
-                                  (ThisPoints[i][k]+Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MinPoints[j][k]) ||
-                                  (ThisPoints[i][k]-Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]+Radius < mpi_MaxPoints[j][k])
+                                if((ThisPoints[i][k]+Radius > mpi_MaxPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MaxPoints[j][k]) && 
+                                   (ThisPoints[i][k]+Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MinPoints[j][k]) &&
+                                   (ThisPoints[i][k]-Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]+Radius < mpi_MaxPoints[j][k])
                                 ) intersect++;
 
                             if(intersect == TDimension) num_comm++;
@@ -809,6 +833,7 @@ namespace Kratos {
                 }
             }
             Timer::Stop("Calculate Local");
+
 
             //Only search points not found previously in local mesh
             std::stringstream * serializer_buffer[NumberOfSendPoints];
@@ -849,7 +874,7 @@ namespace Kratos {
             for(int i = 0; i < NumberOfSendPoints; i++) 
                 memcpy(&mpi_send_buffer[(msgRecvSize + 1)*i], message[i].c_str(), message[i].size());
             Timer::Stop("Prepare-B");
-            
+
             Timer::Start("Communication");
             MPI_Allgather(mpi_send_buffer,(msgRecvSize+1)*MaxNumberOfSendPoints,MPI_CHAR,mpi_recv_buffer,(msgRecvSize+1)*MaxNumberOfSendPoints,MPI_CHAR,MPI_COMM_WORLD);
             Timer::Stop("Communication");
@@ -859,8 +884,6 @@ namespace Kratos {
             {
                 if(i != mpi_rank)
                 {
-                    //MUST resize vectors or declare them here in order to avoid NULL problems later in result serialization
-                    //remoteResults[i].resize(RemoteNumberOfSendPoints[i]);
                     remoteResultsDistances[i].resize(MaxNumberOfSendPoints);
                     
                     size_t accum_results = 0;
@@ -993,8 +1016,8 @@ namespace Kratos {
         /// Act as wrapper between external function and its implementation
         /**
          * This function provides all mpi functionality requiered to execute the parallel multi input searchInRaidus.
-         * the method implemented by this function is ALL-vs-ALL. It means all particles not found in the local
-         * processes are send to all other processes
+         * the method implemented by this function is one-to-many. It means all particles not found in the local
+         * processes are send to all process intersecting the search radius of the particle
          * @param ThisPoints List of points to be search
          * @param NumberOfPoints Number of points to be search 
          * @param Radius Radius of search
@@ -1007,24 +1030,21 @@ namespace Kratos {
         void SearchInRadiusMpiWrapperSingle( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, vector<vector<PointerType> >& Results,
              vector<vector<double> >& ResultsDistances, vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
         {  
-            //TODO: Descomentar chorradas
-            PointType remoteThisPoints[mpi_size][NumberOfPoints];
-            
-            vector<vector<PointerType> >     remoteResults(mpi_size, vector<PointerType>(NumberOfPoints * MaxNumberOfResults));
+            //TODO: translate comments
+            vector<vector<PointerType> >     remoteResults(mpi_size, vector<PointerType>(0));
             vector<vector<vector<double> > > remoteResultsDistances(mpi_size, vector<vector<double> >(NumberOfPoints, vector<double>(MaxNumberOfResults)));
             vector<vector<PointerType> >     sendPointToProcess(mpi_size, vector<PointerType>(0));
-            
+
             SizeType remoteNumberOfResults[mpi_size][NumberOfPoints];
 
             int NumberOfSendPoints[mpi_size];
             int NumberOfRecvPoints[mpi_size];
-            int MaxNumberOfSendPoints = 0;
-            int RemoteNumberOfSendPoints[mpi_size];
-            int SendPoint[mpi_size][NumberOfPoints];
-            
+
+            std::bitset<10000000> SendPoint(0);
+
             int msgSendSize[mpi_size];
             int msgRecvSize[mpi_size];
-            
+
             for(int i = 0; i < mpi_size; i++)
             {                   
                 NumberOfSendPoints[i] = 0;
@@ -1033,7 +1053,7 @@ namespace Kratos {
             
             //Local search
             Timer::Start("Calculate Local");
-            for(int i = 0; i < NumberOfPoints; i++)
+            for(size_t i = 0; i < NumberOfPoints; i++)
             {
                 IteratorType ResultsPointer      = &Results[i][0];
                 double * ResultsDistancesPointer = &ResultsDistances[i][0];
@@ -1044,42 +1064,34 @@ namespace Kratos {
                 SearchInRadiusLocal(ThisPoints[i],Radius,Radius2,ResultsPointer,ResultsDistancesPointer,NumberOfResults[i],MaxNumberOfResults,Box);
 
                 //Ponemos a 0 el contador que marca si un punto debe ser enviado o no
-                SendPoint[mpi_rank][i] = 0;
+                SendPoint[mpi_rank*NumberOfPoints+i] = 0;
                 
                 //Para cada punto donde hayamos encontrado menos resultados de los esperados
                 if(NumberOfResults[i] < MaxNumberOfResults) 
                 {
-                    //Inciamos el numero de comunicaciones necesarias a 0
-                    int num_comm = 0;
-                    
                     //Para cada proceso excluyendonos a nosotros mismos miramos si el area de busqueda intersecta con el el dominio del proceso
                     for(int j = 0; j < mpi_size; j++)
                     {   
                         if(j != mpi_rank)
                         {
                             int intersect = 0;
-                            for(int k = 0; k < TDimension; k++)
+                            for(size_t k = 0; k < TDimension; k++)
                                 if((ThisPoints[i][k]+Radius > mpi_MaxPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MaxPoints[j][k]) || 
                                    (ThisPoints[i][k]+Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MinPoints[j][k]) ||
                                    (ThisPoints[i][k]-Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]+Radius < mpi_MaxPoints[j][k])
                                 ) intersect++;
-
-                            
-                            if(intersect == TDimension) num_comm++;
-                        }
                         
-                        //Marcamos cuantos puntos se han de enviar a cada proceso y si se han de enviar TODO: arreglar esto solo hace falta el numero Uu
-                        if(num_comm != 0) 
-                        {
-                            SendPoint[j][i] = 1;
-                            NumberOfSendPoints[j]++;
+                            //Marcamos cuantos puntos se han de enviar a cada proceso y si se han de enviar TODO: arreglar esto solo hace falta el numero Uu
+                            if(intersect == TDimension) 
+                            {
+                                SendPoint[j*NumberOfPoints+i]=1;
+                                NumberOfSendPoints[j]++;
+                            }
                         }
                     }
                 }
             }
             Timer::Stop("Calculate Local");
-            
-            std::cout << "Points distreibuted in vectors ok" << std::endl;
 
             //Solo serializaremos los puntos de busqueda con SendPoint[proceso][id] mayor a 0
             std::stringstream * serializer_buffer[mpi_size];
@@ -1094,7 +1106,8 @@ namespace Kratos {
             {
                 if(i != mpi_rank)
                 {
-                    for(int j = 0, k = 0; j < NumberOfPoints; j++)
+                    int k = 0;
+                    for(size_t j = 0; j < NumberOfPoints; j++)
                     {
                         if(k < NumberOfSendPoints[i])
                         {
@@ -1102,14 +1115,11 @@ namespace Kratos {
                             sendPointToProcess[i][k++] = &ThisPoints[j]; 
                         }
                     }
-                    
-                    std::cout << "(" << mpi_rank << ") " << "number of send points to process " << i << ": " << NumberOfSendPoints[i] << std::endl;
-                    
+
                     //Serializamos el vector de golpe
                     Serializer particleSerializer;
                     
                     particleSerializer.save("nodes",sendPointToProcess[i]);
-                    std::cout << "SendPoints: " << NumberOfSendPoints[i] << " " << sendPointToProcess[i].size() << std::endl;
                     
                     serializer_buffer[i] = (std::stringstream *)particleSerializer.pGetBuffer();
                     message[i] = std::string(serializer_buffer[i]->str());
@@ -1124,7 +1134,9 @@ namespace Kratos {
             Timer::Start("Communication");
             MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
             MPI_Alltoall(NumberOfSendPoints,1,MPI_INT,NumberOfRecvPoints,1,MPI_INT,MPI_COMM_WORLD);
+            Timer::Stop("Communication");
             
+            Timer::Start("Prepare-1");
             //Determinamos el numero de communicaciones que se tendran que realizar para ejecutar los intercambios
             int NumberOfCommunicationEvents = 0;
             int NumberOfCommunicationEventsIndex = 0;
@@ -1146,24 +1158,28 @@ namespace Kratos {
             {
                 if(j != mpi_rank && msgRecvSize[j])
                 {
-                    std::cout << "(" << mpi_rank << ") " << "Recv size: " << msgRecvSize[j] << std::endl;
                     recvBuffers[j] = (char *)malloc(sizeof(char) * msgRecvSize[j]);
+                    Timer::Start("Communication");
                     MPI_Irecv(recvBuffers[j],msgRecvSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                    Timer::Stop("Communication");
 
                 }
 
                 if(j != mpi_rank && msgSendSize[j])
                 {
-                    std::cout << "(" << mpi_rank << ") " << "Send size: " << msgSendSize[j] << std::endl;
-                    char mpi_send_buffer[msgSendSize[j]];
+                    char * mpi_send_buffer = (char *)malloc(sizeof(char) *msgSendSize[j]);
                     memcpy(mpi_send_buffer,message[j].c_str(),msgSendSize[j]);
+                    Timer::Start("Communication");
                     MPI_Isend(mpi_send_buffer,msgSendSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                    Timer::Stop("Communication");
                 }
             }
-            
+            Timer::Stop("Prepare-1");
+
             //TODO: Podemos cambiar esto por un waitsome i dejar que vaya calculando resultados mientras recivimos peticiones o no? vigilar el buffer
+            Timer::Start("Communication-W");
             MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
-            Timer::Stop("Communication");
+            Timer::Stop("Communication-W");
             
             //TODO: LEBERAR LOS BUFFERS DE RECEPCION!!!!!!!
 
@@ -1186,19 +1202,19 @@ namespace Kratos {
                     
                     int accum_results = 0;
                     
+                    remoteResults[i].resize(MaxNumberOfResults*NumberOfPoints);
                     for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
                     {
-//                             std::cout << *remoteSearchPetitions[j] << std::endl;
                         remoteResultsDistances[i][j].resize(MaxNumberOfResults);
-                        
+
                         IteratorType remoteResultsPointer      = &remoteResults[i][accum_results];
                         double * remoteResultsDistancesPointer = &remoteResultsDistances[i][j][0];
-                        PointerType remotePointPointer         = remoteSearchPetitions[j];
+                        PointType remotePointPointer           = *remoteSearchPetitions[j];
 
                         remoteNumberOfResults[i][j] = 0;
 
-                        SearchStructureType Box( CalculateCell(remotePointPointer[j],-Radius), CalculateCell(remotePointPointer[j],Radius), mN );
-                        SearchInRadiusLocal(remotePointPointer[j],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
+                        SearchStructureType Box( CalculateCell(remotePointPointer,-Radius), CalculateCell(remotePointPointer,Radius), mN );
+                        SearchInRadiusLocal(remotePointPointer,Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
                         
                         accum_results += remoteNumberOfResults[i][j];
                     }
@@ -1209,10 +1225,6 @@ namespace Kratos {
             }
             Timer::Stop("Calculate Remote");
 
-            std::stringstream * res_serializer_buffer[mpi_size];
-            std::string res_message[mpi_size];
-            int res_bufferSize[mpi_size];
-            
             Timer::Start("Prepare-B");
             for(int i = 0; i < mpi_size; i++)
             {
@@ -1228,38 +1240,41 @@ namespace Kratos {
                 }
             }
             Timer::Stop("Prepare-B");
-            
             //Volvemos a hacer la transferencia esta vez para los buffers de resultados
             Timer::Start("Communication");
             MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
             MPI_Alltoall(NumberOfSendPoints,1,MPI_INT,NumberOfRecvPoints,1,MPI_INT,MPI_COMM_WORLD);
-
+            Timer::Stop("Communication");
             //Reseteamos esto
             NumberOfCommunicationEventsIndex = 0;
-            
+
+            Timer::Start("Prepare-2");
             //Incializamos los eventos de recepcion de todos los procesos
             for(int j = 0; j < mpi_size; j++)
             {
                 if(j != mpi_rank && msgRecvSize[j])
                 {
-                    std::cout << "(" << mpi_rank << ") " << "Recv size: " << msgRecvSize[j] << std::endl;
                     recvBuffers[j] = (char *)malloc(sizeof(char) * msgRecvSize[j]);
+                    Timer::Start("Communication");
                     MPI_Irecv(recvBuffers[j],msgRecvSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-
+                    Timer::Stop("Communication");
                 }
 
                 if(j != mpi_rank && msgSendSize[j])
                 {
-                    std::cout << "(" << mpi_rank << ") " << "Send size: " << msgSendSize[j] << std::endl;
-                    char mpi_send_buffer[msgSendSize[j]];
+                    char * mpi_send_buffer = (char *)malloc(sizeof(char) *msgSendSize[j]);
                     memcpy(mpi_send_buffer,message[j].c_str(),msgSendSize[j]);
+                    Timer::Start("Communication");
                     MPI_Isend(mpi_send_buffer,msgSendSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                    Timer::Stop("Communication");
                 }
             }
-            
+            Timer::Stop("Prepare-2");
+
             //TODO: Podemos cambiar esto por un waitsome i dejar que vaya calculando resultados mientras recivimos peticiones o no? vigilar el buffer
+            Timer::Start("Communication-W");
             MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
-            Timer::Stop("Communication");
+            Timer::Stop("Communication-W");
 
             Timer::Start("Prepare-C");
             for (int i = 0; i < mpi_size; i++)
@@ -1276,37 +1291,38 @@ namespace Kratos {
 
                     particleSerializer.load("nodes",remoteSearchResults);
 
-                    size_t result_iterator = 0;
-                    
+                    int result_iterator = 0;
                     for(size_t j = 0; j < NumberOfPoints && result_iterator < NumberOfRecvPoints[i]; j++)
                     {
-                        if(SendPoint[j][i])
+                        if(SendPoint[i*NumberOfPoints+j])
                         {
                             double dist = 0;
-                            do
+                            for(; dist < Radius && result_iterator < NumberOfRecvPoints[i]; )
                             {
                                 PointType& a = ThisPoints[j];
                                 PointType& b = *remoteSearchResults[result_iterator];
-                                
+
                                 dist = DistanceFunction()(a,b);
-                                
-                                if (NumberOfResults[j] < MaxNumberOfResults)
+
+                                if (dist < Radius)
                                 {
-                                    Results[j][NumberOfResults[j]] = remoteSearchResults[result_iterator];
-                                    
-                                    ResultsDistances[j][NumberOfResults[j]] = dist;
-                                    NumberOfResults[j]++;
+                                    //skip this results
+                                    if (NumberOfResults[j] < MaxNumberOfResults)
+                                    {
+                                        Results[j][NumberOfResults[j]] = remoteSearchResults[result_iterator];
+                                        
+                                        ResultsDistances[j][NumberOfResults[j]] = dist;
+                                        NumberOfResults[j]++;                                
+                                    }
+                                    result_iterator++;
                                 }
-                                
-                                result_iterator++;
-                                
-                            } while ( dist <= Radius && result_iterator < NumberOfRecvPoints[i] );
+                            }
                         }
-                        std::cout << "(" << mpi_rank << ") Number of Total results for point " << ThisPoints[j] << " form process " << i << " " << NumberOfResults[j] << " - " << std::endl;
-                        for(int k = 0; k < NumberOfResults[j]; k++)
-                        {
-                            std::cout << "(" << mpi_rank << ")\t(" << Results[j][k]->X() << " " << Results[j][k]->Y() << " " << Results[j][k]->Z() << ") with dist: " << ResultsDistances[j][k] << std::endl;
-                        }
+//                         std::cout << "(" << mpi_rank << ") Number of Total results for point " << ThisPoints[j] << " form process " << i << " " << NumberOfResults[j] << " - " << std::endl;
+//                         for(int k = 0; k < NumberOfResults[j]; k++)
+//                         {
+//                             std::cout << "(" << mpi_rank << ")\t(" << Results[j][k]->X() << " " << Results[j][k]->Y() << " " << Results[j][k]->Z() << ") with dist: " << ResultsDistances[j][k] << std::endl;
+//                         }
                     }
                 }
             }
@@ -1866,6 +1882,8 @@ namespace Kratos {
           Tvector<CoordinateType,TDimension>  mInvCellSize;
           Tvector<SizeType,TDimension>        mN;
           SizeType                            mNumPoints;
+          
+          ModelPart * StaticMesh;
 
           // Bins Access Vector ( vector<Iterator> )
           CellsContainerType mPoints;
