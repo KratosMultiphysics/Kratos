@@ -118,7 +118,7 @@ public:
         mWorld = PythonMPIComm(MPI_COMM_WORLD);
     }
 
-    /// Destructor, finalizes MPI in necessary
+    /// Destructor, finalizes MPI if necessary.
     ~PythonMPI()
     {
         int MpiIsFinalized = 0;
