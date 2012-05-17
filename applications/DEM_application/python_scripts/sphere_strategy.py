@@ -57,7 +57,7 @@ class ExplicitStrategy:
         #type of problem:
 
         self.delta_OPTION                   = True
-        self.continuum_simulating_OPTION    = False
+        self.continuum_simulating_OPTION    = True
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
 
         #problem specific parameters
