@@ -424,7 +424,7 @@ public:
         }
 
         //prints informations about the current time
-        if (this->GetEchoLevel() != 0)
+        if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
             std::cout << " " << std::endl;
             std::cout << "CurrentTime = " << BaseType::GetModelPart().GetProcessInfo()[TIME] << std::endl;
@@ -586,7 +586,7 @@ public:
 
 
         //plots a warning if the maximum number of iterations is exceeded
-        if (iteration_number >= mMaxIterationNumber)
+        if (iteration_number >= mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
             MaxIterationsExceeded();
 
         //recalculate residual if needed

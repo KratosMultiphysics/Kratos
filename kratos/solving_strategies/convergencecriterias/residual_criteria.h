@@ -172,7 +172,7 @@ public:
         const TSystemVectorType& b
     )
     {
-        if (b.size() != 0) //if we are solving for something
+        if (TSparseSpace::Size(b) != 0) //if we are solving for something
         {
 
             if (mInitialResidualIsSet == false)
@@ -184,21 +184,24 @@ public:
             TDataType ratio;
             mCurrentResidualNorm = TSparseSpace::TwoNorm(b);
 
-            double b_size = b.size();
+            double b_size = TSparseSpace::Size(b);
 
 
             if(mInitialResidualNorm == 0.00) ratio = 0.00;
 
             else ratio = mCurrentResidualNorm/mInitialResidualNorm;
 
-            std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+            if (r_model_part.GetCommunicator().MyPID() == 0)
+                std::cout << "RESIDUAL CRITERIA :: Ratio = " << ratio  << ";  Norm   = " << mCurrentResidualNorm/b_size << std::endl;
+
             if (
                 ratio <= mRatioTolerance
                 ||
                 (mCurrentResidualNorm/b_size) <mAlwaysConvergedNorm
             )
             {
-                KRATOS_WATCH("convergence is achieved")
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                    std::cout << "Convergence is achieved." << std::endl;
                 return true;
             }
             else
