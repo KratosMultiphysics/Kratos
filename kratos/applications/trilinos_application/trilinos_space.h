@@ -577,6 +577,15 @@ public:
     {
     }
 
+    template< class TOtherMatrixType >
+    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        KRATOS_CATCH("");
+    }
+
+
 
     ///@}
     ///@name Friends

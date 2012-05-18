@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "includes/matrix_market_interface.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -577,6 +578,12 @@ public:
     {
     }
 
+    template< class TOtherMatrixType >
+    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    {
+        // Use full namespace in call to make sure we are not calling this function recursively
+        return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
+    }
 
     ///@}
     ///@name Friends
