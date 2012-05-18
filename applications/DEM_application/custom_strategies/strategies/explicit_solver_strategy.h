@@ -278,6 +278,7 @@ namespace Kratos
           // if (self.delta_OPTION==True or self.continuum_simulating_OPTION==True):
           if(mdelta_option || mcontinuum_simulating_option){
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
+
           }
 
           KRATOS_CATCH("")
@@ -479,7 +480,7 @@ namespace Kratos
 
         //modifying a switch
 
-         rCurrentProcessInfo[DUMMY_SWITCH]++;
+        
          
         KRATOS_CATCH("")
       }  //Set_Initial_Contacts

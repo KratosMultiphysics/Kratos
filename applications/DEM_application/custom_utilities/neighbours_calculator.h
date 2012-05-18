@@ -102,7 +102,7 @@ namespace Kratos {
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
             const int case_OPTION = rCurrentProcessInfo[CASE_OPTION];
             bool delta_OPTION = false;
-            bool continuum_simulating_OPTION = false;
+            bool continuum_simulation_OPTION = false;
 
             /* as we don't accept bool variables we need the CASE_OPTION
              * this has to be improved...
@@ -111,23 +111,23 @@ namespace Kratos {
             switch (case_OPTION) {
                 case 0:
                     delta_OPTION = false;
-                    continuum_simulating_OPTION = false;
+                    continuum_simulation_OPTION = false;
                     break;
                 case 1:
                     delta_OPTION = true;
-                    continuum_simulating_OPTION = false;
+                    continuum_simulation_OPTION = false;
                     break;
                 case 2:
                     delta_OPTION = true;
-                    continuum_simulating_OPTION = true;
+                    continuum_simulation_OPTION = true;
                     break;
                 case 3:
                     delta_OPTION = false;
-                    continuum_simulating_OPTION = true;
+                    continuum_simulation_OPTION = true;
                     break;
                 default:
                     delta_OPTION = false;
-                    continuum_simulating_OPTION = false;
+                    continuum_simulation_OPTION = false;
             }
 
 
@@ -210,7 +210,16 @@ namespace Kratos {
 
                 vector< double > TempContactFailureId; //M: temporarily defined as a double.. ha de ser un int.
                 TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
+                    KRATOS_WATCH("")
+         
 
+                if ((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size()!=0) {
+
+                    KRATOS_WATCH("size dif de zero a neig")
+    
+
+                    KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[0])
+                }
                 vector< double > TempInitialDelta;
                 TempInitialDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA));
                 //M:in general we don't search here but we need it for the neigbours that the search calculator doesnt find.
