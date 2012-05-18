@@ -330,7 +330,7 @@ public:
                 Geometry<Node<3> >&geom = it->GetGeometry();
 
                 for(unsigned int i=0; i<TDim+1; i++)
-                    visited[i] = geom[i].GetValue(IS_VISITED);
+                    visited[i] = (static_cast<const Node<3> & >(geom[i])).GetValue(IS_VISITED);
 
                 if(IsActive(visited))
                 {
