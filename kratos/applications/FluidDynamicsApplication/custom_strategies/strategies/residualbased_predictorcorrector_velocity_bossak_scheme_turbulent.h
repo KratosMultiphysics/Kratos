@@ -560,7 +560,8 @@ namespace Kratos {
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
-                std::cout << ">>>>>>>>>>>>>>>Using OSS<<<<<<<<<<<<<<<<<<<" << std::endl;
+                if (r_model_part.GetCommunicator().MyPID() == 0)
+                    std::cout << "Computing OSS projections" << std::endl;
                 for (typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++) {
 
                     noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);

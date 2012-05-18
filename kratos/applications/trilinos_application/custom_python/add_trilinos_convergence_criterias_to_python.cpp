@@ -37,6 +37,7 @@
 
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
 //#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
@@ -89,6 +90,10 @@ void  AddConvergenceCriterias()
             boost::noncopyable >
             ("TrilinosUPCriteria", init< double, double, double, double, Epetra_MpiComm& >());
 
+    class_< ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            bases< TrilinosConvergenceCriteria >,
+            boost::noncopyable >
+            ("TrilinosResidualCriteria", init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
 }
 
 

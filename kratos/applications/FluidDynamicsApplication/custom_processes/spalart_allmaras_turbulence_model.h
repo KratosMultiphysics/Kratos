@@ -119,11 +119,11 @@ public:
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
 
         if (mr_model_part.GetBufferSize() < 3)
-            KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mr_model_part.GetBufferSize())
+            KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", mr_model_part.GetBufferSize());
 
-            //************************************************************************************************
-            //construct a new auxiliary model part
-            mspalart_model_part.SetBufferSize(3);
+        //************************************************************************************************
+        //construct a new auxiliary model part
+        mspalart_model_part.SetBufferSize(3);
         mspalart_model_part.Nodes() = mr_model_part.Nodes();
         mspalart_model_part.SetProcessInfo(mr_model_part.pGetProcessInfo());
         mspalart_model_part.SetProperties(mr_model_part.pProperties());
@@ -170,6 +170,23 @@ public:
         mpSolutionStrategy->Check();
     }
 
+    /// Destructor.
+
+    virtual ~SpalartAllmarasTurbulenceModel()
+    {
+    }
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// Solve an iteration of the turbulent viscosity
     void Execute()
     {
         KRATOS_TRY
@@ -216,12 +233,6 @@ public:
         }
 
         KRATOS_CATCH("");
-    }
-
-    /// Destructor.
-
-    virtual ~SpalartAllmarasTurbulenceModel()
-    {
     }
 
     void SetMaxIterations(unsigned int max_it)
@@ -305,17 +316,6 @@ public:
         CondUtils.SetUpSearchStructure(rThisVariable,ThisValue);
         CondUtils.DefinePeriodicBoundaryViscosity(Weight,TrX,TrY,TrZ);
     }
-
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-
-    ///@}
-    ///@name Operations
-    ///@{
-
 
     ///@}
     ///@name Access

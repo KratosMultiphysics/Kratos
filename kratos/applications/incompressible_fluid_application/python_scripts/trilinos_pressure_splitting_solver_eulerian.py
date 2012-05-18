@@ -169,6 +169,7 @@ class PressureSplittingSolver:
             self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent\
                                (self.alpha,\
                                 self.move_mesh_strategy,\
+                                self.domain_size,
                                 self.turbulence_model)
 
         self.time_scheme.Check(self.model_part)

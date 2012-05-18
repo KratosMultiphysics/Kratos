@@ -26,8 +26,15 @@
 #include "includes/mpi_communicator.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "solving_strategies/schemes/scheme.h"
+
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+
+// Application includes
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/schemes/trilinos_residualbased_incremental_aitken_static_scheme.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 #include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
@@ -72,7 +79,7 @@ public:
     /// Pointer definition of TrilinosSpalartAllmarasTurbulenceModel
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosSpalartAllmarasTurbulenceModel);
 
-    typedef SpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver> BaseTurbulenceModelType;
+    typedef SpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver> BaseSpAlType;
 
     ///@}
     ///@name Life Cycle
@@ -81,58 +88,60 @@ public:
     /// Constructor
     TrilinosSpalartAllmarasTurbulenceModel(Epetra_MpiComm& rComm,
                                            ModelPart& rModelPart,
-                                           typename TLinearSolver::Pointer pNewLinearSolver,
+                                           typename TLinearSolver::Pointer pLinearSolver,
                                            unsigned int DomainSize,
                                            double NonLinearTol,
                                            unsigned int MaxIter,
                                            bool ReformDofSet,
                                            unsigned int TimeOrder)
         :
-        BaseTurbulenceModelType(rModelPart)
+        BaseSpAlType(rModelPart)
     {
-        BaseTurbulenceModelType::mdomain_size = DomainSize;
-        BaseTurbulenceModelType::mtol = NonLinearTol;
-        BaseTurbulenceModelType::mmax_it = MaxIter;
-        BaseTurbulenceModelType::mtime_order = TimeOrder;
-        BaseTurbulenceModelType::madapt_for_fractional_step = false;
+        KRATOS_TRY;
+
+        BaseSpAlType::mdomain_size = DomainSize;
+        BaseSpAlType::mtol = NonLinearTol;
+        BaseSpAlType::mmax_it = MaxIter;
+        BaseSpAlType::mtime_order = TimeOrder;
+        BaseSpAlType::madapt_for_fractional_step = false;
 
         //************************************************************************************************
         //check that the variables needed are in the model part
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(DISTANCE)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", DISTANCE);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(VELOCITY)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VELOCITY);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(MOLECULAR_VISCOSITY)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(MOLECULAR_VISCOSITY)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MOLECULAR_VISCOSITY);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(TURBULENT_VISCOSITY)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(TURBULENT_VISCOSITY)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TURBULENT_VISCOSITY);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(MESH_VELOCITY)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", MESH_VELOCITY);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(VISCOSITY)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(VISCOSITY)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", VISCOSITY);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(NODAL_AREA)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", NODAL_AREA);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(TEMP_CONV_PROJ)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", TEMP_CONV_PROJ);
-        if (!(BaseTurbulenceModelType::mr_model_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
+        if (!(BaseSpAlType::mr_model_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)))
             KRATOS_ERROR(std::logic_error, "Variable is not in the model part:", PARTITION_INDEX);
 
-        if (BaseTurbulenceModelType::mr_model_part.GetBufferSize() < 3)
-            KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", BaseTurbulenceModelType::mr_model_part.GetBufferSize())
+        if (BaseSpAlType::mr_model_part.GetBufferSize() < 3)
+            KRATOS_ERROR(std::logic_error, "insufficient buffer size for BDF2, currently buffer size is ", BaseSpAlType::mr_model_part.GetBufferSize());
 
-            //************************************************************************************************
-            //construct a new auxiliary model part
-            BaseTurbulenceModelType::mspalart_model_part.SetBufferSize(3);
-        BaseTurbulenceModelType::mspalart_model_part.SetBufferSize(BaseTurbulenceModelType::mr_model_part.GetBufferSize());
-        BaseTurbulenceModelType::mspalart_model_part.SetNodes(BaseTurbulenceModelType::mr_model_part.pNodes());
-        BaseTurbulenceModelType::mspalart_model_part.SetProcessInfo(BaseTurbulenceModelType::mr_model_part.pGetProcessInfo());
-        BaseTurbulenceModelType::mspalart_model_part.SetProperties(BaseTurbulenceModelType::mr_model_part.pProperties());
+        //************************************************************************************************
+        //construct a new auxiliary model part
+        BaseSpAlType::mspalart_model_part.SetBufferSize(3);
+        BaseSpAlType::mspalart_model_part.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
+        BaseSpAlType::mspalart_model_part.SetNodes(BaseSpAlType::mr_model_part.pNodes());
+        BaseSpAlType::mspalart_model_part.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
+        BaseSpAlType::mspalart_model_part.SetProperties(BaseSpAlType::mr_model_part.pProperties());
 
         typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator() );
-        BaseTurbulenceModelType::mspalart_model_part.SetCommunicator( pSpalartMPIComm );
+        BaseSpAlType::mspalart_model_part.SetCommunicator( pSpalartMPIComm );
 
         std::string ElementName;
-        if (BaseTurbulenceModelType::mdomain_size == 2)
+        if (BaseSpAlType::mdomain_size == 2)
             ElementName = std::string("SpalartAllmaras2D");
         else
             ElementName = std::string("SpalartAllmaras3D");
@@ -140,55 +149,63 @@ public:
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
 
         //generating the elements
-        for (ModelPart::ElementsContainerType::iterator iii = BaseTurbulenceModelType::mr_model_part.ElementsBegin(); iii != BaseTurbulenceModelType::mr_model_part.ElementsEnd(); iii++)
+        for (ModelPart::ElementsContainerType::iterator iii = BaseSpAlType::mr_model_part.ElementsBegin(); iii != BaseSpAlType::mr_model_part.ElementsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
             Element::Pointer p_element = rReferenceElement.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseTurbulenceModelType::mspalart_model_part.Elements().push_back(p_element);
+            BaseSpAlType::mspalart_model_part.Elements().push_back(p_element);
         }
 
         std::string ConditionName;
-        if (BaseTurbulenceModelType::mdomain_size == 2)
+        if (BaseSpAlType::mdomain_size == 2)
             ConditionName = std::string("Condition2D");
         else
             ConditionName = std::string("Condition3D");
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(ConditionName);
 
-        for (ModelPart::ConditionsContainerType::iterator iii = BaseTurbulenceModelType::mr_model_part.ConditionsBegin(); iii != BaseTurbulenceModelType::mr_model_part.ConditionsEnd(); iii++)
+        for (ModelPart::ConditionsContainerType::iterator iii = BaseSpAlType::mr_model_part.ConditionsBegin(); iii != BaseSpAlType::mr_model_part.ConditionsEnd(); iii++)
         {
             Properties::Pointer properties = iii->pGetProperties();
             Condition::Pointer p_condition = rReferenceCondition.Create(iii->Id(), iii->GetGeometry(), properties);
-            BaseTurbulenceModelType::mspalart_model_part.Conditions().push_back(p_condition);
+            BaseSpAlType::mspalart_model_part.Conditions().push_back(p_condition);
         }
 
         // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration(BaseTurbulenceModelType::mspalart_model_part);
+        ParallelFillCommunicator CommunicatorGeneration(BaseSpAlType::mspalart_model_part);
         CommunicatorGeneration.Execute();
         //CommunicatorGeneration.PrintDebugInfo()
 
-        //initializing solution strategy
-        typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
-        typename SchemeType::Pointer pScheme = typename SchemeType::Pointer(new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-
-        bool CalculateReactions = false;
-        bool CalculateNormDxFlag = true;
-
-        // Builder and Solver definition
+        // pointer types for the solution strategy construcion
+        typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
+        typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
+        // Solution scheme: Aitken iterations
+        const double DefaultAitkenOmega = 1.0;
+        SchemePointerType pScheme = SchemePointerType( new TrilinosResidualBasedIncrementalAitkenStaticScheme< TSparseSpace, TDenseSpace > (DefaultAitkenOmega) );
+
+        // Convergence criteria
+        const double NearlyZero = 1.0e-20;
+        ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new ResidualCriteria<TSparseSpace,TDenseSpace>(NonLinearTol,NearlyZero) );
+
         //definitions for trilinos
         int guess_row_size;
-        if(BaseTurbulenceModelType::mdomain_size == 2) guess_row_size = 15;
+        if(BaseSpAlType::mdomain_size == 2) guess_row_size = 15;
         else guess_row_size = 40;
 
-        BuilderSolverTypePointer pBaS = BuilderSolverTypePointer(
-                                            new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (rComm,guess_row_size,pNewLinearSolver));
+        // Builder and solver
+        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (rComm,guess_row_size,pLinearSolver));
 
-        BaseTurbulenceModelType::mpSolutionStrategy = StrategyPointerType(
-                    new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver> (BaseTurbulenceModelType::mspalart_model_part,pScheme,pNewLinearSolver,pBaS,CalculateReactions,ReformDofSet,CalculateNormDxFlag));
-        BaseTurbulenceModelType::mpSolutionStrategy->SetEchoLevel(0);
-        BaseTurbulenceModelType::mpSolutionStrategy->Check();
+        // Strategy
+        bool CalculateReactions = false;
+        bool MoveMesh = false;
+
+        BaseSpAlType::mpSolutionStrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(BaseSpAlType::mspalart_model_part,pScheme,pLinearSolver,pConvCriteria,pBuildAndSolver,MaxIter,CalculateReactions,ReformDofSet,MoveMesh));
+        BaseSpAlType::mpSolutionStrategy->SetEchoLevel(0);
+        BaseSpAlType::mpSolutionStrategy->Check();
+
+        KRATOS_CATCH("");
     }
 
     /// Destructor.
@@ -326,13 +343,13 @@ private:
     /// Assignment operator.
     TrilinosSpalartAllmarasTurbulenceModel & operator=(TrilinosSpalartAllmarasTurbulenceModel const& rOther)
     {
-        BaseTurbulenceModelType::operator=(rOther);
+        BaseSpAlType::operator=(rOther);
         return *this;
     }
 
     /// Copy constructor.
     TrilinosSpalartAllmarasTurbulenceModel(TrilinosSpalartAllmarasTurbulenceModel const& rOther)
-        : BaseTurbulenceModelType(rOther)
+        : BaseSpAlType(rOther)
     {
     }
 

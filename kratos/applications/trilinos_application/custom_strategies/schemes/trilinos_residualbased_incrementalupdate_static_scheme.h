@@ -168,7 +168,7 @@ public:
     Performing the update of the solution.
     */
     //***************************************************************************
-    void Update(
+    virtual void Update(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
         TSystemMatrixType& A,
