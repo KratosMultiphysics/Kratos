@@ -76,8 +76,8 @@ namespace Kratos
       /// Default constructor. 
       SphericParticle() : DiscreteElement() {
 
-       mContinuumGroup = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
-       mFailureId = !(mContinuumGroup); // if ContinuumGroup != 0 --> mFailureId = 0; mFailureId is 1 when mContinuumGroup=0;
+       //mContinuumGroup = this->GetValue(PARTICLE_CONTINUUM);
+       //mFailureId = !(mContinuumGroup); // if ContinuumGroup != 0 --> mFailureId = 0; mFailureId is 1 when mContinuumGroup=0;
        
       }
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );

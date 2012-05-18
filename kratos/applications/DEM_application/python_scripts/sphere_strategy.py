@@ -113,7 +113,7 @@ class ExplicitStrategy:
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
        
-           
+        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, 1)  #the first step has been done
               
             
         #self.solver.SetCohesiveContacts()
