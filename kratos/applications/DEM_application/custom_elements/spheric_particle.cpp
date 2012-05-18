@@ -114,7 +114,7 @@ namespace Kratos
            ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
            ParticleWeakVectorType& r_initial_neighbours     = this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
           
-           vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily double...
+           //vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily double...
            //r_VectorContactFailureId.resize(r_neighbours.size());
 
            vector<double>& r_VectorContactInitialDelta       = this->GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
