@@ -235,7 +235,7 @@ namespace Kratos {
                 K(row + jj, row + jj) += density  * lump_mass_fac * factor;
 
 		//add pressure mass
-		double SV2=100.0;
+		double SV2=10.0;
 		
 		if (FractionalStepNumber==1)
 			K(row + dof , row + dof ) += (1.0/SV2)*lump_mass_fac;
@@ -283,7 +283,7 @@ namespace Kratos {
 		CalculateAdvMassStblTerms(rMassMatrix, dummy, DN_DX, N, tauone, Area, rCurrentProcessInfo);
 		//add stablilization terms due to grad term grad(q) * ro*Acce
 		//next one stabilizaes the continuity equation
-		//CalculateGradMassStblTerms(rMassMatrix, DN_DX,N, tauone, Area, rCurrentProcessInfo);
+		CalculateGradMassStblTerms(rMassMatrix, dummy, DN_DX,N, tauone, Area, rCurrentProcessInfo);
 	}
         KRATOS_CATCH("")
     }
@@ -672,7 +672,7 @@ namespace Kratos {
 	double factor=1.0;
 	double delta_t=CurrentProcessInfo[DELTA_TIME];
 	int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-	double SV2=100.0;
+	double SV2=10.0;
 	if (FractionalStepNumber==1)
 		factor=1.0;
 	//double alpha_bossak=-0.2;
@@ -689,10 +689,10 @@ namespace Kratos {
                 int loc_column = jj*dof;
 
                 M(row, column) += area * fac * temp_convterm(loc_row, loc_column) * factor;
-		TEMP(row, column)=area * fac * temp_convterm(loc_row, loc_column) * factor;
+		TEMP(row, column)+=area * fac * temp_convterm(loc_row, loc_column) * factor;
 
                 M(row + 1, column + 1) += area * fac * temp_convterm(loc_row + 1, loc_column + 1)* factor;
-                TEMP(row + 1, column + 1) = area * fac * temp_convterm(loc_row + 1, loc_column + 1)* factor;
+                TEMP(row + 1, column + 1) += area * fac * temp_convterm(loc_row + 1, loc_column + 1)* factor;
             }
         }
 
@@ -806,11 +806,11 @@ namespace Kratos {
 
                 //K(row,column) += -1*area * fac* N(ii) * DN_DX(jj,0);
                 M(column, row) += area * fac * N[ii] * DN_DX(jj, 0)* factor;
-                TEMP(column, row) = area * fac * N[ii] * DN_DX(jj, 0)* factor;
+                TEMP(column, row) += area * fac * N[ii] * DN_DX(jj, 0)* factor;
 
                 //K(row + 1,column) += -1*area * fac* N(ii) * DN_DX(jj,1);
                 M(column, row + 1) += area * fac * N[ii] * DN_DX(jj, 1)* factor;
-                TEMP(column, row + 1) = area * fac * N[ii] * DN_DX(jj, 1)* factor;
+                TEMP(column, row + 1) += area * fac * N[ii] * DN_DX(jj, 1)* factor;
             }
         }	      
 	
