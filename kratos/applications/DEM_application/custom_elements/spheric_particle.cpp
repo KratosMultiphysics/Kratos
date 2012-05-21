@@ -109,19 +109,21 @@ namespace Kratos
 
 
            //mContinuumGroup                                  = this->GetValue(PARTICLE_CONTINUUM);
-
-         
-           ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
-           ParticleWeakVectorType& r_initial_neighbours     = this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
-          
+        
            //vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily double...
            //r_VectorContactFailureId.resize(r_neighbours.size());
 
-           vector<double>& r_VectorContactInitialDelta       = this->GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
+           //vector<double>& r_VectorContactInitialDelta       = this->GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
            //r_VectorContactInitialDelta.resize(r_neighbours.size()); //the initial neighbours are the neighbours at the first step.
 
-           unsigned int i=0;
+           ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
 
+           //this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS).resize(r_neighbours.size());
+           this->GetValue(PARTICLE_INITIAL_DELTA).resize(r_neighbours.size());
+
+           ParticleWeakVectorType& r_initial_neighbours     = this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
+
+           unsigned int i=0;
 
            //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
@@ -138,7 +140,7 @@ namespace Kratos
                     double radius_sum                   = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS) + ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                     double initial_delta                = radius_sum - distance;
 
-                  //  KRATOS_WATCH(initial_delta)
+                    KRATOS_WATCH(initial_delta)
 
                     int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_CONTINUUM);
 
@@ -161,9 +163,14 @@ namespace Kratos
 
 
                             r_initial_neighbours.push_back(*ineighbour);
-                            r_VectorContactInitialDelta[i]  =   initial_delta; //M:R:els guardo sempre, en forces i tal si és car accedir aquest valor podem demanar el flag pero no crec ke sigui car.
 
-                            if (r_other_continuum_group == mContinuumGroup) {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0;  KRATOS_WATCH("SON DEL MATEIX GRUP")  }
+                            this->GetValue(PARTICLE_INITIAL_DELTA)[i]  =   initial_delta; //M:R:els guardo sempre, en forces i tal si és car accedir aquest valor podem demanar el flag pero no crec ke sigui car.
+                            this->GetValue(PARTICLE_CONTACT_DELTA)[i]  =   initial_delta;
+
+                            KRATOS_WATCH(this->GetValue(PARTICLE_INITIAL_DELTA)[i])
+                            KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_DELTA)[i])
+
+                            if (r_other_continuum_group == mContinuumGroup) {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0; }// KRATOS_WATCH("SON DEL MATEIX GRUP")  }
                             else                                             this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=1; // MRMR:  //generally detached    //diferent group
                                                                                                                              //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
 //KRATOS_WATCH(r_VectorContactFailureId[i])
@@ -204,7 +211,7 @@ namespace Kratos
             //ParticleWeakVectorType& r_initial_neighbours     = my_node.GetValue(INITIAL_NEIGHBOUR_ELEMENTS);  M: no l'utilitzo
 
             vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily a vector of doubles... it should be vector of ints..
-            vector<double>& r_VectorContactInitialDelta         = this->GetValue(PARTICLE_CONTACT_INITIAL_DELTA);
+            vector<double>& r_VectorContactInitialDelta         = this->GetValue(PARTICLE_CONTACT_DELTA);
 
 
             // PROCESS INFO
@@ -300,20 +307,20 @@ namespace Kratos
 
                 array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
 
-                KRATOS_WATCH("hshshshshs")
+             //   KRATOS_WATCH("hshshshshs")
 
-    KRATOS_WATCH(continuum_simulation_OPTION)
-     KRATOS_WATCH(continuum_group)
-          KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
-          KRATOS_WATCH((continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0)))
+  //  KRATOS_WATCH(continuum_simulation_OPTION)
+  //   KRATOS_WATCH(continuum_group)
+    //      KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+      //    KRATOS_WATCH((continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0)))
 
                 if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
                 {
-                    KRATOS_WATCH("sadjksadksksk")
+           //         KRATOS_WATCH("sadjksadksksk")
                     CTension    = 2* Tension * other_tension / (Tension + other_tension);
                     CCohesion   = 2* Cohesion * other_cohesion / (Cohesion + other_cohesion);             
-                KRATOS_WATCH(CTension)
-                        KRATOS_WATCH(CCohesion)
+            //    KRATOS_WATCH(CTension)
+              //          KRATOS_WATCH(CCohesion)
 
                 }
 
@@ -393,9 +400,9 @@ namespace Kratos
                     //aqui em falta lu de pi i tal.... oi???
                     //M: these are arrays of vectors of 3 components.
 
-                    KRATOS_WATCH(this->Id())
-                    KRATOS_WATCH(neighbour_iterator->Id())
-                    KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+                //    KRATOS_WATCH(this->Id())
+                  //  KRATOS_WATCH(neighbour_iterator->Id())
+                    //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
                     if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // This conditions take in acount the fact that the particles must remember their initial delta's between initial neighbours.
                     //M: te una mica de tela entendre bé aquestes condicions pero crec que axi es compleixien tots el casos.
                     {
@@ -436,7 +443,7 @@ namespace Kratos
               // TENSION FAILURE
                         if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
                         {
-                            KRATOS_WATCH("HA FALLAT A TRACCIO")
+                       //     KRATOS_WATCH("HA FALLAT A TRACCIO")
                             LocalContactForce[0]  = 0.0;
                             LocalContactForce[1]  = 0.0;
                             LocalContactForce[2]  = 0.0;
