@@ -1,0 +1,353 @@
+/* b
+==============================================================================
+KratosIncompressibleFluidApplication
+A library based on:
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2007
+Pooyan Dadvand, Riccardo Rossi
+pooyan@cimne.upc.edu
+rrossi@cimne.upc.edu
+- CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNERS.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+ */
+
+//
+//   Project Name:        Kratos
+//   Last modified by:    $Author: rrossi $
+//   Date:                $Date: 2009-01-13 15:39:56 $
+//   Revision:            $Revision: 1.14 $
+//
+//
+
+// System includes
+
+
+// External includes
+
+
+// Project includes
+#include "includes/define.h"
+#include "custom_elements/artery_element.h"
+#include "utilities/math_utils.h"
+#include "blood_flow_application.h"
+
+namespace Kratos
+{
+
+//************************************************************************************
+//************************************************************************************
+
+ArteryElement::ArteryElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry)
+{
+    //DO NOT ADD DOFS HERE!!!
+}
+
+//************************************************************************************
+//************************************************************************************
+
+ArteryElement::ArteryElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties)
+{
+}
+
+Element::Pointer ArteryElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+{
+    KRATOS_TRY
+
+    return Element::Pointer(new ArteryElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    KRATOS_CATCH("");
+}
+
+ArteryElement::~ArteryElement()
+{
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ArteryElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+    KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense to computer the system matrix for an explicit element", "");
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //resize the vector to the correct size
+    if (rRightHandSideVector.size() != 4)
+        rRightHandSideVector.resize(4,false);
+    
+    double h_int = rCurrentProcessInfo[DELTA_TIME];
+
+    //get data as needed
+    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    const double density = GetProperties()[DENSITY];
+    const double E = GetProperties()[YOUNG_MODULUS];
+    const double nu = GetProperties()[POISSON_RATIO];
+    const double pi = 3.14159265;
+    const double coriolis_coefficient = 1.001;
+    const double kr_coefficient = 1.0;
+
+    const double kinematic_viscosity = dynamic_viscosity/density;
+    const double beta = E*mH0*1.77245385/(1.0-nu*nu);
+
+
+    std::vector< array_1d<double,2> > Fj(2);
+    std::vector< array_1d<double,2> > Sj(2);
+    std::vector< boost::numeric::ublas::bounded_matrix<double, 2,2 > > Hj(2);
+    std::vector< boost::numeric::ublas::bounded_matrix<double, 2,2 > > Suj(2);
+
+    boost::numeric::ublas::bounded_matrix<double, 2,2 > M1, M2;
+    
+    M1(0,0) = -0.5; M1(0,1) = 0.5; 
+    M1(1,0) = -0.5; M1(1,1) = 0.5;
+    
+    M2(0,0) = 0.333333333333333333333333; M2(0,1) = 0.166666666666666666666667; 
+    M2(1,0) = 0.333333333333333333333333; M2(1,1) = 0.166666666666666666666667; 
+    
+    //loop on nodes
+    for (unsigned int i=0; i<2; i++)
+    {
+        const double& A =  GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
+        const double C = beta*sqrt(A*A*A)/(3.0*density*mA0[i]);
+
+        const double flow = GetGeometry()[i].FastGetSolutionStepValue(FLOW);
+        Fj[i][0] = flow;
+        Sj[i][0] = 0.0;
+        Fj[i][1] = C + coriolis_coefficient*flow*flow/(A);
+        Sj[i][1] = -kr_coefficient*flow/(A);
+
+        Hj[i](0,1)   = 0.0;
+        Hj[i](0,2) = 1.0;
+        Hj[i](1,1)   = -coriolis_coefficient*pow(flow/(A),2) + (beta* sqrt(A))/(2.0*density*mA0[i]);
+        Hj[i](1,1) = 2.0*coriolis_coefficient*(flow/A);
+
+        Suj[i](0,1)   = 0.0;
+        Suj[i](0,2) = 0.0;
+        Suj[i](1,1)   = kr_coefficient*pow(flow/(A),2);
+        Suj[i](1,2) = -kr_coefficient/A;
+    }
+
+    array_1d<double,2> Fder;
+    Fder[0] = (Fj[1][0] - Fj[0][0]) / mL;
+    Fder[1] = (Fj[1][1] - Fj[0][1]) / mL;
+
+    std::vector< array_1d<double,2> > Fw(2);
+    std::vector< array_1d<double,2> > Sw(2);
+
+    noalias(Fw[0]) = prod(Hj[0] ,Sj[0]);
+    noalias(Fw[1]) = prod(Hj[1] ,Sj[1]);
+
+    noalias(Sw[0]) = prod(Suj[0] ,Sj[0]);
+    noalias(Sw[1]) = prod(Suj[1] ,Sj[1]);
+
+    for (unsigned int i=0; i<2; i++)
+    {
+        array_1d<double,2>& Fwi  = Fw[i];
+        array_1d<double,2>& Swi  = Sw[i];
+        for (unsigned int j=0; j<2; j++)
+        {
+            Fwi[j] = h_int*0.5*Fwi[j] + Fj[i][j];
+            Swi[j] = h_int*0.5*Swi[j] + Sj[i][j];
+        }
+    }
+    
+    std::vector< array_1d<double,2> > F2ord(2);
+    noalias(F2ord[0]) = prod( Hj[0],Fder);
+    noalias(F2ord[1]) = prod( Hj[1],Fder);
+    
+    std::vector< array_1d<double,2> > S2ord(2);
+    noalias(S2ord[0]) = prod( Suj[0],Fder);
+    noalias(S2ord[1]) = prod( Suj[1],Fder);    
+    
+    array_1d<double,2> tmp;
+    array_1d<double,2> aux;
+    for (unsigned int i=0; i<2; i++)
+    {
+      noalias(tmp) = prod(M1,Fw[i]);
+      noalias(Fw[i]) = tmp;
+      
+      noalias(tmp) = prod(M2,Sw[i]);
+      noalias(Sw[i]) = tmp;
+      
+      noalias(tmp) = prod(M1,F2ord[i]);
+      noalias(F2ord[i]) = tmp;
+      
+      noalias(tmp) = prod(M1,S2ord[i]);
+      noalias(S2ord[i]) = tmp;
+    }
+    
+    //now let's compute the rhs
+    array_1d<double,2> rhs;
+    
+    for (unsigned int i=0; i<2; i++)
+    {
+       noalias(tmp) = Fw[i];
+       noalias(tmp) += Sw[i];
+       
+       noalias(aux) =  F2ord[i];
+       noalias(aux) += S2ord[i];
+       
+       noalias(rhs) = tmp;
+       noalias(rhs) -= (h_int*0.5)*aux;
+       
+        rhs *= 2.0/mL; //TODO: try it out of the code
+//        rhs *= 1.0/GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS); //TODO: try it out of the code
+
+       unsigned int base = i*2;
+       rRightHandSideVector[base] = rhs[0];
+       rRightHandSideVector[base+1] = rhs[1];
+       
+
+    }
+    
+    
+
+
+
+
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+void ArteryElement::Initialize()
+{
+    KRATOS_TRY
+    const double pi = 3.14159265;
+    double radius = GetProperties()[RADIUS];
+    
+    const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+    mA0[0] = pi*r0*r0;
+
+    const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+    mA0[1] = pi*r1*r1;
+
+
+    mH0 = GetProperties()[THICKNESS];
+
+    //compute the lenght of the element
+    array_1d<double,3> lvec = GetGeometry()[1].Coordinates();
+    lvec -= GetGeometry()[0].Coordinates();
+
+    mL = norm_2(lvec);
+
+    //save area to the nodes. as well as its nodal mass
+    GetGeometry()[0].SetLock();
+    GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS) += 0.5*mL;
+    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mA0[0];
+    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
+    GetGeometry()[0].UnSetLock();
+    GetGeometry()[1].SetLock();
+    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0.5*mL;
+    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mA0[1];
+    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
+    GetGeometry()[1].UnSetLock();
+
+
+    KRATOS_CATCH("");
+}
+
+//************************************************************************************
+//************************************************************************************
+// this subroutine calculates the nodal contributions for the explicit steps of the
+// fractional step procedure
+
+void ArteryElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    KRATOS_CATCH("");
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ArteryElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit element", "");
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ArteryElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+{
+    KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit element", "");
+}
+
+
+//************************************************************************************
+//************************************************************************************
+void ArteryElement::Calculate(const Variable<double >& rVariable,
+                              double& Output,
+                              const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //the variable error_ratio is here the norm of the subscale velocity as computed at the level of the gauss point
+    if (rVariable == ERROR_RATIO)
+    {
+
+    }
+    KRATOS_CATCH("");
+
+}
+
+int ArteryElement::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //check the area
+
+    //check if if is in the XY plane
+
+    //check that no variable has zero key
+
+
+    return 0;
+
+
+    KRATOS_CATCH("");
+}
+
+
+} // Namespace Kratos
+
+
+
