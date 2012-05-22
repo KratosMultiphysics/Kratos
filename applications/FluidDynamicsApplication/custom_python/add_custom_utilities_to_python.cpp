@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/dynamic_smagorinsky_utilities.h"
 #include "custom_utilities/periodic_condition_utilities.h"
+#include "custom_utilities/fractional_step_settings.h"
 #include "utilities/split_tetrahedra.h"
 
 namespace Kratos
@@ -94,6 +95,32 @@ void  AddCustomUtilitiesToPython()
     .def("DefinePeriodicBoundaryPressure",&PeriodicConditionUtilities::DefinePeriodicBoundaryPressure)
     .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
     .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
+    ;
+
+    typedef SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;
+
+    class_ < BaseSettingsType, boost::noncopyable >
+    ( "BaseSettingsType",no_init );
+
+    enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel>("StrategyLabel")
+    .value("Velocity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::Velocity)
+    .value("Pressure",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::Pressure)
+    //.value("EddyViscosity",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+    ;
+
+    enum_<FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel>("TurbulenceModelLabel")
+    .value("SpalartAllmaras",FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SpalartAllmaras)
+    ;
+
+    typedef void (FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,typename LinearSolverType::Pointer,const double,const unsigned int);
+    SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
+
+    class_< FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
+            ("FractionalStepSettings",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    .def("SetStrategy",ThisSetStrategyOverload)
+    .def("SetTurbulenceModel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel)
+    .def("GetStrategy",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
+    .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
 }

@@ -196,7 +196,7 @@ public:
         }
 
 
-        KRATOS_WATCH(Omega);
+//        KRATOS_WATCH(Omega);
 
         this->UpdateWithRelaxation(rDofSet,Dx,Omega);
 
@@ -328,7 +328,7 @@ protected:
         Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
         if(check_size < system_size)
         {
-            cout << "expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+            std::cout << Dx.Comm().MyPID() << ": expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
             KRATOS_ERROR(std::logic_error,"dof count is not correct. There are less dofs then expected","")
         }
 

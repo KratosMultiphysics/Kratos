@@ -4,9 +4,9 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+#include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_elements/fractional_step.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -14,6 +14,8 @@
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+
+#include "custom_utilities/solver_settings.h"
 
 namespace Kratos {
 
@@ -76,21 +78,89 @@ public:
 
     typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
 
+    typedef SolverSettings<TSparseSpace,TDenseSpace,TLinearSolver> SolverSettingsType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     FSStrategy(ModelPart& rModelPart,
-               typename TLinearSolver::Pointer pVelocityLinearSolver,
-               typename TLinearSolver::Pointer pPressureLinearSolver,
-               bool MoveMeshFlag,
-               bool ReformDofAtEachIteration,
-               double VelTol,
-               int MaxVelocityIterations,
-               unsigned int TimeOrder,
-               unsigned int DomainSize):
-        BaseType(rModelPart,MoveMeshFlag)
-    {}
+               SolverSettingsType& rSolverConfig,
+               bool PredictorCorrector):
+        BaseType(rModelPart,false)
+    {
+        KRATOS_TRY;
+
+        mDomainSize = rSolverConfig.GetDomainSize();
+        mTimeOrder = rSolverConfig.GetTimeOrder();
+
+        mPredictorCorrector = PredictorCorrector;
+
+        mUseSlipConditions = rSolverConfig.UseSlipConditions();
+
+        BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
+
+        // Initialize strategies for each step
+        bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,mpMomentumStrategy);
+
+        if (HaveVelStrategy)
+        {
+            rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
+            rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
+        }
+        else
+        {
+            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
+        }
+
+        bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
+
+        if (HavePressStrategy)
+        {
+            rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
+            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressueIter);
+        }
+        else
+        {
+            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
+        }
+
+        Process::Pointer pTurbulenceProcess;
+        bool HaveTurbulence = rSolverConfig.GetTurbulenceModel(pTurbulenceProcess);
+
+        if (HaveTurbulence)
+            mExtraIterationSteps.push_back(pTurbulenceProcess);
+
+        // Set up nodes to use slip conditions if needed.
+        if (mUseSlipConditions)
+        {
+#pragma omp parallel
+            {
+                ModelPart::ConditionIterator CondBegin;
+                ModelPart::ConditionIterator CondEnd;
+                OpenMPUtils::PartitionedIterators(rModelPart.Conditions(),CondBegin,CondEnd);
+
+                for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
+                {
+                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
+                    if (FlagValue != 0.0)
+                    {
+
+                        Condition::GeometryType& rGeom = itCond->GetGeometry();
+                        for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
+                        {
+                            rGeom[i].SetLock();
+                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].UnSetLock();
+                        }
+                    }
+                }
+            }
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+        }
+
+        KRATOS_CATCH("");
+    }
 
     FSStrategy(ModelPart& rModelPart,
                /*SolverConfiguration<TSparseSpace, TDenseSpace, TLinearSolver>& rSolverConfig,*/
@@ -104,7 +174,7 @@ public:
                int MaxPressureIterations = 1,// Only for predictor-corrector
                unsigned int TimeOrder = 2, ///@todo check if really needed
                unsigned int DomainSize = 2,
-               bool PredictorCorrector= false): ///@todo check if really needed
+               bool PredictorCorrector= true):
         BaseType(rModelPart,MoveMeshFlag), // Move Mesh flag, pass as input?
         mVelocityTolerance(VelTol),
         mPressureTolerance(PresTol),
@@ -113,7 +183,8 @@ public:
         mDomainSize(DomainSize),
         mTimeOrder(TimeOrder),
         mPredictorCorrector(PredictorCorrector),
-        mUseSlipConditions(true) ///@todo initialize somehow
+        mUseSlipConditions(true), ///@todo initialize somehow
+        mExtraIterationSteps()
     {
         KRATOS_TRY;
 
@@ -156,10 +227,38 @@ public:
         this->mpMomentumStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
 
         BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(
+                    //new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pPressureLinearSolver));
                 new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pPressureLinearSolver, PRESSURE));
 
         this->mpPressureStrategy = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
         this->mpPressureStrategy->SetEchoLevel( BaseType::GetEchoLevel() );
+
+        if (mUseSlipConditions)
+        {
+#pragma omp parallel
+            {
+                ModelPart::ConditionIterator CondBegin;
+                ModelPart::ConditionIterator CondEnd;
+                OpenMPUtils::PartitionedIterators(rModelPart.Conditions(),CondBegin,CondEnd);
+
+                for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
+                {
+                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
+                    if (FlagValue != 0.0)
+                    {
+
+                        Condition::GeometryType& rGeom = itCond->GetGeometry();
+                        for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
+                        {
+                            rGeom[i].SetLock();
+                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].UnSetLock();
+                        }
+                    }
+                }
+            }
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+        }
 
 
         KRATOS_CATCH("");
@@ -187,8 +286,24 @@ public:
 
         ModelPart& rModelPart = BaseType::GetModelPart();
 
-        if (rModelPart.GetBufferSize() != 3)
-            KRATOS_ERROR(std::logic_error,"Wrong buffer size for fractional step strategy, expected 3, got ",rModelPart.GetBufferSize());
+        if ( mTimeOrder == 2 && rModelPart.GetBufferSize() < 3 )
+            KRATOS_ERROR(std::logic_error,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
+        if ( mTimeOrder == 1 && rModelPart.GetBufferSize() < 2 )
+            KRATOS_ERROR(std::logic_error,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
+
+        const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+        for ( ModelPart::ElementIterator itEl = rModelPart.ElementsBegin(); itEl != rModelPart.ElementsEnd(); ++itEl )
+        {
+            ierr = itEl->Check(rCurrentProcessInfo);
+            if (ierr != 0) break;
+        }
+
+        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
+        {
+            ierr = itCond->Check(rCurrentProcessInfo);
+            if (ierr != 0) break;
+        }
 
         return ierr;
 
@@ -289,6 +404,11 @@ public:
         rCurrentProcessInfo.SetValue(FRACTIONAL_STEP,OriginalStep);
     }
 
+    virtual void AddIterationStep(Process::Pointer pNewStep)
+    {
+        mExtraIterationSteps.push_back(pNewStep);
+    }
+
 
     ///@}
     ///@name Access
@@ -334,6 +454,34 @@ public:
     ///@}
 
 protected:
+
+    ///@name Protected Life Cycle
+    ///@{
+
+    /// Protected constructor to use in derived classes, does not initialize solution strategy-related members.
+    FSStrategy(ModelPart& rModelPart,
+               bool MoveMeshFlag, ///@todo: Read from solver configuration? Should match the one passed to vel/pre strategies?
+               double VelTol,
+               double PresTol,
+               int MaxVelocityIterations,
+               int MaxPressureIterations,// Only for predictor-corrector
+               unsigned int TimeOrder, ///@todo check if really needed
+               unsigned int DomainSize,
+               bool PredictorCorrector,
+               bool UseSlipConditions):
+        BaseType(rModelPart,MoveMeshFlag), // Move Mesh flag, pass as input?
+        mVelocityTolerance(VelTol),
+        mPressureTolerance(PresTol),
+        mMaxVelocityIter(MaxVelocityIterations),
+        mMaxPressueIter(MaxPressureIterations),
+        mDomainSize(DomainSize),
+        mTimeOrder(TimeOrder),
+        mPredictorCorrector(PredictorCorrector),
+        mUseSlipConditions(UseSlipConditions),
+        mExtraIterationSteps()
+    {}
+
+    ///@}
     ///@name Protected static Member Variables
     ///@{
 
@@ -361,19 +509,33 @@ protected:
     {
         KRATOS_TRY;
 
-        //calculate the BDF coefficients
-        double Dt = rCurrentProcessInfo[DELTA_TIME];
-        double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
+        if (mTimeOrder == 2)
+        {
+            //calculate the BDF coefficients
+            double Dt = rCurrentProcessInfo[DELTA_TIME];
+            double OldDt = rCurrentProcessInfo.GetPreviousTimeStepInfo(1)[DELTA_TIME];
 
-        double Rho = OldDt / Dt;
-        double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+            double Rho = OldDt / Dt;
+            double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
 
-        Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        BDFcoeffs.resize(3, false);
+            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            BDFcoeffs.resize(3, false);
 
-        BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
-        BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
-        BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+            BDFcoeffs[0] = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+            BDFcoeffs[1] = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+            BDFcoeffs[2] = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+        }
+        else if (mTimeOrder == 1)
+        {
+            double Dt = rCurrentProcessInfo[DELTA_TIME];
+            double TimeCoeff = 1.0 / Dt;
+
+            Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+            BDFcoeffs.resize(2, false);
+
+            BDFcoeffs[0] = TimeCoeff; //coefficient for step n+1 (1/Dt)
+            BDFcoeffs[1] = -TimeCoeff; //coefficient for step n (-1/Dt)
+        }
 
         KRATOS_CATCH("");
     }
@@ -397,6 +559,11 @@ protected:
 //            // Compute projections (for stabilization)
 //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
 //            this->ComputeSplitOssProjections();
+
+            // Additional steps
+            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
+                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
+                (*iExtraSteps)->Execute();
 
             // Check convergence
             bool Converged = this->CheckFractionalStepConvergence(NormDv);
@@ -637,6 +804,10 @@ protected:
         }
     }
 
+    /**
+     * @brief Substract wall-normal component of velocity update to ensure that the final velocity satisfies slip conditions.
+     * @param rSlipWallFlag If Node.GetValue(rSlipWallFlag) != 0, the node is in the wall.
+     */
     void EnforceSlipCondition(Variable<double>& rSlipWallFlag)
     {
         ModelPart& rModelPart = BaseType::GetModelPart();
@@ -726,6 +897,8 @@ private:
 
     /// Scheme for the solution of the mass equation
     StrategyPointerType mpPressureStrategy;
+
+    std::vector< Process::Pointer > mExtraIterationSteps;
 
     ///@}
     ///@name Private Operators

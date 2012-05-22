@@ -49,16 +49,24 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // External includes
 #include <boost/python.hpp>
-
+#include "Epetra_MpiComm.h"
+#include "Epetra_FECrsMatrix.h"
+#include "Epetra_FEVector.h"
 
 // Project includes
 #include "includes/define.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
+
+// Application includes
+#include "trilinos_space.h"
 #include "custom_utilities/trilinos_deactivation_utility.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 #include "custom_utilities/trilinos_cutting_app.h"
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
+#include "custom_utilities/trilinos_fractional_step_settings.h"
 
 namespace Kratos
 {
@@ -68,6 +76,10 @@ using namespace boost::python;
 
 void  AddCustomUtilitiesToPython()
 {
+    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
     class_<TrilinosDeactivationUtility, boost::noncopyable >
     ("TrilinosDeactivationUtility",
      init<>() )
@@ -112,6 +124,33 @@ void  AddCustomUtilitiesToPython()
     .def("PrintDebugInfo", &TrilinosRefineMesh::PrintDebugInfo )
     ;
 
+    typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
+
+    class_ < BaseSettingsType, boost::noncopyable >
+    ( "BaseSettingsType",no_init );
+
+    typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
+
+    enum_<TrilinosFSSettingsType::StrategyLabel>("TrilinosStrategyLabel")
+    .value("Velocity",TrilinosFSSettingsType::Velocity)
+    .value("Pressure",TrilinosFSSettingsType::Pressure)
+    //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
+    ;
+
+    enum_<TrilinosFSSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
+    .value("SpalartAllmaras",TrilinosFSSettingsType::SpalartAllmaras)
+    ;
+
+    typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,typename TrilinosLinearSolverType::Pointer,const double,const unsigned int);
+    SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
+
+    class_< TrilinosFSSettingsType,bases<BaseSettingsType>, boost::noncopyable>
+            ("TrilinosFractionalStepSettings",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
+    .def("SetStrategy",ThisSetStrategyOverload)
+    .def("SetTurbulenceModel",&TrilinosFSSettingsType::SetTurbulenceModel)
+    .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
+    .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
+    ;
 
 
 }

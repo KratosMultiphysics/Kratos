@@ -213,9 +213,10 @@ namespace Kratos
         /// Initializes the element and all geometric information required for the problem.
         virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 
+        /// Initialize viscosity, adding Smagorinsky eddy viscosity if it is active.
         virtual void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
 
-        /// Calculate the element's local contribution to the system for the current step
+        /// Calculate the element's local contribution to the system for the current step.
         virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);

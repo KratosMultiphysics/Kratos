@@ -21,7 +21,6 @@ void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessIn
 template< unsigned int TDim >
 void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
-//    this->CalculateGeometryData();
     double Csmag = this->GetValue(C_SMAGORINSKY);
 
     // Total viscosity
