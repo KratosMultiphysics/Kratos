@@ -252,7 +252,7 @@ public:
         //Add new nodes to the model part
         for( PointVector::iterator it =  duplicated_nodes_list.begin(); it!=duplicated_nodes_list.end(); it++)
         {
-            mr_model_part.Nodes().push_back(*(it.base()));
+            mr_model_part.Nodes().push_back(*(it));
         }
 
         //REset IS_VISITED flag and assign Material Poperty flag of element to its nodes
@@ -497,7 +497,7 @@ public:
 
     void PairToId(unsigned int ii, unsigned int jj,unsigned int N_max, unsigned int& cond_prop_id)
     {
-        if( ii > N_max or jj > N_max )
+        if( ii > N_max || jj > N_max )
             KRATOS_ERROR(std::logic_error," Beginning or end id is bigger than Max_Id","");
         if( ii== jj)
             KRATOS_WATCH("Nodes of the created condition have the same NODE_PROPERTY_ID");
@@ -507,7 +507,7 @@ public:
 
     void IdToPair(unsigned int cond_prop_id , unsigned int N_max, int& init_prop_id, int& end_prop_id)
     {
-        if( N_max == 0 or cond_prop_id < N_max)
+        if( N_max == 0 || cond_prop_id < N_max)
             KRATOS_ERROR(std::logic_error,"Max_Id is zero or Condition_id is less than N_max","");
 
         init_prop_id = cond_prop_id / N_max ;
