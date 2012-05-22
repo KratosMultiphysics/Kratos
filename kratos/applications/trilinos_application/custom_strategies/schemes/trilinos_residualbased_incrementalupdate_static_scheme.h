@@ -287,7 +287,7 @@ public:
     this function calculates at the same time the contribution to the LHS and to the RHS
     of the system
     */
-    void CalculateSystemContributions(
+    virtual void CalculateSystemContributions(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
@@ -309,7 +309,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    void Calculate_RHS_Contribution(
+    virtual void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
@@ -327,7 +327,7 @@ public:
 
     //***************************************************************************
     //***************************************************************************
-    void Calculate_LHS_Contribution(
+    virtual void Calculate_LHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,

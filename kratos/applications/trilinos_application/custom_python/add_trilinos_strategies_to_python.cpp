@@ -85,6 +85,9 @@
 #include "incompressible_fluid_application/incompressible_fluid_application.h"
 #include "linear_solvers/linear_solver.h"
 
+#include "FluidDynamicsApplication/custom_strategies/strategies/fs_strategy.h"
+#include "FluidDynamicsApplication/custom_utilities/solver_settings.h"
+
 
 namespace Kratos
 {
@@ -442,6 +445,15 @@ void AddStrategies()
       > () )
     .def( "Solve", &TrilinosConvectionDiffusionStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
     ;
+
+    typedef FSStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosFSStrategy;
+
+    class_< TrilinosFSStrategy, boost::noncopyable >
+            ("TrilinosFSStrategy",init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
+            .def("Solve",&TrilinosFSStrategy::Solve)
+            .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
+            .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
+            ;
 
 }
 

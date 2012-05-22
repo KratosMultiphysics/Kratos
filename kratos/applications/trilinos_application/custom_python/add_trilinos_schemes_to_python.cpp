@@ -43,6 +43,7 @@
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme_slip.h"
 #include "custom_strategies/schemes/trilinos_residualbased_lagrangian_monolithic_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_newmark_scheme.h"
 #include "../../incompressible_fluid_application/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme.h"
@@ -138,6 +139,12 @@ void  AddSchemes()
            bases< TrilinosBaseSchemeType >, boost::noncopyable >
            (
                "TrilinosResidualBasedIncrementalUpdateStaticScheme", init< >()
+           );
+
+    class_ < TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases< TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> >, boost::noncopyable >
+           (
+               "TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip", init< unsigned int, unsigned int >()
            );
 
     class_ < TrilinosResidualBasedLagrangianMonolithicScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
