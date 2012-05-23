@@ -541,7 +541,7 @@ void ContactLink3DExplicit::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
     {
         for(unsigned int j = 0; j<dimension; j++ )
         {
-            rMassMatrix(3*i + j, 3*i + j) = geom[i].FastGetSolutionStepValue(NODAL_MASS);
+            rMassMatrix(3*i + j, 3*i + j) = geom[i].GetValue(NODAL_MASS);
         }
     }
 }
