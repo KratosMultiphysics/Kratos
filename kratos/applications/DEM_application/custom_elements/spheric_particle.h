@@ -195,14 +195,15 @@ namespace Kratos
       
     protected:
 
-        void ComputeForcesGeneral(const ProcessInfo& rCurrentProcessInfo);
         void SetInitialContacts(int case_opt);
-        void norm(double Vector[3]);
-        void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3]);
-        void VectorLocal2Global(double LocalCoordSystem[3][3], double LocalVector[3], double GlobalVector[3]);
-        double DotProduct(double Vector1[3], double Vector2[3]);
-        void CrossProduct(double u[3], double v[3], double ReturnVector[3]);
-        void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3]);
+
+        void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
+        
+        void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
+        void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
+
+        
+        
       ///@name Protected static Member Variables 
       ///@{ 
         
@@ -254,8 +255,7 @@ namespace Kratos
         unsigned int mDimension;
         double mDampType;
         double mTimeStep;
-        double mInertia;
-        double mMomentOfInertia;
+      
         double mRealMass;
 
         std::vector<double> mForce;

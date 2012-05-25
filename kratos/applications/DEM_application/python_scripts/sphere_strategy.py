@@ -8,7 +8,7 @@ def AddVariables(model_part):
     #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(FORCE)
+    model_part.AddNodalSolutionStepVariable(RHS)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
@@ -27,16 +27,27 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_LOCAL_DAMP_RATIO)
     model_part.AddNodalSolutionStepVariable(PARTICLE_FAILURE_ID)
 
+    model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+   
+
     print "variables for the explicit solver added correctly"
 
 def AddDofs(model_part):
     
     for node in model_part.Nodes:
     #adding dofs
-      node.AddDof(DISPLACEMENT_X,REACTION_X);
-      node.AddDof(DISPLACEMENT_Y,REACTION_Y);
-      node.AddDof(DISPLACEMENT_Z,REACTION_Z);
-    print "dofs for the dynamic structural solution added correctly"
+        node.AddDof(DISPLACEMENT_X,REACTION_X);
+        node.AddDof(DISPLACEMENT_Y,REACTION_Y);
+        node.AddDof(DISPLACEMENT_Z,REACTION_Z);
+        node.AddDof(VELOCITY_X,REACTION_X);
+        node.AddDof(VELOCITY_Y,REACTION_Y);
+        node.AddDof(VELOCITY_Z,REACTION_Z);
+
+    print "dofs for the DEM solution added correctly"
 
  
 class ExplicitStrategy:
@@ -59,6 +70,9 @@ class ExplicitStrategy:
         self.delta_OPTION                   = True
         self.continuum_simulating_OPTION    = True
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
+
+        self.rotation_OPTION                = 0
+        self.rotation_spring_OPTION         = 0
 
         #problem specific parameters
 
@@ -95,6 +109,8 @@ class ExplicitStrategy:
             else: self.case_OPTION = 3
 
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
+        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
+        self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
 
         
         #####

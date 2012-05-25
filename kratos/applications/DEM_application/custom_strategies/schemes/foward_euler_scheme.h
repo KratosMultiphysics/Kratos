@@ -27,6 +27,8 @@
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
 
+#include "DEM_application.h"
+
 namespace Kratos
 {
   
@@ -59,13 +61,19 @@ namespace Kratos
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
      void Calculate(ModelPart& model_part)
      {
+        CalculateTranslationalMotion(model_part);
+        CalculateRotationalMotion(model_part);
+     }
+
+     void CalculateTranslationalMotion(ModelPart& model_part)
+     {
         KRATOS_TRY
 
-	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
+	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  CurrentProcessInfo[DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -82,18 +90,18 @@ namespace Kratos
 	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
 	  {
                
-	     array_1d<double, 3 > & vel          = i->FastGetSolutionStepValue(VELOCITY);
-	     array_1d<double, 3 > & displ        = i->FastGetSolutionStepValue(DISPLACEMENT);
-	     array_1d<double, 3 > & coor         = i->Coordinates();
-  	     array_1d<double, 3 > & initial_coor = i->GetInitialPosition();
-  	     array_1d<double, 3 > & force        = i->FastGetSolutionStepValue(FORCE);
-       
-	     const double mass                  = i->FastGetSolutionStepValue(NODAL_MASS);
+	     array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
+	     array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+	     array_1d<double, 3 > & coor            = i->Coordinates();
+  	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
+  	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
+
+	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
 
 	     aux = delta_t / mass;
 
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
-	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
+	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
              {
 	         vel[0]    += aux * force[0];
                
@@ -103,7 +111,7 @@ namespace Kratos
                  
              }
 	     
-	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
+	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
              {
 	         vel[1]    += aux * force[1];
 
@@ -113,7 +121,7 @@ namespace Kratos
          
 	     }
 	     
-             if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Z))== false ) )
+             if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
 	     {
 	         vel[2]    += aux * force[2];
                 
@@ -125,9 +133,95 @@ namespace Kratos
 	   }
 	}
 	KRATOS_CATCH(" ")
-     }  
-    
-    
+     }
+
+
+     void CalculateRotationalMotion(ModelPart& model_part)
+     {
+        KRATOS_TRY
+
+        ///WARNING: MDAMPRATIO NO ESTA LLIGAT
+              double  mdamping_ratio = 0.01;
+
+        
+     
+	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
+	NodesArrayType& pNodes           = model_part.Nodes();
+
+	double aux     = 0;
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+
+        vector<unsigned int> node_partition;
+	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+	NodesArrayType::iterator it_end   = pNodes.ptr_end();
+	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+
+
+	#pragma omp parallel for firstprivate(aux) shared(delta_t)
+	for(int k=0; k<number_of_threads; k++)
+	{
+            NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+            NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+            {
+
+                
+
+                double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
+                double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+
+                array_1d<double, 3 > & AngularVel      = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 > & RotaMoment      = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
+                array_1d<double, 3 > & Rota_Displace   = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+
+                bool If_Fix_Rotation[3] = {false, false, false};
+                If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
+                If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
+                If_Fix_Rotation[2] = i->pGetDof(VELOCITY_Z)->IsFixed();
+
+                
+
+                for(std::size_t iterator = 0 ; iterator < 3; iterator++)
+                {
+                    if(If_Fix_Rotation[iterator] == false)
+                    {
+
+                         double RotaAcc = 0.0;
+                         if(AngularVel[iterator] > 0.0)
+                         {
+                             RotaAcc = (RotaMoment[iterator] - mdamping_ratio * fabs(RotaMoment[iterator])) / PMass / PMomentOfInertia;
+                            
+   
+                         }
+                         else
+                         {
+                             RotaAcc = (RotaMoment[iterator] + mdamping_ratio * fabs(RotaMoment[iterator])) / PMass / PMomentOfInertia;
+                           
+                                      
+                         }
+
+                         double RotaVelOld = AngularVel[iterator];
+                         double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
+
+                         AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
+                     
+
+                         Rota_Displace[iterator] += AngularVel[iterator] * delta_t / M_PI * 180.0;
+                     
+                    }
+                    RotaMoment[iterator] = 0.0;
+                }
+
+            }
+	}
+ 
+	KRATOS_CATCH(" ")
+     }
+
+
+     
+
      
       /// Turn back information as a string.
       virtual std::string Info() const

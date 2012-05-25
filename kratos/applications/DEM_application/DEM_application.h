@@ -33,35 +33,27 @@ const long double pi = 3.141592653589793238462643383279;
 namespace Kratos
 {
 
-///@name Kratos Globals
-///@{
+        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
 
-// Variables definition
+        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FAILURE_ID)
+        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FORCE)
+        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_IF_INITIAL_CONTACT)
+        KRATOS_DEFINE_VARIABLE(WeakPointerVector<Element >,     NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
 
-//	KRATOS_DEFINE_VARIABLE(double, RADIUS)
-//	KRATOS_DEFINE_VARIABLE(double, RIGIDITY)
-KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
+
+        typedef vector<array_1d<double,3> > VectorArray3Double;
+        KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 
 
-///@}
-///@name Type Definitions
-///@{
 
-///@}
-///@name  Enum's
-///@{
+        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_MOMENT );
+        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_ROTATION_ANGLE );
+        KRATOS_DEFINE_VARIABLE(double,  PARTICLE_MOMENT_OF_INERTIA);
 
-///@}
-///@name  Functions
-///@{
+        KRATOS_DEFINE_VARIABLE(Vector,     INITIAL_AXES_TRACKING)
+        KRATOS_DEFINE_VARIABLE(int,     plot_OPTIONS)
 
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-/** Detail class definition.
-*/
 class KratosDEMApplication : public KratosApplication
 {
 public:
