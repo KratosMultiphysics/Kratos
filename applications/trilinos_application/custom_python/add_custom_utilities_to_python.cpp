@@ -141,7 +141,7 @@ void  AddCustomUtilitiesToPython()
     .value("SpalartAllmaras",TrilinosFSSettingsType::SpalartAllmaras)
     ;
 
-    typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,typename TrilinosLinearSolverType::Pointer,const double,const unsigned int);
+    typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
 
     class_< TrilinosFSSettingsType,bases<BaseSettingsType>, boost::noncopyable>
