@@ -83,6 +83,8 @@ class EdgeBasedLevelSetSolver:
             eps = node.GetSolutionStepValue(POROSITY)
             node.SetSolutionStepValue(PRESS_PROJ,0,press_proj_init*eps)
         print "entered in EdgeBasedLevelSetSolver initialize"
+        
+        self.keep_inlet_nodes = True
 
 
 
@@ -143,6 +145,12 @@ class EdgeBasedLevelSetSolver:
                 nneg = nneg+1
             else:
                 npos = npos+1
+                
+        ############## saving inlet nodes
+        self.inlet_nodes = []
+	for node in self.model_part.Nodes:
+	  if(node.IsFixed(DISTANCE)):
+	    self.inlet_nodes.append(node);
 
 #        print "nneg=",nneg;
 #        print "npos=",npos
@@ -157,10 +165,19 @@ class EdgeBasedLevelSetSolver:
 #        print "**********************************************"
         print "finished EdgeBasedLevelSetSolver initialize"
 
+    ################################################################
+    ################################################################
+    def WettenNodes(self):
+      for node in self.inlet_nodes:
+	if(node.GetSolutionStepValue(DISTANCE) > 0):
+	  node.SetSolutionStepValue(DISTANCE,0,-1.0e-3);
 
     ################################################################
     ################################################################
     def Redistance(self):
+        if(self.keep_inlet_nodes == True):
+	    self.WettenNodes()
+
         if(self.use_parallel_distance_calculation == False):
             self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
         else:
@@ -207,6 +224,10 @@ class EdgeBasedLevelSetSolver:
        # self.convection_solver.Solve();
 	self.timer.Start("Convect Distance")
         (self.fluid_solver).ConvectDistance()
+        
+	if(self.keep_inlet_nodes == True):
+	    self.WettenNodes()
+
 	self.timer.Stop("Convect Distance")
 
         if(self.step == self.redistance_frequency):
