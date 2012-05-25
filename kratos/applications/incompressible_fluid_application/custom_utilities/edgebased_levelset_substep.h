@@ -386,7 +386,6 @@ public:
 
     //***************************************
     //function to set adequate time step size
-
     double ComputeTimeStep(const double CFLNumber, const double MaxDt)
     {
         KRATOS_TRY
@@ -487,6 +486,21 @@ public:
                 delta_t_avg_novisc = delta_t_i_avg_novisc;
 
         }
+        
+        //take into account wall law in the estimation
+        int slip_size = mSlipBoundaryList.size();
+        for (int i_slip = 0; i_slip < slip_size; i_slip++)
+        {
+            unsigned int i_node = mSlipBoundaryList[i_slip];
+	    double nu = mViscosity[i_node];
+	    
+	    double delta_t_i = 0.25*mY_wall*mY_wall/nu;
+	    	    
+	    if (delta_t_i < delta_t)
+                delta_t = delta_t_i;
+	}
+	
+// 	mdelta_t_avg = delta_t; //this should not be done ... remove it or decide what to do...
 
         delta_t_avg_novisc *= CFLNumber;
         //
@@ -513,8 +527,9 @@ public:
         return delta_t;
 
         KRATOS_CATCH("")
-    }
+    }    
     
+
     void ApplySmagorinsky(double MolecularViscosity, double Cs)
     {
       if(Cs != 0)
@@ -805,7 +820,8 @@ public:
                     //                        edge_ij.Add_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
                     //std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
 
-                    edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
+                     edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
+// 		    edge_ij.Add_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
                     //std::cout << i_node << "rhs =" << rhs_i << "after viscous" << std::endl;
 
                     //add stabilization
@@ -2338,7 +2354,7 @@ public:
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
-        double n_substeps = mnumsubsteps;
+        double n_substeps = 1; //mnumsubsteps;
 //            del
         double delta_t_substep = delta_t/n_substeps;
 
@@ -2910,13 +2926,16 @@ private:
             noalias(position[i_node]) = node_it->Coordinates();
 
             //initialize minimum edge length with relatively big values
-            mHmin[i_node] = 1e10;
+//             mHmin[i_node] = 1e10;
         }
 
         ValuesVectorType& aaa = mr_matrix_container.GetHmin();
         for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
         {
             mHmin[i_node] = aaa[i_node];
+	    
+	    if(aaa[i_node] == 0.0)
+	      KRATOS_ERROR(std::logic_error,"found a 0 hmin on node",i_node);
         }
 
         //take unstructured meshes into account
@@ -3405,7 +3424,7 @@ private:
 
                 //now compute the skin friction
                 double mod_uthaw = sqrt(mod_vel * mu / ym);
-                const double y_plus = ym * mod_uthaw / mu;
+                double y_plus = ym * mod_uthaw / mu;
 
                 if (y_plus > y_plus_incercept)
                 {
@@ -3432,6 +3451,8 @@ private:
 
 
                 }
+                
+
                 //                    else
                 //                    {
                 //                        for (unsigned int comp = 0; comp < TDim; comp++)
