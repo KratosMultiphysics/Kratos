@@ -128,6 +128,7 @@ namespace Kratos
 
                            mdelta_option                = delta_option;
                            mcontinuum_simulating_option = continuum_simulating_option;
+                           mvirtual_mass                = false;  //M: it needs to be implemented.
                            mElementsAreInitialized      = false;
 			   mConditionsAreInitialized    = false;
 			   mCalculateOldTime            = false;
@@ -168,59 +169,20 @@ namespace Kratos
 
         //0.PREVIOUS OPERATIONS
 
-        //ComputeCriticalTime(); //R: falta omplir questa.
+        if(mComputeTime==false){
+	    ComputeCriticalTime();
+	    mComputeTime = true;
+	}
 
+        
         //1. Get and Calculate the forces
         GetForce();
-       
-                
+               
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
        //3. Búsqueda de veins
         SearchNeighbours(r_model_part,false); //extension option false;
-     
-/*
-       ElementsArrayType& pElements     = r_model_part.Elements();
-
-          #ifdef _OPENMP
-          int number_of_threads = omp_get_max_threads();
-          #else
-          int number_of_threads = 1;
-           #endif
-
-          vector<unsigned int> element_partition;
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-
-          unsigned int index = 0;
-
-          #pragma omp parallel for private(index)
-          for(int k=0; k<number_of_threads; k++)
-
-          {
-
-            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-              {
-                KRATOS_WATCH("   ")
-                KRATOS_WATCH("despresss DE LA BUSQUEDA")
-
-                    size_t num_neighbours = (it)->GetValue(NUMBER_OF_NEIGHBOURS);
-                    const int& particle_id = (it)->Id();
-
-                KRATOS_WATCH(particle_id)
-                KRATOS_WATCH(num_neighbours)
-                KRATOS_WATCH((it)->GetGeometry()(0)->FastGetSolutionStepValue(FORCE));
-                KRATOS_WATCH("   ")
-
-
-             } //loop over particles
-
-          }// loop threads OpenMP
-
-
-*/
 
 	
         /*
@@ -257,6 +219,75 @@ namespace Kratos
 	KRATOS_CATCH("")
 	
       }
+
+
+
+       /*
+         void CalculateVirtualMass()
+        {
+            KRATOS_TRY
+
+            if(mvirtual_mass == true)
+            {
+              ModelPart& r_model_part          = BaseType::GetModelPart();
+              ElementsArrayType& pElements     = r_model_part.Elements();
+
+              ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
+
+              //NodesArrayType &pNode            = r_model_part.Nodes();
+              typename NodesArrayType::iterator inode;
+              for(inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++)
+              {
+                  inode->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
+              }
+
+                typename ElementsArrayType::iterator it_begin=pElements.ptr_begin();
+                typename ElementsArrayType::iterator it_end=pElements.ptr_end();
+                for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+                {
+
+                   double Young  = it->GetProperties()[YOUNG_MODULUS];
+                   double Length = it->GetGeometry().Length();
+                   double Volume = 0.0;
+                   double VirtualMass = 0.0;
+
+                   Element::GeometryType& geom = it->GetGeometry();
+
+                   if (geom.size() == 1)
+                   {
+                      VirtualMass = Young * M_PI * it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                      if(CurrentProcessInfo[PARTICLE_IF_CAL_ROTATE] == 1)
+                      {
+                          VirtualMass = VirtualMass * 2.5;
+                      }
+                   }
+                   else if (it->GetGeometry().Dimension() == 2 && geom.size() > 2)
+                   {
+                       Volume = it->GetGeometry().Area();
+
+                       VirtualMass = Young / (Length * Length) * Volume;
+                   }
+                   else if (it->GetGeometry().Dimension() == 3 && geom.size() > 3 )
+                   {
+                       Volume = it->GetGeometry().Volume();
+
+                       VirtualMass = Young / (Length * Length) * Volume;
+                   }
+
+
+                    for (unsigned int i = 0; i <geom.size(); i++)
+                     {
+                        double& mass = geom(i)->FastGetSolutionStepValue(NODAL_MASS);
+                        mass  = mass + VirtualMass / (double)geom.size();
+                     }
+                }
+            }
+
+            mIfHaveCalVirtualMass = true;
+
+            KRATOS_CATCH("")
+        }
+      */
 	
 	void Initialize()
         {
@@ -287,15 +318,15 @@ namespace Kratos
 	void GetForce()
 	{
           KRATOS_TRY
-   // KRATOS_WATCH("AKI HI ARRIBO")
-          //dummy variables
-          const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
-          double Output;
+  
+          //dummy variable
+          //const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
+          Vector rhs_cond;
           //M: aixo es una xapuza
 
-          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
-          ElementsArrayType& pElements     = r_model_part.Elements();
+          ElementsArrayType& pElements      = r_model_part.Elements();
 
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
@@ -318,7 +349,8 @@ namespace Kratos
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
                      
-                        (it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
+                        //(it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
+                        (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
                 //we use this function to call the calculate forces in general funct.
 
              } //loop over particles
@@ -338,10 +370,62 @@ namespace Kratos
 	
         }
 
-        /*
+        
         void  ComputeCriticalTime()
 	{
+
+        KRATOS_TRY
+
+        ModelPart& r_model_part          = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+
+        if(mvirtual_mass == true)
+        {
+            if(mtimestep > 0.9)
+            {
+                mtimestep = 0.9;
+            }
+
+            std::cout<<"******************Virtual Mass TimeStep is Used******************" <<std::endl;
+        }
+        else
+        {
+              double TimeStepTemp = 0.0;
+
+              ElementsArrayType& pElements     = r_model_part.Elements();
+
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+
+              for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
+              {
+                  it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
+
+                  if(mtimestep > TimeStepTemp)
+                  {
+                      mtimestep = TimeStepTemp;
+                  }
+              }
+              double safety_factor = 0.5;
+              mtimestep = safety_factor * mtimestep;
+
+              std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
+        }
+
+
+        rCurrentProcessInfo[DELTA_TIME] = mtimestep;
+
+        std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
+
+        KRATOS_CATCH("")
+
+
+
+
+
 	}
+
+        /*
 
 	void ComputeInitialConditions()
 	{
@@ -388,6 +472,8 @@ namespace Kratos
     bool   mInitialConditions;
     bool   mdelta_option;
     bool   mcontinuum_simulating_option;
+
+    bool   mvirtual_mass;
     
     double mdamping_ratio;
     double malpha_damp;
@@ -395,7 +481,7 @@ namespace Kratos
     double mfraction_delta_time;
     double mmax_delta_time;
     double molddelta_time;
-    double mtimestep;  /// la suma de los delta time
+    double mtimestep;  
 
     typename IntegrationScheme::Pointer mpScheme;
 

@@ -126,7 +126,7 @@ namespace Kratos
 	    array_1d<double, 3 > & vel_old        = geom(0)->FastGetSolutionStepValue(VELOCITY,1);
 	    array_1d<double, 3 > & displ          = geom(0)->FastGetSolutionStepValue(DISPLACEMENT);
 	    array_1d<double, 3 > & displ_old      = geom(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3 > & force          = geom(0)->FastGetSolutionStepValue(FORCE);
+	    array_1d<double, 3 > & force          = geom(0)->FastGetSolutionStepValue(RHS);
 	    array_1d<double, 3 > & coor           = geom(0)->Coordinates();
 	    array_1d<double, 3 > & initial_coor   = geom(0)->GetInitialPosition();
 	    const double& mass                    = geom(0)->FastGetSolutionStepValue(NODAL_MASS);

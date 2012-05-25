@@ -21,6 +21,9 @@
 #include "containers/pointer_vector.h"
 #include "containers/pointer_vector_set.h"
 
+#include "DEM_application.h"
+
+
 
 namespace Kratos {
 
@@ -203,9 +206,6 @@ namespace Kratos {
 
                 ParticleWeakVector TempNeighbours;
 
-                KRATOS_WATCH((*particle_pointer_it)->Id())
-                KRATOS_WATCH("ABANS DE FER EL SWAP")
-                KRATOS_WATCH((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS))
 
                 TempNeighbours.swap((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS));
 
@@ -218,6 +218,24 @@ namespace Kratos {
                 
                 vector< double > TempContactDelta;
                 TempContactDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA));   //M: NO ELS GUARDO ELS NORMALS PER TEMP PERO ELS KE ET DESCUIDES LLUNY SI KE ESTAN A TEMP SEMPRE I PASSEM LES DELTES AIXI
+ 
+                
+                vector< double > TempRotateSpringFailType;
+                //Vector & RealRotateSpringFailType = rE->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
+                TempRotateSpringFailType.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE));
+                //TempRotateSpringFailType.swap(RealRotateSpringFailType);
+
+
+                vector< array_1d<double, 3 > > TempRotateSpringMoment;
+                TempRotateSpringMoment.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT));
+                
+                
+                /*
+                Vector TempRotateSpringMoment;
+                Vector & RealRotateSpringMoment = rE->GetValue(PARTICLE_ROTATE_SPRING_MOMENT);
+                TempRotateSpringMoment.swap(RealRotateSpringMoment);
+                */
+
 
                 //M:in general we don't search here but we need it for the neigbours that the search calculator doesnt find.
 
@@ -230,10 +248,16 @@ namespace Kratos {
                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
 
                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
+
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
+
                 //if( rCurrentProcessInfo[DUMMY_SWITCH] == 0)   (*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS).resize(n_neighbours);
 
                 //KRATOS_WATCH("alohohohohoh1")
@@ -250,10 +274,7 @@ namespace Kratos {
 
                         (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
 
-                        KRATOS_WATCH("AFEGINT NOUS VEINS")
-                        KRATOS_WATCH((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size())
-                        
-
+                      
                         // LOOP TO EXTEND THE VECTORS AND SET A 0.0 VALUE EACH TIME
 
                         size_t Notemp = ((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS)).size(); //Notemp its an index that will be amplified for every step of the loop as the NEIGHBOUR_ELEMENTS.size() is getting larger
@@ -264,6 +285,10 @@ namespace Kratos {
                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp - 1] = 1;
 
                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp - 1] = 0.0;
+
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp - 1] = 0.0;
+
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp - 1] = ZeroVector(3);
 
 
                         // LOOP OVER THE OLD NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN EXISTING ONE AND COPYING THE OLD DATA
@@ -280,16 +305,20 @@ namespace Kratos {
                                 if ((old_neighbour.base())->expired() == false) {
                                     if ((*neighbour_it)->Id() == old_neighbour->Id()) // MIQUEL COMPROBA SI EL TROBES O NO
                                     {
-                                       KRATOS_WATCH("ES UN OLD NEIGHBOUR!!")
-                                       KRATOS_WATCH((*neighbour_it)->Id())
-
-
+                             
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][0] = TempContactForce[OldNeighbourCounter][0];
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][1] = TempContactForce[OldNeighbourCounter][1];
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][2] = TempContactForce[OldNeighbourCounter][2];
 
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1] = TempContactFailureId[OldNeighbourCounter];
-                                    
+
+                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
+                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
+                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];
+
+                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp-1] = TempRotateSpringFailType[OldNeighbourCounter];
+
+
                                         break;
                                     } //end of its an old one??
 
@@ -304,30 +333,21 @@ namespace Kratos {
 
                             //r: FALTA REVISAR
 
- KRATOS_WATCH("CCCC 2")
+
                             // LOOP OVER THE INITIAL NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN INITIAL ONE AND THEN COPYING THE DELTA DATA
                             int InitialNeighboursCounter = 0;
      
                             if (((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).size() != 0) {
                                 for (ParticleWeakIterator ini_neighbour = ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).begin(); ini_neighbour != ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).end(); ini_neighbour++)
- {
-                                    KRATOS_WATCH("EEEEEI")
-         KRATOS_WATCH((ini_neighbour.base())->expired())
-
-
+                                {
+                                   
                                        if ((ini_neighbour.base())->expired() == false) {
-                                         KRATOS_WATCH("EEEEEI")
+                                   
                                             if ((*neighbour_it)->Id() == ini_neighbour->Id()) // IF IT'S AN INITIAL NEIGHBOUR //POOOOOYAN, ESTARA BÉ AIXO???? TINDRAN DIFERENTS IDS??? INI NEIGH TINDRA ID??
                                             {
-
-                                                  KRATOS_WATCH("ES UN INITIAL NEIGHBOUR!!")
-                                                 // KRATOS_WATCH((*neighbour_it)->Id())
-                                                  // KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[InitialNeighboursCounter])
-
                                                  (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp-1] = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[InitialNeighboursCounter];
-                                                 // KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA).size())
-                                                  //KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_INITIAL_DELTA)[Notemp-1])
-                                                break;
+
+                                                 break;
                                             }
                                        }
                                
@@ -345,24 +365,19 @@ namespace Kratos {
 
                 } // for each neighbour, neighbour_it.
 
-
-
                 //ADDING NOT FOUND NEIGHBOURS (the ones with negative identation still in tensile contact are not detected, but they are on the old neighbours list).
-
 
                 ///WARNING : SHA DE REVISAR AKESTA PART ENCARA AMB UN CAS UNA MICA ESPECIAL.
 
-
                 int TempNeighbourCounter = 0;
- KRATOS_WATCH("CCCC 3")
+
                 for (ParticleWeakIterator temp_neighbour = TempNeighbours.begin(); temp_neighbour != TempNeighbours.end(); temp_neighbour++)
  {
- KRATOS_WATCH("CCCC 4")
                     if (TempContactFailureId[TempNeighbourCounter] == 0) // if they are not detached.
                     {
                         //KRATOS_WATCH("alohohohohoh5.2")
                         if ((temp_neighbour.base())->expired() == false)
- {
+                        {
                             //KRATOS_WATCH("alohohohohoh5.3")
                             if ((*particle_pointer_it)->Id() != temp_neighbour->Id()) {
                                 //KRATOS_WATCH("alohohohohoh5.4")
@@ -384,9 +399,6 @@ namespace Kratos {
 
                                     (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(TempNeighbours(TempNeighbourCounter)); //adding the not found neighbours.
 
-
-
-
                                     size_t Notemp = (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).size();
                                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(Notemp + 1); // adding one more space for every missing neighbour.
                                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][0] = TempContactForce[TempNeighbourCounter][0]; //copying properties.
@@ -395,6 +407,14 @@ namespace Kratos {
 
                                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(Notemp + 1);
                                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp] = TempContactFailureId[TempNeighbourCounter];
+
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(Notemp + 1); // adding one more space for every missing neighbour.
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][0] = TempRotateSpringMoment[TempNeighbourCounter][0]; //copying properties.
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][1] = TempRotateSpringMoment[TempNeighbourCounter][1];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][2] = TempRotateSpringMoment[TempNeighbourCounter][2];
+
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(Notemp + 1);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp] = TempRotateSpringFailType[TempNeighbourCounter];
 
 
                                     if (delta_OPTION) {
@@ -410,7 +430,7 @@ namespace Kratos {
                         }//if not expired
 
                     } //if not detached
-                    //KRATOS_WATCH("alohohohohoh5.99")
+                    
                     TempNeighbourCounter++;
                 }//loop over tempneigh
 
