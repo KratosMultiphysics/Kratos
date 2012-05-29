@@ -25,6 +25,8 @@
 namespace Kratos
 {
 
+        KRATOS_CREATE_VARIABLE(double, DEM_DELTA_TIME)
+
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
 
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
@@ -55,6 +57,9 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
                 
+
+                KRATOS_REGISTER_VARIABLE(DEM_DELTA_TIME)
+
                 KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
                 KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FORCE)
                 KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_IF_INITIAL_CONTACT)

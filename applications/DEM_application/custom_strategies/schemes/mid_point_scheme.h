@@ -101,7 +101,7 @@ namespace Kratos
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	ElementsArrayType& pElements     = model_part.Elements(); 
         
- 	double delta_t      =  CurrentProcessInfo[DELTA_TIME];  
+ 	double delta_t      =  CurrentProcessInfo[DEM_DELTA_TIME];
         double half_delta_t = 0.5 * delta_t;
 	array_1d<double, 3 > aux, vel_copy, displ_copy;
 	ComponentVectorType vel_old, displ_new, kf, kv;

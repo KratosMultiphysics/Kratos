@@ -142,6 +142,11 @@ namespace Kratos
                            molddelta_time               = 0.00;
                            mtimestep                    = 0.00;
                            mpScheme                     = pScheme;
+                           
+                           mtimestep                    = max_delta_time;
+
+
+
 			}
       /// Destructor.
       virtual ~ExplicitSolverStrategy(){}
@@ -177,6 +182,9 @@ namespace Kratos
         
         //1. Get and Calculate the forces
         GetForce();
+
+            //1.1. Calculate Local Dampings
+            ApplyLocalDampings();
                
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
@@ -300,7 +308,7 @@ namespace Kratos
 
         bool extension_option = true;
         SearchNeighbours(r_model_part,extension_option);
-                       
+
         ///Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
@@ -318,7 +326,7 @@ namespace Kratos
 	void GetForce()
 	{
           KRATOS_TRY
-  
+
           //dummy variable
           //const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
           Vector rhs_cond;
@@ -371,59 +379,100 @@ namespace Kratos
         }
 
         
-        void  ComputeCriticalTime()
+        void ComputeCriticalTime()
 	{
 
-        KRATOS_TRY
+            KRATOS_TRY
 
-        ModelPart& r_model_part          = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+            ModelPart& r_model_part          = BaseType::GetModelPart();
+            ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
 
-        if(mvirtual_mass == true)
-        {
-            if(mtimestep > 0.9)
+            if(mvirtual_mass == true)
             {
-                mtimestep = 0.9;
+                if(mtimestep > 0.9)
+                {
+                    mtimestep = 0.9;
+                }
+
+                std::cout<<"******************Virtual Mass TimeStep is Used******************" <<std::endl;
+            }
+            else
+            {
+                  double TimeStepTemp = 0.0;
+
+                  ElementsArrayType& pElements     = r_model_part.Elements();
+
+                  typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+                  typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+
+                  for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
+                  {
+                      it->Calculate(DEM_DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
+                      KRATOS_WATCH(TimeStepTemp)
+                      if(mtimestep > TimeStepTemp)
+                      {
+                          mtimestep = TimeStepTemp;
+                      }
+                  }
+                  double safety_factor = 0.5;
+                  mtimestep = safety_factor * mtimestep;
+
+                  std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
             }
 
-            std::cout<<"******************Virtual Mass TimeStep is Used******************" <<std::endl;
-        }
-        else
-        {
-              double TimeStepTemp = 0.0;
 
-              ElementsArrayType& pElements     = r_model_part.Elements();
+            rCurrentProcessInfo[DEM_DELTA_TIME] = mtimestep;
 
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+            std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
 
-              for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
-              {
-                  it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
-
-                  if(mtimestep > TimeStepTemp)
-                  {
-                      mtimestep = TimeStepTemp;
-                  }
-              }
-              double safety_factor = 0.5;
-              mtimestep = safety_factor * mtimestep;
-
-              std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
-        }
-
-
-        rCurrentProcessInfo[DELTA_TIME] = mtimestep;
-
-        std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
-
-        KRATOS_CATCH("")
-
-
-
-
+                      
+            KRATOS_CATCH("")
 
 	}
+
+        void ApplyLocalDampings()
+        {
+
+            KRATOS_TRY
+
+            ModelPart& r_model_part           = BaseType::GetModelPart();
+            ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+            ElementsArrayType& pElements      = r_model_part.Elements();
+
+            #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+            #else
+            int number_of_threads = 1;
+            #endif
+
+            vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+            unsigned int index = 0;
+
+            #pragma omp parallel for private(index)
+            for(int k=0; k<number_of_threads; k++)
+
+            {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+            double dummy = 0.0;
+
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+            {
+
+                it->Calculate(PARTICLE_LOCAL_DAMP_RATIO, dummy, rCurrentProcessInfo);
+
+            } //loop over particles
+
+            }// loop threads OpenMP
+
+            KRATOS_CATCH("")
+
+        }//Apply local damps
+
 
         /*
 
@@ -437,6 +486,19 @@ namespace Kratos
 	void ComputeOldVelocitiesAndAccelerations()
 	{
 	}
+
+	void MoveMesh()
+	{
+	}
+
+	void FinalizeSolutionStep()
+	{
+	}
+
+	void CalculateEnergies()
+	{
+	}
+	*/
 	  
 	void MoveMesh()
 	{
@@ -449,7 +511,7 @@ namespace Kratos
 	void CalculateEnergies()
 	{
 	}
-	*/
+	
       
       
     protected:

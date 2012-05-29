@@ -101,16 +101,13 @@ namespace Kratos
       void SphericParticle::CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo){
 
         ComputeParticleContactForce(rCurrentProcessInfo);
-        ComputeParticleBlockContactForce(rCurrentProcessInfo);
 
-        //M: CANVIAR!!!
-        //rCurrentProcessInfo[ROTATION_SPRING_OPTION] = 1;
+        ComputeParticleBlockContactForce(rCurrentProcessInfo); 
 
-        //if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
-        //{
-        
-            ComputeParticleRotationSpring(rCurrentProcessInfo);
-        //}
+        if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
+        {
+              ComputeParticleRotationSpring(rCurrentProcessInfo);
+        }
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -227,10 +224,11 @@ namespace Kratos
 
             const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
-            double dt                           = rCurrentProcessInfo[DELTA_TIME];
+            double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME];
+            KRATOS_WATCH(dt)
             int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];
             int type_id                         = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
-            int rotation_OPTION                 =1;//= rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
+            int rotation_OPTION                 = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
 
             int case_OPTION                     = rCurrentProcessInfo[CASE_OPTION];
             bool delta_OPTION;
@@ -263,7 +261,8 @@ namespace Kratos
         //    int FailureId = mFailureId;
             int continuum_group     = mContinuumGroup;
 
-            double LocalDampRatio   = 0.01;//= this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);  ///WARNING:TREUERUASUOÑSDNAUSDASA 
+            double LocalDampRatio   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+            KRATOS_WATCH(LocalDampRatio)
             double Tension          = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
             double Cohesion         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
             double FriAngle         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION); //M: CFENG: es aixo el angle de friccio?
@@ -498,7 +497,7 @@ namespace Kratos
 
                 // VISCODAMPING (applyied locally)
 
-                        if (damp_id == 2)  ///WARNING: ACTIVARLO, FALLAVA ROTACIO.
+                        if (damp_id == 2)  
                         {
 
                             double visco_damping[3] = {0,0,0};
@@ -541,7 +540,8 @@ namespace Kratos
 
                     if ( rotation_OPTION == 1 )
                     {
-                    ////global moment return back,for the ball self
+
+                 ////global moment return back,for the ball self
 
                     double MA[3] = {0.0};
                     GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
@@ -554,6 +554,64 @@ namespace Kratos
                     iContactForce++;
 
             }//for each neaighbour
+
+            KRATOS_CATCH("")
+
+        }//ComputeParticleContactForce
+
+
+      void SphericParticle::ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo )
+
+      {
+
+          array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);
+          double LocalDampRatio   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+
+              // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
+
+                for (int iDof = 0; iDof < 3; iDof++)
+                {
+                    if (this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY)[iDof] > 0.0)
+                    {
+                        force[iDof] = force[iDof] - LocalDampRatio * fabs(force[iDof]);
+                    }
+                    else
+                    {
+                        force[iDof] = force[iDof] + LocalDampRatio * fabs(force[iDof]);
+                    }
+                }
+
+      } //ApplyLocalForcesDamping
+
+    void SphericParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
+
+    {
+       // int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];  //M: revisable....en principi akest era per visco o local de forces no per moment.
+
+        array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
+        double LocalDampRatio                   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+
+        // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
+
+       
+        for (int iDof = 0; iDof < 3; iDof++)
+        {
+            if (this->GetGeometry()(0)->GetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
+            {
+                 RotaMoment[iDof] = RotaMoment[iDof] - LocalDampRatio * fabs(RotaMoment[iDof]);
+   
+            }
+            else
+            {  
+                 RotaMoment[iDof] = RotaMoment[iDof] + LocalDampRatio * fabs(RotaMoment[iDof]);
+            }
+        }
+        
+
+    } //ApplyLocalMomentsDamping
+
+
+ ///AIXO D'AQUI ESTABA DINTRE DE FORCES PERO HA DE SER FORA PK CADA APLICACIO PUGUI TRIAR KE LI AGRADA MES... CALDRA ARA FICAR UN LOOP SOBRE ELEMENTS ALTRE COP.
 
 /* //NO TE FINAL
 //AFTER FORCES CALCULATIONS
@@ -672,9 +730,7 @@ namespace Kratos
             //M: si mFailureId = 1 already I think we dont need to do GetFailureId() = mFailureId; becouse the h declatation will be applyied for new objects of the class.
 
  */
-            KRATOS_CATCH("")
-
-        }//ComputeParticleContactForce
+          
 
         void SphericParticle::ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo)
         {
@@ -683,7 +739,9 @@ namespace Kratos
         void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
         {
 
-        double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
+        double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME]; //C.F.: neew
+        
+        KRATOS_WATCH(dt)
 
         double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
         double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
@@ -705,7 +763,7 @@ namespace Kratos
 
 //        Vector & mRotaSpringMoment       = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT);  //ESTA A DINTRE
 
-Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
+        Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
 
         size_t iContactForce = 0;
 
@@ -835,15 +893,96 @@ Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE
             }
 
             iContactForce++;
-        }
+            }
 
 
         }//ComputeParticleRotationSpring
 
 
-        /*
-            void SphericParticle::FindContactFaceOfBlockForParticle(ParticleWeakIterator rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB)
+       
+
+         
+
+
+
+        
+
+        void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
+
+        void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo){
+
+            ElementalDofList.resize( 0 );
+
+            for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+            {
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
+                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+
+                if ( GetGeometry().WorkingSpaceDimension() == 3 )
+                {
+                    ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
+                }
+            }
+        }
+
+        void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
         {
+
+          int case_opt         = rCurrentProcessInfo[CASE_OPTION];     
+          int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
+         
+          if( (mSwitch==0) && (case_opt!=0) ){
+
+ 
+                  SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
+
+          }
+          
+        }
+        void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
+
+        void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+        {
+
+            if (rVariable == DEM_DELTA_TIME)
+            {
+                double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+                double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                Output = sqrt( mRealMass / K);
+
+                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+                {
+                    Output = Output * 0.5;
+                }
+            } //CRITICAL DELTA CALCULATION
+
+            if (rVariable == PARTICLE_LOCAL_DAMP_RATIO)
+            {
+                int damp_id             = rCurrentProcessInfo[DAMP_TYPE];
+                int rotation_OPTION     = rCurrentProcessInfo[ROTATION_OPTION];
+
+                if (damp_id == 1)
+                {
+                   ApplyLocalForcesDamping( rCurrentProcessInfo );
+
+                   if ( rotation_OPTION != 0 )
+                   {
+                       ApplyLocalMomentsDamping( rCurrentProcessInfo );
+                   }
+                }
+            } //DAMPING
+        }
+
+
+
+
+    //FUNCTIONS ONLY FOR DEM-FEM
+
+    //************************************************************************************
+    //************************************************************************************
+
+       void SphericParticle::FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB)
+       {
 
             double Particle_Coord[3] = {0.0};
             Particle_Coord[0] = this->GetGeometry()(0)->Coordinates()[0];
@@ -877,7 +1016,7 @@ Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE
                     Coord2[2] = rObj_2->GetGeometry().Edges()[iedge](1)->Coordinates()[2];
 
                     double Weight[2];
-                    bool If_PB_Contact = GeometryFunction::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
+                    bool If_PB_Contact = GeometryFunctions::JudgeIfThisEdgeIsContactWithParticle(Coord1, Coord2, Centroid, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
 
                     if(If_PB_Contact == true)
                     {
@@ -923,7 +1062,7 @@ Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE
 
                     double Weight[4] = {0.0};
 
-                    bool If_PB_Contact = GeometryFunction::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord, Centroid, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
+                    bool If_PB_Contact = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal, Coord, Centroid, Particle_Coord, rad, LocalCoordSystem, Weight, DistPToB);
 
                     if(If_PB_Contact == true)
                     {
@@ -939,64 +1078,420 @@ Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE
                 }
 
              }
-  
         }
 
-         */
+
+       void SphericParticle::ComputeParticleBlockContactForce_With_Rotation()
+    {
+        double Tension        = GetProperties()[PARTICLE_TENSION]; 
+        double Cohesion       = GetProperties()[PARTICLE_COHESION];
+        double FriAngle       = GetProperties()[PARTICLE_FRICTION];
+        double young          = GetProperties()[YOUNG_MODULUS];
+        double poisson        = GetProperties()[POISSON_RATIO];
+        double Friction       = tan( FriAngle  / 180.0 * M_PI);
+        double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double area           = M_PI * radius * radius;
+        double kn             = young * area / (2.0 * radius);
+        double ks             = kn / (2.0 * (1.0 + poisson));
 
 
+        array_1d<double,3>& force   = GetGeometry()(0)->FastGetSolutionStepValue(RHS);
 
-        
+        array_1d<double, 3 > & mRota_Moment = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-        void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
+        Vector & mContactForces      = this->GetValue(PARTICLE_BLOCK_CONTACT_FORCE);
+        Vector & mContactFailureType = this->GetValue(PARTICLE_BLOCK_CONTACT_FAILURE_ID);
+        Vector & mIfInitalContact    = this->GetValue(PARTICLE_BLOCK_IF_INITIAL_CONTACT);
+        ParticleWeakVectorType & rE      = this->GetValue(NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS);
 
-        void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo){
 
-            ElementalDofList.resize( 0 );
+        size_t iContactForce = 0;
 
-            for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+        for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
+        {
+            std::size_t dim = ineighbour->GetGeometry().WorkingSpaceDimension();
+
+            ///Cfeng: contact failure type should be initialized zero
+            mContactFailureType[iContactForce] = 0;
+
+            // Not the initial contact any more, the tension and cohesion should be zero
+            if(mIfInitalContact[iContactForce] == 0)
             {
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-                ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+                Tension  = 0.0;
+                Cohesion = 0.0;
+            }
 
-                if ( GetGeometry().WorkingSpaceDimension() == 3 )
+
+
+            double LocalContactForce[3]  = {0.0};
+            double GlobalContactForce[3] = {0.0};
+            double GlobalContactForceOld[3] = {0.0};
+
+
+            array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+
+            array_1d<double, 3 > other_to_me_vel;
+            noalias(other_to_me_vel) = ZeroVector(3);
+
+
+            int RightFace = -1;
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+            double Coeff[4] = {0.0};
+            double DistPToB = radius;
+
+            FindContactFaceOfBlockForParticle(ineighbour, RightFace, LocalCoordSystem, Coeff, DistPToB);
+
+
+            if(RightFace != -1)
+            {
+               if(dim == 2)
+               {
+                     other_to_me_vel += ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(VELOCITY) * Coeff[0];
+                     other_to_me_vel += ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(VELOCITY) * Coeff[1];
+               }
+               else if( dim == 3)
+               {
+                   for(std::size_t ifnode = 0; ifnode < ineighbour->GetGeometry().Faces()[RightFace].size(); ifnode++)
+                   {
+                       other_to_me_vel += ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(VELOCITY) * Coeff[ifnode];
+                   }
+               }
+            }
+
+
+            double DeltDisp[3] = {0.0};
+            double DeltVel [3] = {0.0};
+
+            DeltVel[0] = (vel[0] - other_to_me_vel[0]);
+            DeltVel[1] = (vel[1] - other_to_me_vel[1]);
+            DeltVel[2] = (vel[2] - other_to_me_vel[2]);
+
+            // For translation movement delt displacement
+            DeltDisp[0] = DeltVel[0] * mTimeStep;
+            DeltDisp[1] = DeltVel[1] * mTimeStep;
+            DeltDisp[2] = DeltVel[2] * mTimeStep;
+
+            double velA[3]   = {0.0};
+	    double dRotaDisp[3] = {0.0};
+
+            array_1d<double, 3 > AngularVel= GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+            double Vel_Temp[3] = { AngularVel[0], AngularVel[1], AngularVel[2]};
+            GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
+
+            dRotaDisp[0] = -velA[0] * radius;
+            dRotaDisp[1] = -velA[1] * radius;
+            dRotaDisp[2] = -velA[2] * radius;
+
+            //////contribution of the rotation vel
+            DeltDisp[0] += dRotaDisp[0] * mTimeStep;
+            DeltDisp[1] += dRotaDisp[1] * mTimeStep;
+            DeltDisp[2] += dRotaDisp[2] * mTimeStep;
+
+
+            double LocalDeltDisp[3] = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+
+            //////120323,for global storage
+
+            GlobalContactForceOld[0] = mContactForces[3 * iContactForce  + 0 ];
+            GlobalContactForceOld[1] = mContactForces[3 * iContactForce  + 1 ];
+            GlobalContactForceOld[2] = mContactForces[3 * iContactForce  + 2 ];
+
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
+            LocalContactForce[0] +=  - ks * LocalDeltDisp[0];
+            LocalContactForce[1] +=  - ks * LocalDeltDisp[1];
+            LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
+
+
+            /////Cfeng:120514 Absolutal method for normal force of the block and particle contact is adopted.
+            /////But this method will lead to enery out of convergence, so command out now,120514, afternoon
+            ////////LocalContactForce[2] = (radius - DistPToB) * kn;
+
+            /// Cfeng: For Tension Failure
+            if (-LocalContactForce[2] > (Tension * area))
+            {
+                LocalContactForce[0] = 0.0;
+                LocalContactForce[1]  = 0.0;
+                LocalContactForce[2]  = 0.0;
+
+                mContactFailureType[iContactForce] = 1;
+            }
+            else
+            {
+
+                double ShearForceMax = LocalContactForce[2] * Friction + Cohesion * area;
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]);
+
+
+                //Cfeng: if tensile, only cohesion could be introduced
+                if(LocalContactForce[2] < 0.0)
                 {
-                    ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
+                    ShearForceMax = Cohesion * area;
+                }
+
+
+                //Cfeng: for shear failure
+                if(ShearForceMax == 0.0)
+                {
+                    LocalContactForce[0] = 0.0;
+                    LocalContactForce[1] = 0.0;
+                }
+                else if(ShearForceNow > ShearForceMax)
+                {
+                    LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
+                    LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+
+                    mContactFailureType[iContactForce] = 2;
                 }
             }
-        }
 
-        void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-        {
 
-          int case_opt         = rCurrentProcessInfo[CASE_OPTION];     
-          int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
-         
-          if( (mSwitch==0) && (case_opt!=0) ){
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
- 
-                  SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
+            mContactForces[3 * iContactForce + 0 ] = GlobalContactForce[0];
+            mContactForces[3 * iContactForce + 1 ] = GlobalContactForce[1];
+            mContactForces[3 * iContactForce + 2 ] = GlobalContactForce[2];
 
-          }
-          
-        }
-        void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
+            force[0] += GlobalContactForce[0];
+            force[1] += GlobalContactForce[1];
+            force[2] += GlobalContactForce[2];
 
-        void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
-        {
 
-            if (rVariable == DELTA_TIME)
+            double MA[3] = {0.0};
+            GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+            mRota_Moment[0] -= MA[0] * radius;
+            mRota_Moment[1] -= MA[1] * radius;
+            mRota_Moment[2] -= MA[2] * radius;
+
+
+            if(RightFace != -1)
             {
-                double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                Output = sqrt( mRealMass / K);
+               if(dim == 2)
+               {
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[0];
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[0];
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[0];
 
-                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[1];
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[1];
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[1];
+               }
+               else if( dim == 3)
+               {
+                   for(std::size_t ifnode = 0; ifnode < ineighbour->GetGeometry().Faces()[RightFace].size(); ifnode++)
+                   {
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[ifnode];
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[ifnode];
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[ifnode];
+                   }
+               }
+            }
+
+            iContactForce++;
+
+        }
+    }
+
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+       void SphericParticle::ComputeParticleBlockContactForce_Without_Rotation()
+    {
+        double Tension        = GetProperties()[PARTICLE_TENSION];
+        double Cohesion       = GetProperties()[PARTICLE_COHESION];
+        double FriAngle       = GetProperties()[PARTICLE_FRICTION];
+        double young          = GetProperties()[YOUNG_MODULUS];
+        double poisson        = GetProperties()[POISSON_RATIO];
+        double Friction       = tan( FriAngle  / 180.0 * M_PI);
+        double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        double area           = M_PI * radius * radius;
+        double kn             = young * area / (2.0 * radius);
+        double ks             = kn / (2.0 * (1.0 + poisson));
+
+
+        array_1d<double,3>& force   = GetGeometry()(0)->FastGetSolutionStepValue(RHS);
+
+        Vector & mContactForces      = this->GetValue(PARTICLE_BLOCK_CONTACT_FORCE);
+        Vector & mContactFailureType = this->GetValue(PARTICLE_BLOCK_CONTACT_FAILURE_ID);
+        Vector & mIfInitalContact    = this->GetValue(PARTICLE_BLOCK_IF_INITIAL_CONTACT);
+        ParticleWeakVectorType & rE      = this->GetValue(NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS);
+
+
+        size_t iContactForce = 0;
+
+        for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
+        {
+            std::size_t dim = ineighbour->GetGeometry().WorkingSpaceDimension();
+
+            ///Cfeng: contact failure type should be initialized zero
+            mContactFailureType[iContactForce] = 0;
+
+            // Not the initial contact any more, the tension and cohesion should be zero
+            if(mIfInitalContact[iContactForce] == 0)
+            {
+                Tension  = 0.0;
+                Cohesion = 0.0;
+            }
+
+
+
+            double LocalContactForce[3]  = {0.0};
+            double GlobalContactForce[3] = {0.0};
+            double GlobalContactForceOld[3] = {0.0};
+
+
+            array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+
+            array_1d<double, 3 > other_to_me_vel;
+            noalias(other_to_me_vel) = ZeroVector(3);
+
+
+            int RightFace = -1;
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+            double Coeff[4] = {0.0};
+            double DistPToB = radius;
+
+            FindContactFaceOfBlockForParticle(ineighbour, RightFace, LocalCoordSystem, Coeff, DistPToB);
+
+            if(RightFace != -1)
+            {
+               if(dim == 2)
+               {
+                     other_to_me_vel += ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(VELOCITY) * Coeff[0];
+                     other_to_me_vel += ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(VELOCITY) * Coeff[1];
+               }
+               else if( dim == 3)
+               {
+                   for(std::size_t ifnode = 0; ifnode < ineighbour->GetGeometry().Faces()[RightFace].size(); ifnode++)
+                   {
+                       other_to_me_vel += ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(VELOCITY) * Coeff[ifnode];
+                   }
+               }
+            }
+
+
+            double DeltDisp[3] = {0.0};
+            double DeltVel [3] = {0.0};
+
+            DeltVel[0] = (vel[0] - other_to_me_vel[0]);
+            DeltVel[1] = (vel[1] - other_to_me_vel[1]);
+            DeltVel[2] = (vel[2] - other_to_me_vel[2]);
+
+            DeltDisp[0] = DeltVel[0] * mTimeStep;
+            DeltDisp[1] = DeltVel[1] * mTimeStep;
+            DeltDisp[2] = DeltVel[2] * mTimeStep;
+
+            double LocalDeltDisp[3] = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+
+            //////120323,for global storage
+
+            GlobalContactForceOld[0] = mContactForces[3 * iContactForce  + 0 ];
+            GlobalContactForceOld[1] = mContactForces[3 * iContactForce  + 1 ];
+            GlobalContactForceOld[2] = mContactForces[3 * iContactForce  + 2 ];
+
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
+            LocalContactForce[0] +=  - ks * LocalDeltDisp[0];
+            LocalContactForce[1] +=  - ks * LocalDeltDisp[1];
+            LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
+
+            /////Cfeng:120514 Absolutal method for normal force of the block and particle contact is adopted.
+            /////But this method will leads to enery out of convergence, so command out now,120514, afternoon
+            ////////LocalContactForce[2] = (radius - DistPToB) * kn;
+
+            /// Cfeng: For Tension Failure
+            if (-LocalContactForce[2] > (Tension * area))
+            {
+                LocalContactForce[0] = 0.0;
+                LocalContactForce[1]  = 0.0;
+                LocalContactForce[2]  = 0.0;
+
+                mContactFailureType[iContactForce] = 1;
+            }
+            else
+            {
+
+                double ShearForceMax = LocalContactForce[2] * Friction + Cohesion * area;
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]);
+
+
+                //Cfeng: if tensile, only cohesion could be introduced
+                if(LocalContactForce[2] < 0.0)
                 {
-                    Output = Output * 0.5;
+                    ShearForceMax = Cohesion * area;
+                }
+
+
+                //Cfeng: for shear failure
+                if(ShearForceMax == 0.0)
+                {
+                    LocalContactForce[0] = 0.0;
+                    LocalContactForce[1] = 0.0;
+                }
+                else if(ShearForceNow > ShearForceMax)
+                {
+                    LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
+                    LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+
+                    mContactFailureType[iContactForce] = 2;
                 }
             }
+
+
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+
+
+            force[0] += GlobalContactForce[0];
+            force[1] += GlobalContactForce[1];
+            force[2] += GlobalContactForce[2];
+
+            mContactForces[3 * iContactForce + 0 ] = GlobalContactForce[0];
+            mContactForces[3 * iContactForce + 1 ] = GlobalContactForce[1];
+            mContactForces[3 * iContactForce + 2 ] = GlobalContactForce[2];
+
+            if(RightFace != -1)
+            {
+               if(dim == 2)
+               {
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[0];
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[0];
+                    ineighbour->GetGeometry().Edges()[RightFace](0)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[0];
+
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[1];
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[1];
+                    ineighbour->GetGeometry().Edges()[RightFace](1)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[1];
+               }
+               else if( dim == 3)
+               {
+                   for(std::size_t ifnode = 0; ifnode < ineighbour->GetGeometry().Faces()[RightFace].size(); ifnode++)
+                   {
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[0] -= GlobalContactForce[0] * Coeff[ifnode];
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[1] -= GlobalContactForce[1] * Coeff[ifnode];
+                       ineighbour->GetGeometry().Faces()[RightFace](ifnode)->FastGetSolutionStepValue(RHS)[2] -= GlobalContactForce[2] * Coeff[ifnode];
+                   }
+               }
+            }
+
+            iContactForce++;
+
         }
+
+
+    }
+
+
+
+
+
+
+
+
+
 
         void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
         void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}

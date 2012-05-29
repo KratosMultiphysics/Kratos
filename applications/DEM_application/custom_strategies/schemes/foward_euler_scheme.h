@@ -73,7 +73,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -138,18 +138,15 @@ namespace Kratos
 
      void CalculateRotationalMotion(ModelPart& model_part)
      {
-        KRATOS_TRY
-
-        ///WARNING: MDAMPRATIO NO ESTA LLIGAT
-              double  mdamping_ratio = 0.01;
-
-        
+        KRATOS_TRY   
      
 	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes();
 
 	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
+
+        KRATOS_WATCH(delta_t)
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -165,8 +162,6 @@ namespace Kratos
             NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
             {
-
-                
 
                 double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
                 double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
@@ -186,20 +181,8 @@ namespace Kratos
                 {
                     if(If_Fix_Rotation[iterator] == false)
                     {
-
                          double RotaAcc = 0.0;
-                         if(AngularVel[iterator] > 0.0)
-                         {
-                             RotaAcc = (RotaMoment[iterator] - mdamping_ratio * fabs(RotaMoment[iterator])) / PMass / PMomentOfInertia;
-                            
-   
-                         }
-                         else
-                         {
-                             RotaAcc = (RotaMoment[iterator] + mdamping_ratio * fabs(RotaMoment[iterator])) / PMass / PMomentOfInertia;
-                           
-                                      
-                         }
+                         RotaAcc = (RotaMoment[iterator]) / PMass / PMomentOfInertia;
 
                          double RotaVelOld = AngularVel[iterator];
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
