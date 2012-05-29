@@ -71,8 +71,8 @@ class ExplicitStrategy:
         self.continuum_simulating_OPTION    = True
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
 
-        self.rotation_OPTION                = 0
-        self.rotation_spring_OPTION         = 0
+        self.rotation_OPTION                = 1 #CANVIAR AIXO, ENTRADA GID
+        self.rotation_spring_OPTION         = 1 #CANVIAR AIXO, ENTRADA GID
 
         #problem specific parameters
 

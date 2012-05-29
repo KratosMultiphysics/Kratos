@@ -198,12 +198,18 @@ namespace Kratos
         void SetInitialContacts(int case_opt);
 
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
+        void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
+        void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
+        
+        //FOR DEM_FEM APP
+        
+        void ComputeParticleBlockContactForce_With_Rotation();
+        void ComputeParticleBlockContactForce_Without_Rotation();
+        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
 
-        
-        
       ///@name Protected static Member Variables 
       ///@{ 
         
