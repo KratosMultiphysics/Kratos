@@ -5,7 +5,7 @@ where	*# Conditional Variable blocks
 Begin ConditionalData <NAME>
 *loop elems *OnlyInCond
 *format "%i%10.5e"
-*operation(ElemsNum-condbase) *cond(<NAME>)
+*tcl( getCondId *ElemsNum *CondElemFace) *cond(<NAME>)
 *end elems
 End ConditionalData
 

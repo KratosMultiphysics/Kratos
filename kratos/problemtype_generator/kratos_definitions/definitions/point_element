@@ -1,5 +1,5 @@
 file	problemtype.bas
-where	*# Element Blocks
+where	*# Point Element Blocks
 
 *if(CondNumEntities > 0)
 Begin Elements <NAME>

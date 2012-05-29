@@ -347,6 +347,8 @@ class base:
             mesh_type='*nodes'
         elif mode=='elem':
             mesh_type='*elems'
+        elif mode=='cond':
+            mesh_type='*OverFaceElements *CanRepeat'
 
         entity_list=tuple_to_list(entities)
         entity_list.sort(key=entity_key,reverse=True)
@@ -381,16 +383,18 @@ class condition(base):
     #call=None
     definition_file=''
     questions=''
-    apply_over_nodes=True # Set this to False and you have a condition applied over elements instead of over nodes
+    entity_type='node' #'elem' 'cond'
 
     def __init__(self):
 
         self.temp_names=self.basic_input+self.additional_input
 
-        if self.apply_over_nodes:
+        if self.entity_type=='node':
             condmeshtype='over nodes'
-        else:
+        elif self.entity_type=='elem':
             condmeshtype='over body elements'
+        elif self.entity_type=='cond':
+            condmeshtype='over face elements'
 
         cndtext='CONDITION: <ENTITY>_<NAME>\n'+\
                  'CONDTYPE: over <ENTITY>s\n'+\
@@ -414,12 +418,7 @@ class condition(base):
             return None # Return to the main loop
         values=self.parseinput(line)
 
-        if self.apply_over_nodes:
-            mode='node'
-        else:
-            mode='elem'
-
-        bascode=self.bas_entity_code(self.entities,self.name,mode) # generate *Set and *Add clauses
+        bascode=self.bas_entity_code(self.entities,self.name,self.entity_type) # generate *Set and *Add clauses
 
         # Generate an entry in code_db for the new condition
         code_db.create_entry(self.name,self.entities)
@@ -465,16 +464,18 @@ class element(base):
     #call=None
     definition_file=''
     questions=''
-    apply_over_nodes=False # Set this to true in derived classes for Point Elements
+    entity_type='elem'
 
     def __init__(self):
 
         self.temp_names=self.basic_input+self.additional_input
 
-        if self.apply_over_nodes==True: # When GiD supports point elements, delete this and write 'over body elements' always
+        if self.entity_type=='node': # When GiD supports point elements, delete this and write 'over body elements' always
             condmeshtype='over nodes'
-        else:
+        elif self.entity_type=='elem':
             condmeshtype='over body elements'
+        elif self.entity_type=='cond':
+            condmeshtype='over face elements'
 
         cndtext='CONDITION: <ENTITY>_<NAME>\n'+\
                  'CONDTYPE: over <ENTITY>s\n'+\
@@ -526,7 +527,7 @@ class element(base):
             bascode=self.bas_entity_code(self.entities,self.name,'node') # generate *Set and *Add clauses
         else:
             # For other entities, we will want to loop over elements
-            bascode=self.bas_entity_code(self.entities,self.name,'elem') # generate *Set and *Add clauses
+            bascode=self.bas_entity_code(self.entities,self.name,self.entity_type) # generate *Set and *Add clauses
             
 
         # retrieve .bas and .tcl code read from input files
