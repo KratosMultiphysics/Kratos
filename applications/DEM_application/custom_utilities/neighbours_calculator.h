@@ -94,13 +94,10 @@ namespace Kratos {
         virtual ~Neighbours_Calculator() {
         };
 
-        static void Search_Neighbours(ModelPart& r_model_part, bool extension_option) {
+        static void Search_Neighbours(ContainerType& pElements, ProcessInfo& rCurrentProcessInfo, bool extension_option) {
 
             KRATOS_TRY
-            //typedef ModelPart::ElementsContainerType LocalParticleVector;
-
-            ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-            ContainerType& pElements = r_model_part.ElementsArray();
+            
             double radius_extend = 0.0;
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
             const int case_OPTION = rCurrentProcessInfo[CASE_OPTION];
