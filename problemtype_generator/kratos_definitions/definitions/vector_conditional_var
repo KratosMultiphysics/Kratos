@@ -14,7 +14,7 @@ Begin ConditionalData <NAME>_X
 *loop elems *OnlyInCond
 *if(cond(<NAME>_X,int)==1)
 *format "%i%10.5e"
-*operation(ElemsNum-condbase) *cond(X_Value)
+*tcl( getCondId *ElemsNum *CondElemFace) *cond(X_Value)
 *endif
 *end elems
 End ConditionalData
@@ -33,7 +33,7 @@ Begin ConditionalData <NAME>_Y
 *loop elems *OnlyInCond
 *if(cond(<NAME>_Y,int)==1)
 *format "%i%10.5e"
-*operation(ElemsNum-condbase) *cond(Y_Value)
+*tcl( getCondId *ElemsNum *CondElemFace) *cond(Y_Value)
 *endif
 *end elems
 End ConditionalData
@@ -52,7 +52,7 @@ Begin ConditionalData <NAME>_Z
 *loop elems *OnlyInCond
 *if(cond(<NAME>_Z,int)==1)
 *format "%i%10.5e"
-*operation(ElemsNum-condbase) *cond(Z_Value)
+*tcl( getCondId *ElemsNum *CondElemFace) *cond(Z_Value)
 *endif
 *end elems
 End ConditionalData

@@ -1,5 +1,5 @@
 file	problemtype.bas
-where	*# Condition Blocks
+where	*# Point Condition Blocks
 
 *if(CondNumEntities > 0)
 Begin Conditions <NAME>

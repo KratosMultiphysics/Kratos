@@ -294,7 +294,7 @@ class point_element(core_definitions.element):
     call='POINT ELEMENT'
     definition_file='point_element'
     insert_in='# Elements'
-    apply_over_nodes=True # As of GiD 9.1.1b, point conditions can't be applied over elements
+    entity_type='node' # As of GiD 9.1.1b, point conditions can't be applied over elements
 
     questions='QUESTION: ID#FUNC#(NumEntity)\n'+\
                'VALUE: 0\n'+\
@@ -313,6 +313,7 @@ class face_condition(element):
     call='FACE CONDITION'
     definition_file='face_condition'
     insert_in='# Conditions'
+    entity_type='cond'
 
 class point_condition(point_element):
     # See comment on point_element
@@ -380,6 +381,7 @@ class scalar_face_condition(core_definitions.condition):
     definition_file='scalar_conditional_var'
     insert_in='# Conditional Data'
     apply_over_nodes=False
+    entity_type='cond'
 
     questions='QUESTION: <NAME>\n'+\
                'VALUE: <DEFVALUE>\n'
@@ -436,6 +438,7 @@ class vector_face_condition(core_definitions.condition):
     definition_file='vector_conditional_var'
     insert_in='# Conditional Data'
     apply_over_nodes=False
+    entity_type='cond'
 
     questions='QUESTION: <NAME>_X#CB#(1,0)\n'+\
                'VALUE: 1\n'+\
@@ -492,18 +495,21 @@ class scalar_elemental_value(scalar_face_condition):
     call='SCALAR ELEMENTAL VALUE'
     definition_file='scalar_elemental_var'
     insert_in='# Elemental Data'
+    entity_type='elem'
 
 class flag_elemental_condition(flag_face_condition):
     # This is a copy of the flag condition applied over condition faces
     call='FLAG ELEMENTAL VALUE'
     definition_file='scalar_elemental_var'
     insert_in='# Elemental Data'
+    entity_type='elem'
 
 class vector_elemental_condition(vector_face_condition):
     # This is a copy of the flag condition applied over condition faces
     call='VECTOR ELEMENTAL VALUE'
     definition_file='vector_elemental_var'
     insert_in='# Elemental Data'
+    entity_type='elem'
 
 class kratos_solver(core_definitions.gendata):
     call='SOLVER'

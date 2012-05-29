@@ -1,6 +1,7 @@
 namespace eval ::kaux:: {
     variable kratos_path ""
     variable pt_path ""
+    variable condList {}
 }
 
 
@@ -829,4 +830,27 @@ proc getWinPyScript {} {
   set readDir [GiD_AccessValue get gendata Python_File]
   regsub -all {/} $readDir "\\" readDir
   return $readDir
+}
+
+proc resetCondId {} {
+  set ::kaux::condList {}
+}
+
+proc setCondId { elemId faceId } {
+  lappend ::kaux::condList [ expr { $elemId * 10 + $faceId } ]
+#  set a [expr { $elemId * 10 + $faceId }]
+#  set b [llength $::kaux::condList]
+#  WarnWinText "In: ${elemId} ${faceId} ${a} ${b}"
+  return [llength $::kaux::condList]
+}
+
+proc getCondId { elemId faceId } {
+  set condId [ lsearch -integer $::kaux::condList [ expr { $elemId * 10 + $faceId } ] ]
+#  set a [expr { $elemId * 10 + $faceId }]
+#  set b [expr { $condId + 1 }]
+#  WarnWinText "Out: ${elemId} ${faceId} ${a} ${b}"
+  if { $condId < 0 } {
+     WarnWinText "Error: Face ${faceId} of element ${elemId} has associated conditional data, but has no condition type assigned."
+  }
+  return [expr { $condId + 1 }]
 }
