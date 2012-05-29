@@ -62,7 +62,8 @@ public:
         typedef  std::vector<ContactPairType>                    ContainerContactType;
         typedef  ContainerContactType::iterator                  IteratorContactType;
         typedef  ContainerContactType::value_type                PointerContactType;
-        typedef  std::vector<PointerType>::iterator              PointerTypeIterator;
+      
+      typedef  std::vector<PointerType>::iterator              PointerTypeIterator;
 
 
 
