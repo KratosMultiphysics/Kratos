@@ -7,6 +7,17 @@ import Kratos_Structural_Application_var
 domain_size = Kratos_Structural_Application_var.domain_size
 
 ##################################################################
+
+#including kratos path
+kratos_path = '../../../..'
+kratos_benchmarking_path = '../../../../benchmarking' ##kratos_root/benchmarking
+
+import sys
+sys.path.append(kratos_path)
+sys.path.append(kratos_benchmarking_path)
+import benchmarking
+
+
 ##################################################################
 ## ATTENTION: here the order is important
 
@@ -24,7 +35,6 @@ if(Kratos_Structural_Application_var.SolverType == "ParallelSolver"):
 
 ## from now on the order is not anymore crucial
 ##################################################################
-import benchmarking
 
 def BenchmarkCheck(time, model_part):
     print "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGg"
