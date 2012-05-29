@@ -636,6 +636,7 @@ namespace Kratos
 
       void SearchNeighbours(ModelPart r_model_part,bool extension_option)
       {
+       
 
         typedef DiscreteElement                                                 ParticleType;
         typedef ParticleType::Pointer                                           ParticlePointerType;
@@ -648,10 +649,17 @@ namespace Kratos
         typedef std::vector<double>                                             DistanceVectorType;
         typedef std::vector<double>::iterator                                   DistanceIteratorType;
 
+        ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+        ParticleContainerType& pElements = r_model_part.ElementsArray();
+
+
         if (mdimension == 2)
-            Neighbours_Calculator<2, ParticleType>::Search_Neighbours(r_model_part,extension_option);
+
+             Neighbours_Calculator<2, ParticleType>::Search_Neighbours(pElements, rCurrentProcessInfo, extension_option);
+
         else if (mdimension == 3)
-            Neighbours_Calculator<3, ParticleType>::Search_Neighbours(r_model_part,extension_option);
+
+             Neighbours_Calculator<3, ParticleType>::Search_Neighbours(pElements,  rCurrentProcessInfo, extension_option);
 
       }//SearchNeighbours
 
