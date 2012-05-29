@@ -32,28 +32,10 @@ const long double pi = 3.141592653589793238462643383279;
 
 namespace Kratos
 {
-        KRATOS_DEFINE_VARIABLE(double,  DEM_DELTA_TIME);
-
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
-
-        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FAILURE_ID)
-        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FORCE)
-        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_BLOCK_IF_INITIAL_CONTACT)
+       
         KRATOS_DEFINE_VARIABLE(WeakPointerVector<Element >,     NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
 
-        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
-
-        typedef vector<array_1d<double,3> > VectorArray3Double;
-        KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
-
-
-
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_MOMENT );
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_ROTATION_ANGLE );
-        KRATOS_DEFINE_VARIABLE(double,  PARTICLE_MOMENT_OF_INERTIA);
-
-        KRATOS_DEFINE_VARIABLE(Vector,     INITIAL_AXES_TRACKING)
-        KRATOS_DEFINE_VARIABLE(int,     plot_OPTIONS)
+    
 
 class KratosDEMApplication : public KratosApplication
 {
@@ -179,7 +161,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    const SphericParticle mSphericParticle;
+    const SphericParticle mParticle3D;
+    const SphericParticle mParticle2D;
 
 
     //       static const ApplicationCondition  msApplicationCondition;
