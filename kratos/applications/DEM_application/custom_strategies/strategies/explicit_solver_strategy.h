@@ -17,7 +17,7 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/neighbours_calculator.h"
-#include "custom_utilities/spheric_particle_hertzian.h"
+
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "includes/variables.h"

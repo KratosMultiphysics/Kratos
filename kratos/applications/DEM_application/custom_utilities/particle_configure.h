@@ -10,12 +10,17 @@
 
 // System includes
 
+// System includes
+#include <string>
+#include <iostream>
+#include <cmath>
+#include "utilities/spatial_containers_configure.h"
 // Project includes
 
 //#include "custom_utilities/circular_particle.h"
 //#include "custom_utilities/circular_particle_hertzian.h"
 //#include "custom_utilities/spheric_particle.h"
-#include "custom_utilities/spheric_particle_hertzian.h"
+
 //#include "custom_utilities/spheric_rotating_particle.h"
 //#include "custom_utilities/spheric_rotating_particle_hertzian.h"
 
