@@ -1068,6 +1068,11 @@ public:
         *mpProcessInfo = NewProcessInfo;
     }
 
+    SizeType NumberOfMeshes()
+    {
+        return mMeshes.size();
+    }
+
     MeshType::Pointer pGetMesh(IndexType ThisIndex = 0)
     {
         return mMeshes(ThisIndex);
