@@ -419,6 +419,8 @@ public:
                 rThisModelPart.GetCommunicator().LocalMesh().Elements() = rThisModelPart.Elements();
                 rThisModelPart.GetCommunicator().LocalMesh().Conditions() = rThisModelPart.Conditions();
             }
+            else if(word == "Mesh")
+                ReadMeshBlock(rThisModelPart);
 
         }
         std::cout << "lines read : " << mNumberOfLines;
@@ -483,6 +485,8 @@ public:
                 DivideElementalDataBlock(output_files, ElementsAllPartitions);
             else if(word == "ConditionalData")
                 DivideConditionalDataBlock(output_files, ConditionsAllPartitions);
+            else if(word == "Mesh")
+                DivideMeshBlock(output_files, NodesAllPartitions, ElementsAllPartitions, ConditionsAllPartitions);
 
         }
 
@@ -1796,6 +1800,131 @@ private:
 
     }
 
+    void ReadMeshBlock(ModelPart& rModelPart)
+    {
+         KRATOS_TRY
+
+// 	KRATOS_WATCH("begin reading CommunicatorDataBlock")
+
+        std::string word;
+        SizeType mesh_id;
+
+        ReadWord(word);
+        ExtractValue(word, mesh_id);
+
+        KRATOS_WATCH(mesh_id)
+
+        SizeType number_of_meshes = rModelPart.NumberOfMeshes();
+
+        if(mesh_id > 1000000) // this would be a case of error in reading.
+            KRATOS_ERROR(std::invalid_argument, "Too large mesh id :", mesh_id);
+
+        if(mesh_id == 0) // this would be a case of error in reading.
+            KRATOS_ERROR(std::invalid_argument, "The mesh zero is the reference mesh and already created. You cannot create a mesh 0 with mesh block.", "");
+
+
+        // adding necessary meshes to the model part.
+        MeshType empty_mesh;
+        for(SizeType i = number_of_meshes ; i < mesh_id + 1 ; i++)
+            rModelPart.GetMeshes().push_back(empty_mesh.Clone());
+
+        MeshType& mesh = rModelPart.GetMesh(mesh_id);
+
+        while(true)
+        {
+            ReadWord(word);
+            if(mInput.eof())
+                break;
+
+            if(CheckEndBlock("Mesh", word))
+                break;
+
+            ReadBlockName(word);
+            if(word == "MeshNodes")
+               ReadMeshNodesBlock(rModelPart, mesh);
+            else if(word == "MeshElements")
+               ReadMeshElementsBlock(rModelPart, mesh);
+            else if(word == "MeshConditions")
+               ReadMeshConditionsBlock(rModelPart, mesh);
+            else
+               SkipBlock(word);
+        }
+
+        KRATOS_CATCH("")
+
+    }
+
+    void ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh)
+    {
+        KRATOS_TRY
+
+        SizeType node_id;
+
+        std::string word;
+
+
+        while(!mInput.eof())
+        {
+            ReadWord(word); // Reading the node id or End
+            if(CheckEndBlock("MeshNodes", word))
+                break;
+
+            ExtractValue(word,node_id);
+            NodesContainerType::iterator i_node = FindKey(rModelPart.Nodes(), node_id, "Node");
+            rMesh.Nodes().push_back(*(i_node.base()));
+        }
+
+        rMesh.Nodes().Sort();
+        KRATOS_CATCH("")
+    }
+
+    void ReadMeshElementsBlock(ModelPart& rModelPart, MeshType& rMesh)
+    {
+        KRATOS_TRY
+
+        SizeType element_id;
+
+        std::string word;
+
+
+        while(!mInput.eof())
+        {
+            ReadWord(word); // Reading the element id or End
+            if(CheckEndBlock("MeshElements", word))
+                break;
+
+            ExtractValue(word,element_id);
+            ElementsContainerType::iterator i_element = FindKey(rModelPart.Elements(), element_id, "Element");
+            rMesh.Elements().push_back(*(i_element.base()));
+        }
+
+        rMesh.Elements().Sort();
+        KRATOS_CATCH("")
+    }
+
+    void ReadMeshConditionsBlock(ModelPart& rModelPart, MeshType& rMesh)
+    {
+        KRATOS_TRY
+
+        SizeType condition_id;
+
+        std::string word;
+
+
+        while(!mInput.eof())
+        {
+            ReadWord(word); // Reading the element id or End
+            if(CheckEndBlock("MeshConditions", word))
+                break;
+
+            ExtractValue(word,condition_id);
+            ConditionsContainerType::iterator i_condition = FindKey(rModelPart.Conditions(), condition_id, "Condition");
+            rMesh.Conditions().push_back(*(i_condition.base()));
+        }
+
+        rMesh.Conditions().Sort();
+        KRATOS_CATCH("")
+    }
 
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles)
     {
@@ -2392,6 +2521,196 @@ private:
 
         KRATOS_CATCH("")
     }
+
+
+    void DivideMeshBlock(OutputFilesContainerType& OutputFiles,
+                                         PartitionIndicesContainerType const& NodesAllPartitions,
+                                         PartitionIndicesContainerType const& ElementsAllPartitions,
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
+    {
+        KRATOS_TRY
+
+        std::string word;
+        ReadWord(word);
+
+        word += "\n";
+
+
+        WriteInAllFiles(OutputFiles, "Begin Mesh " + word);
+
+        while(!mInput.eof())
+        {
+            ReadWord(word);
+
+            if(CheckEndBlock("Mesh", word))
+                break;
+
+            ReadBlockName(word);
+            if(word == "MeshNodes")
+               DivideMeshNodesBlock(OutputFiles, NodesAllPartitions);
+            else if(word == "MeshElements")
+               DivideMeshElementsBlock(OutputFiles, ElementsAllPartitions);
+            else if(word == "MeshConditions")
+               DivideMeshConditionsBlock(OutputFiles, ConditionsAllPartitions);
+            else
+               SkipBlock(word);
+        }
+
+        WriteInAllFiles(OutputFiles, "End Mesh\n");
+
+        KRATOS_CATCH("")
+        
+    }
+
+
+    void DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
+                                         PartitionIndicesContainerType const& NodesAllPartitions)
+    {
+        KRATOS_TRY
+
+        std::string word;
+
+        WriteInAllFiles(OutputFiles, "Begin MeshNodes \n");
+
+        SizeType id;
+
+        while(!mInput.eof())
+        {
+            ReadWord(word);
+
+            if(CheckEndBlock("MeshNodes", word))
+                break;
+
+            ExtractValue(word, id);
+
+            if(id > NodesAllPartitions.size())
+            {
+                std::stringstream buffer;
+                buffer << "Invalid node id : " << id;
+                buffer << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+            }
+
+            for(SizeType i = 0 ; i < NodesAllPartitions[id-1].size() ; i++)
+            {
+                SizeType partition_id = NodesAllPartitions[id-1][i];
+                if(partition_id > OutputFiles.size())
+                {
+                    std::stringstream buffer;
+                    buffer << "Invalid prtition id : " << partition_id;
+                    buffer << " for node " << id << " [Line " << mNumberOfLines << " ]";
+                    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+                }
+
+                *(OutputFiles[partition_id]) << word << std::endl;
+            }
+
+        }
+
+        WriteInAllFiles(OutputFiles, "End MeshNodes\n");
+
+        KRATOS_CATCH("")
+    }
+
+
+    void DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
+                                         PartitionIndicesContainerType const& ElementsAllPartitions)
+    {
+        KRATOS_TRY
+
+        std::string word;
+
+        WriteInAllFiles(OutputFiles, "Begin MeshElements \n");
+
+        SizeType id;
+
+        while(!mInput.eof())
+        {
+            ReadWord(word);
+
+            if(CheckEndBlock("MeshElements", word))
+                break;
+
+            ExtractValue(word, id);
+
+            if(id > ElementsAllPartitions.size())
+            {
+                std::stringstream buffer;
+                buffer << "Invalid element id : " << id;
+                buffer << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+            }
+
+            for(SizeType i = 0 ; i < ElementsAllPartitions[id-1].size() ; i++)
+            {
+                SizeType partition_id = ElementsAllPartitions[id-1][i];
+                if(partition_id > OutputFiles.size())
+                {
+                    std::stringstream buffer;
+                    buffer << "Invalid prtition id : " << partition_id;
+                    buffer << " for element " << id << " [Line " << mNumberOfLines << " ]";
+                    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+                }
+
+                *(OutputFiles[partition_id]) << word << std::endl;
+            }
+
+        }
+
+        WriteInAllFiles(OutputFiles, "End MeshElements\n");
+
+        KRATOS_CATCH("")
+    }
+
+    void DivideMeshConditionsBlock(OutputFilesContainerType& OutputFiles,
+                                         PartitionIndicesContainerType const& ConditionsAllPartitions)
+    {
+        KRATOS_TRY
+
+        std::string word;
+
+        WriteInAllFiles(OutputFiles, "Begin MeshConditions \n");
+
+        SizeType id;
+
+        while(!mInput.eof())
+        {
+            ReadWord(word);
+
+            if(CheckEndBlock("MeshConditions", word))
+                break;
+
+            ExtractValue(word, id);
+
+            if(id > ConditionsAllPartitions.size())
+            {
+                std::stringstream buffer;
+                buffer << "Invalid condition id : " << id;
+                buffer << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+            }
+
+            for(SizeType i = 0 ; i < ConditionsAllPartitions[id-1].size() ; i++)
+            {
+                SizeType partition_id = ConditionsAllPartitions[id-1][i];
+                if(partition_id > OutputFiles.size())
+                {
+                    std::stringstream buffer;
+                    buffer << "Invalid prtition id : " << partition_id;
+                    buffer << " for condition " << id << " [Line " << mNumberOfLines << " ]";
+                    KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+                }
+
+                *(OutputFiles[partition_id]) << word << std::endl;
+            }
+
+        }
+
+        WriteInAllFiles(OutputFiles, "End MeshConditions\n");
+
+        KRATOS_CATCH("")
+    }
+
 
     void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions)
     {
