@@ -16,12 +16,14 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "custom_utilities/discrete_particle_configure.h"   //M: al altre hi tens lo del charlie
 #include "containers/weak_pointer_vector.h"
 #include "containers/pointer_vector.h"
 #include "containers/pointer_vector_set.h"
 
 //#include "DEM_application.h"
+#include "custom_utilities/discrete_particle_configure.h"
+//#include "../applications/DEM_application/DEM_application.h"
+//#include "../applications/DEM_application/custom_utilities/discrete_particle_configure.h"   //M: al altre hi tens lo del charlie
 
 
 
