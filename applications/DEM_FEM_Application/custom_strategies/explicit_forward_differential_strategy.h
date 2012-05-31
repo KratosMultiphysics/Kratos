@@ -208,7 +208,8 @@ namespace Kratos
                 mUnbalRatioCal           = 1;
                 mIfHaveCalVirtualMass    = false;
                 mIfParticleInitialSearch = true;
-                mIfParticleBlockInitialSearch = true;                
+                mIfParticleBlockInitialSearch = true;
+                mIfHaveInitialzeSolutionStep = false;
             
 	      }
 
@@ -229,7 +230,8 @@ double Solve()
 	}
 
 
-	if(mComputeTime==false){
+	if(mComputeTime==false)
+        {
 	    ComputeCriticalTime();
 	    mComputeTime = true;
 	}
@@ -237,7 +239,11 @@ double Solve()
 
         ///Initialize solution step
         ///call this function once or in every time step should be ensured,this version is call this function each time step.
-	InitializeSolutionStep();
+        if(mIfHaveInitialzeSolutionStep == false)
+        {
+            InitializeSolutionStep();
+            mIfHaveInitialzeSolutionStep = true;
+        }
 
 
         ////Cfeng: find the paticle-particle neighbours
@@ -263,7 +269,7 @@ double Solve()
 
 
         ////Cfeng: Calculate Particle Rotation Evolvement
-        if(CurrentProcessInfo[PARTICLE_IF_CAL_ROTATE] == 1)
+        if(CurrentProcessInfo[ROTATION_OPTION] == 1)
         {
            Calculate_Particle_Rotate_Evolvement();
         }
@@ -285,6 +291,9 @@ double Solve()
 
         ///Finalize solution step
 	FinalizeSolutionStep();
+
+        ///For Visualization, 120530, the dirived version, the number of neighbour is located on elements.
+        TransferElementNeighboursToNodes();
 
 
         mnumber_step++;
@@ -318,8 +327,9 @@ void Initialize()
         ////Cfeng: Identify is the element is boundary element and if the face is boundary face.
         CreatAuxParticleBlockList();
 
-        ////Initialize neighbour search for particle   120530
+        ////Cfeng: after connect to Miquel, Initialize neighbour search for particle120530
         FindParticleNeighbours();
+
         mElementsAreInitialized   = true;
     }
 
@@ -640,7 +650,7 @@ void ComputeViscousDampingForces()
 
 
 void ComputeNonViscousDampingForces()
-{
+{   
       KRATOS_TRY
       ModelPart& r_model_part          = BaseType::GetModelPart();
       NodesArrayType& pNodes           = r_model_part.Nodes(); 
@@ -676,124 +686,6 @@ void ComputeNonViscousDampingForces()
     }
  
 
-
-/// Cfeng: Calculate the movement of the node , include the particle,no use this function,using velocity boundary
-void Calculate_Node_Movement_By_Newton_Law_Displace_Boundary()
-{
-  
-    KRATOS_TRY
-    
-    ModelPart& r_model_part          = BaseType::GetModelPart();
-    ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
-    NodesArrayType& pNodes           = r_model_part.Nodes(); 
- 
-       
-    #ifdef _OPENMP
-    int number_of_threads = omp_get_max_threads();
-    #else
-    int number_of_threads = 1;
-    #endif
-
-    vector<unsigned int> node_partition;
-    CreatePartition(number_of_threads, pNodes.size(), node_partition);
-    
-   // #pragma omp parallel for private(mid_pos_velocity, mid_neg_velocity)
-
-    array_1d<double,3> UnbalForce;
-    UnbalForce[0] = 0.0;
-    UnbalForce[1] = 0.0;
-    UnbalForce[2] = 0.0;
-
-    array_1d<double,3> ReactionForce;
-    ReactionForce[0] = 0.0;
-    ReactionForce[1] = 0.0;
-    ReactionForce[2] = 0.0;
-
-    for(int k=0; k<number_of_threads; k++)
-      {
-	typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-
-	for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-	{
-            array_1d<double,3>& acceleration = (i->FastGetSolutionStepValue(ACCELERATION));
-            array_1d<double,3>& velocity     = (i->FastGetSolutionStepValue(VELOCITY));
-	    array_1d<double,3>& displacement = i->FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double,3>& nodeForce    = i->FastGetSolutionStepValue(RHS);
-	  
-	    const double& nodal_mass         =  i->FastGetSolutionStepValue(NODAL_MASS);
-
-            acceleration = nodeForce / nodal_mass;
-
-            array_1d<double,3> velocity_old = velocity;
-            array_1d<double,3> velocity_new = velocity_old + acceleration * mtimestep;
-
-            velocity = (velocity_old + velocity_new) * 0.5;
-
-            displacement += velocity * mtimestep;
-
-
-            ////Cfeng : fixed node should set acc-vel-dis zero
-            if( (i->pGetDof(DISPLACEMENT_X))->IsFixed() == true)
-	    {
-                acceleration[0] = 0.0;
-                velocity    [0] = 0.0;
-                displacement[0] = 0.0;
-
-                ReactionForce[0] += fabs (nodeForce[0]);
-            }
-            else
-            {
-               UnbalForce[0] += fabs (nodeForce[0]);
-            }
-
-
-            if( (i->pGetDof(DISPLACEMENT_Y))->IsFixed() == true)
-	    {
-                acceleration[1] = 0.0;
-                velocity    [1] = 0.0;
-                displacement[1] = 0.0;
-
-                ReactionForce[1] += fabs (nodeForce[1]);
-            }
-            else
-            {
-               UnbalForce[1] += fabs (nodeForce[1]);
-            }
-            
-            
-            if( (i->pGetDof(DISPLACEMENT_Z))->IsFixed() == true)
-	    {
-                acceleration[2] = 0.0;
-                velocity    [2] = 0.0;
-                displacement[2] = 0.0;
-
-                ReactionForce[2] += fabs (nodeForce[2]);
-            }
-            else
-            {
-               UnbalForce[2] += fabs (nodeForce[2]);
-            }
-        }
-    }
-
-    double UnBalForceRatio = sqrt(UnbalForce[0] * UnbalForce[0] + UnbalForce[1] * UnbalForce[1] + UnbalForce[2] * UnbalForce[2]);
-
-    double Reaction = sqrt(ReactionForce[0] * ReactionForce[0] + ReactionForce[1] * ReactionForce[1] + ReactionForce[2] * ReactionForce[2]);
-
-
-    mUnbalRatioCal = UnBalForceRatio / Reaction;
-    
-    if(Reaction < 1.0e-6)
-    {
-        mUnbalRatioCal = UnBalForceRatio;
-    }
-
-   
-    CurrentProcessInfo[DEM_FEM_CONVERGENCE_RATIO] = mUnbalRatioCal;
-
-    KRATOS_CATCH("")
-}
 
 
 void Calculate_Node_Movement_By_Newton_Law()
@@ -896,6 +788,7 @@ void Calculate_Node_Movement_By_Newton_Law()
 
                 UnbalForce[2] += fabs (nodeForce[2]);
             }
+
         }
     }
 
@@ -916,6 +809,34 @@ void Calculate_Node_Movement_By_Newton_Law()
 
     KRATOS_CATCH("")
 }
+
+
+
+void TransferElementNeighboursToNodes()
+{
+    KRATOS_TRY
+
+
+      ModelPart& r_model_part          = BaseType::GetModelPart();
+      ElementsArrayType& pElements     = r_model_part.Elements();
+
+
+    typename ElementsArrayType::iterator it_begin=pElements.ptr_begin();
+    typename ElementsArrayType::iterator it_end=pElements.ptr_end();
+    for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+    {
+        Element::GeometryType& geom = it->GetGeometry();
+        for (unsigned int i = 0; i <geom.size(); i++)
+        {
+            geom(i)->FastGetSolutionStepValue(PARTICLE_NUMBER_OF_NEIGHBOURS) = it->GetValue(NUMBER_OF_NEIGHBOURS);
+        }
+    }
+
+
+    KRATOS_CATCH("")
+}
+
+
 
 
 void Calculate_Particle_Rotate_Evolvement()
@@ -1006,7 +927,7 @@ void CalculateVirtualMass()
            if (geom.size() == 1)
            {
               VirtualMass = Young * M_PI * it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-              if(CurrentProcessInfo[PARTICLE_IF_CAL_ROTATE] == 1)
+              if(CurrentProcessInfo[ROTATION_OPTION] == 1)
               {
                   VirtualMass = VirtualMass * 2.5;
               }
@@ -1212,13 +1133,11 @@ void ComputeCriticalTime()
               }
           }
 
-          mtimestep = 0.5 * mtimestep;
-
           std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
     }
 
 
-    CurrentProcessInfo[DEM_FEM_TIME_STEP] = mtimestep;
+    CurrentProcessInfo[DEM_DELTA_TIME]  = mtimestep;
 
     std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
   
@@ -1479,7 +1398,7 @@ void CalculateReaction()
  }
 
 
-
+/*
   void FindParticleNeighbours()
    {
       KRATOS_TRY
@@ -1498,20 +1417,47 @@ void CalculateReaction()
         ParticleContainerType& pElements = r_model_part.ElementsArray();
 
         if (mdimension == 2)
-
+        {
              Neighbours_Calculator<2, ParticleType>::Search_Neighbours(pElements, rCurrentProcessInfo, mIfParticleInitialSearch);
-
+        }
         else if (mdimension == 3)
-
+        {
              Neighbours_Calculator<3, ParticleType>::Search_Neighbours(pElements,  rCurrentProcessInfo, mIfParticleInitialSearch);
-
+        }
         mIfParticleInitialSearch = false;
      }
      
 
      KRATOS_CATCH("")
-    }
+  }
+*/
 
+
+void FindParticleNeighbours()
+   {
+      KRATOS_TRY
+
+
+     if(tempParticle.size() > 0)
+     {
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+        typedef Element  ParticleType;
+
+        if (mdimension == 2)
+        {
+             Neighbours_Calculator<2, ParticleType>::Search_Neighbours(aux_list_of_particles, rCurrentProcessInfo, mIfParticleInitialSearch);
+        }
+        else if (mdimension == 3)
+        {
+             Neighbours_Calculator<3, ParticleType>::Search_Neighbours(aux_list_of_particles,  rCurrentProcessInfo, mIfParticleInitialSearch);
+        }
+        mIfParticleInitialSearch = false;
+     }
+
+
+     KRATOS_CATCH("")
+  }
 
 
   void FindParticleBlockNeighbours()
@@ -1719,7 +1665,7 @@ double mUnbalRatioCal;
 bool   mIfHaveCalVirtualMass;
 bool   mIfParticleInitialSearch;
 bool   mIfParticleBlockInitialSearch;
-
+bool   mIfHaveInitialzeSolutionStep;
 ParticlePointerVector aux_list_of_particles;
 ParticlePointerVector aux_list_of_blocks;
 ParticlePointerVector tempParticle;
