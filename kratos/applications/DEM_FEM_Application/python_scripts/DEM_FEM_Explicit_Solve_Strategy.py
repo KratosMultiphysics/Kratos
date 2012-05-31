@@ -77,7 +77,7 @@ class DynamicStructuralSolver:
         self.time_scheme              = ResidualBasedIncrementalUpdateStaticScheme()
         self.builder                  = ResidualBasedEliminationBuilderAndSolver(self.structure_linear_solver)
         self.ConvUnbalForceRatio      = 1.0e-5
-
+        self.gravity                  = (0.0,-9.81,0.0)
 
          #type of problem:
 
@@ -107,7 +107,9 @@ class DynamicStructuralSolver:
 
     def Initialize(self):
 
-    
+
+        self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+
         if(self.delta_OPTION==True):
             if(self.continuum_simulating_OPTION==True): self.case_OPTION = 2
             else: self.case_OPTION = 1
