@@ -138,8 +138,6 @@ namespace Kratos
        int mContinuumGroup;
        int mFailureId;
 
-       int mSwitch;
-
 
 
        ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
@@ -210,7 +208,16 @@ namespace Kratos
         void ComputeParticleBlockContactForce_Without_Rotation();
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
 
-      ///@name Protected static Member Variables 
+        unsigned int mDimension;
+        double mDampType;
+        double mTimeStep;
+      
+        double mRealMass;
+
+        std::vector<double> mForce;
+
+
+        ///@name Protected static Member Variables
       ///@{ 
         
         
@@ -258,13 +265,7 @@ namespace Kratos
       ///@} 
       ///@name Member Variables 
       ///@{ 
-        unsigned int mDimension;
-        double mDampType;
-        double mTimeStep;
-      
-        double mRealMass;
-
-        std::vector<double> mForce;
+     
 
         
        
