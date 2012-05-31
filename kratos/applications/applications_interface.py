@@ -28,6 +28,8 @@ Import_KratosDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 
+Import_DEM_FEM_Application = False
+
 print "Applications Available:"
 print "Import_ALEApplication: False"
 print "Import_IncompressibleFluidApplication: False"
@@ -54,6 +56,8 @@ print "Import_FluidDynamicsApplication: False"
 print "Import_KratosDEMApplication: False"
 print "Import_KratosMixedElementApplication: False"
 print "Import_ThermoMechanicalApplication: False"
+
+print "Import_DEM_FEM_Application: False"
 
 import os.path
 application_directory = os.path.dirname( os.path.realpath(__file__)  )
@@ -87,6 +91,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
     print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
     print "Import_KratosDEMApplication:  "+str(Import_KratosDEMApplication)
     print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
+
+    print "Import_DEM_FEM_Application: "+str(Import_DEM_FEM_Application)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -304,6 +310,15 @@ def ImportApplications(kernel, applications_path=application_directory ):
         thermo_mechanical_application = KratosThermoMechanicalApplication()
         kernel.AddApplication(thermo_mechanical_application)
         print "KratosThermoMechanicalApplication sucessfully imported"
+
+    if(Import_DEM_FEM_Application == True):
+        print "importing DEM_FEM_Application ..."
+        sys.path.append(applications_path + '/DEM_FEM_Application/python_scripts')
+        from KratosDEM_FEM_Application import *
+        dem_fem_application = KratosDEM_FEM_Application()
+        kernel.AddApplication(dem_fem_application)
+        print "KratosDem_Fem_Application sucessfully imported"
+
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -359,6 +374,9 @@ def ImportApplications(kernel, applications_path=application_directory ):
         kernel.InitializeApplication(mixed_element_application);
     if(Import_ThermoMechanicalApplication == True):
         kernel.InitializeApplication(thermo_mechanical_application);
+
+    if(Import_DEM_FEM_Application == True):
+        kernel.InitializeApplication(dem_fem_application);
         
   
 #def ImportApplications(kernel  ):
