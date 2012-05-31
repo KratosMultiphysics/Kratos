@@ -62,8 +62,8 @@ public:
     typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,Dimension,IteratorType> SearchBoxInRange;
     typedef Kratos::SearchUtils::SquaredDistanceFunction<Dimension,PointType> SquaredDistanceFunction;
     
-    typedef typename TConfigure::TransferParticlesFunction  TransferParticlesFunction;
-    typedef typename TConfigure::TransferResultsFunction    TransferResultsFunction;
+//     typedef TConfigure::TransferParticlesFunction  TransferParticlesFunction;
+//     typedef TConfigure::TransferResultsFunction    TransferResultsFunction;
     
     /// Pointer definition of BinsDynamicMpi
     KRATOS_CLASS_POINTER_DEFINITION(BinsDynamicMpi);
@@ -1003,7 +1003,7 @@ public:
       * @param ThisPoints List of points to be search
       * @param NumberOfPoints Number of points to be search 
       * @param Radius Radius of search
-      * @param Radius2 Radius of search ^2
+      * @param Radius2 Radius of search^2
       * @param Results List of results
       * @param ResultsDistances Distance of the results
       * @param NumberOfResults Number of results
@@ -1012,10 +1012,10 @@ public:
     void SearchInRadiusMpiWrapperSingle( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, std::vector<std::vector<PointerType> >& Results,
           std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {  
-        std::vector<std::vector<PointerType> >     remoteResults(mpi_size, std::vector<PointerType>(0));
-        std::vector<std::vector<PointerType> >     SendPointToProcess(mpi_size, std::vector<PointerType>(0));
-
-        SizeType remoteNumberOfResults[mpi_size][NumberOfPoints];
+        std::vector<std::vector<PointerType> >  remoteResults(mpi_size, std::vector<PointerType>(0));
+        std::vector<std::vector<PointerType> >  SearchPetitions(mpi_size, std::vector<PointerType>(0));
+        std::vector<std::vector<PointerType> >  SearchResults(mpi_size, std::vector<PointerType>(0));
+        std::vector<std::vector<PointerType> >  SendPointToProcess(mpi_size, std::vector<PointerType>(0));
 
         int NumberOfSendPoints[mpi_size];
         int NumberOfRecvPoints[mpi_size];
@@ -1070,47 +1070,47 @@ public:
                 }
             }
         }
-
-        std::stringstream * serializer_buffer[mpi_size];
-        std::string         message[mpi_size];
-
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && NumberOfSendPoints[i])
+            {
+                int k = 0;
+                SendPointToProcess[i].resize(NumberOfSendPoints[i]);
+                for(size_t j = 0; j < NumberOfPoints; j++)
+                    if(SendPoint[i*NumberOfPoints+j])
+                        SendPointToProcess[i][k++] = &ThisPoints[j];
+            }
+        }
         Timer::Stop("Calculate Local");
-        char * recvBuffers[mpi_size];
         
         Timer::Start("Transfer Particles");
-        TransferParticlesFunction()(ThisPoints,SendPointToProcess,SendPoint,NumberOfSendPoints,NumberOfRecvPoints,
-                                    msgSendSize,msgRecvSize,recvBuffers,NumberOfPoints,MaxNumberOfResults);
+        TConfigure::MPI_TransferParticles(SendPointToProcess,SearchPetitions,
+                                          NumberOfSendPoints,NumberOfRecvPoints,
+                                          msgSendSize,msgRecvSize);
         Timer::Stop("Transfer Particles");
         
         Timer::Start("Calculate Remote");
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         {   
-            if(i != mpi_rank)
+            if(i != mpi_rank && NumberOfRecvPoints[i])
             {
-                std::vector<PointerType> remoteSearchPetitions;
-                
-                Serializer particleSerializer;
-                serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
-                serializer_buffer[0]->write((char*)(recvBuffers[i]), msgRecvSize[i]);
-
-                particleSerializer.load("nodes",remoteSearchPetitions);
-                
                 int accum_results = 0;
-                
+                std::vector<PointerType>& remoteSearchPetitions = SearchPetitions[i];
                 remoteResults[i].resize((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
 
                 for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
                 {
                     IteratorType remoteResultsPointer      = &remoteResults[i][accum_results];
                     PointType remotePointPointer           = *remoteSearchPetitions[j];
-
-                    remoteNumberOfResults[i][j] = 0;
+                    
+                    SizeType thisNumberOfResults = 0;
 
                     SearchStructureType Box( CalculateCell(remotePointPointer,-Radius), CalculateCell(remotePointPointer,Radius), mN );
-                    SearchInRadiusLocal(remotePointPointer,Radius,Radius2,remoteResultsPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
+                    SearchInRadiusLocal(remotePointPointer,Radius,Radius2,remoteResultsPointer,thisNumberOfResults,MaxNumberOfResults,Box);
                     
-                    accum_results += remoteNumberOfResults[i][j];
+                    accum_results += thisNumberOfResults;
                     remoteResults[i][accum_results++] = CommunicationToken;
                 }
 
@@ -1120,73 +1120,19 @@ public:
         }
         Timer::Stop("Calculate Remote");
 
-        Timer::Start("Prepare-B");
         
-        int NumberOfCommunicationEvents = 0;
-        int NumberOfCommunicationEventsIndex = 0;
-     
-        for(int j = 0; j < mpi_size; j++)
-        {
-            if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
-            if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
-        }
-      
-        MPI_Request reqs[NumberOfCommunicationEvents];
-        MPI_Status stats[NumberOfCommunicationEvents];
-        
-        for(int i = 0; i < mpi_size; i++)
-        {
-            if(mpi_rank != i && msgRecvSize[i])
-            {
-                Serializer particleSerializer;
-                particleSerializer.save("nodes",remoteResults[i]);
-                  
-                serializer_buffer[i] = (std::stringstream *)particleSerializer.pGetBuffer();
-                message[i] = std::string(serializer_buffer[i]->str());
-                msgSendSize[i] = serializer_buffer[i]->str().size();
-            }
-        }
-        Timer::Stop("Prepare-B");
-
-        Timer::Start("Communication");
-        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
-        MPI_Alltoall(NumberOfSendPoints,1,MPI_INT,NumberOfRecvPoints,1,MPI_INT,MPI_COMM_WORLD);
-        Timer::Stop("Communication");
-
-        NumberOfCommunicationEventsIndex = 0;
-        
-        for(int j = 0; j < mpi_size; j++)
-        {
-            if(j != mpi_rank && msgRecvSize[j])
-            {
-                recvBuffers[j] = (char *)malloc(sizeof(char) * msgRecvSize[j]);
-                MPI_Irecv(recvBuffers[j],msgRecvSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-            }
-
-            if(j != mpi_rank && msgSendSize[j])
-            {
-                char * mpi_send_buffer = (char *)malloc(sizeof(char) *msgSendSize[j]);
-                memcpy(mpi_send_buffer,message[j].c_str(),msgSendSize[j]);
-                MPI_Isend(mpi_send_buffer,msgSendSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-            }
-        }
-        
-        Timer::Start("Communication");
-        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
-        Timer::Stop("Communication");
+        Timer::Start("Transfer Results");
+        TConfigure::MPI_TransferResults(remoteResults,SearchResults,
+                                        NumberOfSendPoints,NumberOfRecvPoints,
+                                        msgSendSize,msgRecvSize);
+        Timer::Stop("Transfer Results");
 
         Timer::Start("Prepare-C");
         for (int i = 0; i < mpi_size; i++)
         { 
             if (i != mpi_rank)
             {
-                std::vector<PointerType> remoteSearchResults;
-              
-                Serializer particleSerializer;
-                serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
-                serializer_buffer[0]->write((char*)(recvBuffers[i]), msgRecvSize[i]);
-
-                particleSerializer.load("nodes",remoteSearchResults);
+                std::vector<PointerType>& remoteSearchResults = SearchResults[i];
 
                 int result_iterator = 0;
                 for(size_t j = 0; j < NumberOfPoints; j++)
@@ -1223,7 +1169,6 @@ public:
                 }
             }
         }
-//             std::cout << "Rep: " << rep << std::endl;
         Timer::Stop("Prepare-C");
     }
 
