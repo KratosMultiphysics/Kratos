@@ -216,15 +216,15 @@ namespace Kratos
       
             ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-            vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily a vector of doubles... it should be vector of ints..
+          // vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily a vector of doubles... it should be vector of ints..
             vector<double>& r_VectorContactInitialDelta         = this->GetValue(PARTICLE_CONTACT_DELTA);
 
             // PROCESS INFO
 
-            ////const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
+            const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
             ///Cfeng: From property.
-            const array_1d<double,3>& gravity   =GetProperties()[GRAVITY];
+            //const array_1d<double,3>& gravity   =GetProperties()[GRAVITY];
 
 
             double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME];
