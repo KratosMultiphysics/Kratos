@@ -1,0 +1,54 @@
+PROBLEM DATA
+
+# Options
+BOOK: Problem Parameters
+QUESTION: Python_script_file#CB#(Use_Default,Do_not_write,Copy_From,Use_Current)
+DEPENDENCIES: (Use_Default,SET,Python_file,#CURRENT#)(Do_not_write,SET,Python_file,#CURRENT#)(Copy_From,RESTORE,Python_file,#CURRENT#)(Use_Current,SET,Python_file,#CURRENT#)
+VALUE: Use_Default
+QUESTION: Python_file
+VALUE: script.py
+TKWIDGET: TkwidgetFilePath
+QUESTION: Transfer_materials_to_lower_entities#CB#(1,0)
+VALUE: 1
+QUESTION: DOMAIN_SIZE#CB#(2,3)
+VALUE: 3
+QUESTION: GGravity_X
+VALUE: 0.0
+QUESTION: GGravity_Y
+VALUE: -9.8
+QUESTION: GGravity_Z
+VALUE: 0.0
+QUESTION: Constitutive_Law#CB#(LinearElastic,3D_DruckerPrager)
+VALUE: LinerElastic
+QUESTION: MassType#CB#(VirtualMass,RealMass)
+VALUE: VirtualMass
+QUESTION: Time_Step
+VALUE: 0.9
+QUESTION: TotalSteps
+VALUE: 100
+QUESTION:DampType#CB#(LocalDamp,ViscDamp)
+VALUE: LocalDamp
+QUESTION:DampRatio
+VALUE: 0.8
+QUESTION:OutputInterval
+VALUE: 100
+QUESTION: ConvUnBalForceRatio
+VALUE: 1.0e-5
+QUESTION: ContactStiffRatio
+VALUE: 1.0
+QUESTION: ComputeParticleRotation#CB#(False,True)
+VALUE: True
+QUESTION: ComputeParticleRotationSpring#CB#(False,True)
+VALUE: True
+QUESTION: ParticleSearchTolerance
+VALUE: 1.0e-3
+QUESTION: ParticleNormalForceCalType#CB#(Incremental, Absolutal)
+VALUE: Incremental
+QUESTION: IfContinuousProblem#CB#(True, False)
+VALUE: True
+QUESTION: IfCalInitialDelt#CB#(True, False)
+VALUE: True
+QUESTION: ComputeFemFemContact#CB#(False,True)
+VALUE: False
+# Properties
+END GENERAL DATA
