@@ -223,9 +223,6 @@ namespace Kratos
 
             const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
-            ///Cfeng: From property.
-            //const array_1d<double,3>& gravity   =GetProperties()[GRAVITY];
-
 
             double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME];
             int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];
@@ -318,8 +315,23 @@ namespace Kratos
      
                 if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
                 {
+                    // Test for Average, 120531, should be discussed
+                    CTension  = (Tension + other_tension)   * 0.5;
+                    CCohesion = (Cohesion + other_cohesion) * 0.5;
+                    /*
+                    CTensionUP    = 2* Tension * other_tension;
+                    if(CTensionUP==0){
+                        
+                        CTension=0;
+                    }
+                    else {
+
                     CTension    = 2* Tension * other_tension / (Tension + other_tension);
-                    CCohesion   = 2* Cohesion * other_cohesion / (Cohesion + other_cohesion);             
+
+                    }
+                    CCohesion   = 2* Cohesion * other_cohesion / (Cohesion + other_cohesion);
+                     *
+                    */
                 }
 
 
