@@ -315,6 +315,7 @@ public:
 
     typedef double*                         DistanceContainerType; // DistanceVector;
     typedef double*                         DistanceIteratorType;  // DistanceIterator;
+    typedef int*                            ResultNumberIteratorType; // NumberOfResultsIterator;
 
     typedef ContainerType                   ResultContainerType;
     typedef IteratorType                    ResultIteratorType;
@@ -347,6 +348,167 @@ public:
     static inline double Distance(const PointerType& p1, const PointerType& p2)
     {
         return DistanceSphereSphere<Dim>(p1,p2);
+    }
+    
+    static inline void MPI_TransferResults(std::vector<std::vector<PointerType> >& remoteResults,
+                                           std::vector<std::vector<PointerType> >& SearchResults,
+                                           int * NumberOfSendObjects,
+                                           int * NumberOfRecvPoints,
+                                           int * msgSendSize, 
+                                           int * msgRecvSize
+                                          ) 
+    {
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+      
+        std::stringstream * serializer_buffer[mpi_size];
+        std::string         messages[mpi_size];
+        
+        char * recvBuffers[mpi_size];
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && msgRecvSize[i])
+            {
+                Kratos::Serializer particleSerializer;
+                particleSerializer.save("nodes",remoteResults[i]);
+                  
+                serializer_buffer[i] = (std::stringstream *)particleSerializer.pGetBuffer();
+                messages[i] = std::string(serializer_buffer[i]->str());
+                msgSendSize[i] = serializer_buffer[i]->str().size();
+            }
+        }
+      
+        MPI_Prepare_Communications(NumberOfSendObjects,NumberOfRecvPoints,msgSendSize,msgRecvSize);
+        MPI_Async_SendAndRecive(messages,msgSendSize,msgRecvSize,recvBuffers);
+        
+        for (int i = 0; i < mpi_size; i++)
+        { 
+            if (i != mpi_rank)
+            {
+                Kratos::Serializer particleSerializer;
+                serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
+                serializer_buffer[0]->write((char*)(recvBuffers[i]), msgRecvSize[i]);
+
+                particleSerializer.load("nodes",SearchResults[i]);
+            }
+        }
+    }
+    
+    static inline void MPI_TransferParticles(std::vector<std::vector<PointerType> >& SendObjectToProcess,
+                                             std::vector<std::vector<PointerType> >& SearchPetitions,
+                                             int * NumberOfSendObjects,
+                                             int * NumberOfRecvPoints,
+                                             int * msgSendSize, 
+                                             int * msgRecvSize
+                                            )
+    {
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+      
+        std::stringstream * serializer_buffer[mpi_size];
+        std::string         messages[mpi_size];
+        
+        char * recvBuffers[mpi_size];
+
+        //For each point and process fill the vector of send points
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && NumberOfSendObjects[i])
+            {
+                Kratos::Serializer particleSerializer;
+                particleSerializer.save("nodes",SendObjectToProcess[i]);
+                
+                serializer_buffer[i] = (std::stringstream *)particleSerializer.pGetBuffer();
+                messages[i] = std::string(serializer_buffer[i]->str());
+                msgSendSize[i] = serializer_buffer[i]->str().size();
+            }
+        }
+        
+        MPI_Prepare_Communications(NumberOfSendObjects,NumberOfRecvPoints,msgSendSize,msgRecvSize);
+        MPI_Async_SendAndRecive(messages,msgSendSize,msgRecvSize,recvBuffers);
+        
+        for(int i = 0; i < mpi_size; i++) 
+        {   
+            if(i != mpi_rank && NumberOfRecvPoints[i])
+            {                 
+                Kratos::Serializer particleSerializer;
+                serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
+                serializer_buffer[0]->write((char*)(recvBuffers[i]), msgRecvSize[i]);
+
+                particleSerializer.load("nodes",SearchPetitions[i]);
+            }
+        }
+    }
+    
+    static inline void MPI_Prepare_Communications(int * NumberOfSendElements,
+                                                  int * NumberOfRecvElements,
+                                                  int * msgSendSize,
+                                                  int * msgRecvSize
+                                                 )
+    {
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        //Message Size communication
+        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoall(NumberOfSendElements,1,MPI_INT,NumberOfRecvElements,1,MPI_INT,MPI_COMM_WORLD);
+    }
+    
+    static inline void MPI_Async_SendAndRecive(std::string messages[],
+                                               int * msgSendSize,
+                                               int * msgRecvSize,
+                                               char * recvBuffers[]
+                                              )
+    {
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        //Calculate number of communications
+        int NumberOfCommunicationEvents = 0;
+        int NumberOfCommunicationEventsIndex = 0;
+        
+        for(int j = 0; j < mpi_size; j++)
+        {
+            if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
+            if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
+        }
+        
+        MPI_Request reqs[NumberOfCommunicationEvents];
+        MPI_Status stats[NumberOfCommunicationEvents];
+        
+        //Set up all receive and send events
+        for(int j = 0; j < mpi_size; j++)
+        {
+            if(j != mpi_rank && msgRecvSize[j])
+            {
+                recvBuffers[j] = (char *)malloc(sizeof(char) * msgRecvSize[j]);
+                MPI_Irecv(recvBuffers[j],msgRecvSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+
+            if(j != mpi_rank && msgSendSize[j])
+            {
+                char * mpi_send_buffer = (char *)malloc(sizeof(char) * msgSendSize[j]);
+
+                memcpy(mpi_send_buffer,messages[j].c_str(),msgSendSize[j]);
+                MPI_Isend(mpi_send_buffer,msgSendSize[j],MPI_CHAR,j,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+        }
+
+        //wait untill all communications finish
+        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
     }
 };
 
