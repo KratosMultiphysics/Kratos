@@ -62,9 +62,6 @@ public:
     typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,Dimension,IteratorType> SearchBoxInRange;
     typedef Kratos::SearchUtils::SquaredDistanceFunction<Dimension,PointType> SquaredDistanceFunction;
     
-//     typedef TConfigure::TransferParticlesFunction  TransferParticlesFunction;
-//     typedef TConfigure::TransferResultsFunction    TransferResultsFunction;
-    
     /// Pointer definition of BinsDynamicMpi
     KRATOS_CLASS_POINTER_DEFINITION(BinsDynamicMpi);
 
@@ -296,6 +293,57 @@ public:
         }
     }
     
+    void PrepareCommunications(int * NumberOfSendElements,int * NumberOfRecvElements,int * msgSendSize,int * msgRecvSize)
+    {
+        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+        MPI_Alltoall(NumberOfSendElements,1,MPI_INT,NumberOfRecvElements,1,MPI_INT,MPI_COMM_WORLD);
+    }
+    
+    void AsyncSendAndRecive(std::string messages[],int * msgSendSize,int * msgRecvSize)                                       
+    {
+        int NumberOfCommunicationEvents = 0;
+        int NumberOfCommunicationEventsIndex = 0;
+        
+        char * recvBuffers[mpi_size];
+        
+        for(int j = 0; j < mpi_size; j++)
+        {
+            if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
+            if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
+        }
+        
+        MPI_Request reqs[NumberOfCommunicationEvents];
+        MPI_Status stats[NumberOfCommunicationEvents];
+        
+        //Set up all receive and send events
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && msgRecvSize[i])
+            {
+                recvBuffers[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
+
+                MPI_Irecv(recvBuffers[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+
+            if(i != mpi_rank && msgSendSize[i])
+            {
+                char * mpi_send_buffer = (char *)malloc(sizeof(char) * msgSendSize[i]);
+
+                memcpy(mpi_send_buffer,messages[i].c_str(),msgSendSize[i]);
+                MPI_Isend(mpi_send_buffer,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+        }
+
+        //wait untill all communications finish
+        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && msgRecvSize[i])
+              messages[i] = std::string(recvBuffers[i],msgRecvSize[i]);
+        }
+    }
+    
     //************************************************************************
 
     IndexType CalculatePosition( CoordinateType const& ThisCoord, SizeType ThisDimension )
@@ -482,18 +530,9 @@ public:
     // MPI Single Input Search 
     ///////////////////////////////////////////////////////////////////////////
     
-    void MPISingleSearchInRadiusTest() 
+    void MPISingleSearchInRadiusTest(const SizeType& NumberOfPoints, const SizeType& MaxNumberOfResults, const double& Radius, const SizeType& times) 
     {
-        //Parameters
-        int NumberOfPoints     = 5;
-        int MaxNumberOfResults = 5;
-        double Radius        = 0.1f;
-      
-        //MultiSearch Test
-        PointerType  PointInput = new PointType[NumberOfPoints];
-        IteratorType Results    = new PointerType[MaxNumberOfResults];
-        
-        DistanceIteratorType Distances = new double[MaxNumberOfResults];
+        PointerType PointInput = new PointType[NumberOfPoints];
         
         for(int i = 0; i < NumberOfPoints; i++) 
         {
@@ -506,25 +545,20 @@ public:
             PointInput[i] = PointType(temp);
         }
         
+        std::vector<SizeType>                  NumberOfResults(NumberOfPoints);
+        std::vector<std::vector<PointerType> > Results(NumberOfPoints, std::vector<PointerType>(MaxNumberOfResults));
+        std::vector<std::vector<double> >      ResultsDistances(NumberOfPoints, std::vector<double>(MaxNumberOfResults,0));
+        
+        MPI_SearchInRadius(&PointInput[NumberOfPoints/2], Radius, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
+        
         MPI_Barrier(MPI_COMM_WORLD);
-        
-        MPI_SearchInRadius(PointInput[NumberOfPoints/2], Radius, Results, Distances, MaxNumberOfResults);
-        
-        MPI_Barrier(MPI_COMM_WORLD);
-        
-        //Check Results
-//             for(int i = 0; i < res; i++) 
-//                 std::cout << "(" << mpi_rank << ")" << (*Results[i]) << "\tDIST\t" << Distances[i] << std::endl;
     }
-
-    SizeType MPI_SearchInRadius( PointType const& ThisPoint, CoordinateType const& Radius, IteratorType Results, 
-        DistanceIteratorType ResultsDistances, SizeType const& MaxNumberOfResults)
+    
+    void MPI_SearchInRadius( PointerType const& ThisPoints, CoordinateType const& Radius, std::vector<std::vector<PointerType> >& Results, 
+        std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
     {
         CoordinateType Radius2 = Radius * Radius;
-        SizeType NumberOfResults = 0;
-        SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults );
-        
-        return NumberOfResults;
+        SearchInRadiusMpiWrapperSingle( ThisPoints, 1, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults );
     }
 
     //************************************************************************
@@ -557,125 +591,6 @@ public:
 //             SearchInRadiusMpiWrapper( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
 //         }
 
-    void SearchInRadiusMpiWrapper( PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-          DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults )
-    {  
-        PointType remoteThisPoint[mpi_size];
-        PointerType remoteResults[mpi_size][MaxNumberOfResults], recvResults[mpi_size][MaxNumberOfResults];
-        double remoteResultsDistances[mpi_size][MaxNumberOfResults], recvResultsDistances[mpi_size][MaxNumberOfResults];
-        int messageSendNumberOfResults[mpi_size], messageRecvNumberOfResults[mpi_size];
-        SizeType remoteNumberOfResults[mpi_size];
-
-        int msgSendSize = 0;
-        int msgRecvSize = 0;
-
-        int msgResSendSize = 0;
-        int msgResRecvSize = 0;
-
-        std::cout << "(" << mpi_rank << ") --- " << ThisPoint << " --- " << std::endl;
-
-        Serializer particleSerializer;
-        particleSerializer.save("nodes",ThisPoint);  
-
-        std::stringstream* serializer_buffer;
-
-        serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
-        msgSendSize = serializer_buffer->str().size();
-
-        MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-        
-        char mpi_send_buffer[(msgRecvSize+1)];
-        char mpi_recv_buffer[(msgRecvSize+1) * mpi_size];
-
-        strcpy (mpi_send_buffer, serializer_buffer->str().c_str());
-        mpi_send_buffer[msgSendSize] = '\0';
-
-        MPI_Allgather(mpi_send_buffer,(msgRecvSize+1),MPI_CHAR,mpi_recv_buffer,(msgRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
-
-        for(int i = 0; i < mpi_size; i++) 
-        {
-            IteratorType remoteResultsPointer = &remoteResults[i][0];
-            double * remoteResultsDistancesPointer = remoteResultsDistances[i];
-            
-            Serializer recvParticleSerializer;
-            serializer_buffer = (std::stringstream *)recvParticleSerializer.pGetBuffer();
-
-            for(size_t j = 0; mpi_recv_buffer[(msgRecvSize+1)*i+j] != '\0'; j++) 
-            {
-                (*serializer_buffer) << mpi_recv_buffer[(msgRecvSize+1)*i+j];
-            }
-
-            remoteNumberOfResults[i] = 0;
-
-            recvParticleSerializer.load("nodes",remoteThisPoint[i]);
-
-            SearchStructureType Box( CalculateCell(remoteThisPoint[i],-Radius), CalculateCell(remoteThisPoint[i],Radius), mN );
-            SearchInRadiusLocal(remoteThisPoint[i],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i],MaxNumberOfResults,Box);
-
-            for(size_t j = 0; j < remoteNumberOfResults[i]; j++)
-            {
-                std::cout << "(" << mpi_rank << ")\t" << *(remoteResults[i][j]) << " " << remoteResultsDistances[i][j] << std::endl;    
-            }
-        }
-
-        std::stringstream * res_serializer_buffer[mpi_size][MaxNumberOfResults];
-        std::string message[mpi_size][MaxNumberOfResults];
-        int bufferSize[mpi_size][MaxNumberOfResults];
-
-        for(int i = 0; i < mpi_size; i++) 
-        {
-            for(size_t j = 0; j < remoteNumberOfResults[i]; j++) 
-            {
-                Serializer resSerializer;
-                resSerializer.save("nodes",remoteResults[i][j]);
-                  
-                res_serializer_buffer[i][j] = (std::stringstream *)resSerializer.pGetBuffer();
-                message[i][j] = std::string(res_serializer_buffer[i][j]->str().c_str());
-                bufferSize[i][j] = res_serializer_buffer[i][j]->str().size();
-                
-                msgResSendSize = msgResSendSize > bufferSize[i][j] ? msgResSendSize : bufferSize[i][j];
-            }
-        }
-        
-        MPI_Allreduce(&msgResSendSize,&msgResRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-
-        char mpi_res_send_buffer[((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults)];
-        char mpi_res_recv_buffer[((msgResRecvSize + 1) * mpi_size * MaxNumberOfResults)];
-
-        for(int i = 0; i < mpi_size; i++) 
-        {
-            messageSendNumberOfResults[i] = remoteNumberOfResults[i];
-            for(size_t j = 0; j < remoteNumberOfResults[i]; j++) 
-            {
-                strcpy(&mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j], message[i][j].c_str());
-                mpi_res_send_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j+bufferSize[i][j]] = '\0';
-            }
-        }
-
-        MPI_Alltoall(mpi_res_send_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,mpi_res_recv_buffer,((msgResRecvSize+1) * MaxNumberOfResults),MPI_CHAR,MPI_COMM_WORLD);
-        MPI_Alltoall(messageSendNumberOfResults,1,MPI_INT,messageRecvNumberOfResults,1,MPI_INT,MPI_COMM_WORLD);
-        MPI_Alltoall(remoteResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,recvResultsDistances[0],MaxNumberOfResults,MPI_DOUBLE,MPI_COMM_WORLD);
-
-        for (int i = 0; i < mpi_size; i++)
-        {
-            for(int j = 0; j < messageRecvNumberOfResults[i]; j++)
-            {
-                Serializer recvResParticleSerializer;
-                serializer_buffer = (std::stringstream *)recvResParticleSerializer.pGetBuffer();
-        
-                for(int k = 0; mpi_res_recv_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j+k] != '\0'; k++) 
-                {
-                    (*serializer_buffer) << mpi_res_recv_buffer[(msgResRecvSize + 1)*MaxNumberOfResults*i+(msgResRecvSize + 1)*j+k];
-                }
-        
-                recvResults[i][j] = new PointType();
-                recvResParticleSerializer.load("nodes",recvResults[i][j]);
-
-//                     std::cout << "(" << mpi_rank << ") Result point from process (" << i << "): (" << recvResults[i][j]->X() << " " << recvResults[i][j]->Y() << " " << recvResults[i][j]->Z() << ") with dist: " << recvResultsDistances[i][j] << std::endl;
-            }
-        }
-    }
-    
     ///////////////////////////////////////////////////////////////////////////
     // MPI Single Input END
     ///////////////////////////////////////////////////////////////////////////
@@ -753,251 +668,6 @@ public:
     /// Act as wrapper between external function and its implementation
     /**
       * This function provides all mpi functionality requiered to execute the parallel multi input searchInRaidus.
-      * the method implemented by this function is ALL-vs-ALL. It means all particles not found in the local
-      * processes are send to all other processes
-      * @param ThisPoints List of points to be search
-      * @param NumberOfPoints Number of points to be search 
-      * @param Radius Radius of search
-      * @param Radius2 Radius of search ^2
-      * @param Results List of results
-      * @param ResultsDistances Distance of the results
-      * @param NumberOfResults Number of results
-      * @param MaxNumberOfResults Maximum number of results returned for each point
-      */
-    void SearchInRadiusMpiWrapper( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, vector<vector<PointerType> >& Results,
-          vector<vector<double> >& ResultsDistances, vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
-    {  
-        PointType remoteThisPoints[mpi_size][NumberOfPoints];
-        
-        vector<vector<PointerType> > remoteResults(mpi_size, vector<PointerType>(NumberOfPoints * MaxNumberOfResults));
-        vector<vector<vector<double> > > remoteResultsDistances(mpi_size, vector<vector<double> >(NumberOfPoints, vector<double>(MaxNumberOfResults)));
-        
-        SizeType remoteNumberOfResults[mpi_size][NumberOfPoints];
-
-        int NumberOfSendPoints = 0;
-        int MaxNumberOfSendPoints = 0;
-        int RemoteNumberOfSendPoints[mpi_size];
-        int SendPoint[NumberOfPoints];
-        
-        int msgSendSize = 0;
-        int msgRecvSize = 0;
-        
-        //Local search
-        Timer::Start("Calculate Local");
-        for(int i = 0; i < NumberOfPoints; i++)
-        {
-            IteratorType ResultsPointer      = &Results[i][0];
-            double * ResultsDistancesPointer = &ResultsDistances[i][0];
-          
-            NumberOfResults[i] = 0;
-            
-            SearchStructureType Box( CalculateCell(ThisPoints[i],-Radius), CalculateCell(ThisPoints[i],Radius), mN );
-            SearchInRadiusLocal(ThisPoints[i],Radius,Radius2,ResultsPointer,ResultsDistancesPointer,NumberOfResults[i],MaxNumberOfResults,Box);
-
-            SendPoint[i] = 0;
-            if(NumberOfResults[i] < MaxNumberOfResults) 
-            {
-                int num_comm = 0;
-                for(int j = 0; j < mpi_size; j++)
-                {
-                    if(j != mpi_rank)
-                    {
-                        int intersect = 0;
-                        for(int k = 0; k < Dimension; k++)
-                            if((ThisPoints[i][k]+Radius > mpi_MaxPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MaxPoints[j][k]) && 
-                                (ThisPoints[i][k]+Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]-Radius < mpi_MinPoints[j][k]) &&
-                                (ThisPoints[i][k]-Radius > mpi_MinPoints[j][k] && ThisPoints[i][k]+Radius < mpi_MaxPoints[j][k])
-                            ) intersect++;
-
-                        if(intersect == Dimension) num_comm++;
-                    }
-                }
-                
-                if(num_comm != 0) 
-                {
-                    SendPoint[i] = 1;
-                    NumberOfSendPoints++;
-                }
-            }
-        }
-        Timer::Stop("Calculate Local");
-
-
-        //Only search points not found previously in local mesh
-        std::stringstream * serializer_buffer[NumberOfSendPoints];
-        std::string message[NumberOfSendPoints];
-
-        Timer::Start("Prepare-A");
-        for(int i = 0, j = 0; i < NumberOfPoints; i++) 
-        {
-            if(SendPoint[i])
-            {
-                Serializer particleSerializer;
-                PointerType SavePoint = &ThisPoints[i];
-                
-                particleSerializer.save("nodes",SavePoint);
-                
-                serializer_buffer[j] = (std::stringstream *)particleSerializer.pGetBuffer();
-                message[j] = std::string(serializer_buffer[j]->str());
-                msgSendSize = msgSendSize > serializer_buffer[j]->str().size() ? msgSendSize : serializer_buffer[j]->str().size();
-                
-                j++;
-            }
-        }
-        Timer::Stop("Prepare-A");
-
-        Timer::Start("Communication");
-        MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allreduce(&NumberOfSendPoints,&MaxNumberOfSendPoints,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-        MPI_Allgather(&NumberOfSendPoints,1,MPI_INT,RemoteNumberOfSendPoints,1,MPI_INT,MPI_COMM_WORLD);
-        Timer::Stop("Communication");
-        
-        char mpi_send_buffer[(msgRecvSize+1) * MaxNumberOfSendPoints];
-        char mpi_recv_buffer[(msgRecvSize+1) * MaxNumberOfSendPoints * mpi_size];
-
-        int messageNumberOfResults[mpi_size * MaxNumberOfSendPoints];
-        int messageRecvNumberOfResults[mpi_size * MaxNumberOfSendPoints];
-
-        Timer::Start("Prepare-B");
-        for(int i = 0; i < NumberOfSendPoints; i++) 
-            memcpy(&mpi_send_buffer[(msgRecvSize + 1)*i], message[i].c_str(), message[i].size());
-        Timer::Stop("Prepare-B");
-
-        Timer::Start("Communication");
-        MPI_Allgather(mpi_send_buffer,(msgRecvSize+1)*MaxNumberOfSendPoints,MPI_CHAR,mpi_recv_buffer,(msgRecvSize+1)*MaxNumberOfSendPoints,MPI_CHAR,MPI_COMM_WORLD);
-        Timer::Stop("Communication");
-
-        Timer::Start("Calculate Remote");
-        for(int i = 0; i < mpi_size; i++) 
-        {
-            if(i != mpi_rank)
-            {
-                remoteResultsDistances[i].resize(MaxNumberOfSendPoints);
-                
-                size_t accum_results = 0;
-
-                for(int j = 0; j < RemoteNumberOfSendPoints[i]; j++) 
-                {
-                    remoteResultsDistances[i][j].resize(MaxNumberOfResults);
-                    
-                    Serializer particleSerializer;
-                    serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
-                    
-                    serializer_buffer[0]->write((char*)(&mpi_recv_buffer[(msgRecvSize+1)*MaxNumberOfSendPoints*i+(msgRecvSize+1)*j]), msgRecvSize);
-
-                    PointerType remoteThisPointsPointer = &remoteThisPoints[i][j];
-                    particleSerializer.load("nodes",remoteThisPointsPointer);
-                    
-                    IteratorType remoteResultsPointer      = &remoteResults[i][accum_results];
-                    double * remoteResultsDistancesPointer = &remoteResultsDistances[i][j][0];
-
-                    remoteNumberOfResults[i][j] = 0;
-
-                    SearchStructureType Box( CalculateCell(remoteThisPoints[i][j],-Radius), CalculateCell(remoteThisPoints[i][j],Radius), mN );
-                    SearchInRadiusLocal(remoteThisPoints[i][j],Radius,Radius2,remoteResultsPointer,remoteResultsDistancesPointer,remoteNumberOfResults[i][j],MaxNumberOfResults,Box);
-                    
-                    accum_results += remoteNumberOfResults[i][j];
-                }
-                
-                remoteResults[i].resize(accum_results);
-            }
-        }
-        Timer::Stop("Calculate Remote");
-
-        std::stringstream * res_serializer_buffer[mpi_size];
-        std::string res_message[mpi_size];
-        int res_bufferSize[mpi_size];
-        
-        msgSendSize = 0;
-        msgRecvSize = 0;
-        
-        Timer::Start("Prepare-C");
-        for(int i = 0; i < mpi_size; i++)
-        {
-            if(RemoteNumberOfSendPoints[i] && mpi_rank != i)
-            {
-                Serializer resSerializer;
-                resSerializer.save("nodes",remoteResults[i]);
-                  
-                res_serializer_buffer[i] = (std::stringstream *)resSerializer.pGetBuffer();
-                res_message[i] = std::string(res_serializer_buffer[i]->str());
-                res_bufferSize[i] = res_serializer_buffer[i]->str().size();
-                
-                msgSendSize = msgSendSize > res_bufferSize[i] ? msgSendSize : res_bufferSize[i];
-            }
-        }
-        Timer::Stop("Prepare-C");
-
-        //Result buffer size
-        Timer::Start("Communication");
-        MPI_Allreduce(&msgSendSize,&msgRecvSize,1,MPI_INT,MPI_MAX,MPI_COMM_WORLD);
-        Timer::Stop("Communication");
-        
-        char mpi_res_send_buffer[(msgRecvSize+1) * mpi_size];
-        char mpi_res_recv_buffer[(msgRecvSize+1) * mpi_size];
-
-        Timer::Start("Prepare-D");
-        for(int i = 0; i < mpi_size; i++)
-        {
-            if(RemoteNumberOfSendPoints[i] && mpi_rank != i)
-                memcpy(&mpi_res_send_buffer[(msgRecvSize+1)*i],res_message[i].c_str(),res_message[i].size());
-            
-            for(int j = 0; j < RemoteNumberOfSendPoints[i]; j++) messageNumberOfResults[i * MaxNumberOfSendPoints + j] = remoteNumberOfResults[i][j];
-            for(int j = RemoteNumberOfSendPoints[i]; j < MaxNumberOfSendPoints; j++) messageNumberOfResults[i * MaxNumberOfSendPoints + j] = -2;
-        }
-        Timer::Stop("Prepare-D");
-
-        //Number of results of each point of each process
-        Timer::Start("Communication");
-        MPI_Alltoall(messageNumberOfResults,MaxNumberOfSendPoints,MPI_INT,messageRecvNumberOfResults,MaxNumberOfSendPoints,MPI_INT,MPI_COMM_WORLD);
-        //Results data
-        MPI_Alltoall(mpi_res_send_buffer,(msgRecvSize+1),MPI_CHAR,mpi_res_recv_buffer,(msgRecvSize+1),MPI_CHAR,MPI_COMM_WORLD);
-        Timer::Stop("Communication");
-
-        Timer::Start("Prepare-F");
-        for (int i = 0; i < mpi_size; i++)
-        { 
-            if (i != mpi_rank)
-            {
-                Serializer particleSerializer;
-                serializer_buffer[0] = (std::stringstream *)particleSerializer.pGetBuffer();
-                serializer_buffer[0]->write((char*)(&mpi_res_recv_buffer[(msgRecvSize+1)*i]), (msgRecvSize+1));
-                
-                size_t accum = 0;
-                for(int a = 0; a < NumberOfSendPoints; a++)
-                  accum += messageRecvNumberOfResults[i * MaxNumberOfSendPoints + a];
-                
-                remoteResults[i].resize(accum);
-
-                particleSerializer.load("nodes",remoteResults[i]);
-
-                size_t result_iterator_extern = 0;
-                size_t result_iterator = 0;
-                for(size_t j = 0; j < NumberOfPoints; j++)
-                {
-                    if(SendPoint[j])
-                    {
-                        for(int k = 0; k < messageRecvNumberOfResults[i * MaxNumberOfSendPoints + result_iterator] && NumberOfResults[j] < MaxNumberOfResults; k++)
-                        {
-                            Results[j][NumberOfResults[j]] = remoteResults[i][result_iterator_extern++];
-                            
-                            PointType& a = (ThisPoints[j]);
-                            PointType& b = (*Results[j][NumberOfResults[j]]);
-                            
-                            ResultsDistances[j][NumberOfResults[j]] = DistanceFunction()(a,b);
-                            NumberOfResults[j]++;
-                        }
-                        result_iterator++;
-                    }
-                }
-            }
-        }
-        Timer::Stop("Prepare-F");
-    }
-        
-    /// Act as wrapper between external function and its implementation
-    /**
-      * This function provides all mpi functionality requiered to execute the parallel multi input searchInRaidus.
       * the method implemented by this function is one-to-many. It means all particles not found in the local
       * processes are send to all process intersecting the search radius of the particle
       * @param ThisPoints List of points to be search
@@ -1016,6 +686,8 @@ public:
         std::vector<std::vector<PointerType> >  SearchPetitions(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> >  SearchResults(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> >  SendPointToProcess(mpi_size, std::vector<PointerType>(0));
+        
+        std::string messages[mpi_size];
 
         int NumberOfSendPoints[mpi_size];
         int NumberOfRecvPoints[mpi_size];
@@ -1085,9 +757,15 @@ public:
         Timer::Stop("Calculate Local");
         
         Timer::Start("Transfer Particles");
-        TConfigure::MPI_TransferParticles(SendPointToProcess,SearchPetitions,
-                                          NumberOfSendPoints,NumberOfRecvPoints,
-                                          msgSendSize,msgRecvSize);
+        TConfigure::MPISave(SendPointToProcess,messages);
+        
+        for(int i = 0; i < mpi_size; i++)
+            msgSendSize[i] = messages[i].size();
+
+        PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
+        AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
+
+        TConfigure::MPILoad(SearchPetitions,messages);
         Timer::Stop("Transfer Particles");
         
         Timer::Start("Calculate Remote");
@@ -1122,9 +800,15 @@ public:
 
         
         Timer::Start("Transfer Results");
-        TConfigure::MPI_TransferResults(remoteResults,SearchResults,
-                                        NumberOfSendPoints,NumberOfRecvPoints,
-                                        msgSendSize,msgRecvSize);
+        TConfigure::MPISave(remoteResults,messages);
+
+        for(int i = 0; i < mpi_size; i++)
+            msgSendSize[i] = messages[i].size();
+
+        PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
+        AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
+
+        TConfigure::MPILoad(SearchResults,messages);
         Timer::Stop("Transfer Results");
 
         Timer::Start("Prepare-C");
@@ -1173,7 +857,7 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    // MPI END Multi Input End
+    // MPI Search In Radius
     ///////////////////////////////////////////////////////////////////////////
 
     PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
