@@ -26,7 +26,7 @@ End Nodes
 *# Element blocks
 *# Condition Blocks
 
-Begin Elements SphericParticle
+Begin Elements SphericParticle3D
 *loop elems 
 *format "%i%i%i%i%i%i%i%i"
 *ElemsNum 1 *elemsconec(1)

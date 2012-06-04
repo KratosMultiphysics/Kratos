@@ -179,8 +179,12 @@ namespace Kratos
 	    mComputeTime = true;
 	}
 
-        
+        //1.0
+
+        InitializeSolutionStep();
+
         //1. Get and Calculate the forces
+
         GetForce();
 
             //1.1. Calculate Local Dampings
@@ -358,7 +362,8 @@ namespace Kratos
               {
                      
                         //(it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
-                        (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
+
+                    (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
                 //we use this function to call the calculate forces in general funct.
 
              } //loop over particles
@@ -473,14 +478,57 @@ namespace Kratos
 
         }//Apply local damps
 
-
-        /*
-
-	void ComputeInitialConditions()
-	{
-	}
+ 
 
 	void InitializeSolutionStep()
+	{
+
+          KRATOS_TRY
+
+          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
+          ElementsArrayType& pElements     = r_model_part.Elements();
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          unsigned int index = 0;
+
+          #pragma omp parallel for private(index)
+          for(int k=0; k<number_of_threads; k++)
+
+          {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+
+                (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+
+             } //loop over particles
+
+          }// loop threads OpenMP
+
+        //modifying a switch
+
+
+
+        KRATOS_CATCH("")
+
+
+	}
+
+
+         /*
+          *
+          * void ComputeInitialConditions()
 	{
 	}
 	void ComputeOldVelocitiesAndAccelerations()

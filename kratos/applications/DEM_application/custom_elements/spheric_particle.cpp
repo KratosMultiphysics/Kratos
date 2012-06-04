@@ -273,8 +273,9 @@ namespace Kratos
             double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
 
             array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.
-            noalias(force)                      = ZeroVector(3); 
-            array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);     
+            //COMPROBAR QUE ES ZERO DEL INITIALIZE SOLUTION STEP
+
+            array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
             force  = mass*gravity + applied_force;
 
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
@@ -825,6 +826,11 @@ namespace Kratos
           {
                 SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
           }
+
+          array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.
+          noalias(force)                      = ZeroVector(3);
+
+
           
         }
         void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
