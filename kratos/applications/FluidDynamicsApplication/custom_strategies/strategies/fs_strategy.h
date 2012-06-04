@@ -98,6 +98,8 @@ public:
 
         mUseSlipConditions = rSolverConfig.UseSlipConditions();
 
+        mReformDofSet = rSolverConfig.GetReformDofSet();
+
         BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
 
         // Initialize strategies for each step
@@ -118,7 +120,7 @@ public:
         if (HavePressStrategy)
         {
             rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressueIter);
+            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
         }
         else
         {
@@ -167,7 +169,7 @@ public:
                typename TLinearSolver::Pointer pVelocityLinearSolver,
                typename TLinearSolver::Pointer pPressureLinearSolver,
                bool MoveMeshFlag, ///@todo: Read from solver configuration? Should match the one passed to vel/pre strategies?
-               bool ReformDofAtEachIteration = true,
+               bool ReformDofSet = true,
                double VelTol = 0.01,
                double PresTol = 0.01,
                int MaxVelocityIterations = 3,
@@ -179,11 +181,12 @@ public:
         mVelocityTolerance(VelTol),
         mPressureTolerance(PresTol),
         mMaxVelocityIter(MaxVelocityIterations),
-        mMaxPressueIter(MaxPressureIterations),
+        mMaxPressureIter(MaxPressureIterations),
         mDomainSize(DomainSize),
         mTimeOrder(TimeOrder),
         mPredictorCorrector(PredictorCorrector),
         mUseSlipConditions(true), ///@todo initialize somehow
+        mReformDofSet(ReformDofSet),
         mExtraIterationSteps()
     {
         KRATOS_TRY;
@@ -193,15 +196,12 @@ public:
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
-//        // Get solution strategies from solver setup
-//        this->mpMomentumStrategy = rSolverConfig.pGetStrategy(std::string("vel_strategy"));
-//        this->mpPressureStrategy = rSolverConfig.pGetStrategy(std::string("pressure_strategy"));
-
         bool CalculateReactions = false;
         bool CalculateNormDxFlag = true;
 
-        //computation of the fractional vel velocity (first step)
-        //3 dimensional case
+        bool ReformDofAtEachIteration = false; // DofSet modifiaction is managed by the fractional step strategy, auxiliary strategies should not modify the DofSet directly.
+
+        // Additional Typedefs
         typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
         typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
         typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
@@ -320,24 +320,37 @@ public:
 
         if (mPredictorCorrector)
         {
+            bool Converged = false;
+
             // Iterative solution for pressure
-            for(unsigned int it = 0; it < mMaxPressueIter; ++it)
+            for(unsigned int it = 0; it < mMaxPressureIter; ++it)
             {
-                if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+                if ( BaseType::GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Pressure iteration " << it << std::endl;
 
                 NormDp = this->SolveStep();
 
-                bool Converged = this->CheckPressureConvergence(NormDp);
+                Converged = this->CheckPressureConvergence(NormDp);
 
-                if ( Converged ) break;
+                if ( Converged )
+                {
+                    if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+                        std::cout << "Predictor-corrector converged in " << it+1 << " iterations." << std::endl;
+                    break;
+                }
             }
+            if (!Converged && BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+                std::cout << "Predictor-correctior iterations did not converge." << std::endl;
+
         }
         else
         {
             // Solve for fractional step velocity, then update pressure once
             NormDp = this->SolveStep();
         }
+
+        if (mReformDofSet)
+            this->Clear();
 
         return NormDp;
     }
@@ -409,6 +422,12 @@ public:
         mExtraIterationSteps.push_back(pNewStep);
     }
 
+    virtual void Clear()
+    {
+        mpMomentumStrategy->Clear();
+        mpPressureStrategy->Clear();
+    }
+
 
     ///@}
     ///@name Access
@@ -417,8 +436,9 @@ public:
     virtual void SetEchoLevel(int Level)
     {
         BaseType::SetEchoLevel(Level);
-        mpMomentumStrategy->SetEchoLevel(Level);
-        mpPressureStrategy->SetEchoLevel(Level);
+        int StrategyLevel = Level > 0 ? Level - 1 : 0;
+        mpMomentumStrategy->SetEchoLevel(StrategyLevel);
+        mpPressureStrategy->SetEchoLevel(StrategyLevel);
     }
 
 
@@ -458,28 +478,6 @@ protected:
     ///@name Protected Life Cycle
     ///@{
 
-    /// Protected constructor to use in derived classes, does not initialize solution strategy-related members.
-    FSStrategy(ModelPart& rModelPart,
-               bool MoveMeshFlag, ///@todo: Read from solver configuration? Should match the one passed to vel/pre strategies?
-               double VelTol,
-               double PresTol,
-               int MaxVelocityIterations,
-               int MaxPressureIterations,// Only for predictor-corrector
-               unsigned int TimeOrder, ///@todo check if really needed
-               unsigned int DomainSize,
-               bool PredictorCorrector,
-               bool UseSlipConditions):
-        BaseType(rModelPart,MoveMeshFlag), // Move Mesh flag, pass as input?
-        mVelocityTolerance(VelTol),
-        mPressureTolerance(PresTol),
-        mMaxVelocityIter(MaxVelocityIterations),
-        mMaxPressueIter(MaxPressureIterations),
-        mDomainSize(DomainSize),
-        mTimeOrder(TimeOrder),
-        mPredictorCorrector(PredictorCorrector),
-        mUseSlipConditions(UseSlipConditions),
-        mExtraIterationSteps()
-    {}
 
     ///@}
     ///@name Protected static Member Variables
@@ -547,9 +545,12 @@ protected:
         // 1. Fractional step momentum iteration
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,1);
 
+        bool Converged = false;
+        int Rank = rModelPart.GetCommunicator().MyPID();
+
         for(unsigned int it = 0; it < mMaxVelocityIter; ++it)
         {
-            if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
+            if ( BaseType::GetEchoLevel() > 1 && Rank == 0)
                 std::cout << "Momentum iteration " << it << std::endl;
 
             // build momentum system and solve for fractional step velocity increment
@@ -566,10 +567,18 @@ protected:
                 (*iExtraSteps)->Execute();
 
             // Check convergence
-            bool Converged = this->CheckFractionalStepConvergence(NormDv);
+            Converged = this->CheckFractionalStepConvergence(NormDv);
 
-            if (Converged) break;
+            if (Converged)
+            {
+                if ( BaseType::GetEchoLevel() > 0 && Rank == 0)
+                    std::cout << "Fractional velocity converged in " << it+1 << " iterations." << std::endl;
+                break;
+            }
         }
+
+        if (!Converged && BaseType::GetEchoLevel() > 0 && Rank == 0)
+            std::cout << "Fractional velocity iterations did not converge." << std::endl;
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
@@ -591,6 +600,8 @@ protected:
             }
         }
 
+        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
+            std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
 
 #pragma omp parallel
@@ -604,6 +615,8 @@ protected:
         }
 
         // 3. Compute end-of-step velocity
+        if (BaseType::GetEchoLevel() > 0 && Rank == 0)
+            std::cout << "Updating Velocity." << std::endl;
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
@@ -642,7 +655,7 @@ protected:
         double Ratio = NormDv / NormV;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Relative error: " << Ratio << std::endl;
+            std::cout << "Fractional velocity relative error: " << Ratio << std::endl;
 
         if (Ratio < mVelocityTolerance)
         {
@@ -680,7 +693,7 @@ protected:
         double Ratio = NormDp / NormP;
 
         if ( BaseType::GetEchoLevel() > 0 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "Relative error: " << Ratio << std::endl;
+            std::cout << "Pressure relative error: " << Ratio << std::endl;
 
         if (Ratio < mPressureTolerance)
         {
@@ -785,21 +798,42 @@ protected:
         if (mUseSlipConditions)
             this->EnforceSlipCondition(IS_STRUCTURE);
 
-#pragma omp parallel
+        if (mDomainSize > 2)
         {
-            ModelPart::NodeIterator NodesBegin;
-            ModelPart::NodeIterator NodesEnd;
-            OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
-
-            for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+#pragma omp parallel
             {
-                const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
-                if ( ! itNode->IsFixed(VELOCITY_X) )
-                    itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
-                if ( ! itNode->IsFixed(VELOCITY_Y) )
-                    itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
-                if ( mDomainSize > 2 && ( ! itNode->IsFixed(VELOCITY_Z) ) )
-                    itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                ModelPart::NodeIterator NodesBegin;
+                ModelPart::NodeIterator NodesEnd;
+                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+                {
+                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+                    if ( ! itNode->IsFixed(VELOCITY_X) )
+                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                    if ( ! itNode->IsFixed(VELOCITY_Y) )
+                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                    if ( ! itNode->IsFixed(VELOCITY_Z) )
+                        itNode->FastGetSolutionStepValue(VELOCITY_Z) += itNode->FastGetSolutionStepValue(FRACT_VEL_Z) / NodalArea;
+                }
+            }
+        }
+        else
+        {
+#pragma omp parallel
+            {
+                ModelPart::NodeIterator NodesBegin;
+                ModelPart::NodeIterator NodesEnd;
+                OpenMPUtils::PartitionedIterators(rModelPart.Nodes(),NodesBegin,NodesEnd);
+
+                for ( ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode )
+                {
+                    const double NodalArea = itNode->FastGetSolutionStepValue(NODAL_AREA);
+                    if ( ! itNode->IsFixed(VELOCITY_X) )
+                        itNode->FastGetSolutionStepValue(VELOCITY_X) += itNode->FastGetSolutionStepValue(FRACT_VEL_X) / NodalArea;
+                    if ( ! itNode->IsFixed(VELOCITY_Y) )
+                        itNode->FastGetSolutionStepValue(VELOCITY_Y) += itNode->FastGetSolutionStepValue(FRACT_VEL_Y) / NodalArea;
+                }
             }
         }
     }
@@ -873,7 +907,7 @@ private:
 
     unsigned int mMaxVelocityIter;
 
-    unsigned int mMaxPressueIter;
+    unsigned int mMaxPressureIter;
 
     unsigned int mDomainSize;
 
@@ -882,6 +916,8 @@ private:
     bool mPredictorCorrector;
 
     bool mUseSlipConditions;
+
+    bool mReformDofSet;
 
     // Fractional step index.
     /*  1 : Momentum step (calculate fractional step velocity)
