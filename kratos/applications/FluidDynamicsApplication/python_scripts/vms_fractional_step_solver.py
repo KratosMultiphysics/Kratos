@@ -8,7 +8,7 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
-##    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
+    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
@@ -68,9 +68,9 @@ class IncompressibleFluidSolver:
     def __init__(self,model_part,domain_size):
 
         #neighbour search
-##        number_of_avg_elems = 10
-##        number_of_avg_nodes = 10
-##        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
 
         self.model_part = model_part
         self.domain_size = domain_size
@@ -84,10 +84,10 @@ class IncompressibleFluidSolver:
         self.CalculateReactions = False;
         self.ReformDofAtEachIteration = False; 
         self.CalculateNormDxFlag = True;
-##        self.laplacian_form = 2; #1 = laplacian, 2 = Discrete Laplacian
+        self.laplacian_form = 1; #1 = laplacian, 2 = Discrete Laplacian
         self.predictor_corrector = False;
 
-        self.echo_level = 0
+        self.echo_level = 1
 
         #definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
@@ -99,7 +99,7 @@ class IncompressibleFluidSolver:
         self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
-        self.activate_tau2 = False
+##        self.activate_tau2 = False
 
 
 ##        ##handling slip condition
@@ -108,12 +108,17 @@ class IncompressibleFluidSolver:
 
         self.compute_reactions=False
         
-        
+        self.use_slip_conditions = False
+        self.use_spalart_allmaras = False
+        self.wall_nodes = list()
+        self.use_des = False
         
 
 
     def Initialize(self):
-##        (self.neighbour_search).Execute()
+        # Componentwise Builder and solver uses neighbours to set DofSet
+        # (used both for PRESSURE and TURBULENT_VISCOSITY)
+        (self.neighbour_search).Execute()
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 ##        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
@@ -134,18 +139,67 @@ class IncompressibleFluidSolver:
 
         MoveMeshFlag = False
 
+##        self.solver = FSStrategy(self.model_part,
+##                                 self.velocity_linear_solver,
+##                                 self.pressure_linear_solver,
+##                                 MoveMeshFlag,
+##                                 self.ReformDofAtEachIteration,
+##                                 self.vel_toll,
+##                                 self.press_toll,
+##                                 self.max_vel_its,
+##                                 self.max_press_its,
+##                                 self.time_order,
+##                                 self.domain_size,
+##                                 self.predictor_corrector)
+
+        
+
+        self.solver_settings = FractionalStepSettings(self.model_part,
+                                              self.domain_size,
+                                              self.time_order,
+                                              self.use_slip_conditions,
+                                              MoveMeshFlag,
+                                              self.ReformDofAtEachIteration)
+        self.solver_settings.SetEchoLevel(self.echo_level)
+
+        self.solver_settings.SetStrategy(StrategyLabel.Velocity,
+                                         self.velocity_linear_solver,
+                                         self.vel_toll,
+                                         self.max_vel_its)
+
+        self.solver_settings.SetStrategy(StrategyLabel.Pressure,
+                                         self.pressure_linear_solver,
+                                         self.press_toll,
+                                         self.max_press_its)
+
+        if self.use_spalart_allmaras:
+            for node in self.wall_nodes:
+                node.SetValue(IS_VISITED,1.0)
+
+            distance_calculator = BodyDistanceCalculationUtils()
+            distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+
+            sa_non_linear_tol = 0.001
+            sa_max_it = 10
+
+            reform_dofset = self.ReformDofAtEachIteration
+            time_order = self.time_order
+            pPrecond = DiagonalPreconditioner()
+            turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
+
+            self.solver_settings.SetTurbulenceProcess(TurbulenceModelLabel.SpalartAllmaras,
+                                             turbulence_linear_solver,
+                                             sa_non_linear_toll,
+                                             sa_max_it)
+
         self.solver = FSStrategy(self.model_part,
-                                 self.velocity_linear_solver,
-                                 self.pressure_linear_solver,
-                                 MoveMeshFlag,
-                                 self.ReformDofAtEachIteration,
-                                 self.vel_toll,
-                                 self.press_toll,
-                                 self.max_vel_its,
-                                 self.max_press_its,
-                                 self.time_order,
-                                 self.domain_size,
+                                 self.solver_settings,
                                  self.predictor_corrector)
+
+        if self.use_slip_conditions == True:
+            self.normal_util = NormalCalculationUtils()
+            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+            
 
 	self.solver.Check()
 
@@ -157,7 +211,7 @@ class IncompressibleFluidSolver:
 ##        (self.solver).SetSlipProcess(self.create_slip_conditions);
 ##        self.slip_conditions_initialized = True
 
-        (self.solver).SetEchoLevel(self.echo_level)
+##        (self.solver).SetEchoLevel(self.echo_level)
         print "finished initialization of the fluid strategy"
         
    
@@ -166,7 +220,9 @@ class IncompressibleFluidSolver:
 ##            self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
 ##            self.slip_conditions_initialized = False
-
+            if self.use_slip_conditions == True:
+                self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+            
 ##        if(self.slip_conditions_initialized == False):
 ##            self.create_slip_conditions.Execute()
 ##            (self.solver).SetSlipProcess(self.create_slip_conditions);
@@ -244,7 +300,7 @@ class IncompressibleFluidSolver:
         if(DES==True):
             turbulence_model.ActivateDES(CDES);
 
-        self.solver.AddIterationStep(turbulence_model);
+        self.solver.AddInitializeIterationProcess(turbulence_model);
 
 
 
