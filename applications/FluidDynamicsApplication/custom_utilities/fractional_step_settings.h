@@ -124,8 +124,10 @@ public:
 
         ModelPart& rModelPart = BaseType::GetModelPart();
         bool UseSlip = BaseType::UseSlipConditions();
-        bool ReformDofSet = BaseType::GetReformDofSet();
+        // Modification of the DofSet is managed by the fractional step strategy, not the auxiliary velocity and pressure strategies.
+        bool ReformDofSet = false; //BaseType::GetReformDofSet();
         unsigned int EchoLevel = BaseType::GetEchoLevel();
+        unsigned int StrategyEchoLevel = (EchoLevel > 0) ? (EchoLevel-1) : 0;
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
@@ -188,7 +190,7 @@ public:
 
         BaseType::mMaxIter[rStrategyLabel] = MaxIter;
 
-        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(EchoLevel);
+        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(StrategyEchoLevel);
 
         KRATOS_CATCH("");
     }

@@ -8,26 +8,26 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
-    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
+##    model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(PRESSURE_OLD_IT);
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ);
     model_part.AddNodalSolutionStepVariable(CONV_PROJ);
-    model_part.AddNodalSolutionStepVariable(ADVPROJ)
+##    model_part.AddNodalSolutionStepVariable(ADVPROJ)
     model_part.AddNodalSolutionStepVariable(DIVPROJ)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS);
+##    model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
+##    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
 
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
-    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
-    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
+##    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
+##    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(REACTION);
 
     print "variables for the vms fluid solver added correctly"
@@ -37,9 +37,9 @@ def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
         node.AddDof(PRESSURE);
-        node.AddDof(FRACT_VEL_X);
-        node.AddDof(FRACT_VEL_Y);
-        node.AddDof(FRACT_VEL_Z);
+##        node.AddDof(FRACT_VEL_X);
+##        node.AddDof(FRACT_VEL_Y);
+##        node.AddDof(FRACT_VEL_Z);
         node.AddDof(VELOCITY_X);
         node.AddDof(VELOCITY_Y);
         node.AddDof(VELOCITY_Z);
@@ -68,9 +68,9 @@ class IncompressibleFluidSolver:
     def __init__(self,model_part,domain_size):
 
         #neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
+##        number_of_avg_elems = 10
+##        number_of_avg_nodes = 10
+##        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
 
         self.model_part = model_part
         self.domain_size = domain_size
@@ -84,7 +84,7 @@ class IncompressibleFluidSolver:
         self.CalculateReactions = False;
         self.ReformDofAtEachIteration = False; 
         self.CalculateNormDxFlag = True;
-        self.laplacian_form = 2; #1 = laplacian, 2 = Discrete Laplacian
+##        self.laplacian_form = 2; #1 = laplacian, 2 = Discrete Laplacian
         self.predictor_corrector = False;
 
         self.echo_level = 0
@@ -102,9 +102,9 @@ class IncompressibleFluidSolver:
         self.activate_tau2 = False
 
 
-        ##handling slip condition
-        self.slip_conditions_initialized = False
-        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
+##        ##handling slip condition
+##        self.slip_conditions_initialized = False
+##        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
 
         self.compute_reactions=False
         
@@ -113,10 +113,10 @@ class IncompressibleFluidSolver:
 
 
     def Initialize(self):
-        (self.neighbour_search).Execute()
+##        (self.neighbour_search).Execute()
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
+##        self.model_part.ProcessInfo.SetValue(ACTIVATE_TAU2, self.activate_tau2);
 
         self.domain_size = int(self.domain_size)
         self.laplacian_form = int(self.laplacian_form)
@@ -163,9 +163,9 @@ class IncompressibleFluidSolver:
    
     def Solve(self):
         if(self.ReformDofAtEachIteration == True):
-            self.solver.ApplyFractionalVelocityFixity()
+##            self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
-            self.slip_conditions_initialized = False
+##            self.slip_conditions_initialized = False
 
 ##        if(self.slip_conditions_initialized == False):
 ##            self.create_slip_conditions.Execute()
@@ -240,11 +240,11 @@ class IncompressibleFluidSolver:
         pPrecond = DiagonalPreconditioner()
         turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
         turbulence_model = KCFD.SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
-        turbulence_model.AdaptForFractionalStep()
+##        turbulence_model.AdaptForFractionalStep()
         if(DES==True):
             turbulence_model.ActivateDES(CDES);
 
-        self.solver.AddInitializeIterationProcess(turbulence_model);
+        self.solver.AddIterationStep(turbulence_model);
 
 
 

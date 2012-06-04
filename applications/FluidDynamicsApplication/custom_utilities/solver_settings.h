@@ -205,6 +205,11 @@ public:
         return mEchoLevel;
     }
 
+    bool GetReformDofSet()
+    {
+        return mReformDofSet;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -262,11 +267,6 @@ protected:
     ModelPart& GetModelPart()
     {
         return mrModelPart;
-    }
-
-    bool GetReformDofSet()
-    {
-        return mReformDofSet;
     }
 
     std::map< StrategyLabel, StrategyPointerType > mStrategies;
