@@ -757,15 +757,21 @@ public:
         Timer::Stop("Calculate Local");
         
         Timer::Start("Transfer Particles");
-        TConfigure::MPISave(SendPointToProcess,messages);
-        
         for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i)
+                TConfigure::MPISave(SendPointToProcess[i],messages[i]);
             msgSendSize[i] = messages[i].size();
+        }
 
         PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
         AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
 
-        TConfigure::MPILoad(SearchPetitions,messages);
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && messages[i].size())
+                TConfigure::MPILoad(SearchPetitions[i],messages[i]);
+        }
         Timer::Stop("Transfer Particles");
         
         Timer::Start("Calculate Remote");
@@ -800,15 +806,21 @@ public:
 
         
         Timer::Start("Transfer Results");
-        TConfigure::MPISave(remoteResults,messages);
-
         for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i)
+              TConfigure::MPISave(remoteResults[i],messages[i]);
             msgSendSize[i] = messages[i].size();
+        }
 
         PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
         AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
-
-        TConfigure::MPILoad(SearchResults,messages);
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && messages[i].size())
+                TConfigure::MPILoad(SearchResults[i],messages[i]);
+        }
         Timer::Stop("Transfer Results");
 
         Timer::Start("Prepare-C");
