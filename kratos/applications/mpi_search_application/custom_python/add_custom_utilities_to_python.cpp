@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/bins_dynamic_mpi.h"
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
 #include "custom_utilities/bins_dynamic_particle_configuration.h"
-#include "custom_utilities/bins_dynamic_object_configuration.h"
+// #include "custom_utilities/bins_dynamic_object_configuration.h"
 
 namespace Kratos
 {
@@ -61,18 +61,18 @@ namespace Python
 void AddCustomUtilitiesToPython()
 {
     typedef Kratos::BinsDynamicMpi<ParticleSpatialConfigure> BinsDynamicMpi;
-    typedef Kratos::BinsObjectDynamicMpi<SpheresSpatialConfigure> BinsObjectDynamicMpi;
+//     typedef Kratos::BinsObjectDynamicMpi<SpheresSpatialConfigure> BinsObjectDynamicMpi;
     
     using namespace boost::python;
 
     class_< BinsDynamicMpi, boost::noncopyable > ("BinsDynamicMpi", init<Kratos::ModelPart * , Kratos::ModelPart *, double>() )
-    .def("MultiSearchInRadiusTest"	, &BinsDynamicMpi::MultiSearchInRadiusTest)
+    .def("MultiSearchInRadiusTest"	  , &BinsDynamicMpi::MultiSearchInRadiusTest)
     .def("MPISingleSearchInRadiusTest", &BinsDynamicMpi::MPISingleSearchInRadiusTest)
-    .def("MPIMultiSearchInRadiusTest", &BinsDynamicMpi::MPIMultiSearchInRadiusTest)
+    .def("MPIMultiSearchInRadiusTest" , &BinsDynamicMpi::MPIMultiSearchInRadiusTest)
     ;
 
-    class_< BinsObjectDynamicMpi, boost::noncopyable > ("BinsObjectDynamicMpi", init<Kratos::ModelPart * , Kratos::ModelPart *, double>())
-    .def("SingleSearchObjectsInRadiusTest", &BinsObjectDynamicMpi::SingleSearchObjectsInRadiusTest)
+//     class_< BinsObjectDynamicMpi, boost::noncopyable > ("BinsObjectDynamicMpi", init<Kratos::ModelPart * , Kratos::ModelPart *, double>())
+//     .def("SingleSearchObjectsInRadiusTest", &BinsObjectDynamicMpi::SingleSearchObjectsInRadiusTest)
     ;
 }
 
