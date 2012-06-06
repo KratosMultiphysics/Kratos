@@ -757,47 +757,46 @@ public:
         Timer::Stop("Calculate Local");
         
         Timer::Start("Transfer Particles");
-        for(int i = 0; i < mpi_size; i++)
-        {
-            if(mpi_rank != i)
-                TConfigure::MPISave(SendPointToProcess[i],messages[i]);
-            msgSendSize[i] = messages[i].size();
-        }
-
-        PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
-        AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
-
-        for(int i = 0; i < mpi_size; i++)
-        {
-            if(mpi_rank != i && messages[i].size())
-                TConfigure::MPILoad(SearchPetitions[i],messages[i]);
-        }
+//         for(int i = 0; i < mpi_size; i++)
+//         {
+//             if(mpi_rank != i)
+//                 TConfigure::Save(SendPointToProcess[i],messages[i]);
+//             msgSendSize[i] = messages[i].size();
+//         }
+// 
+//         PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
+//         AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
+// 
+//         for(int i = 0; i < mpi_size; i++)
+//         {
+//             if(mpi_rank != i && messages[i].size())
+//                 TConfigure::Load(SearchPetitions[i],messages[i]);
+//         }
+        
+        TConfigure::AsyncSendAndRecive(SendPointToProcess,SearchPetitions,msgSendSize,msgRecvSize);
         Timer::Stop("Transfer Particles");
         
         Timer::Start("Calculate Remote");
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         {   
-            if(i != mpi_rank && NumberOfRecvPoints[i])
+            if(i != mpi_rank && msgRecvSize[i])
             {
                 int accum_results = 0;
+                NumberOfRecvPoints[i] = SearchPetitions[i].size();
                 std::vector<PointerType>& remoteSearchPetitions = SearchPetitions[i];
                 remoteResults[i].resize((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
-
                 for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
                 {
                     IteratorType remoteResultsPointer      = &remoteResults[i][accum_results];
                     PointType remotePointPointer           = *remoteSearchPetitions[j];
-                    
                     SizeType thisNumberOfResults = 0;
 
                     SearchStructureType Box( CalculateCell(remotePointPointer,-Radius), CalculateCell(remotePointPointer,Radius), mN );
                     SearchInRadiusLocal(remotePointPointer,Radius,Radius2,remoteResultsPointer,thisNumberOfResults,MaxNumberOfResults,Box);
-                    
                     accum_results += thisNumberOfResults;
                     remoteResults[i][accum_results++] = CommunicationToken;
                 }
-
                 remoteResults[i].resize(accum_results);
                 NumberOfSendPoints[i] = accum_results;
             }
@@ -809,7 +808,7 @@ public:
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i)
-              TConfigure::MPISave(remoteResults[i],messages[i]);
+              TConfigure::Save(remoteResults[i],messages[i]);
             msgSendSize[i] = messages[i].size();
         }
 
@@ -819,7 +818,7 @@ public:
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i && messages[i].size())
-                TConfigure::MPILoad(SearchResults[i],messages[i]);
+                TConfigure::Load(SearchResults[i],messages[i]);
         }
         Timer::Stop("Transfer Results");
 
