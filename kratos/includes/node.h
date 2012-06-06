@@ -259,13 +259,16 @@ public:
     Node(Node const& rOtherNode)
         : BaseType(rOtherNode)
         , IndexedObject(rOtherNode)
-        , mDofs(rOtherNode.mDofs)
         , mData(rOtherNode.mData)
         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
         , mInitialPosition(rOtherNode.mInitialPosition)
     {
         //TODO ... this copy constructor should be removed sometimes as it is often source of error
         //KRATOS_ERROR(std::logic_error, "copying Nodes is not allowed", "");
+
+        // Deep copying the dofs
+        for(typename DofsContainerType::const_iterator i_dof = rOtherNode.mDofs.begin() ; i_dof != rOtherNode.mDofs.end() ; i_dof++)
+           pAddDof(*i_dof);
 
 #ifdef _OPENMP
         omp_init_lock(&mnode_lock);
