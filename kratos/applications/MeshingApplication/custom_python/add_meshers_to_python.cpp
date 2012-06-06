@@ -42,6 +42,13 @@ namespace Python
 //											//
 //////////////////////////////////////////////////////////////////////////////////////////
 
+//tetgen pfem refine
+void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
+{
+    Mesher.ReGenerateMesh(model_part,
+                          KratosComponents<Element>::Get(ElementName),
+                          KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -142,7 +149,8 @@ void MsuiteRegenerateMesh(MSuitePFEMModeler& Mesher, char* ElementName, char* Co
 //											//
 //				ADAPTIVE 2D MESHER -->USING SEGMENT  		//
 //											//
-/////////////////////////////////////////////////////////////////////////////////////////		
+//////////////////////////////////////////////////////////////////////////////////////////
+
 //trigen pfem refine segment
 void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
 {
@@ -151,7 +159,6 @@ void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* Element
                           KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
 }
 
-		
 
 
 
