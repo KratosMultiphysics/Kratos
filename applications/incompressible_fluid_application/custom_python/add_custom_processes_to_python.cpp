@@ -183,7 +183,7 @@ void  AddCustomProcessesToPython()
     class_<AssignHByDistanceProcess, bases<Process> >("AssignHByDistanceProcess", init<ModelPart&, double, double, double, double >())
     ; 	  
     class_<CopyToVulcanPostVariablesProcess, bases<Process>  >("CopyToVulcanPostVariablesProcess",init<ModelPart&  >())    
-
+    ;
 }
 
 
