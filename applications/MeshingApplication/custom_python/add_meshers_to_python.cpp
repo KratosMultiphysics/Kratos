@@ -22,6 +22,7 @@
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
 #include "external_includes/tetgen_pfem_contact.h"
+#include "external_includes/two_fluids_tetgen_pfem_refine_face.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -42,13 +43,6 @@ namespace Python
 //											//
 //////////////////////////////////////////////////////////////////////////////////////////
 
-//tetgen pfem refine
-void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part, NodeEraseProcess& node_erase,bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor)
-{
-    Mesher.ReGenerateMesh(model_part,
-                          KratosComponents<Element>::Get(ElementName),
-                          KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -62,6 +56,20 @@ void TetRegenerateMeshWithFace(TetGenPfemRefineFace& Mesher, char* ElementName, 
     Mesher.ReGenerateMesh(model_part,rElements,
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
+}
+///////////////////////////////////////////////////////////////////////////////////////////
+//											//
+//				ADAPTIVE TWO FLUIDs 3D MESHER ----> Using Face			//
+//											//
+//////////////////////////////////////////////////////////////////////////////////////////
+
+//tetgen pfem refine
+void TwoFluidsTetRegenerateMeshWithFace(TwoFluidsTetGenPfemRefineFace& Mesher, char* AirElementName, char* WaterElementName, char* ConditionName, ModelPart& model_part, ModelPart::ElementsContainerType& rElements, NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
+{
+	Mesher.ReGenerateMesh(model_part,rElements, 
+		KratosComponents<Element>::Get(AirElementName),
+		KratosComponents<Element>::Get(WaterElementName),				      
+		KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	); 
 }
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -150,6 +158,10 @@ void MsuiteRegenerateMesh(MSuitePFEMModeler& Mesher, char* ElementName, char* Co
 //				ADAPTIVE 2D MESHER -->USING SEGMENT  		//
 //											//
 //////////////////////////////////////////////////////////////////////////////////////////
+	class_<TwoFluidsTetGenPfemRefineFace >("TwoFluidsTetGenPfemRefineFace",
+		 init< >()) 
+   	  .def("ReGenerateMesh",TwoFluidsTetRegenerateMeshWithFace)
+		; 		
 
 //trigen pfem refine segment
 void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* ElementName, char* ConditionName, ModelPart& model_part,NodeEraseProcess& node_erase, bool rem_nodes, bool add_nodes, double alpha_shape, double h_factor )
@@ -159,6 +171,7 @@ void TriRegenerateMeshWithSegment(TriGenPFEMRefineSegment& Mesher, char* Element
                           KratosComponents<Condition>::Get(ConditionName),node_erase, rem_nodes, add_nodes, alpha_shape, h_factor	);
 }
 
+		
 
 
 
