@@ -63,7 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_processes/merge_model_parts_process.h"
 #include "custom_processes/merge_in_one_model_parts_process.h"
 #include "custom_processes/save_shell_model_part_process.h"
-
+#include "custom_processes/save_flag_model_part_process.h"  
 #include "custom_processes/choose_element_process.h"
 
 
@@ -78,6 +78,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/subscale_error_estimate_process.h"
 #include "custom_processes/save_element_by_flag_process.h"
 #include "custom_processes/explicit_dt.h"
+#include "custom_processes/assign_h_by_distance_process.h" 
+#include "custom_processes/copy_to_vulcan_post_variables_process.h"
 
 #include "includes/node.h"
 
@@ -175,9 +177,15 @@ void  AddCustomProcessesToPython()
     class_<SaveElementByFlagProcess, bases<Process> >("SaveElementByFlagProcess",init<ModelPart::ElementsContainerType&, ModelPart::ElementsContainerType&,Kratos::Variable<int>& , int >())
     ;
     class_<ExplicitDtProcess, bases<Process>  >("ExplicitDtProcess",init<double,double,double,ModelPart&  >())
-    ;
+    ;				
+    class_<SaveFlagModelPartProcess, bases<Process> >("SaveFlagModelPartProcess", init<ModelPart&, ModelPart&,int,Kratos::Variable<double>&, double >())
+    ; 	      
+    class_<AssignHByDistanceProcess, bases<Process> >("AssignHByDistanceProcess", init<ModelPart&, double, double, double, double >())
+    ; 	  
+    class_<CopyToVulcanPostVariablesProcess, bases<Process>  >("CopyToVulcanPostVariablesProcess",init<ModelPart&  >())    
 
 }
+
 
 }  // namespace Python.
 
