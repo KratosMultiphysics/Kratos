@@ -69,8 +69,7 @@ public:
 
     typedef Kratos::SearchUtils::SquaredDistanceFunction<Dim,PointType> DistanceFunction;
     
-    template<class TObjectType>
-    static inline void Save(std::vector<TObjectType>& inputElements, std::string& buffer) 
+    static inline void Save(std::vector<PtrPointType>& inputElements, std::string& buffer) 
     {
         Kratos::Serializer particleSerializer;
         std::stringstream * serializer_buffer;
@@ -81,8 +80,7 @@ public:
         buffer = std::string(serializer_buffer->str());
     }
 
-    template<class TObjectType>
-    static inline void Load(std::vector<TObjectType>& outputElements, std::string& buffer) 
+    static inline void Load(std::vector<PtrPointType>& outputElements, std::string& buffer) 
     {
         Kratos::Serializer particleSerializer;
         std::stringstream * serializer_buffer;
@@ -92,16 +90,10 @@ public:
 
         particleSerializer.load("nodes",outputElements);
     }
-
-    void PrepareCommunications(int * NumberOfSendElements,int * NumberOfRecvElements,int * msgSendSize,int * msgRecvSize)
-    {
-        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
-        MPI_Alltoall(NumberOfSendElements,1,MPI_INT,NumberOfRecvElements,1,MPI_INT,MPI_COMM_WORLD);
-    }
     
     template<class TObjectType>
-    static inline void AsyncSendAndRecive(std::vector<std::vector<TObjectType> >& inputElements,
-                                          std::vector<std::vector<TObjectType> >& outputElements,
+    static inline void AsyncSendAndRecive(std::vector<TObjectType>& SendObjects,
+                                          std::vector<TObjectType>& RecvObjects,
                                           int * msgSendSize,
                                           int * msgRecvSize)                                       
     {
@@ -119,9 +111,8 @@ public:
             if(mpi_rank != i)
             {
                 Kratos::Serializer particleSerializer;
-                
-                particleSerializer.save("nodes",inputElements[i]);
-                  
+                particleSerializer.save("nodes",SendObjects[i]);
+
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 buffer[i] = std::string(serializer_buffer->str());
                 msgSendSize[i] = buffer[i].size();
@@ -134,6 +125,7 @@ public:
         int NumberOfCommunicationEventsIndex = 0;
         
         char * message[mpi_size];
+        char * mpi_send_buffer[mpi_size];
         
         for(int j = 0; j < mpi_size; j++)
         {
@@ -143,7 +135,7 @@ public:
         
         MPI_Request reqs[NumberOfCommunicationEvents];
         MPI_Status stats[NumberOfCommunicationEvents];
-        
+
         //Set up all receive and send events
         for(int i = 0; i < mpi_size; i++)
         {
@@ -156,23 +148,17 @@ public:
 
             if(i != mpi_rank && msgSendSize[i])
             {
-                char * mpi_send_buffer = (char *)malloc(sizeof(char) * msgSendSize[i]);
+                mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
 
-                memcpy(mpi_send_buffer,buffer[i].c_str(),msgSendSize[i]);
-                MPI_Isend(mpi_send_buffer,msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
+                MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
 
         //wait untill all communications finish
         MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
-        
-                for(int i = 0; i < mpi_size; i++)
-        {
-            if(i != mpi_rank && msgRecvSize[i])
-              buffer[i] = std::string(message[i],msgRecvSize[i]);
-        }
 
-        for (int i = 0; i < mpi_size; i++)
+        for(int i = 0; i < mpi_size; i++)
         { 
             if (i != mpi_rank && msgRecvSize[i])
             {
@@ -180,11 +166,21 @@ public:
                 std::stringstream * serializer_buffer;
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
-                serializer_buffer->write((char*)(buffer[i].c_str()), buffer[i].size());
+                serializer_buffer->write(message[i], msgRecvSize[i]);
   
-                particleSerializer.load("nodes",outputElements[i]);
+                particleSerializer.load("nodes",RecvObjects[i]);
 
             }
+        }
+        
+        // Free buffers
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && msgRecvSize[i])
+                free(message[i]);
+            
+            if(i != mpi_rank && msgSendSize[i])
+                free(mpi_send_buffer[i]);
         }
 
     }
