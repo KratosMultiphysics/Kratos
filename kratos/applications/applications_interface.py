@@ -27,8 +27,8 @@ Import_FluidDynamicsApplication = False
 Import_KratosDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
-
 Import_DEM_FEM_Application = False
+Import_WindTurbineApplication = False
 
 print "Applications Available:"
 print "Import_ALEApplication: False"
@@ -56,8 +56,8 @@ print "Import_FluidDynamicsApplication: False"
 print "Import_KratosDEMApplication: False"
 print "Import_KratosMixedElementApplication: False"
 print "Import_ThermoMechanicalApplication: False"
-
 print "Import_DEM_FEM_Application: False"
+print "Import_WindTurbineApplication: False"
 
 import os.path
 application_directory = os.path.dirname( os.path.realpath(__file__)  )
@@ -91,8 +91,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
     print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
     print "Import_KratosDEMApplication:  "+str(Import_KratosDEMApplication)
     print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
-
     print "Import_DEM_FEM_Application: "+str(Import_DEM_FEM_Application)
+    print "Import_WindTurbineApplication: "+str(Import_WindTurbineApplication)
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -319,6 +319,14 @@ def ImportApplications(kernel, applications_path=application_directory ):
         kernel.AddApplication(dem_fem_application)
         print "KratosDem_Fem_Application sucessfully imported"
 
+    if(Import_WindTurbineApplication == True):
+        print "importing KratosWindTurbineApplication ..."
+        sys.path.append(applications_path + '/wind_turbine_application/python_scripts')
+        from KratosWindTurbineApplication import *
+        wind_turbine_application = KratosWindTurbineApplication()
+        kernel.AddApplication(wind_turbine_application)
+        print "KratosWindTurbineApplication sucessfully imported"
+
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
@@ -374,11 +382,11 @@ def ImportApplications(kernel, applications_path=application_directory ):
         kernel.InitializeApplication(mixed_element_application);
     if(Import_ThermoMechanicalApplication == True):
         kernel.InitializeApplication(thermo_mechanical_application);
-
     if(Import_DEM_FEM_Application == True):
         kernel.InitializeApplication(dem_fem_application);
-        
-  
+    if(Import_WindTurbineApplication == True):
+        kernel.InitializeApplication(wind_turbine_application);
+
 #def ImportApplications(kernel  ):
     #import os.path
     #application_directory = os.path.dirname( os.path.realpath(__file__)  )
