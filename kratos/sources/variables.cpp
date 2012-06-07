@@ -548,7 +548,7 @@ KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 //for Vulcan application
 Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
 KRATOS_CREATE_VARIABLE( double, MATERIAL )
-Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES", Kratos::zero_vector<double>( 3 ) );
+Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES (m/s)", Kratos::zero_vector<double>( 3 ) );
 
 /*const*/
 Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
