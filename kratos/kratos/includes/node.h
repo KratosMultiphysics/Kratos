@@ -408,8 +408,11 @@ public:
     Node& operator=(const Node& rOther)
     {
         BaseType::operator=(rOther);
+	
+	// Deep copying the dofs
+        for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
+           pAddDof(*i_dof);
 
-        mDofs = rOther.mDofs;
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
@@ -423,7 +426,9 @@ public:
     {
         BaseType::operator=(rOther);
         IndexedObject::operator=(rOther);
-        mDofs = rOther.mDofs;
+        for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
+           pAddDof(*i_dof);
+
         mData = rOther.mData;
         mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
