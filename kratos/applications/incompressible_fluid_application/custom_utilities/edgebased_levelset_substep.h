@@ -2642,7 +2642,7 @@ public:
                             {
                                 first_outside.push_back(i_node);
                                 layer_volume += nodal_mass;
-				break;
+				                break;
                             }
 
                             //const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
@@ -2705,6 +2705,86 @@ public:
         //         mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
 
     }
+
+        void ContinuousVolumeCorrection(double expected_volume, double measured_volume)
+        {
+
+
+			double volume_error = expected_volume - measured_volume;
+
+			if (volume_error == 0.0)
+				return;
+
+           if (measured_volume < expected_volume)
+            {
+                double layer_volume = 0.0;
+				double extra_volume = 0.0;
+                std::vector<unsigned int> first_outside;
+                int n_nodes = mdistances.size();
+
+                // find list of the first nodes outside of the fluid and compute their volume
+				for (int i_node = 0; i_node < n_nodes; i_node++)
+				{
+					double dist = mdistances[i_node];
+					bool is_bubble = true;
+					bool is_first_outside = false;
+					if (dist > 0.0) //node is outside domain
+					{
+						for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+						{
+							unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+							if(mdistances[j_neighbour] <= 0.0)
+							{
+								is_first_outside = true;
+							}
+							else
+								is_bubble = false;
+						}
+					}
+					if(is_first_outside && !is_bubble)
+					{
+						const double nodal_mass = 1.0 / mr_matrix_container.GetInvertedMass()[i_node];
+						first_outside.push_back(i_node);
+						layer_volume += nodal_mass;
+
+						if(nodal_mass > volume_error - layer_volume)
+						{
+							extra_volume += nodal_mass;
+						}
+					}
+				}
+ //				std::cout << ", layer_volume: " << layer_volume  << std::endl;
+
+				if (layer_volume == 0.00)
+					return;
+
+				double ratio = volume_error / layer_volume;
+				//KRATOS_WATCH(ratio);
+				if (ratio < 0.1)  // NO correction for less than 10% error
+					return;
+
+				if((ratio < 1.00))
+                {
+					// mark the nodes in the outside layer with a small negative distance
+                    for(unsigned int i=0; i<first_outside.size(); i++)
+                    {
+                        unsigned int i_node = first_outside[i];
+                        mdistances[i_node] -= mHavg[i_node] * ratio;
+                    }
+                }
+				else
+                {
+					// mark the nodes in the outside layer with a small negative distance
+                    for(unsigned int i=0; i<first_outside.size(); i++)
+                    {
+                        unsigned int i_node = first_outside[i];
+                        mdistances[i_node] = -mHavg[i_node];
+                    }
+                }
+            }
+
+            mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
+        }
 
 
     void CalculatePorousResistanceLaw(unsigned int res_law)
