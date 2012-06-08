@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     1.1- 08/06/12-G. Socorro, add a new variable Use_slip_conditions when use is-slip or wall-law conditions
+#     1.0- 04/06/12-G. Socorro, set Laplacian form=1 for the fractional step case
 #     0.9- 13/05/12-G. Socorro, modify the proc WriteFluidIsSlipBC to use the dictionary ctbclink to link conditions 
 #                               with the No-Slip boundary condition
 #     0.8- 10/05/12-G. Socorro, correct a bug for 3D case when write IS-SLIP boundary condition
@@ -1075,6 +1077,9 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	set inittime [clock seconds]
     }
 
+    # Variable to control when use slip conditions
+    set dprops($AppId,UseSlipConditions) 0
+
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	# wa "cgroupid:$cgroupid"
@@ -1089,6 +1094,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	    if {$ndime == "2D"} {
 		set GiDElemType "Linear"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
+		    set dprops($AppId,UseSlipConditions) 1
 		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
@@ -1107,6 +1113,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	    } elseif {$ndime == "3D"} {
 		set GiDElemType "Triangle"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
+		    set dprops($AppId,UseSlipConditions) 1
 		    set f "%10i [format "%4i" $activateval]\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
@@ -1297,7 +1304,7 @@ proc ::wkcf::WriteOutLetPressureBC_m0 {AppId ccondid kwordlist} {
 }
 
 proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
-    variable ndime
+    variable ndime; variable dprops
     
     # Write fluid solver method
     # 0 => Old format
@@ -1454,7 +1461,12 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	    set LaplacianForm [::xmlutils::setXml $cxpath $cproperty]
 	    # Get the kratos keyword
 	    set ckword [::xmlutils::getKKWord $kxpath $LaplacianForm]
-	    puts $fileid "laplacian_form = $ckword"
+	    if {$SolverType eq "ElementBased"} {
+		# Set the default value
+		puts $fileid "laplacian_form = 1"
+	    } else {
+		puts $fileid "laplacian_form = $ckword"
+	    }
 	    
 	} else {
 	    # Solver type for free surface
@@ -1500,6 +1512,13 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	puts $fileid "Calculate_reactions = True"
     } else {
 	puts $fileid "Calculate_reactions = False"
+    }
+
+    # Check for use slip conditions
+    if {[info exists dprops($AppId,UseSlipConditions)]} {
+	if {$dprops($AppId,UseSlipConditions)} {
+	    puts $fileid "Use_slip_conditions = True"
+	}
     }
 
     puts $fileid ""
