@@ -13,6 +13,9 @@
 #
 #    HISTORY:
 #   
+#     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
+#                               MonolithicWallCondition2D/MonolithicWallCondition3D for monolithic solver
+#     4.9- 04/06/12-J. Garate,  Correct "WALL_LAW_Y"
 #     4.8- 13/05/12-G. Socorro, create a new variable to link the conditions with others BC applied are the boundary of the body
 #     4.7- 10/05/12-G. Socorro, comment a warning message in the proc WriteConditions
 #     4.6- 09/05/12-G. Socorro, update the procedure WriteElementConnectivities to write the format for each gid element type
@@ -109,7 +112,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     
     # Init some namespace global variables
     ::wkcf::Preprocess
-    
+  
     # Write each block of the files *.mdpa
     # Rename the file name => Change .dat by .mdpa
     set basefilename "[string range $filename 0 end-4]"
@@ -120,10 +123,10 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	# Use the write_calc_data procedure from the GiD kernel
 	# Init
 	write_calc_data init $filename
-	
+
 	# Write model part data
 	::wkcf::WriteModelPartData $AppId
-	
+
 	# Write properties block
 	::wkcf::WriteProperties $AppId
 	
@@ -132,7 +135,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 
 	# Write elements block 
 	::wkcf::WriteElementConnectivities $AppId
-	
+
 	# For fluid application
 	if {$AppId == "Fluid"} {
 	    # Write conditions (Condition2D and Condition3D)
@@ -147,7 +150,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	    # Write load properties block
 	    ::wkcf::WriteLoads $AppId
 	}
-	
+
 	# For fluid application
 	if {$AppId == "Fluid"} {
 	    # Write nodal data for density and viscosity            
@@ -157,7 +160,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	    ::wkcf::WriteCutAndGraph $AppId
 	 
 	}
-	
+
 	# End
 	write_calc_data end
 
@@ -646,7 +649,7 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 		    }
 		    "WallLaw" {
 			# Write wall law boundary condition
-			set kwordlist [list "WALL-LAW_Y"]
+			set kwordlist [list "WALL_LAW_Y"]
 			::wkcf::WriteFluidWallLawBC $AppId $ccondid $kwordlist
 		    }
 		}
@@ -683,6 +686,22 @@ proc ::wkcf::WriteConditions {AppId} {
 	}
 	set fixval "0"
 	# Write conditions
+	# Select the condition identifier
+	set ConditionId "Condition"
+	set cproperty "dv"
+	# Solver type
+	set cxpath "$AppId//c.AnalysisData//i.SolverType"
+	set SolverType [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "SolverType:$SolverType"
+	switch -exact -- $SolverType {
+	    "ElementBased" {
+		set ConditionId "WallCondition${ndime}"     
+	    }
+	    "Monolithic" {
+		set ConditionId "MonolithicWallCondition${ndime}"
+	    }
+	}
+
 	if {$ndime =="2D"} {
 	    set cgroupid "-@kratos@b2d"
 	    set GiDElemType "Linear"
@@ -694,7 +713,7 @@ proc ::wkcf::WriteConditions {AppId} {
 		set f [subst $f]
 		dict set gprop $cgroupid "$f"
 		# Write the pressure value
-		write_calc_data puts "Begin Conditions Condition2D"
+		write_calc_data puts "Begin Conditions $ConditionId"
 		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
 		set condid 0
 		foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
@@ -711,6 +730,7 @@ proc ::wkcf::WriteConditions {AppId} {
 	    unset gprop
 
 	} elseif {$ndime =="3D"} {
+
 	    set cgroupid "-@kratos@b3d"
 	    set GiDElemType "Triangle"
 	    set gprop [dict create]
@@ -721,7 +741,7 @@ proc ::wkcf::WriteConditions {AppId} {
 		set f [subst $f]
 		dict set gprop $cgroupid "$f"
 		# Write the condition3D
-		write_calc_data puts "Begin Conditions Condition3D"
+		write_calc_data puts "Begin Conditions $ConditionId"
 		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
 		set condid 0
 		foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
