@@ -14,6 +14,8 @@
 #
 #        HISTORY:
 #
+#     0.8- 04/06/12-J. Garate, Template select when transferring user materials
+#     0.7- 27/05/12-J. Garate, ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
 #     0.6- 04/05/12-J. Garate, cambio en el log
 #     0.5- 26/04/12-J. Garate, ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
 #     0.4- 27/02/12-J. Garate, Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
@@ -262,8 +264,201 @@ proc ::xmlutils::getLanguageWords { } {
 	close $file
 }
 
+proc ::xmlutils::getMatpTypeVersion { xml } {
+	set raw [$xml set "/Kratos_KMat_DB/@version"]
+	if {[string range $raw 0 0] == "\{"} {
+		set raw [string range [$xml set "/Kratos_KMat_DB/@version"] 1 end-1]
+	}
+	return $raw
+}
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#                                                                                                                 ---- UPDATE SPD -----
+#                             ---- UPDATE KMDB -----
+# Compara la versión del problemTypeName.kmdb abierto con la versión de kratos_default.kmdb
+# Y si son distintas crea un nuevo problemTypeName.kmdb copia del default, y luego le añade
+# las diferencias como grupos, properties y valores de combos (atributo "value")
+#
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+proc ::xmlutils::checkMatVersion { filename } {
+	
+	global KPriv
+	
+	#Abrimos el kmdb default
+	set xmlFileDefault "$KPriv(dir)/kratos_default.kmdb"
+	set xmlArray [::xmlutils::openFile "." "$xmlFileDefault"]
+	set xmlDef [lindex $xmlArray 0]
+	set encrXmlDef [lindex $xmlArray 1]
+	
+	#Este es el xml del modelo actual
+	set xmlOld $KPriv(xmlMat)
+	
+	#Comprobamos las versiones
+    set pTypeVersion [::xmlutils::getMatpTypeVersion $xmlOld]
+    set defaultVersion [::xmlutils::getMatpTypeVersion $xmlDef]
+		
+	 if {$pTypeVersion != $defaultVersion} { 
+		 
+		#msg [$xmlOld asXML]
+		variable logChanges {}
+		
+		set xmlDocNew [dom parse [$xmlDef asXML]]
+		set xmlNew [$xmlDocNew documentElement]
+		
+		set path [GiD_Info problemtypepath]
+		set name [lindex [split $path "/"] end]
+		msg "You are working on the $pTypeVersion Kratos Material DataBase version and the current version is $defaultVersion ."
+		set aviso [= "This model version it is older than the problem type one. The file: \n '$filename'\n it is going to be updated.\n A back-up of the original file will be generated."]
+		msg $aviso
+		
+		#--------------------------------------------------------------------
+		# RECORRER TODOS LOS NODOS COMPROBANDO EL VALOR VALUE (tb open y state)
+		#--------------------------------------------------------------------
+		
+		set baseNodePaths {}
+		lappend baseNodePaths "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='Metal'\]"
+		lappend baseNodePaths "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='Fluid'\]"
+		lappend baseNodePaths "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='Plastic'\]"
+		lappend baseNodePaths "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='Composite'\]"
+		# Añadir todos los tipos de material que haya en MaterialGroup
+		foreach baseNodePath $baseNodePaths {
+		                
+		        # Para cada item, seleccionamos los nodos en el xml antiguo
+		        set baseNodeOld [$xmlOld selectNodes $baseNodePath]
+		            
+		        # Recorremos el nuevo xml también por partes
+		        set baseNodeNew [$xmlNew selectNodes $baseNodePath]
+		            
+		        set xmlNewPartial [[dom parse [$baseNodeNew asXML]] documentElement]
+		        set xmlOldPartial [[dom parse [$baseNodeOld asXML]] documentElement]
+		        
+		        # Creamos listas de materiales para verficar si el usuario tiene materiales suyos
+		set materialsNew [$xmlNewPartial getElementsByTagName "Material"]
+		set materialsOld [$xmlOldPartial getElementsByTagName "Material"]
+		set matnewlist {}
+		set matoldlist {}
+		
+		foreach matNew $materialsNew {
+		set matname [$matNew getAttribute id ""]
+		lappend matnewlist $matname $matNew
+		}
+		foreach matOld $materialsOld {
+		set matname [$matOld getAttribute id ""]
+		lappend matoldlist $matname $matOld
+		}
+		#msg $matnewlist
+		#msg $matoldlist
+		
+		# Organizamos los materiales en listas. 
+		# changelist es la lista de materiales nuevos, añadidos por el usuario. Hay que copiar el template y copiar los valores
+		# checklist es la lista de materiales que ya estaban, hay que comprobar si hay cambios en el default
+		set changelist {}
+		set checklist {}
+		foreach { matOldname matOldnode} $matoldlist {
+		if { $matOldname ni $matnewlist } {
+		                    lappend changelist $matOldname $matOldnode
+		                    #msg [$matOldnode asXML]
+		} else { 
+		                    lappend checklist $matOldname $matOldnode
+		}
+		}
+		if {[llength $changelist]} {
+		        ::xmlutils::CopyUserMaterialtoxmlNew $xmlOld $xmlNew $changelist $baseNodeNew
+		}
+		
+		# En este punto, tenemos en xmlNew una copia del Default, con los materiales que el usuario haya añadido.
+		# Falta mirar si el usuario habia tocado los materiales standard, para quedarnos con sus valores.
+		
+		if {[llength $checklist]} {
+		        ::xmlutils::CheckMateriallist $xmlOld $xmlNew $checklist
+		}
+		
+		# En este punto, tenemos en xmlNew una copia del Default, con los materiales que el usuario haya añadido
+		# y con los valores definidos por el usuario.
+		# Falta definir el xmlNew como xml a usar a partir de ahora.
+		
+		set KPriv(xmlMat) $xmlNew
+		#msg [$KPriv(xmlMat) asXML]
+		set KPriv(xmlDocMat) $xmlDocNew
+		set KPriv(encrXmlMat) $encrXmlDef
+		
+		# Finalizada la transferencia de materiales, no olvide guardar para no perder los cambios
+		}
+	}
+}
+
+proc ::xmlutils::CopyUserMaterialtoxmlNew {xmlOld xmlNew changelist baseNodeNew} {
+	# Copia los materiales que hay en la changelist, de xmlOld a xmlNew
+	# copiando el template y pasando las caracteristicas una a una.
+	
+	set nodeTempl [[$xmlNew find id "NewMaterial"] asList]
+	set nodeTempl [lreplace $nodeTempl [lsearch $nodeTempl Template] [lsearch $nodeTempl Template] Material]
+	set aux [lindex $nodeTempl 1]
+	set newaux [lreplace $aux 1 1 AuxMaterial]
+	set nodeTempl [lreplace $nodeTempl [lsearch $nodeTempl $aux] [lsearch $nodeTempl $aux] $newaux]
+	$baseNodeNew appendFromList $nodeTempl
+	
+	foreach {UserMaterialName UserMaterialNode} $changelist  {
+		
+		set nodeTemplate [$xmlNew find id "AuxMaterial"]
+		set NewNode [$nodeTemplate cloneNode -deep]
+		
+		set vOld [$UserMaterialNode getAttribute id ""]
+	$NewNode setAttribute id $vOld
+	
+		set vOld [$UserMaterialNode getAttribute pid ""]
+	$NewNode setAttribute pid $vOld
+	
+		::xmlutils::RecursiveValueTrans $NewNode $UserMaterialNode
+		
+		$baseNodeNew appendChild $NewNode 
+	}
+	set auxnode [$xmlNew find id "AuxMaterial"]
+	$auxnode delete
+}
+
+proc ::xmlutils::RecursiveValueTrans { nodeNew nodeOld } {
+	
+	if { [$nodeNew hasAttribute value] } {
+		set vOld [$nodeOld getAttribute value ""]
+	    $nodeNew setAttribute value $vOld
+	}
+	if { [$nodeNew hasAttribute unit] } {
+	    set vOld [$nodeOld getAttribute unit ""]
+	    $nodeNew setAttribute unit $vOld
+    }
+	if { [$nodeNew hasChildNodes] } {
+		foreach childNew [$nodeNew childNodes] childOld [$nodeOld childNodes] {
+		    if {$childOld != "" } {
+		    	if {$childNew != "" } {
+			        ::xmlutils::RecursiveValueTrans $childNew  $childOld
+			    }
+			}
+		}
+	}
+}
+
+proc ::xmlutils::CheckMateriallist { xmlOld xmlNew checklist } {
+	# Comprueba las propiedades de los materiales que hay en la checklist.
+	# si hay diferencias entre el xmlOld y el xmlNew, copia de Old a New
+	
+	foreach {UserMaterialName UserMaterialNode} $checklist  {
+		set NewNode [$xmlNew find id $UserMaterialName]
+		#set NewNode [$nodeTemplate cloneNode -deep]
+		
+		set vOld [$UserMaterialNode getAttribute id ""]
+	$NewNode setAttribute id $vOld
+	
+		set vOld [$UserMaterialNode getAttribute pid ""]
+	$NewNode setAttribute pid $vOld
+	
+		::xmlutils::RecursiveValueTrans $NewNode $UserMaterialNode
+		
+		#$baseNodeNew appendChild $NewNode 
+		#msg [$baseNodeNew asXML]
+	}
+}
+
+#+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#                                                  ---- UPDATE SPD -----
 # Compara la versión del problemTypeName.spd abierto con la versión de kratos_default.spd
 # Y si son distintas crea un nuevo problemTypeName.spd copia del default, y luego le añade
 # las diferencias como grupos, properties y valores de combos (atributo "dv")
@@ -391,50 +586,6 @@ proc ::xmlutils::checkSpdVersion { filename } {
 		                                }
 		                        }
 		                }
-		                ##Si tiene dv actualizamos su valor
-		                #if { [$nodeAux hasAttribute dv] } {
-		                #        
-		                #        #Buscamos el valor en el antiguo spd para actualizarlo
-		                #        set id [$nodeAux getAttribute id ""]
-		                #        set foundNode [$baseNodeOld find id $id]
-		                #        if { $foundNode != "" && [$foundNode nodeName] == [$nodeAux nodeName] } {
-		                #        
-		                #        #Hemos encontrado el mismo nodo en el modelo del problemtye
-		                #        
-		                #        set dvOld [$foundNode getAttribute dv ""]
-		                #        set dvNew [$nodeAux getAttribute dv ""]
-		                #        
-		                #        if { $dvOld != $dvNew } {
-		                #                
-		                #                #Estamos en condiciones de acutalizar el valor DV de xmlOld en xmlNew
-		                #                set xPath [$nodeAux toXPath]
-		                #                set xPath [string map [list "/RootData" $baseNodePath] $xPath]
-		                #                set nodeNew [$xmlNew selectNodes $xPath]
-		                #                
-		                #                if {$nodeNew != "" } {
-		                #                        #msg "  .. . .  newid: [$nodeNew getAttribute id 0]"
-		                #                        #Actualizamos el valor de DV validando si es existen iValores
-		                #                        set ivalues [split [$nodeNew getAttribute ivalues ""] ","]
-		                #                        
-		                #                        if { [llength $ivalues] } {
-		                #                                
-		                #                                if { ($dvOld in $ivalues) } {
-		                #                                
-		                #                                $nodeNew setAttribute dv $dvOld
-		                #                                lappend ::xmlutils::logChanges "UPDATE DV (NOT IN IVALUES): $id  defaultDV: $dvOld newDV: $dvNew"
-		                #                                lappend ::xmlutils::logChanges "          path:[::xmlutils::printPathFromNode $nodeNew]\n"
-		                #                                }
-		                #                        } else {
-		                #                                
-		                #                                lappend ::xmlutils::logChanges "UPDATE DV: $id  defaultDV: $dvOld newDV: $dvNew"
-		                #                                lappend ::xmlutils::logChanges "         path:[::xmlutils::printPathFromNode $nodeNew]\n"                                                                                                                                
-		                #                                $nodeNew setAttribute dv $dvOld
-		                #                        }
-		                #                }
-		                #                incr numLogs
-		                #        }
-		                #        }
-		                #}
 		        }
 		        if {$numLogs == 0} {
 		                #lappend ::xmlutils::logChanges "\nThere are no diferences in this section.\n"
@@ -528,22 +679,22 @@ proc ::xmlutils::checkSpdVersion { filename } {
 	
 }
 
-proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate oldXmlNode {class "Groups"}} {
+proc ::xmlutils::copyGroupNode { xmlNew groupNode nodexPath idTemplate oldXmlNode {class "Groups"}} {
 	
 	
 	set idGroup [$groupNode getAttribute id ""]
 	
 	set templxPath "/Kratos_Data/Templates/Template\[@id='$idTemplate'\]"
-	set nodeTemplate [$xml selectNodes $templxPath]
+	set nodeTemplate [$xmlNew selectNodes $templxPath]
 	
 	#$groupNode cloneNode -deep
 	
-	set targetNode [$xml selectNodes $nodeClassPath]
+	set targetNode [$xmlNew selectNodes $nodexPath]
 	
 	$targetNode appendXML [$groupNode asXML]
 	
 	#msg [$groupNode asXML]
-	set newNode [$xml selectNodes "${nodeClassPath}/Container\[@id='$idGroup'\]"]
+	set newNode [$xmlNew selectNodes "${nodexPath}/Container\[@id='$idGroup'\]"]
 	#msg "New Nodes"
 	foreach node [$newNode childNodes] {
 		#msg [$node asXML]
@@ -559,10 +710,10 @@ proc ::xmlutils::copyGroupNode { xml groupNode nodeClassPath idTemplate oldXmlNo
 	foreach node [$newNode childNodes] {
 	    ::xmlutils::GetOldDvFromNewNode $node
 		foreach node2 [$node childNodes] {
-		        ::xmlutils::GetOldDvFromNewNode $node2
-		        foreach node3 [$node2 childNodes] {
-		                ::xmlutils::GetOldDvFromNewNode $node3
-		        }
+		::xmlutils::GetOldDvFromNewNode $node2
+		foreach node3 [$node2 childNodes] {
+		        ::xmlutils::GetOldDvFromNewNode $node3
+		}
 		}
 	}
 	#msg [$newNode asXML]
@@ -615,11 +766,10 @@ proc ::xmlutils::myPathFromNode { finalNode {includeFinal 1}} {
 		return [::xmlutils::setXPath $path]
 	}
 	return ""
-	
 }
 		
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#                                                                                                                 ---- UPDATE SPD -----
+#                                               OLD                                                                  ---- UPDATE SPD -----
 # Compara la versión del problemTypeName.spd abierto con la versión de kratos_default.spd
 # Y si son distintas añade al spd los nodos y atributos nuevos del default
 #
@@ -729,31 +879,6 @@ proc ::xmlutils::checkSpdVersion_ { filename } {
 		        }
 		        
 		}
-		
-		##Crea un archivo de log con los cambios realizados
-		#if { [llength $logChanges] } {
-		#        
-		#        set ptypeName "updateSPD.log"
-		#        catch {
-		#        set ptypeName [string map {".gid" ""} [lindex [split $KPriv(problemTypeDir) "/"] end] ]
-		#        }
-		#        
-		#        set fullname [file native [file join $KPriv(problemTypeDir) "${ptypeName}.log"]]
-		#        set outfd [open $fullname w+]
-		#        
-		#        puts $outfd "Changes in configuration file .spd to the new version $defaultVersion"
-		#        puts $outfd ""
-		#        foreach line $logChanges {
-		#                #La escribe en el fichero de salida
-		#                puts $outfd $line
-		#        }
-		#        
-		#        close $outfd
-		#}
-		#
-		#
-		#::xmlutils::xmlVersion $xml $defaultVersion
-		
 	}
 }
 
