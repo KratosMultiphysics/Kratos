@@ -12,7 +12,8 @@
 #
 #    HISTORY:
 
-#     0.7- 03/05/12-J. Garate, state/visibility while transfering groups from .spd //PENDING
+#     0.8- 27/05/12-J. Garate, Preparacion para actualizar la base de datos de materiales.
+#     0.7- 03/05/12-J. Garate, state/visibility while transfering groups from .spd 
 #     0.6- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
 #     0.5- 22/03/2012 J.Garate,  Cambio de funciones a funciones publicas de GiD
 #     0.4- 08/03/2012 J.Garate,  ::kfiles::TransferOldGroupstoGID Mantiene la jerarquía Padre-Hijos en los grupos. 
@@ -121,7 +122,7 @@ proc ::kfiles::LoadSPD {filename} {
     
     #::KEGroups::Init
     set xmlArray [::xmlutils::openFile "." "$filename"]
-    
+    #msg "[xmlArray asXML]"
     set KPriv(xml) [lindex $xmlArray 0]
     set KPriv(encrXml) [lindex $xmlArray 1]
     set KPriv(xmlDoc) [lindex $xmlArray 2]
@@ -135,6 +136,7 @@ proc ::kfiles::LoadSPD {filename} {
 	
 	#Transforma el spd si son versiones distintas
 	::xmlutils::checkSpdVersion $filename
+	
     }
     
     #
@@ -157,6 +159,7 @@ proc ::kfiles::LoadSPD {filename} {
     set KPriv(xmlMat) [lindex $xmlArray 0]
     set KPriv(encrXmlMat) [lindex $xmlArray 1]
     set KPriv(xmlDocMat) [lindex $xmlArray 2]
+    ::xmlutils::checkMatVersion $filename_mat
     
     #
     # KKWORDS (KRATOS KEY WORDS)
@@ -209,12 +212,12 @@ proc ::kfiles::SaveSPD {filename} {
     }
     
     # Coger de la ventana de grupos y guardar en $KPriv(xmlDoc)
-	::KEGroups::GroupsToXml
+    ::KEGroups::GroupsToXml
 
     # Escribimos en el fichero .spd el xml almacenado en memoria
     ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(RDConfig)
     
-    # Escribimos en el fichero .spd de materiales el xml almacenado en memoria
+    # Escribimos en el fichero .kmdb de materiales el xml almacenado en memoria
     set materialFile "[string range $filename 0 [expr [string length $filename] - 5]].kmdb"
     ::xmlutils::writeFile "${materialFile}" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) $KPriv(RDConfig) 0
     
