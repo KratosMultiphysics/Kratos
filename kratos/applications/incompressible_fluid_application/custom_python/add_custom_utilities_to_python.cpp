@@ -81,7 +81,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/move_particle_utility.h"
 #include "custom_utilities/particle_utilities.h"
 #include "custom_utilities/combustion_utilities.h"
-
+#include "custom_utilities/lagrangian_pfem2_utilities.h"
 //#include "custom_utilities/edgebased_levelset.h"
 
 
@@ -309,6 +309,16 @@ void AddCustomUtilitiesToPython()
     class_< EstimateDtUtil < 3 >, boost::noncopyable > ("EstimateDt3D", init<ModelPart&>())
     .def("EstimateDt", &EstimateDtUtil < 3 > ::EstimateDt)
     .def("CalculateLocalCFL", &EstimateDtUtil < 3 > ::CalculateLocalCFL)
+    ;
+    
+    
+    class_< LagrangianPFEM2Utilities < 3 >, boost::noncopyable > ("LagrangianPFEM2Utilities3D", init<>())
+    .def("DetectInlet", &LagrangianPFEM2Utilities < 3 > ::DetectInlet)
+    .def("MoveMesh_ForwardEuler",	&LagrangianPFEM2Utilities < 3 > ::MoveMesh_ForwardEuler)
+    .def("ActOnInlet" ,            	&LagrangianPFEM2Utilities < 3 > ::ActOnInlet)
+    .def("ActOnOutlet",    		&LagrangianPFEM2Utilities < 3 > ::ActOnOutlet)
+    .def("MarkOuterNodes", 		&LagrangianPFEM2Utilities < 3 > ::MarkOuterNodes)
+    .def("MoveMesh_Streamlines", 	&LagrangianPFEM2Utilities < 3 > ::MoveMesh_Streamlines)
     ;
 
     // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
