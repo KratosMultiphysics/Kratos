@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#        1.8- 27/05/12- J. Garate, ::KEGroups::listReplace
 #        1.7- 07/05/12- J. Garate, update renaming groups restrictions
 #        1.6- 04/05/12-G. Socorro, update some procedures
 #        1.5- 03/05/12-J. Garate, GiD Groups transfer to .spd // W Child
@@ -185,24 +186,24 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
 		    # Update the entities list
 		    if {$CGroupId == $groupId } {
 		
-		                #Si únicamente nos interesaba saber si el grupo tenía entidades acabamos aquí
-		                if {$action == "hasEntities" } {
-		                    # Restore the layer state
-		                    ::KEGroups::FreezeLayers $flayerslist
-		                    # Enable graphics
-		                    ::GidUtils::EnableGraphics 
-		                    return 1
-		                }
-		                if {$CId == "E" } {
-		                lappend EntityIdList $CEId
-		
-		                } else {
-		                        if {$CId == "N" } {
-		                             lappend EntityIdList $CEId
-		                        } else {
-		                                lappend EntityIdList $CId
-		                        }
-		                }
+                #Si únicamente nos interesaba saber si el grupo tenía entidades acabamos aquí
+                if {$action == "hasEntities" } {
+                    # Restore the layer state
+                    ::KEGroups::FreezeLayers $flayerslist
+                    # Enable graphics
+                    ::GidUtils::EnableGraphics 
+                    return 1
+                }
+                if {$CId == "E" } {
+                lappend EntityIdList $CEId
+
+                } else {
+                    if {$CId == "N" } {
+                         lappend EntityIdList $CEId
+                    } else {
+                            lappend EntityIdList $CId
+                    }
+                }
 		    }
 		}
     }
@@ -354,7 +355,21 @@ proc ::KEGroups::randomColor { } {
     
     return [format "\#%02x%02x%02x" $r $g $b]
 }
-
+proc ::KEGroups::listReplace {listVariable value {newVal ""}} {
+    
+    set idx [lsearch -exact $listVariable $value]
+    
+    if { $idx != -1 } {
+	
+	if { $newVal == "" } { 
+	    return [lreplace $listVariable $idx $idx]
+	} else {
+	    return [lreplace $listVariable $idx $idx $newVal]
+	}
+    } else {
+	return $listVariable
+    }
+}
 proc ::KEGroups::addGroupId { node groupId } {
     
     global KPriv
