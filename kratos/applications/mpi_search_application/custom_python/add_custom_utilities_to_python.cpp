@@ -52,7 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/bins_dynamic_mpi.h"
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
 #include "custom_utilities/bins_dynamic_particle_configuration.h"
-// #include "custom_utilities/bins_dynamic_object_configuration.h"
+#include "custom_utilities/bins_dynamic_object_configuration.h"
 
 namespace Kratos
 {
@@ -60,8 +60,10 @@ namespace Python
 {
 void AddCustomUtilitiesToPython()
 {
+    typedef DiscreteParticleConfigure< 3 >  ObjectConfigurator;
+  
     typedef Kratos::BinsDynamicMpi<ParticleSpatialConfigure> BinsDynamicMpi;
-//     typedef Kratos::BinsObjectDynamicMpi<SpheresSpatialConfigure> BinsObjectDynamicMpi;
+    typedef Kratos::BinsObjectDynamicMpi<ObjectConfigurator> BinsObjectDynamicMpi;
     
     using namespace boost::python;
 
@@ -71,8 +73,8 @@ void AddCustomUtilitiesToPython()
     .def("MPIMultiSearchInRadiusTest" , &BinsDynamicMpi::MPIMultiSearchInRadiusTest)
     ;
 
-//     class_< BinsObjectDynamicMpi, boost::noncopyable > ("BinsObjectDynamicMpi", init<Kratos::ModelPart * , Kratos::ModelPart *, double>())
-//     .def("SingleSearchObjectsInRadiusTest", &BinsObjectDynamicMpi::SingleSearchObjectsInRadiusTest)
+    class_< BinsObjectDynamicMpi, boost::noncopyable > ("BinsObjectDynamicMpi", init<ObjectConfigurator::IteratorType , ObjectConfigurator::IteratorType>())
+    .def("SingleSearchObjectsInRadiusTest", &BinsObjectDynamicMpi::SearchObjectsTest)
     ;
 }
 
