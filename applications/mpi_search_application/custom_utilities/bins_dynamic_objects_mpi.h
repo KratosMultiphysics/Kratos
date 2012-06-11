@@ -111,7 +111,7 @@ public:
     typedef typename TConfigure::ResultContainerType        ResultContainerType;
     typedef typename TConfigure::ResultIteratorType         ResultIteratorType;
     typedef typename TConfigure::DistanceIteratorType       DistanceIteratorType;
-    typedef typename TConfigure::ResultNumberIteratorType   ResultNumberIteratorType;
+    //typedef typename TConfigure::ResultNumberIteratorType   ResultNumberIteratorType;
 
     typedef Cell<Configure> CellType;
     typedef std::vector<CellType> CellContainerType;
@@ -156,10 +156,11 @@ public:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
         
-        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-        CalculateCellSize(mObjectsSize);  // Calculate number of Cells
-        AllocateContainer();              // Allocate cell list
-        GenerateBins();                   // Fill Cells with objects
+        CalculateBoundingBox();             // Calculate mMinPoint, mMaxPoint
+        CalculateCellSize(mObjectsSize);    // Calculate number of Cells
+        AllocateContainer();                // Allocate cell list
+        GenerateBins();                     // Fill Cells with objects
+        GenerateCommunicationGraph();       
 
     }
 
@@ -171,10 +172,11 @@ public:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
         
-        CalculateBoundingBox();           // Calculate mMinPoint, mMaxPoint
-        CalculateCellSize(CellSize);  // Calculate number of Cells
-        AllocateContainer();              // Allocate cell list
-        GenerateBins();                   // Fill Cells with objects
+        CalculateBoundingBox();             // Calculate mMinPoint, mMaxPoint
+        CalculateCellSize(CellSize);        // Calculate number of Cells
+        AllocateContainer();                // Allocate cell list
+        GenerateBins();                     // Fill Cells with objects
+        GenerateCommunicationGraph();
 
     }
 
@@ -265,41 +267,68 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void MPI_SearchObjects(PointerType*& ThisObjects, ResultContainerType*& Result, ResultNumberIteratorType*& NumberOfResults, const SizeType& NumberOfObjects, const SizeType& MaxNumberOfResults)
-    {   
+    void SearchObjectsTest() {
+      
+    }
+
+   /// Act as wrapper between external function and its implementation
+    /**
+      * This function provides all mpi functionality requiered to execute the parallel multi input searchInRaidus.
+      * the method implemented by this function is one-to-many. It means all particles not found in the local
+      * processes are send to all process intersecting the search radius of the particle
+      * @param ThisObjects List of objects to be search
+      * @param NumberOfPoints Number of points to be search 
+      * @param Radius Radius of search
+      * @param Radius2 Radius of search^2
+      * @param Results List of results
+      * @param ResultsDistances Distance of the results
+      * @param NumberOfResults Number of results
+      * @param MaxNumberOfResults Maximum number of results returned for each point
+      */
+    void SearchObjectsMpi( PointerType const& ThisObjects, SizeType const& NumberOfPoints, CoordinateType const& Radius, CoordinateType const& Radius2, std::vector<std::vector<PointerType> >& Results,
+          std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
+    {  
         std::vector<std::vector<PointerType> >  remoteResults(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> >  SearchPetitions(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> >  SearchResults(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> >  SendObjectToProcess(mpi_size, std::vector<PointerType>(0));
         
-        int NumberOfSendObjects[mpi_size];
-        int NumberOfRecvObjects[mpi_size];
+        std::string messages[mpi_size];
 
-        std::vector<bool> SendObject(NumberOfObjects*mpi_size);
+        int NumberOfSendPoints[mpi_size];
+        int NumberOfRecvPoints[mpi_size];
+
+        std::vector<bool> SendPoint(NumberOfPoints*mpi_size);
 
         int msgSendSize[mpi_size];
         int msgRecvSize[mpi_size];
         
-        //PointerType CommunicationToken = new PointType();
-        //CommunicationToken->X() = std::numeric_limits<double>::max();
+        PointerType CommunicationToken = new PointType();
+        CommunicationToken->X() = std::numeric_limits<double>::max();
+        
+        PointType Low, High;
+        SearchStructureType Box;
         
         for(int i = 0; i < mpi_size; i++)
         {                   
-            NumberOfSendObjects[i] = 0;
+            NumberOfSendPoints[i] = 0;
             msgSendSize[i] = 0;
         }
         
-        //Local Search
-        for(int i = 0; i < NumberOfObjects; i++)
+        //Local search
+        Timer::Start("Calculate Local");
+        for(size_t i = 0; i < NumberOfPoints; i++)
         {
-            PointType Low, High;
-            SearchStructureType Box;
+            IteratorType ResultsPointer      = &Results[i][0];
+            double * ResultsDistancesPointer = &ResultsDistances[i][0];
+          
+            NumberOfResults[i] = 0;
             
             TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-            SearchInBoxLocal(ThisObjects[i], Result[i], NumberOfResults[i], MaxNumberOfResults, Box );
+            SearchInBoxLocal(ThisObjects[i], ResultsPointer, NumberOfResults[i], MaxNumberOfResults, Box );
             
-            //For each object with results < MaxResults and each process excluding ourself
+            //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[i] < MaxNumberOfResults) 
             {
                 for(int j = 0; j < mpi_size; j++)
@@ -307,73 +336,147 @@ public:
                     if(j != mpi_rank)
                     {
                         int intersect = 0;
-                        //TODO: Change this with particular object intersection function
-//                         for(size_t k = 0; k < Dimension; k++)
-//                             if((ThisPoints[i][k]+Radius >= mpi_MaxPoints[j][k] && ThisPoints[i][k]-Radius <= mpi_MaxPoints[j][k]) || 
-//                                (ThisPoints[i][k]+Radius >= mpi_MinPoints[j][k] && ThisPoints[i][k]-Radius <= mpi_MinPoints[j][k]) ||
-//                                (ThisPoints[i][k]-Radius >= mpi_MinPoints[j][k] && ThisPoints[i][k]+Radius <= mpi_MaxPoints[j][k])
-//                             ) intersect++;
+                        for(size_t k = 0; k < Dimension; k++)
+                            if((ThisObjects[i][k]+Radius >= mpi_MaxPoints[j][k] && ThisObjects[i][k]-Radius <= mpi_MaxPoints[j][k]) || 
+                               (ThisObjects[i][k]+Radius >= mpi_MinPoints[j][k] && ThisObjects[i][k]-Radius <= mpi_MinPoints[j][k]) ||
+                               (ThisObjects[i][k]-Radius >= mpi_MinPoints[j][k] && ThisObjects[i][k]+Radius <= mpi_MaxPoints[j][k])
+                            ) intersect++;
                     
-                        SendObject[j*NumberOfObjects+i] = 0;
+                        SendPoint[j*NumberOfPoints+i] = 0;
                         if(intersect == Dimension) 
                         {
-                            SendObject[j*NumberOfObjects+i]=1;
-                            NumberOfSendObjects[j]++;
+                            SendPoint[j*NumberOfPoints+i]=1;
+                            NumberOfSendPoints[j]++;
                         }
                     }
                 }
             }
         }
         
-        //Identify Objects to be send to other processes
         for(int i = 0; i < mpi_size; i++)
         {
-            if(i != mpi_rank && NumberOfSendObjects[i])
+            if(i != mpi_rank && NumberOfSendPoints[i])
             {
                 int k = 0;
-                SendObjectToProcess[i].resize(NumberOfSendObjects[i]);
-                for(size_t j = 0; j < NumberOfObjects; j++)
-                    if(SendObject[i*NumberOfObjects+j])
+                SendObjectToProcess[i].resize(NumberOfSendPoints[i]);
+                for(size_t j = 0; j < NumberOfPoints; j++)
+                    if(SendPoint[i*NumberOfPoints+j])
                         SendObjectToProcess[i][k++] = &ThisObjects[j];
             }
         }
+        Timer::Stop("Calculate Local");
         
-        //Objects transference
-        TConfigure::MPI_TransferParticles(SendObjectToProcess,SearchPetitions,
-                                          NumberOfSendObjects,NumberOfRecvObjects,
-                                          msgSendSize,msgRecvSize);
+        Timer::Start("Transfer Particles");
+//         for(int i = 0; i < mpi_size; i++)
+//         {
+//             if(mpi_rank != i)
+//                 TConfigure::Save(SendObjectToProcess[i],messages[i]);
+//             msgSendSize[i] = messages[i].size();
+//         }
+// 
+//         PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
+//         AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
+// 
+//         for(int i = 0; i < mpi_size; i++)
+//         {
+//             if(mpi_rank != i && messages[i].size())
+//                 TConfigure::Load(SearchPetitions[i],messages[i]);
+//         }
         
-        //Calculate Remote
+        TConfigure::AsyncSendAndRecive(SendObjectToProcess,SearchPetitions,msgSendSize,msgRecvSize);
+        Timer::Stop("Transfer Particles");
+        
+        Timer::Start("Calculate Remote");
+        //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         {   
-            if(i != mpi_rank && NumberOfRecvObjects[i])
+            if(i != mpi_rank && msgRecvSize[i])
             {
                 int accum_results = 0;
+                NumberOfRecvPoints[i] = SearchPetitions[i].size();
                 std::vector<PointerType>& remoteSearchPetitions = SearchPetitions[i];
-                remoteResults[i].resize((MaxNumberOfResults+1)*NumberOfRecvObjects[i]);
-
-                for(int j = 0; j < NumberOfRecvObjects[i]; j++) 
+                remoteResults[i].resize((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
+                for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
                 {
                     IteratorType remoteResultsPointer      = &remoteResults[i][accum_results];
-//                     PointType remoteObjectPointer           = *remoteSearchPetitions[j];
-                    
+                    PointType remoteObjectPointer           = *remoteSearchPetitions[j];
                     SizeType thisNumberOfResults = 0;
                     
-                    PointType Low, High;
-                    SearchStructureType Box;
-                    
-                    TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High);
+                    TConfigure::CalculateBoundingBox(remoteObjectPointer, Low, High);
                     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-                    SearchInBoxLocal((*remoteSearchPetitions[j]), remoteResultsPointer, thisNumberOfResults, MaxNumberOfResults, Box );
+                    SearchInBoxLocal(remoteObjectPointer, remoteResultsPointer, thisNumberOfResults, MaxNumberOfResults, Box );
 
                     accum_results += thisNumberOfResults;
-                    remoteResults[i][accum_results++] = NULL;//CommunicationToken;
+                    remoteResults[i][accum_results++] = CommunicationToken;
                 }
-
                 remoteResults[i].resize(accum_results);
-                NumberOfSendObjects[i] = accum_results;
+                NumberOfSendPoints[i] = accum_results;
             }
         }
+        Timer::Stop("Calculate Remote");
+
+        
+        Timer::Start("Transfer Results");
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i)
+              TConfigure::Save(remoteResults[i],messages[i]);
+            msgSendSize[i] = messages[i].size();
+        }
+
+        PrepareCommunications(msgSendSize,msgRecvSize,NumberOfSendPoints,NumberOfRecvPoints);
+        AsyncSendAndRecive(messages,msgSendSize,msgRecvSize);
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && messages[i].size())
+                TConfigure::Load(SearchResults[i],messages[i]);
+        }
+        Timer::Stop("Transfer Results");
+
+        Timer::Start("Prepare-C");
+        for (int i = 0; i < mpi_size; i++)
+        { 
+            if (i != mpi_rank)
+            {
+                std::vector<PointerType>& remoteSearchResults = SearchResults[i];
+
+                int result_iterator = 0;
+                for(size_t j = 0; j < NumberOfPoints; j++)
+                {
+                    if(SendPoint[i*NumberOfPoints+j])
+                    {
+                        int token = 0;
+                        
+                        for(; !token && result_iterator < NumberOfRecvPoints[i]; result_iterator++)
+                        {
+                            PointType& a = ThisObjects[j];
+                            PointType& b = *remoteSearchResults[result_iterator];
+                            
+                            if(b.X() == std::numeric_limits<double>::max())
+                              token = 1;
+                            
+                            if (!token)
+                            {
+                                double dist = TConfigure::Distance(a,b);
+
+                                if (dist <= Radius2)
+                                {
+                                    if (NumberOfResults[j] < MaxNumberOfResults)
+                                    {
+                                        Results[j][NumberOfResults[j]] = remoteSearchResults[result_iterator];
+                                        
+                                        ResultsDistances[j][NumberOfResults[j]] = dist;
+                                        NumberOfResults[j]++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Timer::Stop("Prepare-C");
     }
 
 //************************************************************************
@@ -771,6 +874,43 @@ private:
     }
 
 
+//************************************************************************
+//************************************************************************
+
+void GenerateCommunicationGraph() 
+    {
+        double MpiMinPoints[mpi_size * Dimension];
+        double MpiMaxPoints[mpi_size * Dimension];
+        
+        double MyMinPoint[Dimension];
+        double MyMaxPoint[Dimension];
+        
+        for(size_t i = 0; i < Dimension; i++) 
+        {
+            MyMinPoint[i] = mMinPoint[i];
+            MyMaxPoint[i] = mMaxPoint[i];
+        }
+
+        mpi_connectivity = vector<int>(mpi_size);
+        mpi_MinPoints = vector<vector<double> >(mpi_size, vector<double>(Dimension));
+        mpi_MaxPoints = vector<vector<double> >(mpi_size, vector<double>(Dimension));
+
+        MPI_Allgather(MyMinPoint,Dimension,MPI_DOUBLE,MpiMinPoints,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
+        MPI_Allgather(MyMaxPoint,Dimension,MPI_DOUBLE,MpiMaxPoints,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
+
+        for(int i = 0; i < mpi_size; i++) 
+        {
+            mpi_connectivity[i] = 0;
+            
+            for(size_t j = 0; j < Dimension; j++)
+            {
+                mpi_MinPoints[i][j] = MpiMinPoints[i * Dimension + j];
+                mpi_MaxPoints[i][j] = MpiMaxPoints[i * Dimension + j];
+            }
+        }
+    }
+    
+    
 //************************************************************************
 //************************************************************************
 
@@ -1523,9 +1663,16 @@ private:
 
     CellContainerType mCells;  ///The bin
 
-    ///MPI interface
+    ///@}
+    ///@name MPI Variables
+    ///@{
+      
     int mpi_rank;
     int mpi_size;
+    
+    vector<int> mpi_connectivity;
+    vector<vector<double> > mpi_MinPoints;
+    vector<vector<double> > mpi_MaxPoints;
 
     ///@}
     ///@name Private Operators

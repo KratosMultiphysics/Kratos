@@ -10,15 +10,12 @@
 #if !defined(KRATOS_BINS_DYNAMIC_MPI_CONTAINER_H_INCLUDE)
 #define KRATOS_BINS_DYNAMIC_MPI_CONTAINER_H_INCLUDE
 
-#include <bitset>
-
 #include "mpi.h"
 #include "spatial_containers/tree.h"
+
 #include "containers/buffer.h"
 #include "includes/serializer.h"
 #include "utilities/timer.h"
-#include "spatial_containers/bins_dynamic.h"
-#include "zlib.h"
 
 namespace Kratos 
 {
