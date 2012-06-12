@@ -49,13 +49,14 @@ WindTurbineRotationUtilities::WindTurbineRotationUtilities(ModelPart& rAllTheMod
 	mFirstOuterInterfaceNodeOffset = 0;
         mNumberOfBoundaryFaces = 0;
         mAngleHistory.reserve(2); // Old rotation angles
-	FillElementRegions();
-        FillNodeRegions();
 
-        mEchoLevel = WIND_TURBINE_ECHOLEVEL_ALL;
+        FillNodeRegions();
+        FillElementRegions();
+
+        mEchoLevel = WIND_TURBINE_ECHOLEVEL_NONE;   //_ALL;
 }
 
-/// Percolate whole the ModelPart and put the elements in the proper region lists
+/// Percolate the whole ModelPart and put the elements in the proper region lists
 void WindTurbineRotationUtilities::FillElementRegions()
 {
 	ModelPart::ElementsContainerType::Pointer pWholeElements = mrGlobalModelPart.pElements();
@@ -146,7 +147,7 @@ void WindTurbineRotationUtilities::FillElementRegions()
                 if (oppositeVertex != WIND_TURBINE_UNKNOWN_REGION)
                 {
                     Geometry< Node<3> > elemGeom = itr->GetGeometry();
-                    mConstrainedEdgeNodes.reserve(nodesNumber - 1);
+                    mConstrainedBoundaryNodeAuxIndices.reserve(nodesNumber - 1);
 
                     if (nodesNumber == 3)   //Triangle
                     {
@@ -161,16 +162,16 @@ void WindTurbineRotationUtilities::FillElementRegions()
                                 switch (n)
                                 {
                                     case 0:
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[1].Id()));    //nooooot use [ elemGeom[1].Id() ];
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[2].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[1].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[2].GetValue(AUX_ID) );
                                         break;
                                     case 1:
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[2].Id()));
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[0].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[2].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[0].GetValue(AUX_ID) );
                                         break;
                                     case 2:
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[0].Id()));
-                                        mConstrainedEdgeNodes.push_back( mrGlobalModelPart.Nodes()(elemGeom[1].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[0].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[1].GetValue(AUX_ID) );
                                         break;
                                 }
                             }
@@ -191,24 +192,24 @@ void WindTurbineRotationUtilities::FillElementRegions()
                                     // 2 ------ 0 1 3
                                     // 3 ------ 0 2 1
                                     case 0:
-                                        mConstrainedEdgeNodes.push_back( elemGeom(1) );   //mrGlobalModelPart.Nodes()(elemGeom[1].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(2) );   //mrGlobalModelPart.Nodes()(elemGeom[2].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(3) );   //mrGlobalModelPart.Nodes()(elemGeom[3].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[1].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[2].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[3].GetValue(AUX_ID) );
                                         break;
                                     case 1:
-                                        mConstrainedEdgeNodes.push_back( elemGeom(0) );   //mrGlobalModelPart.Nodes()(elemGeom[0].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(3) );   //mrGlobalModelPart.Nodes()(elemGeom[3].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(2) );   //mrGlobalModelPart.Nodes()(elemGeom[2].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[0].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[3].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[2].GetValue(AUX_ID) );
                                         break;
                                     case 2:
-                                        mConstrainedEdgeNodes.push_back( elemGeom(0) );   //mrGlobalModelPart.Nodes()(elemGeom[0].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(1) );   //mrGlobalModelPart.Nodes()(elemGeom[1].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(3) );   //mrGlobalModelPart.Nodes()(elemGeom[3].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[0].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[1].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[3].GetValue(AUX_ID) );
                                         break;
                                     case 3:
-                                        mConstrainedEdgeNodes.push_back( elemGeom(0) );   //mrGlobalModelPart.Nodes()(elemGeom[0].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(2) );   //mrGlobalModelPart.Nodes()(elemGeom[2].Id()));
-                                        mConstrainedEdgeNodes.push_back( elemGeom(1) );   //mrGlobalModelPart.Nodes()(elemGeom[1].Id()));
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[0].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[2].GetValue(AUX_ID) );
+                                        mConstrainedBoundaryNodeAuxIndices.push_back( elemGeom[1].GetValue(AUX_ID) );
                                         break;
                                 }
                                 mNumberOfBoundaryFaces++;
@@ -220,7 +221,7 @@ void WindTurbineRotationUtilities::FillElementRegions()
 		itr++;
 	}
 
-        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
+//        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
         {
             std::cout << std::endl << "--- Assignments----------------------" << std::endl;
             std::cout << "Element regions filled." << std::endl;
@@ -231,12 +232,13 @@ void WindTurbineRotationUtilities::FillElementRegions()
             std::cout << "Outer Region: " << mOuterElems.size() << " elems" << std::endl;
             std::cout << "Crown Region: " << mCrownElems.size()  << " elems" << std::endl << std::endl;
 
-            std::cout << "Constrained Components: " << mNumberOfBoundaryFaces << ". Constrained nodes :" << mConstrainedEdgeNodes.size() << std::endl;
+            std::cout << "Constrained Components: " << mNumberOfBoundaryFaces << ". Constrained nodes :" << mConstrainedBoundaryNodeAuxIndices.size() << std::endl;
         }
 }
 
 void WindTurbineRotationUtilities::FillNodeRegions()
 {
+        int interfNode_AUX_ID = 1;
 	ModelPart::NodesContainerType outerInterfaceNodes;
 
 	for ( ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
@@ -251,12 +253,16 @@ void WindTurbineRotationUtilities::FillNodeRegions()
 
                 case WIND_TURBINE_INTERNAL_CYL_BASE:
                 case WIND_TURBINE_INNER_INTERF_REGION:
+                    itr->GetValue(AUX_ID) = interfNode_AUX_ID;
                     mInterfaceNodes.push_back(*(itr.base()));
+                    interfNode_AUX_ID++;
                     break;
 
                 case WIND_TURBINE_EXTERNAL_CYL_BASE:
                 case WIND_TURBINE_OUTER_INTERF_REGION:
+                    itr->GetValue(AUX_ID) = interfNode_AUX_ID;
                     outerInterfaceNodes.push_back(*(itr.base()));
+                    interfNode_AUX_ID++;
                     break;
 
                 default:
@@ -423,12 +429,12 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
         ModelPart::NodesContainerType::iterator boundaryNodesItr = mInterfaceNodes.begin();
         for (unsigned int idx = 0; idx < mInterfaceNodes.size(); idx++)
         {
-            int base = idx*2;
+            int auxId = boundaryNodesItr->GetValue(AUX_ID);
+            int base = (auxId - 1)*2;
             inData.pointlist[base] = boundaryNodesItr->X();
             inData.pointlist[base + 1] = boundaryNodesItr->Y();
 
-            inData.pointmarkerlist[base/2] = 1;
-            boundaryNodesItr++;
+            boundaryNodesItr++;            
         }
 
         // now parsing the segment counterclockwised scheme and filling the segment list,
@@ -436,38 +442,15 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
         // (NOTE: not using the '-z' switch, this means dereferencing in triangleio starts from 1)
 
         unsigned int sgmntListIdx = 0;
-        for (ModelPart::NodesContainerType::iterator segmentNodesItr = mConstrainedEdgeNodes.begin();
-             segmentNodesItr != mConstrainedEdgeNodes.end();
+        for (unsigned int auxIdxPos = 0;
+             auxIdxPos < mConstrainedBoundaryNodeAuxIndices.size();
              )
         {
-            bool firstFound = false;
-            bool secondFound = false;
-            for (int idx = 0; idx < 2*(inData.numberofpoints); idx+=2) // cycling coordinates
-            {
-                if ( inData.pointlist[idx] == segmentNodesItr->X() && inData.pointlist[idx+1] == segmentNodesItr->Y() )
-                {
-                    inData.segmentlist[sgmntListIdx] = idx/2 + 1; //storing first endpoint    // remind: +1 because we work without '-z' switch
-                    firstFound = true;
-                    break;
-                }
-            }
-            segmentNodesItr++;
-
-            for (int idx = 0; idx < 2*(inData.numberofpoints); idx+=2)
-            {
-                if ( inData.pointlist[idx] == segmentNodesItr->X() && inData.pointlist[idx+1] == segmentNodesItr->Y() )
-                {
-                    inData.segmentlist[sgmntListIdx+1] = idx/2 + 1; //storing second endpoint    // remind: +1 because we work without '-z' switch
-                    secondFound = true;
-                    break;
-                }
-            }
-            segmentNodesItr++;
-
-            if (firstFound && secondFound)
-            {
-                sgmntListIdx += 2;
-            }
+            inData.segmentmarkerlist[sgmntListIdx++] = 1;
+            inData.segmentlist[auxIdxPos] = mConstrainedBoundaryNodeAuxIndices[auxIdxPos];
+            auxIdxPos++;
+            inData.segmentlist[auxIdxPos] = mConstrainedBoundaryNodeAuxIndices[auxIdxPos];
+            auxIdxPos++;
         }
 
 	// ****** FEEDING TRIGEN
@@ -484,12 +467,19 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
         for(unsigned int i = 0; i < newElemsNumber; i++)
         {
             int id = lastElemId + i + 1;
-            int base = i * 3;
-            Triangle2D3<Node<3> > geom(
-                *( (boundaryNodesItr + outData.trianglelist[base] - 1).base()   ),
-                *( (boundaryNodesItr + outData.trianglelist[base+1] - 1).base() ),
-                *( (boundaryNodesItr + outData.trianglelist[base+2] - 1).base() )
-            );
+            unsigned int base = i * 3;
+
+            Condition::NodesArrayType geom;
+            geom.reserve(3);
+
+            for (unsigned int point = base; point < base+3; point++)
+            {
+                for (ModelPart::NodesContainerType::iterator refItr = boundaryNodesItr; refItr != mInterfaceNodes.end(); refItr++)
+                {
+                    if ( refItr->GetValue(AUX_ID) == outData.trianglelist[point] )
+                        geom.push_back( *(refItr.base()) );
+                }
+            }
 
 	    Element::Pointer pElem = mInnerInterfElems.begin()->Create(id, geom, properties);
             (mrGlobalModelPart.Elements()).push_back(pElem);
@@ -538,18 +528,19 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         ModelPart::NodesContainerType::iterator boundaryNodesItr = mInterfaceNodes.begin();
         for (unsigned int idx = 0; idx < mInterfaceNodes.size(); idx++)
         {
-            int base = idx*3;
+            int auxId = boundaryNodesItr->GetValue(AUX_ID);
+            int base = (auxId - 1)*3;
             inData.pointlist[base] = boundaryNodesItr->X();
             inData.pointlist[base + 1] = boundaryNodesItr->Y();
             inData.pointlist[base + 2] = boundaryNodesItr->Z();
 
-            inData.pointmarkerlist[base/3] = 1;
+            inData.pointmarkerlist[auxId-1] = 1;
 
             if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
             {
                 std::cout << "setting Kratos point " << boundaryNodesItr->Id()
                           << " coord. (" << inData.pointlist[base] << ", " << inData.pointlist[base+1] << ", " << inData.pointlist[base+2]
-                          << ")" << " as reference idx " << base/3 +1<< std::endl;
+                          << ")" << " as reference idx " << auxId << std::endl;
             }
             boundaryNodesItr++;
         }
@@ -559,8 +550,8 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         // finding the index of the source container mInterfaceNodes.
 
         unsigned int facetListIdx = 0;
-        for (ModelPart::NodesContainerType::iterator facetNodesItr = mConstrainedEdgeNodes.begin();
-             facetNodesItr != mConstrainedEdgeNodes.end();
+        for (unsigned int auxIdxPos = 0;
+             auxIdxPos < mConstrainedBoundaryNodeAuxIndices.size();
              )
         {
             tetgenio::polygon polyg;
@@ -574,104 +565,13 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
             face.polygonlist = new tetgenio::polygon[1];
             face.polygonlist[0] = polyg;
 
-            bool firstFound = false;
-            bool secondFound = false;
-            bool thirdFound = false;
+            face.polygonlist[0].vertexlist[0] = mConstrainedBoundaryNodeAuxIndices[auxIdxPos++];
+            face.polygonlist[0].vertexlist[1] = mConstrainedBoundaryNodeAuxIndices[auxIdxPos++];
+            face.polygonlist[0].vertexlist[2] = mConstrainedBoundaryNodeAuxIndices[auxIdxPos++];
 
-            for (int idx = 0; idx < 3*(inData.numberofpoints); idx+=3) // cycling coordinates
-            {
-                if ( inData.pointlist[idx] == facetNodesItr->X() && inData.pointlist[idx+1] == facetNodesItr->Y() && inData.pointlist[idx+2] == facetNodesItr->Z())
-                {
-                    face.polygonlist[0].vertexlist[0] = idx/3 + 1;
-                    firstFound = true;
-
-                    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
-                    {
-                        std::cout << "First vertex (" << face.polygonlist[0].vertexlist[0]
-                                  << ") matched with Kratos node Id " << facetNodesItr->Id() << ": (" << facetNodesItr->X() << ", " << facetNodesItr->Y()<< ", " << facetNodesItr->Z() << ")" << std::endl;
-                    }
-                    break;
-                }
-            }
-            facetNodesItr++;
-
-            for (int idx = 0; idx < 3*(inData.numberofpoints); idx+=3)
-            {
-                if ( inData.pointlist[idx] == facetNodesItr->X() && inData.pointlist[idx+1] == facetNodesItr->Y() && inData.pointlist[idx+2] == facetNodesItr->Z())
-                {
-                    face.polygonlist[0].vertexlist[1] = idx/3 + 1;
-                    secondFound = true;
-
-                    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
-                    {
-                        std::cout << "Second vertex (" << face.polygonlist[0].vertexlist[1]
-                                  << ") matched with Kratos node Id " << facetNodesItr->Id() << ": (" << facetNodesItr->X() << ", " << facetNodesItr->Y()<< ", " << facetNodesItr->Z() << ")" << std::endl;
-                    }
-                    break;
-                }
-            }
-            facetNodesItr++;
-
-            for (int idx = 0; idx < 3*(inData.numberofpoints); idx+=3)
-            {
-                if ( inData.pointlist[idx] == facetNodesItr->X() && inData.pointlist[idx+1] == facetNodesItr->Y() && inData.pointlist[idx+2] == facetNodesItr->Z())
-                {
-                    face.polygonlist[0].vertexlist[2] = idx/3 + 1;
-                    thirdFound = true;
-
-                    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
-                    {
-                        std::cout << "Third vertex (" << face.polygonlist[0].vertexlist[2]
-                                  << ") matched with Kratos node Id " << facetNodesItr->Id() << ": (" << facetNodesItr->X() << ", " << facetNodesItr->Y()<< ", " << facetNodesItr->Z() << ")" << std::endl;
-                    }
-                    break;
-                }
-            }
-            facetNodesItr++;
-
-            if (firstFound && secondFound && thirdFound)
-            {
-                inData.facetlist[facetListIdx] = face;
-                inData.facetmarkerlist[facetListIdx] = 1;
-
-                if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
-                {
-                    std::cout << "storing face " << facetListIdx+1
-                              << " of vertices: " << inData.facetlist[facetListIdx].polygonlist[0].vertexlist[0]
-                              << ", " << inData.facetlist[facetListIdx].polygonlist[0].vertexlist[1]
-                              << ", " << inData.facetlist[facetListIdx].polygonlist[0].vertexlist[2] << std::endl;
-                    if (facetListIdx)
-                    {
-                        std::cout << "   previous face (" << facetListIdx << ") had vertice references "
-                                  << inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[0] << " ("
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[0] - 1)*3     ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[0] - 1)*3 + 1 ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[0] - 1)*3 + 2 ] << "), "
-                                  << inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[1] << " ("
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[1] - 1)*3     ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[1] - 1)*3 + 1 ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[1] - 1)*3 + 2 ] << "), "
-                                  << inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[2] << " ("
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[2] - 1)*3     ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[2] - 1)*3 + 1 ] << ", "
-                                     << inData.pointlist[ (inData.facetlist[facetListIdx-1].polygonlist[0].vertexlist[2] - 1)*3 + 2 ] << "), " << std::endl;
-                    }
-                }
-
-                facetListIdx++;
-            }
-            else
-            {
-                if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_DEEPINFO)
-                {
-                    std::cout << "unallocating...." << std::endl;
-                }
-
-                delete[] face.polygonlist[0].vertexlist;
-                face.polygonlist[0].vertexlist = (int*)NULL;
-                delete[] face.polygonlist;
-                face.polygonlist = (tetgenio::polygon*)NULL;
-            }
+            inData.facetlist[facetListIdx] = face;
+            inData.facetmarkerlist[facetListIdx] = 1;
+            facetListIdx++;
         }
 
         // FEEDING TETGEN!
@@ -693,14 +593,19 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         for(unsigned int i = 0; i < newElemsNumber; i++)
         {
             int id = lastElemId + i + 1;
-            int base = i * 4;
+            unsigned int base = i * 4;
 
-            Tetrahedra3D4<Node<3> > geom(
-                *( (boundaryNodesItr +  outData.tetrahedronlist[base]-1).base()   ),
-                *( (boundaryNodesItr +  outData.tetrahedronlist[base+1]-1).base() ),
-                *( (boundaryNodesItr +  outData.tetrahedronlist[base+2]-1).base() ),
-                *( (boundaryNodesItr +  outData.tetrahedronlist[base+3]-1).base() )
-            );
+            Condition::NodesArrayType geom;
+            geom.reserve(4);
+
+            for (unsigned int point = base; point < base+4; point++)
+            {
+                for (ModelPart::NodesContainerType::iterator refItr = boundaryNodesItr; refItr != mInterfaceNodes.end(); refItr++)
+                {
+                    if ( refItr->GetValue(AUX_ID) == outData.tetrahedronlist[point] )
+                        geom.push_back( *(refItr.base()) );
+                }
+            }
 
             Element::Pointer pElem = mInnerInterfElems.begin()->Create(id, geom, properties);
             (mrGlobalModelPart.Elements()).push_back(pElem);
@@ -1239,25 +1144,27 @@ void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, c
         //generating the conditions
         unsigned int condIndex = 0;
 
-
         Properties::Pointer properties = auxModelPart.GetMesh().pGetProperties(1);
+        ModelPart::NodesContainerType::iterator boundaryNodesItr = mInterfaceNodes.begin();
 
-        for (ModelPart::NodesContainerType::ptr_iterator itr = mConstrainedEdgeNodes.ptr_begin();
-             itr != mConstrainedEdgeNodes.ptr_end();
-             )
+        for (unsigned int idx = 0;
+             idx < mConstrainedBoundaryNodeAuxIndices.size();
+            )
         {
-        condIndex++;
-
             //generate a face condition
+            condIndex++;
             Condition::NodesArrayType temp;
-            temp.reserve(3);
-            temp.push_back( *itr );
-            itr++;
-            temp.push_back( *itr );
-            itr++;
-            temp.push_back( *itr );
-            itr++;
+            temp.reserve(domainSize);
 
+            for (int pback=0; pback < domainSize; pback++)
+            {
+                int auxIdx = mConstrainedBoundaryNodeAuxIndices[idx++];
+                for (ModelPart::NodesContainerType::iterator refItr = boundaryNodesItr; refItr != mInterfaceNodes.end(); refItr++)
+                {
+                    if ( refItr->GetValue(AUX_ID) == auxIdx )
+                        temp.push_back( *(refItr.base()) );
+                }
+            }
 
             Condition::Pointer pCond = rReferenceCondition.Create(condIndex, temp, properties);
             auxModelPart.Conditions().push_back( pCond );
