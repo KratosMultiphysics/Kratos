@@ -86,8 +86,8 @@ namespace Python
 	AddCustomUtilitiesToPython();
 
 	//registering variables in python
+        KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_ID);
 //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-        //KRATOS_REGISTER_IN_PYTHON_VARIABLE(AUX_ID);
 
   }
   

@@ -88,7 +88,7 @@ private:
 
 	ModelPart::NodesContainerType mInterfaceNodes;
 	ModelPart::NodesContainerType mInnerNodes;
-	ModelPart::NodesContainerType mConstrainedEdgeNodes;
+        std::vector<int> mConstrainedBoundaryNodeAuxIndices;
 	int mFirstOuterInterfaceNodeOffset;
         int mNumberOfBoundaryFaces;
         std::vector<double> mAngleHistory;
