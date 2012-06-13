@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#if !defined(KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED )
+#define  KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED
 
 
 
@@ -400,6 +400,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
+#endif // KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED  defined 
 
 
