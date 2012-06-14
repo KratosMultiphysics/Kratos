@@ -236,11 +236,11 @@ private:
         double x2 = geom[2].X();
         double y2 = geom[2].Y();
 
-        double area = CalculateVol(x0, y0, x1, y1, x2, y2);
+        double area = CalculateVol(x0, y0, x1, y1, x2, y2); 
         double inv_area = 0.0;
         if (area == 0.0)
         {
-            KRATOS_ERROR(std::logic_error, "element with zero area found", "");
+            KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
         }
         else
         {
@@ -284,9 +284,9 @@ private:
         double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
         double inv_vol = 0.0;
-        if (vol < 0.0000000000001)
-        {
-            KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
+        if (vol == 0.0)
+        { 
+            KRATOS_ERROR(std::logic_error, "element with zero area found with the current geometry ", geom);
         }
         else
         {
