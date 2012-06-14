@@ -113,8 +113,6 @@ namespace Kratos
 
         ComputeParticleBlockContactForce(CurrentProcessInfo);
 
-
-
     }
 
 
