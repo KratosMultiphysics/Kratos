@@ -21,11 +21,11 @@ End Nodes
 
 *# Element blocks
 
-*# Point Element blocks
+*# Point Element Blocks
 
 *# Condition Blocks
 
-*# Point Condition blocks
+*# Point Condition Blocks
 
 *# Nodal Variable blocks
 
