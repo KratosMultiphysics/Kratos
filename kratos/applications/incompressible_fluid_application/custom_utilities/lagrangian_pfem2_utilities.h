@@ -99,9 +99,10 @@ public:
     ///this function detects the inlet nodes as nodes which have a fixed velocity and a velocity applied which is different from zero
     ///@param rModelPart the model part on which we work
     ///@param rInletNodes is a container which contains the list of inlet nodes
-    void DetectInlet(ModelPart& rModelPart, ModelPart::NodesContainerType& rInletNodes)
+    void DetectInletAndOutlet(ModelPart& rModelPart, ModelPart::NodesContainerType& rInletNodes, ModelPart::NodesContainerType& rOutletNodes)
     {    
  	rInletNodes = ModelPart::NodesContainerType();
+	rOutletNodes = ModelPart::NodesContainerType();
         for(ModelPart::NodesContainerType::iterator it = rModelPart.NodesBegin(); it!=rModelPart.NodesEnd(); it++)
 	{
 	    const array_1d<double,3>& vel = it->FastGetSolutionStepValue(VELOCITY);
@@ -109,6 +110,10 @@ public:
 	    if(it->IsFixed(VELOCITY_X) == true && vnorm>1e-10)
 	    {
 	        rInletNodes.push_back( *(it.base() ));
+	    }
+	    if(it->IsFixed(PRESSURE) == true && it->IsFixed(VELOCITY_X) == false)
+	    {
+	        rOutletNodes.push_back( *(it.base() ));
 	    }
 	}
 	
@@ -264,6 +269,45 @@ public:
     
     //**********************************************************************************************
     //**********************************************************************************************
+    ///this function erases the elements and conditions which have at least one node marked for erase
+    ///@param rModelPart the model part on which we work
+    void EraseOuterElements(ModelPart& rModelPart)
+    {      
+	
+	int nerased_el = 0;
+        for(ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it!=rModelPart.ElementsEnd(); it++)
+	{
+	    Geometry< Node<3> >& geom = it->GetGeometry();
+	    
+	    bool erase_el = false;
+	    for(unsigned int i=0; i<geom.size(); i++)
+	    {
+		if(geom[i].GetValue(ERASE_FLAG) == true)
+		{
+		    it->SetValue(ERASE_FLAG,true);
+		    nerased_el++;
+		    break;
+		}
+	    }
+	}
+	
+	if(nerased_el > 0)
+	{
+	    ModelPart::ElementsContainerType temp_elems_container;
+	    temp_elems_container.reserve(rModelPart.Elements().size() - nerased_el);
+
+	    temp_elems_container.swap(rModelPart.Elements());
+
+	    for(ModelPart::ElementsContainerType::iterator it = temp_elems_container.begin() ; it != temp_elems_container.end() ; it++)
+	    {
+		if( static_cast<bool>(it->GetValue(ERASE_FLAG)) == false)
+		    (rModelPart.Elements()).push_back(*(it.base()));
+	    }
+	}
+    }
+    
+    //**********************************************************************************************
+    //**********************************************************************************************
     ///this function acts on the inlet nodes so to add new nodes with the objective of reproducing a lagrangian inlet
     ///it works by identyfing the nodes on the inlet and making a copy of them,
     ///the nodes on the inlet are then pushed back to their original position while the
@@ -335,33 +379,38 @@ public:
     
     //**********************************************************************************************
     //**********************************************************************************************
-    ///this function loops on all of the elements and FIXES the pressure to zero for all of the nodes in the elements
-    ///which have at least one node to be erased
-    ///@param rModelPart the model part on which we work
-    void ActOnOutlet(ModelPart& rModelPart)
+    void ActOnOutlet(ModelPart& rModelPart, ModelPart::NodesContainerType& rOutletNodes)
     {
-	for(ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it!=rModelPart.ElementsEnd(); it++)
+// 	for(ModelPart::ElementsContainerType::iterator it = rModelPart.ElementsBegin(); it!=rModelPart.ElementsEnd(); it++)
+// 	{
+// 	    Geometry<Node<3> >& geom = it->GetGeometry();
+// 	    
+// 	    //count the nodes to be erased
+// 	    int nerased = 0;
+// 	    for(unsigned int i=0; i<geom.size(); i++)
+// 	      if(geom[i].GetValue(ERASE_FLAG) == true)
+// 		nerased++;
+// 	      
+// 	    //fix the pressure if needed (don't if the velocity is fixed)
+// 	    if(nerased > 0)
+// 	    {
+// 		for(unsigned int i=0; i<geom.size(); i++)
+// 		{
+// 		    if(geom[i].IsFixed(VELOCITY_X) == false)
+// 		    {
+// 			geom[i].Fix(PRESSURE);
+// 			geom[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
+// 		    }
+// 		}	      
+// 	    }
+// 	}
+
+	for(ModelPart::NodesContainerType::iterator it = rOutletNodes.begin(); it!=rOutletNodes.end(); it++)
 	{
-	    Geometry<Node<3> >& geom = it->GetGeometry();
-	    
-	    //count the nodes to be erased
-	    int nerased = 0;
-	    for(unsigned int i=0; i<geom.size(); i++)
-	      if(geom[i].GetValue(ERASE_FLAG) == true)
-		nerased++;
-	      
-	    //fix the pressure if needed (don't if the velocity is fixed)
-	    if(nerased > 0)
-	    {
-		for(unsigned int i=0; i<geom.size(); i++)
-		{
-		    if(geom[i].IsFixed(VELOCITY_X) == false)
-		    {
-			geom[i].Fix(PRESSURE);
-			geom[i].FastGetSolutionStepValue(PRESSURE) = 0.0;
-		    }
-		}	      
-	    }
+	    noalias(it->Coordinates()) = it->GetInitialPosition();
+	    noalias(it->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
+	    noalias(it->FastGetSolutionStepValue(DISPLACEMENT,1)) = ZeroVector(3);
+	    noalias(it->FastGetSolutionStepValue(MESH_VELOCITY)) = it->FastGetSolutionStepValue(VELOCITY);	    
 	}
     }
     
@@ -457,7 +506,7 @@ public:
         {
             in = NodesBegin + k;
 
-            if (in->FastGetSolutionStepValue(IS_STRUCTURE) == 0) //if it is not a wall node i can erase
+            if (in->FastGetSolutionStepValue(IS_BOUNDARY) == 0) //if it is not a wall node i can erase
             {
                 double hnode2 = in->FastGetSolutionStepValue(NODAL_H);
                 hnode2 *= hnode2; //take the square
