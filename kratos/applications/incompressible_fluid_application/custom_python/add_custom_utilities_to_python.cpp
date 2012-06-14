@@ -313,12 +313,14 @@ void AddCustomUtilitiesToPython()
     
     
     class_< LagrangianPFEM2Utilities < 3 >, boost::noncopyable > ("LagrangianPFEM2Utilities3D", init<>())
-    .def("DetectInlet", &LagrangianPFEM2Utilities < 3 > ::DetectInlet)
+    .def("DetectInletAndOutlet", &LagrangianPFEM2Utilities < 3 > ::DetectInletAndOutlet)
     .def("MoveMesh_ForwardEuler",	&LagrangianPFEM2Utilities < 3 > ::MoveMesh_ForwardEuler)
     .def("ActOnInlet" ,            	&LagrangianPFEM2Utilities < 3 > ::ActOnInlet)
     .def("ActOnOutlet",    		&LagrangianPFEM2Utilities < 3 > ::ActOnOutlet)
     .def("MarkOuterNodes", 		&LagrangianPFEM2Utilities < 3 > ::MarkOuterNodes)
     .def("MoveMesh_Streamlines", 	&LagrangianPFEM2Utilities < 3 > ::MoveMesh_Streamlines)
+    .def("EraseOuterElements", 		&LagrangianPFEM2Utilities < 3 > ::EraseOuterElements)
+     .def("MarkExcessivelyCloseNodes", 		&LagrangianPFEM2Utilities < 3 > ::MarkExcessivelyCloseNodes)
     ;
 
     // 	class_< ElementBasedNavierStokesSolver< 2, SparseSpaceType, LinearSolverType>,  boost::noncopyable >       ("ElementBasedNavierStokesSolver2D", init<ModelPart&>() )
