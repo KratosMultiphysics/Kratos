@@ -251,6 +251,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RHS_AIR )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT_FATHER_NODES)
+            KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_ENERGY )           
 
     //for structural application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_VARIABLES )
@@ -491,7 +492,6 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
 
-    // for DEM_Application
 
     //KRATOS_REGISTER_IN_PYTHON_VARIABLE( NUMBER_OF_NEIGHBOURS ) M: it's a size_t, can't be registered
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RADIUS )
@@ -548,6 +548,7 @@ void  AddContainersToPython()
     .def("SetProjectionVariable",&ConvectionDiffusionSettings::SetProjectionVariable)
     .def("SetMeshVelocityVariable",&ConvectionDiffusionSettings::SetMeshVelocityVariable)
     .def("SetConvectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
+    .def("SetTransferCoefficientVariable",&ConvectionDiffusionSettings::SetTransferCoefficientVariable)    
     .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
     .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
     .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_internal_reference<>() )
@@ -557,6 +558,7 @@ void  AddContainersToPython()
     .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, return_internal_reference<>() )
     .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
     .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
+    .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, return_internal_reference<>())        
     ;
     class_< RadiationSettings, RadiationSettings::Pointer, boost::noncopyable >	("RadiationSettings", init<	>() )
     .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
