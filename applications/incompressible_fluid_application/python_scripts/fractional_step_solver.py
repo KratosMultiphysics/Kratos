@@ -115,7 +115,7 @@ class IncompressibleFluidSolver:
 
         self.domain_size = int(self.domain_size)
         self.laplacian_form = int(self.laplacian_form)
-        solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
+        self.solver_configuration = FractionalStepConfiguration(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form )
 
         self.ReformDofAtEachIteration = bool(self.ReformDofAtEachIteration)
         self.vel_toll = float(self.vel_toll)
@@ -125,10 +125,9 @@ class IncompressibleFluidSolver:
         self.time_order = int(self.time_order)
         self.domain_size = int(self.domain_size)
         self.predictor_corrector = bool(self.predictor_corrector)
-        self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+        self.solver = FractionalStepStrategy( self.model_part, self.solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
 	self.solver.Check()
-	
 
         self.solver.ApplyFractionalVelocityFixity()
 

@@ -18,6 +18,8 @@ domain_size = ProjectParameters.domain_size
 
 ##################################################################
 ##################################################################
+import sys
+sys.path.append(ProjectParameters.kratos_path)
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
@@ -42,7 +44,7 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 ##importing the solvers needed
 SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
-    import fractional_step_solver as solver
+    import vms_fractional_step_solver as solver
     solver.AddVariables(fluid_model_part)
 elif(SolverType == "pressure_splitting"):
     import decoupled_solver_eulerian as solver
