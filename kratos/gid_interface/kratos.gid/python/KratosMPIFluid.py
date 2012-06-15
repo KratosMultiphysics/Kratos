@@ -1,17 +1,17 @@
 #################################################################
 ##################################################################
 #import the configuration data as read from the GiD
-import mpi
 import ProjectParameters
 
 
 
 def PrintResults(model_part):
         print "Writing results. Please run Gid for viewing results of analysis."
+        local_nodes = model_part.GetCommunicator().LocalMesh().Nodes
         for variable_name in ProjectParameters.nodal_results:
-            gid_io.WriteNodalResults(varibles_dictionary[variable_name],model_part.Nodes,time,0)
+            gid_io.WriteNodalResults(variables_dictionary[variable_name],local_nodes,time,0)
         for variable_name in ProjectParameters.gauss_points_results:
-            gid_io.PrintOnGaussPoints(varibles_dictionary[variable_name],model_part,time)
+            gid_io.PrintOnGaussPoints(variables_dictionary[variable_name],model_part,time)
 
 
 
@@ -22,40 +22,21 @@ def PrintResults(model_part):
 domain_size = ProjectParameters.domain_size
 
 ##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
 import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-#importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
-
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
-applications_interface.Import_KratosTrilinosApplication = True
-applications_interface.Import_KratosMetisApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
-
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
-from KratosTrilinosApplication import *
-from KratosMetisApplication import *
+sys.path.append(ProjectParameters.kratos_path)
+from KratosMultiphysics import *
+from KratosMultiphysics.mpi import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.MetisApplication import *
 
 ## defining variables to be used
 
-varibles_dictionary = {"PRESSURE" : PRESSURE,
-                       "VELOCITY" : VELOCITY}
+variables_dictionary = {"PRESSURE" : PRESSURE,
+                       "VELOCITY" : VELOCITY,
+                       "REACTION" : REACTION,
+                       "DISTANCE" : DISTANCE,}
 
 #defining a model part for the fluid 
 fluid_model_part = ModelPart("FluidPart");  
@@ -64,8 +45,8 @@ fluid_model_part = ModelPart("FluidPart");
 ##importing the solvers needed
 SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
-    import trilinos_fs_fluid_solver
-    trilinos_fs_fluid_solver.AddVariables(fluid_model_part)
+    import trilinos_vms_fs_fluid_solver
+    trilinos_vms_fs_fluid_solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     import trilinos_monolithic_solver_eulerian
     trilinos_monolithic_solver_eulerian.AddVariables(fluid_model_part)
@@ -76,7 +57,7 @@ else:
     raise "solver type not supported: options are FractionalStep - Monolithic"
 
 #introducing input file name
-input_file_name = ProjectParameters.problem_name + "Fluid"
+input_file_name = ProjectParameters.problem_name
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -85,6 +66,23 @@ deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 model_part_io_fluid = ModelPartIO(input_file_name)
+
+number_of_partitions = mpi.size #we set it equal to the number of processors
+if mpi.rank == 0 :
+    partitioner = MetisDivideInputToPartitionsProcess(model_part_io_fluid, number_of_partitions, domain_size);
+    partitioner.Execute()
+    print "division performed"
+
+mpi.world.barrier()
+
+MPICommSetup = SetMPICommunicatorProcess(fluid_model_part)
+MPICommSetup.Execute()
+
+ccc= ParallelFillCommunicator(fluid_model_part)
+ccc.Execute()
+
+my_input_filename = input_file_name + "_" + str(mpi.rank)
+model_part_io_fluid = ModelPartIO(my_input_filename)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -95,7 +93,7 @@ else:
 
 ##adding dofs
 if(SolverType == "FractionalStep"):
-    trilinos_fs_fluid_solver.AddDofs(fluid_model_part)
+    trilinos_vms_fs_fluid_solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     trilinos_monolithic_solver_eulerian.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
@@ -119,7 +117,7 @@ for node in fluid_model_part.Nodes:
 #creating the solvers
 #fluid solver
 if(SolverType == "FractionalStep"):
-    fluid_solver = trilinos_fs_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
+    fluid_solver = trilinos_vms_fs_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
     fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
     fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
     fluid_solver.max_press_its = ProjectParameters.max_press_its
@@ -154,23 +152,17 @@ out = 0
 
 
 #mesh to be printed
-mesh_name = 0.0
+mesh_name = mpi.rank
 gid_io.InitializeMesh( mesh_name)
 gid_io.WriteMesh( fluid_model_part.GetMesh() )
 gid_io.FinalizeMesh()
 
 gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 
-
 time = 0.0
 step = 0
 while(time < final_time):
 
-    if(step < 5):
-        Dt = initial_Dt
-    else:
-        Dt = full_Dt
-        
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
@@ -179,7 +171,7 @@ while(time < final_time):
 
     if(out == output_step):
         if(SolverType == "FractionalStep"):
-            PrintResults(model_part)
+            PrintResults(fluid_model_part)
         else:
             gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
             gid_io.WriteNodalResults(AIR_PRESSURE,fluid_model_part.Nodes,time,0)

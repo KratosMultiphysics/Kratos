@@ -239,7 +239,38 @@ class IncompressibleFluidSolver:
         backupfile.close()
 
 
+    def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
+        for node in wall_nodes:
+            node.SetValue(IS_VISITED,1.0)
 
+        distance_calculator = BodyDistanceCalculationUtils()
+        distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+
+        non_linear_tol = 0.001
+        max_it = 10
+        reform_dofset = self.ReformDofAtEachIteration
+        time_order = self.time_order
+
+        turb_aztec_parameters = ParameterList()
+        turb_aztec_parameters.set("AZ_solver","AZ_gmres");
+        turb_aztec_parameters.set("AZ_kspace",100);
+        turb_aztec_parameters.set("AZ_output","AZ_none");
+
+        turb_preconditioner_type = "ILU"
+        turb_preconditioner_parameters = ParameterList()
+        turb_overlap_level = 0
+        turb_nit_max = 1000
+        turb_linear_tol = 1e-9
+
+        turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
+        turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+
+        turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+        turbulence_model.AdaptForFractionalStep()
+        if(DES==True):
+            turbulence_model.ActivateDES(CDES);
+
+        self.solver.AddInitializeIterationProcess(turbulence_model);
 
         
 
