@@ -17,19 +17,19 @@ def AddVariables(model_part):
 ##    model_part.AddNodalSolutionStepVariable(ADVPROJ)
     model_part.AddNodalSolutionStepVariable(DIVPROJ)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
-##    model_part.AddNodalSolutionStepVariable(NODAL_MASS);
     model_part.AddNodalSolutionStepVariable(BODY_FORCE);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(VISCOSITY);
-##    model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
-
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE);
-##    model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
-##    model_part.AddNodalSolutionStepVariable(ARRHENIUS);
     model_part.AddNodalSolutionStepVariable(REACTION);
-
+    model_part.AddNodalSolutionStepVariable(Y_WALL);
+    model_part.AddNodalSolutionStepVariable(NORMAL)
+    model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+    model_part.AddNodalSolutionStepVariable(DISTANCE)
     print "variables for the vms fluid solver added correctly"
 
 def AddDofs(model_part):
@@ -37,30 +37,11 @@ def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
         node.AddDof(PRESSURE);
-##        node.AddDof(FRACT_VEL_X);
-##        node.AddDof(FRACT_VEL_Y);
-##        node.AddDof(FRACT_VEL_Z);
         node.AddDof(VELOCITY_X);
         node.AddDof(VELOCITY_Y);
         node.AddDof(VELOCITY_Z);
 
     print "dofs for the vms fluid solver added correctly"
-    
-##def ReadRestartFile(FileName,nodes):
-##   aaa = __import__(FileName)
-##   aaa.Restart(nodes)
-
-def ReadRestartFile(FileName,nodes):
-   NODES = nodes
-   aaa = open(FileName)
-   for line in aaa:
-       exec(line)
-       
-##   import start.pyinc
-   
-##   aaa = __import__(FileName)
-##   aaa.Restart(nodes)
-
    
 
 class IncompressibleFluidSolver:
@@ -99,12 +80,6 @@ class IncompressibleFluidSolver:
         self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
-##        self.activate_tau2 = False
-
-
-##        ##handling slip condition
-##        self.slip_conditions_initialized = False
-##        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
 
         self.compute_reactions=False
         
@@ -138,6 +113,20 @@ class IncompressibleFluidSolver:
 ##        self.solver = FractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
 
         MoveMeshFlag = False
+
+        # check if slip conditions are defined
+        if self.use_slip_conditions == False:
+            for cond in self.model_part.Conditions:
+                if cond.GetValue(IS_STRUCTURE) != 0.0:
+                    self.use_slip_conditions = True
+                    break
+
+        # if we use slip conditions, calculate normals on the boundary
+        if self.use_slip_conditions == True:
+            self.normal_util = NormalCalculationUtils()
+            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+            
+       
 
 ##        self.solver = FSStrategy(self.model_part,
 ##                                 self.velocity_linear_solver,
@@ -195,11 +184,6 @@ class IncompressibleFluidSolver:
         self.solver = FSStrategy(self.model_part,
                                  self.solver_settings,
                                  self.predictor_corrector)
-
-        if self.use_slip_conditions == True:
-            self.normal_util = NormalCalculationUtils()
-            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
-            
 
 	self.solver.Check()
 
