@@ -1,0 +1,6 @@
+//defines for the kratos version
+#define  KRATOS_MAJOR_VERSION  @KratosMultiphysics_VERSION_MAJOR@ 
+#define  KRATOS_MINOR_VERSION  @KratosMultiphysics_VERSION_MINOR@ 
+
+//svn version at configure time
+#define  KRATOS_SVN_REVISION  @KRATOS_SVN_REVISION_WC_REVISION@ 
