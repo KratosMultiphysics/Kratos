@@ -1,6 +1,16 @@
 cmake_minimum_required (VERSION 2.8)
 project (KratosMultiphysics)
 
+#set here the version number **** only update upon tagging a release!
+set (KratosMultiphysics_VERSION_MAJOR 3)
+set (KratosMultiphysics_VERSION_MINOR 0)
+
+#get subversion data. This is done automagically by the cmake
+include(FindSubversion)
+Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVNVERSION)
+
+configure_file(config.h.in "${PROJECT_SOURCE_DIR}/config.h" @ONLY)
+
 #set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX}) 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -ffast-math -Wall -Wno-strict-aliasing -ansi")
