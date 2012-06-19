@@ -1,0 +1,88 @@
+BOOK: DEM Materials
+
+NUMBER: 1 MATERIAL: Steel
+
+QUESTION: Continuum_group
+VALUE: 0
+
+QUESTION: Particle_density
+VALUE: 7850
+
+QUESTION: Young_modulus
+VALUE: 2.1e11
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Cohesion
+VALUE: 4.16e6
+
+QUESTION: Friction(Deg)
+VALUE: 45
+
+QUESTION: Tension
+VALUE: 2.01e6
+
+QUESTION: LocalDampRatio
+VALUE: 0.1
+
+QUESTION: Static_friction_coef
+VALUE: 0
+
+QUESTION: Dynamic_friction_coef
+VALUE: 0
+
+QUESTION: Zeta_value
+VALUE: 0.1
+
+QUESTION: Restitution_coef
+VALUE: 0.5
+
+QUESTION: Colour
+VALUE: 14
+
+END MATERIAL
+
+NUMBER: 1 MATERIAL: Mat2
+
+QUESTION: Continuum_group
+VALUE: 1
+
+QUESTION: Particle_density
+VALUE: 7850
+
+QUESTION: Young_modulus
+VALUE: 2.1e11
+
+QUESTION: Poisson_ratio
+VALUE: 0.2
+
+QUESTION: Cohesion
+VALUE: 4.16e6
+
+QUESTION: Friction(Deg)
+VALUE: 45
+
+QUESTION: Tension
+VALUE: 2.01e6
+
+QUESTION: LocalDampRatio
+VALUE: 0.1
+
+QUESTION: Static_friction_coef
+VALUE: 0
+
+QUESTION: Dynamic_friction_coef
+VALUE: 0
+
+QUESTION: Zeta_value
+VALUE: 0.1
+
+QUESTION: Restitution_coef
+VALUE: 0.5
+
+QUESTION: Colour
+VALUE: 30
+
+END MATERIAL
+
