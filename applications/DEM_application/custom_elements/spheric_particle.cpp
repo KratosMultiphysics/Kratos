@@ -223,7 +223,6 @@ namespace Kratos
 
             const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
-
             double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME];
             int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];
             int type_id                         = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
@@ -276,8 +275,11 @@ namespace Kratos
             //COMPROBAR QUE ES ZERO DEL INITIALIZE SOLUTION STEP
 
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
-            force  = mass*gravity + applied_force;
 
+            force  = mass*gravity + applied_force;
+        KRATOS_WATCH(mass)
+                KRATOS_WATCH(gravity)
+            KRATOS_WATCH(force)
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
             
@@ -513,7 +515,7 @@ namespace Kratos
 
                 // VISCODAMPING (applyied locally)
 
-                        if (damp_id == 2)  
+                        if (damp_id == 2 || damp_id == 3 )
                         {
 
                             double visco_damping[3] = {0,0,0};
@@ -846,7 +848,7 @@ namespace Kratos
 
                 if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
                 {
-                    Output = Output * 0.5;
+                    Output = Output * 0.5; //factor for critical time step when rotation is allowed.
                 }
             } //CRITICAL DELTA CALCULATION
 
@@ -855,7 +857,7 @@ namespace Kratos
                 int damp_id             = rCurrentProcessInfo[DAMP_TYPE];
                 int rotation_OPTION     = rCurrentProcessInfo[ROTATION_OPTION];
 
-                if (damp_id == 1)
+                if (damp_id == 1 || damp_id == 3 )
                 {
                    ApplyLocalForcesDamping( rCurrentProcessInfo );
 

@@ -91,7 +91,7 @@ void  AddCustomUtilitiesToPython(){
         HertzianSphereWeakIteratorType, HertzianSphereIteratorType, HertzianSpherePointerIteratorType, HertzianSphereDistanceVectorType, HertzianSphereDistanceIteratorType>::CalculateSurroundingBoundingBox)
     .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, HertzianSphereType, HertzianSpherePointerType, HertzianSphereVectorType, HertzianSphereWeakVectorType, HertzianSpherePointerVectorType,
         HertzianSphereWeakIteratorType, HertzianSphereIteratorType, HertzianSpherePointerIteratorType, HertzianSphereDistanceVectorType, HertzianSphereDistanceIteratorType>::DestroyDistantParticles);
-  */
+*/
     }
 }  // namespace Python.
 

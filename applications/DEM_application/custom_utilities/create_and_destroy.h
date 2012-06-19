@@ -19,7 +19,8 @@
 #include "utilities/timer.h"
 
 //Database includes
-#include "custom_utilities/particle_configure.h"
+#include "custom_utilities/discrete_particle_configure.h"
+#include "discrete_particle_configure.h"
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
@@ -47,6 +48,7 @@ namespace Kratos
 /** Detail class definition.
  */
 
+/*
 template <std::size_t TDim,
          class TParticle,
          class TParticlePointer,
@@ -59,25 +61,18 @@ template <std::size_t TDim,
          class TDistanceVector,
          class TDistanceIterator
          >
+ */
 
 class Particle_Creator_Destructor
 {
 public:
 
-    ///@name Type Definitions
-    ///@{
-    typedef TParticle Particle;
-    typedef TParticlePointer ParticlePointer;
-    typedef TParticleVector ParticleVector;
-    typedef TParticleWeakVector ParticleWeakVector;
-    typedef TParticlePointerVector ParticlePointerVector;
-    typedef TParticleIterator ParticleIterator;
-    typedef TParticleWeakIterator ParticleWeakIterator;
-    typedef TParticlePointerIterator ParticlePointerIterator;
-    typedef TDistanceVector DistanceVector;
-    typedef TDistanceIterator DistanceIterator;
+        static const std::size_t space_dim                  = 3; ///WARNING: generalize to 2d.
+        typedef DiscreteParticleConfigure<space_dim>        Configure;
+        typedef Configure::ContainerType                    ParticlePointerVector;
+        typedef Configure::IteratorType                     ParticleIterator;
 
-    /// Pointer definition of Particle_Creator_Destructor
+
     KRATOS_CLASS_POINTER_DEFINITION(Particle_Creator_Destructor);
 
     ///@}
@@ -100,15 +95,17 @@ public:
 
     void CalculateSurroundingBoundingBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double scale_factor)
     {
+
+        
         KRATOS_TRY
-        double ref_radius = (*(vector_of_particle_pointers.begin().base()))->GetRadius();
-        array_1d<double, 3 > coor = (*(vector_of_particle_pointers.begin().base()))->GetPosition();
+        double ref_radius = (*(vector_of_particle_pointers.begin().base()))->GetValue(RADIUS);
+        array_1d<double, 3 > coor = (*(vector_of_particle_pointers.begin().base()))->GetGeometry()(0)->Coordinates();
         mLowPoint = coor;
         mHighPoint = coor;
-        for (ParticlePointerIterator particle_pointer_it = vector_of_particle_pointers.begin();
+        for (ParticleIterator particle_pointer_it = vector_of_particle_pointers.begin();
                 particle_pointer_it != vector_of_particle_pointers.end(); ++particle_pointer_it)
         {
-            coor = (*(particle_pointer_it.base()))->GetPosition();
+            coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
             for (std::size_t i = 0; i < 3; i++)
             {
                 mLowPoint[i] = (mLowPoint[i] > coor[i]) ? coor[i] : mLowPoint[i];
@@ -131,21 +128,23 @@ public:
         KRATOS_WATCH(mLowPoint);
         KRATOS_WATCH(mHighPoint);
         KRATOS_CATCH("")
+         
     }
 
     void DestroyDistantParticles(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part)
     {
+        
         KRATOS_TRY
-        ModelPart::NodesContainerType temp_nodes_container;
+        ModelPart::ElementsContainerType temp_nodes_container;
         ParticlePointerVector temp_particles_container;
-        temp_nodes_container.reserve(model_part.Nodes().size());
+        temp_nodes_container.reserve(model_part.Elements().size());
         temp_particles_container.reserve(vector_of_particle_pointers.size());
-        temp_nodes_container.swap(model_part.Nodes());
+        temp_nodes_container.swap(model_part.Elements());
         temp_particles_container.swap(vector_of_particle_pointers);
-        for (ParticlePointerIterator particle_pointer_it = temp_particles_container.begin();
+        for (ParticleIterator particle_pointer_it = temp_particles_container.begin();
                 particle_pointer_it != temp_particles_container.end(); ++particle_pointer_it)
         {
-            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetPosition();
+            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
             bool include = true;
             for (std::size_t i = 0; i < 3; i++)
             {
@@ -154,15 +153,17 @@ public:
             if (include)
             {
                 vector_of_particle_pointers.push_back(*(particle_pointer_it.base()));
-                model_part.Nodes().push_back((*(particle_pointer_it.base()))->GetPointerToCenterNode());
+                model_part.Elements().push_back(*(particle_pointer_it.base()));
             }
         }
         KRATOS_CATCH("")
+        
     }
 
     void DestroyDistantParticlesGivenBBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, array_1d<double, 3 > low_point,
                                           array_1d<double, 3 > high_point)
     {
+        /*
         KRATOS_TRY
         mLowPoint = low_point;
         mHighPoint = high_point;
@@ -188,6 +189,7 @@ public:
             }
         }
         KRATOS_CATCH("")
+         */
     }
 
 
@@ -313,8 +315,10 @@ private:
 
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable)
     {
+        /* ///WARNING M: aixo activar-ho també
         double& Aux_var = (particle_it->GetPointerToCenterNode()).FastGetSolutionStepValue(rVariable, 0);
         Aux_var = 0.0;
+         */
     }
 
     ///@}

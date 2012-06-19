@@ -41,6 +41,7 @@ namespace Kratos
         KRATOS_CREATE_VARIABLE(Vector, INITIAL_AXES_TRACKING)
         KRATOS_CREATE_VARIABLE(int, plot_OPTIONS)
 
+
         //M:possible future blocks (no FEM) interaction
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FAILURE_ID)
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FORCE)

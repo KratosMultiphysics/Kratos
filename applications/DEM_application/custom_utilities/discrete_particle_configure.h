@@ -301,4 +301,4 @@ private:
     ///@}
 
 }   // namespace Kratos.
-#endif	/* PARTICLE_CONFIGURE_H */
+#endif	/* DISCRETE_PARTICLE_CONFIGURE_H */

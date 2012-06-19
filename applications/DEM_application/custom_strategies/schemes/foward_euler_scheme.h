@@ -99,7 +99,7 @@ namespace Kratos
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
 
 	     aux = delta_t / mass;
-
+             
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
              {

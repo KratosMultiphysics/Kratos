@@ -471,8 +471,6 @@ namespace Kratos
         }
     }
 
-
-
     void DEM_FEM_Particle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
     {
 
@@ -488,7 +486,6 @@ namespace Kratos
             }
         }
     }
-
 
     //************************************************************************************
     //************************************************************************************
