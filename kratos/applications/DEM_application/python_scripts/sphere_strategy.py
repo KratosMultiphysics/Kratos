@@ -62,17 +62,20 @@ class ExplicitStrategy:
         self.fraction_delta_time            = 0.90;
         self.MoveMeshFlag                   = True;
         self.time_scheme                    = FowardEulerScheme();
-        self.gravity                        = (0.0,-9.81,0.0)
+        self.gravity                        = Vector(3)#(0.0,-9.81,0.0)
+        self.gravity[0] = 0.0
+        self.gravity[1] = -9.81
+        self.gravity[2] = 0.0
         self.delta_time                     = 0.00001;
-
+      
         #type of problem:
 
-        self.delta_OPTION                   = True
-        self.continuum_simulating_OPTION    = True
+        self.delta_OPTION                   = False
+        self.continuum_simulating_OPTION    = False
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
 
-        self.rotation_OPTION                = 1 #CANVIAR AIXO, ENTRADA GID
-        self.rotation_spring_OPTION         = 1 #CANVIAR AIXO, ENTRADA GID
+        self.rotation_OPTION                = 0  #its 1/0 xapuza
+        self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
 
         #problem specific parameters
 
@@ -83,14 +86,19 @@ class ExplicitStrategy:
 
         self.dummy_switch                   =0
 
-      
-    #######################################################################
-  
+        #problem utilities
+        self.enlargement_factor             = 1;
+        self.n_step_search                  = 1;
+        self.safety_factor                  = 1; #for critical time step
+
+    ######################################################################
 
     def Initialize(self):
 
         #definir les variables del ProcessInfo:
+      
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
         #POOOYAAAAN NO EM VAN AKESTS NO ELS CONEIX PYTON DE BOOL A BOOL
@@ -124,7 +132,7 @@ class ExplicitStrategy:
 
 
         #creating the solution strategy
-        self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size,  self.damping_ratio, self.fraction_delta_time, self.delta_time,
+        self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size,  self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
                                             self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
@@ -140,4 +148,9 @@ class ExplicitStrategy:
     def Solve(self):
         (self.solver).Solve()
     
-    
+     #######################################################################
+
+    def Calculate_Model_Surrounding_Bounding_Box(self, enlargement_factor):
+        self.solver.BoundingBoxUtility()
+         ## be sure that after this we search for neighbours again.
+  

@@ -115,6 +115,8 @@ namespace Kratos
 			      const double     damping_ratio,       ///para calcular la matriz de amortiguamiento proporcional a la masa
                               const double     fraction_delta_time,
                               const double     max_delta_time,
+                              const double     n_step_search,
+                              const double     safety_factor,
 		              const bool       MoveMeshFlag,
                               const bool       delta_option,
                               const bool       continuum_simulating_option,
@@ -128,7 +130,7 @@ namespace Kratos
 
                            mdelta_option                = delta_option;
                            mcontinuum_simulating_option = continuum_simulating_option;
-                           mvirtual_mass                = false;  //M: it needs to be implemented.
+                           mvirtual_mass                = false;  //M: it has to be implemented.
                            mElementsAreInitialized      = false;
 			   mConditionsAreInitialized    = false;
 			   mCalculateOldTime            = false;
@@ -144,6 +146,9 @@ namespace Kratos
                            mpScheme                     = pScheme;
                            
                            mtimestep                    = max_delta_time;
+                           mnstepsearch                 = n_step_search;
+                           msafety_factor               = safety_factor;
+
 
 
 
@@ -158,15 +163,16 @@ namespace Kratos
      //    KRATOS_WATCH("NO HA FALLAT0")
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
-	ProcessInfo& CurrentProcessInfo      = r_model_part.GetProcessInfo();
-	
+	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+
+        int time_step = rCurrentProcessInfo[TIME_STEPS];
 	/*
 	#ifdef _OPENMP
 	double start_prod = omp_get_wtime();   
 	#endif
 	*/
         std::cout<<"------------------------------------------------------------------------"<<std::endl;
-        std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           << CurrentProcessInfo[TIME_STEPS]     <<std::endl;                                                    
+        std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           <<  time_step    <<std::endl;
 	std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	
 
@@ -193,8 +199,12 @@ namespace Kratos
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
-       //3. Búsqueda de veins
-        SearchNeighbours(r_model_part,false); //extension option false;
+       //3. Neighbouring search. Every N times.
+        
+        if ( (time_step + 1)%mnstepsearch == 0 )
+        {
+            SearchNeighbours(r_model_part,false); //extension option false;
+        }
 
 	
         /*
@@ -233,7 +243,7 @@ namespace Kratos
       }
 
 
-
+//M: A IMPLEMENTAR PER PROBLEMES STATICS
        /*
          void CalculateVirtualMass()
         {
@@ -244,7 +254,7 @@ namespace Kratos
               ModelPart& r_model_part          = BaseType::GetModelPart();
               ElementsArrayType& pElements     = r_model_part.Elements();
 
-              ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
+              ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
 
               //NodesArrayType &pNode            = r_model_part.Nodes();
               typename NodesArrayType::iterator inode;
@@ -268,7 +278,7 @@ namespace Kratos
                    if (geom.size() == 1)
                    {
                       VirtualMass = Young * M_PI * it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                      if(CurrentProcessInfo[PARTICLE_IF_CAL_ROTATE] == 1)
+                      if(rCurrentProcessInfo[PARTICLE_IF_CAL_ROTATE] == 1)
                       {
                           VirtualMass = VirtualMass * 2.5;
                       }
@@ -308,17 +318,21 @@ namespace Kratos
        //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
-        //ProcessInfo& CurrentProcessInfo  = r_model_part.GetProcessInfo();
+        //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+
+
+        //1. Search Neighbours with tolerance
 
         bool extension_option = true;
         SearchNeighbours(r_model_part,extension_option);
 
-        ///Initializing elements
+        //2. Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
 	  mInitializeWasPerformed   = true;
 
-          // if (self.delta_OPTION==True or self.continuum_simulating_OPTION==True):
+
+        // 3. Set Initial Contacts
           if(mdelta_option || mcontinuum_simulating_option){
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
 
@@ -364,6 +378,7 @@ namespace Kratos
                         //(it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
 
                     (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
+
                 //we use this function to call the calculate forces in general funct.
 
              } //loop over particles
@@ -389,8 +404,8 @@ namespace Kratos
 
             KRATOS_TRY
 
-            ModelPart& r_model_part          = BaseType::GetModelPart();
-            ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+            ModelPart& r_model_part             = BaseType::GetModelPart();
+            ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
 
             if(mvirtual_mass == true)
             {
@@ -419,8 +434,8 @@ namespace Kratos
                           mtimestep = TimeStepTemp;
                       }
                   }
-                  double safety_factor = 0.5;
-                  mtimestep = safety_factor * mtimestep;
+               
+                  mtimestep = msafety_factor * mtimestep;
 
                   std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
             }
@@ -525,6 +540,29 @@ namespace Kratos
 
 	}
 
+       	void BoundingBoxUtility(double enlargement_factor)
+	{
+        
+        KRATOS_TRY
+
+        ModelPart& r_model_part              = BaseType::GetModelPart();
+	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+          
+        Calculate_Surrounding_Bounding_Box(r_model_part,enlargement_factor);
+        
+        //Destroy_Distant_Particles(r_model_part);
+
+
+
+
+        KRATOS_CATCH("")
+
+
+	} //BoundingBoxUtility()
+
+
+
+
 
          /*
           *
@@ -591,8 +629,11 @@ namespace Kratos
     double mfraction_delta_time;
     double mmax_delta_time;
     double molddelta_time;
-    double mtimestep;  
+    double mtimestep;
+    int    mnstepsearch;
+    double msafety_factor;
 
+ 
     typename IntegrationScheme::Pointer mpScheme;
 
      
@@ -675,9 +716,7 @@ namespace Kratos
           }// loop threads OpenMP
 
         //modifying a switch
-
-        
-         
+      
         KRATOS_CATCH("")
       }  //Set_Initial_Contacts
 
@@ -710,6 +749,17 @@ namespace Kratos
              Neighbours_Calculator<3, ParticleType>::Search_Neighbours(pElements,  rCurrentProcessInfo, extension_option);
 
       }//SearchNeighbours
+
+
+ 
+
+   void  Calculate_Surrounding_Bounding_Box(ModelPart r_model_part, double enlargement_factor)
+
+       {
+/*
+    CalculateSurroundingBoundingBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double scale_factor)
+*/
+   }//Calculate Surrounding Bounding Box
 
     
     }; // Class ExplicitSolverStrategy 
