@@ -38,15 +38,18 @@ solver = SolverStrategy.ExplicitStrategy(solid_model_part, dimension);
 
 ##Obtaning options and values
 
-solver_strategy = DEM_explicit_solver_var.Solver
-if (solver_strategy == 'forward_euler'):
-    solver_id = 1
-elif (solver_strategy == 'runge_kutta_4 '):
-    solver_id = 2
-else :
-    solver_id = 3
+integration_scheme = DEM_explicit_solver_var.Integration_Scheme
+if (integration_scheme == 'forward_euler'):
+    time_scheme = FowardEulerScheme()
+elif (integration_scheme == 'mid_point_rule'):
+    time_scheme = MidPointScheme()
+elif (integration_scheme == 'const_average_acc'):
+    time_scheme = ConstAverageAccelerationScheme()
+else:
+    print('scheme not defined')
 
 solution_type = DEM_explicit_solver_var.SolutionType
+
 if(solution_type == "Absolutal"):
     type_id = 2
 else:
@@ -80,7 +83,7 @@ rotation_spring_option=DEM_explicit_solver_var.RotationalSpringOption
 if(delta_option=="OFF"):
   search_radius_extension=0.0;
 
-solver.solver_id=solver_id
+solver.time_scheme=time_scheme
 solver.type_id=type_id
 
 

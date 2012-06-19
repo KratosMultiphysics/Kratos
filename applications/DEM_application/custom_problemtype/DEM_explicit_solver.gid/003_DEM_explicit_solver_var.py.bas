@@ -1,5 +1,5 @@
 domain_size = *GenData(Dimensions)
-Solver = "*GenData(Solver)"
+Integration_Scheme = "*GenData(Integration_Scheme)"
 SolutionType = "*GenData(SolutionType)"
 DampRatioType = "*GenData(DampRatioType)"
 DeltaOption = "*GenData(Delta_Option)"

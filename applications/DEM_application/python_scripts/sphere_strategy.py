@@ -81,7 +81,6 @@ class ExplicitStrategy:
 
         self.force_calculation_type_id      =1
         self.damp_id                        =1
-        self.solver_id                      =1
         self.search_radius_extension        = 0.0
 
         self.dummy_switch                   =0
@@ -128,9 +127,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
-        #self.model_part.ProcessInfo.SetValue(SOLVER_ID, self.solver_id) AIXO NO ES TA FET PERO NOSE SI SA DE FER AIXI O NO.
-
-
+       
         #creating the solution strategy
         self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size,  self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
                                             self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)

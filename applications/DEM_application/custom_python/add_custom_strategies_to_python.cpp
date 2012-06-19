@@ -82,6 +82,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //schemes
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/foward_euler_scheme.h"
+#include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -115,6 +116,13 @@ namespace Kratos
                    "FowardEulerScheme", init<>()
                   )
                   ;
+
+                  class_< ConstAverageAccelerationScheme, bases<IntegrationScheme>,  boost::noncopyable>
+		  (
+                   "ConstAverageAccelerationScheme", init<>()
+                  )
+                  ;
+
                   
 		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
 		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>

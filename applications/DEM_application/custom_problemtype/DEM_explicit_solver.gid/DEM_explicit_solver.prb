@@ -4,7 +4,7 @@ PROBLEM DATA
 BOOK: Problem Parameters
 QUESTION: Number_of_processors
 VALUE: 1
-QUESTION: Solver#CB#(forward_euler,runge_kutta_4,mid_point_rule)
+QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
 VALUE: forward_euler
 QUESTION: SolutionType#CB#(Incremental,Absolutal)
 VALUE: Incremental
