@@ -158,12 +158,12 @@ public:
 
     void Set(FlagType ThisFlag)
     {
-            mFlags |= ThisFlag;
+      mFlags |= ThisFlag;
     }
 
     void Reset(FlagType ThisFlag)
     {
-            mFlags &= ~ThisFlag;
+      mFlags &= (~ThisFlag);
     }
 
     void SetPosition(IndexType Position, bool Value=true )
@@ -221,7 +221,7 @@ public:
 
     bool Is(FlagType ThisFlag)
     {
-        return (mFlags & ThisFlag);
+      return (mFlags & ThisFlag);
     }
 
 
@@ -239,7 +239,7 @@ public:
 
     bool IsNot(FlagType ThisFlag)
     {
-        return (mFlags & ThisFlag);
+        return !(mFlags & ThisFlag);
     }
 
 
