@@ -60,12 +60,16 @@ public:
 
     typedef int64_t BlockType;
 
+    typedef int64_t FlagType;
+
     typedef std::size_t IndexType;
 
-    enum FlagList
+    static const BlockType Flag1 = BlockType(1);
+
+    enum FlagsList
     {
-        Flag0 = BlockType(1),
-        Flag1 = BlockType(1) << 1,
+      //Flag0 = BlockType(1),
+      // Flag1 = BlockType(1) << 1,
         Flag2 = BlockType(1) << 2,
         Flag3 = BlockType(1) << 3,
         Flag4 = BlockType(1) << 4,
@@ -114,7 +118,7 @@ public:
     }
 
     template<class TFlagsType>
-    Flags(TFlagsType const& rOther)
+    Flags(TFlagsType rOther)
     {
         mFlags=static_cast<BlockType>(rOther);
     }
@@ -154,33 +158,33 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(FlagType ThisFlag )
+    void Set(BlockType ThisFlag)
     {
             mFlags |= ThisFlag;
     }
 
-    void Reset(FlagType ThisFlag )
+    void Unset(BlockType ThisFlag)
     {
             mFlags &= ~ThisFlag;
     }
 
-    void SetPosition(IndexType Position, bool Value=true )
-    {
-        if(Value)
-            mFlags |= (1 << Position);
-        else
-            mFlags &= ~(1 << Position);
-    }
+    /* void Set(IndexType Position, bool Value=true ) */
+    /* { */
+    /*     if(Value) */
+    /*         mFlags |= (1 << Position); */
+    /*     else */
+    /*         mFlags &= ~(1 << Position); */
+    /* } */
 
-    bool GetPosition(IndexType Position) const
-    {
-        return (mFlags & (1 << Position));
-    }
+    /* bool Get(IndexType Position) const */
+    /* { */
+    /*     return (mFlags & (1 << Position)); */
+    /* } */
 
-    void Clear(IndexType Position)
-    {
-        Set(Position,false);
-    }
+    /* void Clear(IndexType Position) */
+    /* { */
+    /*     SetPosition (Position,false); */
+    /* } */
 
     void Clear()
     {
@@ -203,9 +207,15 @@ public:
         return (mFlags & Flag);
     }
 
-    bool Is(Flags rOther)
+
+    bool Is(Flags const & rOther)
     {
         return (mFlags & rOther.mFlags);
+    }
+
+    bool Is(BlockType ThisFlag)
+    {
+        return (mFlags & ThisFlag);
     }
 
 
@@ -220,6 +230,11 @@ public:
         return !(mFlags & rOther.mFlags);
     }
 
+
+    bool IsNot(BlockType ThisFlag)
+    {
+        return (mFlags & ThisFlag);
+    }
 
 
     ///@}
