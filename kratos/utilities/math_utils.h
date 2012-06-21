@@ -541,37 +541,167 @@ public:
 
     //***********************************************************************
     //***********************************************************************
-    static inline MatrixType StressVectorToTensor(const Vector& StressVector)
+
+   /**
+     * Transforms a stess vector into a matrix. Stresses are assumed to be stored
+     * in the following way:
+     * \f$ [ s11, s22, s33, s12, s23, s13 ] \f$ for 3D case and
+     * \f$ [ s11, s22, s12 ] \f$ fir 2D case.
+     * @param rStressVector the given stress vector
+     * @return the corresponding stress tensor in matrix form
+     */
+    static inline MatrixType StressVectorToTensor(const Vector& rStressVector)
     {
-        KRATOS_TRY
-        Matrix StressTensor;
+      KRATOS_TRY
+      Matrix StressTensor;
 
-        if (StressVector.size()==3)
+      if (rStressVector.size()==3)
         {
-            StressTensor.resize(2,2);
-            StressTensor(0,0) = StressVector[0];
-            StressTensor(0,1) = StressVector[2];
-            StressTensor(1,0) = StressVector[2];
-            StressTensor(1,1) = StressVector[1];
+	  StressTensor.resize(2,2,false);
+	  StressTensor(0,0) = rStressVector[0];
+	  StressTensor(0,1) = rStressVector[2];
+	  StressTensor(1,0) = rStressVector[2];
+	  StressTensor(1,1) = rStressVector[1];
         }
-        else if (StressVector.size()==6)
+      else if (rStressVector.size()==6)
         {
-            StressTensor.resize(3,3);
-            StressTensor(0,0) = StressVector[0];
-            StressTensor(0,1) = StressVector[3];
-            StressTensor(0,2) = StressVector[5];
-            StressTensor(1,0) = StressVector[3];
-            StressTensor(1,1) = StressVector[1];
-            StressTensor(1,2) = StressVector[4];
-            StressTensor(2,0) = StressVector[5];
-            StressTensor(2,1) = StressVector[4];
-            StressTensor(2,2) = StressVector[2];
+	  StressTensor.resize(3,3,false);
+	  StressTensor(0,0) = rStressVector[0];
+	  StressTensor(0,1) = rStressVector[3];
+	  StressTensor(0,2) = rStressVector[5];
+	  StressTensor(1,0) = rStressVector[3];
+	  StressTensor(1,1) = rStressVector[1];
+	  StressTensor(1,2) = rStressVector[4];
+	  StressTensor(2,0) = rStressVector[5];
+	  StressTensor(2,1) = rStressVector[4];
+	  StressTensor(2,2) = rStressVector[2];
         }
 
-        return StressTensor;
-        KRATOS_CATCH("")
+      return StressTensor;
+      KRATOS_CATCH("")
 
     }
+
+    /**
+     * Transforms a strain vector into a matrix. Strains are assumed to be stored
+     * in the following way:
+     * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
+     * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
+     * Hence the deviatoric components of the strain vector are divided by 2
+     * while they are stored into the matrix
+     * @param rStrainVector the given strain vector
+     * @return the corresponding strain tensor in matrix form
+     */
+    static inline MatrixType StrainVectorToTensor( const VectorType& rStrainVector)
+    {
+      KRATOS_TRY
+      Matrix StrainTensor;
+
+      if (rStrainVector.size()==3)
+        {
+	  StrainTensor.resize(2,2, false);
+	  StrainTensor(0,0) = rStrainVector[0];
+	  StrainTensor(0,1) = 0.5*rStrainVector[2];
+	  StrainTensor(1,0) = 0.5*rStrainVector[2];
+	  StrainTensor(1,1) = rStrainVector[1];
+        }
+      else if (rStrainVector.size()==6)
+        {
+	  StrainTensor.resize(3,3, false);
+	  StrainTensor(0,0) = rStrainVector[0];
+	  StrainTensor(0,1) = 0.5*rStrainVector[3];
+	  StrainTensor(0,2) = 0.5*rStrainVector[5];
+	  StrainTensor(1,0) = 0.5*rStrainVector[3];
+	  StrainTensor(1,1) = rStrainVector[1];
+	  StrainTensor(1,2) = 0.5*rStrainVector[4];
+	  StrainTensor(2,0) = 0.5*rStrainVector[5];
+	  StrainTensor(2,1) = 0.5*rStrainVector[4];
+	  StrainTensor(2,2) = rStrainVector[2];
+        }
+
+      return StrainTensor;
+      KRATOS_CATCH("")
+    }
+
+
+    /**
+    * Transforms a given symmetric Strain Tensor to Voigt Notation:
+    * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+    * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
+    * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
+    * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
+    * @param rStrainTensor the given symmetric second order strain tensor
+    * @return the corresponding strain tensor in vector form
+    */
+
+    static inline Vector StrainTensorToVector( const Matrix& rStrainTensor )
+    {
+      KRATOS_TRY
+
+      Vector StrainVector;
+
+      if (rStrainTensor.size1()==2)
+        {
+	  StrainVector.resize(3);
+	  StrainVector[0] = rStrainTensor(0,0);
+	  StrainVector[1] = rStrainTensor(1,1);
+	  StrainVector[2] = 2.00*rStrainTensor(0,1);
+        }
+      else if (rStrainTensor.size1()==3)
+        {
+	  StrainVector.resize(6);
+	  StrainVector[0] = rStrainTensor(0,0);
+	  StrainVector[1] = rStrainTensor(1,1);
+	  StrainVector[2] = rStrainTensor(2,2);
+	  StrainVector[3] = 2.00*rStrainTensor(0,1);
+	  StrainVector[4] = 2.00*rStrainTensor(1,2);
+	  StrainVector[5] = 2.00*rStrainTensor(0,2);
+        }
+
+
+      return StrainVector;
+      KRATOS_CATCH("")
+     }
+
+
+    /**
+    * Transforms a given symmetric Stress Tensor to Voigt Notation:
+    * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+    * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
+    * @param rStressTensor the given symmetric second order stress tensor
+    * @return the corresponding stress tensor in vector form
+    */
+    static inline Vector StressTensorToVector(const Matrix& rStressTensor)
+    {
+
+      KRATOS_TRY
+
+      Vector StressVector;
+
+      if (rStressTensor.size1()==2)
+        {
+	  StressVector.resize(3);
+	  StressVector[0]= rStressTensor(0,0);
+	  StressVector[1]= rStressTensor(1,1);
+	  StressVector[2]= rStressTensor(0,1);
+        }
+      else if (rStressTensor.size1()==3)
+        {
+	  StressVector.resize(6);
+	  StressVector[0]= rStressTensor(0,0);
+	  StressVector[1]= rStressTensor(1,1);
+	  StressVector[2]= rStressTensor(2,2);
+	  StressVector[3]= rStressTensor(0,1);
+	  StressVector[4]= rStressTensor(1,2);
+	  StressVector[5]= rStressTensor(0,2);
+        }
+        
+      return StressVector;
+      KRATOS_CATCH("")
+     }
+
+
+
     /*@} */
     /**@name Acces */
     /*@{ */
