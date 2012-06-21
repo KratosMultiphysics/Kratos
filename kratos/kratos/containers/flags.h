@@ -64,12 +64,10 @@ public:
 
     typedef std::size_t IndexType;
 
-    static const BlockType Flag1 = BlockType(1);
-
     enum FlagsList
     {
-      //Flag0 = BlockType(1),
-      // Flag1 = BlockType(1) << 1,
+        Flag0 = BlockType(1),
+        Flag1 = BlockType(1) << 1,
         Flag2 = BlockType(1) << 2,
         Flag3 = BlockType(1) << 3,
         Flag4 = BlockType(1) << 4,
@@ -158,34 +156,42 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(BlockType ThisFlag)
+    void Set(FlagType ThisFlag)
     {
             mFlags |= ThisFlag;
     }
 
-    void Unset(BlockType ThisFlag)
+    void Reset(FlagType ThisFlag)
     {
             mFlags &= ~ThisFlag;
     }
 
-    /* void Set(IndexType Position, bool Value=true ) */
-    /* { */
-    /*     if(Value) */
-    /*         mFlags |= (1 << Position); */
-    /*     else */
-    /*         mFlags &= ~(1 << Position); */
-    /* } */
+    void SetPosition(IndexType Position, bool Value=true )
+    {
+        if(Value)
+            mFlags |= (1 << Position);
+        else
+            mFlags &= ~(1 << Position);
+    }
 
-    /* bool Get(IndexType Position) const */
-    /* { */
-    /*     return (mFlags & (1 << Position)); */
-    /* } */
+    bool GetPosition(IndexType Position) const
+    {
+        return (mFlags & (1 << Position));
+    }
 
-    /* void Clear(IndexType Position) */
-    /* { */
-    /*     SetPosition (Position,false); */
-    /* } */
 
+   void FlipPosition(IndexType Position)
+    {
+        mFlags ^= (1 << Position);
+    }
+
+
+    void ClearPosition(IndexType Position)
+    {
+        SetPosition (Position,false);
+    }
+
+ 
     void Clear()
     {
         mFlags = BlockType();
@@ -213,7 +219,7 @@ public:
         return (mFlags & rOther.mFlags);
     }
 
-    bool Is(BlockType ThisFlag)
+    bool Is(FlagType ThisFlag)
     {
         return (mFlags & ThisFlag);
     }
@@ -231,7 +237,7 @@ public:
     }
 
 
-    bool IsNot(BlockType ThisFlag)
+    bool IsNot(FlagType ThisFlag)
     {
         return (mFlags & ThisFlag);
     }
