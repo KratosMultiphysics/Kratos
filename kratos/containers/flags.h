@@ -154,7 +154,17 @@ public:
     ///@name Operations
     ///@{
 
-    void Set(IndexType Position, bool Value=true )
+    void Set(FlagType ThisFlag )
+    {
+            mFlags |= ThisFlag;
+    }
+
+    void Reset(FlagType ThisFlag )
+    {
+            mFlags &= ~ThisFlag;
+    }
+
+    void SetPosition(IndexType Position, bool Value=true )
     {
         if(Value)
             mFlags |= (1 << Position);
@@ -162,7 +172,7 @@ public:
             mFlags &= ~(1 << Position);
     }
 
-    bool Get(IndexType Position) const
+    bool GetPosition(IndexType Position) const
     {
         return (mFlags & (1 << Position));
     }
@@ -186,26 +196,18 @@ public:
     ///@name Inquiry
     ///@{
 
-    bool Is(BlockType const& Flag)
-    {
-        return (mFlags & Flag);
-    }
 
     template<class TFlagsType>
-    bool Is(TFlagsType const& Flag)
+    bool Is(TFlagsType Flag)
     {
         return (mFlags & Flag);
     }
 
-    bool Is(Flags const& rOther)
+    bool Is(Flags rOther)
     {
         return (mFlags & rOther.mFlags);
     }
 
-    bool IsNot(BlockType const& Flag)
-    {
-        return !(mFlags & Flag);
-    }
 
     template<class TFlagsType>
     bool IsNot(TFlagsType const& Flag )
