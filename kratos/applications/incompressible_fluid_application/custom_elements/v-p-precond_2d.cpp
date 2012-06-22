@@ -129,7 +129,7 @@ namespace Kratos {
 	{
 		int nodes_number = 3;
 		int dim = 2;
-		unsigned int matsize = nodes_number * (dim + 1);	
+		//unsigned int matsize = nodes_number * (dim + 1);	
 
 		//viscous term
 		CalculateViscousTerm(rLeftHandSideMatrix, DN_DX, Area, rCurrentProcessInfo);
@@ -328,7 +328,7 @@ namespace Kratos {
 		CalculatePressureTerm(rDampMatrix, DN_DX, N, delta_t, Area, rCurrentProcessInfo);
 
 		//compute projections
-		unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
+		//unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 		//add stabilization only in the correction step
 				
 		//stabilization terms
@@ -355,7 +355,7 @@ namespace Kratos {
         double density;
         calculatedensity(GetGeometry(), density, mu);
 
-	unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+	//unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
 	//Matrix TEMP=ZeroMatrix(9,9);
         //nu = nu/density;
@@ -515,7 +515,7 @@ namespace Kratos {
     void VP_PRECOND2D::CalculateAdvStblAllTerms(MatrixType& K, VectorType& F, const boost::numeric::ublas::bounded_matrix<double, 3, 2 > & DN_DX, const array_1d<double, 3 > & N, const double tauone, const double time, const double area, const ProcessInfo& CurrentProcessInfo) {
         KRATOS_TRY
 
-        unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
+        //unsigned int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 	array_1d<double, 2 > ms_adv_vel;
 	
                 const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
@@ -672,7 +672,7 @@ namespace Kratos {
 	double factor=1.0;
 	double delta_t=CurrentProcessInfo[DELTA_TIME];
 	int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
-	double SV2=10.0;
+	//double SV2=10.0;
 	if (FractionalStepNumber==1)
 		factor=1.0;
 	//double alpha_bossak=-0.2;
@@ -1051,7 +1051,7 @@ namespace Kratos {
 
     void VP_PRECOND2D::CalculateTau(const array_1d<double,3>& N, double& tauone, double& tautwo, const double time, const double area, const ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
-	unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
+	//unsigned int FractionalStepNumber = rCurrentProcessInfo[FRACTIONAL_STEP];
 	
         //calculate mean advective velocity and taus
         const array_1d<double, 3 > & adv_vel0 = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY, 0);
