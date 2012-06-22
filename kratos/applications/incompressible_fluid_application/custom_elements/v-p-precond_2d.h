@@ -310,7 +310,7 @@ namespace Kratos
  	         /// To Calculate stabilization of the form ( Div(u) , Div(v) ) 
 	        /**
 		    It is assembeled directly to LHS and is scaled by Tau2
-		 */  			 
+		 */  			  
 	         virtual void CalculateDivStblTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX, const double thawtwo,const double area);
 
  	         /// To Calculate stabilization of the form ( a.grad(V) , a.grad(U) ) 
