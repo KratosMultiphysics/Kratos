@@ -22,6 +22,7 @@
 #include "external_includes/trigen_pfem_refine.h"
 #include "external_includes/trigen_pfem_refine_segment.h"
 #include "external_includes/tetgen_pfem_contact.h"
+#include "external_includes/tetgen_cdt.h"
 
 //#include "external_includes/trigen_mesh_suite.h"
 #include "external_includes/trigen_cdt.h"
@@ -49,6 +50,13 @@ void TetRegenerateMesh(TetGenPfemModeler& Mesher, char* ElementName, char* Condi
                           KratosComponents<Element>::Get(ElementName),
                           KratosComponents<Condition>::Get(ConditionName),node_erase,rem_nodes, add_nodes,  alpha_shape, h_factor	);
 }
+
+//tetgen pfem refine
+void GenerateCDT(TetGenCDT& Mesher, ModelPart& model_part, char* ElementName, bool add_nodes, unsigned int property_id)
+{
+    Mesher.GenerateCDT(model_part,KratosComponents<Element>::Get(ElementName),add_nodes,  property_id  );
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //											//
@@ -182,7 +190,12 @@ void  AddMeshersToPython()
                                init< >())
     .def("ReGenerateMesh",TetRegenerateMeshContact)
     ;
-
+    
+    class_<TetGenCDT >("TetGenCDT",
+                               init< >())
+    .def("GenerateCDT",GenerateCDT)
+    ;
+    
     //class that allows 2D adaptive remeshing (inserting and erasing nodes)
     class_<TriGenPFEMModeler >("TriGenPFEMModeler",
                                init< >())
