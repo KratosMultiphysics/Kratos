@@ -6,12 +6,17 @@
 //
 //
 
-
 #if !defined(KRATOS_WIND_TURBINE_ROTATION_UTILITIES_INCLUDED)
 #define  KRATOS_WIND_TURBINE_ROTATION_UTILITIES_INCLUDED
 
 extern "C" {
-	#include "custom_external_libraries/triangle/triangle.h"
+    #ifdef SINGLE
+        #define REAL float
+    #else /* not SINGLE */
+        #define REAL double
+    #endif /* not SINGLE */
+
+    #include "custom_external_libraries/triangle/triangle.h"
 }
 
 #include "custom_external_libraries/tetgen1.4.3/tetgen.h"
@@ -20,13 +25,13 @@ extern "C" {
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/triangle_2d_3.h"
+//#include "geometries/tetrahedra_3d_4.h"
+//#include "geometries/triangle_2d_3.h"
+//#include <boost/shared_ptr.hpp>
 #include "wind_turbine_application.h"
 
 namespace Kratos
 {
-
 
 
 class WindTurbineRegionMultiplicity
@@ -34,6 +39,7 @@ class WindTurbineRegionMultiplicity
 public:
 	WindTurbineRegionMultiplicity();
 	WindTurbineRegionMultiplicity(int);
+        WindTurbineRegionMultiplicity(int, int);
 
 	bool operator<(WindTurbineRegionMultiplicity) const;
 	WindTurbineRegionMultiplicity operator++(int);
@@ -92,14 +98,15 @@ private:
 	int mFirstOuterInterfaceNodeOffset;
         int mNumberOfBoundaryFaces;
         std::vector<double> mAngleHistory;
+        unsigned int mNumberOfNodesPerElement;
         unsigned int mEchoLevel;
 
-	/// Percolate whole the ModelPart and put the elements and nodes in the proper containers
+        // Percolate the whole ModelPart and put the elements and nodes in the proper containers
         void FillElementRegions();
 	void FillNodeRegions();
         unsigned int DecideElementRegion(const unsigned int&, std::vector<WindTurbineRegionMultiplicity>&, unsigned int& edgeOppositeVertex, bool& warning) const;
 
-	/// Remeshing primitives for the crown region
+        // Remeshing primitives for the crown region
 	void DestroyCrownElements();
         void DestroyCrownNodes();
 	void RegenerateCrownElements2D();
@@ -110,6 +117,26 @@ private:
         void CleanTriangulationDataStructure( triangulateio& );
 
         double CalculateRotationVelocity(double NewRotAngle);
+
+        /// beginning of parallel facilities
+        int mThisRank;
+        int mRemeshingRank;
+        int mNumberOfRanks;
+
+        int mLastKratosGlobalElementId;
+
+        std::vector<int> mRankInnerInterfaceOffsets;
+        std::vector<int> mRankInitialInnerInterfNodes;
+        std::vector<int> mRankInitialOuterInterfNodes;
+
+        void Parallel_DecideRemeshingProcessor();
+        void Parallel_MigrateQuantities();
+        void Parallel_FindLastKratosGlobalElementId();
+        template <class EntitiesContainer> void Parallel_MigrateEntities(const EntitiesContainer&);
+        template <class EntitiesContainer> void Parallel_SerializerSave(EntitiesContainer&, std::string&);
+        template <class EntitiesContainer> void Parallel_SerializerLoad(EntitiesContainer&, std::string&);
+        template <class EntitiesContainer> void Parallel_SerializerLoad(EntitiesContainer&, const char*, const int&);
+        /// end of parallel stuff
 };
 
 }
