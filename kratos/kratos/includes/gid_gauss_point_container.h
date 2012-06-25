@@ -464,6 +464,14 @@ protected:
             GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/6.0, 1.0/2.0 );
             GiD_EndGaussPoint();
         }
+        else if ( mGidElementFamily == GiD_Triangle && mSize == 3 )
+        {
+            GiD_BeginGaussPoint( mGPTitle, GiD_Triangle, NULL, 3, 0, 0 );
+            GiD_WriteGaussPoint2D( 1.0/6.0, 1.0/6.0 );
+            GiD_WriteGaussPoint2D( 2.0/3.0, 1.0/6.0 );
+            GiD_WriteGaussPoint2D( 1.0/6.0, 2.0/3.0 );
+            GiD_EndGaussPoint();
+        }
         else
         {
             GiD_BeginGaussPoint(mGPTitle, mGidElementFamily, NULL,
