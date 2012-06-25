@@ -90,6 +90,8 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 0.00 , 0.00 , 4.00 );
         return msIntegrationPoints;
     }
 
@@ -128,6 +130,11 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( -1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 );
+        msIntegrationPoints[1] = IntegrationPointType(  1.00/std::sqrt(3.0) , -1.00/std::sqrt(3.0), 1.00 );
+        msIntegrationPoints[2] = IntegrationPointType(  1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), 1.00 );
+        msIntegrationPoints[3] = IntegrationPointType( -1.00/std::sqrt(3.0) ,  1.00/std::sqrt(3.0), 1.00 );
         return msIntegrationPoints;
     }
 
