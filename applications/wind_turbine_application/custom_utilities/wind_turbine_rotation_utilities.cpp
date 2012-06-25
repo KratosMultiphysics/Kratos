@@ -67,7 +67,7 @@ WindTurbineRotationUtilities::WindTurbineRotationUtilities(ModelPart& rAllTheMod
 	mFirstOuterInterfaceNodeOffset = 0;
         mNumberOfBoundaryFaces = 0;
         mAngleHistory.reserve(2); // Old rotation angles
-        mEchoLevel = WIND_TURBINE_ECHOLEVEL_INFO;   //_ALL;
+        mEchoLevel = WIND_TURBINE_ECHOLEVEL_DEEPINFO;   //_ALL;
 
         FillNodeRegions();
         FillElementRegions();
@@ -81,6 +81,10 @@ WindTurbineRotationUtilities::WindTurbineRotationUtilities(ModelPart& rAllTheMod
             DestroyCrownElements();
             DestroyCrownNodes();
         }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        RemoveLocalNodesWithNoElements();
+        MPI_Barrier(MPI_COMM_WORLD);
 #else
         // these are unused though, in this case
         mThisRank = 0;
@@ -1558,7 +1562,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
             {
                 if ( itr->GetSolutionStepValue(PARTITION_INDEX) == rankTurn )
                 {
-                    if (rankTurn != mRemeshingRank) // the remeshing rank already keeps its nodes references
+                    if (rankTurn != mRemeshingRank) // the remeshing rank already keeps its node references
                     {
                         int auxId = itr->GetValue(AUX_ID);
                         bool isPresent = false;
@@ -1713,6 +1717,52 @@ void WindTurbineRotationUtilities::Parallel_FindLastKratosGlobalElementId()
             // end of debugging couts
         }
     }
+}
+
+
+// function suggested by Riccardo, to mark for deletion possibly the orphan nodes
+void WindTurbineRotationUtilities::RemoveLocalNodesWithNoElements()
+{
+    for (ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
+        itr != mrGlobalModelPart.NodesEnd();
+        itr++)
+    {
+        itr->GetValue(ERASE_FLAG) = true;
+    }
+
+    // marking nodes belonging to elements and conditions with ERASE_FLAG = false
+    for (ModelPart::ElementsContainerType::iterator itr = mrGlobalModelPart.ElementsBegin();
+        itr != mrGlobalModelPart.ElementsEnd();
+        itr++)
+    {
+        for( unsigned int n = 0; n < mNumberOfNodesPerElement; n++ )
+        {
+            itr->GetGeometry()[n].GetValue(ERASE_FLAG) = false;
+        }
+    }
+
+    for (ModelPart::ConditionsContainerType::iterator itr = mrGlobalModelPart.ConditionsBegin();
+        itr != mrGlobalModelPart.ConditionsEnd();
+        itr++)
+    {
+        for( unsigned int n = 0; n < mNumberOfNodesPerElement-1; n++ )
+        {
+            itr->GetGeometry()[n].GetValue(ERASE_FLAG) = false;
+        }
+    }
+
+    int orphanCounter = 0;
+    for (ModelPart::NodesContainerType::iterator itr = mrGlobalModelPart.NodesBegin();
+        itr != mrGlobalModelPart.NodesEnd();
+        itr++)
+    {
+        if (itr->GetValue(ERASE_FLAG) == true)
+            orphanCounter++;
+    }
+
+    std::cout << orphanCounter << " orphan nodes have been marked for deletion";
+    if (mNumberOfRanks > 1)
+        std::cout << " in rank " << mThisRank << std::endl;
 }
 
 // next two Load/Save functions make use of the Kratos Serializer (which transforms any Kratos object in a series of chars).
