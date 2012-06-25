@@ -60,9 +60,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/array_1d.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "vms.h"
 #include "includes/serializer.h"
-#include "utilities/geometry_utilities.h"
+#include "geometries/geometry.h"
+#include "utilities/math_utils.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -135,9 +135,8 @@ namespace Kratos
  * @see ResidualBasedPredictorCorrectorVelocityBossakScheme time scheme that can use
  * OSS stabilization.
  */
-template< unsigned int TDim,
-          unsigned int TNumNodes = TDim + 1 >
-class DynamicVMS : public VMS<TDim,TNumNodes>
+template< unsigned int TDim >
+class DynamicVMS : public Element
 {
 public:
     ///@name Type Definitions
@@ -146,41 +145,11 @@ public:
     /// Pointer definition of DynamicVMS
     KRATOS_CLASS_POINTER_DEFINITION(DynamicVMS);
 
-    ///base type: an IndexedObject that automatically has a unique number
-    typedef IndexedObject BaseType;
+    /// Type for shape function values container
+    typedef Kratos::Vector ShapeFunctionsType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
-
-    /**
-     * Properties are used to store any parameters
-     * related to the constitutive law
-     */
-    typedef Properties PropertiesType;
-
-    ///definition of the geometry type with given NodeType
-    typedef Geometry<NodeType> GeometryType;
-
-    ///definition of nodes container type, redefined from GeometryType
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-
-    typedef Vector VectorType;
-
-    typedef Matrix MatrixType;
-
-    typedef std::size_t IndexType;
-
-    typedef std::size_t SizeType;
-
-    typedef std::vector<std::size_t> EquationIdVectorType;
-
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
-
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
-    typedef VMS<TDim,TNumNodes> BaseElementType;
+    /// Type for shape function derivatives container
+    typedef Kratos::Matrix ShapeDerivativesType;
 
     ///@}
     ///@name Life Cycle
@@ -188,40 +157,28 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
-    /**
-     * @param NewId Index number of the new element (optional)
-     */
-    DynamicVMS(IndexType NewId = 0):
-        BaseElementType(NewId),
-        mSubscaleVel(3,0.0),
-        mOldSubscaleVel(3,0.0),
-        mIterCount(0)
-    {}
-
-    ///Constructor using an array of nodes.
+    /// Constructor using an array of nodes.
     /**
      * @param NewId Index of the new element
      * @param ThisNodes An array containing the nodes of the new element
      */
-    DynamicVMS(IndexType NewId, const NodesArrayType& ThisNodes):
-        BaseElementType(NewId, ThisNodes),
-        mSubscaleVel(3,0.0),
-        mOldSubscaleVel(3,0.0),
-        mIterCount(0)
-    {}
+    DynamicVMS(IndexType NewId, const NodesArrayType& ThisNodes);
 
     /// Constructor using a geometry object.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
      */
-    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry):
-        BaseElementType(NewId, pGeometry),
-        mSubscaleVel(3,0.0),
-        mOldSubscaleVel(3,0.0),
-        mIterCount(0)
-    {}
+    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    /// Constructor using a geometry object and a custom integration rule.
+    /**
+     * @param NewId Index of the new element
+     * @param pGeometry Pointer to a geometry object
+     * @param ThisIntegrationMethod Integration method to use in all element integrals.
+     * @note Only GI_GAUSS_1 (exact integrals for linear terms) or GI_GAUSS_2 (exact integrals up to quadratic terms) make sense as integration method.
+     */
+    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, const GeometryData::IntegrationMethod ThisIntegrationMethod);
 
     /// Constuctor using geometry and properties.
     /**
@@ -229,17 +186,20 @@ public:
      * @param pGeometry Pointer to a geometry object
      * @param pProperties Pointer to the element's properties
      */
-    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
-        BaseElementType(NewId, pGeometry, pProperties),
-        mSubscaleVel(3,0.0),
-        mOldSubscaleVel(3,0.0),
-        mIterCount(0)
-    {}
+    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    /**
+     * @brief Constructor using geometry, properties and custom integration rule.
+     * @param NewId Index of the new element.
+     * @param pGeometry Pointer to a geometry object.
+     * @param pProperties Pointer to the element's properties.
+     * @param ThisIntegrationMethod Integration method to use in all element integrals.
+     * @note Only GI_GAUSS_1 (exact integrals for linear terms) or GI_GAUSS_2 (exact integrals up to quadratic terms) make sense as integration method.
+     */
+    DynamicVMS(IndexType NewId, GeometryType::Pointer pGeometry, Properties::Pointer pProperties, const GeometryData::IntegrationMethod ThisIntegrationMethod);
 
     /// Destructor.
-    virtual ~DynamicVMS()
-    {}
-
+    virtual ~DynamicVMS();
 
     ///@}
     ///@name Operators
@@ -250,124 +210,42 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new element of this type
+    /// Create a new element of this type.
     /**
-     * Returns a pointer to a new DynamicVMS element, created using given input
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
+     * Returns a pointer to a new DynamicVMS element, created using given input.
+     * The new element will use the same number of integration points as the original.
+     * @param NewId: the ID of the new element.
+     * @param ThisNodes: the nodes of the new element.
+     * @param pProperties: the properties assigned to the new element.
+     * @return a Pointer to the new element.
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const
-    {
-        return Element::Pointer(new DynamicVMS(NewId, this->GetGeometry().Create(ThisNodes), pProperties));
-    }
+                            PropertiesType::Pointer pProperties) const;
 
-    /// Update the stored subscale values
-    /***/
-    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-    {
-        mOldSubscaleVel = mSubscaleVel;
-    }
+    /// Initialize containters for subscales on integration points.
+    virtual void Initialize();
 
-    /// Calculate a new value for the velocity subscale
+    /**
+     * @brief Prepare the element for a new solution step.
+     * Update the values on the subscales and evaluate elemental shape functions.
+     * @param rCurrentProcessInfo. ProcessInfo instance (unused).
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+    /// Calculate a new value for the velocity subscale.
     /**
      * @param rCurrentProcessInfo ProcessInfo instance containig the time step as DELTA_TIME
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
-    {
-        // Calculate this element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        // Calculate this element's fluid properties
-        double Density, KinViscosity;
-        this->EvaluateInPoint(Density, DENSITY, N);
-        this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-        double Viscosity;
-        this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-
-        // Get Advective velocity
-        array_1d<double,3> AdvVel;
-        BaseElementType::GetAdvectiveVel(AdvVel, N); // We use the base function here, which does not add the subscale
-
-        // Evaluate the part of the residual that depends on v_h (and will remain constant in this function)
-        array_1d<double,3> MomRes(3,0.0);
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-            // OSS version, includes projection term
-            this->OSSMomResidual(AdvVel,Density,MomRes,N,DN_DX,1.0);
-        else
-            // ASGS version, includes dynamic term (which is orthogonal to subscale space for OSS)
-            this->ASGSMomResidual(AdvVel,Density,MomRes,N,DN_DX,1.0);
-
-        // Some values for iteration
-        const double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-
-        this->UpdateSubscale(Density,Viscosity,DeltaTime,MomRes,AdvVel,mSubscaleVel,mOldSubscaleVel,DN_DX,Area);
-    }
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
 
-    /// Provides local contributions from body forces and projections to the RHS
-    /**
-     * This is called during the assembly process and provides the RHS terms of the
-     * system that are either constant or treated explicitly (from the 'old'
-     * iteration variables).
-     * @param rRightHandSideVector Will be filled with the elemental right hand side
-     * @param rCurrentProcessInfo ProcessInfo instance from the ModelPart. It is
-     * expected to contain values for OSS_SWITCH and DELTA_TIME
-     */
+    virtual void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
+                                      VectorType &rRightHandSideVector,
+                                      ProcessInfo &rCurrentProcessInfo);
+
+
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-
-        // Check sizes and initialize
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-
-        // Calculate this element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        // Calculate this element's fluid properties
-        double Density;
-        this->EvaluateInPoint(Density, DENSITY, N);
-
-        // Calculate Momentum RHS contribution
-        this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
-
-        if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-        {
-            // OSS: Add projection of residuals to RHS
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-
-            double KinViscosity;
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-            double Viscosity;
-            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-
-            // Calculate stabilization parameters
-            double TauOne, TauTwo, MassFactor;
-            this->CalculateTau(TauOne,TauTwo,MassFactor,AdvVel,Area,Viscosity,rCurrentProcessInfo);
-
-            this->AddProjectionToRHS(rRightHandSideVector,AdvVel,TauOne,TauTwo,MassFactor,N,DN_DX,Area);
-        }
-        else
-        {
-            // ASGS: Include velocity subscale derivative term
-            this->AddDynamicSubscaleTerm(rRightHandSideVector,Density,rCurrentProcessInfo[DELTA_TIME],N,Area);
-        }
-    }
+                                        ProcessInfo& rCurrentProcessInfo);
 
 
     /// Computes the local contribution associated to 'new' velocity and pressure values
@@ -381,132 +259,60 @@ public:
      */
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
+            ProcessInfo& rCurrentProcessInfo);
 
-        // Resize and set to zero the matrix
-        // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
-        if (rDampMatrix.size1() != LocalSize)
-            rDampMatrix.resize(LocalSize, LocalSize, false);
-
-        noalias(rDampMatrix) = ZeroMatrix(LocalSize, LocalSize);
-
-        // Get this element's geometric properties
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-
-        // Calculate this element's fluid properties
-        double Density, KinViscosity;
-        this->EvaluateInPoint(Density, DENSITY, N);
-        this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-
-        double Viscosity;
-        this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-
-        // Get Advective velocity
-        array_1d<double, 3 > AdvVel;
-        this->GetAdvectiveVel(AdvVel, N);
-
-        // Calculate stabilization parameters
-        double TauOne, TauTwo, MassFactor;
-        this->CalculateTau(TauOne, TauTwo, MassFactor, AdvVel, Area, Viscosity, rCurrentProcessInfo);
-
-        this->AddIntegrationPointVelocityContribution(rDampMatrix,rRightHandSideVector,Density,Viscosity,AdvVel,TauOne,TauTwo,rCurrentProcessInfo[DELTA_TIME],MassFactor,N,DN_DX,Area);
-
-        // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
-        VectorType U = ZeroVector(LocalSize);
-        int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            array_1d< double, 3 > & rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
-            {
-                U[LocalIndex] = rVel[d];
-                ++LocalIndex;
-            }
-            U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
-            ++LocalIndex;
-        }
-
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
-    }
+    virtual void MassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
 
 
-    /// Implementation of Calculate to compute an error estimate.
+    /// Provides the global indices for each one of this element's local rows
     /**
-     * If rVariable == ERROR_RATIO, this function will provide an a posteriori
-     * estimate of the norm of the subscale velocity, calculated as TauOne*||MomentumResidual||.
-     * Note that the residual of the momentum equation is evaluated at the element center
-     * and that the result has units of velocity (L/T).
-     * The error estimate both saved as the elemental ERROR_RATIO variable and returned as rOutput.
-     * @param rVariable Use ERROR_RATIO
-     * @param rOutput Returns the error estimate
-     * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
-     * @see MarkForRefinement for a use of the error ratio
+     * this determines the elemental equation ID vector for all elemental
+     * DOFs
+     * @param rResult A vector containing the global Id of each row
+     * @param rCurrentProcessInfo the current process info object (unused)
      */
-    virtual void Calculate(const Variable<double>& rVariable,
-                           double& rOutput,
-                           const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rVariable == ERROR_RATIO)
-        {
-            rOutput = 0.0;
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo);
 
-            for (unsigned int i = 0; i < TDim; ++i)
-            {
-                rOutput += mSubscaleVel[i] * mSubscaleVel[i];
-//                    UNorm += UGauss[i] * UGauss[i];
-            }
-            rOutput = sqrt(rOutput); // / UNorm);
-            this->SetValue(ERROR_RATIO, rOutput);
-        }
-    }
-
-
-    /// Obtain an array_1d<double,3> elemental variable, evaluated on gauss points.
+    /// Returns a list of the element's Dofs
     /**
-     * If the variable is VORTICITY, computes the vorticity (rotational of the velocity)
-     * based on the current velocity values. Otherwise, it assumes that the input
-     * variable is an elemental value and retrieves it. Implemented for a
-     * single gauss point only.
-     * @param rVariable Kratos vector variable to get
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
+     * @param ElementalDofList the list of DOFs
+     * @param rCurrentProcessInfo the current process info instance
      */
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo);
+
+    /// Returns VELOCITY_X, VELOCITY_Y, (VELOCITY_Z,) PRESSURE for each node
+    /**
+     * @param Values Vector of nodal unknowns
+     * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
+     */
+    virtual void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+
+    /// Returns ACCELERATION_X, ACCELERATION_Y, (ACCELERATION_Z,) 0 for each node
+    /**
+     * @param Values Vector of nodal second derivatives
+     * @param Step Get result from 'Step' steps back, 0 is current step. (Must be smaller than buffer size)
+     */
+    virtual void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+
+
+//    virtual void Calculate(const Variable<double>& rVariable,
+//                           double& rOutput,
+//                           const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
+                           array_1d<double,3>& rOutput,
+                           const ProcessInfo& rCurrentProcessInfo);
+
+
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector<array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo);
 
-    /// Obtain a double elemental variable, evaluated on gauss points.
-    /**
-     * If the variable is TAUONE or TAUTWO, calculates the corresponding stabilization
-     * parameter for the element, based on rCurrentProcessInfo's DELTA_TIME and
-     * DYNAMIC_TAU. If the variable is MU, calculates the effective viscosity at the
-     * element center due to Smagorinsky (in 'dynamic' units). Otherwise, it assumes
-     * that the input variable is an elemental value and retrieves it.
-     * Implemented for a single gauss point only.
-     * @param rVariable Kratos vector variable to compute
-     * @param Output Will be filled with the values of the variable on integrartion points
-     * @param rCurrentProcessInfo Process info instance
-     */
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
             std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rVariable == NL_ITERATION_NUMBER)
-        {
-            rValues.resize(1, false);
-            rValues[0] = mIterCount;
-        }
-        else
-        {
-            BaseElementType::GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
-        }
-    }
+            const ProcessInfo& rCurrentProcessInfo);
 
     /// Empty implementation of unused CalculateOnIntegrationPoints overloads to avoid compilation warning
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
@@ -526,10 +332,16 @@ public:
             const ProcessInfo& rCurrentProcessInfo)
     {}
 
+    virtual void SetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues, const ProcessInfo &rCurrentProcessInfo);
+
     ///@}
     ///@name Access
     ///@{
 
+    /// Accessor to the integration method.
+    /** GiDIO uses it to determine the number of Gauss Points on each element.
+     */
+    virtual GeometryData::IntegrationMethod GetIntegrationMethod();
 
     ///@}
     ///@name Inquiry
@@ -541,21 +353,12 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "DynamicVMS #" << Element::Id();
-        return buffer.str();
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "DynamicVMS" << TDim << "D";
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-//        /// Print object's data.
-//        virtual void PrintData(std::ostream& rOStream) const;
+    virtual void PrintData(std::ostream &rOStream) const;
 
     ///@}
     ///@name Friends
@@ -583,448 +386,136 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /// Calculate Stabilization parameters.
+    /// Initialize shape functions derivatives and calculate the determinant of the element's Jacobian.
+    virtual void CalculateGeometryData();
+
+    /// Calculate the value of the subscale velocity for next iteration
     /**
-     * Calculates both tau parameters based on a given advective velocity.
-     * @param TauOne First stabilization parameter (momentum equation)
-     * @param TauTwo Second stabilization parameter (mass equation)
-     * @param rAdvVel Advective (linearized) velocity
-     * @param Area Elemental area
-     * @param KinViscosity Elemental kinematic viscosity (nu)
-     * @param rCurrentProcessInfo Process info instance
-     * (containing the time step as DELTA_TIME)
+     * @param rCurrentProcessInfo ProcessInfo instance containing OSS_SWITCH and the time step as DELTA_TIME.
      */
-    virtual void CalculateTau(double& TauOne,
-                              double& TauTwo,
-                              const array_1d< double, 3 > & rAdvVel,
-                              const double Area,
-                              const double KinViscosity,
-                              const ProcessInfo& rCurrentProcessInfo)
+    virtual void UpdateSubscale(const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void LinearUpdateSubscale(const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateASGSVelocityContribution(MatrixType& rDampMatrix,
+                                                   VectorType& rRightHandSideVector,
+                                                   const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateOSSVelocityContribution(MatrixType& rDampMatrix,
+                                                  VectorType& rRightHandSideVector,
+                                                  const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void LumpedMassMatrix(MatrixType& rMassMatrix);
+
+    virtual void ConsistentMassMatrix(MatrixType& rMassMatrix);
+
+
+    template< typename TValueType >
+    void EvaluateInPoint(TValueType& rValue,
+                         const Kratos::Variable< TValueType >& rVariable,
+                         const ShapeFunctionsType& rN)
     {
-        // Compute mean advective velocity norm
-        double AdvVelNorm = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
-            AdvVelNorm += rAdvVel[d] * rAdvVel[d];
+        GeometryType& rGeom = this->GetGeometry();
+        const unsigned int NumNodes = rGeom.PointsNumber();
 
-        AdvVelNorm = sqrt(AdvVelNorm);
-
-        const double Element_Size = this->ElementSize(Area);
-
-        TauOne = 1.0 / ( 1.0 / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-        TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
+        rValue = rN[0] * rGeom[0].FastGetSolutionStepValue(rVariable);
+        for (unsigned int i = 1; i < NumNodes; i++)
+            rValue += rN[i] * rGeom[i].FastGetSolutionStepValue(rVariable);
     }
 
-    /// Calculate Stabilization parameters.
+    template< typename TValueType >
+    void EvaluateInPoint(TValueType& rValue,
+                         const Kratos::Variable< TValueType >& rVariable,
+                         const ShapeFunctionsType& rN,
+                         const unsigned int Step)
+    {
+        const GeometryType& rGeom = this->GetGeometry();
+        const unsigned int NumNodes = rGeom.PointsNumber();
+
+        rValue = rN[0] * rGeom[0].FastGetSolutionStepValue(rVariable,Step);
+        for (unsigned int i = 1; i < NumNodes; i++)
+            rValue += rN[i] * rGeom[i].FastGetSolutionStepValue(rVariable,Step);
+    }
+
+    virtual void EvaluateConvVelocity(array_1d<double,3>& rConvection,
+                                            const ShapeFunctionsType& rN);
+
+    virtual void EvaluateConvVelocity(array_1d<double,3>& rConvection,
+                                      const array_1d<double,3>& rSubscaleVel,
+                                      const ShapeFunctionsType& rN);
+
     /**
-     * Calculates both tau parameters and their ratio (as MassResidualFactor)
-     * based on a given advective velocity.
-     * @param TauOne First stabilization parameter (momentum equation)
-     * @param TauTwo Second stabilization parameter (mass equation)
-     * @param MassResidualFactor Factor that multiplies the dynamic part of
-     * the pressure subscale equation, equivalent to StaticTauOne * TauTwo / Dt
-     * (Where StaticTauOne does not include the 1/Dt term)
-     * @param rAdvVel Advective (linearized) velocity
-     * @param Area Elemental area
-     * @param KinViscosity Elemental kinematic viscosity (nu)
-     * @param rCurrentProcessInfo Process info instance
-     * (containing the time step as DELTA_TIME)
-     * @see DynamicVMS::CalculateRightHandSide
+     * @brief Evaluate kinematic viscosity at the given area coordinates.
+     * This function is intended to be used for the implementation of Smagorinsky in derived classes.
+     * @param rViscosity Container for result
+     * @param rN Array of area coordinates.
      */
-    virtual void CalculateTau(double& TauOne,
-                              double& TauTwo,
-                              double& MassResidualFactor,
-                              const array_1d< double, 3 > & rAdvVel,
-                              const double Area,
-                              const double KinViscosity,
-                              const ProcessInfo& rCurrentProcessInfo)
-    {
-        // Compute mean advective velocity norm
-        double AdvVelNorm = 0.0;
-        for (unsigned int d = 0; d < TDim; ++d)
-            AdvVelNorm += rAdvVel[d] * rAdvVel[d];
+    virtual void EvaluateViscosity(double& rViscosity,
+                                   const ShapeFunctionsType& rN);
 
-        AdvVelNorm = sqrt(AdvVelNorm);
+    virtual void ConvectionOperator(Vector& rResult,
+                                    const array_1d<double,3>& rConvVel);
 
-        const double Element_Size = this->ElementSize(Area);
-
-        TauOne = 1.0 / ( 1.0 / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size);
-        TauTwo = KinViscosity + 0.5 * Element_Size * AdvVelNorm;
-        MassResidualFactor = Element_Size * Element_Size / ( 4.0 * rCurrentProcessInfo[DELTA_TIME] );
-//            MassResidualFactor = 0.0;
-    }
-
-    /// Non-linear iterations to update the velocity subscale value
-    void UpdateSubscale(const double Density,
-                        const double Viscosity,
-                        const double DeltaTime,
-                        const array_1d<double,3>& rMomRes,
-                        const array_1d<double,3>& rAdvVel,
-                        array_1d<double,3>& rSubscale,
-                        const array_1d<double,3>& rOldSubscale,
-                        const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                        const double Area)
-    {
-        // Some constant values for iteration
-        double InvStep = 1.0 / DeltaTime;
-        const double ElemSize = this->ElementSize(Area);
-
-        MatrixType Gradient = ZeroMatrix(TDim,TDim); // Velocity gradient
-
-        array_1d<double,3> rVelocity;
-        GeometryType& rGeom  = this->GetGeometry();
-
-        for (unsigned int k = 0; k < TNumNodes; ++k)
-        {
-            rVelocity = rGeom[k].FastGetSolutionStepValue(VELOCITY) - rGeom[k].FastGetSolutionStepValue(MESH_VELOCITY);
-            for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
-                    Gradient(i,j) += rShapeDeriv(k,j)*rVelocity[i];
-        }
-
-        Gradient *= Density;
-
-        // Iteration variables
-        VectorType Subscale(TDim);
-        VectorType TotalVel(TDim);
-        for (unsigned int d = 0; d < TDim; ++d)
-        {
-            Subscale[d] = rSubscale[d]; // array_1d to Vector
-            TotalVel[d] = rAdvVel[d] + rSubscale[d]; // Here I'm taking the subscale from last iteration as initial guess
-        }
-
-        double InvTau;
-        double VelNorm;
-
-        double SubscaleNorm = 1e10;
-        double SubscaleError = 1e10;
-        double RHSNorm = 1e10;
-        mIterCount = 0;
-
-        MatrixType J(TDim,TDim);
-        VectorType r(TDim);
-        VectorType dx = ZeroVector(TDim);
-        VectorType BaseRHS(TDim);
-
-        for (unsigned int d = 0; d<TDim; ++d)
-            BaseRHS[d] = Density * rOldSubscale[d] * InvStep - rMomRes[d];
-//                BaseRHS[d] = /*Density * rOldSubscale[d] * InvStep*/ - rMomRes[d];
-
-        while ( SubscaleError > mSubscaleTol && RHSNorm > mSubscaleTol && mIterCount <= 10 ) ///@todo add some absolute criteria too
-        {
-            // Update advection velocity
-            noalias(TotalVel) += dx;
-
-            // Update velocity norm
-            VelNorm = TotalVel[0] * TotalVel[0];
-            for (unsigned int d = 1; d < TDim; ++d)
-                VelNorm += TotalVel[d] * TotalVel[d];
-            VelNorm = sqrt(VelNorm);
-
-            // Update Tau
-            InvTau = this->InverseTau(Viscosity,VelNorm,ElemSize,DeltaTime); // InvTau includes the 1/Dt term
-            InvTau *= Density;
-
-            // Build system using uBLAS types
-            noalias(J) = Gradient;
-            for (unsigned int d = 0; d < TDim; ++d)
-                J(d,d) += InvTau;
-            // RHS =  MomRes - J * Subscale + OldSubscale/Dt
-            noalias(r) = BaseRHS - prod(J,Subscale);
-
-            // Solve system
-            this->DenseSystemSolve(J,dx,r);
-
-            // Update solution
-            noalias(Subscale) += dx;
-
-            // Update Error
-            SubscaleError = dx[0]*dx[0];
-            SubscaleNorm = Subscale[0]*Subscale[0];
-            RHSNorm = r[0]*r[0];
-            for(unsigned int d = 1; d < TDim; ++d)
-            {
-                SubscaleError += dx[d]*dx[d];
-                SubscaleNorm += Subscale[d]*Subscale[d];
-                RHSNorm += r[d]*r[d];
-            }
-            SubscaleError /= SubscaleNorm;
-//                #pragma omp critical
-//                {
-//                    KRATOS_WATCH(SubscaleError)
-//                    KRATOS_WATCH(mIterCount)
-//                }
-//                #pragma omp master
-//                if (this->Id() == 8068)
-//                {
-//                    KRATOS_WATCH(mIterCount)
-//                    KRATOS_WATCH(SubscaleNorm)
-//                    KRATOS_WATCH(SubscaleError)
-//                    KRATOS_WATCH(RHSNorm)
-//                }
-
-            // Iteration counter
-            ++mIterCount;
-
-            // Store the converged subscale
-            for(unsigned int d = 0; d < TDim; ++d)
-                rSubscale[d] = Subscale[d];
-        }
-    }
-
-    /// Add OSS projection terms to the RHS
-    void AddProjectionToRHS(VectorType& RHS,
-                            const array_1d<double, 3 > & rAdvVel,
-                            const double TauOne,
-                            const double TauTwo,
-                            const double MassFactor,
-                            const array_1d<double, TNumNodes>& rShapeFunc,
-                            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim>& rShapeDeriv,
-                            const double Weight)
-    {
-        const unsigned int BlockSize = TDim + 1;
-
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-        // Add to the ouptut vector
-        unsigned int FirstRow(0); // Position of the term we want to add to
-        double Const1, Const2, Const3; // Partial results that remain constant for a given j
-
-        for (unsigned int j = 0; j < TNumNodes; ++j) // loop over nodes (for components of the residual)
-        {
-            // Compute the 'constant' part of the (nodal) projection terms
-            // See this->Calculate() for the computation of the projections
-            const array_1d< double, 3 > & rMomProj = this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ);
-
-            Const1 = Weight * TauOne * rShapeFunc[j];
-            Const2 = Weight * (TauTwo + MassFactor) * rShapeFunc[j] * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
-            Const3 = Weight * MassFactor * rShapeFunc[j] * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ,1);
-
-            // Reset row reference
-            FirstRow = 0;
-
-            for (unsigned int i = 0; i < TNumNodes; ++i) // loop over nodes (for components of L*(Vh) )
-            {
-                for (unsigned int d = 0; d < TDim; ++d)
-                {
-                    // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
-                    RHS[FirstRow + d] += Const1 * AGradN[i] * rMomProj[d] + (Const2 - Const3) * rShapeDeriv(i, d);
-//                        RHS[FirstRow + d] += Const1 * AGradN[i] * rMomProj[d] + Const2 * rShapeDeriv(i, d);
-                    // TauOne * Grad(q) * MomProjection
-                    RHS[FirstRow + TDim] += Const1 * rShapeDeriv(i, d) * rMomProj[d];
-                }
-                // Update row reference
-                FirstRow += BlockSize;
-            }
-        }
-    }
-
-    /// Add the stabilization term coming from the derivative of the subscale velocity
+    /// Calculate velocity subscale stabilization parameter.
     /**
-     * Note that this term is zero (and therefore not computed) in OSS, as subscales
-     * are orthogonal to test functions.
-     * @param rRightHandSideVector Vector storing RHS for the elemental system
-     * @param Density Fluid density on integration point
-     * @param TimeStep
-     * @param rShapeFunc Shape functions evaluated on integration point
-     * @param Weight Integration weight (as a fraction of total area or volume)
+     * @param Density Density at integration point.
+     * @param Viscosity Kinematic viscosity at integration point.
+     * @param ConvVel Convective velocity norm (including subscale contribution).
+     * @return TauOne
      */
-    virtual void AddDynamicSubscaleTerm(VectorType& rRightHandSideVector,
-                                        const double Density,
-                                        const double TimeStep,
-                                        const array_1d<double,TNumNodes>& rShapeFunc,
-                                        const double Weight)
-    {
-        const double Coef = Density * Weight / TimeStep;
+    virtual double TauOne(const double Density,
+                          const double Viscosity,
+                          const double ConvVel);
 
-        // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
-        int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-        {
-            for (unsigned int d = 0; d < TDim; ++d)
-            {
-                // RHS -= Density * v * (SubscaleVel - OldSubscaleVel) / Dt
-                rRightHandSideVector[LocalIndex++] += Coef * rShapeFunc[iNode] * (mOldSubscaleVel[d] - mSubscaleVel[d]);
-            }
-            ++LocalIndex; // Skip pressure Dof
-        }
-    }
-
-
-    /// Add a the contribution from a single integration point to the velocity contribution
-    void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
-            VectorType& rDampRHS,
-            const double Density,
-            const double Viscosity,
-            const array_1d< double, 3 > & rAdvVel,
-            const double TauOne,
-            const double TauTwo,
-            const double MassFactor,
-            const double TimeStep,
-            const array_1d< double, TNumNodes >& rShapeFunc,
-            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
-            const double Weight)
-    {
-        const unsigned int BlockSize = TDim + 1;
-
-        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
-        array_1d<double, TNumNodes> AGradN;
-        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
-
-        // Build the local matrix and RHS
-        unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, PDivV, L, DivDiv; // Temporary results
-        const double MassStab = TauTwo + MassFactor; // "Dynamic TauTwo" including extra TauOne*TauTwo/Dt term coming from dynamic tracking of subscales
-        const double InvTimeStep = 1.0 / TimeStep; // Velocity subscale approximated as TauOne*(MomResProj + Density * OldSubscale/DeltaTime)
-        double Coef = Density * Weight;
-
-        // Note that we iterate first over columns, then over rows to read the Body Force only once per node
-        for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
-        {
-            // Get Body Force
-            const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
-            const array_1d<double, 3 > & rOldVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
-
-            for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
-            {
-                // Calculate the part of the contributions that is constant for each node combination
-
-                // Velocity block
-                K = rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
-                K += TauOne * AGradN[i] * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
-
-                // q-p stabilization block (reset result)
-                L = 0;
-
-                for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
-                {
-                    // Velocity block
-//                        K += Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
-                    // Note that we are usig kinematic viscosity, as we will multiply it by density later
-
-                    // v * Grad(p) block
-                    G = TauOne * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
-
-                    // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol + TDim) = Weight * (G - PDivV);
-                    // Use symmetry to write the q * rho * Div(u) component
-                    rDampMatrix(FirstCol + TDim, FirstRow + m) = Coef * (G + PDivV);
-
-                    // q-p stabilization block
-                    L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
-
-                    for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
-                    {
-                        DivDiv = rShapeDeriv(i, m) * rShapeDeriv(j, n);
-                        // Velocity block
-                        rDampMatrix(FirstRow + m, FirstCol + n) = Coef * MassStab * DivDiv; // Stabilization: Div(v) * TauTwo * ( Div(u) + StaticTauOne * Div(u)/Dt
-                        rDampRHS(FirstRow+m) += Coef * MassFactor * DivDiv * rOldVel[n];// Stab RHS: Div(v) * TauTwo * StaticTauOne * Div(u_old)/Dt
-                    }
-
-                }
-
-                // Write remaining terms to velocity block
-                K *= Coef; // Weight by nodal area and density
-                for (unsigned int d = 0; d < TDim; ++d)
-                    rDampMatrix(FirstRow + d, FirstCol + d) += K;
-
-                // Write q-p stabilization block
-                rDampMatrix(FirstRow + TDim, FirstCol + TDim) = Weight * TauOne * L;
-
-                // Operate on RHS
-                L = 0; // We reuse one of the temporary variables for the pressure RHS
-
-                for (unsigned int d = 0; d < TDim; ++d)
-                {
-                    // ( a * Grad(v) ) * TauOne * Density * (BodyForce - OldSubscaleVel/Dt)
-                    rDampRHS[FirstRow + d] += Coef * TauOne * AGradN[i] * (rShapeFunc[j] * rBodyForce[d] - mOldSubscaleVel[d] * InvTimeStep);
-                    L += rShapeDeriv(i, d) * (rShapeFunc[j] * rBodyForce[d] - mOldSubscaleVel[d] * InvTimeStep);
-                }
-                rDampRHS[FirstRow + TDim] += Coef * TauOne * L; // Grad(q) * TauOne * Density * (BodyForce - OldSubscaleVel/Dt)
-
-                // Update reference row index for next iteration
-                FirstRow += BlockSize;
-            }
-
-            // Update reference indices
-            FirstRow = 0;
-            FirstCol += BlockSize;
-        }
-
-//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-        this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Coef);
-    }
-
-
-    /// Write the advective velocity evaluated at this point to an array
+    /// Calculate pressure subscale stabilization parameter
     /**
-     * Writes the value of the advective velocity evaluated at a point inside
-     * the element to an array_1d. Note that the advective velocity includes
-     * the effect of the subscale velocity.
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
+     * @param Density Density at integration point.
+     * @param Viscosity Kinematic viscosity at integration point.
+     * @param ConvVel Convective velocity norm (including subscale contribution).
+     * @return TauTwo
      */
-    virtual void GetAdvectiveVel(array_1d< double,3> & rAdvVel,
-                                 const array_1d< double, TNumNodes >& rShapeFunc)
-    {
-        // Compute the weighted value of the advective velocity in the (Gauss) Point
-        rAdvVel = mSubscaleVel;
-//            rAdvVel = array_1d<double,3>(3,0.0);
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-            rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY));
-    }
+    virtual double TauTwo(const double Density,
+                          const double Viscosity,
+                          const double ConvVel);
 
-    /// Write the advective velocity evaluated at this point to an array
+    /// Calculate 1 / ( rho/dt + 1/TauOne )
     /**
-     * Writes the value of the advective velocity evaluated at a point inside
-     * the element to an array_1d. Note that the advective velocity includes
-     * the effect of the subscale velocity.
-     * @param rAdvVel: Output array
-     * @param rShapeFunc: Shape functions evaluated at the point of interest
-     * @param Step: The time Step (Defaults to 0 = Current)
+     * @param Density Density at integration point.
+     * @param Viscosity Kinematic viscosity at integration point.
+     * @param ConvVel Convective velocity norm (including subscale contribution).
+     * @param Dt Time Step.
+     * @return TauTime
      */
-    virtual void GetAdvectiveVel(array_1d< double,3> & rAdvVel,
-                                 const array_1d< double, TNumNodes >& rShapeFunc,
-                                 const std::size_t Step)
-    {
-        // Compute the weighted value of the advective velocity in the (Gauss) Point
-        rAdvVel = mSubscaleVel;
-//            rAdvVel = array_1d<double,3>(3,0.0);
-        for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-            rAdvVel += rShapeFunc[iNode] * (this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY, Step) - this->GetGeometry()[iNode].FastGetSolutionStepValue(MESH_VELOCITY, Step));
-    }
+    virtual double TauTime(const double Density,
+                           const double Viscosity,
+                           const double ConvVel,
+                           const double Dt);
+
+    /// Calculate 1 / TauTime
+    virtual double InvTauTime(const double Density,
+                              const double Viscosity,
+                              const double ConvVel,
+                              const double Dt);
 
 
-    /// Efficient evaluation of 1/TauOne to use in the subscale velocity calculation
-    /**
-     *
-     * @param Viscosity Effective kinematic viscosity
-     * @param VelNorm Advection velocity norm (including subscale)
-     * @param ElemSize Element size (h)
-     * @param DeltaTime Time step
-     * @return 1/TauOne
-     * @see DynamicVMS::CalculateTau, DynamicVMS::InitializeNonLinearIteration
-     */
-    double InverseTau(const double Viscosity,
-                      const double VelNorm,
-                      const double ElemSize,
-                      const double DeltaTime)
-    {
-        return 1.0 / DeltaTime + 4.0 * Viscosity / (ElemSize*ElemSize) + 2.0 * VelNorm / ElemSize;
-//            return 4.0 * Viscosity / (ElemSize*ElemSize) + 2.0 * VelNorm / ElemSize;
-    }
+    virtual void ASGSMomentumResidual(array_1d<double,3>& rResult,
+                                      const double Density,
+                                      const array_1d<double,3>& rConvVel,
+                                      const ShapeFunctionsType& rN);
 
-    /// Solve a linear system of TDim linear equations by computing the algebraic inverse.
-    /**
-     * This function is a wrapper for calls to MathUtils::InvertMatrix.
-     * Matrix and vector sizes are not checked.
-     * @param rA System matrix of size TDim x TDim
-     * @param rx vector of unknowns (size TDim)
-     * @param rb right hand side vector (size TDim)
-     */
-    void DenseSystemSolve(const MatrixType& rA, VectorType& rx, const VectorType& rb);
+    virtual void OSSMomentumResidual(array_1d<double,3>& rResult,
+                                     const double Density,
+                                     const array_1d<double,3>& rConvVel,
+                                     const ShapeFunctionsType& rN);
+
+    virtual void MassResidual(double& rResult);
+
+    virtual void AddViscousTerm(MatrixType& rDampMatrix,
+                                const double Weight);
+
+    virtual void DenseSystemSolve(const Matrix& rA,
+                                  const Vector& rB,
+                                  Vector& rX);
 
 
     ///@}
@@ -1048,22 +539,34 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    /// Tolerance for subscale iterations
+    /// Tolerance for subscale iterations (squared).
     static const double mSubscaleTol;
+
+    /// Maximum RHS norm for subscale iterations (squared).
+    static const double mSubscaleRHSTol;
 
     ///@}
     ///@name Member Variables
     ///@{
 
+    GeometryData::IntegrationMethod mIntegrationMethod;
+
+    ShapeDerivativesType mDN_DX;
+
+    double mDetJ;
+
+    double mElemSize;
+
     /// Subscale velocity evaluated on the integration point
-    array_1d<double,3> mSubscaleVel;
+    std::vector< array_1d<double,3> > mSubscaleVel;
 
     /// Subscale velocity on integration point obtained on last time step
-    array_1d<double,3> mOldSubscaleVel;
+    std::vector< array_1d<double,3> > mOldSubscaleVel;
 
     /// Iteration count for the non-linear velocity subscale loop
-    unsigned int mIterCount;
+    std::vector< unsigned int > mIterCount;
 
+//    std::vector< array_1d<double,3> > mExtraTerm;
 
     ///@}
     ///@name Serialization
@@ -1071,19 +574,14 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseElementType );
-        rSerializer.save("SubscaleVel",mSubscaleVel);
-        rSerializer.save("OldSubscaleVel",mOldSubscaleVel);
-    }
+    /// Default constructor
+    DynamicVMS();
 
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseElementType);
-        rSerializer.load("SubscaleVel",mSubscaleVel);
-        rSerializer.load("OldSubscaleVel",mOldSubscaleVel);
-    }
+    virtual void save(Serializer& rSerializer) const;
+
+
+    virtual void load(Serializer& rSerializer);
+
 
     ///@}
     ///@name Private Operators
@@ -1131,19 +629,17 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim,
-          unsigned int TNumNodes >
+template< unsigned int TDim >
 inline std::istream& operator >>(std::istream& rIStream,
-                                 DynamicVMS<TDim, TNumNodes>& rThis)
+                                 DynamicVMS<TDim>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim,
-          unsigned int TNumNodes >
+template< unsigned int TDim >
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const DynamicVMS<TDim, TNumNodes>& rThis)
+                                 const DynamicVMS<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -1155,8 +651,6 @@ inline std::ostream& operator <<(std::ostream& rOStream,
 
 ///@} // Fluid Dynamics Application group
 
-template< unsigned int TDim, unsigned int TNumNodes >
-const double DynamicVMS<TDim,TNumNodes>::mSubscaleTol = 1e-6;
 
 } // namespace Kratos.
 

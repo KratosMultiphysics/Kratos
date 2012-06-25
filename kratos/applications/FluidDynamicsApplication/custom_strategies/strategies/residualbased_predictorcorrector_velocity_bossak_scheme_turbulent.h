@@ -424,7 +424,7 @@ namespace Kratos {
             // If there is a slip condition, apply it on a rotated system of coordinates
             mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
-	    mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
             KRATOS_CATCH("")
         }

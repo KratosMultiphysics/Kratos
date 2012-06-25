@@ -562,8 +562,9 @@ public:
      * Note that the residual of the momentum equation is evaluated at the element center
      * and that the result has units of velocity (L/T).
      * The error estimate both saved as the elemental ERROR_RATIO variable and returned as rOutput.
-     * @param rVariable Use ERROR_RATIO
-     * @param rOutput Returns the error estimate
+     * If rVARIABLE == NODAL_AREA, the element's contribution to nodal area is added to its nodes.
+     * @param rVariable Use ERROR_RATIO or NODAL_AREA
+     * @param rOutput Returns the error estimate for ERROR_RATIO, unused for NODAL_AREA
      * @param rCurrentProcessInfo Process info instance (will be checked for OSS_SWITCH)
      * @see MarkForRefinement for a use of the error ratio
      */
@@ -623,6 +624,22 @@ public:
             ErrorRatio /= Density;
             this->SetValue(ERROR_RATIO, ErrorRatio);
             rOutput = ErrorRatio;
+        }
+        else if (rVariable == NODAL_AREA)
+        {
+            // Get the element's geometric parameters
+            double Area;
+            array_1d<double, TNumNodes> N;
+            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+            // Carefully write results to nodal variables, to avoid parallelism problems
+            for (unsigned int i = 0; i < TNumNodes; ++i)
+            {
+                this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+                this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * N[i];
+                this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+            }
         }
     }
 

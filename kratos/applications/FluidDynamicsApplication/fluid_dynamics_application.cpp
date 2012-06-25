@@ -19,6 +19,8 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d.h"
 #include "fluid_dynamics_application.h"
 #include "includes/variables.h"
@@ -32,8 +34,10 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mBinghamVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mBinghamVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-/*                mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-                mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),*/
+    mDynamicVMS2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))),GeometryData::GI_GAUSS_2),
+    mDynamicVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
+    mDynamicVMS2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
+    mDynamicVMS3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>()))),GeometryData::GI_GAUSS_2),
     mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -70,8 +74,10 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("VMS3D",mVMS3D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS2D",mBinghamVMS2D);
     KRATOS_REGISTER_ELEMENT("BinghamVMS3D",mBinghamVMS3D);
-/*    KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D);
-    KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D);*/
+    KRATOS_REGISTER_ELEMENT("DynamicVMS2D",mDynamicVMS2D);
+    KRATOS_REGISTER_ELEMENT("DynamicVMS3D",mDynamicVMS3D);
+    KRATOS_REGISTER_ELEMENT("DynamicVMS2D4N",mDynamicVMS2D4N);
+    KRATOS_REGISTER_ELEMENT("DynamicVMS3D8N",mDynamicVMS3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
 
     KRATOS_REGISTER_ELEMENT("FractionalStep2D",mFractionalStep2D);
