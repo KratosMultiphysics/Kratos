@@ -275,8 +275,11 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
+        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+        }
 
 
         double start_prod = omp_get_wtime();
@@ -358,11 +361,15 @@ public:
 
 
         double stop_prod = omp_get_wtime();
-        std::cout << "time: " << stop_prod - start_prod << std::endl;
+        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
 
         for (int i = 0; i < A_size; i++)
             omp_destroy_lock(&lock_array[i]);
-        KRATOS_WATCH("finished parallel building");
+        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            KRATOS_WATCH("finished parallel building");
+        }
 
         //                        //ensure that all the threads are syncronized here
         //                        #pragma omp barrier
@@ -549,7 +556,7 @@ public:
         else
         {
             TSparseSpace::SetToZero(Dx);
-            std::cout << "ATTENTION! settign the RHS to zero!" << std::endl;
+            std::cout << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
         //prints informations about the current time
@@ -704,9 +711,13 @@ public:
         ModelPart& r_model_part
     )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-        KRATOS_WATCH("setting up the dofs");
+        if( this->GetEchoLevel() > 0 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            std::cout << "Setting up the dofs" << std::endl;
+        }
+
         //Gets the array of elements from the modeler
         ElementsArrayType& pElements = r_model_part.Elements();
 
@@ -784,8 +795,12 @@ public:
             KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
 
         BaseType::mDofSetIsInitialized = true;
-        KRATOS_WATCH("finished setting up the dofs");
-        KRATOS_CATCH("")
+        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            std::cout << "finished setting up the dofs" << std::endl;
+        }
+
+        KRATOS_CATCH("");
     }
 
     //**************************************************************************
@@ -986,8 +1001,7 @@ public:
 
         if (this->GetEchoLevel() > 0)
         {
-
-            KRATOS_WATCH("ResidualBasedEliminationBuilderAndSolver Clear Function called");
+            std::cout << "ResidualBasedEliminationBuilderAndSolver Clear Function called" << std::endl;
         }
     }
 
@@ -1117,7 +1131,10 @@ protected:
         int number_of_threads = omp_get_max_threads();
         vector<unsigned int> matrix_partition;
         CreatePartition(number_of_threads, indices.size(), matrix_partition);
-        KRATOS_WATCH(matrix_partition);
+        if (this->GetEchoLevel() > 2)
+        {
+            KRATOS_WATCH(matrix_partition);
+        }
         for (int k = 0; k < number_of_threads; k++)
         {
             #pragma omp parallel

@@ -451,7 +451,7 @@ public:
         if (this->GetEchoLevel() > 0)
         {
 
-            KRATOS_WATCH("BuilderAndSolver Clear Function called");
+            std::cout << "BuilderAndSolver Clear Function called" << std::endl;
         }
     }
 
