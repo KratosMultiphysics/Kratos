@@ -488,7 +488,10 @@ void WindTurbineRotationUtilities::RegenerateCrownElements2D()
             inData.pointlist[base] = boundaryNodesItr->X();
             inData.pointlist[base + 1] = boundaryNodesItr->Y();
 
-            std::cout << "from interface nodes, the number "<< idx << " has Kratos Id " << boundaryNodesItr->Id() << ", coords. (" << boundaryNodesItr->X() << "," << boundaryNodesItr->Y() << "), and AUX_ID " << boundaryNodesItr->GetValue(AUX_ID) << std::endl;
+            if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
+            {
+                std::cout << "from interface nodes, the number "<< idx << " has Kratos Id " << boundaryNodesItr->Id() << ", coords. (" << boundaryNodesItr->X() << "," << boundaryNodesItr->Y() << "," << boundaryNodesItr->Z() << "), and AUX_ID " << boundaryNodesItr->GetValue(AUX_ID) << std::endl;
+            }
 
             boundaryNodesItr++;            
         }
@@ -566,7 +569,7 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         char tetgenOptsVerbose[] = "pYYVV";
         char* tetgenOpts = tetgenOptsNormal;
 
-//        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
+        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_NONE)
         {
             tetgenOpts = tetgenOptsVerbose;    // setting verbosity to the stars...
         }
@@ -1439,9 +1442,18 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
             int rankStartPos = recvConstrainedNodesOffsets[rankTurn];
             std::cout << "Parsing constrained node chain of rank " << rankTurn << "! size: " << numberOfRankConstraints << ", offset: " << rankStartPos << std::endl;
             // START OF DEBUGGING CHAIN PRINT OUT
-            for (int j=rankStartPos; j < rankStartPos + numberOfRankConstraints; j+=2)
+            for (int j=rankStartPos; j < rankStartPos + numberOfRankConstraints; j+=(mNumberOfNodesPerElement-1))
             {
-                std::cout << "(" << recvConstrainedNodes[j] << ", " << recvConstrainedNodes[j+1] << ")-";
+                switch (mNumberOfNodesPerElement)
+                {
+                    case 4:
+                        std::cout << "(" << recvConstrainedNodes[j] << ", " << recvConstrainedNodes[j+1] << ", " << recvConstrainedNodes[j+2] << ")-";
+                        break;
+
+                    case 3:
+                        std::cout << "(" << recvConstrainedNodes[j] << ", " << recvConstrainedNodes[j+1] << ")-";
+                        break;
+                }
             }
             std::cout << std::endl;
             // END OF DEBUGGING CHAIN PRINT OUT
@@ -1518,7 +1530,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
              itr != mInterfaceNodes.end();
              itr++)
         {
-            std::cout << "APPPENDING old remeshing processor node with Kratos Id " << itr->Id() << ", AUX_ID = " << itr->GetValue(AUX_ID) << ", coords. ("<< itr->X() << ", " << itr->Y() << ")";
+            std::cout << "APPPENDING old remeshing processor node with Kratos Id " << itr->Id() << ", AUX_ID = " << itr->GetValue(AUX_ID) << ", coords. ("<< itr->X() << ", " << itr->Y() << ", " << itr->Z() << ")";
 
             if (itemCount < mFirstOuterInterfaceNodeOffset)
             {
@@ -1580,8 +1592,8 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                             }
 
                             // intepolating the data
-                            unsigned int buffer_size = pNewNode->GetBufferSize();
-                            for (unsigned int step = 0; step < buffer_size; step++)
+                            unsigned int bufferSize = pNewNode->GetBufferSize();
+                            for (unsigned int step = 0; step < bufferSize; step++)
                             {
                                 double* newStepData = pNewNode->SolutionStepData().Data(step);
                                 double* stepData = itr->SolutionStepData().Data(step);
@@ -1596,7 +1608,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                             pNewNode->Data() = itr->Data();
                             pNewNode->GetInitialPosition() = itr->GetInitialPosition();
 
-                            std::cout << "Appending new node with older Kratos ID " << itr->Id() << " (AUX_ID = " << pNewNode->GetValue(AUX_ID) << "), coords. ("<< pNewNode->X() << ", " << pNewNode->Y() << ")";
+                            std::cout << "Appending new node with older Kratos ID " << itr->Id() << " (AUX_ID = " << pNewNode->GetValue(AUX_ID) << "), coords. ("<< pNewNode->X() << ", " << pNewNode->Y() << ", " << pNewNode->Z() << ")";
                             if ( itemCount < mRankInnerInterfaceOffsets.at(rankTurn) )
                             {
                                 std::cout << " as INNER interface node" << std::endl;
@@ -1627,7 +1639,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
             mInterfaceNodes.push_back(*(itr.base()));
         }
 
-        // final consecutive reenumeration
+        // final re-enumeration of nodes and setting of the new ownership
         int startAUX_ID = 1;
         std::vector<bool> alreadyMarked(mConstrainedBoundaryNodeAuxIndices.size());
         for (unsigned int markId=0; markId < alreadyMarked.size(); markId++) alreadyMarked[markId] = false;
@@ -1645,6 +1657,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                 }
             }
             itr->GetValue(AUX_ID) = startAUX_ID++;
+            itr->GetSolutionStepValue(PARTITION_INDEX) = mThisRank; //marking them with the REMESHING_RANK as the new owner!
         }
 
         // then i must regenerate the crown elements based on the nodes arrived from the other ranks
@@ -1659,10 +1672,21 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                 break;
 
             case 4:
+                mNumberOfBoundaryFaces = mConstrainedBoundaryNodeAuxIndices.size()/3;
                 RegenerateCrownElements3D();
                 break;
         }
 
+    }
+    else
+    {
+        // setting the new ownership
+        for (ModelPart::NodesContainerType::iterator itr = mInterfaceNodes.begin();
+             itr != mInterfaceNodes.end();
+             itr++)
+        {
+            itr->GetSolutionStepValue(PARTITION_INDEX) = mRemeshingRank; //marking them with the REMESHING_RANK as the new owner!
+        }
     }
 
     delete[] recvRankDepths;
