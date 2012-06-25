@@ -464,7 +464,7 @@ public:
         //deallocate the systemvectors if needed
         if (mReformDofSetAtEachStep == true)
         {
-            if (rank == 0) std::cout << "Clearing System" << std::endl;
+            if (rank == 0 && BaseType::GetEchoLevel() > 0) std::cout << "Clearing System" << std::endl;
             this->Clear();
             //std::cout << "Clearing System" << std::endl;
             //TSparseSpace::ClearData(mA);
