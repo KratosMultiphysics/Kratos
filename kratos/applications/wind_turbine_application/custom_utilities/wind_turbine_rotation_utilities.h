@@ -118,7 +118,9 @@ private:
 
         double CalculateRotationVelocity(double NewRotAngle);
 
-        /// beginning of parallel facilities
+		void RemoveLocalNodesWithNoElements();
+
+        /// beginning of parallel stuff
         int mThisRank;
         int mRemeshingRank;
         int mNumberOfRanks;
