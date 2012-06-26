@@ -148,11 +148,11 @@ Calculation of the reactions involves a cost very similiar to the calculation of
 
 */
 template<class TSparseSpace,
-         class TDenseSpace,
-         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
-         >
+class TDenseSpace,
+class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+>
 class TrilinosResidualBasedEliminationBuilderAndSolver
-    : public BuilderAndSolver< TSparseSpace,TDenseSpace, TLinearSolver  >
+        : public BuilderAndSolver< TSparseSpace,TDenseSpace, TLinearSolver  >
 {
 public:
     /**@name Type Definitions */
@@ -198,8 +198,8 @@ public:
         Epetra_MpiComm& Comm,
         int guess_row_size,
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
-        , mrComm(Comm),mguess_row_size(guess_row_size)
+            : BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
+            , mrComm(Comm),mguess_row_size(guess_row_size)
     {
 
 
@@ -235,7 +235,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        if(!pScheme)
+        if (!pScheme)
             KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
 
         //getting the elements from the model
@@ -376,15 +376,15 @@ public:
 
 
         double norm_b;
-        if(TSparseSpace::Size(b) != 0)
+        if (TSparseSpace::Size(b) != 0)
             norm_b = TSparseSpace::TwoNorm(b);
         else
             norm_b = 0.00;
 
-        if(norm_b != 0.00)
+        if (norm_b != 0.00)
         {
             if (this->GetEchoLevel()>1)
-                if(mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
+                if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
 
             BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
 
@@ -422,9 +422,9 @@ public:
 
         Build(pScheme,r_model_part,A,b);
 
-        if(BaseType::GetEchoLevel()>0)
+        if (BaseType::GetEchoLevel()>0)
         {
-            if(rank == 0) std::cout << "Building Time : " << building_time.elapsed() << std::endl;
+            if (rank == 0) std::cout << "Building Time : " << building_time.elapsed() << std::endl;
         }
 
         //does nothing...dirichlet conditions are naturally dealt with in defining the residual
@@ -432,7 +432,7 @@ public:
 
         if (BaseType::GetEchoLevel()== 3)
         {
-            if(rank == 0)
+            if (rank == 0)
             {
                 std::cout << "before the solution of the system" << std::endl;
                 std::cout << "System Matrix = " << A << std::endl;
@@ -445,13 +445,13 @@ public:
 
         SystemSolve(A,Dx,b);
 
-        if(BaseType::GetEchoLevel()>0)
+        if (BaseType::GetEchoLevel()>0)
         {
-            if(rank == 0) std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
+            if (rank == 0) std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
         }
         if (BaseType::GetEchoLevel()== 3)
         {
-            if(rank == 0)
+            if (rank == 0)
             {
                 std::cout << "after the solution of the system" << std::endl;
                 std::cout << "System Matrix = " << A << std::endl;
@@ -563,7 +563,7 @@ public:
             // gets list of Dof involved on every element
             pScheme->GetElementalDofList(*it,ElementalDofList,CurrentProcessInfo);
 
-            for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
+            for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
                 Doftemp.push_back(*i);
             }
@@ -576,7 +576,7 @@ public:
             // gets list of Dof involved on every element
             pScheme->GetConditionDofList(*it,ElementalDofList,CurrentProcessInfo);
 
-            for(typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
+            for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin() ; i != ElementalDofList.end() ; ++i)
             {
                 //mDofSet.push_back(*i);
                 Doftemp.push_back(*i);
@@ -585,6 +585,193 @@ public:
 
 
         Doftemp.Unique();
+
+
+
+        //arrays for communication
+        int nprocessors;
+        MPI_Comm_size(MPI_COMM_WORLD, &nprocessors);
+        std::vector< std::vector<unsigned int> > local_gids(nprocessors);
+        std::vector< std::vector<unsigned int> > local_ndofs(nprocessors);
+        std::vector< std::vector<unsigned int> > local_keys(nprocessors);
+        std::vector< std::vector<unsigned int> > remote_gids(nprocessors);
+        std::vector< std::vector<unsigned int> > remote_ndofs(nprocessors);
+        std::vector< std::vector<unsigned int> > remote_keys(nprocessors);
+
+
+        //here we prepare to send the dofs as we computed them (so both for the nodes we own and for the others)
+        int previous_node_id = -1; //impossible id
+        int i=-1;
+        for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
+        {
+               unsigned int partition_index = dof_iterator->GetSolutionStepValue(PARTITION_INDEX);
+ 	    if(partition_index != rank)
+ 	    {
+            if (previous_node_id != static_cast<int>(dof_iterator->Id()))
+            {
+
+                previous_node_id = dof_iterator->Id();
+                local_gids[rank].push_back(previous_node_id);
+                local_ndofs[rank].push_back(1);
+                local_keys[rank].push_back(dof_iterator->GetVariable().Key());
+                i = i+1;
+            }
+            else
+            {
+                local_ndofs[rank][i] += 1;
+                local_keys[rank].push_back(dof_iterator->GetVariable().Key());
+            }
+ 	    }
+        }
+
+        //now send our local ndofs to the other processors using coloring
+        for (unsigned int i_color = 0; i_color < r_model_part.GetCommunicator().NeighbourIndices().size(); i_color++)
+        {
+            int destination = r_model_part.GetCommunicator().NeighbourIndices()[i_color];
+            if (destination >= 0)
+            {
+                MPI_Status status;
+                int send_tag = i_color;
+                int receive_tag = i_color;
+                //first of all obtain the number of nodes we will need to get remotely
+                int remote_gids_size;
+                int local_gids_size = local_gids[i_color].size();
+                MPI_Sendrecv(&local_gids_size, 1, MPI_INT, destination, send_tag, &remote_gids_size, 1, MPI_INT, destination, receive_tag,MPI_COMM_WORLD, &status);
+                remote_gids[i_color].resize(remote_gids_size);
+                remote_ndofs[i_color].resize(remote_gids_size);
+
+                //receive the remote GiDs
+                MPI_Sendrecv(local_gids[i_color].data(), local_gids[i_color].size(), MPI_INT, destination, send_tag, remote_gids[i_color].data(), remote_gids_size, MPI_INT, destination, receive_tag,MPI_COMM_WORLD, &status);
+
+                //receive the remote ndofs (same size as the gids)
+                MPI_Sendrecv(local_ndofs[i_color].data(), local_ndofs[i_color].size(), MPI_INT, destination, send_tag, remote_ndofs[i_color].data(), remote_gids_size, MPI_INT, destination, receive_tag,MPI_COMM_WORLD, &status);
+
+                //find the number of non local dofs to receive
+                int remote_keys_size;
+                int local_keys_size = local_keys[i_color].size();
+                MPI_Sendrecv(&local_keys_size, 1, MPI_INT, destination, send_tag, &remote_keys_size, 1, MPI_INT, destination, receive_tag,MPI_COMM_WORLD, &status);
+                remote_keys[i_color].resize(remote_gids_size);
+
+                //receive the keys
+                MPI_Sendrecv(local_keys[i_color].data(), local_keys[i_color].size(), MPI_INT, destination, send_tag, remote_keys[i_color].data(), remote_keys_size, MPI_INT, destination, receive_tag,MPI_COMM_WORLD, &status);
+            }
+        }
+
+        //add the remote dofs to the current dof list and do an unique, so that the non-local dofs are added
+        for (int i_color=0; i_color<nprocessors; i_color++)
+        {
+            for (unsigned int i=0; i<remote_gids[i_color].size(); i++)
+            {
+                int counter = 0;
+                ModelPart::NodesContainerType::iterator it = r_model_part.Nodes().find(remote_gids[i_color][i]);
+                for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++) //loop over the dofs we received for node i
+                {
+                    unsigned int key = remote_keys[i_color][counter++];
+
+                    ModelPart::DofsArrayType::iterator i_dof;
+                    for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
+                        if (i_dof->GetVariable().Key() == key)
+                            break;
+
+                    Doftemp.push_back(*i_dof.base());
+
+                } 
+            }
+        }
+
+        Doftemp.Unique();
+
+        //now we are sure that for the nodes we own the dofs are ok, so we repeat the operation (but this time just with the nodes we own)
+        //here we prepare to send the dofs as we computed them (so both for the nodes we own and for the others)
+        previous_node_id = -1; //impossible id
+        i=-1;
+        for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
+        {
+            unsigned int partition_index = dof_iterator->GetSolutionStepValue(PARTITION_INDEX);
+ 	    if(partition_index == rank)
+ 	    {
+            if (previous_node_id != static_cast<int>(dof_iterator->Id()))
+            {
+
+                previous_node_id = dof_iterator->Id();
+                local_gids[rank].push_back(previous_node_id);
+                local_ndofs[rank].push_back(1);
+                local_keys[rank].push_back(dof_iterator->GetVariable().Key());
+                i = i+1;
+            }
+            else
+            {
+                local_ndofs[rank][i] += 1;
+                local_keys[rank].push_back(dof_iterator->GetVariable().Key());
+            }
+ 	    }
+        }
+
+        //now send our local ndofs to the other processors using coloring
+        for (unsigned int i_color = 0; i_color < r_model_part.GetCommunicator().NeighbourIndices().size(); i_color++)
+        {
+            int destination = r_model_part.GetCommunicator().NeighbourIndices()[i_color];
+            if (destination >= 0)
+            {
+                MPI_Status status;
+                int send_tag = i_color;
+                int receive_tag = i_color;
+                //first of all obtain the number of nodes we will need to get remotely
+                int remote_gids_size;
+                int local_gids_size = local_gids[i_color].size();
+                MPI_Sendrecv(&local_gids_size, 1, MPI_DOUBLE, destination, send_tag, &remote_gids_size, 1, MPI_DOUBLE, destination, receive_tag,MPI_COMM_WORLD, &status);
+                remote_gids[i_color].resize(remote_gids_size);
+                remote_ndofs[i_color].resize(remote_gids_size);
+
+                //receive the remote GiDs
+                MPI_Sendrecv(local_gids[i_color].data(), local_gids[i_color].size(), MPI_DOUBLE, destination, send_tag, remote_gids[i_color].data(), remote_gids_size, MPI_DOUBLE, destination, receive_tag,MPI_COMM_WORLD, &status);
+
+                //receive the remote ndofs (same size as the gids)
+                MPI_Sendrecv(local_ndofs[i_color].data(), local_ndofs[i_color].size(), MPI_DOUBLE, destination, send_tag, remote_ndofs[i_color].data(), remote_gids_size, MPI_DOUBLE, destination, receive_tag,MPI_COMM_WORLD, &status);
+
+                //find the number of non local dofs to receive
+                int remote_keys_size;
+                int local_keys_size = local_keys[i_color].size();
+                MPI_Sendrecv(&local_keys_size, 1, MPI_DOUBLE, destination, send_tag, &remote_keys_size, 1, MPI_DOUBLE, destination, receive_tag,MPI_COMM_WORLD, &status);
+                remote_keys[i_color].resize(remote_gids_size);
+
+                //receive the keys
+
+                MPI_Sendrecv(local_keys[i_color].data(), local_keys[i_color].size(), MPI_DOUBLE, destination, send_tag, remote_keys[i_color].data(), remote_keys_size, MPI_DOUBLE, destination, receive_tag,MPI_COMM_WORLD, &status);
+            }
+        }
+
+        //add the remote dofs to the current dof list and do an unique, so that the local nodes are added
+
+        for (int i_color=0; i_color<nprocessors; i_color++)
+        {
+            for (unsigned int i=0; i<remote_gids[i_color].size(); i++)
+            {
+                int counter = 0;
+                ModelPart::NodesContainerType::iterator it = r_model_part.Nodes().find(remote_gids[i_color][i]);
+                for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++)
+                {
+                    unsigned int key = remote_keys[i_color][counter++];
+
+                    ModelPart::DofsArrayType::iterator i_dof;
+                    for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
+                        if (i_dof->GetVariable().Key() == key)
+                            break;
+
+                    Doftemp.push_back(*i_dof.base());
+
+                }
+            }
+        }
+
+        //add the remote dofs to the dof list and do a final "unique"
+Doftemp.Unique();
+
+
+
+
+
+
 
         BaseType::mDofSet = Doftemp;
 
@@ -625,7 +812,7 @@ public:
 
         // Calculating number of fixed and free dofs
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            if(dof_iterator->GetSolutionStepValue(PARTITION_INDEX) == rank)
+            if (dof_iterator->GetSolutionStepValue(PARTITION_INDEX) == rank)
             {
                 if (dof_iterator->IsFixed())
                     fixed_size++;
@@ -652,9 +839,9 @@ public:
 
         fixed_offset += global_size - fixed_size;
 
-        if(BaseType::GetEchoLevel()>1)
+        if (BaseType::GetEchoLevel()>1)
         {
-            if(rank == 0)
+            if (rank == 0)
             {
                 std::cout << rank << " : local size = " << BaseType::mDofSet.size() << std::endl;
                 std::cout << rank << " : free_id = " << free_size << std::endl;
@@ -666,7 +853,7 @@ public:
 
         // Now setting the equation id with .
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-            if(dof_iterator->GetSolutionStepValue(PARTITION_INDEX) == rank)
+            if (dof_iterator->GetSolutionStepValue(PARTITION_INDEX) == rank)
             {
                 if (dof_iterator->IsFixed())
                     dof_iterator->SetEquationId(fixed_offset++);
@@ -679,9 +866,9 @@ public:
         BaseType::mEquationSystemSize = global_size;
         mLocalSystemSize = free_size;
 
-        if(BaseType::GetEchoLevel()>1)
+        if (BaseType::GetEchoLevel()>1)
         {
-            if(rank == 0)
+            if (rank == 0)
             {
                 std::cout << rank << " : BaseType::mEquationSystemSize = " << BaseType::mEquationSystemSize << std::endl;
                 std::cout << rank << " : mLocalSystemSize = " << mLocalSystemSize << std::endl;
@@ -750,8 +937,8 @@ public:
         vector<int>& neighbours_indices = rThisModelPart.GetCommunicator().NeighbourIndices();
 
 // 		  std::cout << rank << " starting domain loop " << std::endl;
-        for(unsigned int i_domain = 0 ; i_domain <  neighbours_indices.size() ; i_domain++)
-            if((destination = neighbours_indices[i_domain]) >= 0)
+        for (unsigned int i_domain = 0 ; i_domain <  neighbours_indices.size() ; i_domain++)
+            if ((destination = neighbours_indices[i_domain]) >= 0)
             {
 // 			std::cout << rank << " domian #" << i_domain << std::endl;
                 unsigned int send_buffer_size = 0;
@@ -767,12 +954,12 @@ public:
                 /* 			NodesArrayType& r_ghost_nodes = rThisModelPart.Nodes(ModelPart::Kratos_Ghost); */
 
 // 			std::cout << rank << " : 2...." << std::endl;
-                for(typename NodesArrayType::iterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
+                for (typename NodesArrayType::iterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
                     send_buffer_size += i_node->GetDofs().size();
 
 // 			std::cout << rank << " : 3...." << std::endl;
-                for(typename NodesArrayType::iterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                    if(i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
+                for (typename NodesArrayType::iterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                    if (i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
                     {
                         receive_buffer_size += i_node->GetDofs().size();
                         /*			    for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
@@ -787,8 +974,8 @@ public:
 
                 // Filling the buffer
                 std::cout << rank << " :  Filling the buffer...." << std::endl;
-                for(ModelPart::NodeIterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
-                    for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
+                for (ModelPart::NodeIterator i_node = r_interface_nodes.begin(); i_node != r_interface_nodes.end(); ++i_node)
+                    for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                     {
                         send_buffer[position++] = i_dof->EquationId();
 //  			    std::cout << rank << " : sending equation id : " << i_dof->EquationId() << " for " << i_dof->GetVariable().Name() << " dof in node " << i_node->Id() << std::endl;
@@ -831,7 +1018,7 @@ public:
 
 
 
-                if(position > send_buffer_size)
+                if (position > send_buffer_size)
                     std::cout << rank << " Error in estimating send buffer size...." << std::endl;
 
 
@@ -861,12 +1048,12 @@ public:
 
                 // Updating nodes
                 position = 0;
-                for(ModelPart::NodeIterator i_node = rThisModelPart.GetCommunicator().GhostMesh().NodesBegin() ;
+                for (ModelPart::NodeIterator i_node = rThisModelPart.GetCommunicator().GhostMesh().NodesBegin() ;
                         i_node != rThisModelPart.GetCommunicator().GhostMesh().NodesEnd() ; i_node++)
 // 			for(ModelPart::NodeIterator i_node = rThisModelPart.NodesBegin(ModelPart::Kratos_Ghost) ;
 // 			    i_node != rThisModelPart.NodesEnd(ModelPart::Kratos_Ghost) ; i_node++)
-                    if(i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
-                        for(ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
+                    if (i_node->GetSolutionStepValue(PARTITION_INDEX) == destination)
+                        for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin() ; i_dof != i_node->GetDofs().end() ; i_dof++)
                         {
                             i_dof->SetEquationId(receive_buffer[position++]);
                             // 			    std::cout << rank << " : receiving equation id  : " << i_dof->EquationId() <<  " for " << i_dof->GetVariable().Name() << " dof in node " << i_node->Id() << std::endl;
@@ -877,7 +1064,7 @@ public:
                 // 		      i_node->GetDof(DISPLACEMENT_Z).SetEquationId(receive_buffer[position++]);
                 // 		    }
 
-                if(position > receive_buffer_size)
+                if (position > receive_buffer_size)
                     std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
 
                 delete [] send_buffer;
@@ -908,13 +1095,13 @@ public:
             unsigned int number_of_local_dofs = mLastMyId - mFirstMyId;
 
             int temp_size = number_of_local_dofs;
-            if(temp_size <1000) temp_size = 1000;
+            if (temp_size <1000) temp_size = 1000;
             int* temp = new int[temp_size]; //
             int* assembling_temp = new int[temp_size];
 
 
             //generate map - use the "temp" array here
-            for(unsigned int i=0; i!=number_of_local_dofs; i++)
+            for (unsigned int i=0; i!=number_of_local_dofs; i++)
                 temp[i] = mFirstMyId+i;
             Epetra_Map my_map(-1, number_of_local_dofs, temp, 0, mrComm);
 
@@ -931,7 +1118,7 @@ public:
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
-                for(unsigned int i=0; i<EquationId.size(); i++)
+                for (unsigned int i=0; i<EquationId.size(); i++)
                     if ( EquationId[i] < BaseType::mEquationSystemSize )
                     {
                         assembling_temp[num_active_indices] =  EquationId[i];
@@ -940,7 +1127,7 @@ public:
                     }
 
 // KRATOS_WATCH(" ");
-                if(num_active_indices != 0)
+                if (num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
 //                                                        KRATOS_WATCH(num_active_indices);
@@ -948,7 +1135,7 @@ public:
 //                                                        for(unsigned aaa=0; aaa<num_active_indices; aaa++)
 //                                                            std::cout << assembling_temp[aaa] << " ";
 //                                                        std::cout << std::endl;
-                    if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
+                    if (ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 964","");
                 }
             }
 // KRATOS_WATCH("assemble conditions");
@@ -960,23 +1147,23 @@ public:
 
                 //filling the list of active global indices (non fixed)
                 unsigned int num_active_indices = 0;
-                for(unsigned int i=0; i<EquationId.size(); i++)
+                for (unsigned int i=0; i<EquationId.size(); i++)
                     if ( EquationId[i] < BaseType::mEquationSystemSize )
                     {
                         assembling_temp[num_active_indices] =  EquationId[i];
                         num_active_indices += 1;
                     }
 
-                if(num_active_indices != 0)
+                if (num_active_indices != 0)
                 {
                     int ierr = Agraph.InsertGlobalIndices(num_active_indices,assembling_temp,num_active_indices, assembling_temp);
-                    if(ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
+                    if (ierr < 0) KRATOS_ERROR(std::logic_error,"Epetra failure found in Agraph.InsertGlobalIndices --> ln 986","");
                 }
             }
 
             //finalizing graph construction
             int graph_assemble_ierr = Agraph.GlobalAssemble();
-            if(graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
+            if (graph_assemble_ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
 
 
             //generate a new matrix pointer according to this graph
@@ -987,17 +1174,17 @@ public:
 
 
             //generate new vector pointers according to the given map
-            if( pb == NULL || TSparseSpace::Size(*pb) != BaseType::mEquationSystemSize)
+            if ( pb == NULL || TSparseSpace::Size(*pb) != BaseType::mEquationSystemSize)
             {
                 TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(my_map) );
                 pb.swap(pNewb);
             }
-            if( pDx == NULL || TSparseSpace::Size(*pDx) != BaseType::mEquationSystemSize)
+            if ( pDx == NULL || TSparseSpace::Size(*pDx) != BaseType::mEquationSystemSize)
             {
                 TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(my_map) );
                 pDx.swap(pNewDx);
             }
-            if( BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+            if ( BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
             {
                 TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(my_map) );
                 BaseType::mpReactionsVector.swap(pNewReactionsVector);
@@ -1012,7 +1199,7 @@ public:
         }
         else
         {
-            if(TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
+            if (TSparseSpace::Size1(*pA) == 0 || TSparseSpace::Size1(*pA) != BaseType::mEquationSystemSize || TSparseSpace::Size2(*pA) != BaseType::mEquationSystemSize)
             {
                 KRATOS_ERROR(std::logic_error,"it should not come here resizing is not allowed this way!!!!!!!! ... ","");
             }
@@ -1022,7 +1209,7 @@ public:
 
 
         //if needed resize the vector for the calculation of reactions
-        if(BaseType::mCalculateReactionsFlag == true)
+        if (BaseType::mCalculateReactionsFlag == true)
         {
             //unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
 
