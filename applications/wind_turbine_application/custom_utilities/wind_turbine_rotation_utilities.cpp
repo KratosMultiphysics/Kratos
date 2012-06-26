@@ -336,6 +336,9 @@ void WindTurbineRotationUtilities::DoRotationAndRemesh(const int& dimensions, co
         if (dimensions == 3)
             DestroyCrownNodes();
 
+#if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 	// rotating inner nodes and consequently the elements identified by them
         RotateEntities((double)WIND_TURBINE_INNER_REGION, rotAngle, timeStep);
         RotateEntities((double)WIND_TURBINE_INNER_INTERF_REGION, rotAngle, timeStep);
@@ -354,6 +357,8 @@ void WindTurbineRotationUtilities::DoRotationAndRemesh(const int& dimensions, co
             std::cout << "Geometry not supported." << std::endl;
 #if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
     }
+    
+    MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
 }
@@ -1154,7 +1159,7 @@ void WindTurbineRotationUtilities::CleanTriangulationDataStructure( triangulatei
         if(tr.neighborlist != NULL) free(tr.neighborlist   );
         if(tr.segmentlist != NULL) free(tr.segmentlist    );
         if(tr.segmentmarkerlist != NULL) free(tr.segmentmarkerlist   );
-        if(tr.holelist != NULL) delete tr.holelist;
+        if(tr.holelist != NULL) delete[] tr.holelist;
         if(tr.regionlist != NULL) free(tr.regionlist  );
         if(tr.edgelist != NULL) free(tr.edgelist   );
         if(tr.edgemarkerlist != NULL) free(tr.edgemarkerlist   );
