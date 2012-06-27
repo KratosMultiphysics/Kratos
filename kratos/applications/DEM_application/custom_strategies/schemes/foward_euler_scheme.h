@@ -73,7 +73,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -99,7 +99,7 @@ namespace Kratos
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
 
 	     aux = delta_t / mass;
-             
+
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
              {
@@ -143,10 +143,10 @@ namespace Kratos
 	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes();
 
-	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
+	
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
-        KRATOS_WATCH(delta_t)
+        //KRATOS_WATCH(delta_t)
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -155,7 +155,7 @@ namespace Kratos
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
 
-	#pragma omp parallel for firstprivate(aux) shared(delta_t)
+	#pragma omp parallel for shared(delta_t)
 	for(int k=0; k<number_of_threads; k++)
 	{
             NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
