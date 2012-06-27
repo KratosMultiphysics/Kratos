@@ -118,7 +118,8 @@ private:
 
         double CalculateRotationVelocity(double NewRotAngle);
 
-		void RemoveLocalNodesWithNoElements();
+        void RemoveLocalNodesWithNoElements();
+        void InspectNodeContainerAndLogToFile(ModelPart::NodesContainerType&, const std::string&);
 
         /// beginning of parallel stuff
         int mThisRank;

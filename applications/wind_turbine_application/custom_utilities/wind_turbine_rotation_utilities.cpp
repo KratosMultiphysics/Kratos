@@ -13,6 +13,11 @@
 #include <vector>
 #include <math.h>
 
+// file printout for debug
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 //////////////////////////////////////////////////////////////
 // Activate this #define to compile with MPI parallel extension
 //
@@ -357,7 +362,7 @@ void WindTurbineRotationUtilities::DoRotationAndRemesh(const int& dimensions, co
             std::cout << "Geometry not supported." << std::endl;
 #if defined ( WIND_TURBINE_USE_PARALLEL_EXTENSION )
     }
-    
+
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
@@ -1350,9 +1355,19 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
     int depth = 0;                // sendData char buffer depth, included the '\0' terminator character
     int* recvRankDepths = NULL;   // number of serialized chars received at the remeshing rank, from each process!!!
 
-    //Debugging Kratos run time element registration
-    //for(Serializer::RegisteredObjectsNameContainerType::const_iterator i = Serializer::GetRegisteredObjectsName().begin() ; i != Serializer::GetRegisteredObjectsName().end() ; i++)
-    //    std::cout << i->second << std::endl;
+    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_DEEPINFO)
+    {
+        ////////////////////////////////////////
+        // FILE PRINTOUT FOR DEBUGGING
+        std::string s;
+        std::stringstream out;
+        out << mThisRank;
+        s = out.str();
+        const std::string outFilename = "/tmp/SENDING_nodeinfo_proc_" + s + ".log";
+        InspectNodeContainerAndLogToFile(mInterfaceNodes, outFilename);
+        // END OF FILE PRINTOUT FOR DEBUGGING
+        ////////////////////////////////////////
+    }
 
     Parallel_SerializerSave(container, sendData);
     depth = sendData.size() + 1;
@@ -1440,6 +1455,23 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
             if (nodesContainer->size())
                 std::cout << "   with first/last Kratos IDs(AUX_IDs): " << nItr->Id() << "("<< nItr->GetValue(AUX_ID) << ")/" << (--(nodesContainer->end()))->Id() << "(" <<  (--(nodesContainer->end()))->GetValue(AUX_ID) << ")"<< std::endl;
             receivedInterfaceNodeContainers[rankTurn] = nodesContainer;
+        }
+
+        if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_DEEPINFO)
+        {
+            ////////////////////////////////////////
+            // FILE PRINTOUT FOR DEBUGGING
+            for (int rankTurn = 0; rankTurn < mNumberOfRanks; rankTurn++)
+            {
+                std::string s;
+                std::stringstream out;
+                out << rankTurn;
+                s = out.str();
+                std::string outFilename = "/tmp/recv_nodeinfo_proc_" + s + ".log";
+                InspectNodeContainerAndLogToFile(*(receivedInterfaceNodeContainers[rankTurn]), outFilename);
+            }
+            // END OF FILE PRINTOUT FOR DEBUGGING
+            ////////////////////////////////////////
         }
 
         // callapsing constrained boundary node AUX_IDs series in one list
@@ -1583,39 +1615,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                         if (!isPresent)
                         {
                             // creating the new node
-                            ModelPart::NodeType::Pointer pNewNode = mrGlobalModelPart.CreateNewNode(itr->Id(), *itr);
-
-                            // copying all the historical database data into the new node
-                            Node < 3 > ::DofsContainerType& referenceDofs = itr->GetDofs();
-                            for (Node < 3 > ::DofsContainerType::iterator iii = referenceDofs.begin(); iii != referenceDofs.end(); iii++)
-                            {
-                                Node < 3 > ::DofType& rDof = *iii;
-                                Node < 3 > ::DofType::Pointer p_new_dof = pNewNode->pAddDof(rDof);
-                                if ( itr->IsFixed(iii->GetVariable()) )
-                                    (p_new_dof)->FixDof();
-                                else
-                                {
-                                    (p_new_dof)->FreeDof();
-                                }
-
-                            }
-
-                            // intepolating the data
-                            unsigned int bufferSize = pNewNode->GetBufferSize();
-                            for (unsigned int step = 0; step < bufferSize; step++)
-                            {
-                                double* newStepData = pNewNode->SolutionStepData().Data(step);
-                                double* stepData = itr->SolutionStepData().Data(step);
-                                // copying this data in the position of the vector we are interested in
-                                for (unsigned int j = 0; j < mrGlobalModelPart.GetNodalSolutionStepDataSize(); j++)
-                                {
-                                    newStepData[j] = stepData[j];
-                                }
-                            }
-
-                            // copying non-historical database data and position into the new node
-                            pNewNode->Data() = itr->Data();
-                            pNewNode->GetInitialPosition() = itr->GetInitialPosition();
+                            ModelPart::NodeType::Pointer pNewNode = *(itr.base());  // getting the shared pointer inside the node container
 
                             std::cout << "Appending new node with older Kratos ID " << itr->Id() << " (AUX_ID = " << pNewNode->GetValue(AUX_ID) << "), coords. ("<< pNewNode->X() << ", " << pNewNode->Y() << ", " << pNewNode->Z() << ")";
                             if ( itemCount < mRankInnerInterfaceOffsets.at(rankTurn) )
@@ -1722,6 +1722,46 @@ void WindTurbineRotationUtilities::Parallel_FindLastKratosGlobalElementId()
             // end of debugging couts
         }
     }
+}
+
+void WindTurbineRotationUtilities::InspectNodeContainerAndLogToFile(ModelPart::NodesContainerType& rNodeContainer, const std::string& outFilename)
+{
+    std::ofstream logFile;
+    const char* ptrFilenameStr = outFilename.c_str();
+    logFile.open(ptrFilenameStr, std::ios::out | std::ios::app);
+
+    for ( ModelPart::NodesContainerType::iterator rankItr = rNodeContainer.begin();
+          rankItr != rNodeContainer.end();
+          rankItr++
+         )
+    {
+        logFile << "Id: " << rankItr->Id() << "\tAUX_ID: " << rankItr->GetValue(AUX_ID) << std::endl;
+        logFile << "     dofs: ";
+        Node < 3 > ::DofsContainerType& referenceDofs = rankItr->GetDofs();
+        for (Node < 3 > ::DofsContainerType::iterator iii = referenceDofs.begin(); iii != referenceDofs.end(); iii++)
+        {
+            std::cout << "\t\t" << iii->GetVariable() << "(key: " << iii->GetVariable().Key() << "), " << std::endl;
+        }
+        logFile << std::endl << "           historical database: ";
+
+        // intepolating the data
+        unsigned int bufferSize = rankItr->GetBufferSize();
+        for (unsigned int step = 0; step < bufferSize; step++)
+        {
+            double* stepData = rankItr->SolutionStepData().Data(step);
+            for (unsigned int j = 0; j < mrGlobalModelPart.GetNodalSolutionStepDataSize(); j++)
+            {
+                std::cout << stepData[j] << ", ";
+            }
+        }
+
+        logFile << std::endl << "           non-historical database: " << rankItr->Data() << std::endl;
+        // copying non-historical database data and position into the new node
+
+
+    }
+    logFile.flush();
+    logFile.close();
 }
 
 
