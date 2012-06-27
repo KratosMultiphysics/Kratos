@@ -52,7 +52,7 @@ namespace Kratos
      void Calculate(ModelPart& model_part)
      {
         KRATOS_TRY
-        KRATOS_WATCH("hola wwi")
+        //KRATOS_WATCH("hola wwi")
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
@@ -96,7 +96,7 @@ namespace Kratos
 	     //desplazamiento = dt * c1->GetVelocidad() + 0.5 * dt * dt * (c1->GetAceleracion() + accel);
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
              {
-	         displ[0]  += delta_t * vel[0] + 0.5 * delta_t * delta_t * (prev_accel[0] + new_accel[0]);
+	         displ[0]  += delta_t * vel[0] + 0.25 * delta_t * delta_t * (prev_accel[0] + new_accel[0]);
 	         vel[0]    = vel[0] + 0.5 * delta_t * (prev_accel[0] + new_accel[0]);
                  
 	         coor[0]   = initial_coor[0] + displ[0];
@@ -106,7 +106,7 @@ namespace Kratos
 	     
 	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
              {
-	         displ[1]  += delta_t * vel[1] + 0.5 * delta_t * delta_t * (prev_accel[1] + new_accel[1]);
+	         displ[1]  += delta_t * vel[1] + 0.25 * delta_t * delta_t * (prev_accel[1] + new_accel[1]);
 	         vel[1]    = vel[1] + 0.5 * delta_t * (prev_accel[1] + new_accel[1]);
            
 	         coor[1]   = initial_coor[1] + displ[1];
@@ -116,7 +116,7 @@ namespace Kratos
 	     
              if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Z))== false ) )
 	     {
-	         displ[2]  += delta_t * vel[2] + 0.5 * delta_t * delta_t * (prev_accel[2] + new_accel[2]);
+	         displ[2]  += delta_t * vel[2] + 0.25 * delta_t * delta_t * (prev_accel[2] + new_accel[2]);
 	         vel[2]    = vel[2] + 0.5 * delta_t * (prev_accel[2] + new_accel[2]);
                 
 	         coor[2]   = initial_coor[2] + displ[2];

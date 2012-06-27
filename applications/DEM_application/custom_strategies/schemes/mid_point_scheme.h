@@ -21,10 +21,13 @@
 
 
 // Project includes
+#include "integration_scheme.h"
 #include "includes/define.h"
 #include "utilities/openmp_utils.h"
 #include "includes/model_part.h"
 #include "utilities/openmp_utils.h"
+
+#include "DEM_application.h"
 
 namespace Kratos
 {
@@ -54,7 +57,7 @@ namespace Kratos
   /** Detail class definition.
   */
   
-  class MidPointScheme 
+  class MidPointScheme :  public IntegrationScheme
     {
     public:
       ///@name Type Definitions
@@ -99,71 +102,76 @@ namespace Kratos
         typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
          
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
-	ElementsArrayType& pElements     = model_part.Elements(); 
-        
- 	double delta_t      =  CurrentProcessInfo[DEM_DELTA_TIME];
+        NodesArrayType& pNodes           = model_part.Nodes();
+
+ 	double delta_t      =  CurrentProcessInfo[DELTA_TIME];
         double half_delta_t = 0.5 * delta_t;
 	array_1d<double, 3 > aux, vel_copy, displ_copy;
 	ComponentVectorType vel_old, displ_new, kf, kv;
 
-	
-	vector<unsigned int> elem_partition;
-	ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-	ElementsArrayType::iterator it_end   = pElements.ptr_end();
-	int number_of_threads                = OpenMPUtils::GetNumThreads();
-	OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), elem_partition);
-	
+        vector<unsigned int> node_partition;
+	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+	NodesArrayType::iterator it_end   = pNodes.ptr_end();
+	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 	
 	#pragma omp parallel for private(aux) shared(delta_t) 
 	for(int k=0; k<number_of_threads; k++)
 	{
-	  ElementsArrayType::iterator i_begin=pElements.ptr_begin() + elem_partition[k];
-	  ElementsArrayType::iterator i_end=pElements.ptr_begin()+ elem_partition[k+1];
-	  for(ModelPart::ElementIterator i=i_begin; i!= i_end; ++i)      
+	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+	  NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
 	  {
-	    Element::GeometryType& geom           = i->GetGeometry(); 
-	    array_1d<double, 3 > & vel            = geom(0)->FastGetSolutionStepValue(VELOCITY);
-	    array_1d<double, 3 > & vel_old        = geom(0)->FastGetSolutionStepValue(VELOCITY,1);
-	    array_1d<double, 3 > & displ          = geom(0)->FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double, 3 > & displ_old      = geom(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3 > & force          = geom(0)->FastGetSolutionStepValue(RHS);
-	    array_1d<double, 3 > & coor           = geom(0)->Coordinates();
-	    array_1d<double, 3 > & initial_coor   = geom(0)->GetInitialPosition();
-	    const double& mass                    = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+	    //Element::GeometryType& geom           = i->GetGeometry();
+	    array_1d<double, 3 > & vel            = i->FastGetSolutionStepValue(VELOCITY);
+	    array_1d<double, 3 > & vel_old        = i->FastGetSolutionStepValue(VELOCITY,1);
+	    array_1d<double, 3 > & displ          = i->FastGetSolutionStepValue(DISPLACEMENT);
+	    array_1d<double, 3 > & displ_old      = i->FastGetSolutionStepValue(DISPLACEMENT,1);
+	    array_1d<double, 3 > & force          = i->FastGetSolutionStepValue(RHS);
+	    array_1d<double, 3 > & coor           = i->Coordinates();
+	    array_1d<double, 3 > & initial_coor   = i->GetInitialPosition();
+
+	    const double& mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
 	    noalias(aux)                          = (half_delta_t/ mass) * force;
 	    
-	    if(geom(0)->pGetDof(DISPLACEMENT_X)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
+            {
 	      vel[0]    += aux[0]; 
 	      displ[0]  += half_delta_t * vel[0];
 	    }
 
-	    if(geom(0)->pGetDof(DISPLACEMENT_Y)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
+            {
 	      vel[1]    += aux[1]; 
 	      displ[1]  += half_delta_t * vel[1];
 	    }
 
-	    if(geom(0)->pGetDof(DISPLACEMENT_Z)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
+            {
 	    vel[2]    += aux[2];
 	    displ[2]  += half_delta_t * vel[2];  
 	    }
 	    
 	    /// TALK TO M. Angel
 	    //Calculate_Forces(type_id, damp_id, delta_t, gravity);
-	    i->Calculate(FORCE, force, CurrentProcessInfo);
+	    //i->Calculate(FORCE, force, CurrentProcessInfo);
 	    
-	      if(geom(0)->pGetDof(DISPLACEMENT_X)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
+            {
 	        vel[0]    = vel_old[0]      + (delta_t/mass) * force[0];
 	        displ[0]  = displ_old[0]    + delta_t * vel_old[0] * (1 + half_delta_t);
 		coor[0]   = initial_coor[0] + displ[0];
 	    }
 
-	    if(geom(0)->pGetDof(DISPLACEMENT_Y)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
+            {
 	        vel[1]    = vel_old[1]      + (delta_t/mass) * force[1];
 	        displ[1]  = displ_old[1]    + delta_t * vel_old[1] * (1 + half_delta_t);
 		coor[1]   = initial_coor[1] + displ[1];
 	    }
 
-	    if(geom(0)->pGetDof(DISPLACEMENT_Z)->IsFixed() == false){
+	    if( ( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
+            {
 	        vel[2]    = vel_old[2]      + (delta_t/mass) * force[2];
 	        displ[2]  = displ_old[2]    + delta_t * vel_old[2] * (1 + half_delta_t);
 		coor[2]   = initial_coor[2] + displ[2]; 
