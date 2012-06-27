@@ -83,6 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/foward_euler_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
+#include "custom_strategies/schemes/mid_point_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -114,6 +115,12 @@ namespace Kratos
 		  class_< FowardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
 		  (
                    "FowardEulerScheme", init<>()
+                  )
+                  ;
+
+		  class_< MidPointScheme, bases<IntegrationScheme>,  boost::noncopyable>
+		  (
+                   "MidPointScheme", init<>()
                   )
                   ;
 
