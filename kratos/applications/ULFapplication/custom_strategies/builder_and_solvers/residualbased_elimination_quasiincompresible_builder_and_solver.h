@@ -1365,7 +1365,7 @@ public:
                                 if (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
                                 else if (TDim==3)
-                                    Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
+                                    Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
                             }
                             else
                             {
@@ -1373,7 +1373,7 @@ public:
                                 if (TDim==2)
                                     Mconsistent(row_index,col_index) += 0.25*temp ;
                                 else if (TDim==3)
-                                    Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
+                                    Mconsistent(row_index,col_index) += 0.2*temp ;
                             }
 
 
@@ -1755,7 +1755,7 @@ public:
                             if (TDim==2)
                                 Mconsistent(row_index,col_index) += 0.25*temp * 2.0;
                             else if (TDim==3)
-                                Mconsistent(row_index,col_index) += 0.2*temp * 2.0*2.5;
+                                Mconsistent(row_index,col_index) += 0.2*temp * 2.0;
                         }
                         else
                         {
@@ -1764,7 +1764,7 @@ public:
                             if (TDim==2)
                                 Mconsistent(row_index,col_index) += 0.25*temp ;
                             else if (TDim==3)
-                                Mconsistent(row_index,col_index) += 0.2*temp*0.0 ;
+                                Mconsistent(row_index,col_index) += 0.2*temp;
 
                         }
                     }
