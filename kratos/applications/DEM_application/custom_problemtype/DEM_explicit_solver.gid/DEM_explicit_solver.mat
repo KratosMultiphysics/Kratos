@@ -32,11 +32,8 @@ VALUE: 0
 QUESTION: Dynamic_friction_coef
 VALUE: 0
 
-QUESTION: Zeta_value
+QUESTION: Visco_Damp_Coeff
 VALUE: 0.1
-
-QUESTION: Restitution_coef
-VALUE: 0.5
 
 QUESTION: Colour
 VALUE: 14
@@ -75,11 +72,8 @@ VALUE: 0
 QUESTION: Dynamic_friction_coef
 VALUE: 0
 
-QUESTION: Zeta_value
+QUESTION: Visco_Damp_Coeff
 VALUE: 0.1
-
-QUESTION: Restitution_coef
-VALUE: 0.5
 
 QUESTION: Colour
 VALUE: 30
