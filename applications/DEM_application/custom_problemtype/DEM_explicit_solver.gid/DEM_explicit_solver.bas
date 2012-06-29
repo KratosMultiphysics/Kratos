@@ -174,19 +174,10 @@ Begin NodalData PARTICLE_LOCAL_DAMP_RATIO
 End NodalData
 
 
-Begin NodalData PARTICLE_ZETA
+Begin NodalData VISCO_DAMP_COEFF
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Zeta_value)
-*endif
-*end elems 
-End NodalData
-
-
-Begin NodalData PARTICLE_COEF_RESTITUTION
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Restitution_coef)
+*elemsconec(1) 0 *elemsmatprop(Visco_Damp_Coeff)
 *endif
 *end elems 
 End NodalData
