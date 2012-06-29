@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: Nelspon $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -9,10 +9,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -29,24 +29,24 @@ namespace Kratos
 
 
       SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry) {}
-      
+
       SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties)  
+      : DiscreteElement(NewId, pGeometry, pProperties)
       {}
-       
+
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes) 
+      : DiscreteElement(NewId, ThisNodes)
       {}
-           
+
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
          return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create( ThisNodes ), pProperties) );
-      } 
-      
+      }
+
 
       /// Destructor.
       SphericParticle::~SphericParticle(){}
-      
+
 
       void SphericParticle::Initialize(){
 
@@ -69,7 +69,7 @@ namespace Kratos
         if(mDimension ==2)
         {
             mass     = M_PI * radius * radius * density;
-            
+
             mRealMass = mass;
 
             Inertia = 0.25 * M_PI * radius * radius * radius  * radius ;
@@ -89,7 +89,7 @@ namespace Kratos
             MomentOfInertia = 0.4 * radius * radius;
         }
 
-    
+
         KRATOS_CATCH( "" )
 
       }
@@ -115,13 +115,13 @@ namespace Kratos
       void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
       {
-          
+
           double radius = GetGeometry()(0)->GetSolutionStepValue(RADIUS);
           double volume =   1.333333333333333*M_PI*radius*radius*radius;
           double density = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_DENSITY);
           rMassMatrix.resize(1,1);
           rMassMatrix(0,0) = volume*density;
-        
+
       }
 
       void SphericParticle::SetInitialContacts(int case_opt) //vull ficar que sigui zero si no son veins cohesius.
@@ -134,7 +134,7 @@ namespace Kratos
 
 
            //mContinuumGroup                                  = this->GetValue(PARTICLE_CONTINUUM);
-        
+
            //vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily double...
            //r_VectorContactFailureId.resize(r_neighbours.size());
 
@@ -201,19 +201,19 @@ namespace Kratos
                         //M:also we can say that the particle is detached --> this can be a flag for the forces.
 
                         i++;
-                    
+
                }//if I found myself.
 
             } //end for: ParticleWeakIteratorType ineighbour
       }//SET INITIAL CONTACTS.
- 
+
 
         void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
 
         {
 
             KRATOS_TRY
-      
+
             ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
 
           // vector<double>& r_VectorContactFailureId            = this->GetValue(PARTICLE_CONTACT_FAILURE_ID); //M:temporarily a vector of doubles... it should be vector of ints..
@@ -223,7 +223,7 @@ namespace Kratos
 
             const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
-            double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME];
+            double dt                           = rCurrentProcessInfo[DELTA_TIME];
             int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];
             int type_id                         = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
             int rotation_OPTION                 = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
@@ -253,7 +253,7 @@ namespace Kratos
                         delta_OPTION = false;
                         continuum_simulation_OPTION = false;
                 }
-  
+
             // GETTING PARTICLE PROPERTIES
 
         //    int FailureId = mFailureId;
@@ -277,12 +277,16 @@ namespace Kratos
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
 
             force  = mass*gravity + applied_force;
+            //KRATOS_WATCH(mass)
+            //KRATOS_WATCH(gravity)
+            //KRATOS_WATCH(force)
+            //KRATOS_WATCH(applied_force)
 
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
-            
+
             size_t iContactForce = 0;
-            
+
 
             for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
             neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
@@ -292,7 +296,7 @@ namespace Kratos
                 double other_radius                 = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                 double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
                 double equiv_visc_damp_ratio        = (critic_damp_fraction + other_critic_damp_fraction) / 2.0;   //M: is it correct to be a simple mean.
-             // double other_mass                   = neighbour_iterator.mRealMass;
+                // double other_mass                   = neighbour_iterator.mRealMass;
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
                 double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
                 double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
@@ -313,7 +317,7 @@ namespace Kratos
                 array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
 
 
-     
+
                 if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
                 {
                     // Test for Average, 120531, should be discussed
@@ -322,7 +326,7 @@ namespace Kratos
                     /*
                     CTensionUP    = 2* Tension * other_tension;
                     if(CTensionUP==0){
-                        
+
                         CTension=0;
                     }
                     else {
@@ -352,14 +356,14 @@ namespace Kratos
                 double radius_sum                   = radius + other_radius;
 
                 double indentation                  = radius_sum - distance - initial_delta; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
-          
+
                 double equiv_radius     = 2* radius * other_radius / (radius + other_radius);
                 double equiv_area       = M_PI * equiv_radius * equiv_radius;
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
                 double equiv_young      = 2 * young * other_young / (young + other_young);
-                  
+
                 Friction                = tan( (FriAngle + other_FriAngle) * 0.5  / 180.0 * M_PI);
-            
+
                 double kn               = M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
 
@@ -378,28 +382,32 @@ namespace Kratos
                 array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
 
                 double DeltDisp[3] = {0.0};
-                double DeltVel [3] = {0.0};
+                double RelVel [3] = {0.0};
 
-                DeltVel[0] = (vel[0] - other_vel[0]);
-                DeltVel[1] = (vel[1] - other_vel[1]);
-                DeltVel[2] = (vel[2] - other_vel[2]);
+                RelVel[0] = (vel[0] - other_vel[0]);
+                RelVel[1] = (vel[1] - other_vel[1]);
+                RelVel[2] = (vel[2] - other_vel[2]);
 
                 //DeltDisp in global cordinates
 
-                DeltDisp[0] = DeltVel[0] * dt;
-                DeltDisp[1] = DeltVel[1] * dt;
-                DeltDisp[2] = DeltVel[2] * dt;
+                //DeltDisp[0] = RelVel[0] * dt;
+                //DeltDisp[1] = RelVel[1] * dt;
+                //DeltDisp[2] = RelVel[2] * dt;
 
+                DeltDisp[0] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_X)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_X,1);
+                DeltDisp[1] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Y)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Y,1);
+                DeltDisp[2] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Z)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Z,1);
+                KRATOS_WATCH(DeltDisp[2])
                     if ( rotation_OPTION == 1 )
                     {
-                       
+
                         double velA[3]   = {0.0};
                         double velB[3]   = {0.0};
                         double dRotaDisp[3] = {0.0};
 
                         array_1d<double, 3 > AngularVel       = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                         array_1d<double, 3 > Other_AngularVel = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
- 
+
                         double Vel_Temp[3]       = {      AngularVel[0],       AngularVel[1],       AngularVel[2]};
                         double Other_Vel_Temp[3] = {Other_AngularVel[0], Other_AngularVel[1], Other_AngularVel[2]};
                         GeometryFunctions::CrossProduct(Vel_Temp,             LocalCoordSystem[2], velA);
@@ -441,6 +449,9 @@ namespace Kratos
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
+                        KRATOS_WATCH(LocalDeltDisp[2])
+                        KRATOS_WATCH(LocalContactForce[2])
+                        KRATOS_WATCH(indentation)
 
                     }
 
@@ -462,9 +473,9 @@ namespace Kratos
                         }
                     }
 
-                
+
               // TENSION FAILURE
-                   
+
                         if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
                         {
                             LocalContactForce[0]  = 0.0;
@@ -522,15 +533,15 @@ namespace Kratos
                             //M: el damping tangencial dona petits problemes... cal realment un damping?
 
                             /*
-                            if( abs(equiv_visc_damp_ratio * DeltVel[0]) > abs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
-                            else { visco_damping[0]= equiv_visc_damp_ratio * DeltVel[0]; }
+                            if( abs(equiv_visc_damp_ratio * RelVel[0]) > abs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
+                            else { visco_damping[0]= equiv_visc_damp_ratio * RelVel[0]; }
 
-                            if( abs(equiv_visc_damp_ratio * DeltVel[1]) > abs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
-                            else { visco_damping[1]= equiv_visc_damp_ratio * DeltVel[1]; }
+                            if( abs(equiv_visc_damp_ratio * RelVel[1]) > abs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
+                            else { visco_damping[1]= equiv_visc_damp_ratio * RelVel[1]; }
                             */
 
-                            if( abs(equiv_visc_damp_ratio * DeltVel[2]) > abs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
-                            else { visco_damping[2]= equiv_visc_damp_ratio * DeltVel[2]; }
+                            if( abs(equiv_visc_damp_ratio * RelVel[2]) > abs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
+                            else { visco_damping[2]= equiv_visc_damp_ratio * RelVel[2]; }
 
 
                             LocalContactForce[0] = LocalContactForce[0] - visco_damping[0];
@@ -564,9 +575,9 @@ namespace Kratos
                     mRota_Moment[0] -= MA[0] * radius;
                     mRota_Moment[1] -= MA[1] * radius;
                     mRota_Moment[2] -= MA[2] * radius;
-               
+
                     }
-              
+
                     iContactForce++;
 
             }//for each neaighbour
@@ -587,14 +598,18 @@ namespace Kratos
 
                 for (int iDof = 0; iDof < 3; iDof++)
                 {
-                    if (this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY)[iDof] > 0.0)
+                    //if (this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY)[iDof] > 0.0)
+                    /*if (this->GetGeometry()(0)->GetSolutionStepValue(RHS)[iDof] > 0.0)
                     {
                         force[iDof] = force[iDof] - LocalDampRatio * fabs(force[iDof]);
                     }
                     else
                     {
                         force[iDof] = force[iDof] + LocalDampRatio * fabs(force[iDof]);
-                    }
+                    }*/
+                    //KRATOS_WATCH(force[iDof])
+                    force[iDof] = force[iDof] - LocalDampRatio * force[iDof];
+                    //KRATOS_WATCH(force[iDof])
                 }
 
       } //ApplyLocalForcesDamping
@@ -609,20 +624,20 @@ namespace Kratos
 
         // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
 
-       
+
         for (int iDof = 0; iDof < 3; iDof++)
         {
             if (this->GetGeometry()(0)->GetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
             {
                  RotaMoment[iDof] = RotaMoment[iDof] - LocalDampRatio * fabs(RotaMoment[iDof]);
-   
+
             }
             else
-            {  
+            {
                  RotaMoment[iDof] = RotaMoment[iDof] + LocalDampRatio * fabs(RotaMoment[iDof]);
             }
         }
-        
+
 
     } //ApplyLocalMomentsDamping
 
@@ -631,8 +646,8 @@ namespace Kratos
         void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
         {
 
-        double dt                           = rCurrentProcessInfo[DEM_DELTA_TIME]; //C.F.: neew
-        
+        double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
+
 
         double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
         double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
@@ -660,7 +675,7 @@ namespace Kratos
 
         for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
         {
- 
+
 
             //C.F//if(mIfInitalContact[iContactForce] == 1 && mRotaSpringFailureType[iContactForce] == 0)
 
@@ -682,7 +697,7 @@ namespace Kratos
                 double equiv_area       = M_PI * equiv_radius * equiv_radius;
                 double equiv_poisson    = (poisson + other_poisson) * 0.5 ;
                 double equiv_young      = (young  + other_young)  * 0.5;
-              
+
                 double kn               = equiv_young * equiv_area / (2.0 * equiv_radius);
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
 
@@ -716,19 +731,19 @@ namespace Kratos
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
 
 
- 
+
 
                 GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
 
                 GlobalRotaSpringMomentOld[1] = mRotaSpringMoment[ 1 ];
 
                 GlobalRotaSpringMomentOld[2] = mRotaSpringMoment[ 2 ];
-    
+
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalRotaSpringMomentOld, LocalRotaSpringMoment);
 
 
                 double Inertia_I = (inertia + other_inertia) * 0.5;
-             
+
                 double Inertia_J = Inertia_I * 2.0;
 
 
@@ -763,7 +778,7 @@ namespace Kratos
                 {
                     mRotaSpringFailureType[iContactForce] = 1;
 
-                   
+
                     LocalRotaSpringMoment[0] = 0.0;
                     LocalRotaSpringMoment[1] = 0.0;
                     LocalRotaSpringMoment[2] = 0.0;
@@ -771,7 +786,7 @@ namespace Kratos
 
                 GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotaSpringMoment, GlobalRotaSpringMoment);
 
-         
+
 
                 mRotaSpringMoment[ 0 ] = GlobalRotaSpringMoment[0];
                 mRotaSpringMoment[ 1 ] = GlobalRotaSpringMoment[1];
@@ -790,13 +805,13 @@ namespace Kratos
         }//ComputeParticleRotationSpring
 
 
-       
-
-         
 
 
 
-        
+
+
+
+
 
         void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
@@ -819,9 +834,9 @@ namespace Kratos
         void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
         {
 
-          int case_opt         = rCurrentProcessInfo[CASE_OPTION];     
+          int case_opt         = rCurrentProcessInfo[CASE_OPTION];
           int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
-         
+
           if( (mSwitch==0) && (case_opt!=0) )
           {
                 SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
@@ -831,14 +846,14 @@ namespace Kratos
           noalias(force)                      = ZeroVector(3);
 
 
-          
+
         }
         void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
 
         void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
         {
 
-            if (rVariable == DEM_DELTA_TIME)
+            if (rVariable == DELTA_TIME)
             {
                 double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
                 double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
@@ -871,7 +886,5 @@ namespace Kratos
         void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
         void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
         void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
-  
+
 }  // namespace Kratos.
-
-

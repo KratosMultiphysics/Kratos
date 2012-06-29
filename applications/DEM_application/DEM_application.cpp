@@ -27,7 +27,7 @@ namespace Kratos
 {
 
     /*Define In Global variables.cpp
-        KRATOS_CREATE_VARIABLE(double, DEM_DELTA_TIME)
+        KRATOS_CREATE_VARIABLE(double, DELTA_TIME)
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
@@ -68,7 +68,7 @@ namespace Kratos
                 
 
                 /* Define In Global variables.cpp
-                KRATOS_REGISTER_VARIABLE(DEM_DELTA_TIME)
+                KRATOS_REGISTER_VARIABLE(DELTA_TIME)
                 KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
                 KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_MOMENT)
                  */

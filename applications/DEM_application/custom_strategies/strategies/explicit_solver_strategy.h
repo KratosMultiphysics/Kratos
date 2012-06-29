@@ -175,12 +175,6 @@ namespace Kratos
 
         //STRATEGY:
 
-        //0.PREVIOUS OPERATIONS
-
-        if(mComputeTime==false){
-	    ComputeCriticalTime();
-	    mComputeTime = true;
-	}
 
         //1.0
 
@@ -238,6 +232,26 @@ namespace Kratos
 	KRATOS_CATCH("")
 	
       }
+
+
+
+       void CriticalTime()
+      {
+	KRATOS_TRY
+
+     //COMPUTE CRITICAL DELTA TIME
+
+       if(mComputeTime==false){
+	    ComputeCriticalTime();
+	    mComputeTime = true;
+	}
+
+
+         KRATOS_CATCH("")
+
+       }
+
+
 
 
 //M: A IMPLEMENTAR PER PROBLEMES STATICS
@@ -308,7 +322,7 @@ namespace Kratos
         }
       */
 	
-	void Initialize()
+	void Initialized()
         {
             KRATOS_TRY
 
@@ -424,7 +438,7 @@ namespace Kratos
 
                   for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
                   {
-                      it->Calculate(DEM_DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
+                      it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
 
                       KRATOS_WATCH(TimeStepTemp)
                       if(mtimestep > TimeStepTemp)
@@ -439,12 +453,12 @@ namespace Kratos
             }
 
             
-            if (mtimestep < rCurrentProcessInfo[DEM_DELTA_TIME])
+            if (mtimestep < rCurrentProcessInfo[DELTA_TIME])
             {
-            rCurrentProcessInfo[DEM_DELTA_TIME] = mtimestep;
+            rCurrentProcessInfo[DELTA_TIME] = mtimestep;
             }
             std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
-            KRATOS_WATCH(rCurrentProcessInfo[DEM_DELTA_TIME])
+            KRATOS_WATCH(rCurrentProcessInfo[DELTA_TIME])
                      
             KRATOS_CATCH("")
 
