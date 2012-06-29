@@ -98,7 +98,7 @@ class ExplicitStrategy:
       
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.model_part.ProcessInfo.SetValue(DEM_DELTA_TIME, self.delta_time)
 
         #POOOYAAAAN NO EM VAN AKESTS NO ELS CONEIX PYTON DE BOOL A BOOL
 
