@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import DEM_explicit_solver_var
 import time as timer
 
@@ -156,23 +155,25 @@ current_pr_time = timer.clock()
 current_real_time = timer.time()
 
 print 'Calculation starts at instant: ' + str(current_pr_time)
+
 while(time < final_time):
 	  
     print "TIME STEP = ", step
-    
 
-   
     #if ((step + 1) % n_step_destroy_distant == 0): 
 	
         #solver.Destroy_Particles(list_of_particles_pointers, solid_model_part)
-   
-   
+
+    solver.Critical_Time()
+
+    time = time + dt
     solid_model_part.CloneTimeStep(time)
+
     solid_model_part.ProcessInfo[TIME_STEPS] = step
     
     solver.Solve()
 
-    dt=solid_model_part.ProcessInfo.GetValue(DEM_DELTA_TIME)
+    dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
        
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
@@ -198,7 +199,7 @@ while(time < final_time):
         gid_io.FinalizeResults()    
 	time_old_print = time
     
-    time = time + dt
+   
     step += 1
 
 print 'Calculation ends at instant: ' + str(timer.time())

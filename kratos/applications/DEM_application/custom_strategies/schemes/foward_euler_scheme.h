@@ -73,7 +73,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -145,7 +145,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes();
 
 	
-	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
         //KRATOS_WATCH(delta_t)
 

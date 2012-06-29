@@ -251,7 +251,7 @@ namespace Kratos
 
     void DEM_FEM_Particle::ComputeParticleBlockContactForce(ProcessInfo& CurrentProcessInfo)
     {
-        double mTimeStep    = CurrentProcessInfo[DEM_DELTA_TIME];
+        double mTimeStep    = CurrentProcessInfo[DELTA_TIME];
         int rotation_OPTION = CurrentProcessInfo[ROTATION_OPTION]; 
         
 

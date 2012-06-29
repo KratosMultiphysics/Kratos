@@ -16,7 +16,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
+    #model_part.AddNodalSolutionStepVariable(PARTICLE_COEF_RESTITUTION)
     model_part.AddNodalSolutionStepVariable(VISCO_DAMP_COEFF)
     #model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
@@ -98,7 +98,7 @@ class ExplicitStrategy:
       
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
-        self.model_part.ProcessInfo.SetValue(DEM_DELTA_TIME, self.delta_time)
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
 
         #POOOYAAAAN NO EM VAN AKESTS NO ELS CONEIX PYTON DE BOOL A BOOL
 
@@ -139,7 +139,9 @@ class ExplicitStrategy:
             
         #self.solver.SetCohesiveContacts()
 
-
+ #######################################################################
+    def Critical_Time(self):
+        (self.solver).CriticalTime()
 
     #######################################################################   
     def Solve(self):

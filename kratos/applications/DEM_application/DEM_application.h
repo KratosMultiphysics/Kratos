@@ -33,7 +33,7 @@ const long double pi = 3.141592653589793238462643383279;
 namespace Kratos
 {
     /* Define In Global variables.h
-        KRATOS_DEFINE_VARIABLE(double,  DEM_DELTA_TIME);
+        KRATOS_DEFINE_VARIABLE(double,  DELTA_TIME);
         KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
         typedef vector<array_1d<double,3> > VectorArray3Double;
         KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
