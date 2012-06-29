@@ -265,7 +265,7 @@ namespace Kratos
             double Friction         = tan( FriAngle / 180.0 * M_PI);
 
             double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-            double critic_damp_fraction = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_ZETA);
+            double critic_damp_fraction = this->GetGeometry()[0].GetSolutionStepValue(VISCO_DAMP_COEFF);
             double mass                 = mRealMass;
 
             double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
@@ -277,9 +277,7 @@ namespace Kratos
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
 
             force  = mass*gravity + applied_force;
-        KRATOS_WATCH(mass)
-                KRATOS_WATCH(gravity)
-            KRATOS_WATCH(force)
+
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
             
@@ -292,7 +290,7 @@ namespace Kratos
              // GETTING NEIGHBOUR PROPERTIES
 
                 double other_radius                 = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_ZETA);
+                double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
                 double equiv_visc_damp_ratio        = (critic_damp_fraction + other_critic_damp_fraction) / 2.0;   //M: is it correct to be a simple mean.
              // double other_mass                   = neighbour_iterator.mRealMass;
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
