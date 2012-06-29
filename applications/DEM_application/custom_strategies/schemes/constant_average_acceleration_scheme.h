@@ -59,7 +59,7 @@ namespace Kratos
 	double aux          = 0;
         array_1d<double, 3 >  new_accel;
         array_1d<double, 3 >  prev_accel;
-	double delta_t      =  CurrentProcessInfo[DELTA_TIME];
+	double delta_t      =  CurrentProcessInfo[DEM_DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -87,6 +87,7 @@ namespace Kratos
 	     
 	              
 	     aux = delta_t / mass;
+             KRATOS_WATCH(delta_t)
 
 	     new_accel = force / mass;
              prev_accel = prev_force / mass;

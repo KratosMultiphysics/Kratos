@@ -73,7 +73,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
 	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -99,6 +99,7 @@ namespace Kratos
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
 
 	     aux = delta_t / mass;
+             KRATOS_WATCH(delta_t)
 
 	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
@@ -144,7 +145,7 @@ namespace Kratos
 	NodesArrayType& pNodes           = model_part.Nodes();
 
 	
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+	double delta_t =  rCurrentProcessInfo[DEM_DELTA_TIME];
 
         //KRATOS_WATCH(delta_t)
 
