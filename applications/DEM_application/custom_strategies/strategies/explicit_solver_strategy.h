@@ -71,7 +71,6 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  enum Constraint_Enforcement{Penalty_Methods, Lagrange_Multiplier_Methods};  
   template<
   class TSparseSpace,
   class TDenseSpace, 
@@ -476,17 +475,17 @@ namespace Kratos
 
             {
 
-            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+                typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+                typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
 
-            double dummy = 0.0;
+                double dummy = 0.0;
 
-            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-            {
+                for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+                {
 
-                it->Calculate(PARTICLE_LOCAL_DAMP_RATIO, dummy, rCurrentProcessInfo);
+                    it->Calculate(PARTICLE_LOCAL_DAMP_RATIO, dummy, rCurrentProcessInfo);
 
-            } //loop over particles
+                } //loop over particles
 
             }// loop threads OpenMP
 
