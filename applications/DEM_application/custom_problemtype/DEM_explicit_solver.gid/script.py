@@ -110,6 +110,8 @@ final_time = DEM_explicit_solver_var.max_time
 output_dt  = DEM_explicit_solver_var.output_dt
 dt = DEM_explicit_solver_var.max_time_step
 
+solver.delta_time=dt
+
 # bounding box
 
 n_step_destroy_distant = DEM_explicit_solver_var.search_step      # how many steps between elimination of distant particles?
@@ -158,7 +160,7 @@ while(time < final_time):
 	  
     print "TIME STEP = ", step
     
-    time = time + dt
+
    
     #if ((step + 1) % n_step_destroy_distant == 0): 
 	
@@ -169,6 +171,8 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
     
     solver.Solve()
+
+    dt=solid_model_part.ProcessInfo.GetValue(DEM_DELTA_TIME)
        
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
@@ -194,6 +198,7 @@ while(time < final_time):
         gid_io.FinalizeResults()    
 	time_old_print = time
     
+    time = time + dt
     step += 1
 
 print 'Calculation ends at instant: ' + str(timer.time())
