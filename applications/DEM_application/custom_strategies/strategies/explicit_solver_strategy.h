@@ -19,13 +19,12 @@
 #include "custom_utilities/neighbours_calculator.h"
 
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
-#include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "includes/variables.h"
 
 /* System includes */
 #include <limits>
-#include<iostream>
-#include<iomanip>
+#include <iostream>
+#include <iomanip>
 #include <iostream>
 
 /* External includes */
@@ -41,7 +40,6 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
-
 
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
@@ -171,9 +169,9 @@ namespace Kratos
 	double start_prod = omp_get_wtime();   
 	#endif
 	*/
-        std::cout<<"------------------------------------------------------------------------"<<std::endl;
-        std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           <<  time_step    <<std::endl;
-	std::cout<<"------------------------------------------------------------------------"<<std::endl;
+//        std::cout<<"------------------------------------------------------------------------"<<std::endl;
+//        std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           <<  time_step    <<std::endl;
+//        std::cout<<"------------------------------------------------------------------------"<<std::endl;
 	
 
         //STRATEGY:
@@ -389,7 +387,7 @@ namespace Kratos
 
 
 
-	}
+        }
 	
 	void ComputeIntermedialVelocityAndNewDisplacement()
 	{
@@ -428,6 +426,7 @@ namespace Kratos
                   for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
                   {
                       it->Calculate(DEM_DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
+
                       KRATOS_WATCH(TimeStepTemp)
                       if(mtimestep > TimeStepTemp)
                       {
@@ -440,15 +439,17 @@ namespace Kratos
                   std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
             }
 
-
+            
+            if (mtimestep < rCurrentProcessInfo[DEM_DELTA_TIME])
+            {
             rCurrentProcessInfo[DEM_DELTA_TIME] = mtimestep;
-
+            }
             std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
-
-                      
+            KRATOS_WATCH(rCurrentProcessInfo[DEM_DELTA_TIME])
+                     
             KRATOS_CATCH("")
 
-	}
+        }
 
         void ApplyLocalDampings()
         {
@@ -538,7 +539,7 @@ namespace Kratos
         KRATOS_CATCH("")
 
 
-	}
+        }
 
        	void BoundingBoxUtility(double enlargement_factor)
 	{
@@ -558,7 +559,7 @@ namespace Kratos
         KRATOS_CATCH("")
 
 
-	} //BoundingBoxUtility()
+        } //BoundingBoxUtility()
 
 
 
@@ -673,7 +674,7 @@ namespace Kratos
          //r_model_part.GetCommunicator().AssembleCurrentData(NODAL_MASS);
          mElementsAreInitialized   = true;
          KRATOS_CATCH("")
-        }
+      }
       
        
       void Set_Initial_Contacts(const bool& delta_OPTION, const bool& continuum_simulating_OPTION)
