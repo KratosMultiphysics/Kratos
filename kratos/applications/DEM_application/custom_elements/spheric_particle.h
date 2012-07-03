@@ -138,18 +138,17 @@ namespace Kratos
        int mContinuumGroup;
        int mFailureId;
 
+       //auxiliar variables
+
+       double mOld_Displacement_X;
+       double mOld_Displacement_Y;
+       double mOld_Displacement_Z;
+       double mDisplacement_X;
+       double mDisplacement_Y;
+       double mDisplacement_Z;
 
 
-       ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
-
-
-
-
-
-
-
-
-
+    
 
       // ParticleWeakVectorType mInitialNeighbours = GetGeometry()[0].GetSolutionStepValue(INITIAL_NEIGHBOUR_ELEMENTS);
 

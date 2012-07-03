@@ -122,11 +122,7 @@ public:
         }
         Particle_Creator_Destructor::GetHighNode() = mHighPoint;
         Particle_Creator_Destructor::GetLowNode() = mLowPoint;
-        KRATOS_WATCH("Bounding box for the model, bigger than strict by a factor of:");
-        KRATOS_WATCH(scale_factor);
-        KRATOS_WATCH(ref_radius);
-        KRATOS_WATCH(mLowPoint);
-        KRATOS_WATCH(mHighPoint);
+      
         KRATOS_CATCH("")
          
     }

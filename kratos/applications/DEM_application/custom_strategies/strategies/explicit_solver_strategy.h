@@ -440,8 +440,7 @@ namespace Kratos
                   {
                       it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
 
-                      KRATOS_WATCH(TimeStepTemp)
-                      if(mtimestep > TimeStepTemp)
+                     if(mtimestep > TimeStepTemp)
                       {
                           mtimestep = TimeStepTemp;
                       }
@@ -458,8 +457,7 @@ namespace Kratos
             rCurrentProcessInfo[DELTA_TIME] = mtimestep;
             }
             std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
-            KRATOS_WATCH(rCurrentProcessInfo[DELTA_TIME])
-                     
+                               
             KRATOS_CATCH("")
 
         }
