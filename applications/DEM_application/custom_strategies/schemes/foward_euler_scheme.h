@@ -98,9 +98,7 @@ namespace Kratos
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
 
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
-
-             double aux_disp = 0;
-
+            
 	     aux = delta_t / mass;
           
 	   
@@ -202,7 +200,7 @@ namespace Kratos
                          Rota_Displace[iterator] += AngularVel[iterator] * delta_t / M_PI * 180.0;
                      
                     }
-                    RotaMoment[iterator] = 0.0;
+                   
 
                     else
                     {
@@ -215,6 +213,7 @@ namespace Kratos
                        */
 
                     }
+                     RotaMoment[iterator] = 0.0;
 
 
                 }
@@ -222,12 +221,10 @@ namespace Kratos
             }
 
         }
+        KRATOS_CATCH(" ")
      }
-
-
- 
-	KRATOS_CATCH(" ")
-   }
+	
+   
 
 
      
