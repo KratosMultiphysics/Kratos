@@ -87,13 +87,11 @@ namespace Kratos
 	     
 	              
 	     aux = delta_t / mass;
-             KRATOS_WATCH(delta_t)
-
+            
 	     new_accel = force / mass;
              prev_accel = prev_force / mass;
 
-             KRATOS_WATCH(prev_accel)
-	     //velocidad = c1->GetVelocidad() + 0.5 * dt * (c1->GetAceleracion() + accel);
+             //velocidad = c1->GetVelocidad() + 0.5 * dt * (c1->GetAceleracion() + accel);
 	     //desplazamiento = dt * c1->GetVelocidad() + 0.5 * dt * dt * (c1->GetAceleracion() + accel);
 	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
              {

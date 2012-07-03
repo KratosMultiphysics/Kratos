@@ -92,41 +92,49 @@ namespace Kratos
                
 	     array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
 	     array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+             array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
 	     array_1d<double, 3 > & coor            = i->Coordinates();
   	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
 
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
 
-	     aux = delta_t / mass;
-             KRATOS_WATCH(delta_t)
+             double aux_disp = 0;
 
-	     //Evolution of position (u(n+1) = u(n) + v(n+0.5)*delta_t):
-	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
+	     aux = delta_t / mass;
+          
+	   
+	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false )
              {
 	         vel[0]    += aux * force[0];
-               
-	         displ[0]  += delta_t * vel[0];
-                 
+
+                 delta_displ[0] = delta_t * vel[0];
+	         
+                 displ[0]  +=  delta_displ[0];
+
 	         coor[0]   = initial_coor[0] + displ[0];
                  
              }
 	     
-	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
+	     if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
              {
 	         vel[1]    += aux * force[1];
 
-                 displ[1]  += delta_t * vel[1];
+                 delta_displ[1] = delta_t * vel[1];
+
+                 displ[1]  += delta_displ[1];
            
 	         coor[1]   = initial_coor[1] + displ[1];
          
 	     }
 	     
-             if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
+             if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
 	     {
 	         vel[2]    += aux * force[2];
                 
-	         displ[2]  += delta_t * vel[2];
+	         delta_displ[2] = delta_t * vel[2];
+
+                 displ[2]  += delta_displ[2];
                 
 	         coor[2]   = initial_coor[2] + displ[2];
                 
@@ -195,13 +203,31 @@ namespace Kratos
                      
                     }
                     RotaMoment[iterator] = 0.0;
-                }
 
+                    else
+                    {
+                       /*
+                       *
+                       *
+                       *  implementation of fixed rotational motion.
+                       *
+                       *
+                       */
+
+                    }
+
+
+                }
+                    
             }
-	}
+
+        }
+     }
+
+
  
 	KRATOS_CATCH(" ")
-     }
+   }
 
 
      

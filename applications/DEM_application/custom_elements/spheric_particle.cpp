@@ -65,7 +65,7 @@ namespace Kratos
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
         mFailureId          = !(mContinuumGroup);
-
+           
         if(mDimension ==2)
         {
             mass     = M_PI * radius * radius * density;
@@ -75,7 +75,6 @@ namespace Kratos
             Inertia = 0.25 * M_PI * radius * radius * radius  * radius ;
 
             MomentOfInertia = 0.5 * radius * radius;
-
 
         }
         else
@@ -87,6 +86,7 @@ namespace Kratos
             Inertia = 0.25 * M_PI * radius * radius * radius  * radius ;
 
             MomentOfInertia = 0.4 * radius * radius;
+
         }
 
 
@@ -293,6 +293,8 @@ namespace Kratos
             {
              // GETTING NEIGHBOUR PROPERTIES
 
+
+             
                 double other_radius                 = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                 double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
                 double equiv_visc_damp_ratio        = (critic_damp_fraction + other_critic_damp_fraction) / 2.0;   //M: is it correct to be a simple mean.
@@ -381,6 +383,9 @@ namespace Kratos
                 array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
 
+                array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+                array_1d<double, 3 > other_delta_displ      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+
                 double DeltDisp[3] = {0.0};
                 double RelVel [3] = {0.0};
 
@@ -389,15 +394,15 @@ namespace Kratos
                 RelVel[2] = (vel[2] - other_vel[2]);
 
                 //DeltDisp in global cordinates
-
-                //DeltDisp[0] = RelVel[0] * dt;
-                //DeltDisp[1] = RelVel[1] * dt;
-                //DeltDisp[2] = RelVel[2] * dt;
-
-                DeltDisp[0] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_X)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_X,1);
-                DeltDisp[1] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Y)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Y,1);
-                DeltDisp[2] = this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Z)-this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT_Z,1);
-                KRATOS_WATCH(DeltDisp[2])
+  /*
+               DeltDisp[0] = RelVel[0] * dt;
+               DeltDisp[1] = RelVel[1] * dt;
+               DeltDisp[2] = RelVel[2] * dt;
+*/
+               DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
+               DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
+               DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
+                
                     if ( rotation_OPTION == 1 )
                     {
 
@@ -449,9 +454,7 @@ namespace Kratos
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
-                        KRATOS_WATCH(LocalDeltDisp[2])
-                        KRATOS_WATCH(LocalContactForce[2])
-                        KRATOS_WATCH(indentation)
+                       
 
                     }
 

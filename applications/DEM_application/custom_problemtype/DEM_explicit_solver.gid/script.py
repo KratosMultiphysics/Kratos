@@ -158,7 +158,7 @@ print 'Calculation starts at instant: ' + str(current_pr_time)
 
 while(time < final_time):
 	  
-    print "TIME STEP = ", step
+    #print "TIME STEP = ", step
 
     #if ((step + 1) % n_step_destroy_distant == 0): 
 	
@@ -177,7 +177,7 @@ while(time < final_time):
        
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
-    print str(time)
+    #print str(time)
     
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
         gid_io.InitializeMesh(time);

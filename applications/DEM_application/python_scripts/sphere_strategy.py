@@ -7,6 +7,7 @@ from KratosMultiphysics.DEMApplication import *
 def AddVariables(model_part):
     #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(RHS)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
