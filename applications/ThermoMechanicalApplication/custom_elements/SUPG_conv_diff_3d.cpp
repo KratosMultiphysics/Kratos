@@ -176,7 +176,8 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 // 	heat_source /= (specific_heat);
 
     double tau;
-    CalculateTau(ms_vel_gauss,tau,conductivity,delta_t, Volume, rCurrentProcessInfo);
+    double conductivity_scaled = conductivity/(density*specific_heat);    
+    CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
 //        tau *= density * specific_heat;
 
     //Crank-Nicholson factor
