@@ -466,6 +466,14 @@ public:
         return true;
     }
 
+    // This function is for test and will be changed. Pooyan.
+    virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
+    {
+        SynchronizeMinThisVariable<double,double>(ThisVariable);
+        return true;
+
+    }
+
     virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
     {
         AssembleThisVariable<int,int>(ThisVariable);
@@ -775,6 +783,103 @@ private:
                 for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
                 {
                     i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
+                    position += nodal_data_size;
+                }
+
+                if (position > receive_buffer_size[i_color])
+                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                delete [] receive_buffer[i_color];
+            }
+
+        //MPI_Barrier(MPI_COMM_WORLD);
+
+
+        //SynchronizeNodalSolutionStepsData();
+        SynchronizeVariable<TDataType,TSendType>(ThisVariable);
+
+
+
+
+        return true;
+    }
+
+    
+    // this function is for test only and to be removed. Pooyan.
+    template<class TDataType, class TSendType>
+    bool SynchronizeMinThisVariable(Variable<TDataType> const& ThisVariable)
+    {
+        // PrintNodesId();
+        /*	KRATOS_WATCH("AssembleThisVariable")
+                KRATOS_WATCH(ThisVariable)*/
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+        std::vector<double*> receive_buffer(neighbours_indices.size());
+        std::vector<int> receive_buffer_size(neighbours_indices.size());
+
+        TSendType Value = TSendType();
+        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
+        //first of all gather everything to the owner node
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                NodesContainerType& r_local_nodes = InterfaceMesh(i_color).Nodes();
+                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                // Calculating send and received buffer size
+                // NOTE: This part can be optimized getting the offset from variables list and using pointers.
+                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                unsigned int local_nodes_size = r_local_nodes.size();
+                unsigned int ghost_nodes_size = r_ghost_nodes.size();
+                unsigned int send_buffer_size = local_nodes_size * nodal_data_size;
+                receive_buffer_size[i_color] = ghost_nodes_size * nodal_data_size;
+
+                if ((local_nodes_size == 0) && (ghost_nodes_size == 0))
+                    continue; // nothing to transfer!
+
+                unsigned int position = 0;
+                double* send_buffer = new double[send_buffer_size];
+                receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
+
+                // Filling the buffer
+                for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
+                {
+                    *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
+                    position += nodal_data_size;
+                }
+
+                MPI_Status status;
+
+                if (position > send_buffer_size)
+                    std::cout << rank << " Error in estimating send buffer size...." << std::endl;
+
+                int send_tag = i_color;
+                int receive_tag = i_color;
+
+                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag,
+                             receive_buffer[i_color], receive_buffer_size[i_color], ThisMPI_Datatype, destination, receive_tag,
+                             MPI_COMM_WORLD, &status);
+
+                delete [] send_buffer;
+            }
+
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                // Updating nodes
+                int position = 0;
+                unsigned int nodal_data_size = sizeof (TDataType) / sizeof (TSendType);
+                NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
+
+                for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
+                {
+                    TDataType& data = i_node->FastGetSolutionStepValue(ThisVariable);
+                    data = std::min(data, *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position));
                     position += nodal_data_size;
                 }
 
