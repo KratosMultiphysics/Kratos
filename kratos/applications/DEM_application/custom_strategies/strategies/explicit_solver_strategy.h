@@ -385,8 +385,7 @@ namespace Kratos
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
-                     
-                        //(it)->Calculate(rDUMMY_FORCES, Output, rCurrentProcessInfo);
+                   
 
                     (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
 

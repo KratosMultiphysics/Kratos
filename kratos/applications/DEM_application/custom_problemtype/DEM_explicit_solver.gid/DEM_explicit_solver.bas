@@ -26,9 +26,9 @@ End Nodes
 *# Element blocks
 *# Condition Blocks
 
+*set elems(sphere)
 Begin Elements SphericParticle3D
 *loop elems 
-*format "%i%i%i%i%i%i%i%i"
 *ElemsNum 1 *elemsconec(1)
 *end elems
 End Elements
@@ -50,7 +50,7 @@ End Elements
 Begin NodalData VELOCITY_X
 *loop elems *OnlyInCond
 *if(cond(VELOCITY_X,int)==1)
-*elemsconec(1) 1 *cond(X_Value)
+*elemsconec(1) *cond(X_fixed) *cond(X_Value)
 *endif
 *end elems
 End NodalData
@@ -69,7 +69,7 @@ End NodalData
 Begin NodalData VELOCITY_Y
 *loop elems *OnlyInCond
 *if(cond(VELOCITY_Y,int)==1)
-*elemsconec(1) 1 *cond(Y_Value)
+*elemsconec(1) *cond(Y_fixed) *cond(Y_Value)
 *endif
 *end elems
 
@@ -89,7 +89,7 @@ End NodalData
 Begin NodalData VELOCITY_Z
 *loop elems *OnlyInCond
 *if(cond(VELOCITY_Z,int)==1)
-*elemsconec(1) 1 *cond(Z_Value)
+*elemsconec(1) *cond(Z_fixed) *cond(Z_Value)
 *endif
 *end elems
 End NodalData

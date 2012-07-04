@@ -102,7 +102,7 @@ namespace Kratos
 	     aux = delta_t / mass;
           
 	   
-	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false )
+	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
              {
 	         vel[0]    += aux * force[0];
 
@@ -113,6 +113,15 @@ namespace Kratos
 	         coor[0]   = initial_coor[0] + displ[0];
                  
              }
+             else
+             {
+                 delta_displ[0] = delta_t * vel[0];
+
+                 displ[0]  += delta_displ[0];
+
+	         coor[0]   = initial_coor[0] + displ[0];
+
+             }
 	     
 	     if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
              {
@@ -120,23 +129,41 @@ namespace Kratos
 
                  delta_displ[1] = delta_t * vel[1];
 
-                 displ[1]  += delta_displ[1];
-           
+                 displ[1]  +=  delta_displ[1];
+
 	         coor[1]   = initial_coor[1] + displ[1];
-         
-	     }
+
+             }
+             else
+             {
+                 delta_displ[1] = delta_t * vel[1];
+
+                 displ[1]  += delta_displ[1];
+
+	         coor[1]   = initial_coor[1] + displ[1];
+
+             }
 	     
              if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
 	     {
 	         vel[2]    += aux * force[2];
-                
-	         delta_displ[2] = delta_t * vel[2];
+
+                 delta_displ[2] = delta_t * vel[2];
+
+                 displ[2]  +=  delta_displ[2];
+
+	         coor[2]   = initial_coor[2] + displ[2];
+               
+             }
+             else
+             {
+                 delta_displ[2] = delta_t * vel[2];
 
                  displ[2]  += delta_displ[2];
-                
+
 	         coor[2]   = initial_coor[2] + displ[2];
-                
-	     }
+
+             }
 	   }
 	}
 	KRATOS_CATCH(" ")

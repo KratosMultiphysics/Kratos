@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import DEM_explicit_solver_var
 import time as timer
 
@@ -158,7 +159,7 @@ print 'Calculation starts at instant: ' + str(current_pr_time)
 
 while(time < final_time):
 	  
-    #print "TIME STEP = ", step
+    print "TIME STEP = ", step
 
     #if ((step + 1) % n_step_destroy_distant == 0): 
 	
