@@ -78,42 +78,69 @@ namespace Kratos
                
 	     array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
 	     array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+             array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT); // (DISPLACEMENT,1) can not be used as its the same as DISPLACEMENT
 	     array_1d<double, 3 > & coor            = i->Coordinates();
   	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
-	     array_1d<double, 3 > & prev_force      = i->FastGetSolutionStepValue(RHS,1);
-	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
+	     array_1d<double, 3 > & prev_force      = i->FastGetSolutionStepValue(RHS,1); // (RHS,1) is different from RHS which has been calculated in the previous step.
+	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);   
 
-	     
-	              
-	     aux = delta_t / mass;
+             aux = delta_t / mass;
             
 	     new_accel = force / mass;
              prev_accel = prev_force / mass;
 
              //velocidad = c1->GetVelocidad() + 0.5 * dt * (c1->GetAceleracion() + accel);
 	     //desplazamiento = dt * c1->GetVelocidad() + 0.5 * dt * dt * (c1->GetAceleracion() + accel);
-	     if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_X))== false ) )
+	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false )
              {
-	         displ[0]  += delta_t * vel[0] + 0.25 * delta_t * delta_t * (prev_accel[0] + new_accel[0]);
+
+                 delta_displ[0] = delta_t * vel[0] + 0.25 * delta_t * delta_t * (prev_accel[0] + new_accel[0]);
+
+                 displ[0]  += delta_displ[0];
+
 	         vel[0]    = vel[0] + 0.5 * delta_t * (prev_accel[0] + new_accel[0]);
                  
 	         coor[0]   = initial_coor[0] + displ[0];
+
 		 prev_accel[0] = new_accel[0];
                  
              }
-	     
-	     if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Y))== false ) )
+                             
+             else
              {
-	         displ[1]  += delta_t * vel[1] + 0.25 * delta_t * delta_t * (prev_accel[1] + new_accel[1]);
-	         vel[1]    = vel[1] + 0.5 * delta_t * (prev_accel[1] + new_accel[1]);
-           
-	         coor[1]   = initial_coor[1] + displ[1];
-		 prev_accel[1] = new_accel[1];
-         
-	     }
+               
+                 delta_displ[0] = delta_t * vel[0];
+                 
+                 displ[0]  += delta_displ[0];
+                 
+                 coor[0]   = initial_coor[0] + displ[0];
+
+             }
 	     
-             if( (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && ( (i->IsFixed(VELOCITY_Z))== false ) )
+	     if( i->pGetDof(VELOCITY_Y)->IsFixed() == false )
+             {
+
+                 delta_displ[1] = delta_t * vel[1] + 0.25 * delta_t * delta_t * (prev_accel[1] + new_accel[1]);
+
+                 displ[1]  += delta_displ[1];
+
+	         vel[1]    = vel[1] + 0.5 * delta_t * (prev_accel[1] + new_accel[1]);
+
+	         coor[1]   = initial_coor[1] + displ[1];
+
+		 prev_accel[1] = new_accel[1];
+	     }
+              else
+             {
+                 delta_displ[1] = delta_t * vel[1];
+
+                 displ[1]  += delta_displ[1];
+
+                 coor[1]   = initial_coor[1] + displ[1];
+             }
+	     
+             if( i->pGetDof(VELOCITY_Z)->IsFixed() == false )
 	     {
 	         displ[2]  += delta_t * vel[2] + 0.25 * delta_t * delta_t * (prev_accel[2] + new_accel[2]);
 	         vel[2]    = vel[2] + 0.5 * delta_t * (prev_accel[2] + new_accel[2]);
@@ -122,6 +149,14 @@ namespace Kratos
 		 prev_accel[2] = new_accel[2];
                 
 	     }
+              else
+             {
+                delta_displ[2] = delta_t * vel[2];
+
+                 displ[2]  += delta_displ[2];
+
+                 coor[2]   = initial_coor[2] + displ[2];
+             }
 	   }
 	}
 	KRATOS_CATCH(" ")

@@ -134,19 +134,19 @@ namespace Kratos
 	    const double& mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
 	    noalias(aux)                          = (half_delta_t/ mass) * force;
 	    
-	    if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
+	    if( i->pGetDof(VELOCITY_X)->IsFixed() == false  )
             {
 	      vel[0]    += aux[0]; 
 	      displ[0]  += half_delta_t * vel[0];
 	    }
 
-	    if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
+	    if( i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
             {
 	      vel[1]    += aux[1]; 
 	      displ[1]  += half_delta_t * vel[1];
 	    }
 
-	    if( ( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
+	    if( i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
             {
 	    vel[2]    += aux[2];
 	    displ[2]  += half_delta_t * vel[2];  
@@ -156,21 +156,21 @@ namespace Kratos
 	    //Calculate_Forces(type_id, damp_id, delta_t, gravity);
 	    //i->Calculate(FORCE, force, CurrentProcessInfo);
 	    
-	    if( ( i->pGetDof(DISPLACEMENT_X)->IsFixed() == false) && (  i->pGetDof(VELOCITY_X)->IsFixed() == false ) )
+	    if( i->pGetDof(VELOCITY_X)->IsFixed() == false  )
             {
 	        vel[0]    = vel_old[0]      + (delta_t/mass) * force[0];
 	        displ[0]  = displ_old[0]    + delta_t * vel_old[0] * (1 + half_delta_t);
 		coor[0]   = initial_coor[0] + displ[0];
 	    }
 
-	    if( ( i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Y)->IsFixed() == false ) )
+	    if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
             {
 	        vel[1]    = vel_old[1]      + (delta_t/mass) * force[1];
 	        displ[1]  = displ_old[1]    + delta_t * vel_old[1] * (1 + half_delta_t);
 		coor[1]   = initial_coor[1] + displ[1];
 	    }
 
-	    if( ( i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false) && (  i->pGetDof(VELOCITY_Z)->IsFixed() == false ) )
+	    if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
             {
 	        vel[2]    = vel_old[2]      + (delta_t/mass) * force[2];
 	        displ[2]  = displ_old[2]    + delta_t * vel_old[2] * (1 + half_delta_t);
