@@ -550,7 +550,7 @@ KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
 KRATOS_CREATE_VARIABLE( double, MATERIAL )
 Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES (m/s)", Kratos::zero_vector<double>( 3 ) );
-
+Kratos::Variable<double> TEMPERATURES( "TEMPERATURES (C)" );
 /*const*/
 Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
 VELOCITIES_X( "X-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 0 ) );
@@ -562,6 +562,13 @@ VELOCITIES_Y( "Y-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array
 /*const*/
 Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > >
 VELOCITIES_Z( "Z-VELOCITIES (m/s)", Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> >( VELOCITIES, 2 ) );
+
+KRATOS_CREATE_VARIABLE(double,  SOLID_FRACTION)
+KRATOS_CREATE_VARIABLE(double,  SOLID_FRACTION_RATE)
+KRATOS_CREATE_VARIABLE(double,  LATENT_HEAT)
+KRATOS_CREATE_VARIABLE(double,  SOLID_TEMPERATURE );
+KRATOS_CREATE_VARIABLE(double,  FLUID_TEMPERATURE ); 
+KRATOS_CREATE_VARIABLE(double,  AMBIENT_TEMPERATURE );
 
 KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -992,7 +999,13 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE( PRESSURES )
     KRATOS_REGISTER_VARIABLE( MATERIAL )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITIES )
-
+    KRATOS_REGISTER_VARIABLE( TEMPERATURES )
+	KRATOS_REGISTER_VARIABLE( SOLID_FRACTION)
+	KRATOS_REGISTER_VARIABLE( SOLID_FRACTION_RATE)
+	KRATOS_REGISTER_VARIABLE( LATENT_HEAT)
+	KRATOS_REGISTER_VARIABLE( SOLID_TEMPERATURE );
+	KRATOS_REGISTER_VARIABLE( FLUID_TEMPERATURE ); 
+    KRATOS_REGISTER_VARIABLE( AMBIENT_TEMPERATURE)
 
     //registering geometries in Serializer
     Line2D2<Node<3> > Line2D2Prototype( Element::GeometryType::PointsArrayType( 2, Node<3>() ) );
