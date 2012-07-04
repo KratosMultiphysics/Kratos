@@ -136,15 +136,22 @@ namespace Kratos
 	    
 	    if( i->pGetDof(VELOCITY_X)->IsFixed() == false  )
             {
-	      vel[0]    += aux[0]; 
+	      vel[0]    += aux[0];
 	      displ[0]  += half_delta_t * vel[0];
 	    }
+
+            else
+            {
+
+            }
 
 	    if( i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
             {
 	      vel[1]    += aux[1]; 
 	      displ[1]  += half_delta_t * vel[1];
 	    }
+
+
 
 	    if( i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
             {
