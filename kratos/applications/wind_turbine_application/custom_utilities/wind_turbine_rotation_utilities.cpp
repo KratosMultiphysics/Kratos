@@ -424,6 +424,7 @@ void WindTurbineRotationUtilities::RotateEntities(const double& regionFlag, cons
                     MeshVelocity[1] = Vtang * X / Radius; //cosRotAngle;
                 }
                 itr->FastGetSolutionStepValue(MESH_VELOCITY) = MeshVelocity;
+                if ( itr->IsFixed(VELOCITY_X) || itr->IsFixed(VELOCITY_Y) || itr->IsFixed(VELOCITY_Z) ) itr->FastGetSolutionStepValue(VELOCITY) = MeshVelocity;
         }
 }
 

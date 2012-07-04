@@ -26,6 +26,7 @@
 namespace Kratos
 {
         KRATOS_CREATE_VARIABLE(int, AUX_ID);
+        KRATOS_CREATE_VARIABLE(int, AUX_INTERF_ID);
 // 	KRATOS_CREATE_VARIABLE(double, AUX_MESH_VAR);
 //	KRATOS_CREATE_VARIABLE(double, IS_INTERFACE);
 //	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
@@ -41,8 +42,9 @@ namespace Kratos
  		KratosApplication::Register();
  		std::cout << "Initializing KratosWindTurbineApplication... " << std::endl;
  
-                KRATOS_REGISTER_VARIABLE( AUX_ID )
-// 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
+                KRATOS_REGISTER_VARIABLE( AUX_ID );
+                KRATOS_REGISTER_VARIABLE( AUX_INTERF_ID );
+// 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR );
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 

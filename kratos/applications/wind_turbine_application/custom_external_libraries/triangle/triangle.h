@@ -248,13 +248,6 @@
 /*                                                                           */
 /*****************************************************************************/
 
-//#define SINGLE
-#ifdef SINGLE
-#define REAL float
-#else /* not SINGLE */
-#define REAL double
-#endif /* not SINGLE */
-
 #define VOID int
 
 struct triangulateio
