@@ -170,7 +170,8 @@ namespace Kratos {
 // 	heat_source /= (specific_heat);	
 	
         double tau;
-        CalculateTau(ms_vel_gauss,tau,conductivity,delta_t, Area, rCurrentProcessInfo);
+	double conductivity_scaled = conductivity/(density*specific_heat);
+        CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Area, rCurrentProcessInfo);
 
 	//Crank-Nicholson factor
 	double cr_nk = 0.5;
@@ -236,7 +237,7 @@ namespace Kratos {
     void SUPGConvDiff2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) {
         KRATOS_TRY
 
-        KRATOS_ERROR(std::logic_error, "method not implemented", "");
+//         KRATOS_ERROR(std::logic_error, "method not implemented", "");
 
         KRATOS_CATCH("")
     }
