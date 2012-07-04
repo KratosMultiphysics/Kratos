@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/duplicate_interface_nodes_create_conditions_process.h"
 #include "custom_processes/activation_deactivation_conditions_process.h"
+#include "custom_processes/solidification_process.h"
 
 #include "includes/node.h"
 
@@ -83,7 +84,9 @@ void  AddCustomProcessesToPython()
     class_<ActivationDeactivationConditionsProcess, bases<Process> >("ActivationDeactivationConditionsProcess", init<ModelPart& ,int, const Matrix >())
     .def("Execute", &ActivationDeactivationConditionsProcess::Execute)
     ;
-
+    class_<SolidificationProcess, bases<Process> >("SolidificationProcess", init<ModelPart& ,const double  >())
+    .def("Execute", &SolidificationProcess::Execute)
+    ;
 }
 
 }  // namespace Python.
