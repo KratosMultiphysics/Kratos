@@ -572,6 +572,16 @@ public:
 
     }
 
+    // This function is for test and will be changed. Pooyan.
+    virtual bool SynchronizeCurrentDataToMin(Variable<double> const& ThisVariable)
+    {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
+        return true;
+
+    }
+
     virtual bool AssembleCurrentData(Variable<int> const& ThisVariable)
     {
         /*#if defined(KRATOS_USING_MPI )
