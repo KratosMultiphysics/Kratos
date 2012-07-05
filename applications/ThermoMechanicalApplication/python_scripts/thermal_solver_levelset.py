@@ -20,7 +20,8 @@ def AddVariables(model_part,settings):
     #model_part.AddNodalSolutionStepVariable(CONVECTION_COEFFICIENT);
     model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);    
-    model_part.AddNodalSolutionStepVariable(HTC);    
+    model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());        
+    #model_part.AddNodalSolutionStepVariable(HTC);    
     
     print "variables for the THERMAL_SOLVER added correctly"
         
@@ -74,10 +75,10 @@ class Solver:
         self.rho_mat = 100.0
         self.rho_empty = 1.0
         
-        self.specific_heat_mat = 10.0
+        self.specific_heat_mat = 1006.0
         self.specific_heat_empty = 1.0   
         
-        self.conductivity_mat = 1000.0
+        self.conductivity_mat = 0.024
         self.conductivity_empty = 1.0          
     #######################################################################
     def Initialize(self):
@@ -100,9 +101,11 @@ class Solver:
         #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-        
-        self.normal_tools.CalculateBodyNormals(self.model_part,2);        
 
+        if (self.domain_size == 2):
+            self.normal_tools.CalculateBodyNormals(self.model_part,2);        
+        else:
+            self.normal_tools.CalculateBodyNormals(self.model_part,3);     	  
 ##        print "Initialization monolithic solver finished"
     #######################################################################   
     def ApplyFluidProperties(self):
@@ -112,7 +115,8 @@ class Solver:
             if(dist < 0):
                 node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_mat)
                 node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_mat)
-                node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_mat)                
+                node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_mat)               
+                #node.SetSolutionStepValue(TEMPERATURE,0,melting_temp)                   
             else:
                 node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_empty)
                 node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_empty)
@@ -122,7 +126,7 @@ class Solver:
     def Solve(self):        
         print "*****************entering solve?????????????"
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
-        self.ApplyFluidProperties()
+        #self.ApplyFluidProperties()
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
        
