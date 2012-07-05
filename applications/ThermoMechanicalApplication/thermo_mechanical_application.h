@@ -34,6 +34,7 @@
 #include "custom_elements/thermal_face2d.h"
 #include "custom_elements/thermal_face3d.h"
 #include "custom_elements/environment_contact.h"
+#include "custom_elements/SUPG_conv_diff_phase_change_2d.h"
 
 namespace Kratos
 {
@@ -208,7 +209,8 @@ private:
     const SUPGConvDiff2D  mSUPGConvDiff2D;
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
-
+    const SUPGConvDiffPhaseChange2D  mSUPGConvDiffPhaseChange2D;
+    
     ///@}
     ///@name Private Operators
     ///@{
