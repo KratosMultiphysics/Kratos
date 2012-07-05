@@ -94,7 +94,8 @@ public:
         //ModelPart::ElementsContainerType ElemPart;
         //KRATOS_WATCH(mr_model_part.Elements().size());
         mr_fluid_elements.clear();
-
+			mr_fluid_elements.reserve(mr_elements.size());
+			
 
 //			Element const& rEl1 = KratosComponents<Element>::Get("Fluid2DASGS");
 //			Element const& rEl2 = KratosComponents<Element>::Get("ASGSPRDC");
