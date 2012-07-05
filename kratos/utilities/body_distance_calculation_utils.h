@@ -169,7 +169,7 @@ public:
         KRATOS_TRY
 
 
-        std::cout << "dimension in distance computation " << TDim << std::endl;
+        //std::cout << "dimension in distance computation " << TDim << std::endl;
 
         //defining work arrays
         PointerVector< Element > elements_to_solve;
