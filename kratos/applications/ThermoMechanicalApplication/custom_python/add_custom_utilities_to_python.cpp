@@ -58,6 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_utilities/assign_environment_condition.h"
+
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -80,6 +82,10 @@ void  AddCustomUtilitiesToPython()
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
+    
+    class_<AssignEnvironmentCondition > ("AssignEnvironmentCondition", init<>())
+    .def("AssignCondition", &AssignEnvironmentCondition::AssignCondition)
+    ;    
 
 }
 
