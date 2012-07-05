@@ -140,6 +140,10 @@ public:
             Condition::Pointer p_condition = rReferenceBoundaryCondition.Create(iii->Id(), iii->GetGeometry(), properties);
             DestinationModelPart.Conditions().push_back(p_condition);
         }
+        
+        //generating tables
+	DestinationModelPart.Tables() = OriginModelPart.Tables();
+
 
         Communicator::Pointer pComm = OriginModelPart.GetCommunicator().Create();
         DestinationModelPart.SetCommunicator(pComm);
