@@ -114,7 +114,7 @@ void EnvironmentContact::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
     }
 
     rRightHandSideVector = ZeroVector(1);
-    array_1d<double,2> length_normal;
+    array_1d<double,3> length_normal;
     length_normal = GetGeometry()[0].FastGetSolutionStepValue(NORMAL);
     double length = norm_2(length_normal);
 
