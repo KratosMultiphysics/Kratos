@@ -51,8 +51,9 @@ namespace Kratos
 
         KRATOS_TRY
 
-        mDimension = this->GetGeometry().WorkingSpaceDimension();
-
+        //mDimension = this->GetGeometry().WorkingSpaceDimension();
+        mDimension = 3; ///WARNING: I: to be revised.
+        
         double density      = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
         double radius       = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
         double& mass        = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
