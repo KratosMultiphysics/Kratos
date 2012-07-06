@@ -43,7 +43,6 @@ namespace Kratos
          return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create( ThisNodes ), pProperties) );
       }
 
-
       /// Destructor.
       SphericParticle::~SphericParticle(){}
 
@@ -60,7 +59,6 @@ namespace Kratos
 
         double & Inertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
         double & MomentOfInertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-
 
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
@@ -368,6 +366,10 @@ namespace Kratos
 
                 double kn               = M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+              
+                //OÑATE. PROBETES.
+                 //kn               = 197760000;
+                 //ks               = 51593000;
 
                 // FORMING LOCAL CORDINATES
 
@@ -448,14 +450,29 @@ namespace Kratos
                     //aqui em falta lu de pi i tal.... oi???
                     //M: these are arrays of vectors of 3 components.
 
-                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // This conditions take in acount the fact that the particles must remember their initial delta's between initial neighbours.
-                    //M: te una mica de tela entendre bé aquestes condicions pero crec que axi es compleixien tots el casos.
+                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
+                                                                                                                  // for attached particles we enter onlty if the particle is still attached.
                     {
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
-                       
+                      
+                        //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
 
+                        if(type_id == 2)  //  1--- incremental; 2 --- absolut i amb el cas hertzià
+                        {
+                            ///Cfeng:for compression,hertzian model
+                            LocalContactForce[2] = kn * pow(indentation, 1.5);
+
+                            if(indentation > 0.0) // usually theory considers the tension to be linear and compression non linear
+                            {
+
+                             LocalContactForce[2] = kn * indentation;
+
+                            }
+
+                        }
+             
                     }
 
                     //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
@@ -476,10 +493,19 @@ namespace Kratos
                         }
                     }
 
+                  if ( (indentation < 0.0) )
+                    {
+                        LocalContactForce[0] = 0.0;
+                        LocalContactForce[1] = 0.0;
+                        LocalContactForce[2] = 0.0;
+                    }
+
 
               // TENSION FAILURE
 
                         if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
+                      //OÑATE. PROBETES.
+                       // if (-LocalContactForce[2] > (649.85))
                         {
                             LocalContactForce[0]  = 0.0;
                             LocalContactForce[1]  = 0.0;
@@ -494,8 +520,9 @@ namespace Kratos
 
                         else
                         {
-
-                            double ShearForceMax = LocalContactForce[2] * Friction + CCohesion * equiv_area;  // MOHR COULOMB MODEL.
+                                //OÑATE //AMB FRICCIO
+                            // double ShearForceMax = 5524.9 + 0.84*LocalContactForce[2];
+                           double ShearForceMax = LocalContactForce[2] * Friction + CCohesion * equiv_area;  // MOHR COULOMB MODEL.
                             double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
                                                  +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
 
@@ -504,6 +531,9 @@ namespace Kratos
                             if(LocalContactForce[2] < 0.0)
                             {
                                 ShearForceMax = CCohesion * equiv_area;
+                                //OÑATE
+                                //ShearForceMax = 5524.9;
+
                             }
 
                             //No cohesion or friction, no shear resistance

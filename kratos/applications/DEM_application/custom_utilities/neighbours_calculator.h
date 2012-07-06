@@ -97,7 +97,7 @@ namespace Kratos {
 
         static void Search_Neighbours(ContainerType& pElements, ProcessInfo& rCurrentProcessInfo, bool extension_option) {
 
-            KRATOS_TRY
+            //KRATOS_TRY
             
             double radius_extend = 0.0;
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
@@ -152,9 +152,13 @@ namespace Kratos {
             ResultIteratorType results_begin; //= Results.begin();
             DistanceIteratorType result_distances_begin; //
             //loop over all of the particles in the list to perform search
-            for (IteratorType particle_pointer_it = pElements.begin();
+
+          //OPENING PARALELIZED LOOP FOR NEIGHBOURING SEARCH.
+
+        for (IteratorType particle_pointer_it = pElements.begin();
                     particle_pointer_it != pElements.end(); ++particle_pointer_it)
- {
+        {
+
                
                 Element::GeometryType& geom = (*particle_pointer_it)->GetGeometry();
                 double search_radius = (1.0 + radius_extend) * geom(0)->GetSolutionStepValue(RADIUS);
@@ -170,9 +174,12 @@ namespace Kratos {
                 ///WARNING = To be change
                 (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS) = particle_bin.SearchObjectsInRadius(*(particle_pointer_it),
                 search_radius, results_begin, result_distances_begin, MaximumNumberOfResults) - 1;
-              
 
-
+/*    }
+                for (IteratorType particle_pointer_it = pElements.begin();
+                    particle_pointer_it != pElements.end(); ++particle_pointer_it)
+      {
+    */
                 ///WARNING:
 
                 // This function, SearchObjectsInRadius has some problems, it finds the particle itself as a neighbours but, the result
@@ -259,8 +266,11 @@ namespace Kratos {
                 //if( rCurrentProcessInfo[DUMMY_SWITCH] == 0)   (*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS).resize(n_neighbours);
 
                 //KRATOS_WATCH("alohohohohoh1")
-
+        
                 // GETTING NEW NEIGHBOURS
+
+
+
 
                 int neighbour_counter = 0;
 
@@ -373,17 +383,17 @@ namespace Kratos {
  {
                     if (TempContactFailureId[TempNeighbourCounter] == 0) // if they are not detached.
                     {
-                        //KRATOS_WATCH("alohohohohoh5.2")
+                       
                         if ((temp_neighbour.base())->expired() == false)
                         {
-                            //KRATOS_WATCH("alohohohohoh5.3")
+                   
                             if ((*particle_pointer_it)->Id() != temp_neighbour->Id()) {
                                 //KRATOS_WATCH("alohohohohoh5.4")
                                 bool AlreadyAdded = false; //identifying if they are already found ot not.
 
                                 for (ParticleWeakIterator new_neighbour = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).begin();
                                         new_neighbour != (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).end(); new_neighbour++) {
-                                    //KRATOS_WATCH("alohohohohoh5.5")
+                         
                                     if (new_neighbour->Id() == (temp_neighbour)->Id()) {
 
                                         AlreadyAdded = true; //for the ones already found in the new search.
@@ -434,7 +444,10 @@ namespace Kratos {
 
             }//Loop for evey particle as a base.
 
-            KRATOS_CATCH("")
+        //  } //Loop over OMP Threads.
+
+
+           // KRATOS_CATCH("")
         }// Search_Neighbours
 
         virtual std::string Info() const {

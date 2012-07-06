@@ -159,8 +159,6 @@ print 'Calculation starts at instant: ' + str(current_pr_time)
 
 while(time < final_time):
 	  
-    print "TIME STEP = ", step
-
     #if ((step + 1) % n_step_destroy_distant == 0): 
 	
         #solver.Destroy_Particles(list_of_particles_pointers, solid_model_part)
@@ -181,7 +179,9 @@ while(time < final_time):
     #print str(time)
     
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
-        gid_io.InitializeMesh(time);
+    
+	print "TIME STEP = ", step
+	gid_io.InitializeMesh(time);
         gid_io.WriteSphereMesh(solid_model_part.GetMesh());
         gid_io.FinalizeMesh();
 	gid_io.InitializeResults(time, solid_model_part.GetMesh());   
