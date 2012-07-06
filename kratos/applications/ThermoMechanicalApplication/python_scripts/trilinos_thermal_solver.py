@@ -2,13 +2,11 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.mpi import *
 
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
+
 
 
 def AddVariables(model_part,settings):
