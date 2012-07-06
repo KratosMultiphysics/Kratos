@@ -24,44 +24,6 @@
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
-
-/// Short class definition.
-
-/** Detail class definition.
- */
-
-/*
-template <std::size_t TDim,
-         class TParticle,
-         class TParticlePointer,
-         class TParticleVector,
-         class TParticleWeakVector,
-         class TParticlePointerVector,
-         class TParticleIterator,
-         class TParticleWeakIterator,
-         class TParticlePointerIterator,
-         class TDistanceVector,
-         class TDistanceIterator
-         >
- */
 
 class Particle_Creator_Destructor
 {
@@ -75,9 +37,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(Particle_Creator_Destructor);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+  
     Particle_Creator_Destructor() {};
     /// Destructor.
 
@@ -85,19 +45,11 @@ public:
 
     /// Default constructor.
 
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
-
     void CalculateSurroundingBoundingBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double scale_factor)
     {
-
-        
+      
         KRATOS_TRY
+
         double ref_radius = (*(vector_of_particle_pointers.begin().base()))->GetValue(RADIUS);
         array_1d<double, 3 > coor = (*(vector_of_particle_pointers.begin().base()))->GetGeometry()(0)->Coordinates();
         mLowPoint = coor;

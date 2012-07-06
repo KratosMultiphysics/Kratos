@@ -17,6 +17,7 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/neighbours_calculator.h"
+#include "custom_utilities/create_and_destroy.h"
 
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "includes/variables.h"
@@ -227,7 +228,7 @@ namespace Kratos
 	#endif
         */
 
-        std::cout <<"FINISHED SOLVE"<<std::endl;
+        //std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
 	KRATOS_CATCH("")
 	
@@ -374,9 +375,9 @@ namespace Kratos
           vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-          unsigned int index = 0;
+          //unsigned int index = 0;
 
-          #pragma omp parallel for private(index)
+          #pragma omp parallel for //private(index)
           for(int k=0; k<number_of_threads; k++)
 
           {
@@ -479,9 +480,9 @@ namespace Kratos
             vector<unsigned int> element_partition;
             OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-            unsigned int index = 0;
+            //unsigned int index = 0;
 
-            #pragma omp parallel for private(index)
+            #pragma omp parallel for //private(index)
             for(int k=0; k<number_of_threads; k++)
 
             {
@@ -524,9 +525,9 @@ namespace Kratos
           vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-          unsigned int index = 0;
+          //unsigned int index = 0;
 
-          #pragma omp parallel for private(index)
+          #pragma omp parallel for //private(index)
           for(int k=0; k<number_of_threads; k++)
 
           {
@@ -707,9 +708,9 @@ namespace Kratos
           vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
-          unsigned int index = 0;
+          //unsigned int index = 0;
 
-          #pragma omp parallel for private(index)
+          #pragma omp parallel for //private(index)
           for(int k=0; k<number_of_threads; k++)
 
           {
@@ -767,9 +768,13 @@ namespace Kratos
    void  Calculate_Surrounding_Bounding_Box(ModelPart r_model_part, double enlargement_factor)
 
        {
-/*
-    CalculateSurroundingBoundingBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double scale_factor)
-*/
+       typedef ElementsContainerType                                           ParticleContainerType;
+       ParticleContainerType& pElements = r_model_part.ElementsArray();
+       
+        
+        Particle_Creator_Destructor::CalculateSurroundingBoundingBox(pElements, r_model_part, enlargement_factor);
+        //Particle_Creator_Destructor::CalculateSurroundingBoundingBox(vector_of_particle_pointers, model_part, scale_factor);
+
    }//Calculate Surrounding Bounding Box
 
     
