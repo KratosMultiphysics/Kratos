@@ -2,10 +2,11 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.TrilinosApplication import *
-try:
- import boost.mpi as mpi
-except ImportError:
- import mpi
+from KratosMultiphysics.mpi import *
+#try:
+ #import boost.mpi as mpi
+#except ImportError:
+ #import mpi
 
 
 def AddVariables(model_part,settings):
