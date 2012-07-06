@@ -436,17 +436,22 @@ namespace Kratos
                   typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
                   typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
 
+                  double mfactor=1;
+                  
                   for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
                   {
                       it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
 
                      if(mtimestep > TimeStepTemp)
                       {
-                          mtimestep = TimeStepTemp;
+                          mtimestep = TimeStepTemp;                                          
+                          mfactor = msafety_factor;
                       }
+                      
+                      
                   }
                
-                  mtimestep = msafety_factor * mtimestep;
+                  mtimestep = mfactor * mtimestep;
 
                   std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
             }
