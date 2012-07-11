@@ -6,9 +6,13 @@ set (KratosMultiphysics_VERSION_MAJOR 3)
 set (KratosMultiphysics_VERSION_MINOR 0)
 
 #get subversion data. This is done automagically by the cmake
-include(FindSubversion)
-Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
-configure_file(kratos_version.h.in "${PROJECT_SOURCE_DIR}/kratos_version.h" @ONLY)
+
+FIND_PACKAGE(Subversion)
+if(Subversion_FOUND)
+  include(FindSubversion)
+  Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
+  configure_file(kratos_version.h.in "${PROJECT_SOURCE_DIR}/kratos_version.h" @ONLY)
+endif(Subversion_FOUND) 
 
 #set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX}) 
