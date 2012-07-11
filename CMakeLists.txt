@@ -8,7 +8,6 @@ set (KratosMultiphysics_VERSION_MINOR 0)
 #get subversion data. This is done automagically by the cmake
 include(FindSubversion)
 Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
-
 configure_file(kratos_version.h.in "${PROJECT_SOURCE_DIR}/kratos_version.h" @ONLY)
 
 #set compiler flags
@@ -88,6 +87,15 @@ link_directories(${Boost_LIBRARY_DIRS})
 find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
+
+#follow the symbolic links for the python lib only if needed
+if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
+    foreach( l ${PYTHON_LIBRARIES})
+    GET_FILENAME_COMPONENT(aaa ${l} REALPATH)
+      set(PYTHON_LIBRARIES_REALPATH ${PYTHON_LIBRARIES_REALPATH} ${aaa})
+    endforeach(l)
+    set(PYTHON_LIBRARIES ${PYTHON_LIBRARIES_REALPATH} CACHE STRING "exact file of the PYTHON library" FORCE)
+endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
 
 ##*****************************
 #finding blas and lapack if needed
@@ -187,6 +195,13 @@ add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
 add_subdirectory(applications)
 
+#embedded python - compiles "krun and packages the python lib needed"
+if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
+  add_subdirectory(embedded_python)
+endif(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
+
+
+
 if(${MPI_NEEDED} MATCHES ON )
    add_subdirectory(external_libraries/mpi_python)
 endif(${MPI_NEEDED} MATCHES ON )
@@ -199,6 +214,7 @@ else(DEFINED KRATOS_INSTALL_PREFIX)
    set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
    message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")	
 endif(DEFINED KRATOS_INSTALL_PREFIX)
+
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("inc_dirs = ${inc_dirs}")

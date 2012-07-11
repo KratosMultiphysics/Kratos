@@ -150,7 +150,7 @@ public:
         else if (TDim == 3)
             CalculateDistances3D(r_model_part, rDistanceVar, max_distance);
 
-        r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
+     //   r_model_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
     }
     
     //***********************************************************************
