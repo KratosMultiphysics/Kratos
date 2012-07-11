@@ -69,29 +69,19 @@ namespace Python{
 typedef ModelPart::NodesContainerType::iterator PointIterator;
 typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
-/*
-typedef SphericHertzianParticle HertzianSphereType;
-typedef SphericHertzianParticle::Pointer HertzianSpherePointerType;
-typedef SphericHertzianParticle::ParticleWeakVectorType HertzianSphereWeakVectorType;
-typedef SphericHertzianParticle::ParticleWeakIteratorType HertzianSphereWeakIteratorType;
-typedef SphericHertzianParticle::DistanceVectorType HertzianSphereDistanceVectorType;
-typedef SphericHertzianParticle::DistanceIteratorType HertzianSphereDistanceIteratorType;
-typedef std::vector<HertzianSphereType> HertzianSphereVectorType;
-typedef std::vector<HertzianSphereType>::iterator HertzianSphereIteratorType;
-typedef std::vector<HertzianSphereType::Pointer> HertzianSpherePointerVectorType;
-typedef std::vector<HertzianSphereType::Pointer>::iterator HertzianSpherePointerIteratorType;
-*/
+
 
 void  AddCustomUtilitiesToPython(){
     using namespace boost::python;
-/*
-    class_<Particle_Creator_Destructor<3, HertzianSphereType, HertzianSpherePointerType, HertzianSphereVectorType, HertzianSphereWeakVectorType, HertzianSpherePointerVectorType,
-        HertzianSphereWeakIteratorType, HertzianSphereIteratorType, HertzianSpherePointerIteratorType, HertzianSphereDistanceVectorType, HertzianSphereDistanceIteratorType> >("Spheres_Hertzian_Creator_Destructor", init<>())
-    .def("Calculate_Surrounding_Bounding_Box", &Particle_Creator_Destructor<3, HertzianSphereType, HertzianSpherePointerType, HertzianSphereVectorType, HertzianSphereWeakVectorType, HertzianSpherePointerVectorType,
-        HertzianSphereWeakIteratorType, HertzianSphereIteratorType, HertzianSpherePointerIteratorType, HertzianSphereDistanceVectorType, HertzianSphereDistanceIteratorType>::CalculateSurroundingBoundingBox)
-    .def("Destroy_Distant_Particles", &Particle_Creator_Destructor<3, HertzianSphereType, HertzianSpherePointerType, HertzianSphereVectorType, HertzianSphereWeakVectorType, HertzianSpherePointerVectorType,
-        HertzianSphereWeakIteratorType, HertzianSphereIteratorType, HertzianSpherePointerIteratorType, HertzianSphereDistanceVectorType, HertzianSphereDistanceIteratorType>::DestroyDistantParticles);
-*/
+
+     class_<Particle_Creator_Destructor, boost::noncopyable >
+    ( "particle_destructor_and_constructor",
+      init<>() )
+    .def( "calculate_surrounding_bounding_box", &Particle_Creator_Destructor::CalculateSurroundingBoundingBox )
+    .def( "destroy_distant_particles", &Particle_Creator_Destructor::DestroyDistantParticles )
+    .def( "calculate_surrounding_bounding_box_given_box", &Particle_Creator_Destructor::DestroyDistantParticlesGivenBBox )
+    ;
+
     }
 }  // namespace Python.
 

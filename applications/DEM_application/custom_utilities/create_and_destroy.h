@@ -32,6 +32,7 @@ public:
         static const std::size_t space_dim                  = 3; ///WARNING: generalize to 2d.
         typedef DiscreteParticleConfigure<space_dim>        Configure;
         typedef Configure::ContainerType                    ParticlePointerVector;
+        typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
 
 
@@ -45,23 +46,30 @@ public:
 
     /// Default constructor.
 
-    void CalculateSurroundingBoundingBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, double scale_factor)
+    void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
       
         KRATOS_TRY
 
-        double ref_radius = (*(vector_of_particle_pointers.begin().base()))->GetValue(RADIUS);
-        array_1d<double, 3 > coor = (*(vector_of_particle_pointers.begin().base()))->GetGeometry()(0)->Coordinates();
+        //Type definitions
+        Configure::ElementsContainerType::Pointer pElements         = r_model_part.pElements();
+        Configure::ElementsContainerType Elements                   = r_model_part.Elements();
+        
+
+        double ref_radius = (*(Elements.begin().base()))->GetValue(RADIUS);
+        array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
         mLowPoint = coor;
         mHighPoint = coor;
-        for (ParticleIterator particle_pointer_it = vector_of_particle_pointers.begin();
-                particle_pointer_it != vector_of_particle_pointers.end(); ++particle_pointer_it)
+
+        for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin();
+                particle_pointer_it != Elements.end(); ++particle_pointer_it)
         {
+
             coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
             for (std::size_t i = 0; i < 3; i++)
             {
                 mLowPoint[i] = (mLowPoint[i] > coor[i]) ? coor[i] : mLowPoint[i];
-                mHighPoint[i] = (mHighPoint[i] < coor[i]) ? coor[i] : mHighPoint[i];
+                mHighPoint[i] = (mHighPoint[i] < coor[i]) ? coor[i] : mHighPoint[i];          
             }
         }
         array_1d<double, 3 > midpoint = 0.5 * (mHighPoint + mLowPoint);
@@ -74,70 +82,131 @@ public:
         }
         Particle_Creator_Destructor::GetHighNode() = mHighPoint;
         Particle_Creator_Destructor::GetLowNode() = mLowPoint;
-      
+        
+        //KRATOS_WATCH(mHighPoint)
+          //      KRATOS_WATCH(mLowPoint)
+
         KRATOS_CATCH("")
          
     }
 
-    void DestroyDistantParticles(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part)
+    void DestroyDistantParticles(ModelPart& r_model_part)
     {
-        
+
         KRATOS_TRY
-        ModelPart::ElementsContainerType temp_nodes_container;
-        ParticlePointerVector temp_particles_container;
-        temp_nodes_container.reserve(model_part.Elements().size());
-        temp_particles_container.reserve(vector_of_particle_pointers.size());
-        temp_nodes_container.swap(model_part.Elements());
-        temp_particles_container.swap(vector_of_particle_pointers);
-        for (ParticleIterator particle_pointer_it = temp_particles_container.begin();
-                particle_pointer_it != temp_particles_container.end(); ++particle_pointer_it)
+        
+        //Type definitions
+        Configure::ElementsContainerType::Pointer pElements      = r_model_part.pElements();
+        ModelPart::NodesContainerType::Pointer pNodes = r_model_part.pNodes();
+
+        Configure::ElementsContainerType& rElements      = r_model_part.Elements();
+        ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
+
+        Configure::ElementsContainerType temp_particles_container;
+        ModelPart::NodesContainerType temp_nodes_container;
+        //KRATOS_WATCH(temp_particles_container.size())
+
+        //Copy the elements and clear the element container
+        temp_particles_container.reserve(pElements->size());
+        temp_nodes_container.reserve(pNodes->size());
+        
+        temp_particles_container.swap(rElements);
+        temp_nodes_container.swap(rNodes);
+
+        //KRATOS_WATCH(temp_particles_container.size())
+        //KRATOS_WATCH(rElements.size())
+
+        //Add the ones inside the bounding box
+        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin();
+                particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it)
         {
-            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
+
+            array_1d<double, 3 > coor = ( *particle_pointer_it )->GetGeometry()(0)->Coordinates();
+
+            //KRATOS_WATCH(coor)
             bool include = true;
+
             for (std::size_t i = 0; i < 3; i++)
             {
-                include = include && (coor[i] > mLowPoint[i]) && (coor[i] < mHighPoint[i]);
+                include = include && (coor[i] >= mLowPoint[i]) && (coor[i] <= mHighPoint[i]);
+
+
             }
+
             if (include)
             {
-                vector_of_particle_pointers.push_back(*(particle_pointer_it.base()));
-                model_part.Elements().push_back(*(particle_pointer_it.base()));
+               (rElements).push_back(*particle_pointer_it); //adding the elements
+               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
+               {
+                   ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                   (rNodes).push_back( pNode );
+               }
+            
+
+
             }
+
+            else
+            {
+
+                KRATOS_WATCH((*(*particle_pointer_it)).Id())
+
+                     KRATOS_WATCH(coor[1])
+                      KRATOS_WATCH(mLowPoint[1])
+                       KRATOS_WATCH(mHighPoint[1])
+
+
+            }
+
+            //KRATOS_WATCH(rElements.size())
+            //KRATOS_WATCH((r_model_part.Elements()).size())
+
+
         }
         KRATOS_CATCH("")
-        
+       
     }
 
-    void DestroyDistantParticlesGivenBBox(ParticlePointerVector& vector_of_particle_pointers, ModelPart& model_part, array_1d<double, 3 > low_point,
+    void DestroyDistantParticlesGivenBBox( ModelPart& r_model_part, array_1d<double, 3 > low_point,
                                           array_1d<double, 3 > high_point)
     {
-        /*
+    /*
         KRATOS_TRY
+
         mLowPoint = low_point;
         mHighPoint = high_point;
-        ModelPart::NodesContainerType temp_nodes_container;
-        ParticlePointerVector temp_particles_container;
-        temp_nodes_container.reserve(model_part.Nodes().size());
-        temp_particles_container.reserve(vector_of_particle_pointers.size());
-        temp_nodes_container.swap(model_part.Nodes());
-        temp_particles_container.swap(vector_of_particle_pointers);
-        for (ParticlePointerIterator particle_pointer_it = temp_particles_container.begin();
+
+        //Type definitions
+        Configure::ElementsContainerType::Pointer pElements      = r_model_part.pElements();
+        Configure::ElementsContainerType Elements      = r_model_part.Elements();
+        Configure::ElementsContainerType temp_particles_container;
+
+        //Copy the elements and clear the element container
+        temp_particles_container.reserve(pElements->size());
+        temp_particles_container.swap(Elements);
+
+        //Add the ones inside the bounding box
+        for (Configure::ElementsContainerType::iterator particle_pointer_it = temp_particles_container.begin();
                 particle_pointer_it != temp_particles_container.end(); ++particle_pointer_it)
         {
-            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetPosition();
+
+            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
+
             bool include = true;
+
             for (std::size_t i = 0; i < 3; i++)
             {
-                include = (coor[i] > mLowPoint[i]) && (coor[i] < mHighPoint[i]);
+                include = include && (coor[i] >= mLowPoint[i]) && (coor[i] <= mHighPoint[i]);
             }
+
             if (include)
             {
-                vector_of_particle_pointers.push_back(*(particle_pointer_it.base()));
-                (model_part.Nodes()).push_back(particle_pointer_it->GetPointerToCenterNode());
+               (r_model_part.Elements()).push_back(*particle_pointer_it); //adding the elements
             }
         }
+
         KRATOS_CATCH("")
-         */
+  */
     }
 
 
@@ -264,7 +333,7 @@ private:
     inline void ClearVariables(ParticleIterator particle_it, Variable<double>& rVariable)
     {
         /* ///WARNING M: aixo activar-ho també
-        double& Aux_var = (particle_it->GetPointerToCenterNode()).FastGetSolutionStepValue(rVariable, 0);
+        double& Aux_var = (*particle_it->GetPointerToCenterNode()).FastGetSolutionStepValue(rVariable, 0);
         Aux_var = 0.0;
          */
     }

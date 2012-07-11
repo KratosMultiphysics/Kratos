@@ -91,6 +91,8 @@ class ExplicitStrategy:
         self.n_step_search                  = 1;
         self.safety_factor                  = 1; #for critical time step
 
+        self.create_and_destroy             = particle_destructor_and_constructor();
+
     ######################################################################
 
     def Initialize(self):
@@ -150,7 +152,15 @@ class ExplicitStrategy:
     
      #######################################################################
 
-    def Calculate_Model_Surrounding_Bounding_Box(self, enlargement_factor):
-        self.solver.BoundingBoxUtility()
-         ## be sure that after this we search for neighbours again.
-  
+    def Calculate_Model_Surrounding_Bounding_Box(self, model_part, enlargement_factor):
+        self.create_and_destroy.calculate_surrounding_bounding_box( model_part, enlargement_factor)
+
+    def Destroy_Particles(self, model_part):
+        self.create_and_destroy.destroy_distant_particles( model_part)
+
+        
+        
+        #self.explicit_solver_object.Search_Neighbours() #after destructing we need to recalculate the neighbours instantly
+        ##aixo te el problema de que despres de destruir hem de buscar pero tornarema  buscar en la estrategia??? organitzar-ho be.
+
+          ##M:  be sure that after this we search for neighbours again.

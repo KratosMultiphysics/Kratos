@@ -291,8 +291,6 @@ namespace Kratos
             neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
             {
              // GETTING NEIGHBOUR PROPERTIES
-
-
              
                 double other_radius                 = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                 double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
@@ -314,9 +312,7 @@ namespace Kratos
                 //double& mContactFailureId_double    = int(r_VectorContactFailureId[iContactForce]);
                 //int mContactFailureId               = int(mContactFailureId_double);
 
-
                 array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
-
 
 
                 if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
@@ -369,8 +365,8 @@ namespace Kratos
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
               
                 //OÑATE. PROBETES.
-                 //kn               = 197760000;
-                 //ks               = 51593000;
+ //                kn               = 197760000;
+   //              ks               = 51593000;
 
                 // FORMING LOCAL CORDINATES
 
@@ -397,11 +393,7 @@ namespace Kratos
                 RelVel[2] = (vel[2] - other_vel[2]);
 
                 //DeltDisp in global cordinates
-  /*
-               DeltDisp[0] = RelVel[0] * dt;
-               DeltDisp[1] = RelVel[1] * dt;
-               DeltDisp[2] = RelVel[2] * dt;
-*/
+
                DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
                DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
                DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
@@ -434,6 +426,7 @@ namespace Kratos
                     double LocalDeltDisp[3] = {0.0};
                     double LocalContactForce[3]  = {0.0};
                     double GlobalContactForce[3] = {0.0};
+                    double LocalRelVel[3] = {0.0};
                     //double GlobalContactForceOld[3] = {0.0};
 
 
@@ -443,6 +436,8 @@ namespace Kratos
 
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
+                    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
+
 
              // FORCES
 
@@ -451,13 +446,13 @@ namespace Kratos
                     //aqui em falta lu de pi i tal.... oi???
                     //M: these are arrays of vectors of 3 components.
 
-                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
+             if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                                   // for attached particles we enter onlty if the particle is still attached.
                     {
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
-                      
+
                         //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
 
                         if(type_id == 2)  //  1--- incremental; 2 --- absolut i amb el cas hertzià
@@ -473,38 +468,13 @@ namespace Kratos
                             }
 
                         }
-             
-                    }
 
-                    //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
-
-                    if(type_id == 2)  //M: estem sobreeescribim els localContact que haviem fet, si es tipus 1 ja no ho reescribim.
-                        //  1--- incremental; 2 --- absolut i amb el cas hertzià
-                    {
-
-                        if(indentation > 0.0)
-                        {
-                            ///Cfeng:for compression,hertzian model
-                            LocalContactForce[2] = kn * pow(indentation, 1.5);
-
-                       }
-                        else
-                        {
-                            LocalContactForce[2] = kn * indentation;
-                        }
-                    }
-
-                  if ( (indentation < 0.0) )
-                    {
-                        LocalContactForce[0] = 0.0;
-                        LocalContactForce[1] = 0.0;
-                        LocalContactForce[2] = 0.0;
                     }
 
 
               // TENSION FAILURE
 
-                        if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
+                       if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
                       //OÑATE. PROBETES.
                        // if (-LocalContactForce[2] > (649.85))
                         {
@@ -521,21 +491,23 @@ namespace Kratos
 
                         else
                         {
-                                //OÑATE //AMB FRICCIO
-                            // double ShearForceMax = 5524.9 + 0.84*LocalContactForce[2];
-                           double ShearForceMax = LocalContactForce[2] * Friction + CCohesion * equiv_area;  // MOHR COULOMB MODEL.
-                            double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
-                                                 +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
+                              
+                            //OÑATE //AMB FRICCIO
+                            //double ShearForceMax = 5524.9 + 0.84*LocalContactForce[2];
+                             double ShearForceMax = LocalContactForce[2] * Friction + CCohesion * equiv_area;  // MOHR COULOMB MODEL.
 
-                            //Not normal contribution for the tensile case
-
-                            if(LocalContactForce[2] < 0.0)
+                           if(LocalContactForce[2] < 0.0)
                             {
+
                                 ShearForceMax = CCohesion * equiv_area;
                                 //OÑATE
                                 //ShearForceMax = 5524.9;
 
                             }
+
+                            
+                            double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                                 +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
 
                             //No cohesion or friction, no shear resistance
 
@@ -574,8 +546,8 @@ namespace Kratos
                             else { visco_damping[1]= equiv_visc_damp_ratio * RelVel[1]; }
                             */
 
-                            if( abs(equiv_visc_damp_ratio * RelVel[2]) > abs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
-                            else { visco_damping[2]= equiv_visc_damp_ratio * RelVel[2]; }
+                            if( abs(equiv_visc_damp_ratio * LocalRelVel[2]) > abs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
+                            else { visco_damping[2]= equiv_visc_damp_ratio * LocalRelVel[2]; }
 
 
                             LocalContactForce[0] = LocalContactForce[0] - visco_damping[0];
