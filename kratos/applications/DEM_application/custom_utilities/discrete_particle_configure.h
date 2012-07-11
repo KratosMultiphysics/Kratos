@@ -52,10 +52,11 @@ public:
       
         typedef  Point<Dimension, double>                        PointType;
         typedef  std::vector<double>::iterator                   DistanceIteratorType;
-        typedef  ModelPart::ElementsContainerType::ContainerType ContainerType;
+        typedef  std::vector<typename Element::Pointer>          ContainerType; // ModelPart::ElementsContainerType::ContainerType ContainerType;
         typedef  ContainerType::value_type                       PointerType;
         typedef  ContainerType::iterator                         IteratorType;
-        typedef  ModelPart::ElementsContainerType::ContainerType ResultContainerType;
+        typedef  ModelPart::ElementsContainerType                ElementsContainerType;     // pointer vector set de elements.
+        typedef  ElementsContainerType::ContainerType            ResultContainerType;       // std vector de punters a elements
         typedef  ResultContainerType::value_type                 ResultPointerType;
         typedef  ResultContainerType::iterator                   ResultIteratorType;
         typedef  ContactPair<PointerType>                        ContactPairType;

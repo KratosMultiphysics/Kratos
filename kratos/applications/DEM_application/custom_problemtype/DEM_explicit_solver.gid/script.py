@@ -142,6 +142,9 @@ bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargeme
 
 solver.enlargement_factor = bounding_box_enlargement_factor
 
+#Calculate Bounding BoX.
+
+solver.Calculate_Model_Surrounding_Bounding_Box(solid_model_part, bounding_box_enlargement_factor)
 
 #Initialize the problem.
 
@@ -159,16 +162,18 @@ print 'Calculation starts at instant: ' + str(current_pr_time)
 
 while(time < final_time):
 	  
-    #if ((step + 1) % n_step_destroy_distant == 0): 
-	
-        #solver.Destroy_Particles(list_of_particles_pointers, solid_model_part)
-
-    solver.Critical_Time()
+    
+ 
+    #solver.Critical_Time()
 
     time = time + dt
     solid_model_part.CloneTimeStep(time)
 
     solid_model_part.ProcessInfo[TIME_STEPS] = step
+    
+    if ((step + 1) % n_step_destroy_distant == 0):
+  
+        solver.Destroy_Particles(solid_model_part)
     
     solver.Solve()
 

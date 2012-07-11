@@ -773,12 +773,15 @@ namespace Kratos
    void  Calculate_Surrounding_Bounding_Box(ModelPart r_model_part, double enlargement_factor)
 
        {
+      /*
        typedef ElementsContainerType                                           ParticleContainerType;
        ParticleContainerType& pElements = r_model_part.ElementsArray();
-       
-        
+              
         Particle_Creator_Destructor::CalculateSurroundingBoundingBox(pElements, r_model_part, enlargement_factor);
-        //Particle_Creator_Destructor::CalculateSurroundingBoundingBox(vector_of_particle_pointers, model_part, scale_factor);
+       */
+       
+       Particle_Creator_Destructor::CalculateSurroundingBoundingBox( r_model_part, enlargement_factor);
+    
 
    }//Calculate Surrounding Bounding Box
 
