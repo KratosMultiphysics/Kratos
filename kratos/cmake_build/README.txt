@@ -40,6 +40,13 @@ After modifying the configuration file with the local paths run (assuming the fi
 hopefully you should enjoy the kratos compilation with CMAKE
 
 
+
+** INSTALLATAITON ** can be controlled by setting the following variables
+KRATOS_INSTALL_PREFIX --> controls the path to which the kratos will be installed. If not set it will default to the root of the kratos directory
+INSTALL_EMBEDDED_PYTHON --> if set to ON installs the pythonlib and an embedded version of the python named "krun"
+INSTALL_PYTHON_FILES -> if set to ON installs all of the python_scripts subdirs (which are needed!)
+
+
 *******************************************************************************
 MANUALLY INSTALLING LIBRARIES
 *******************************************************************************
@@ -118,5 +125,7 @@ OPTIONAL LIBRARIES
 		    please note that Kratos uses a feature of trilinos which is present only since version 10.8.3, so please
 		    do not use older versions. If this is a problem set to off the MeshingApplication and in this case any 
 		    version can be used
+
+
 
 
