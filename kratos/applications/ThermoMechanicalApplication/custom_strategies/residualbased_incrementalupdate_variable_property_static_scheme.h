@@ -188,8 +188,9 @@ public:
 	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	      {
 		      const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
+		      const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 		      
-		      
+		    if(dist < 0){			      
 		      double density_var = rDensityVar_table.GetValue(unknown_val);
 		      double specific_heat_var =C_table.GetValue(unknown_val);
 		      double solid_fraction_var = F_table.GetValue(unknown_val);
@@ -209,7 +210,16 @@ public:
 		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE,1) = solid_fraction_rate_var;	
 		      
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
-		      ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;		      
+		      ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;	
+		    }
+		    else
+		    {
+		      ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
+		      ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
+		      ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
+		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;			      
+		    }
 			
 	      }	      
 //               mSchemeIsInitialized = true;
@@ -255,8 +265,9 @@ public:
 	for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	{
 		const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
+		const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 		
-		
+		if(dist < 0){		
 		double density_var = rDensityVar_table.GetValue(unknown_val);
 		double specific_heat_var =C_table.GetValue(unknown_val);
 		double solid_fraction_var = F_table.GetValue(unknown_val);
@@ -268,7 +279,16 @@ public:
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = solid_fraction_var;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = solid_fraction_rate_var;		
 		ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
-				
+		}
+		else
+		{
+		ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
+		ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
+		ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
+		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
+		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;		  
+		}
+			
 	}	
         
         KRATOS_CATCH("")
