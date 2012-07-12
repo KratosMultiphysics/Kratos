@@ -461,7 +461,7 @@ namespace Kratos
         void AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                     Vector& rRHSVector,
                                     const double Density,
-                                    const array_1d<double,TDim+1>& rConvOperator,
+                                    const Vector& rConvOperator,
                                     const array_1d<double,3>& rBodyForce,
                                     const double OldPressure,
                                     const double TauOne,
@@ -523,9 +523,17 @@ namespace Kratos
          * @param rShapeDeriv: Derivatives of shape functions evaluated at the integration point
          * @see GetAdvectiveVel provides rVelocity
          */
-        void EvaluateConvection(Vector& rResult,
+        void ConvectionOperator(Vector& rResult,
                                 const array_1d<double,3>& rConvVel,
                                 const ShapeFunctionDerivativesType& DN_DX);
+
+        /// Evaluate ALE convective velocity (velocity-mesh velocity) at a given point.
+        /**
+         * @param rConvVel container for result.
+         * @param N Shape functions at point of evaluation.
+         */
+        virtual void EvaluateConvVelocity(array_1d<double,3>& rConvVel,
+                                          const ShapeFunctionsType& N);
 
         /// Write the value of a variable at a point inside the element to a double
         /**
@@ -541,8 +549,8 @@ namespace Kratos
                              const Kratos::Variable<TVariableType>& Var,
                              const ShapeFunctionsType& rShapeFunc)
         {
-            const SizeType NumNodes = TDim + 1;
             GeometryType& rGeom = this->GetGeometry();
+            const SizeType NumNodes = rGeom.PointsNumber();
 
             rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var);
 
@@ -568,8 +576,8 @@ namespace Kratos
                              const ShapeFunctionsType& rShapeFunc,
                              const IndexType Step)
         {
-            const SizeType NumNodes = TDim + 1;
             GeometryType& rGeom = this->GetGeometry();
+            const SizeType NumNodes = rGeom.PointsNumber();
 
             rResult = rShapeFunc[0] * rGeom[0].FastGetSolutionStepValue(Var,Step);
 
@@ -583,8 +591,8 @@ namespace Kratos
                                      const Kratos::Variable<double>& Var,
                                      const ShapeFunctionDerivativesType& rDN_DX)
         {
-            const SizeType NumNodes = TDim + 1;
             GeometryType& rGeom = this->GetGeometry();
+            const SizeType NumNodes = rGeom.PointsNumber();
 
             for (SizeType d = 0; d < TDim; ++d)
             {
@@ -598,8 +606,8 @@ namespace Kratos
                                        const Kratos::Variable< array_1d<double,3> >& Var,
                                        const ShapeFunctionDerivativesType& rDN_DX)
         {
-            const SizeType NumNodes = TDim + 1;
             GeometryType& rGeom = this->GetGeometry();
+            const SizeType NumNodes = rGeom.PointsNumber();
 
             rResult = 0.0;
             for (SizeType d = 0; d < TDim; ++d)

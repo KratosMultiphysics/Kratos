@@ -304,7 +304,9 @@ class IncompressibleFluidSolver:
         #(self.solver).SolveStep3();
         #(self.solver).SolveStep4();
 
-        
+    def Clear(self):
+        (self.solver).Clear()
+        self.slip_conditions_initialized = True
 
     def WriteRestartFile(self,FileName):
         backupfile = open(FileName+".py",'w')
