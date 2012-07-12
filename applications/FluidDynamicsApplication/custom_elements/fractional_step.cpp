@@ -31,7 +31,7 @@ void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentPro
 
     if (Csmag != 0.0 )
     {
-        const unsigned int NumNodes = TDim + 1;
+        const unsigned int NumNodes = this->GetGeometry().PointsNumber();
 
         // Calculate Symetric gradient
         MatrixType S = ZeroMatrix(TDim,TDim);
@@ -97,8 +97,8 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
 {
     if (rVariable == DIVPROJ)
     {
-        const SizeType NumNodes = TDim + 1;
         const GeometryType& rGeom = this->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
 
         // Shape functions and integration points
         const Matrix& NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
@@ -143,9 +143,9 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
     }
     else if (rVariable == CONV_PROJ)
     {
-        const unsigned int NumNodes = TDim + 1;
-        const unsigned int LocalSize = TDim * NumNodes;
         const GeometryType& rGeom = this->GetGeometry();
+        const unsigned int NumNodes = rGeom.PointsNumber();
+        const unsigned int LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
         const Matrix& NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
@@ -189,11 +189,11 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
     }
     else if (rVariable == VELOCITY)
     {
-        const SizeType NumNodes = TDim + 1;
+        GeometryType& rGeom = this->GetGeometry();
+        const SizeType NumNodes = rGeom.PointsNumber();
         const SizeType LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
-        GeometryType& rGeom = this->GetGeometry();
         const Matrix& NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const SizeType NumGauss = IntegrationPoints.size();
@@ -312,9 +312,9 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
                                                                   VectorType& rRightHandSideVector,
                                                                   ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = TDim + 1;
-    const SizeType LocalSize = TDim * NumNodes;
     const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = TDim * NumNodes;
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != LocalSize )
@@ -348,15 +348,11 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         // Evaluate required variables at the integration point
         double Density;
         double MassProjection;
-        array_1d<double,3> Velocity(3,0.0);
-        array_1d<double,3> MeshVelocity(3,0.0);
         array_1d<double,3> BodyForce(3,0.0);
         array_1d<double,3> MomentumProjection(3,0.0);
 
         this->EvaluateInPoint(Density,DENSITY,N);
         this->EvaluateInPoint(MassProjection,DIVPROJ,N);
-        this->EvaluateInPoint(Velocity,VELOCITY,N);
-        this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
         this->EvaluateInPoint(BodyForce,BODY_FORCE,N);
 //        this->EvaluateInPoint(MomentumProjection,ADVPROJ,N);
         this->EvaluateInPoint(MomentumProjection,CONV_PROJ,N);
@@ -366,7 +362,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
         // For ALE: convective velocity
-        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
+        array_1d<double,3> ConvVel(3,0.0);
+        this->EvaluateConvVelocity(ConvVel,N);
 
 //        // Stabilization parameters
 //        double TauOne;
@@ -375,7 +372,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
         // Evaluate convection operator Velocity * Grad(N)
         Vector UGradN(NumNodes);
-        this->EvaluateConvection(UGradN,ConvVel,mDN_DX);
+        this->ConvectionOperator(UGradN,ConvVel,mDN_DX);
 
         // Add integration point contribution to the local mass matrix
         this->AddMomentumMassTerm(MassMatrix,N,GaussWeight*Density);
@@ -420,8 +417,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
                                                         VectorType& rRightHandSideVector,
                                                         ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = TDim + 1;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
@@ -618,9 +615,9 @@ template<>
 void FractionalStep<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
                                                  ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = 3;
-    const SizeType LocalSize = 6;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = NumNodes*2;
 
     SizeType LocalIndex = 0;
 
@@ -638,9 +635,9 @@ template<>
 void FractionalStep<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
                                                  ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = 4;
-    const SizeType LocalSize = 12;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
 
     SizeType LocalIndex = 0;
 
@@ -659,8 +656,8 @@ template< unsigned int TDim >
 void FractionalStep<TDim>::PressureEquationIdVector(EquationIdVectorType& rResult,
                                                     ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = TDim + 1;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rResult.size() != NumNodes)
         rResult.resize(NumNodes);
@@ -673,9 +670,9 @@ template<>
 void FractionalStep<2>::GetVelocityDofList(DofsVectorType& rElementalDofList,
                                            ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = 3;
-    const SizeType LocalSize = 6;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
@@ -693,9 +690,9 @@ template<>
 void FractionalStep<3>::GetVelocityDofList(DofsVectorType& rElementalDofList,
                                            ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = 4;
-    const SizeType LocalSize = 12;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
 
     if (rElementalDofList.size() != LocalSize)
         rElementalDofList.resize(LocalSize);
@@ -714,8 +711,8 @@ template< unsigned int TDim >
 void FractionalStep<TDim>::GetPressureDofList(DofsVectorType& rElementalDofList,
                                               ProcessInfo& rCurrentProcessInfo)
 {
-    const SizeType NumNodes = TDim + 1;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rElementalDofList.size() != NumNodes)
         rElementalDofList.resize(NumNodes);
@@ -732,8 +729,8 @@ template< unsigned int TDim >
 void FractionalStep<TDim>::GetPressureValues(Vector& rValues,
                                             const int Step)
 {
-    const SizeType NumNodes = TDim + 1;
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
     if (rValues.size() != NumNodes) rValues.resize(NumNodes);
 
@@ -745,10 +742,9 @@ template<>
 void FractionalStep<2>::GetVelocityValues(Vector& rValues,
                                           const int Step)
 {
-    const SizeType NumNodes = 3;
-    const SizeType LocalSize = 6;
-
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 2*NumNodes;
 
     if (rValues.size() != LocalSize) rValues.resize(LocalSize);
 
@@ -765,10 +761,9 @@ template<>
 void FractionalStep<3>::GetVelocityValues(Vector& rValues,
                                           const int Step)
 {
-    const SizeType NumNodes = 4;
-    const SizeType LocalSize = 12;
-
     GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
+    const SizeType LocalSize = 3*NumNodes;
 
     if (rValues.size() != LocalSize) rValues.resize(LocalSize);
 
@@ -790,8 +785,8 @@ void FractionalStep<3>::GetVelocityValues(Vector& rValues,
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateGeometryData()
 {
-    const SizeType NumNodes = TDim + 1;
     const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rGeom.ShapeFunctionsLocalGradients( GeometryData::GI_GAUSS_1 );
 
     // Temporary container for inverse of J
@@ -864,7 +859,7 @@ void FractionalStep<TDim>::AddMomentumMassTerm(Matrix& rMassMatrix,
                                                const ShapeFunctionsType& rN,
                                                const double Weight)
 {
-    const SizeType NumNodes = TDim + 1;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     IndexType FirstRow = 0;
     IndexType FirstCol = 0;
@@ -887,7 +882,7 @@ template< unsigned int TDim >
 void FractionalStep<TDim>::AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                                   Vector& rRHSVector,
                                                   const double Density,
-                                                  const array_1d<double,TDim+1>& rConvOperator,
+                                                  const Vector& rConvOperator,
                                                   const array_1d<double,3>& rBodyForce,
                                                   const double OldPressure,
                                                   const double TauOne,
@@ -898,7 +893,7 @@ void FractionalStep<TDim>::AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                                   const ShapeFunctionDerivativesType& rDN_DX,
                                                   const double Weight)
 {
-    const SizeType NumNodes = TDim + 1;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     SizeType FirstRow = 0;
     SizeType FirstCol = 0;
@@ -952,7 +947,7 @@ void FractionalStep<2>::AddViscousTerm(MatrixType& rDampMatrix,
                                        const ShapeFunctionDerivativesType& rShapeDeriv,
                                        const double Weight)
 {
-    const SizeType NumNodes = 3;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     const double FourThirds = 4.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
@@ -984,7 +979,7 @@ void FractionalStep<3>::AddViscousTerm(MatrixType& rDampMatrix,
                                        const ShapeFunctionDerivativesType& rShapeDeriv,
                                        const double Weight)
 {
-    const SizeType NumNodes = 4;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     const double OneThird = 1.0 / 3.0;
     const double nTwoThirds = -2.0 / 3.0;
@@ -1030,13 +1025,10 @@ void FractionalStep<TDim>::CalculateTau(double &TauOne,
 
     double Density = 0.0;
     double Viscosity = this->GetValue(VISCOSITY);
-    array_1d<double,3> Velocity(3,0.0);
-    array_1d<double,3> MeshVelocity(3,0.0);
+    array_1d<double,3> ConvVelocity(3,0.0);
 
     this->EvaluateInPoint(Density,DENSITY,N);
-    this->EvaluateInPoint(Velocity,VELOCITY,N);
-    this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
-    Velocity -= MeshVelocity;
+    this->EvaluateConvVelocity(ConvVelocity,N);
 
     const double DeltaTime = rCurrentProcessInfo.GetValue(DELTA_TIME);
     const double TimeFactor = rCurrentProcessInfo.GetValue(DYNAMIC_TAU);
@@ -1044,7 +1036,7 @@ void FractionalStep<TDim>::CalculateTau(double &TauOne,
     // Compute mean advective velocity norm
     double AdvVelNorm = 0.0;
     for (unsigned int d = 0; d < TDim; ++d)
-        AdvVelNorm += Velocity[d] * Velocity[d];
+        AdvVelNorm += ConvVelocity[d] * ConvVelocity[d];
 
     AdvVelNorm = sqrt(AdvVelNorm);
 
@@ -1083,20 +1075,16 @@ void FractionalStep<TDim>::CalculateProjectionRHS(array_1d<double,3>& rMomentumR
                                                   const ShapeFunctionDerivativesType& rDN_DX,
                                                   const double Weight)
 {
-    const SizeType NumNodes = TDim + 1;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
     double Density;
     array_1d<double,3> BodyForce(3,0.0);
-    array_1d<double,3> Velocity(3,0.0);
-    array_1d<double,3> MeshVelocity(3,0.0);
 
     this->EvaluateInPoint(Density,DENSITY,rN);
     this->EvaluateInPoint(BodyForce,BODY_FORCE,rN);
-    this->EvaluateInPoint(Velocity,VELOCITY,rN);
-    this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,rN);
-
-    array_1d<double,3> ConvVel = Velocity - MeshVelocity;
+    array_1d<double,3> ConvVel(3,0.0);
+    this->EvaluateConvVelocity(ConvVel,rN);
     Vector ConvOp(NumNodes);
-    this->EvaluateConvection(ConvOp,ConvVel,rDN_DX);
+    this->ConvectionOperator(ConvOp,ConvVel,rDN_DX);
 
     array_1d<double,3> Convection(3,0.0);
     for (SizeType i = 0; i < NumNodes; ++i)
@@ -1122,20 +1110,18 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
                                                   const ShapeFunctionDerivativesType& rDN_DX,
                                                   const double Weight)
 {
-    const unsigned int NumNodes = TDim + 1;
+    const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     double Density;
     array_1d<double,3> BodyForce(3,0.0);
-    array_1d<double,3> Velocity(3,0.0);
-    array_1d<double,3> MeshVelocity(3,0.0);
 
     this->EvaluateInPoint(Density,DENSITY,rN);
     this->EvaluateInPoint(BodyForce,BODY_FORCE,rN);
-    this->EvaluateInPoint(Velocity,VELOCITY,rN);
-    this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,rN);
 
-    array_1d<double,3> ConvVel = Velocity - MeshVelocity;
-    Vector ConvOp(NumNodes);
-    this->EvaluateConvection(ConvOp,ConvVel,rDN_DX);
+    array_1d<double,3> ConvVel(3,0.0);
+    this->EvaluateConvVelocity(ConvVel,rN);
+
+    Vector ConvOp = ZeroVector(NumNodes);
+    this->ConvectionOperator(ConvOp,ConvVel,rDN_DX);
 
     array_1d<double,3> Convection(3,0.0);
     for (unsigned int i = 0; i < NumNodes; ++i)
@@ -1167,11 +1153,11 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
  */
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::EvaluateConvection(Vector& rResult,
+void FractionalStep<TDim>::ConvectionOperator(Vector& rResult,
                                               const array_1d<double,3>& rConvVel,
                                               const ShapeFunctionDerivativesType& DN_DX)
 {
-    const SizeType NumNodes = TDim + 1;
+    const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
     if(rResult.size() != NumNodes) rResult.resize(NumNodes);
 
@@ -1180,6 +1166,24 @@ void FractionalStep<TDim>::EvaluateConvection(Vector& rResult,
         rResult[i] = rConvVel[0]*DN_DX(i,0);
         for(SizeType k = 1; k < TDim; k++)
             rResult[i] += rConvVel[k]*DN_DX(i,k);
+    }
+}
+
+template< unsigned int TDim >
+void FractionalStep<TDim>::EvaluateConvVelocity(array_1d<double,3> &rConvVel, const ShapeFunctionsType &N)
+{
+    GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    array_1d<double,3> NodeVel = rGeom[0].FastGetSolutionStepValue(VELOCITY);
+    NodeVel -= rGeom[0].FastGetSolutionStepValue(MESH_VELOCITY);
+    rConvVel = N[0] * NodeVel;
+
+    for (unsigned int i = 1; i < NumNodes; i++)
+    {
+        NodeVel = rGeom[i].FastGetSolutionStepValue(VELOCITY);
+        NodeVel -= rGeom[i].FastGetSolutionStepValue(MESH_VELOCITY);
+        rConvVel += N[i] * NodeVel;
     }
 }
 
