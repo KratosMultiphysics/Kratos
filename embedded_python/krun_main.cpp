@@ -7,8 +7,18 @@ int main(int argc, char *argv[])
 		std::cout << "MISSING SCRIPT NAME! Usage: " << argv[ 0] << " filename_in.py " <<std::endl;
 		return 1;
 	}
+
+ // Py_NoSiteFlag = 1;
+
   Py_Initialize();
-  
+
+  PyObject* sysPath = PySys_GetObject((char*)"path");
+  PyList_Append(sysPath, PyString_FromString("."));
+ // PyList_Append(sysPath, PyString_FromString("libs"));
+  PyList_Append(sysPath, PyString_FromString("python27.zip"));
+  //PySys_SetPath("python27.zip:.");
+  //PySys_SetPath(".");
+
   PySys_SetArgv(argc,argv);
 
  // FILE *fp      = fopen (argv[1],   "r");
