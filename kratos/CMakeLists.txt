@@ -92,6 +92,8 @@ find_package(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 link_directories(${PYTHON_LIBRARIES})
 
+
+
 #follow the symbolic links for the python lib only if needed
 if(${INSTALL_EMBEDDED_PYTHON} MATCHES ON )
     foreach( l ${PYTHON_LIBRARIES})
@@ -249,6 +251,10 @@ file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
 kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
 kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
 kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
+import os.path
+kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
+kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
+kratos_scripts=os.path.join(os.path.dirname(__file__),'../python_scripts')
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) 
 sys.path.append(kratos_scripts) 
@@ -259,7 +265,7 @@ sys.path.append(kratos_scripts)
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py DESTINATION KratosMultiphysics ) 
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf DESTINATION packaging )
     install(FILES ${CMAKE_SOURCE_DIR}/packaging_aux/script.py DESTINATION . )
-
+	 
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
     #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
