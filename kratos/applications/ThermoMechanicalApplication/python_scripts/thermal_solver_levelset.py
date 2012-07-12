@@ -22,7 +22,8 @@ def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(IS_BOUNDARY);    
     model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());        
     #model_part.AddNodalSolutionStepVariable(HTC);    
-    
+    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);    
+    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);    
     print "variables for the THERMAL_SOLVER added correctly"
         
 def AddDofs(model_part,settings):
@@ -38,7 +39,8 @@ class Solver:
 
         self.model_part = model_part
 
-        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()       
+        #self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()  
+        self.time_scheme = ResidualBasedIncrementalUpdateStaticVariablePropertyScheme()         
         self.settings = my_settings
         self.domain_size = domain_size
         #definition of the solvers
@@ -49,7 +51,7 @@ class Solver:
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-        self.linear_solver = BICGSTABSolver(1e-6, 5000)
+        self.linear_solver = BICGSTABSolver(1e-3, 5000)
 
         self.dynamic_tau = 0.0
 
@@ -70,7 +72,10 @@ class Solver:
         
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
-        
+
+        self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
+        self.max_iter = 5
+
         #material settings
         self.rho_mat = 100.0
         self.rho_empty = 1.0
@@ -96,7 +101,8 @@ class Solver:
         print "INSIDE INITIALIZE"           
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
  	
-        self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
+        #self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
@@ -105,7 +111,9 @@ class Solver:
         if (self.domain_size == 2):
             self.normal_tools.CalculateBodyNormals(self.model_part,2);        
         else:
-            self.normal_tools.CalculateBodyNormals(self.model_part,3);     	  
+            self.normal_tools.CalculateBodyNormals(self.model_part,3); 
+        
+        self.ApplyFluidProperties()
 ##        print "Initialization monolithic solver finished"
     #######################################################################   
     def ApplyFluidProperties(self):
