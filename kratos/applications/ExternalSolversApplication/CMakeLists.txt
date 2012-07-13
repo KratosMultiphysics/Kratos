@@ -5,10 +5,10 @@ message("**** configuring KratosExternalSolversApplication ****")
 # add_definitions( -DTETLIBRARY )
 # 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.1 )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 
 # ##add subdirectories for compilation of dependent libraries
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.1)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3)
 
 ## generate variables with the sources
 set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES    
