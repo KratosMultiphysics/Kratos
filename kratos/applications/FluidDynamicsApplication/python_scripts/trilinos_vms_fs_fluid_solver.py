@@ -85,7 +85,7 @@ class IncompressibleFluidSolver:
 ##        ########################################################
         #defining the linear solver
         velocity_aztec_parameters = ParameterList()
-        velocity_aztec_parameters.set("AZ_solver","AZ_gmres");
+        velocity_aztec_parameters.set("AZ_solver","AZ_bicgstab");
         velocity_aztec_parameters.set("AZ_kspace",100);
         velocity_aztec_parameters.set("AZ_output","AZ_none");
        #velocity_aztec_parameters.set("AZ_output",32);

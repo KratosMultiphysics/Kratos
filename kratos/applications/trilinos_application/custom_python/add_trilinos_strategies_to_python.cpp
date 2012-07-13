@@ -451,6 +451,7 @@ void AddStrategies()
     class_< TrilinosFSStrategy, boost::noncopyable >
             ("TrilinosFSStrategy",init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
             .def("Solve",&TrilinosFSStrategy::Solve)
+            .def("Clear",&TrilinosFSStrategy::Clear)
             .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
             .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
             ;
