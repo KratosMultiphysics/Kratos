@@ -11,11 +11,11 @@ using namespace std;
 
 TObject::TObject()
 {
-    // Nothing
+	// Nothing
 }
 void TObject::free()
 {
-    delete(this);
+	delete(this);
 }
 
 TObject::~TObject()
@@ -24,58 +24,58 @@ TObject::~TObject()
 
 std::string intToString(int number)
 {
-    char* c = intToStr(number);
+	char* c = intToStr(number);
 
-    return std::string(c);
+	return std::string(c);
 }
 
 std::string floatToString(float number)
 {
-    char* c = floatToStr(number);
+	char* c = floatToStr(number);
 
-    return std::string(c);
+	return std::string(c);
 }
 
 char* intToStr(int i)
 {
-    char* result = new char[100];
-    sprintf( result, "%d", i );
-    return result ;
+	char* result = new char[100];       
+	sprintf( result, "%d", i );
+	return result ;
 }
 
 char* intToStr(int i, char* result)
-{
-    sprintf( result, "%d", i );
-    return result ;
+{	
+	sprintf( result, "%d", i );
+	return result ;
 }
 
 char* floatToStr(float f)
 {
-    char* result = new char[100];
-    sprintf( result, "%f", f );
-    return result ;
+	char* result = new char[100];       
+	sprintf( result, "%f", f );
+	return result ;
 }
 
 int dround(double d)
 {
-    return CEILING(d);
+	return CEILING(d);
 }
 
 
 char* floatToStr(float f, char* result)
-{
-    sprintf( result, "%f", f );
-    return result ;
+{	
+	sprintf( result, "%f", f );
+	return result ;
 }
 
 
 void freeAndNil(TList<TObject*>* l)
-{
-    for (int i=0 ; i<l->Count() ; i++)
-    {
-        TObject *o = l->structure[i];
-        delete o;
-    }
-    delete(l);
+{	 
+	for (int i=0 ; i<l->Count() ; i++)
+	{
+		TObject *o = l->structure[i];
+		delete o;
+	}
+	delete(l);
 }
 

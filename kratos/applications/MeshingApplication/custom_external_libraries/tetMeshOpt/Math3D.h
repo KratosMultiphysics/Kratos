@@ -15,19 +15,19 @@ double MinValue(const double *Numbers, const int Count);
 
 struct float4
 {
-    float x,y,z,w ;
+	float x,y,z,w ;
 
-    float4 operator-(float4 v1) ;
+	float4 operator-(float4 v1) ;
 
-    float4 operator+(float4 v1) ;
+	float4 operator+(float4 v1) ;
 
-    float4 operator*(float v1) ;
+	float4 operator*(float v1) ;
 
-    float4 operator*(float4 v1) ;
+	float4 operator*(float4 v1) ;
 
-    float4 operator=(float v1) ;
+	float4 operator=(float v1) ;
 
-    float4 Float4(float v);
+	float4 Float4(float v);
 
 };
 
@@ -38,11 +38,11 @@ float4 Float4(float x);
 float4 max4(float4 a,float4 b);
 
 struct BoundBox
-{
-    float4 min;
-    float4 max;
-    float4 size;
-    float4 center;
+{	
+	float4 min;
+	float4 max;
+	float4 size;
+	float4 center;
 
 } ;
 

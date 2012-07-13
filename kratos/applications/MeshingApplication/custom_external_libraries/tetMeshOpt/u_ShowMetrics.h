@@ -3,23 +3,23 @@
 #include <math.h>
 #include <stdio.h>
 
-
-
-class    TetQuality
+class    TetQuality 
 {
 public :
-    double DieAveMax,DieAveMin, FaceAveMax,FaceAveMin ,
-           fVolMax,fVolMin ,
-           fDieMax,fDieMin, fFaceMax,fFaceMin, vol ;
-    int fNumChanges,fiter, nonPositive,fNumElements ;
-    double fOldVMin , fOldVMax ;
-    TMesh* aMesh;
-    TetQuality(TMesh* volMesh);
+	double DieAveMax,DieAveMin, FaceAveMax,FaceAveMin ,
+			fVolMax,fVolMin ,
+			fDieMax,fDieMin, fFaceMax,fFaceMin, vol ,fMinQuality , fMaxQuality;
+	int fNumChanges,fiter, nonPositive,fNumElements ;
+	double fOldVMin , fOldVMax ;
+	TMesh* aMesh;
+	TetQuality(TMesh* volMesh);
 
-    void getQuality();
+	void getQuality();
 
-    void refresh() ;
+	void refresh() ;
 
-    void print();
+	void print();
 
 };
+
+void exportMetrics(std::string outfilename , TMesh* m,double time);
