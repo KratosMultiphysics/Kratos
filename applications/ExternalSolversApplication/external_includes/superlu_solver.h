@@ -125,7 +125,7 @@ public:
             options.PrintStat = YES;
         */
         set_default_options(&options);
-        options.IterRefine = DOUBLE;
+        options.IterRefine = SLU_DOUBLE;
 // 		options.ColPerm = MMD_AT_PLUS_A;
 
         //Fill the SuperLU matrices
