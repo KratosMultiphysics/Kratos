@@ -34,9 +34,11 @@ struct  object
 
 class TValuedObject : public TObject
 {
-protected :
-	int id;
+//protected :
+	
 public:
+int id;
+
 	double	fmetrica  ,calidad;
 	bool marked, changed ,locked,isdestroyed;
 	int  groupID,visited,flag , innerFlag;

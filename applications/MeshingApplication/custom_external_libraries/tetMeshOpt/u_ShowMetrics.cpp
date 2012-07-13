@@ -14,7 +14,7 @@ void exportMetrics(std::string outfilename , TMesh* m,double time)
 {
 
 	ofstream myfile;
-	myfile.open (outfilename);
+	myfile.open (outfilename.c_str());
 	myfile<<"Req time "<<time<<"\n";
 	for (int i=0; i<m->elements->Count();i++)
 	{
