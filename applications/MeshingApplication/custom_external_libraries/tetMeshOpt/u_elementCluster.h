@@ -2,48 +2,50 @@
 #include "Math3D.h"
 #include "u_Types.h"
 
-#define ACCEPTANCE_TOLERANCE 1.0
-#define ELEMENTS_TO_FORCE_UPDATE 100000
+const float cotas[] ={0.0f,0.001f, 0.05f, 1.0f, 5000000000.0f};
 
-const float cotas[] = {0.0f,0.001f, 0.05f, 1.0f, 5000000000.0f};
+#define ACCEPTANCE_TOLERANCE 1.0
+
+#define ELEMENTS_TO_FORCE_UPDATE 100000
 
 class TElementsCluster
 {
 public :
-    TMesh* originalMesh;
-    double goodMinQuality ,   avgEdgeLength ,    minDAngle ;
-    TList<TObject*>* vertexes ;
-    TList<TObject*>* surfaceT;
-    TList<TObject*>* elements ;
-    TList<TObject*>* copyEL ;
-    //TList<TObject*>* origElements ;
-    TVertex* vC , *inspVertex;
+	TMesh* originalMesh;
+	double goodMinQuality ,   avgEdgeLength ,    minDAngle ;
+	TList<TVertex*>* vertexes ;
+	TList<TVertex*>* surfaceT;
+	TList<TObject*>* elements ;
+	TList<TObject*>* copyEL ;
+	//TList<TObject*>* origElements ;
+	TVertex* vC , *inspVertex;
 
-    TList<TObject*>* tempTetraList;
-    TList<TObject*>* goodTetraList;
-    TList<TObject*>*  elements2;
-    TList<TObject*>* tempL;
-    TList<TObject*>* newElements ;
-    TVertexesEvaluator fc;
-    int numChanges ;
-    double minQuality ;
-    ///----- Variables to store parameters
-    TList<TObject*>* inspectedElements;
-    bool doRemoveElements ,    doTestSwap ,   testCenter;
-    float perturbCenter ;
-    bool checkMaxLength ;
-    float minExpectedquality ;
+	TList<TObject*>* tempTetraList;
+	TList<TObject*>* goodTetraList;
+	TList<TObject*>*  elements2;
+	TList<TObject*>* tempL;
+	TList<TObject*>* newElements ;
+	TVertexesEvaluator fc;
+	int numChanges ;
+	double minQuality ;
+	///----- Variables to store parameters
+	TList<TObject*>* inspectedElements;
+	bool doRemoveElements ,    doTestSwap ,   testCenter ;
+	float perturbCenter ;
+	bool checkMaxLength ;
+	float minExpectedquality ;
 
-    // Constructor
-    void computeMetrics();
+	// Constructor	   
+	void computeMetrics();
 
-    int evaluateSet();
-    void  genElements(bool vertexIsNew = true);
-    bool updateMesh(bool checkIfInvalid );
-    bool generateSubMesh(double minExpectedQuality =500000, double minExpectedAngle = 50000);
-    TElementsCluster(TMesh* aMesh, TVertexesEvaluator functor  );
-    double getMinQuality();
-    ~TElementsCluster();
+	int evaluateSet();
+	void  genElements(bool vertexIsNew = true);
+	bool updateMesh(bool checkIfInvalid );
+	bool generateSubMesh(double minExpectedQuality =500000, double minExpectedAngle = 50000);
+	TElementsCluster(TMesh* aMesh, TVertexesEvaluator functor  );
+	double getMinQuality();
+	double getMinAngle();
+	~TElementsCluster();
 
 } ;
 
@@ -56,14 +58,14 @@ void evaluateClusterByFace(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEvaluator fc);
 
 bool improvedCluster(TList<TObject*>* c1,
-                     TList<TObject*>* cRef ,
-                     TElementsCluster* cl,
-                     bool maxEdgeLengthConstrain );
+	
+	TElementsCluster* cl,
+	bool maxEdgeLengthConstrain );
 
 bool improvedTetra(TVertex *v0,TVertex *v1,TVertex *v2,TVertex *v3,
-                   TList<TObject*>* cRef ,
-                   TElementsCluster* cl,
-                   bool maxEdgeLengthConstrain );
+	              
+	               TElementsCluster* cl,
+	                bool maxEdgeLengthConstrain );
 double testTetraSplit4(TTetra *t, TVertex* v, TList<TObject*>* lRes , TVertexesEvaluator qualityFunction) ;
 int vertexTetraReInsertion(TMesh *am ,TList<TVertex*>* vertexesList ) ;
 
