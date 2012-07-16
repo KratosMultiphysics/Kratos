@@ -15,6 +15,8 @@ set( MESH_OPT
 	${CMAKE_CURRENT_SOURCE_DIR}/u_TetraFunctions.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/u_tools.cpp	
 	${CMAKE_CURRENT_SOURCE_DIR}/u_Types.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/u_MeshSmooth.cpp	
+	${CMAKE_CURRENT_SOURCE_DIR}/u_TetGenInterface.cpp
      )
 
 ###############################################################

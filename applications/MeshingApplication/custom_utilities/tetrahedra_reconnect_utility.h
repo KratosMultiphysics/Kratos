@@ -348,7 +348,7 @@ public:
 			unsigned int n_points_before_refinement = rModelPart.Nodes().size();
 
 			//if the refinement was performed, we need to add it to the model part.
-			if (m->vertexes->Count()>n_points_before_refinement)
+			if (m->vertexes->Count()>(int)n_points_before_refinement)
 			{				
 				//defintions for spatial search
 				typedef Node < 3 > PointType;
@@ -365,7 +365,7 @@ public:
 				for (int i = n_points_before_refinement; i<m->vertexes->Count(); i++)
 				{
 					int id=i+1;
-					int base = i*3;
+					
 					TVertex *v = m->vertexes->elementAt(i);
 					double x= (float)(v->fPos.x);
 					double y= (float)(v->fPos.y);
@@ -407,11 +407,10 @@ public:
 		}
 
 	void setVertexExpectedSize(ModelPart& rModelPart, TVolumeMesh* m )
-	{
-		int counter = 0;
+	{		
 				for (int el = 0; el< m->elements->Count(); el++)
 				{
-					int old_base = el*4;
+					
 					//calculate the prescribed h
 					/*                double prescribed_h = (nodes_begin + out.tetrahedronlist[old_base]-1)->FastGetSolutionStepValue(NODAL_H);
 					prescribed_h += (nodes_begin + out.tetrahedronlist[old_base+1]-1)->FastGetSolutionStepValue(NODAL_H);
@@ -512,7 +511,7 @@ public:
 			std::cout <<"...Start Optimization..." <<"\n";
 			TVMWLoader* ml2 = new TVMWLoader();
 			std::string s("");
-            s = "..\out_MeshFromKratos" + intToString(simIter)+".vwm";
+            s = "../out_MeshFromKratos" + intToString(simIter)+".vwm";
             
             ml2->save( s.data(), m);
             delete ml2;

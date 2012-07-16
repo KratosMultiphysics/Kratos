@@ -23,7 +23,6 @@
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/line_2d_2.h"
 
-
 namespace Kratos
 {
 //KRATOS_CREATE_VARIABLE( double, WEIGHT_FATHER_NODES )
