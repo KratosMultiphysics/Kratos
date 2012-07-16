@@ -241,7 +241,7 @@ public:
 		 rGPShapeFunctionValues(0,j_aux)=one_third*(1.0 - node4_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
 		 rGPShapeFunctionValues(0,k_aux)=one_third*(1.0 - node5_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
 		 rGradientsValue[0](0,0)=(DN_DX(j_aux,0)+DN_DX(k_aux,0))*adim_Nenriched_i_aux;
-		 rGradientsValue[0](0,1)=(DN_DX(j_aux,1)+DN_DX(k_aux,1))*adim_Nenriched_i_aux;						//	      i   j,k				i       j,k
+		 rGradientsValue[0](0,1)=(DN_DX(j_aux,1)+DN_DX(k_aux,1))*adim_Nenriched_i_aux;		  //	      i   j,k				 i    j,k
 		 rGradientsValue[0](1,0)=rGradientsValue[0](0,0);                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
 		 rGradientsValue[0](1,1)=rGradientsValue[0](0,1);				//															/
 		 NEnriched(0,0)=(rGPShapeFunctionValues(0,j_aux)+rGPShapeFunctionValues(0,k_aux))*adim_Nenriched_i_aux;
@@ -331,10 +331,22 @@ public:
 		 rVolumes(2)=Area-rVolumes(0)-rVolumes(1);
 		 KRATOS_WATCH(rVolumes(2));
 		 
-		 std::cout <<"gauss points" << '\n';
+		 
+		 
+		 /*
+		 std::cout <<"GAUSS POINTS" << '\n';
 		 for (unsigned int ji=0; ji<3; ji++)
 			std::cout <<rGPShapeFunctionValues(ji,0)<< "  " << rGPShapeFunctionValues(ji,1) << "  " << rGPShapeFunctionValues(ji,2) <<'\n';
-		 
+			
+		 std::cout <<"GRADIENTS" << '\n'; 
+		 for (unsigned int ji=0; ji<3; ji++)
+		 {
+			std::cout << "first Shape function" << '\n';
+			std::cout << rGradientsValue[ji](0,0) << "  " <<rGradientsValue[ji](0,1) <<'\n';
+			std::cout << "second Shape function" << '\n';
+			std::cout << rGradientsValue[ji](1,0) << "  "  <<rGradientsValue[ji](1,1) <<'\n';
+		 }
+		 */
 		 return 3;
 		 KRATOS_CATCH("");
         
