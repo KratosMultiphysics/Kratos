@@ -9,7 +9,11 @@
 #include <tbb\mutex.h>
 #endif
 
-#include <omp.h>
+#ifdef _WIN32
+	#include <omp.h>
+#else
+
+#endif
 
 #if !defined(KRATOS)	
 #include "cl_utils.h"
@@ -845,8 +849,7 @@ double ParallelSmoothMeshInGPU(TMesh *aMesh , TVertexesEvaluator fc, double minE
 	   tr->vertexes[0]->fixed = 0;
 	   tr->vertexes[1]->fixed = 0;
 	   tr->vertexes[2]->fixed = 0;
-   }
-    
+   }    
 
 	return d;
 	//aMesh->updateIndexes( GENERATE_SURFACE | KEEP_ORIG_IDS);	
