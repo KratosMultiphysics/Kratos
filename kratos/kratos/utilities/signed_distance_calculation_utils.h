@@ -318,7 +318,7 @@ public:
                 it->FastGetSolutionStepValue(rDistanceVar) = 0.0;
                 it->GetValue(IS_VISITED) = 1;
 
-                const array_1d<double,3>& center_coords = it->Coordinates();
+                //const array_1d<double,3>& center_coords = it->Coordinates();
 
                 //now loop all of its neighbours and calculate the distance value
 //                for (WeakPointerVector< Node<3> >::iterator in = it->GetValue(NEIGHBOUR_NODES).begin();
