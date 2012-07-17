@@ -103,7 +103,7 @@ namespace Kratos
                  
 	         coor[0]   = initial_coor[0] + displ[0];
 
-		 prev_accel[0] = new_accel[0];
+		 //prev_accel[0] = new_accel[0];
                  
              }
                              
@@ -129,7 +129,7 @@ namespace Kratos
 
 	         coor[1]   = initial_coor[1] + displ[1];
 
-		 prev_accel[1] = new_accel[1];
+		 //prev_accel[1] = new_accel[1];
 	     }
               else
              {
@@ -143,10 +143,12 @@ namespace Kratos
              if( i->pGetDof(VELOCITY_Z)->IsFixed() == false )
 	     {
 	         displ[2]  += delta_t * vel[2] + 0.25 * delta_t * delta_t * (prev_accel[2] + new_accel[2]);
+                 
 	         vel[2]    = vel[2] + 0.5 * delta_t * (prev_accel[2] + new_accel[2]);
                 
 	         coor[2]   = initial_coor[2] + displ[2];
-		 prev_accel[2] = new_accel[2];
+                 
+		 //prev_accel[2] = new_accel[2];
                 
 	     }
               else
