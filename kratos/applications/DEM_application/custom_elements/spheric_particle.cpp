@@ -470,7 +470,13 @@ namespace Kratos
                         }
 
                     }
-
+                    
+             if (indentation < 0.0)
+             {
+                        LocalContactForce[0] = 0.0;  // 0: first tangential
+                        LocalContactForce[1] = 0.0;  // 1: second tangential
+                        LocalContactForce[2] = 0.0;  // 2: normal force
+             }
 
               // TENSION FAILURE
 
@@ -811,14 +817,6 @@ namespace Kratos
         }//ComputeParticleRotationSpring
 
 
-
-
-
-
-
-
-
-
         void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
         void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo){
@@ -863,7 +861,7 @@ namespace Kratos
             {
                 double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
                 double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                Output = sqrt( mRealMass / K);
+                Output = 0.001 * sqrt( mRealMass / K);
 
                 if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
                 {
