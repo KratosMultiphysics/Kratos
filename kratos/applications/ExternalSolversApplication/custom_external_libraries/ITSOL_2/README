@@ -1,0 +1,187 @@
+=======================================================================
+ --> Version 2.0  Latest changes made on: Tue Nov 16 15:50:54 CST 2010
++======================================================================+
+|------------------- Iterative Solvers Package ------------------------|
++======================================================================+
+
+This is  part of  the ITSOL extention  to the SPARSKIT  package.  This
+particular  sub-package provides  preconditioners for  solving general
+sparse * real-valued * linear systems of equations.
+
+Main Contributors: Brian Suchomel, Na Li, Zhongze Li, Daniel Osei-Kuffuor, 
+     Ruipeng Li, and Yousef Saad.
+
+Current contacts: Ruipeng Li          (rli@cs.umn.edu) 
+                  Daniel Osei Kuffuor (dosei@cs.umn.edu)
+                  Yousef Saad         (saad@cs.umn.edu) 
+
+Nov. 2010 
+
+=======================================================================
+
+This library contains a  number of  classic and  new preconditioners.
+There are several ways in  which you can use these preconditioners for
+solving a linear  system.  The  easiest way  is probably  to  use the
+sample drivers  provided in the directory TESTS as templates. 
+TESTS contains test codes for matrices in coordinate or
+matrix-market format and in the old Harwell-Boeing format.  
+Each if these drivers has a name of the form
+mainPRECON.c where PRECON is one of
+
+ ILUK     standard ILU preconditioner with level of fill 
+ ILUT     standard ILU preconditioner with threshold 
+ ILUC     standard ILU preconditioner with threshold - Crout version
+ ARMS     Algebraic Multilevel Solvers == This includes both the 
+          standard ARMS and a version with nonsymmetric permutations
+          which reorders the matrix by diagonal dominance
+ VBILUT   Variable Block ILUT preconditioner
+ VBILUK   Variable Block ILUK preconditioner
+
+For  example, mainILUT.c  is  a driver  which  reads a  matrix in  a
+Harwell-Boeing/Matrix-market format (or a sequence of such matrices for 
+consecutive tests--see below), then constructs an ILUT preconditioner 
+and proceeds to solve the system with the accelerator fgmres. There is
+only  one accelerator  used  for the  iteration  phase, namely  FGMRES
+(fgmr.c).  This uses two wrapper structs
+
+ MAT for the matrix [for matvecs] 
+ PRE for the preconditoner (preconditioning operation). 
+
+These  structs  include substructs  for  each  of the  data-structures
+required by the above  preconditioners and pointers to functions. Only
+one of these, along with  one matvec function needs to be instantiated
+(set) for  the MAT  struct. Similarly one  member and  a corresponding
+function  pointer of  PRE needs  to  be instantiated.  Thus, a  driver
+mainPREC does the following steps
+
+ 1/ read the matrix in Harwell-Boeing/coo format
+ 2/ convert it to any required format 
+ 3/ construct the preconditioner -- get its struct -- say LU
+ 4/ set MAT, PRE [by filling the appropriate members] 
+ 5/ call fgmr(MAT, PRE, + other parameters).
+ 6/ output various results in OUT/PRECON.out 
+
+Once you  are familiar with  the preconditioners and  various structs,
+you should  be able to  bypass the wrapper  structs MAT and  PREC.  In
+fact a second way of using  the preconditioner is to build it directly
+by  a  call  to  the  appropriate  function and  then  call  your  own
+accelerator. For example, fgmr can be easily modified to pass directly
+the structs needed for the iteration.  Thus, if your preconditioner is
+ILUK and  you have the 'iluptr' struct LU and the 'csptr' struct CSMAT
+for the  preconditioner and matrix respectively, you  can simply issue
+the call
+
+    call fgmr(CSmat, LU, + other parameters).
+
+and  replace  the matvec  routines  and  preconditioner  calls by  the
+appropriate ones == These are available in LIB/MatOps.c
+
+-------------------------------------------------------------------------
+---------------- DETAILS ON THE PRECONDITIONERS -------------------------
+-------------------------------------------------------------------------
+
+ ILU*      These are the standard ILU(k), ILUT, preconditioners and the
+           new, Crout-based ILU preconditoner. ILUT and ILUK are simple
+           translations of the corresonding version in the old sparskit.
+           ILUC is new and it is written in an "experimental" version
+           which allows various dropping strategies [5 different ones] 
+
+	   drivers: mainILUT,  mainILUK,  mainILUC, and
+           these produce the executables
+                    ilut.ex     iluk.ex     iluc.ex 
+
+ ARMS      Algebraic Multilevel Solvers.  This includes both the 
+           standard ARMS and a version with nonsymmetric permutations
+           which reorders the matrix by diagonal dominance. 
+                      
+           drivers mainARM
+           which produce the executable   arms.ex
+
+ VB        block variants of ILUT and ILUK preconditioners with variable
+	   blocks. 
+
+           drivers mainVBILUT, mainVBILUK
+           which produce the executables  vbilut.ex and vbiluk.ex
+
+-------------------------------------------------------------------------
+---------------- DETAILS ON THE DRIVERS ---------------------------------
+-------------------------------------------------------------------------
+
+Each main driver reads input parameters from the file 
+	
+ inputs
+
+This is done with the  function "read_inputs". The parameters that are
+read are the same for all drivers  - though some of these are not used
+by the drivers.  For example  droptol is not used by the level-of-fill
+techniques  [iluk].  Note  that   the  arms  drivers  set  some  other
+parameters to a default via the `set_arms_params' function -- which is
+in the 'auxill.c' file.
+
+The execution  of the driver consists of looping through  a number of
+matrices  in harwell-boeing/MM format and  for  each of  them, a  preset
+number of tests is done. The list  of matrices used for the test is in
+the file:
+ 
+matfile
+
+These files begin with a number "nmat" of matrices to be read followed
+by  nmat lines  each  consisting of  a  pathname for  the matrix  file
+followed by a short name that will be used for creating out filenames
+and the matrix format [HB: harwell-boeing; MM1:matrix-market 1-indexing,
+MM0:matrix-market 0-indexing].
+The other major  loop in the driver will  loop through parameters. The
+parameters for  dropping are tightened  at each loop as  instructed by
+the choice of lfilInc (how  to increase the lfil parameter) and tolMul
+(scalar by which to multiply the drop tolerance at each new loop). 
+
+SAMPLE_MATRICES: two 
+
+-------------------------------------------------------------------------
+-------------- porting itsol solvers into packages----------------------- 
+-------------------------------------------------------------------------
+
+It is recommended  to test the various solvers  with different options
+to see what  works best. For this it is useful  to imitate the general
+framework of the  drivers provided.  You can for  example generate the
+matrix in  coordinate format and then  convert it to  the internal csr
+format  (called SparMat)  by the  function COOcs.   Then you  can call
+whatever  preconditioner set-up  function (e.g.   ilut) to  obtain the
+desired preconditioner- The pointers in MAT and PRE can then be set --
+for example when using ILUT:
+
+      MAT->n = n;                         matrix size
+      MAT->CSR = csmat;                   matrix A itself [for matvecs]
+      MAT->matvec = matvecCSR;            ptr to matvec routine 
+      PRE->ILU = lu;                      preconditioner struct
+      PRE->precon = preconILU;            ptr to corresponding precon oper.
+
+You are now ready to call the accelerator:
+
+      fgmr(MAT, PRE, rhs, sol, tol, krydim, itmax, outputs);
+
+-------------------------------------------------- updated Apr. 7th, 2008
+
+A few of the changes in the April 2008 version 
+ 
+** quite a few small fixes.
+
+** added test codes for the COO format -- this is the same essentially as
+   the matrix-market format. 
+
+** chaged a few names -- SparRow became SparMat -- VBsparRow became 
+   VBSparMat. nnzrow became nzcount. These changes were made to avoid
+   confusions [in fact confusion lead to some small errors in earlier
+   versions].. Specifically nnzrow used to count number of nonzeros in
+   rows or in columns.. 
+
+** ILUC [or possibly just the main routine calling it] seems to have a
+   problem -- it will put back after this is fixed. 
+
+-------
+** New I/O routine which can handle 3 formats: 
+   1. HB 
+   2. MM-1-indexing
+   3. MM-0-indexing
+** TESTS_HB and TESTS_COO (in old version) are merged to TESTS
+

@@ -1,0 +1,44 @@
++======================================================================+
+|----------------- Iterative Solvers Package --------------------------|
++======================================================================+
+
+This is  part of  the ITSOL extention  to the SPARSKIT  package.  This
+particular  sub-package provides  preconditioners for  solving general
+sparse * real-valued * linear systems of equations.
+
+Once you have unpacked the tar ball -- go to the ITSOL directory and
+edit  the  file 'makefile'  for  customizing  the loaders,  compilers,
+compiler flags, etc ... then type
+
+make lib
+
+to create the library libitsol.a
+
+Once this  is done  you can try  some of  the test examples in
+TESTS. You can for example go to TESTS_COO and
+type 
+
+ make all
+
+ which will make the executables :
+        arms.ex, ilut.ex, iluc.ex, iluk.ex, vbilut, and vbiluk
+
+ then you can execute the script 
+ 
+ runall to run all these drivers with the two sample matrices provided
+ in .\MATRICES [two for TESTS_COO and two for TESTS_HB] 
+
+The makefile in  TESTS will require that the user edit the links to
+blas and lapack in the LINKS directive.
+
+To test  a single preconditioner, for example  the arms preconditioner
+type for matrices stored in coo format type:
+
+make arms.ex 
+
+This should create an executable called arms.ex 
+
+Typing arms.ex should  run this for the sample  matrices in coordinate
+format located in SAMPLE_MATRICES and  for the input parameters in the
+file inputs.   [two sample matrices are provided  in coordinate format
+and two in the hb format]

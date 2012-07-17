@@ -1,0 +1,19 @@
+#/bin/sh
+
+###(cd ..; make lib) 
+
+make all
+
+./arms.ex
+
+./ilut.ex
+
+./iluc.ex
+
+./iluk.ex
+
+./vbiluk.ex
+
+./vbilut.ex
+
+echo 'DONE -) '
