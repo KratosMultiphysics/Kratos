@@ -1,0 +1,36 @@
+  1             1. nparam  = number of tests for the preconditioner (see below)
+ 60             2. dim     = dimension of Krylov subspace in (outer) FGMRES
+200             3. maxits  = maxits in outer fgmres. 
+1.0e-8          4. tol     = tolerance for stopping iteration
+50              5. lfil0   = initial lfil
+ 1              6. lfilInc = increment for lfil
+0.001           7. tol0    = initial tol
+0.01            8. tolMul  = multiple increment for tol0
+ 1              9. USED BY ILUK ONLY: fill_lev = fill level
+ 0             10. ARMS ONLY: PQ perms or Ind. Sets. 
+ 30            11. ARMS ONLY: Block-size for independent sets/last block
+### end 
+  
+INPUT PARAMETERS in file "inputs":
+----------------------------------
+ nparam      : number of tests
+ dim         : dimension of Krylov subspace in (outer) FGMRES
+ maxits      : Maximum number of outer iterations
+ tol         : tolerance for stopping iteration
+ eps         : not available in Hash-based algorithm.  <= 1.  indicating
+               how close are two rows or columns which can be grouped in
+               the same block.
+ lfil0       : initial fill-in parameter
+ lfilInc     : increment for the fill-in parameter after each test
+**** next two are for VBILUT only -- 
+ tol0        : the  initial  threshold  for  dropping small terms in the
+               factorization
+ tolMul      : multiple for the threshold after each test
+**** next two are for ILUK only -- 
+ fill_lev    : Level of fill for ILUK preconditioner
+ **** next are for ARMS only 
+ perm_type: PQ or Indset ordering 
+ Bsize    : block size - This has a dual role. It is the block size
+            for indset permutations. It is also the last block size for 
+            PQ orderings [i.e, algorithm stops when schur complement reaches 
+            a size <= Bsize] 

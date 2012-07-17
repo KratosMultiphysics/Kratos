@@ -1,0 +1,39 @@
+
+
+Once you have compiled the library -- you can test *all* the drivers in this
+directory by using the shell script 'runall' [just type ./runall] 
+
+A few details on the input files and matrices.. The input was designed so all
+runs can be executed with the same input file - so in some cases a few parameters
+will be ignored [for example block-size is used in arms but not in ilut. and block
+size means something different for arms when ddpq is used (last block size)] 
+See the corresponding drivers. 
+
+The drivers can read matrices stored in 3 different formats.
+
+1. Harwell boeing format. [HB] -- old style HB format with fortran indexing
+
+2. Matrices in matrix market format with fortran style indexing [MM1] 
+   row/column indices start at 1 
+
+3. Matrices in matrix market format with C-style indexing [MM0] 
+   row/column indices start at 0 
+
+The file matfile contains a list of matrices to test. 
+It starts by a integer k indicating the number of systems to consider followed
+k lines, one for each matrix. Each line has the form
+
+pathname  short-name  TYP
+
+pathname is the full pathname of the data. short-name is a short name
+for the matrix used mainly to name corresponding output files. Finally
+TYP is one of HB, MM0, or MM1 - see above. Here is an example of a matfile
+
+3
+ /scratch/syphax/MATRICES3/Florida/circuit_3.mtx circuit3 MM1
+ /scratch/syphax/MATRICES3/MatrixMarket/cry10000.rua cry10000 HB
+ ./MATRICES/mat.coo small MM0
+
+A few matrices are provided in the directory MATRICES.
+
+11/162010  YS 
