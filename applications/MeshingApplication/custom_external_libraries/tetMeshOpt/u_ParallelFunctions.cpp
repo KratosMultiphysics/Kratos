@@ -9,11 +9,11 @@
 #include <tbb\mutex.h>
 #endif
 
-#ifdef _WIN32
-	#include <omp.h>
-#else
-
+#ifdef _OPENMP
+#include <omp.h>
 #endif
+
+// #endif
 
 #if !defined(KRATOS)	
 #include "cl_utils.h"
@@ -27,9 +27,10 @@ int innerNumThreads =12;
 void setNumThreads(int nt)
 {
 	innerNumThreads = nt;
-#if defined(OPEN_MP)
-	omp_set_num_threads(nt);
-#endif
+#ifdef _OPENMP
+  omp_set_num_threads(nt);
+#endif 
+
 }
 
 double minExpectedAngle;
@@ -630,7 +631,7 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
 	TList<TObject*> * resultedClusters; 
-	// Tamaño maximo de procesos simultaneos
+	// Tamaï¿½o maximo de procesos simultaneos
 	nsimCh = ASSIGNMENT_SIZE;
 	//----------------------------------------
 	// Initialization part!
