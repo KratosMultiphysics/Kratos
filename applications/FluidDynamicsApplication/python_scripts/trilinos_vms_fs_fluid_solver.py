@@ -366,7 +366,7 @@ class IncompressibleFluidSolver:
         if(DES==True):
             turbulence_model.ActivateDES(CDES);
 
-        self.solver.AddInitializeIterationProcess(turbulence_model);
+        self.solver.AddIterationStep(turbulence_model);
 
         
 
