@@ -276,11 +276,17 @@ public:
         options.ILU_MILU = SILU;
          */
         ilu_set_default_options(&options);
-        options.ILU_MILU = SMILU_3;
+        options.ILU_MILU = SILU; //SMILU_3;
 
         options.ILU_DropTol = mDropTol;
         options.ILU_FillTol = mFillTol;
-        options.ILU_FillFactor = mFillFactor;
+        options.ILU_FillFactor = mFillFactor; 
+	
+	options.SymmetricMode = YES;
+	options.ILU_DropRule = DROP_DYNAMIC;
+        options.ILU_Norm = ONE_NORM;
+
+// 	options.IterRefine = SLU_DOUBLE;
 
         /* Modify the defaults. */
         options.PivotGrowth = YES;	  /* Compute reciprocal pivot growth */
@@ -339,7 +345,7 @@ public:
         }
         for (i = 0; i <= n; ++i) xa_orig[i] = Astore->colptr[i];
         dCreate_CompCol_Matrix(&AA, m, n, nnz, a_orig, asub_orig, xa_orig,
-                               SLU_NC, SLU_D, SLU_GE);
+                               SLU_NR, SLU_D, SLU_GE);
 
         /* Generate the right-hand side */
         // if ( !(rhsb = doubleMalloc(m * nrhs)) ) ABORT("Malloc fails for rhsb[].");

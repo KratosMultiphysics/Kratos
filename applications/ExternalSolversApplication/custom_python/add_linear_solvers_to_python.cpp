@@ -26,6 +26,9 @@
 #include "external_includes/superlu_iterative_solver.h"
 #include "external_includes/gmres_solver.h"
 
+#ifndef EXCLUDE_ITSOL
+  #include "external_includes/itsol_arms_solver.h"
+#endif
 
 namespace Kratos
 {
@@ -48,6 +51,8 @@ void  AddLinearSolversToPython()
     typedef IterativeSolver<SpaceType, LocalSpaceType> IterativeSolverType;
     typedef GMRESSolver<SpaceType, LocalSpaceType> GMRESSolverType;
     typedef Preconditioner<SpaceType,  LocalSpaceType> PreconditionerType;
+    
+    
 
     using namespace boost::python;
 
@@ -62,6 +67,14 @@ void  AddLinearSolversToPython()
     ( "SuperLUIterativeSolver",init<>() )
     .def(init<double,int,int,double,double,double>())
     ;
+    
+#ifndef EXCLUDE_ITSOL
+    typedef ITSOL_ARMS_Solver<SpaceType,  LocalSpaceType> ITSOL_ARMS_SolverType;
+    class_<ITSOL_ARMS_SolverType, bases<LinearSolverType>, boost::noncopyable >
+    ( "ITSOL_ARMS_Solver",init<>() )
+    .def(init<double,int,int>())
+    ;
+#endif
 
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
     ( "GMRESSolver")
