@@ -270,14 +270,14 @@ SUPGConvDiffPhaseChange2D::~SUPGConvDiffPhaseChange2D() {
 
         for (unsigned int iii = 0; iii < nodes_number; iii++){
             double nd_DF_DT =  GetGeometry()[iii].FastGetSolutionStepValue(SOLID_FRACTION_RATE);
-	    double tangent_DF_DT = nd_DF_DT;
+	    tangent_DF_DT = nd_DF_DT;
 	    if(tangent_DF_DT == 0.0)
 	    {
 	      double nd_FF =  GetGeometry()[iii].FastGetSolutionStepValue(SOLID_FRACTION);	
 	      double nd_FF_old =  GetGeometry()[iii].FastGetSolutionStepValue(SOLID_FRACTION,1);
 	      double TT = GetGeometry()[iii].FastGetSolutionStepValue(rUnknownVar);
 
-	      tangent_DF_DT = (nd_FF - nd_FF_old)/(T - mid_T);
+	      tangent_DF_DT = (nd_FF - nd_FF_old)/(TT - mid_T);
 	      
 	    }
 	    tan_phase_change(iii,iii) = 0.33333333333333333333333333 * tangent_DF_DT;
