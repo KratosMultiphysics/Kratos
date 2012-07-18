@@ -452,7 +452,7 @@ namespace Kratos
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
-
+                        
                         //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
 
                         if(type_id == 2)  //  1--- incremental; 2 --- absolut i amb el cas hertzià
@@ -471,13 +471,14 @@ namespace Kratos
 
                     }
                     
-             if (indentation < 0.0)
+             if ( (indentation < 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 1) )
              {
                         LocalContactForce[0] = 0.0;  // 0: first tangential
                         LocalContactForce[1] = 0.0;  // 1: second tangential
                         LocalContactForce[2] = 0.0;  // 2: normal force
+                        KRATOS_WATCH(LocalContactForce[2])
              }
-
+                    
               // TENSION FAILURE
 
                        if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
@@ -861,7 +862,7 @@ namespace Kratos
             {
                 double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
                 double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                Output = 0.001 * sqrt( mRealMass / K);
+                Output = 0.34 * sqrt( mRealMass / K);
 
                 if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
                 {
