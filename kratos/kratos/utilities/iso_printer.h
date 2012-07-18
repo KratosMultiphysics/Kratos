@@ -195,7 +195,6 @@ public:
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
         double diff_neigh_value;; //distance between the two nodes of the edge
-        double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
@@ -288,7 +287,6 @@ public:
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
         double diff_neigh_value;; //distance between the two nodes of the edge
-        double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
@@ -393,7 +391,6 @@ public:
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
         double diff_neigh_value;; //distance between the two nodes of the edge
-        double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
