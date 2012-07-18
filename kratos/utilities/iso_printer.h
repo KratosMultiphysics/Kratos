@@ -194,7 +194,8 @@ public:
         double node_value; // node to closest point in the plane
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
-        double diff_neigh_value;; //distance between the two nodes of the edge
+        double diff_neigh_value; //distance between the two nodes of the edge
+        //double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
@@ -221,7 +222,7 @@ public:
                     {
                         neigh_value= geom[j].FastGetSolutionStepValue(variable);
                         diff_neigh_value = isovalue - neigh_value;
-                        diff_node_neigh = node_value - neigh_value;
+                        //diff_node_neigh = node_value - neigh_value;
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
 
                         if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
@@ -286,7 +287,8 @@ public:
         double node_value; // node to closest point in the plane
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
-        double diff_neigh_value;; //distance between the two nodes of the edge
+        double diff_neigh_value; //distance between the two nodes of the edge
+        //double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
@@ -313,7 +315,7 @@ public:
                     {
                         neigh_value= geom[j].FastGetSolutionStepValue(variable);
                         diff_neigh_value = isovalue - neigh_value;
-                        diff_node_neigh = node_value - neigh_value;
+                        //diff_node_neigh = node_value - neigh_value;
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
 
                         if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
@@ -391,6 +393,7 @@ public:
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
         double diff_neigh_value;; //distance between the two nodes of the edge
+        //double diff_node_neigh;
         array_1d<unsigned int, 4 > list_matching_nodes; // used to save the new nodes that match exactly old nodes  (very unlikely, but might be 4 for very plane elements)
         unsigned int exact_nodes = 0;
         unsigned int outside_nodes = 0;
@@ -417,7 +420,7 @@ public:
                     {
                         neigh_value= geom[j].FastGetSolutionStepValue(variable);
                         diff_neigh_value = isovalue - neigh_value;
-                        diff_node_neigh = node_value - neigh_value;
+                        //diff_node_neigh = node_value - neigh_value;
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
 
                         if ((diff_node_value * diff_neigh_value) < 0.0 ) // this means one is on top of the plane and the other on the bottom, no need to do more checks, it's in between!
