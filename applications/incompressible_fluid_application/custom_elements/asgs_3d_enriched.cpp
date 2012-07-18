@@ -146,7 +146,7 @@ void ASGS3D_ENR::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
     //this loops is in progress
@@ -234,7 +234,7 @@ void ASGS3D_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProces
     //vector of vectors (6 rows of matrices 1*3) (vector of 3 = matrix 1*3)
     std::vector<Matrix> Partition_Gradients(6, Matrix(1,3));
     /////////////////////////////////////////////////////////////////////////////
-    for (int i=0; i<nodes_number; i++)
+    for (unsigned int i=0; i<nodes_number; i++)
     {
         Distances[i]=GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
         // and now we store the verices of the element
@@ -243,7 +243,7 @@ void ASGS3D_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProces
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
     //this loops is in progress
@@ -319,7 +319,7 @@ void ASGS3D_ENR::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, Vec
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
     //this loops is in progress
@@ -932,7 +932,7 @@ void ASGS3D_ENR::CalculateTau(const array_1d<double,4>& N, double& tauone, const
     double ele_length = pow(12.0*volume,0.333333333333333333333);
     ele_length = 0.666666667 * ele_length * 1.732;//2.0/3.0 * ele_length * sqrt(3.00)
 
-    double mu=density*viscosity;
+    //double mu=density*viscosity;
 
     //const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
     //tauone = 1.0 / (1 / time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
@@ -1037,16 +1037,11 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
     const array_1d<double,3>& fv1 = GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv2 = GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
     const array_1d<double,3>& fv3 = GetGeometry()[3].FastGetSolutionStepValue(VELOCITY);
-
-    const double rho0 = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
-    const double rho1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
-    const double rho2 = GetGeometry()[2].FastGetSolutionStepValue(DENSITY);
-    const double rho3 = GetGeometry()[3].FastGetSolutionStepValue(DENSITY);
-
-    int nodes_number = 4;
+    
+    unsigned int nodes_number = 4;
     int dof = 3;
 
-    double density;
+
 
     //next we need to add the enrichment terms accounting for pressure disconuity in the "cut" elements, if such exist.
     //The element is "cut" if it contains both positive and negative vales of the distance function
@@ -1055,7 +1050,7 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
     bool cut_element=false;
 
     ///////////////////////////////////////////////////////////
-    for (int i =1; i<nodes_number; i++)
+    for (unsigned int i =1; i<nodes_number; i++)
     {
         if (distance*GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
         {
@@ -1087,7 +1082,7 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
         //vector of vectors (6 rows of matrices 1*3) (vector of 3 = matrix 1*3)
         std::vector<Matrix> Partition_Gradients(6, Matrix(1,3));
         /////////////////////////////////////////////////////////////////////////////
-        for (int i=0; i<nodes_number; i++)
+        for (unsigned int i=0; i<nodes_number; i++)
         {
             Distances[i]=GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
             // and now we store the verices of the element
@@ -1096,7 +1091,7 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
             Points(i,2)=GetGeometry()[i].Z();
         }
 
-        int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+        unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
         double Lap = 0.0;	//laplacian is a 1x1 matrix since we have one enrichment shape fct per element
         boost::numeric::ublas::bounded_matrix<double,3,3> Grad_u; //gradient of velocity
         boost::numeric::ublas::bounded_matrix<double, 1, 4 >Lap_star = ZeroMatrix(1,4);  //gradN* gradN
@@ -1116,10 +1111,9 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
         boost::numeric::ublas::bounded_matrix<double, 1, 3 > Grad_at_igauss = ZeroMatrix(1, 3);
 
         array_1d<double,4> N_at_igauss = ZeroVector(4);
-
-        int nodes_number=4;
+        
         //the gradient is constant in the element
-        for (int ii = 0; ii < nodes_number; ii++)
+        for (unsigned int ii = 0; ii < nodes_number; ii++)
         {
             int index = dof*ii;
             temp(0, index) = DN_DX(ii, 0);
@@ -1171,10 +1165,9 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
             Matrix shape_func=ZeroMatrix(12,3);
             Matrix conv_contrib=ZeroMatrix(1,12);
             //inertia contribution:
-            Matrix acc_contrib=ZeroMatrix(1,12);
-            int nodes_number=4;
+            Matrix acc_contrib=ZeroMatrix(1,12);            
             int dof=3;
-            for (int ii = 0; ii < nodes_number; ii++)
+            for (unsigned int ii = 0; ii < nodes_number; ii++)
             {
                 int column = ii*dof;
                 conv_opr(0, column) = DN_DX(ii, 0) * adv_vel[0] + DN_DX(ii, 1) * adv_vel[1] + DN_DX(ii, 2) * adv_vel[2];
