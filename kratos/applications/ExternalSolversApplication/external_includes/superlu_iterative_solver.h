@@ -228,12 +228,12 @@ public:
         NCformat *Astore;
         NCformat *Ustore;
         SCformat *Lstore;
-        double   *a_orig;
-        int       *asub_orig, *xa_orig;
+        //double   *a_orig;
+        //int       *asub_orig, *xa_orig;
         int      *etree;
         int      *perm_c; /* column permutation vector */
         int      *perm_r; /* row permutations from partial pivoting */
-        int      nrhs, lwork, info, m, n, nnz;
+        int      nrhs, lwork, info, m, n;
         double   *work = NULL;
         double   *R, *C;
         double   rpg, rcond;
@@ -350,6 +350,13 @@ public:
 	dCompRow_to_CompCol(rA.size1(), rA.size2(), rA.nnz(),rA.value_data().begin(), index2_vector, index1_vector,&at, &asubt, &xat);
 				
 	dCreate_CompCol_Matrix(&A, rA.size1(), rA.size2(),rA.nnz(),  at, asubt, xat, SLU_NC, SLU_D, SLU_GE);
+	
+        delete [] index1_vector;
+        delete [] index2_vector;
+
+	
+
+	
 // 	double **values;;
 // 	int **i1;
 //         int **i2;	       
@@ -566,10 +573,10 @@ public:
         SUPERLU_FREE(x);
 
 
-        delete [] index1_vector;
 
-        delete [] index2_vector;
-
+	SUPERLU_FREE(asubt);
+	SUPERLU_FREE(xat);
+	SUPERLU_FREE(at);
 #if ( DEBUGlevel>=1 )
         CHECK_MALLOC("Exit main()");
 #endif
