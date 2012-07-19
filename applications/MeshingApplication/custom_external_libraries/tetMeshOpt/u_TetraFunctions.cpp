@@ -522,6 +522,7 @@ bool swapVolumeMesh(TVolumeMesh* aMesh)
 	TTriangle *tr1;
 	TVertex *v0,* v1,*v2,*v3,*v4;
 	// aMesh.updateIndexes(0);
+	v0 = v1 = v2 = v3 = v4 = NULL;
 	l   = new TList<TObject*>();
 	l2   = new TList<TObject*>();
 	// l2 := TList.create; 

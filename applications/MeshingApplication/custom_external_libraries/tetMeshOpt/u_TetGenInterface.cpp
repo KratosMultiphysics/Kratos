@@ -20,9 +20,9 @@
             in.pointlist = new REAL[in.numberofpoints * 3];
 			
             //give the coordinates to the mesher            
-            for (unsigned int i = 0; i < aMesh->vertexes->Count(); i++)
+            for (int i = 0; i < aMesh->vertexes->Count(); i++)
             {
-                int base = i * 3;
+                int base = (int)(i * 3);
 				TVertex* v = (TVertex*)( aMesh->vertexes->elementAt(i));
 				v->setID( i );
                 in.pointlist[base] = v->fPos.x;
@@ -35,7 +35,7 @@
             in.facetlist = new tetgenio::facet[in.numberoffacets];
             in.facetmarkerlist = new int[in.numberoffacets];
             //give the surface connectivity to the mesher
-			for (unsigned int i = 0; i < aMesh->fFaces->Count(); i++)
+			for (int i = 0; i < aMesh->fFaces->Count(); i++)
             {
 				TTriangle* tr = (TTriangle*)(aMesh->fFaces->elementAt(i));
 				
@@ -54,7 +54,7 @@
             //give the hole list to the mesher
             in.numberofholes = 0;
             
-            char* tetgen_options = "-pY";
+            char* tetgen_options = (char*)("-pY");
             //perform meshing with tetgen
             tetrahedralize(tetgen_options, &in, &out);
 			
