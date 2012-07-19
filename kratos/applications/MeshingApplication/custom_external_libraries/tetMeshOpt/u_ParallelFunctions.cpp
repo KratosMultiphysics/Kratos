@@ -295,6 +295,9 @@ void getElementsByEdgeFaster(TVertex *v0, TVertex*v1 , TList<TObject*>* inspecte
 	int k;
 	TVertex *nv0,*nv1,*nv2,*fv0,*fv1,*fv2;
 	//--- Obtengo el primer elemento que tenga esta arista
+	ti = NULL;
+	t = NULL;
+
 	//Para el vertice 0
 	for (k = 0 ; k<v0->elementsList->Count() ; k++)
 	{
