@@ -73,7 +73,8 @@ char *GLOBAL_EQUED;
 superlu_options_t *GLOBAL_OPTIONS;
 double *GLOBAL_R, *GLOBAL_C;
 int *GLOBAL_PERM_C, *GLOBAL_PERM_R;
-SuperMatrix *GLOBAL_A, *GLOBAL_A_ORIG, *GLOBAL_L, *GLOBAL_U;
+SuperMatrix *GLOBAL_A, *GLOBAL_L, *GLOBAL_U;
+// SuperMatrix *GLOBAL_A, *GLOBAL_A_ORIG, *GLOBAL_L, *GLOBAL_U;
 SuperLUStat_t *GLOBAL_STAT;
 mem_usage_t   *GLOBAL_MEM_USAGE;
 
@@ -127,7 +128,10 @@ extern "C"
     void daxpy_(int *, double *, double [], int *, double [], int *);
 }
 
-
+extern "C"
+{
+  void dCompRow_to_CompCol(int , int , int , double *, int *, int *, double **, int **, int **);
+}
 
 
 
@@ -218,7 +222,8 @@ public:
         //yes_no_t equil;
         trans_t  trans;
 
-        SuperMatrix A, AA, L, U;
+//         SuperMatrix A, AA, L, U;
+        SuperMatrix A, L, U;
         SuperMatrix B, X;
         NCformat *Astore;
         NCformat *Ustore;
@@ -276,21 +281,26 @@ public:
         options.ILU_MILU = SILU;
          */
         ilu_set_default_options(&options);
-        options.ILU_MILU = SILU; //SMILU_3;
+         options.ILU_MILU = SILU; //SMILU_3;
+
+	options.Trans = NOTRANS;
+	
+// 	options.RowPerm = NO;
+
 
         options.ILU_DropTol = mDropTol;
         options.ILU_FillTol = mFillTol;
         options.ILU_FillFactor = mFillFactor; 
 	
-	options.SymmetricMode = YES;
-	options.ILU_DropRule = DROP_DYNAMIC;
-        options.ILU_Norm = ONE_NORM;
+// 	options.SymmetricMode = YES;
+//  	options.ILU_DropRule = DROP_DYNAMIC;
+//         options.ILU_Norm = ONE_NORM;
 
 // 	options.IterRefine = SLU_DOUBLE;
 
         /* Modify the defaults. */
-        options.PivotGrowth = YES;	  /* Compute reciprocal pivot growth */
-        options.ConditionNumber = YES;/* Compute reciprocal condition number */
+         options.PivotGrowth = YES;	  /* Compute reciprocal pivot growth */
+         options.ConditionNumber = YES;/* Compute reciprocal condition number */
 
         if ( lwork > 0 )
         {
@@ -318,13 +328,34 @@ public:
             index2_vector[i] = (int)rA.index2_data()[i];
 
         //works also with dCreate_CompCol_Matrix
-        dCreate_CompCol_Matrix (&A, rA.size1(), rA.size2(),
-                                rA.nnz(),
-                                rA.value_data().begin(),
-                                index2_vector, //can not avoid a copy as ublas uses unsigned int internally
-                                index1_vector, //can not avoid a copy as ublas uses unsigned int internally
-                                SLU_NR, SLU_D, SLU_GE //ARGH...maybe this should be SLU_NC
-                               );
+//         dCreate_CompCol_Matrix (&A, rA.size1(), rA.size2(),
+//                                 rA.nnz(),
+//                                 rA.value_data().begin(),
+//                                 index2_vector, //can not avoid a copy as ublas uses unsigned int internally
+//                                 index1_vector, //can not avoid a copy as ublas uses unsigned int internally
+//                                 SLU_NC, SLU_D, SLU_GE //ARGH...maybe this should be SLU_NC
+//                                );
+
+// 	SuperMatrix Akratos;
+// 	dCreate_CompRow_Matrix (&A, rA.size1(), rA.size2(),
+//                                 rA.nnz(),
+//                                 rA.value_data().begin(),
+//                                 index2_vector, //can not avoid a copy as ublas uses unsigned int internally
+//                                 index1_vector, //can not avoid a copy as ublas uses unsigned int internally
+//                                 SLU_NR, SLU_D, SLU_GE
+//                                );
+	
+	int_t *asubt, *xat;
+	double  *at;
+	dCompRow_to_CompCol(rA.size1(), rA.size2(), rA.nnz(),rA.value_data().begin(), index2_vector, index1_vector,&at, &asubt, &xat);
+				
+	dCreate_CompCol_Matrix(&A, rA.size1(), rA.size2(),rA.nnz(),  at, asubt, xat, SLU_NC, SLU_D, SLU_GE);
+// 	double **values;;
+// 	int **i1;
+//         int **i2;	       
+// 	dCompRow_to_CompCol(rA.size1(), rA.size2(), rA.nnz(), 
+// 		    rA.value_data().begin(), index2_vector, index1_vector,
+// 		    values, i1, i2);
 
         Astore = (NCformat*) A.Store;
         dfill_diag(n, (NCformat*) A.Store);
@@ -334,18 +365,18 @@ public:
         fflush(stdout);
 
         /* Make a copy of the original matrix. */
-        nnz = Astore->nnz;
-        a_orig = doubleMalloc(nnz);
-        asub_orig = intMalloc(nnz);
-        xa_orig = intMalloc(n+1);
-        for (i = 0; i < nnz; ++i)
-        {
-            a_orig[i] = ((double *)Astore->nzval)[i];
-            asub_orig[i] = Astore->rowind[i];
-        }
-        for (i = 0; i <= n; ++i) xa_orig[i] = Astore->colptr[i];
-        dCreate_CompCol_Matrix(&AA, m, n, nnz, a_orig, asub_orig, xa_orig,
-                               SLU_NR, SLU_D, SLU_GE);
+//         nnz = Astore->nnz;
+//         a_orig = doubleMalloc(nnz);
+//         asub_orig = intMalloc(nnz);
+//         xa_orig = intMalloc(n+1);
+//         for (i = 0; i < nnz; ++i)
+//         {
+//             a_orig[i] = ((double *)Astore->nzval)[i];
+//             asub_orig[i] = Astore->rowind[i];
+//         }
+//         for (i = 0; i <= n; ++i) xa_orig[i] = Astore->colptr[i];
+//         dCreate_CompCol_Matrix(&AA, m, n, nnz, a_orig, asub_orig, xa_orig,
+//                                SLU_NR, SLU_D, SLU_GE);
 
         /* Generate the right-hand side */
         // if ( !(rhsb = doubleMalloc(m * nrhs)) ) ABORT("Malloc fails for rhsb[].");
@@ -417,7 +448,7 @@ public:
 
         /* Set the global variables. */
         GLOBAL_A = &A;
-        GLOBAL_A_ORIG = &AA;
+//         GLOBAL_A_ORIG = &AA;
         GLOBAL_L = &L;
         GLOBAL_U = &U;
         GLOBAL_STAT = &stat;
@@ -478,7 +509,10 @@ public:
 
             if (iter >= maxit)
             {
-                if (resid >= 1.0) iter = -180;
+                if (resid >= 1.0){
+		    iter = -180;
+		    std::cout << "final residual is VERY VERY LARGE" << std::endl;
+		}
                 else if (resid > 1e-8) iter = -111;
             }
             printf("iteration: %d\nresidual: %.1e\nGMRES time: %.2f seconds.\n",
@@ -513,7 +547,7 @@ public:
 
         Destroy_SuperMatrix_Store(&A);
 
-        Destroy_CompCol_Matrix(&AA);
+//         Destroy_CompCol_Matrix(&AA);
 
         Destroy_SuperMatrix_Store(&B);
 
