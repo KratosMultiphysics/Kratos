@@ -181,7 +181,7 @@ namespace Kratos
 				//here we create and interpolate the new kratos nodes
 				ModelPart::NodesContainerType list_of_new_nodes;
 
-				Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+				//Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
 
 				int n_points_before_refinement = ThisModelPart.Nodes().size();
 
@@ -355,7 +355,7 @@ namespace Kratos
 				el_per_node[ outnew.tetrahedronlist[iii]-1 ] += 1;
 
 			//mark for erasal nodes with no element attached
-			for(unsigned int i=0; i<outnew.numberofpoints; i++)
+			for(unsigned int i=0; i< static_cast<unsigned int>(outnew.numberofpoints); i++)
 			{
 				if(el_per_node[i] == 0) //node is alone
 					ThisModelPart.Nodes().find( i+1 )->SetValue(ERASE_FLAG,true);
@@ -507,7 +507,7 @@ namespace Kratos
 			unsigned int n_points_before_refinement = rModelPart.Nodes().size();
 
 			//if the refinement was performed, we need to add it to the model part.
-			if (tet.numberofpoints>n_points_before_refinement)
+			if (static_cast<unsigned int>(tet.numberofpoints)>n_points_before_refinement)
 			{
 				//defintions for spatial search
 				typedef Node < 3 > PointType;
