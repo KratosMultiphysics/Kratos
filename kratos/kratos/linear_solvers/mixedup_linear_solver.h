@@ -136,9 +136,17 @@ public:
     */
     virtual void Initialize (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        mpsolver_UU_block->Initialize(rA, rX, rB);
-        mpsolver_PP_block->Initialize(rA, rX, rB);
-        mis_initialized = true;
+	if (mBlocksAreAllocated == true)
+	{
+	    
+	    mpsolver_UU_block->Initialize(mK, mu, mru);
+	    mpsolver_PP_block->Initialize(mS, mp, mrp);
+	    mis_initialized = true;
+	}
+	else
+	{
+	  std::cout << "linear solver intialization is deferred to the moment at which blocks are available" << std::endl;
+	}
     }
     /** This function is designed to be called every time the coefficients change in the system
      * that is, normally at the beginning of each solve.
@@ -149,7 +157,7 @@ public:
     @param rB. Right hand side vector.
     */
     virtual void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-    {
+    {     
         //copy to local matrices
         if (mBlocksAreAllocated == false)
         {
@@ -161,10 +169,12 @@ public:
             FillBlockMatrices (false, rA, mK, mG, mD, mS);
             mBlocksAreAllocated = true;
         }
+        
+        if(mis_initialized == false) this->Initialize(rA,rX,rB);
 
         //initialize solvers
-        mpsolver_UU_block->InitializeSolutionStep (rA, rX, rB);
-        mpsolver_PP_block->InitializeSolutionStep (rA, rX, rB);
+        mpsolver_UU_block->InitializeSolutionStep(mK, mu, mru);
+        mpsolver_PP_block->InitializeSolutionStep(mS, mp, mrp);
     }
 
     /** This function actually performs the solution work, eventually taking advantage of what was done before in the
@@ -188,8 +198,8 @@ public:
     */
     virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        mpsolver_UU_block->FinalizeSolutionStep (rA, rX, rB);
-        mpsolver_PP_block->FinalizeSolutionStep (rA, rX, rB);
+        mpsolver_UU_block->FinalizeSolutionStep(mK, mu, mru);
+        mpsolver_PP_block->FinalizeSolutionStep(mS, mp, mrp);
     }
     /** This function is designed to clean up all internal data in the solver.
      * Clear is designed to leave the solver object as if newly created.
@@ -204,6 +214,10 @@ public:
         mBlocksAreAllocated = false;
         mpsolver_UU_block->Clear();
         mpsolver_PP_block->Clear();
+	mu.clear();
+	mp.clear();
+	mru.clear();
+	mrp.clear();
         mis_initialized = false;
     }
 
@@ -387,6 +401,11 @@ protected:
             G.resize (mother_indices.size()   ,mpressure_indices.size() );
             D.resize (mpressure_indices.size(),mother_indices.size() );
             S.resize (mpressure_indices.size(),mpressure_indices.size() );
+	    
+	    mrp.resize(mpressure_indices.size() );
+	    mru.resize(mother_indices.size() );
+	    mp.resize(mpressure_indices.size());
+	    mu.resize(mother_indices.size());
 
 
             //KRATOS_WATCH (mglobal_to_local_indexing);
@@ -518,6 +537,12 @@ private:
     SparseMatrixType mG;
     SparseMatrixType mD;
     SparseMatrixType mS;
+    
+    Vector mrp;
+    Vector mru;
+    Vector mp;
+    Vector mu;
+	
     ///@}
     ///@name Private Operators
     ///@{
@@ -641,7 +666,8 @@ private:
                 ApplyPlaneRotation (H (i,i), H (i+1,i), cs (i), sn (i) );
                 ApplyPlaneRotation (s (i), s (i+1), cs (i), sn (i) );
                 beta = fabs (s (i+1) );
-                KRATOS_WATCH (beta);
+		std::cout << "iter = " <<  j << "  estimated res ratio = " << beta << std::endl;
+//                 KRATOS_WATCH (beta);
                 if (beta <= rel_tol)
                 {
                     this->Update (y, x, i, H, s, V);
@@ -653,8 +679,8 @@ private:
             TSparseSpaceType::Mult (A,x,r);
             TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
             beta = TSparseSpaceType::TwoNorm (r);
-            KRATOS_WATCH (j);
-            KRATOS_WATCH (beta);
+            
+	    std::cout << "number of iterations at convergence = " << j << std::endl;
             if (beta < rel_tol)
             {
                 return 0;
@@ -749,51 +775,41 @@ private:
 
     void SolveBlockPreconditioner (const VectorType& rtot, VectorType& x)
     {
-        //do allocation as needed (to be removed)
-        Vector rp (mpressure_indices.size() );
-        Vector ru (mother_indices.size() );
-        Vector p (mpressure_indices.size());
-        noalias(p) = ZeroVector(mother_indices.size());
-        Vector u (mother_indices.size());
-        noalias(u)  = ZeroVector(mother_indices.size());
+        noalias(mp) = ZeroVector(mother_indices.size());
+        noalias(mu)  = ZeroVector(mother_indices.size());
         Vector uaux (mother_indices.size() );
         Vector paux (mpressure_indices.size() );
+	
         //get diagonal of K (to be removed)
         Vector diagK (mother_indices.size() );
         ComputeDiagonalByLumping (mK,diagK);
-        /*KRATOS_WATCH(TSparseSpaceType::TwoNorm(diagK) );
-        KRATOS_WATCH(CheckMatrix(mK));
-        KRATOS_WATCH(CheckMatrix(mG));
-        KRATOS_WATCH(CheckMatrix(mD));
-        KRATOS_WATCH(CheckMatrix(mS));		*/
-        //get the u and p residuals
-        GetUPart (rtot,ru);
-        GetPPart (rtot,rp);
-        /*KRATOS_WATCH(TSparseSpaceType::TwoNorm(ru) );
-        KRATOS_WATCH(TSparseSpaceType::TwoNorm(rp) );		*/
-        //solve u block
-        mpsolver_UU_block->Solve (mK,u,ru);
-        /*KRATOS_WATCH(TSparseSpaceType::TwoNorm(u) );		*/
-        //correct pressure block
+
+	//get the u and p residuals
+        GetUPart (rtot,mru);
+        GetPPart (rtot,mrp);
+
+	//solve u block
+        mpsolver_UU_block->Solve (mK,mu,mru);
+
+	//correct pressure block
         //rp -= D*u
-        TSparseSpaceType::Mult (mD,u,paux);
-        TSparseSpaceType::UnaliasedAdd (rp,-1.0,paux);
-        /*KRATOS_WATCH(TSparseSpaceType::TwoNorm(rp) );		*/
-        //solve pressure
+        TSparseSpaceType::Mult (mD,mu,paux);
+        TSparseSpaceType::UnaliasedAdd (mrp,-1.0,paux);
+
+	//solve pressure
         //p = S⁻1*rp
-        mpsolver_PP_block->Solve (mS,p,rp);
-        /*KRATOS_WATCH(TSparseSpaceType::TwoNorm(p) );		*/
+        mpsolver_PP_block->Solve (mS,mp,mrp);
 
         //correct u block
         //u = G*p
-        TSparseSpaceType::Mult (mG,p,uaux);
+        TSparseSpaceType::Mult (mG,mp,uaux);
         #pragma omp parallel for
-        for (int i=0; i< static_cast<int>(u.size()); i++)
-            u[i] += uaux[i]/diagK[i];
+        for (int i=0; i< static_cast<int>(mu.size()); i++)
+            mu[i] += uaux[i]/diagK[i];
 
         //write back solution
-        WriteUPart (x,u);
-        WritePPart (x,p);
+        WriteUPart (x,mu);
+        WritePPart (x,mp);
     }
 
     /// Compute the Pressure System Matrix
