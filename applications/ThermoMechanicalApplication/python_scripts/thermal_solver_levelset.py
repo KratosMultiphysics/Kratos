@@ -51,13 +51,13 @@ class Solver:
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-        self.linear_solver = BICGSTABSolver(1e-3, 5000)
+        self.linear_solver = BICGSTABSolver(1e-3, 5000,pPrecond)
 
         self.dynamic_tau = 0.0
 
         self.echo_level = 0
         self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
     
