@@ -279,7 +279,7 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 	    set cbcgrouplist [::xmlutils::setXmlContainerIds $cxpath]
 	    # WarnWinText "cbcgrouplist:$cbcgrouplist"
 	    if {[llength $cbcgrouplist]} {
-		# Update load type identifier
+		# Update boundary condtion type identifier
 		lappend dprops($AppId,AllBCTypeId) $cbctid
 		# WarnWinText "inside cbcgrouplist:$cbcgrouplist"
 		foreach cgroupid $cbcgrouplist {
@@ -323,7 +323,7 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 			}
 			"Is-Slip" {
 			    # Get properties
-			    foreach citem [list "Activate"] {
+			    foreach citem [list "Activate" "ConstantValue"] {
 				# set xpath
 				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
 				set cproperty "dv"
