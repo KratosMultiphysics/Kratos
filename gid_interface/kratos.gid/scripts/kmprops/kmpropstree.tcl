@@ -151,14 +151,16 @@ proc ::KMProps::RefreshTree { {T ""} {onlySave 0} } {
 	# Primero hay que asegurarse de que exista el árbol
 	if {([winfo exists $winpath]) && ([winfo exists $T])} {
 	
-	foreach item [$T item range 0 end] {
+	set aux [$T item range 0 end]
+
+	foreach item $aux {
 		
 		set fullname [DecodeName [$T item tag names $item]]
 		
 		if {($fullname != "") && ([::xmlutils::getXmlNodeName $fullname] != "Item")} {
 		
 		catch {
-			::xmlutils::setXml $fullname open "write" [$T item isopen $item]
+		        ::xmlutils::setXml $fullname open "write" [$T item isopen $item]
 		}
 		}
 	}
@@ -208,15 +210,15 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 	# Si no llega directamente el item, miramos cual ha sido pulsado
 	if { $item == "" } {
 	
-	set info [$T identify $x $y]
-	# wa "info:$info"	
-	if {([lindex $info 0] == "item") && ([llength $info] >= 4)} {
-		set item [lindex $info 1]
-	} else {
-		return ""
+		set info [$T identify $x $y]
+		# wa "info:$info"        
+		if {([lindex $info 0] == "item") && ([llength $info] >= 4)} {
+			set item [lindex $info 1]
+		} else {
+			return ""
+		}
 	}
-	}
-		
+	#msg $item
 	set fullname [DecodeName [$T item tag names $item]]
 	set idFull [string map { "." "" "//" ""} $fullname]
 	
@@ -262,18 +264,18 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 		# Miramos si hay alguna propiedad dada de alta (si la hay,el combo no puede estar vacío)
 		set props [::KMProps::getProps $fullname]
 		if { [llength $props] == 0 } {
-			WarnWin [= "You must define a valid Property for this element type."]
-			
-			# Abrir la edición de propiedades
-			$T selection clear
-			set parentItem [$T item parent [$T item parent $item]]
-			foreach i [$T item children $parentItem] {
-			if { [$T item text $i 0] == "Properties" } {
-				::KMProps::DoubleClickTree 0 0 $T $i
-			}
-			}
-			
-			return  ""
+		        WarnWin [= "You must define a valid Property for this element type."]
+		        
+		        # Abrir la edición de propiedades
+		        $T selection clear
+		        set parentItem [$T item parent [$T item parent $item]]
+		        foreach i [$T item children $parentItem] {
+		        if { [$T item text $i 0] == "Properties" } {
+		                ::KMProps::DoubleClickTree 0 0 $T $i
+		        }
+		        }
+		        
+		        return  ""
 		}
 		}
 		::KMProps::buildGroupsFrame $T $idTemplate $item $fullname
@@ -461,18 +463,18 @@ proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs 
 		
 		#Miramos si tiene algun estilo especial
 		if { [::xmlutils::setXml $fullname style] == "*" } {
-			$T item element configure $item C0 elemTxtRead -text "$propName* : $dv"
+		        $T item element configure $item C0 elemTxtRead -text "$propName* : $dv"
 		} else {
-			$T item element configure $item C0 elemTxtRead -text "$propName: $dv"
+		        $T item element configure $item C0 elemTxtRead -text "$propName: $dv"
 		}
 		
 		} else {
-			
-			if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
-			$T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { darkgreen }
-			} else {
-				$T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { gray }
-			}
+		        
+		        if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
+		        $T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { darkgreen }
+		        } else {
+		                $T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { gray }
+		        }
 		}
 		
 		
@@ -625,14 +627,14 @@ proc ::KMProps::deleteProps { T itemProp {editName ""}} {
 		
 		
 		if {[::xmlutils::setXml $fullname GCV] == "Properties"} {
-			if {$editName == ""} {
-			
-			lappend propsToDelete $item
-			} else {
-			#Renombra el nodo en el xml
-			::xmlutils::setXml $fullname dv "write" $editName
-			#::xmlutils::setXml $fullname id "write" $editName
-			}
+		        if {$editName == ""} {
+		        
+		        lappend propsToDelete $item
+		        } else {
+		        #Renombra el nodo en el xml
+		        ::xmlutils::setXml $fullname dv "write" $editName
+		        #::xmlutils::setXml $fullname id "write" $editName
+		        }
 		}
 		}
 	}
@@ -645,17 +647,17 @@ proc ::KMProps::deleteProps { T itemProp {editName ""}} {
 		
 		#Borramos todos los grupos
 		foreach item $propsToDelete {        
-			
-			#No hay que borrar la propiedad, sino el grupo que la incluye
-			set itemGroup [$T item parent $item]
-			set fullname [DecodeName [$T item tag names $itemGroup]]
-			if {[::xmlutils::setXml $fullname class] == "Group"} {
-			
-			#Elimina el grupo del xml
-			::xmlutils::unsetXml $fullname
-			
-			#Elimina el grupo del árbol (ya no hace falta, se hace refresh)
-			}
+		        
+		        #No hay que borrar la propiedad, sino el grupo que la incluye
+		        set itemGroup [$T item parent $item]
+		        set fullname [DecodeName [$T item tag names $itemGroup]]
+		        if {[::xmlutils::setXml $fullname class] == "Group"} {
+		        
+		        #Elimina el grupo del xml
+		        ::xmlutils::unsetXml $fullname
+		        
+		        #Elimina el grupo del árbol (ya no hace falta, se hace refresh)
+		        }
 		}
 		
 		#Borramos la propiedad
@@ -717,15 +719,15 @@ proc ::KMProps::checkFunctions { functionId {newName ""} {action "execute"}} {
 		if { [$node getAttribute dv ""] == "$functionId" } {
 		
 		if { $action == "execute" } {
-			if {$newName == ""} {
-			#Resetea la función
-			$node setAttribute state ""
-			$node setAttribute function 0
-			$node setAttribute dv "0.0"
-			} else {
-			# Rename the function
-			$node setAttribute dv $newName
-			}
+		        if {$newName == ""} {
+		        #Resetea la función
+		        $node setAttribute state ""
+		        $node setAttribute function 0
+		        $node setAttribute dv "0.0"
+		        } else {
+		        # Rename the function
+		        $node setAttribute dv $newName
+		        }
 		}
 		set numChanges [expr $numChanges + 1]
 		}

@@ -12,10 +12,15 @@
 #
 #	HISTORY:
 #
-#   1.0- 14/05/12-J. Garate, corrected bug, material combobox
-#   0.9- 30/03/12-G. Socorro, add the variables TreeMatsPath and NbMatsPath
-#   0.8- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
-#   0.7- 07/06/11 GS, add composite and plastic material to the structural analysis application
+#	1.3- 20/07/12-J. Garate, Materials Tab Frame Combos with multiple values 
+#	1.2- 19/07/12-J. Garate, Materials Tab Frame and service functions 
+#	1.1- 12/06/12-J. Garate, Materials Tab Frame and service functions 
+#					(::KMat::CreateTabTree ::KMat::Dict_create ::KMat::GetParentNB 
+#					::KMat::IsNum ::KMat::GetNBPath ::KMat::addTabtoNb ::KMat::Combos)
+#	1.0- 14/05/12-J. Garate, corrected bug, material combobox
+#	0.9- 30/03/12-G. Socorro, add the variables TreeMatsPath and NbMatsPath
+#	0.8- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
+#	0.7- 07/06/11 GS, add composite and plastic material to the structural analysis application
 #	0.6- 27/09/10 LC, Correct bugs inserting new materials and double click in containers
 #	0.5- 08/06/10 KS, New materials database structure + template for add material.
 #	0.4- 11/05/10 KS, varius bugs fixed.
@@ -29,43 +34,45 @@ package require treectrl
 package require tooltip
 package provide KMat 1.0 
 
+
 # Create a base namespace KMat
 namespace eval ::KMat:: {
     
-    # Path of the base window 
-    variable WinPath ".gid.kmprops"
-    # Tree material properties path
-    variable TreeMatsPath
-    # Notebook material properties path
-    variable NbMatsPath
+	# Path of the base window 
+	variable WinPath ".gid.kmprops"
+	# Tree material properties path
+	variable TreeMatsPath
+	# Notebook material properties path
+	variable NbMatsPath
+	
+	variable WinLayout 
+	variable SystemHighlight
+	variable SystemHighlightText
+	
+	variable lastSelected {}
+	variable abdlist
+	variable xml ""
+	
+	# Se inicializan las clases dinámicamente leyendo del xml
+	variable visibilityVars {}
 
-    variable WinLayout 
-    variable SystemHighlight
-    variable SystemHighlightText
-    
-    variable lastSelected {}
-    variable abdlist
-    variable xml ""
-    
-    # Se inicializan las clases dinámicamente leyendo del xml
-    variable visibilityVars {}
 
 }
 
 proc ::KMat::Init {} {
-    
-    variable WinLayout;	variable SystemHighlight
-    variable SystemHighlightText; variable abdlist
-    
-    # Get default colors
-    set w [listbox .listbox]
-    set SystemHighlight [$w cget -selectbackground]
-    set SystemHighlightText [$w cget -selectforeground]
-    destroy $w
-    if { $::tcl_platform(platform) == "unix" } {
-	# I hate that gray selection color
-	set SystemHighlight #316ac5
-	set SystemHighlightText White
+
+	variable WinLayout;	variable SystemHighlight
+	variable SystemHighlightText; variable abdlist
+
+	# Get default colors
+	set w [listbox .listbox]
+	set SystemHighlight [$w cget -selectbackground]
+	set SystemHighlightText [$w cget -selectforeground]
+	destroy $w
+	if { $::tcl_platform(platform) == "unix" } {
+		# I hate that gray selection color
+		set SystemHighlight #316ac5
+		set SystemHighlightText White
     }
 
     set WinLayout "OUTSIDE"
@@ -76,8 +83,12 @@ proc ::KMat::Init {} {
     
     global KPriv
     if {[info exists KPriv(xmlMat)]} {
-	set ::KMat::xml $KPriv(xmlMat)
+		set ::KMat::xml $KPriv(xmlMat)
     }
+    if {[info exists ::MaterialTrees)]} {
+		::struct::tree ::MaterialTrees
+    }
+    
 }
 
 # Init KMat namespace
@@ -247,10 +258,7 @@ proc ::KMat::CreateTreeProperties {w} {
 }
 
 #---------------------------------------------------------------------------------------------- 
-# Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles
-#----------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------- 
-# Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles
+# Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles -> Recursiva (Proximamente)
 #----------------------------------------------------------------------------------------------
 proc ::KMat::FillTreeMat { } {
     
@@ -262,124 +270,744 @@ proc ::KMat::FillTreeMat { } {
     set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
     
     foreach node $nodes {			  
-	#Nos guardamos todos los Id	
-	#		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] "normal" [$node getAttribute open "0"]]
-	set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMat::stateNode $node] [$node getAttribute open "0"]]
-	
-	set nodes2 [$node childNodes]
-	foreach node2 $nodes2 {
-	    #			set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] "normal" [$node2 getAttribute open "0"]]
-	    set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] [::KMat::stateNode $node2] [$node2 getAttribute open "0"]]
-	    if {$item2 != -1} {						
-		lappend KPriv(materialsId) [$node2 getAttribute pid ""]
-		#Seleccionamos los hijos (3º nivel)
-		set nodes3 [$node2 childNodes]		   
-		foreach node3 $nodes3 {
-		    if { [$node3 getAttribute pid ""] ni $abdlist } {
-			# set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] "normal" [$node3 getAttribute open "0"]]
-			set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMat::stateNode $node3] [$node3 getAttribute open "0"]]
-		    }
-		    if {$item3 != -1} {
-			set nodes4 [$node3 childNodes]
-			foreach node4 $nodes4 {
-			    # set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] "normal" [$node4 getAttribute open "0"]]
-			    set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] [::KMat::stateNode $node4] [$node4 getAttribute open "0"]]
-			    if {$item4 != -1} {
-				set nodes5 [$node4 childNodes]
-				foreach node5 $nodes5 {
-				    # set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  "normal" [$node5 getAttribute open "0"]]
-				    set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  [::KMat::stateNode $node5] [$node5 getAttribute open "0"]]
-				    if {$item5 != -1} {
-					set nodes6 [$node5 childNodes]				   
-					foreach node6 $nodes6 {		
-					    set item6 [::KMat::InsertNewItem [$node6 getAttribute pid ""] [::KMat::splitNode $node6] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes]]
-					    #		set item6 [::KMat::InsertNewItem $node6 [::KMat::splitNode $node6] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes] [::KMat::stateNode $node6] [$node6 getAttribute open "0"]]
-					    if {$item6 != -1} {
-						set nodes7 [$node6 childNodes]			 
-						foreach node7 $nodes7 {			
-						    set item7 [::KMat::InsertNewItem [$node7 getAttribute pid ""] [::KMat::splitNode $node7] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes]]
-						    #				set item7 [::KMat::InsertNewItem $node7 [::KMat::splitNode $node7] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes] [::KMat::stateNode $node7] [$node7 getAttribute open "0"]]
-
+		#Nos guardamos todos los Id	
+		#		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] "normal" [$node getAttribute open "0"]]
+		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMat::stateNode $node] [$node getAttribute open "0"]]
+		
+		set nodes2 [$node childNodes]
+		foreach node2 $nodes2 {
+			#			set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] "normal" [$node2 getAttribute open "0"]]
+		    set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] [::KMat::stateNode $node2] [$node2 getAttribute open "0"]]
+		    if {$item2 != -1} {					
+			lappend KPriv(materialsId) [$node2 getAttribute pid ""]
+			#Seleccionamos los hijos (3º nivel)
+			set nodes3 [$node2 childNodes]		   
+			foreach node3 $nodes3 {
+			    if { [$node3 getAttribute pid ""] ni $abdlist } {
+					# set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] "normal" [$node3 getAttribute open "0"]]
+					set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMat::stateNode $node3] [$node3 getAttribute open "0"]]
+				    }
+				    if {$item3 != -1} {
+						set nodes4 [$node3 childNodes]
+						foreach node4 $nodes4 {
+						    # set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] "normal" [$node4 getAttribute open "0"]]
+						    set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] [::KMat::stateNode $node4] [$node4 getAttribute open "0"]]
+						    if {$item4 != -1} {
+								set nodes5 [$node4 childNodes]
+								foreach node5 $nodes5 {
+									# set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  "normal" [$node5 getAttribute open "0"]]
+								    set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  [::KMat::stateNode $node5] [$node5 getAttribute open "0"]]
+								    if {$item5 != -1} {
+										set nodes6 [$node5 childNodes]				   
+										foreach node6 $nodes6 {		
+											set item6 [::KMat::InsertNewItem [$node6 getAttribute pid ""] [::KMat::splitNode $node6] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes]]
+											#		set item6 [::KMat::InsertNewItem $node6 [::KMat::splitNode $node6] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes] [::KMat::stateNode $node6] [$node6 getAttribute open "0"]]
+											if {$item6 != -1} {
+												set nodes7 [$node6 childNodes]			 
+												foreach node7 $nodes7 {			
+													set item7 [::KMat::InsertNewItem [$node7 getAttribute pid ""] [::KMat::splitNode $node7] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes]]
+													#set item7 [::KMat::InsertNewItem $node7 [::KMat::splitNode $node7] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes] [::KMat::stateNode $node7] [$node7 getAttribute open "0"]]
+						
+												}
+										    }
+										}
+								    }
+								}
+						    }
 						}
-					    }
-					}
 				    }
 				}
-			    }
-			}
 		    }
 		}
-	    }
-	}		
     }
-
 }
 
 
 proc ::KMat::DoubleClickTree {x y T {item ""}} {
-    
+    # Llegamos aqui cuando el usuario hace doble click en el arbol
     variable lastSelected
     
     #Si no llega directamente el item, miramos cual ha sido pulsado
     if { $item == "" } {  
-	set info [$T identify $x $y]
-	if { [lindex $info 0] == "item" && [llength $info] >= 4 } {
-	    set item [lindex $info 1]
-	} else {
-	    return ""
+		set info [$T identify $x $y]
+		if { [lindex $info 0] == "item" && [llength $info] >= 4 } {
+		    set item [lindex $info 1]
+		} else {
+		    return ""
+		}
 	}
-    }
-    
-    set fullname [DecodeName [$T item tag names $item]]
-    
-    set idFull [string map { "." "" "//" ""} $fullname]	
-    set id [::KMat::setXml $fullname id ]
-    set value [::KMat::setXml $fullname value "" ]
-
-    if { $value != "" && [llength $lastSelected] > 0 && [lindex $lastSelected 0] > $item && $id != "ABD"} {
 	
-	#catch
-	::KMat::cmbSelectChange [lindex $lastSelected 0] $T 1 "anterior"
-    }
-    set f "$T.f$idFull"
-    if {[winfo exists $f]} {
-	destroy $f
-    }
-    
-    set f [::KMat::buildFrame $T $item]
-    
-    #Solo es necesario seguir si se trata de un item editable
-    if { $f == "" } {
-	#msg [$::KMat::xml asXML]
-	return ""
-    }
-    
-    $T item style set $item C0 styFrame
-    $T item element configure $item C0 eWindow -window $f		
-    ::KMat::insertIcon $item $T $fullname
-    
-    #Nos guardamos este item y el valor seleccionado
-    set f "$T.f$idFull.cmb"
-    set xpath "[::KMat::setXPath $fullname]"
-    set selCombo [::xmlutils::getComboValue $::KMat::xml $xpath $f]
-    set selComboText [::xmlutils::getComboValue $::KMat::xml $xpath $f "text"]
-    set lastSelected [list $item $selCombo $selComboText]
-
-    #	if {$id == "ABD"} {
-    #		WarnWin [_ "Lets make a Tab for ABD...!!!"]
-    #		set clase "Tab"
-    #		::KMat::buildTabFrameABD $T $item $clase
-    #		return ""
-    #	}
+	# Conseguimos el path, el id y el valor
+	set fullname [DecodeName [$T item tag names $item]]
+	set idFull [string map { "." "" "//" ""} $fullname]	
+	set id [::KMat::setXml $fullname id ]
+	set value [::KMat::setXml $fullname value "" ]
+	
+	set f "$T.f$idFull"
+	if {[winfo exists $f]} {
+		destroy $f
+	}
+	
+	if { $value != "" && [llength $lastSelected] > 0 && [lindex $lastSelected 0] > $item} {
+		# Si se trata de un Item (Property) entramos aqui
+		::KMat::cmbSelectChange [lindex $lastSelected 0] $T 1 "anterior"
+	}
+	set f "$T.f$idFull"
+	if {[winfo exists $f]} {
+		destroy $f
+	}
+	
+	set f [::KMat::buildFrame $T $item]
+	
+	#Solo es necesario seguir si se trata de un item editable
+	if { $f == "" } {
+		return ""
+	}
+	
+	$T item style set $item C0 styFrame
+	$T item element configure $item C0 eWindow -window $f		
+	::KMat::insertIcon $item $T $fullname
+	
+	#Nos guardamos este item y el valor seleccionado
+	set f "$T.f$idFull.cmb"
+	set xpath "[::KMat::setXPath $fullname]"
+	set selCombo [::xmlutils::getComboValue $::KMat::xml $xpath $f]
+	set selComboText [::xmlutils::getComboValue $::KMat::xml $xpath $f "text"]
+	set lastSelected [list $item $selCombo $selComboText]
 
     set path [DecodeName [$T item tag names $item]]   
-    set splitted [::KEGroups::split2 $path //]			   
-    if { [llength $splitted] == 2 } {
-	set clase "Tab"
-	#		::KMat::buildTabFrame $T $item $clase
+    set splitted [::KEGroups::split2 $path //]	
+	   
+    if { [llength $splitted] == 3 } {
+    	# Si tenemos que construir el arbol de Tabs, entraremos por aqui
+		set clase "Tab"
+		::KMat::buildTabFrame $T $item $f $clase
 	return ""
     }
 
+
+}
+
+proc ::KMat::buildfatherFrame { T item {class "Tab"} } {
+
+	variable abdlist
+
+	set fullname [DecodeName [$T item tag names $item]]
+	set id [::KMat::setXml $fullname id "" ]
+	set pid [::KMat::setXml $fullname pid "" ]
+	set f [::KMat::iniFrameBottom]
+	# Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
+	set children [$T item children $item]
+
+	set listTabs {}
+	set listItems {}
+	set acceptItems {}
+
+	set nb ${f}.nb
+	
+	grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nswe -in $f
+
+	# Declaramos un tab para el material
+	set fTab ${nb}.f$id
+	$nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
+	-text "[string range $pid 0 20]"
+	
+	set count 0
+	foreach itemChild $children {
+		set fullname [DecodeName [$T item tag names $itemChild]]
+		set nodeName [::xmlutils::getXmlNodeName $fullname "mat"]
+		
+		set xpath "[::KMat::setXPath $fullname]"
+		set comboList [::xmlutils::getValues $::KMat::xml $xpath]
+
+		lappend listItems $itemChild
+
+		set id [::KMat::setXml $fullname id "" ]
+		set pid [::KMat::setXml $fullname pid "" ]
+		set value [::KMat::setXml $fullname value "" ]
+		set help [::KMat::setXml $fullname help "" ]
+		
+		grid [ttk::label $fTab.label$id -text "$pid" ] \
+		-row $count -column 0 -pady 5 -sticky nw -in $fTab
+		grid [ttk::combobox $fTab.cmb$id -state normal -values $comboList -textvariable "::KMat::cmb$id" ] \
+		-row $count -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
+		#bind $fTab.cmb$id <<ComboboxSelected>> "::KMat::cmbSelectChange $item $T"
+
+		set ::KMat::cmb$id $value
+		incr count
+		
+		#if { $id == "ABD" } {
+		#	set clase "Tab"
+		#	grid [ttk::button $fTab.bProp$id -text "ABD Matrix"  -command "::KMat::buildTabFrameABD $T $item $clase" ] \
+		#	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+		#	tooltip::tooltip $fTab.bPropABD [= "ABD Matrix"]
+		#}
+    }
+
+	set clase [lappend fTab $listItems]
+	
+	grid [ttk::button $f.bPropOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $clase $item]" ] \
+			-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+			tooltip::tooltip $f.bPropOk [= "Confirm values"]
+	
+	grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
+	-row $count -column 0 -sticky sw  -pady 3 -padx 100 -in $f
+	tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
+}
+
+proc ::KMat::Microaccept {T class item {acceptItems ""} } {
+	::KMat::acceptTabFrame $T $acceptItems $class $item 
+	::KMat::buildfatherFrame $T $item
+}
+
+proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
+	# Crea el arbol de Tabs
+	global KPriv
+
+    # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
+    set children [$T item children $item]
+    set listTabs {}
+    set acceptItems {}
+    if { [info exist ::Tabdict] } {
+    	unset ::Tabdict
+    }
+    if { [info exist ::Itemsdict] } {
+    	unset ::Itemsdict
+    }
+    set ::Tabdict [dict create]
+    set ::Itemsdict [dict create]
+	set listTabs [::KMat::Dict_create $T $item]
+
+	# listTabs contiene int a int b string c
+	# Donde a es el subnivel que tiene
+	# Donde b es el identificador de su padre en el subnivel superior
+	# Donde c es su nombre
+	
+	# Tabdict contiene el id del tab, su path del xml
+	# Itemsdict contiene el id del Item y su path en el arbol
+    
+    #Reseteamos la variable que nos indica si estamos en una propiedad
+    set ::KMat::propertyName ""
+    if { [llength $listTabs] >= 1 } {
+		# Si tenemos Tabs que añadir
+		set row 0
+
+		set rootname [DecodeName [$T item tag names $item]]
+
+		set xpath [::xmlutils::setXPath $rootname "mats"]
+		set node [$KPriv(xmlMat) selectNodes $xpath]
+		
+		# Vamos a crear el arbol de tabs, con los Items y los combobox
+		set row [::KMat::CreateTabTree $node $listTabs $T $f]
+		# Aqui ya se han creado los Notebooks y los combos
+		
+		#set nb ${f}.nb$row
+		#catch {destroy $nb}
+		
+		# Si pulsan Esc también forzamos la salida del Tab
+		bind $T <KeyPress> "if { %k == 27 } { ::KMProps::DestroyBottomFrame }"
+		
+		#bind $T <KeyPress> "if { %k == 13 } { [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
+		#bind $::KMProps::WinPath <KeyPress> "if { %k == 13   } { [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
+		incr row 1
+
+		#Finalmente colocamos los Botones de OK y de Cancel debajo de todo
+		grid [ttk::button $f.bPropOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $class $item]" ] \
+			-row $row -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+			tooltip::tooltip $f.bPropOk [= "Confirm values"]
+
+		grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::DestroyBottomFrame" ] \
+			-row $row -column 0 -sticky sw  -pady 3 -padx 100  -in $f
+			tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
+	}
+}
+
+proc ::KMat::CreateTabTree {node listTabs T f} {
+	# Crea los Notebooks con tabs y coloca los Combos dentro de cada tab
+	
+	set stopid [$node getAttribute id ""]
+	set createdLevels {}
+	# stopid es el id del nodo que hemos seleccionado
+	
+	foreach { level parent id } $listTabs {
+		# Nos recorremos la lista de tabs y los vamos colocando en los Notebooks correspondientes
+		
+		if { $level ni $createdLevels} {
+			# Si el notebook aun no ha sido creado lo creamos
+			lappend createdLevels $level
+			if {$level == 0} {
+				# Tratamos el nb0, que es especial ya que se acopla sobre f
+				set nb ${f}.nb0
+				if {[ winfo exists $nb] } {
+					destroy $nb
+				}
+				set nbPath [ttk::notebook $nb ]
+				grid $nbPath -row $level -sticky nsew
+				ttk::notebook::enableTraversal $nb
+				#bind $nb <<NotebookTabChanged>> [list ::KMat::UpdateTabProperties $node $nb $listTabs $T $f ]
+			} else {
+				# Tratamos los demas nb, que se acoplan sobre el tab correspondiente del nb anterior
+				set nb [::KMat::GetNBPath $f $level $parent $listTabs $stopid $id]
+
+				if {[ winfo exists $nb] } {
+					destroy $nb
+				}
+				grid [ttk::notebook $nb ] -row $level -sticky nsew -in [::KMat::GetParentNB $nb 1]
+				ttk::notebook::enableTraversal $nb
+				#bind $nb <<NotebookTabChanged>> [list ::KMat::UpdateTabProperties $node $nb $listTabs $T $f]
+			}
+		}
+		# Finalmente añadimos el tab
+		::KMat::addTabtoNb $f $level $parent $id $listTabs $stopid
+	}
+	return 3
+}
+
+proc ::KMat::Dict_create {T item {i 0} {pi 0} } {
+	# Llena los diccionarios y devuelve la Lista de Tabs, con la siguiente estructura
+	# listTabs contiene int a int b string c
+	# Donde a es el subnivel que tiene
+	# Donde b es el identificador de su padre en el subnivel superior
+	# Donde c es su nombre
+	
+	# Tabdict contiene el id del tab, su path del xml
+	# Itemsdict contiene el id del Item y su path en el arbol
+	set children [$T item children $item]
+	set listTabs ""
+	set mi 0
+	foreach itemChild $children {
+		set fullname [DecodeName [$T item tag names $itemChild]]
+		set nodeName [::xmlutils::getXmlNodeName $fullname "mats"]
+		#Miramos si cada hijo es container
+		if { $nodeName == "Container" } {
+		    
+		    if { [$T item numchildren $itemChild] > 0 } {
+				set Tabid [::xmlutils::setXml $fullname id "read" "" "mat"]
+				
+				lappend listTabs $i $pi $Tabid
+				set aux [::KMat::Dict_create $T $itemChild [expr $i+1] $mi]
+				foreach {aux1 aux2 aux3} $aux {
+					lappend listTabs $aux1 $aux2 $aux3
+				}
+				dict set ::Tabdict $Tabid $fullname
+		    }
+		} else {
+			set Tabid [::xmlutils::setXml $fullname id "read" "" "mat"]
+			dict set ::Itemsdict $Tabid $fullname
+		}
+		incr mi 1
+    }
+    return $listTabs
+}
+
+proc ::KMat::GetParentNB { nb {cut 2} } {
+	# Devuelve la direccion del Notebook del padre de $nb
+	set id [string range $nb end end]
+	set anb $nb
+	if {$id > 0} {
+		set anb [::KMat::CheckNB $anb]
+		for { set i 1} {$i <= $cut} {incr i 1} {
+			while { [string range $anb end end] != "." } {
+				set anb [string range $anb 0 end-1]
+			}
+			set anb [string range $anb 0 end-1]
+		}
+	}
+	return $anb
+}
+
+proc ::KMat::CheckNB { nb } {
+	# Comprueba si $nb es un path valido para un Notebook
+	
+	set id [string range $nb end end]
+	set anb $nb
+	if {$id > 0} {
+		set i 0
+		while { ![::KMat::IsNum [string range $anb end end]] } {
+			incr i 1
+			set anb [string range $anb 0 end-1]
+		}
+		set row [string range $anb end end]
+		set i1 $i
+		set anb [string range $anb 0 end-1]
+		while { ![::KMat::IsNum [string range $anb end end]] } {
+			incr i 1
+			set anb [string range $anb 0 end-1]
+		}
+
+		if { $row == [string range $anb end end] } {
+			set nb [string range $nb 0 end-[expr $i1 +4]]
+		}
+	}
+	
+	if {![::KMat::IsNum [string range $nb end end]]} {
+		set i 0
+		set anb $nb
+		while { [string range $anb end end] != "." } {
+			incr i 1
+			set anb [string range $anb 0 end-1]
+		}
+		set i1 $i
+		set anb [string range $anb 0 end-1]
+		if { ![::KMat::IsNum [string range $anb end end]]} {
+			while { [string range $anb end end] != "." } {
+				set anb [string range $anb 0 end-1]
+			}
+			set anb [string range $anb 0 end-1]
+			set apended [string range $nb end-$i1 end]
+			append anb $apended
+			set nb $anb
+		}
+	}
+	return $nb
+}
+
+proc ::KMat::IsNum { n } {
+	# Devuelve 1 si $n es un numero, 0 si no
+	
+	if { $n >= 0 } {
+		if { $n <= 9 } {
+			return 1
+		}
+	}
+	return 0
+}
+
+proc ::KMat::GetNBPath { f level parent listTabs stopid tid} {
+	# Dado el id de un tab, devuelve su path dentro de los Notebook
+	
+	set fullname [dict get $::Tabdict $tid]
+	set splitted [::KMProps::split2 $fullname //]
+	set i 0
+	set j 0
+	set nb "${f}.nb0"
+
+	foreach check $splitted {
+		if { [string range $check 2 end] == $stopid} {
+			break
+		}
+		incr j 1
+	}
+	incr j 1
+	while {$i < $level } {
+		set pid [string range [lrange $splitted [expr $j+$i] [expr $j+$i]] 2 end]
+		set aux [append nb ".f$pid"]
+		incr i 1
+		set nb [append aux ".nb$i"]
+	}
+	return $nb
+}
+
+proc ::KMat::addTabtoNb { f level parent tid listTabs stopid} {
+	# Busca en que nb tiene que ir el tid (tab a colocar) y lo inserta
+	global KPriv
+
+	set nb [::KMat::GetNBPath $f $level $parent $listTabs $stopid $tid]
+	# Busca en que Notebook tenemos que insertar el tab
+	
+	if {$tid in [dict keys $::Tabdict]} {
+		# Nos aseguramos que el tab está en el diccionario antes creado
+		
+		set fullname [dict get $::Tabdict $tid]
+		set pid [::xmlutils::setXml $fullname pid "read" "" "mat"]
+		set help [::xmlutils::setXml $fullname help "read" "" "mat"]
+		set kids 0
+		# Obtenemos los datos para añadir los tab
+		# kids nos indicará si hay que añadir combos o no
+
+		set fTab ${nb}.f
+		# Preparamos el nombre del Tab, tiene que empezar por minuscula, con lo que ponemos una f delante
+		
+		set xpath [::xmlutils::setXPath $fullname "mats"]
+		set nodeaux [$KPriv(xmlMat) selectNodes $xpath]
+		set i 0
+		foreach chnode $nodeaux {
+			if {$pid != [$chnode getAttribute id ""] } {
+				incr i 1
+			} else {
+				break
+			}
+		}
+		set aux [lindex [$nodeaux childNodes ] $i]
+		
+		if { [$aux hasChildNodes] } {
+			# Si dentro de este tab tenemos que meter otro Notebook, añadimos el ttk:frame
+			set fTab [append fTab $tid]
+			if {[winfo exists $fTab]} {
+				destroy $fTab
+			}
+			set framePath [ttk::frame $fTab -padding {10 10 10 10} ]
+
+		} else {
+			# Si dentro de este tab tenemos que meter los combobox, añadimos el ttk:labelframe
+			set fTab [append fTab $tid]
+			if {[winfo exists $fTab]} {
+				destroy $fTab
+			}
+			set framePath [ttk::labelframe $fTab -padding {10 10 10 10} -text [= "Properties"] -labelanchor nw]
+			set kids 1
+		}
+		
+	    $nb add $framePath -text "[string range [= $pid] 0 20]" -sticky nsew
+	    # Añadimos el tab
+	    if { $kids } {
+	    	# Añadimos los Combos
+	    	::KMat::Combos $chnode $level $framePath
+	    }
+	}
+}
+
+proc ::KMat::Combos {node row framePath} {
+
+	global KPriv
+	incr row 1
+
+	set listContainer [$node childNodes]
+	# Los combos a añadir son los hijos del nodo
+	
+	for {set i 0} { $i < [llength $listContainer] } {incr i} {
+		#Para cada hijo, obtenemos sus datos
+		set id [[lindex $listContainer $i] getAttribute id ""]
+		set pid [[lindex $listContainer $i] getAttribute pid ""]
+		set value [[lindex $listContainer $i] getAttribute value ""]
+		set help [[lindex $listContainer $i] getAttribute help ""]
+
+		if { [winfo exists $framePath.lbl$id ] } {
+			destroy $framePath.lbl$id
+		}
+
+		#Para cada item añadimos label y combo
+		grid [ttk::label $framePath.lbl$id -text "$pid:" ] \
+		-row [expr $i+2] -column 0 -pady 2 -sticky nw -in $framePath
+
+		# Añadir al diccionario el path del combo
+		if {$id in [dict keys $::Itemsdict]} {
+			set fullname [dict get $::Itemsdict $id]
+			set lista {}
+			lappend lista $fullname
+			lappend lista $framePath.cmb$id
+			dict set ::Itemsdict $id $lista
+		}
+		
+		#Obtenemos la lista de valores para el combo si existe
+
+		set icomboList ""
+
+		set comboList [::xmlutils::getXMLValues $fullname "" "" "" "" "mat"]
+
+		set CBState [::xmlutils::setXml $fullname CBState "read" "" "mat"]
+
+		if { $CBState == "normal" } {
+			set values $comboList
+			set comboList {}
+	    } else {
+			set values {}
+		}
+		
+		if { [llength $comboList] > 0 } {
+
+			if {[string length $id] == 2 } { 
+				set width 15
+			} else {
+				set width 20
+			}
+			if { [winfo exists $framePath.cmb$id ] } {
+				destroy $framePath.cmb$id
+			}
+			grid [ttk::combobox $framePath.cmb$id -values $comboList -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMat::cmb$id"] \
+			    -row [expr $i+2] -column 1 -padx 3 -pady 2 -sticky nw -in $framePath
+			tooltip::tooltip $framePath.cmb$id [= "%s" $help]
+
+			::xmlutils::setComboDv $framePath.cmb$id $fullname $value
+
+		} else { 
+			if { [winfo exists $framePath.cmb$id ] } {
+				destroy $framePath.cmb$id
+			}
+			grid [ttk::combobox $framePath.cmb$id -values $values -textvariable "::KMat::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
+				-row [expr $i+2] -column 1 -padx 3 -pady 2 -sticky nw -in $framePath
+			tooltip::tooltip $framePath.cmb$id [= "%s" $help]
+		}
+			set ::KMat::cmb$id $value
+		
+	}
+	# Se han añadido los label y los combos
+	update idletasks
+	return [expr $row +1]
+}
+
+proc ::KMat::buildFrame { T item } {
+
+	global KPriv
+	set fullname [DecodeName [$T item tag names $item]]
+	set idFull [string map { "." "" "//" ""} $fullname]		
+	#Comprobamos que sea un item
+
+    if { [::KMProps::itemType $fullname] == "p" } {
+		set id [::KMat::setXml $fullname id "" ]
+		set pid [::KMat::setXml $fullname pid "" ]
+		set unit [::KMat::setXml $fullname unit "" ]
+		set icon [::KMat::setXml $fullname icon "" ]
+		set state [::KMat::setXml $fullname state "" ]
+		set help [::KMat::setXml $fullname help "" ]
+		
+		set xpath "[::KMat::setXPath $fullname]"
+		set comboList [::xmlutils::getValues $::KMat::xml $xpath]
+		set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
+		
+		#
+		#---------------------------#---------------------------#
+		# Configurar frame en función del XML
+		#---------------------------#---------------------------#
+		#
+		set bg "#F8F8F8"					
+		set f [frame "$T.f$idFull" -borderwidth 0 -background $bg]
+		if { [llength $comboList] > 0 } {
+		    grid [ttk::combobox $f.cmb -values $comboList -state readonly -textvariable "::KMat::cmb$idFull"] \
+			-row 0 -column 0 -padx 3 -sticky ne -in $f
+		    
+		    ::xmlutils::setComboValue $::KMat::xml $xpath $f.cmb $value
+		    #set selected [::xmlutils::getSelected $value $comboList]
+		    #$f.cmb current $selected
+		    bind $f.cmb <<ComboboxSelected>> "::KMat::cmbSelectChange $item $T 0 "
+		} else {
+		    grid [ttk::combobox $f.cmb -state normal -textvariable "::KMat::cmb$idFull"] \
+			-row 0 -column 0 -padx 3 -sticky nw -in $f
+		    set ::KMat::cmb$idFull $value
+		    bind $f.cmb <FocusOut> "::KMat::cmbSelectChange $item $T 0 "
+		    bind $f.cmb <Escape> "::KMat::cmbCancel $item $T"						
+		}
+		# Si pulsan intro o Esc también forzamos la salida del combo (por probar)
+		bind $f.cmb <KeyPress> "if { %k == 13  } { ::KMat::cmbSelectChange $item $T 1 }"
+		#bind $T <KeyPress> "if { %k == 27 } { ::KMProps::cmbCancel $item $T }"
+		return $f		  
+	} elseif { [::KMProps::itemType $fullname] == "c"} {
+		# Falta por implementar ::KMProps::itemType $fullname == m, por si hacen click en un material, o en un grupo de materiales
+		if { [::KMat::ContainerType $fullname] == "padre" } {
+			::KMat::CreateBottomFrame $T $item
+			return ""
+		} elseif { [::KMat::ContainerType $fullname] == "abuelo" } {
+			::KMat::CreateGrandpaFrame $T $item
+			return ""
+		}
+	}
+}
+
+proc ::KMat::CreateBottomFrame { T item } {
+    # ABSTRACT: Create the botton frame
+    
+    # If exists the bottom frame destroy it
+    set f [::KMat::DestroyBottomFrame]
+    
+    # Create the frame where set the properties
+    ttk::frame $f -borderwidth 0
+    # Grid for toolbar
+    grid $f -row 2 -column 0 -sticky wes
+    ::KMat::buildfatherFrame $T $item
+    
+    return $f
+    
+}
+
+proc ::KMat::CreateGrandpaFrame { T item } {
+
+	set f [::KMat::DestroyBottomFrame]
+	ttk::frame $f -borderwidth 0
+	grid $f -row 2 -column 0 -sticky wes
+    ::KMat::buildTabFrame $T $item $f
+    return $f
+}
+
+proc ::KMat::DestroyBottomFrame { } {
+    # ABSTRACT: Destroy the botton frame
+    variable NbMatsPath
+    
+    set f ${NbMatsPath}.fBottom    
+    if {[winfo exists $f]} {
+	foreach w [winfo children $f] {
+	    destroy $w
+	}
+    	destroy $f
+    }
+    return $f
+}
+
+proc ::KMat::ContainerType { fullname } {
+	
+	global KPriv
+	set path [::xmlutils::setXPath $fullname "mat"]
+	set node [$KPriv(xmlMat) selectNodes $path]
+	set childs [$node childNodes]
+	set contcontrol 0
+	foreach child $childs {
+		if { [$child hasChildNodes] } {
+			set contcontrol 1
+			break
+		}
+	}
+	if { $contcontrol == 0 } {
+		return "padre"	
+	} else {
+		return "abuelo"
+	}
+}
+
+proc ::KMat::buildTabFrameABD { T item {class "Tab"} } {
+
+    variable abdlist
+
+    set fullname [DecodeName [$T item tag names $item]]
+    set id [::KMat::setXml $fullname id "" ]
+    set pid [::KMat::setXml $fullname pid "" ]
+
+    set f [::KMat::iniFrameBottom]
+    
+    # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
+    set children [$T item children $item]
+
+    set listTabs {}
+    set listItems {}
+    set acceptItems {}
+
+    set nb ${f}.nb
+    #	grid [ttk::notebook $nb ] -row 0 -sticky ewn
+    grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
+
+    # declaramos un tab para el material
+    set fTab ${nb}.f$id
+    $nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
+	-text "[string range $pid 0 20]"
+
+    set count 1
+    # foreach itemChild $children {
+    #		 set fullname [DecodeName [$T item tag names $itemChild]]
+    #		 set nodeName [::xmlutils::getXmlNodeName $fullname "mat"]
+    #		 set comboList [::xmlutils::getXMLValues $fullname]
+
+    #		 Lappend listItems $itemChild
+
+    #		 set id [::KMat::setXml $fullname id ""]
+    #		 set pid [::KMat::setXml $fullname pid "" ]
+    #		 set value [::KMat::setXml $fullname value "" ]
+    #		 set help [::KMat::setXml $fullname help "" ]
+
+    #		 if { $id ni $abdlist } {
+    #			 grid [ttk::label $fTab.label$id -text "$pid" ] \
+	#				 -row $count -column 0 -pady 5 -sticky nw -in $fTab
+    #			 grid [ttk::combobox $fTab.cmb$id -state normal -textvariable "::KMat::cmb$id" ] \
+	#				 -row $count -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
+    #			 set ::KMat::cmb$id $value
+    #			 incr count
+    #		 }
+    # }
+
+    grid [ttk::button $f.bPropOk -text "Ok"  -command "::KMat::acceptTabFrameABD $T $listItems $class $item" ] \
+	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+    tooltip::tooltip $f.bPropOk [= "Confirm values"]
+    
+    grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
+	-row $count -column 0 -sticky sw  -pady 3 -padx 100  -in $f
+    tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
 
 }
 
@@ -389,51 +1017,51 @@ proc ::KMat::ClickTree { x y T } {
     set info [$T identify $x $y]
     
     if { [lindex $info 0] == "item" && [llength $info] >= 4 } {
-	set item [lindex $info 1]
-	set col [lindex $info 3]
-	set fullname [DecodeName [$T item tag names $item]]
-	
-	#test getMaterialProperties
-	#set matlist [::KMat::getMaterialProperties "p" $fullname]
-	
-	set id [::KMat::setXml $fullname id "" ]
-	
-	#Eliminamos el anterior combo, si aun está visible
-	if {[llength $lastSelected] > 0 && [lindex $lastSelected 0] != $item} { 
-	    
-	    ::KMat::cmbSelectChange [lindex $lastSelected 0] $T 1 "anterior"
-	}
-	
-	#Si pinchan en un item con hijos lo abrimos
-	#				$T item toggle $item
-	
+		set item [lindex $info 1]
+		set col [lindex $info 3]
+		set fullname [DecodeName [$T item tag names $item]]
+		
+		#test getMaterialProperties
+		#set matlist [::KMat::getMaterialProperties "p" $fullname]
+		
+		set id [::KMat::setXml $fullname id "" ]
+		
+		#Eliminamos el anterior combo, si aun está visible
+		if {[llength $lastSelected] > 0 && [lindex $lastSelected 0] != $item} { 
+		    
+		    ::KMat::cmbSelectChange [lindex $lastSelected 0] $T 1 "anterior"
+		}
+		
+		#Si pinchan en un item con hijos lo abrimos
+		#				$T item toggle $item
+		
     } elseif { [lindex $info 0] == "header" && [lindex $info 1] == "0" } {
-	if { [$T column cget C0 -arrow] == "up" } {
-	    $T column configure C0 -arrow down
-	    $T item sort 0 -dictionary -increasing
-	} else {
-	    $T column configure C0 -arrow up
-	    $T item sort 0 -dictionary -decreasing
-	}
-	return ""
+		if { [$T column cget C0 -arrow] == "up" } {
+		    $T column configure C0 -arrow down
+		    $T item sort 0 -dictionary -increasing
+		} else {
+		    $T column configure C0 -arrow up
+		    $T item sort 0 -dictionary -decreasing
+		}
+		return ""
     } else {
-	return ""
+		return ""
     }
     
     if { $col != 0 } {
-	if { ![$T selection includes $item] } {
-	    $T selection clear
-	    $T selection add $item
-	}
+		if { ![$T selection includes $item] } {
+		    $T selection clear
+		    $T selection add $item
+		}
     }
     if { $col == 0 } {
-	#SetLayersTo TOUSE $T
+		#SetLayersTo TOUSE $T
     } elseif { $col == 1 } {		
-	set parent [winfo parent $T]
+		set parent [winfo parent $T]
     }
     
     if { $col != 0 } {
-	return -code break
+		return -code break
     }
     return ""
 }
@@ -782,20 +1410,20 @@ proc ::KMat::CopyMaterial { {T ""} {name ""} } {
     set aux 99
     set aux2 [$T item parent $item]
     while {$aux != 1 && $aux2 != 0} {
-	set padre [$T item parent $item]
-	set item $padre		
-	set path [DecodeName [$T item tag names $item]]   
-	set splitted [::KEGroups::split2 $path //]
-	set aux [llength $splitted]
+		set padre [$T item parent $item]
+		set item $padre		
+		set path [DecodeName [$T item tag names $item]]   
+		set splitted [::KEGroups::split2 $path //]
+		set aux [llength $splitted]
     }
 
     set path [DecodeName [$T item tag names $item]]   
 
     if { $name == "" } {
-	set name [::KMat::GetAutomaticMatName "" $sourcematname]
+		set name [::KMat::GetAutomaticMatName "" $sourcematname]
     } else {
 	if { ![::KEGroups::isValidGroupName $name] } {
-	    WarnWin [_ "Bad material name, start or end by '//' is not allowed"]
+	    msg "Bad material name, start or end by '//' is not allowed"
 	    return ""
 	}
     }
@@ -820,19 +1448,19 @@ proc ::KMat::SetMatToRename { T item newtext } {
     global KPriv
     if { $newtext == ""} {  return  }
     if { $item == 0 } {
-	WarnWin [_ "Root folder can't be edited"]
+	msg "Root folder can't be edited"
 	return
     }
     set oldId [$T item text $item 0]
     #Controlamos q el nombre no esté ya en el árbol (a no ser q no se haya cambiado)
     if { $oldId != $newtext && $newtext in $KPriv(materialsId) } {
-	WarnWin [_ "The group name '$s' already exist.\nChoose another, please." $newtext]
+	msg "The group name '$s' already exist.\nChoose another, please." $newtext
 	return
     }
     #Validamos q el nombre no tenga carácteres que vulneran la seguridad y quitamos espacios
     set newtext [::KUtils::parseTreeStr $newtext]
     if { $newtext == -1 } {
-	WarnWin [_ "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "]
+	msg "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
 	return
     }
     
@@ -914,21 +1542,20 @@ proc ::KMat::GetAutomaticMatName { {auto ""} { startname "" } } {
     global KPriv
     set i 0
     foreach grup $KPriv(materialsId) {
-
-	incr $i
+		incr $i
     }
-    if { [llength $KPriv(materialsId)] > 0 } {		
-	for {set i 1} {$i<10000} {incr i} {
-	    #			set name ${auto}Material${i}
-	    set name ${auto}$startname${i}
-	    if { [lsearch -exact $KPriv(materialsId) $name] == -1 } { break }
-	}
+    if { [llength $KPriv(materialsId)] > 0 } {
+		for {set i 1} {$i<10000} {incr i} {
+		    # set name ${auto}Material${i}
+		    set name ${auto}$startname${i}
+		    if { [lsearch -exact $KPriv(materialsId) $name] == -1 } { break }
+		}
     } else {
-	if { $auto == "" } {
-	    set name "Material1"
-	} else {
-	    set name "${auto}Material1"
-	}
+		if { $auto == "" } {
+		    set name "Material1"
+		} else {
+		    set name "${auto}Material1"
+		}
     }
     return $name
 }
@@ -939,15 +1566,15 @@ proc ::KMat::GetAutomaticMatName { {auto ""} { startname "" } } {
 proc ::KMat::splitNode { node } {
     set id [$node getAttribute id ""]		
     if { [$node tagName] == "Container"} {
-	return "c.$id"
+		return "c.$id"
     } elseif { [$node tagName] == "Item"} {
-	return "i.$id"
+		return "i.$id"
     } elseif { [$node tagName] == "Property"} {
-	return "p.[$node getAttribute id ""]"
+		return "p.[$node getAttribute id ""]"
     } elseif { [$node tagName] == "Material"} {
-	return "m.[$node getAttribute id ""]"
+		return "m.[$node getAttribute id ""]"
     } else {
-	return "NoTree"
+		return "NoTree"
     }
 }
 
@@ -955,109 +1582,60 @@ proc ::KMat::InsertNewItem { propName id T {parent ""} {parentitem root} {childs
     
     
     if { $state == "hidden" } {
-	#No inserta este item pero se sigue el proceso
-	return $parentitem
+		#No inserta este item pero se sigue el proceso
+		return $parentitem
     } elseif { $state == -1 } {
-	#No inserta este item ni su descendencia
-	return -1
+		#No inserta este item ni su descendencia
+		return -1
     } 
     if {[string first "NoTree" $id] != -1 } {
-	#Solo insertamos determinados nodos (container, item..)
-	return "-1"
+		#Solo insertamos determinados nodos (container, item..)
+		return "-1"
     }
     if { $parent != "" } {
-	# set fullname "$parent//$id"
-	set fullname "$parent$id"
+		# set fullname "$parent//$id"
+		set fullname "$parent$id"
     } else {
-	set fullname $id
+		set fullname $id
     }
     
     if { $childs } {		
-	set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
-	$T item lastchild $parentitem $item
-	$T item style set $item C0 styAnyRead
-	$T item element configure $item C0 elemTxtRead -text "$propName"						
+		set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
+		$T item lastchild $parentitem $item
+		$T item style set $item C0 styAnyRead
+		$T item element configure $item C0 elemTxtRead -text "$propName"						
     } else {
-	set item [$T item create -button no -tags [EncodeName $fullname] -open $open]
-	$T item lastchild $parentitem $item
-	$T item style set $item C0 styFrame
-	
-	set xpath "[::KMat::setXPath $fullname]"
-	set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
-	
-	$T item style set $item C0 styAnyRead
-	if { $parentitem == "root" } {
-	    $T item element configure $item C0 elemTxtRead -text "$propName $value"
-	} else {
-	    $T item element configure $item C0 elemTxtRead -text "$propName: $value"
-	}
+		set item [$T item create -button no -tags [EncodeName $fullname] -open $open]
+		$T item lastchild $parentitem $item
+		$T item style set $item C0 styFrame
+		
+		set xpath "[::KMat::setXPath $fullname]"
+		set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
+		
+		$T item style set $item C0 styAnyRead
+		if { $parentitem == "root" } {
+		    $T item element configure $item C0 elemTxtRead -text "$propName $value"
+		} else {
+		    $T item element configure $item C0 elemTxtRead -text "$propName: $value"
+		}
     }
     
     # Consultamos el icono en el xml, y si existe en nuestro directorio se lo añadimos		
     set icon [::KMat::setXml $fullname icon "" ]
     set imagen [::WinUtils::GetImage $icon]
     if { $imagen != -1 } {
-	$T item image $item C0 $imagen
+		$T item image $item C0 $imagen
     } else {
     }	
     #Miramos si el item tiene que estar a disabled (viene del proc ::KMProps::stateNode)
     if {$state == "disabled"} {
-	$T item enabled $item 0
+		$T item enabled $item 0
     }	
     return $item
 }
 
 
-proc ::KMat::buildFrame { T item } {
-    
-    global KPriv
-    set fullname [DecodeName [$T item tag names $item]]
-    set idFull [string map { "." "" "//" ""} $fullname]		
-    #Comprobamos que sea un item
-    if { [::KMProps::itemType $fullname] == "i" } {
-	
-    } elseif { [::KMProps::itemType $fullname] == "p" } {
-	set id [::KMat::setXml $fullname id "" ]
-	set pid [::KMat::setXml $fullname pid "" ]
-	set unit [::KMat::setXml $fullname unit "" ]
-	set icon [::KMat::setXml $fullname icon "" ]
-	set state [::KMat::setXml $fullname state "" ]
-	set help [::KMat::setXml $fullname help "" ]
-	
-	set xpath "[::KMat::setXPath $fullname]"
-	set comboList [::xmlutils::getValues $::KMat::xml $xpath]
-	set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
-	
-	#
-	#---------------------------#---------------------------#
-	# Configurar frame en función del XML
-	#---------------------------#---------------------------#
-	#
-	set bg "#F8F8F8"					
-	set f [frame "$T.f$idFull" -borderwidth 0 -background $bg]
-	if { [llength $comboList] > 0 } {
-	    grid [ttk::combobox $f.cmb -values $comboList -state readonly -textvariable "::KMat::cmb$idFull"] \
-		-row 0 -column 0 -padx 3 -sticky ne -in $f
-	    
-	    ::xmlutils::setComboValue $::KMat::xml $xpath $f.cmb $value
-	    #set selected [::xmlutils::getSelected $value $comboList]
-	    #$f.cmb current $selected
-	    bind $f.cmb <<ComboboxSelected>> "::KMat::cmbSelectChange $item $T 0 "
-	} else {
-	    grid [ttk::combobox $f.cmb -state normal -textvariable "::KMat::cmb$idFull"] \
-		-row 0 -column 0 -padx 3 -sticky nw -in $f
-	    set ::KMat::cmb$idFull $value
-	    bind $f.cmb <FocusOut> "::KMat::cmbSelectChange $item $T 0 "
-	    bind $f.cmb <Escape> "::KMat::cmbCancel $item $T"						
-	}
-	# Si pulsan intro o Esc también forzamos la salida del combo (por probar)
-	bind $f.cmb <KeyPress> "if { %k == 13  } { ::KMat::cmbSelectChange $item $T 1 }"
-	#bind $T <KeyPress> "if { %k == 27   } { ::KMProps::cmbCancel $item $T }"
-	return $f		  
-    } else {				
-	return ""
-    }
-}
+
 
 proc ::KMat::cmbSelectChange { item T {remove 1} {selectVal current}  } {   
     
@@ -1078,48 +1656,50 @@ proc ::KMat::cmbSelectChange { item T {remove 1} {selectVal current}  } {
     set comboState [::xmlutils::getComboState $::KMat::xml $xpath]
     if { $comboState == "normal" } {
 	
-	set selCombo [set ::KMat::cmb$idFull]
-	set selComboText $selCombo
-	if {$selectVal != "current"} {
-	    set ::KMat::lastSelected {}
-	}
+		set selCombo [set ::KMat::cmb$idFull]
+		set selComboText $selCombo
+		if {$selectVal != "current"} {
+		    set ::KMat::lastSelected {}
+		}
     } else {
 	
-	if {$selectVal == "current"} {
-	    
-	    set f "$T.f${idFull}.cmb"
-	    set selCombo [::xmlutils::getComboValue $::KMat::xml $xpath $f]
-	    set selComboText [::xmlutils::getComboValue $::KMat::xml $xpath $f "text"]
-	    set ::KMat::lastSelected [list $item $selCombo $selComboText]
-	    
-	} else {
-	    
-	    set selCombo [lindex $::KFun::lastSelected 1]
-	    set selComboText [lindex $::KFun::lastSelected 2]
-	    set ::KMat::lastSelected {}
-	}
+		if {$selectVal == "current"} {
+		    
+		    set f "$T.f${idFull}.cmb"
+		    set selCombo [::xmlutils::getComboValue $::KMat::xml $xpath $f]
+		    set selComboText [::xmlutils::getComboValue $::KMat::xml $xpath $f "text"]
+		    set ::KMat::lastSelected [list $item $selCombo $selComboText]
+		    
+		} else {
+		    
+		    set selCombo [lindex $::KFun::lastSelected 1]
+		    set selComboText [lindex $::KFun::lastSelected 2]
+		    set ::KMat::lastSelected {}
+		}
     }
     
     if { $remove } {
-	
-	set f "$T.f$idFull"
-	if {[winfo exists $f]} {
-	    destroy $f
-	}
-	$T item style set $item C0 styAnyRead
-	$T item element configure $item C0 elemTxtRead -text "$pid: $selComboText"
+		
+		set f "$T.f$idFull"
+		if {[winfo exists $f]} {
+		    destroy $f
+		}
+		$T item style set $item C0 styAnyRead
+		$T item element configure $item C0 elemTxtRead -text "$pid: $selComboText"
     }
     
     #Guarda el nuevo valor en el xml
+    #  "selcombo = $selCombo"
+    #msg "fullname = $fullname"
     ::KMat::setXml $fullname value $selCombo
     
     ::KMat::insertIcon $item $T $fullname
     
     #Volvemos a cargar el árbol de propiedades
     if { !$remove } {
-	#::KMat::refreshTree $T
+		#::KMat::refreshTree $T
     }
-    #::KMat::refreshTree $T
+    ::KMat::refreshTree $T
 }
 
 proc ::KMat::cmbCancel { item T  } {
@@ -1236,7 +1816,7 @@ proc ::KMat::getMaterials {{application ""}} {
 		    }		
 		}
 	    }
-	} elseif {$application == "Fluid"} {
+	} elseif {($application == "Fluid")||($application == "PFEM")} {
 	    foreach node $nodes {		
 		if { [$node getAttribute id ""] == "Fluid"} {
 		    set nodes2 [$node childNodes]
@@ -1347,273 +1927,36 @@ proc ::KMat::setXml { path property {value ""} } {
     }
 }
 
-
-#
-# Construye un frame con un tab por cada container que cuelgue de "item"
-# y dentro de cada tab, etiquetas y combos para cada item (si los hay)
-#
-proc ::KMat::buildTabFrame { T item {class "Tab"} } {
-
-    variable abdlist
-
-    set fullname [DecodeName [$T item tag names $item]]
-    set id [::KMat::setXml $fullname id "" ]
-    set pid [::KMat::setXml $fullname pid "" ]
-
-    set f [::KMat::iniFrameBottom]
-    
-    # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
-    set children [$T item children $item]
-
-    set listTabs {}
-    set listItems {}
-    set acceptItems {}
-
-    set nb ${f}.nb
-    #	grid [ttk::notebook $nb ] -row 0 -sticky ewn
-    grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
-
-    # declaramos un tab para el material
-    set fTab ${nb}.f$id
-    $nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
-	-text "[string range $pid 0 20]"
-
-    # grid [ttk::label $fTab.lblName -text "[= Property Name:]" ] \
-	#		 -row 0 -column 0 -pady 5 -sticky nw -in $fTab
-    # grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" ] \
-	#		 -row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
-
-
-    set count 0
-    foreach itemChild $children {
-	set fullname [DecodeName [$T item tag names $itemChild]]
-	set nodeName [::xmlutils::getXmlNodeName $fullname "mat"]
-	
-	set xpath "[::KMat::setXPath $fullname]"
-	set comboList [::xmlutils::getValues $::KMat::xml $xpath]
-	
-	lappend listItems $itemChild
-
-	set id [::KMat::setXml $fullname id "" ]
-	set pid [::KMat::setXml $fullname pid "" ]
-	set value [::KMat::setXml $fullname value "" ]
-	set help [::KMat::setXml $fullname help "" ]
-
-	if { $id ni $abdlist && $id != "ABD" } {
-	    grid [ttk::label $fTab.label$id -text "$pid" ] \
-		-row $count -column 0 -pady 5 -sticky nw -in $fTab
-	    grid [ttk::combobox $fTab.cmb$id -state normal -textvariable "::KMat::cmb$id" ] \
-		-row $count -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
-	    set ::KMat::cmb$id $value
-	    incr count
-	}
-	if { $id == "ABD" } {
-	    set clase "Tab"
-	    grid [ttk::button $fTab.bProp$id -text "ABD Matrix"  -command "::KMat::buildTabFrameABD $T $item $clase" ] \
-		-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-	    tooltip::tooltip $fTab.bPropABD [= "ABD Matrix"]
-
-	}
-    }
-
-    set clase "Tab"
-    grid [ttk::button $f.bPropOk -text "Ok"  -command "::KMat::acceptTabFrame $T $listItems $class $item" ] \
-	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-    tooltip::tooltip $f.bPropOk [= "Confirm values"]
-    
-    grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
-	-row $count -column 0 -sticky sw  -pady 3 -padx 100  -in $f
-    tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
-
-}
-
-
-proc ::KMat::buildTabFrameABD { T item {class "Tab"} } {
-
-    variable abdlist
-
-    set fullname [DecodeName [$T item tag names $item]]
-    set id [::KMat::setXml $fullname id "" ]
-    set pid [::KMat::setXml $fullname pid "" ]
-
-    set f [::KMat::iniFrameBottom]
-    
-    # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
-    set children [$T item children $item]
-
-    set listTabs {}
-    set listItems {}
-    set acceptItems {}
-
-    set nb ${f}.nb
-    #	grid [ttk::notebook $nb ] -row 0 -sticky ewn
-    grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
-
-    # declaramos un tab para el material
-    set fTab ${nb}.f$id
-    $nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
-	-text "[string range $pid 0 20]"
-
-    set count 1
-    # foreach itemChild $children {
-    #		 set fullname [DecodeName [$T item tag names $itemChild]]
-    #		 set nodeName [::xmlutils::getXmlNodeName $fullname "mat"]
-    #		 set comboList [::xmlutils::getXMLValues $fullname]
-
-    #		 lappend listItems $itemChild
-
-    #		 set id [::KMat::setXml $fullname id ""]
-    #		 set pid [::KMat::setXml $fullname pid "" ]
-    #		 set value [::KMat::setXml $fullname value "" ]
-    #		 set help [::KMat::setXml $fullname help "" ]
-
-    #		 if { $id ni $abdlist } {
-    #			 grid [ttk::label $fTab.label$id -text "$pid" ] \
-	#				 -row $count -column 0 -pady 5 -sticky nw -in $fTab
-    #			 grid [ttk::combobox $fTab.cmb$id -state normal -textvariable "::KMat::cmb$id" ] \
-	#				 -row $count -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
-    #			 set ::KMat::cmb$id $value
-    #			 incr count
-    #		 }
-    # }
-
-    grid [ttk::button $f.bPropOk -text "Ok"  -command "::KMat::acceptTabFrameABD $T $listItems $class $item" ] \
-	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-    tooltip::tooltip $f.bPropOk [= "Confirm values"]
-    
-    grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
-	-row $count -column 0 -sticky sw  -pady 3 -padx 100  -in $f
-    tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
-
-
-
-
-
-
-
-    # # Create the matrix frame
-    # set tfMatrix [TitleFrame $fpath.tfMatrix${matrixid} \
-	#					   -relief groove \
-	#					   -bd 2 \
-	#					   -side left \
-	#					   -text $matrixtxt]
-    
-    # set tffMatrix [$tfMatrix getframe]
-
-    # Label $tffMatrix.lMatrixId${matrixid} \
-	#		 -text $matrixid 
-
-    # # Put the frame
-    # grid $fpath.tfMatrix${matrixid} \
-	#		 -in $fpath \
-	#		 -row $row -column $col \
-	#		 -sticky nswe
-
-    # # Put all entry/grid for this matrix
-    # set ewidth 12
-    # # Row 1
-    # set crow 1
-    # for {set ii 0} {$ii<=2} {incr ii 1} {
-    #		 set ccol [expr $ii+1]
-    #		 set comp ${matrixid}${crow}${ccol}
-    #		 Entry $tffMatrix.e${comp} \
-	#			 -width $ewidth \
-	#			 -editable 0 \
-	#			 -helptext [= "Current matrix value (%s)" $comp].
-
-    #		 grid $tffMatrix.e${comp} \
-	#			 -in $tffMatrix \
-	#			 -row 0 -column $ccol \
-	#			 -sticky ne
-    # }
-    
-    # grid $tffMatrix.lMatrixId${matrixid} \
-	#		 -in $tffMatrix \
-	#		 -row 1 -column 0 \
-	#		 -sticky ne
-
-    # # Row 2
-    # set crow 2
-    # for {set ii 0} {$ii<=2} {incr ii 1} {
-    #		 set ccol [expr $ii+1]
-    #		 set comp ${matrixid}${crow}${ccol}
-    #		 Entry $tffMatrix.e${comp} \
-	#			 -width $ewidth \
-	#			 -editable 0 \
-	#			 -helptext [= "Current matrix value (%s)" $comp].
-
-    #		 grid $tffMatrix.e${comp} \
-	#			 -in $tffMatrix \
-	#			 -row 1 -column $ccol \
-	#			 -sticky ne
-    # }
-
-    # # Row 3
-    # set crow 3
-    # for {set ii 0} {$ii<=2} {incr ii 1} {
-    #		 set ccol [expr $ii+1]
-    #		 set comp ${matrixid}${crow}${ccol}
-    #		 Entry $tffMatrix.e${comp} \
-	#			 -width $ewidth \
-	#			 -editable 0 \
-	#			 -helptext [= "Current matrix value (%s)" $comp].
-
-    #		 grid $tffMatrix.e${comp} \
-	#			 -in $tffMatrix \
-	#			 -row 2 -column $ccol \
-	#			 -sticky ne
-    # }
-
-    # # Expand
-    # grid rowconfigure $tffMatrix {0 1 2} -weight 1
-    # grid columnconfigure $tffMatrix {0 1 2 3} -weight 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
-
 #
 # Crea el frame inferior 
 #
 proc ::KMat::iniFrameBottom { } {
-    
-    #Destruye el frame inferior si existía
-    set f [::KMat::cancelBottom]
-    
-    # Create the frame where set the properties
-    ttk::frame $f -borderwidth 0
-    
-    # Grid for toolbar
-    grid $f -row 2 -column 0 -sticky wes
-    
-    return $f
+	
+	#Destruye el frame inferior si existía
+	set f [::KMat::cancelBottom]
+	
+	# Create the frame where set the properties
+	ttk::frame $f -borderwidth 0
+	# Grid for toolbar
+	grid $f -row 2 -column 0 -sticky wes
+	
+	return $f
 }
 
 #
 # Destruye el frame inferior 
 #
 proc ::KMat::cancelBottom { } {
-    
-    set f ${::KMat::WinPath}.nb.fMat.fBottom
-    if { [winfo exists $f]} {
-	foreach w [winfo children $f] {
-	    destroy $w
+	variable NbMatsPath
+	set f ${NbMatsPath}.fBottom
+	if { [winfo exists $f]} {
+		foreach w [winfo children $f] {
+			destroy $w
+		}
 	}
-    }
-    destroy $f
-    
-    return $f
+	destroy $f
+	
+	return $f
 }
 
 
@@ -1624,22 +1967,51 @@ proc ::KMat::acceptTabFrameABD { T listItems class {itemSel ""}} {
 }
 
 
-proc ::KMat::acceptTabFrame { T listItems class {itemSel ""}} { 
-    WarnWin [_ "Accept Tab Frame, save values in XML"]
+proc ::KMat::acceptTabFrame { T listItems class {itemSel ""} } { 
+
+	# Boton OK debajo de los Notebookç
+	if { $class == "Tab" } {
+		foreach {item lista} $::Itemsdict {
+
+			set fullname [lindex $lista 0]
+			set combopath [lindex $lista 1]
+
+			# Leer el valor del combo
+			set valor [$combopath get]
+			set fullname [lindex $fullname 0]
+			# Escribir en el combo
+			::KMat::setXml $fullname value $valor
+		}
+
+	} else {
+		set fTab [lindex $class 0]
+		set listItems [lindex $class 1]
+
+		foreach item $listItems {
+			set fullname [DecodeName [$T item tag names $item]]
+			set id [::KMat::setXml $fullname id "" ]
+			set combopath $fTab.cmb$id
+			set valor [$combopath get]
+			::KMat::setXml $fullname value $valor
+		}
+	}
+		#Volvemos a cargar el árbol para q el path de los items sea correcto
+		::KMat::cancelBottom
+		::KMat::refreshTree $T
 }
 
 proc ::KMat::initVisibilityClass { } {
-    
-    variable visibilityVars
-    set visibilityVars {}
-    global KPriv
+   
+	variable visibilityVars
+	set visibilityVars {}
+	global KPriv
 
-    set classes [$::KMat::xml set "/ Kratos_KMat_DB/Materials/ClassConfiguration/Class" ]
-    set classes [split $classes ","]
-    
-    foreach class $classes {
-	lappend visibilityVars $class
-	set ::KMat::$class ""
+	set classes [$::KMat::xml set "/ Kratos_KMat_DB/Materials/ClassConfiguration/Class" ]
+	set classes [split $classes ","]
+  
+	foreach class $classes {
+		lappend visibilityVars $class
+		set ::KMat::$class ""
     }
 }
 
@@ -1666,7 +2038,7 @@ proc ::KMat::stateNode { node } {
 		    set freeYesOrNo [$node getAttribute freeSurf ""]
 		    #msg "FREEEEEEEEEEEEEE:  $freeYesOrNo == \"\" || $freeYesOrNo == $::KMProps::freeSurf"
 		    if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-			set ::KMProps::fluidSolvTyp "$value"
+				set ::KMProps::fluidSolvTyp "$value"
 		    }
 		} else {
 		    #Caso general
@@ -1744,4 +2116,150 @@ proc ::KMat::setXPath { path } {
 	incr i
     }
     return $xpath
+}
+
+proc ::KMat::FromNodetoItem { node } {
+	
+	set path [::xmlutils::getPathFromNode $node 1 mats]
+	msg "path $path"
+	set item [::KMat::FromPathtoItem $path] 
+	
+	msg "item = $item"
+	return $item
+}
+
+proc ::KMat::FromPathtoItem { path } {
+	variable TreeMatsPath
+	
+	set Item 1
+	set splitted [::KMProps::split2 $path / ]
+#	msg "splitted $splitted"
+	
+	set materialgroup [lindex $splitted 3]
+#	msg "materialgroup $materialgroup"
+	set splitted2 [::KMProps::split2 $path ' ]
+#	msg "splitted2 $splitted2"
+	
+	set compid [lindex $splitted2 1]
+#	msg "compid $compid"
+	set T $TreeMatsPath
+	
+	set treenodes [$T item range 1 end]
+	foreach item $treenodes {
+#		msg "item = $item"
+		set fullname [DecodeName [$T item tag names $item]]
+		#msg "fullname = $fullname"
+		set id [::xmlutils::setXml $fullname id "read" "" mat]
+#		msg "id $id"
+		if {$id == $compid } {
+			set Item $item
+			break
+		}
+	}
+	
+	set compid [lindex $splitted2 3]
+#	msg "compid $compid"
+	set T $TreeMatsPath
+	
+	set treenodes [$T item range $Item end]
+	foreach item $treenodes {
+#		msg "item = $item"
+		set fullname [DecodeName [$T item tag names $item]]
+		#msg "fullname = $fullname"
+		set id [::xmlutils::setXml $fullname id "read" "" mat]
+#		msg "id $id"
+		if {$id == $compid } {
+			set Item $item
+			break
+		}
+	}
+	set splitted2 [lrange $splitted2 5 end]
+#	msg "splitted2 $splitted2"
+	
+	foreach {cont rubish} $splitted2 {
+		set compid [lindex $splitted2 0]
+#		msg "compid $compid"
+		set T $TreeMatsPath
+		
+		set treenodes [$T item range $Item end]
+		foreach item $treenodes {
+#			msg "item = $item"
+			set fullname [DecodeName [$T item tag names $item]]
+			#msg "fullname = $fullname"
+			set id [::xmlutils::setXml $fullname id "read" "" mat]
+#			msg "id $id"
+			if {$id == $compid } {
+				set Item $item
+				break
+			}
+		}
+		set splitted2 [lrange $splitted2 2 end]
+	}
+	return $Item
+}
+
+proc ::KMat::NewcmbSelectChange { item combopos {remove 1} {selectVal current} } {   
+    variable TreeMatsPath
+    set T $TreeMatsPath
+    set fullname [DecodeName [$T item tag names $item]]
+    set idFull [string map { "." "" "//" ""} $fullname]
+    
+    set id [::KMat::setXml $fullname id "" ]
+    set pid [::KMat::setXml $fullname pid "" ]
+    
+    set xpath "[::KMat::setXPath $fullname]"
+    set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
+    
+    #Antes solo se hacía esto:
+    #set selCombo [set ::KMat::cmb$idFull]			
+    
+    #Gestión de ivalues
+    set xpath "[::KMat::setXPath $fullname]"
+    set comboState [::xmlutils::getComboState $::KMat::xml $xpath]
+    if { $comboState == "normal" } {
+	
+		set selCombo [set ::KMat::cmb$idFull]
+		set selComboText $selCombo
+		if {$selectVal != "current"} {
+		    set ::KMat::lastSelected {}
+		}
+    } else {
+	
+		if {$selectVal == "current"} {
+		    
+		    set f "$T.f${idFull}.cmb"
+		    set selCombo [::xmlutils::getComboValue $::KMat::xml $xpath $f]
+		    set selComboText [::xmlutils::getComboValue $::KMat::xml $xpath $f "text"]
+		    set ::KMat::lastSelected [list $item $selCombo $selComboText]
+		    
+		} else {
+		    
+		    set selCombo [lindex $::KFun::lastSelected 1]
+		    set selComboText [lindex $::KFun::lastSelected 2]
+		    set ::KMat::lastSelected {}
+		}
+    }
+    
+    if { $remove } {
+		
+		set f "$T.f$idFull"
+		if {[winfo exists $f]} {
+		    destroy $f
+		}
+		$T item style set $item C0 styAnyRead
+		$T item element configure $item C0 elemTxtRead -text "$pid: $selComboText"
+    }
+    
+    #Guarda el nuevo valor en el xml
+    #  "selcombo = $selCombo"
+    #msg "fullname = $fullname"
+    ::KMat::setXml $fullname value $selCombo
+    
+    ::KMat::insertIcon $item $T $fullname
+    
+    #Volvemos a cargar el árbol de propiedades
+    if { !$remove } {
+		#::KMat::refreshTree $T
+    }
+    ::KMat::refreshTree $T
 }
