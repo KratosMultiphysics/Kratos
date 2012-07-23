@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.1- 22/07/12-G. Socorro, call the proc WriteGroupMeshProperties to write the group properties
 #     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
 #                               MonolithicWallCondition2D/MonolithicWallCondition3D for monolithic solver
 #     4.9- 04/06/12-J. Garate,  Correct "WALL_LAW_Y"
@@ -161,15 +162,15 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	 
 	}
 
-	# End
-	write_calc_data end
-
 	# For fluid application
 	if {$AppId == "Fluid"} {
 	    # Write all group properties
-	    ::wkcf::WriteGroupProperties $AppId
+	    # ::wkcf::WriteGroupProperties $AppId
+	    ::wkcf::WriteGroupMeshProperties $AppId
 	}
 
+	# End
+	write_calc_data end
     }
     
     # Write the project parameters file
