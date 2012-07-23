@@ -341,6 +341,9 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		::xmlutils::setXml "Fluid" state "write" "normal"
 		::xmlutils::setXml "Fluid" open "write" 1
 		
+		::xmlutils::setXml "PFEM" state "write" "hiddenAll"
+		::xmlutils::setXml "PFEM" open "write" 0
+
 		#Forzamos el tipo de fluido a "Incompressible"
 		set fluidType [::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv]
 		if { $fluidType == "Compressible"} {
@@ -359,6 +362,7 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		#if{ [::xmlutils::setXml "${fullParent}//i.${aplicId}" dv] } {}
 		::xmlutils::setXml "StructuralAnalysis" state "write" "hiddenAll"
 		::xmlutils::setXml "Fluid" state "write" "hiddenAll"
+		::xmlutils::setXml "PFEM" state "write" "hiddenAll"
 	    } else {
 		::xmlutils::setXml "$id" state "write" "hiddenAll"
 	    }

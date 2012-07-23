@@ -592,7 +592,7 @@ proc ::KMProps::copyTemplate { idTemplate fullname groupId clase } {
 	set template [$KPriv(xml) set "/Kratos_Data/Templates/Template\[@id='$idTemplate'\]"]
 	
 	#No se puede insertar en el xml un fragmento con mas de un nodo, por eso utilizamos 
-	#las etiquetas auxiliares "<gouptemplate>$template</gouptemplate>"
+	#las etiquetas auxiliares "<grouptemplate>$template</grouptemplate>"
 	set template "<groupTemplate>$template</groupTemplate>"
 	
 	if { $clase == "OnlyGetText" } {
