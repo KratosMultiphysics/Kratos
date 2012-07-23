@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.2- 22/07/12-G. Socorro, modify the Is-Slip BC, correct a bug when write inlet BC 
 #     1.1- 08/06/12-G. Socorro, add a new variable Use_slip_conditions when use is-slip or wall-law conditions
 #     1.0- 04/06/12-G. Socorro, set Laplacian form=1 for the fractional step case
 #     0.9- 13/05/12-G. Socorro, modify the proc WriteFluidIsSlipBC to use the dictionary ctbclink to link conditions 
@@ -400,34 +401,34 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m1 {AppId inletvelglist noslipglist kwordli
 			    # X component => Check x flag
 			    if {($ix) && ($nsx=="0")} {
 				# Write this node identifier
-				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]]\n"
+				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
 			    }
 			    # Y component => Check y flag
 			    if {($iy) && ($nsy=="0")} {
 				# Write this node identifier
-				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]]\n"
+				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
 			    }
 			    # Z component => Check z flag
 			    if {($iz) && ($nsz=="0")} {
 				# Write this node identifier
-				append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]]\n"
+				append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
 			    }
 			} else {
 			    # Write this node identifier
 			    # X component => Check x flag
 			    if {$ix} {
 				# Write this node identifier
-				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]]\n"
+				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
 			    }
 			    # Y component => Check y flag
 			    if {$iy} {
 				# Write this node identifier
-				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]]\n"
+				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
 			    }
 			    # Z component => Check z flag
 			    if {$iz} {
 				# Write this node identifier
-				append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]]\n"
+				append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
 			    }
 			}
 		    }
@@ -462,24 +463,24 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m1 {AppId inletvelglist noslipglist kwordli
 			    # X component => Check x flag
 			    if {($ix) && ($nsx=="0")} {
 				# Write this node identifier
-				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]]\n"
+				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
 			    }
 			    # Y component => Check y flag
 			    if {($iy) && ($nsy=="0")} {
 				# Write this node identifier
-				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]]\n"
+				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
 			    }
 			} else {
 			    # Write this node identifier
 			    # X component => Check x flag
 			    if {$ix} {
 				# Write this node identifier
-				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]]\n"
+				append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
 			    }
 			    # Y component => Check y flag
 			    if {$iy} {
 				# Write this node identifier
-				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]]\n"
+				append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
 			    }
 			}
 		    }
@@ -1084,7 +1085,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	# wa "cgroupid:$cgroupid"
 	# Get the condition properties
-	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) activateval
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) activateval ConstantValue
 
 	# wa "activateval:$activateval"
 	if {$wmethod} {
@@ -1104,7 +1105,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 			# Check that exists this element in the dictionary with the condition indentifier links
 			if {[dict exists $ctbclink $elemid]} {
 			    set condid [dict get $ctbclink $elemid]
-			    write_calc_data puts "[format "%10d %4d" $condid $cfixval]"
+			    write_calc_data puts "[format "%10d %10g" $condid $ConstantValue]"
 			}
 		    }
 		    write_calc_data puts "End ConditionalData"
@@ -1123,7 +1124,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 			# Check that exists this element in the dictionary with the condition indentifier links
 			if {[dict exists $ctbclink $elemid]} {
 			    set condid [dict get $ctbclink $elemid]
-			    write_calc_data puts "[format "%10d %4d" $condid $cfixval]"
+			    write_calc_data puts "[format "%10d %10g" $condid $ConstantValue]"
 			}
 		    }
 		    write_calc_data puts "End ConditionalData"
