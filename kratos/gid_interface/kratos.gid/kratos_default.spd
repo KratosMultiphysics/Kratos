@@ -40,7 +40,8 @@
         </Container>
         <Container id="ApplicationTypes" pid="Application types" class="Tab" icon="aplicationTree.gif" help="Application types" open="1">
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
-            <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Helptext" icon="aplicationTree.gif"/>
+            <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
+	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="disabled" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
             <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
             <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="disabled" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>            
         </Container>
@@ -127,7 +128,8 @@
          <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModel="Smagorinsky-Lilly" dv="0.2" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
            </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
-        <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+        <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType ="MPI" help="Number of processors"/>
 	  <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	   <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
 	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP" values="BiConjugate gradient stabilized,MixedUP" help="Iterative solver type options"/>
@@ -192,7 +194,7 @@
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
             <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="ElementBased" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
-            <Container id="WallLaw" pid="Wall law" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
+            <Container id="WallLaw" state="hidden" pid="Wall law" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
 	    <Container id="Flag-Variable" pid="Flag-Variable" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
         </Container>
@@ -220,8 +222,53 @@
 	      </Container>
         </Container>
     </RootData>
+    <RootData id="PFEM" pid="PFEM" state="hiddenAll" class="application" icon="aplicationTree.gif" help="PFEM">
+      <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="1">
+        <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
+	    <Item id="FreeSurface" pid="Free surface" class="freeSurf" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
+      </Container>
+        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
+	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+	  <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
+            <Item id="EndTime" pid="End time" dv="1" help=""/>
+            <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
+            <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
+            <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
+	    <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="1">
+	     <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
+	      <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
+	    </Container>
+	  </Container>
+  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
+        <Container id="Elements" pid="Elements" help="Elements" open="1">
+	  <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+        </Container>
+	<Container id="Conditions" pid="Conditions" help="Boundary conditions" open="1">
+	  <Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
+	  <Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="1"/>
+	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="1"/>
+	  </Container>
+        <Container id="Results" pid="Results" class="Tab" help="Results" open="1">
+        <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
+        <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
+	    <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
+	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
+	      <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+	      <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
+	      <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
+	      <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" help="Distance"/>
+	    </Container>
+	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="1">
+	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
+	    </Container>
+        </Container>
+    </RootData>
     <RootData id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid structure interaction (FSI)">
-        <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
+      <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
     </RootData>
     <RootData id="ConvectionDiffusion" pid="Convection diffusion" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Convection diffusion">
         <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
@@ -341,6 +388,12 @@
         <Template id="IsSlip" icon="groupsTree.gif" help="Is-Slip conditional data">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="Activate" pid="Activate" dv="1" ivalues="1,0" values="1,0" help="Select the activate option value"/>
+		<Item id="ConstantValue" pid="Wall law value" dv="0.0" help="Define the value"/>
+	    </Container>
+        </Template>
+	<Template id="IsBoundary" icon="groupsTree.gif" help="Is-boundary conditional data">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="Activate" pid="Activate" dv="1" ivalues="1,0" values="1,0" help="Select the activate option value"/>
 	    </Container>
         </Template>
          <Template id="WallLaw" icon="groupsTree.gif" help="Wall law nodaI data">
@@ -381,6 +434,6 @@
     	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModel,UseCuts,monolithiciterativesolvertype</Class>
+        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModel,UseCuts,monolithiciterativesolvertype,PSolutionType</Class>
     </ClassConfiguration>
 </Kratos_Data>
