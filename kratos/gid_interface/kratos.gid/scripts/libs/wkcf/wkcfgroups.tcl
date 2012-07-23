@@ -12,11 +12,81 @@
 #
 #    HISTORY:
 #
+#     0.4- 22/07/12-G. Socorro, write the group properties using the new mesh format
 #     0.3- 05/05/12-G. Socorro, write the group properties using the fast method 
 #     0.2- 03/04/12-G. Socorro, change Group by GroupNodes
 #     0.1- 02/04/12-G. Socorro, create a base source code from wkcf.tcl
 #
 ###############################################################################
+
+proc ::wkcf::WriteGroupMeshProperties {AppId} {
+    # ABSTRACT: Write the group properties to the mdpa file
+    variable wmethod
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+	set inittime [clock seconds]
+    }
+    switch -exact -- $wmethod {
+	"1" {
+	    ::wkcf::WriteGroupMeshProperties_m1 $AppId
+	}
+    }
+    # For debug
+    if {!$::wkcf::pflag} {
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write group using the new mesh format: [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
+    # ABSTRACT: Write the group properties to the end of the mdpa file
+    variable dprops
+
+    #
+    # Write assigned group to the elements
+    #
+    set meshgroupid 0
+     
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+	# For all defined kratos elements        
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # Check for all defined group identifier for this element
+	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+		# wa "celemid:$celemid"
+		# For all defined group identifier for this element
+		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    # Group properties format 
+		    set gprop [dict create]
+		    set f "%10i\n"
+		    set f [subst $f]
+		    dict set gprop $cgroupid "$f"
+		    if {[write_calc_data nodes -count $gprop]>0} {
+			incr meshgroupid 1
+			# Write mesh properties for this group
+			write_calc_data puts "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+			# Write nodes
+			write_calc_data puts " "
+			write_calc_data puts " Begin MeshNodes"
+   			write_calc_data nodes -sorted $gprop
+			write_calc_data puts " End MeshNodes"
+			# Write elements
+			write_calc_data puts " "
+			write_calc_data puts " Begin MeshElements"
+   			write_calc_data elements -sorted $gprop
+			write_calc_data puts " End MeshElements"
+			write_calc_data puts " "
+			write_calc_data puts "End Mesh"
+		        write_calc_data puts ""
+		    }
+		    unset gprop
+		}
+	    }
+	}
+    }
+ }
 
 proc ::wkcf::WriteGroupProperties {AppId} {
     # ABSTRACT: Write the group properties file
