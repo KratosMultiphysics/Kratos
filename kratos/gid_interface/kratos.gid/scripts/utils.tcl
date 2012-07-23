@@ -6,16 +6,14 @@
 #
 #    QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#    AUTHOR : G. Socorro => GS
+#    AUTHOR : G. Socorro => GSM
 #
 #    CREATED AT: 01/11/09
 #
-#    LAST MODIFICATION : modify the procedure GetDefinedMeshGiDEntities to get all nodes that defined a surface when using shell elements
-#
-#    VERSION : 0.5
-#
 #    HISTORY:
 #
+#     1.0- 20/07/12-GSM, update the proc ElemenDosListas and rename it to TwoListRepeatedItems
+#     0.9- 13/07/12- J. Garate, ElemenDosListas Compara 2 listas a ver si hay coincidencias
 #     0.8- 07/05/12- J. Garate, update renaming groups restrictions
 #     0.7- 03/05/12-GS, add the procedure DeleteAllGroupIdentifier
 #     0.6- 22/06/11-GS, create the proc CreateTBEFiles and DeleteTBEFiles to work with the TBE files
@@ -920,4 +918,49 @@ proc ::KUtils::FlatEmbeddedLists { a } {
     return $res
 }
 
+proc ::KUtils::TwoListRepeatedItems { lista1 lista2 {ccase "nodes"} } {
 
+    # wa "lista1:$lista1 lista2:$lista2"
+    if { 1 } {
+	
+	set retlist ""
+	if {$ccase == "nodes"} {
+	    foreach item $lista1 {
+		if {$item in $lista2} {
+		    lappend retlist $item
+		}
+	    }
+	} elseif {$ccase == "groups"} {
+	    foreach item $lista1 {
+		set dif [lsearch $item $lista2]
+		if {$dif != "-1"} {
+		    lappend retlist $item
+		}
+	    }
+	}
+	
+	return $retlist
+	
+    } else {
+	
+	
+	set retlist ""
+	if {$elem == "nodes"} {
+	    foreach item $lista1 {
+		set dif [lsearch $item $lista2]
+		msg "dif $dif"
+		if {$dif != "-1"} {
+		    lappend retlist $item
+		}
+	    }
+	} elseif {$elem == "groups"} {
+	    foreach item $lista1 {
+		set dif [lsearch $item $lista2]
+		if {$dif != "-1"} {
+		    lappend retlist $item
+		}
+	    }
+	}
+	return $retlist
+    }
+}
