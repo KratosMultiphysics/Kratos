@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     1,6- 22/07/12- G. Socorro, modify the BeforeMeshGeneration to automatically mesh de boundary lines/surfaces when use Is-Slip BC
 #     1.5- 09/05/12- G. Socorro, use conditions only in the fluid application
 #     1.4- 07/05/12- G. Socorro, update the proc BeforeMeshGeneration to write the Condition2D and Condition3D properties
 #     1.3- 04/05/12- G. Socorro, update the proc BeforeDeleteGroup
@@ -226,13 +227,20 @@ proc BeforeMeshGeneration {elementsize} {
 	    set fieldname "name"
 	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
 	    
-	    # Find boundaries
-	    set blinelist [::wkcf::FindBoundaries $entitytype]
-	    # wa "belist:$blinelist"
-	    
-	    # Assign the boundary condition
-	    ::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
-	    
+	    # Check for use Is-Slip BC
+	    set issliplist [::KMValid::SlipNoSlipList "slip"]
+	    if {[llength $issliplist]} {
+		# Find boundaries
+		set blinelist [::wkcf::FindBoundaries $entitytype]
+		# wa "belist:$blinelist"
+		
+		# Automatically meshing all the boundary lines
+		GiD_Process Mescape Meshing MeshCriteria Mesh Lines $blinelist escape 
+		
+		# Assign the boundary condition
+		::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
+	    }
+
 	} elseif {$ndime =="3D"} {
 	    
 	    # Align the normal
@@ -249,13 +257,19 @@ proc BeforeMeshGeneration {elementsize} {
 	    set fieldname "name"
 	    ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
 	    
-	    # Find boundaries
-	    set bsurfacelist [::wkcf::FindBoundaries $entitytype]
-	    # WarnWinText "bsurfacelist:$bsurfacelist"
-	    
-	    # Assign the boundary condition
-	    ::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
-	    
+	    # Check for use Is-Slip BC
+	    set issliplist [::KMValid::SlipNoSlipList "slip"]
+	    if {[llength $issliplist]} {
+		# Find boundaries
+		set bsurfacelist [::wkcf::FindBoundaries $entitytype]
+		# WarnWinText "bsurfacelist:$bsurfacelist"
+		
+		# Automatically meshing all the boundary surfaces
+		GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces $bsurfacelist escape 
+		
+		# Assign the boundary condition
+		::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
+	    }
 	}
     }
 
