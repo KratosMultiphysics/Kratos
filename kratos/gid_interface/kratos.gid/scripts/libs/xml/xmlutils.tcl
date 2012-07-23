@@ -14,14 +14,16 @@
 #
 #        HISTORY:
 #
-#     0.8- 04/06/12-J. Garate, Template select when transferring user materials
-#     0.7- 27/05/12-J. Garate, ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
-#     0.6- 04/05/12-J. Garate, cambio en el log
-#     0.5- 26/04/12-J. Garate, ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
-#     0.4- 27/02/12-J. Garate, Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
-#     0.3- 03/09/10-G. Socorro, correct an error with outfd
-#     0.2- 24/12/09-G. Socorro, add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
-#     0.1- 01/11/09-G. Socorro, create a base source code
+#		1.0- 20/07/12-J. Garate, Adaptacion de más funciones para los Tabs de Materiales 
+#		0.9- 19/07/12-J. Garate, Adaptacion de funciones para los Tabs de Materiales (MyPathFromNode, parentNodePath, setXML, getXMLvalues)
+#		0.8- 04/06/12-J. Garate, Template select when transferring user materials
+#		0.7- 27/05/12-J. Garate, ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
+#		0.6- 04/05/12-J. Garate, cambio en el log
+#		0.5- 26/04/12-J. Garate, ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
+#		0.4- 27/02/12-J. Garate, Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
+#		0.3- 03/09/10-G. Socorro, correct an error with outfd
+#		0.2- 24/12/09-G. Socorro, add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
+#		0.1- 01/11/09-G. Socorro, create a base source code
 #
 ###############################################################################
 
@@ -271,6 +273,7 @@ proc ::xmlutils::getMatpTypeVersion { xml } {
 	}
 	return $raw
 }
+
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #                             ---- UPDATE KMDB -----
 # Compara la versión del problemTypeName.kmdb abierto con la versión de kratos_default.kmdb
@@ -721,7 +724,7 @@ proc ::xmlutils::copyGroupNode { xmlNew groupNode nodexPath idTemplate oldXmlNod
 }
 
 
- proc ::xmlutils::GetOldDvFromNewNode { node } {        
+ proc ::xmlutils::GetOldDvFromNewNode { node } {
 	global KPriv
 	
 	if {[$node hasAttribute dv]} {
@@ -740,36 +743,37 @@ proc ::xmlutils::copyGroupNode { xmlNew groupNode nodexPath idTemplate oldXmlNod
 		}
 	}
 }
-proc ::xmlutils::myPathFromNode { finalNode {includeFinal 1}} {
+
+proc ::xmlutils::myPathFromNode { finalNode {type "props"} } {
 	
 	set path ""
-	
+	set includeFinal 1
 	set nodes [$finalNode ancestor all]
 	#msg "$finalNode $nodes"
 	set i 0
 	foreach node $nodes {
-		
+
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+			set path "c.$id//$path"
 		}
 	}
 	
 	if {$path != ""} {
 		set path [string range $path 2 end]
 		if { $includeFinal } {
-		        set path "${path}i.[$finalNode getAttribute id 0]"
+			set path "${path}i.[$finalNode getAttribute id 0]"
 		} else {
-		        set path [string range $path 0 end-2]
+			set path [string range $path 0 end-2]
 		}
-		
-		return [::xmlutils::setXPath $path]
+
+		return [::xmlutils::setXPath $path $type]
 	}
 	return ""
 }
 		
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#                                               OLD                                                                  ---- UPDATE SPD -----
+#                         OLD	---- UPDATE SPD -----
 # Compara la versión del problemTypeName.spd abierto con la versión de kratos_default.spd
 # Y si son distintas añade al spd los nodos y atributos nuevos del default
 #
@@ -941,33 +945,59 @@ proc ::xmlutils::updateAtributesRecursive { baseNode targetNode sourceNode id } 
 # 2:  RootDataNode//..c.nodoN..//c.nodoPadre
 #
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-proc ::xmlutils::getPathFromNode { finalNode {includeFinal 1}} {
-	
+proc ::xmlutils::getPathFromNode { finalNode {includeFinal 1} {type "props"}} {
+
 	set path ""
-	
+
 	set nodes [$finalNode ancestor all]
 	#msg "$finalNode $nodes"
 	set i 0
 	foreach node $nodes {
-		
+
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+			set path "c.$id//$path"
+		}
+	}
+
+	if {$path != ""} {
+		set path [string range $path 2 end]
+		if { $includeFinal } {
+			set path "${path}c.[$finalNode getAttribute id 0]"
+		} else {
+			set path [string range $path 0 end-2]
+		}
+		return [::xmlutils::setXPath $path $type]
+	}
+	return ""
+
+}
+
+proc ::xmlutils::getPathFromXPath { xpath {type "props"} } {
+
+	set path ""
+
+	set nodes [$finalNode ancestor all]
+
+	set i 0
+	foreach node $nodes {
+		set id [$node getAttribute id ""]
+		if { $id != "" } {
+			set path "c.$id//$path"
 		}
 	}
 	
 	if {$path != ""} {
 		set path [string range $path 2 end]
 		if { $includeFinal } {
-		        set path "${path}c.[$finalNode getAttribute id 0]"
+			set path "${path}c.[$finalNode getAttribute id 0]"
 		} else {
-		        set path [string range $path 0 end-2]
+			set path [string range $path 0 end-2]
 		}
-		
-		return [::xmlutils::setXPath $path]
+		return [::xmlutils::setXPath $path $type]
 	}
 	return ""
-	
+
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -978,11 +1008,11 @@ proc ::xmlutils::getPathFromNode { finalNode {includeFinal 1}} {
 #
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 proc ::xmlutils::printPathFromNode { finalNode {includeFinal 1}} {
-	
+
 	set path ""
-	
+
 	set nodes [$finalNode ancestor all]
-	
+
 	set i 0
 	foreach node $nodes {
 		
@@ -991,7 +1021,6 @@ proc ::xmlutils::printPathFromNode { finalNode {includeFinal 1}} {
 		        set path "$id/$path"
 		}
 	}
-	
 	if {$path != ""} {
 		
 		if { $includeFinal } {
@@ -999,11 +1028,23 @@ proc ::xmlutils::printPathFromNode { finalNode {includeFinal 1}} {
 		} else {
 		        set path [string range $path 0 end-1]
 		}
-		
 		return $path
 	}
 	return ""
 	
+}
+
+proc ::xmlutils::parentNodePath { nodePath } {
+	set parent [::KMProps::split2 $nodePath "/" ]
+	set parent [lrange $parent 0 end-1]
+	set ret ""
+	foreach pc $parent {
+		append ret $pc
+		append ret "/"
+	}
+	set ret [string range $ret 0 end-2]
+	return $ret
+
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1012,6 +1053,7 @@ proc ::xmlutils::printPathFromNode { finalNode {includeFinal 1}} {
 # BaseNode es el nodo Kratos_data del problemType.sdp (donde vamos a copiar el nodo source)
 #
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 proc ::xmlutils::copyNode { sourceNode baseNode } {
 	
 	global KPriv
@@ -1113,41 +1155,41 @@ proc ::xmlutils::setXPath { path { type "props"} } {
 	if { $type != "props"} {
 		set i 0
 		foreach itemId $splitted {
-		        if { $i == 0 } {                                
-		        #set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"                                                                                                  
-		        set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='$itemId'\]"                                                                                                  
-		        
-		        } else {
-		        if { [string index $itemId 0] == "p" } {
-		                set xpath "$xpath/Property\[@id='[string range $itemId 2 end]'\]"
-		        }
-		        if { [string index $itemId 0] == "m" } {
-		                set xpath "$xpath/Material\[@id='[string range $itemId 2 end]'\]"
-		        }
-		        if { [string index $itemId 0] == "c" } {
-		                set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
-		        }
-		        }                
-		        incr i
+			if { $i == 0 } {
+				#set xpath "/Kratos_KMat_DB/Materials/Material\[@id='$itemId'\]"
+				set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='$itemId'\]"
+				
+			} else {
+				if { [string index $itemId 0] == "p" } {
+					set xpath "$xpath/Property\[@id='[string range $itemId 2 end]'\]"
+				}
+				if { [string index $itemId 0] == "m" } {
+					set xpath "$xpath/Material\[@id='[string range $itemId 2 end]'\]"
+				}
+				if { [string index $itemId 0] == "c" } {
+					set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
+				}
+			}
+			incr i
 		}
 		return $xpath
 	} else {
 		set i 0
 		#msg "s:$splitted"
 		foreach itemId $splitted {
-		        
-		        if { $i == 0 } {                                
-		        #El primer elemento será siempre del nivel 'RootData'
-		        set xpath "/Kratos_Data/RootData\[@id='$itemId'\]"
-		        } else {
-		        
-		                if { [string index $itemId 0] == "c" } {
-		                set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
-		                } else {
-		                set xpath "$xpath/Item\[@id='[string range $itemId 2 end]'\]"
-		                }
-		        }
-		        incr i
+			
+			if { $i == 0 } {
+				#El primer elemento será siempre del nivel 'RootData'
+				set xpath "/Kratos_Data/RootData\[@id='$itemId'\]"
+			} else {
+			
+				if { [string index $itemId 0] == "c" } {
+					set xpath "$xpath/Container\[@id='[string range $itemId 2 end]'\]"
+				} else {
+					set xpath "$xpath/Item\[@id='[string range $itemId 2 end]'\]"
+				}
+			}
+			incr i
 		}
 	}
 	return $xpath
@@ -1156,44 +1198,78 @@ proc ::xmlutils::setXPath { path { type "props"} } {
 #
 # Editar o extraer propiedades del xml en memoria
 #
-proc ::xmlutils::setXml { path property {command "read"} {value ""} } {
-	
+proc ::xmlutils::setXml { path property {command "read"} {value ""} {type "props"} } {
+
 	global KPriv
-	
-	set xpath "[::xmlutils::setXPath $path]"
-	
-	if { $command == "read" } {
-		
-		set value [$KPriv(xml) set "$xpath/@$property" ]
-		
-		if { $property == "dvText" } {
-		        
-		        #En vez de devolver el valor de dv, devuelve su equivalente traducible
-		        set value [$KPriv(xml) set "$xpath/@dv" ]
-		        
-		        if { [lindex $value 0] != "" } {
-		        
-		        set values [::xmlutils::getXMLValues $path]
-		        set ivalues [::xmlutils::getXMLValues $path "" "iValues"]
-		        
-		        if { [llength $ivalues] > 0 } { 
-		                
-		                set index [::xmlutils::getSelected $value $ivalues]
-		                set value [lindex $values $index]
-		        }
-		        }
+	#msg "path $path Property $property Command $command value $value type $type"
+	if { $type == "props" } {
+		set xpath "[::xmlutils::setXPath $path]"
+
+		if { $command == "read" } {
+
+			set value [$KPriv(xml) set "$xpath/@$property" ]
+
+			if { $property == "dvText" } {
+
+				#En vez de devolver el valor de dv, devuelve su equivalente traducible
+				set value [$KPriv(xml) set "$xpath/@dv" ]
+				if { [lindex $value 0] != "" } {
+
+					set values [::xmlutils::getXMLValues $path]
+					set ivalues [::xmlutils::getXMLValues $path "" "iValues"]
+
+					if { [llength $ivalues] > 0 } { 
+
+						set index [::xmlutils::getSelected $value $ivalues]
+						set value [lindex $values $index]
+					}
+				}
+			}
+			
+			#Cuando hay espacios el xml devuelve una lista y si la imprimes tal cual aparecen corchetes
+			if { [llength $value] == 1 } {
+				set value [lindex $value 0]
+			}
+			return $value
+
+		} else {
+			$KPriv(xml) set "$xpath/@$property" "$value"
+			return "1"
 		}
-		
-		#Cuando hay espacios el xml devuelve una lista y si la imprimes tal cual aparecen corchetes
-		if { [llength $value] == 1 } {
-		        set value [lindex $value 0]
+	} elseif { $type == "mat" } {
+		set xpath "[::xmlutils::setXPath $path $type]"
+
+		if { $command == "read" } {
+
+			set value [$KPriv(xmlMat) set "$xpath/@$property" ]
+
+			if { $property == "dvText" } {
+
+				#En vez de devolver el valor de dv, devuelve su equivalente traducible
+				set value [$KPriv(xmlMat) set "$xpath/@value" ]
+				
+				if { [lindex $value 0] != "" } {
+				
+					set values [::xmlutils::getXMLValues $path "" "" "" "" $type]
+					set ivalues [::xmlutils::getXMLValues $path "" "iValues" "" "" $type]
+					
+					if { [llength $ivalues] > 0 } { 
+					
+						set index [::xmlutils::getSelected $value $ivalues]
+						set value [lindex $values $index]
+					}
+				}
+			}
+			
+			#Cuando hay espacios el xml devuelve una lista y si la imprimes tal cual aparecen corchetes
+			if { [llength $value] == 1 } {
+				set value [lindex $value 0]
+			}
+			return $value
+		} else {
+			$KPriv(xmlMat) set "$xpath/@$Property" "$value"
+			return "1"
 		}
-		return $value
-		
-	} else {
-		
-		$KPriv(xml) set "$xpath/@$property" "$value"
-		return "1"                                                
 	}
 }
 
@@ -1208,6 +1284,8 @@ proc ::xmlutils::getXmlNodeName { path {type "props"}} {
 	
 	if { $type == "props" } {
 		set nodes [$KPriv(xml) selectNodes "${xpath}"]
+	} elseif { $type == "mat" } {
+		set nodes [$KPriv(xmlMat) selectNodes "${xpath}"]
 	} else {
 		set nodes [$KPriv(xmlMat) selectNodes "${xpath}"]
 	}
@@ -1335,7 +1413,7 @@ proc ::xmlutils::insertXml { path nodeName properties {xml ""} } {
 # Accede al XML al nodo con path 'fullname' y coge el 
 # atributo "values" o la lista especial correspondiente
 #
-proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplateFull ""} {specialFilter ""}} {
+proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplateFull ""} {specialFilter ""} {type "props"}} {
 	
 	#msg "$application --> $comboList\nargs:1$fullname 2$idTemplate 3$iValues 4$idTemplateFull 5$specialFilter"
 	
@@ -1351,7 +1429,7 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 	
 	if { $idTemplate == "" } {
 		#Se utiliza el fullname normalmente
-		set specialList [::xmlutils::setXml $fullname GCV]
+		set specialList [::xmlutils::setXml $fullname GCV "read" "" $type]
 	} else {
 		#Se tiene que consultar la propiedad en el template
 		set specialList [::KMProps::getPropTemplate $idTemplate GCV "$fullname"]
@@ -1360,7 +1438,7 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 	if { $specialList == "" } {
 		
 		if { $idTemplate == "" } {
-		        set comboList [split [::xmlutils::setXml $fullname $atrValues] ","]
+		        set comboList [split [::xmlutils::setXml $fullname $atrValues "read" "" $type] ","]
 		} else {
 		        set comboList [split [::KMProps::getPropTemplate $idTemplate $atrValues "$fullname"] ","]
 		}
@@ -1723,28 +1801,26 @@ proc ::xmlutils::getAttribute { xml xPath {attribute ""} {value ""} } {
 	if { $nodes != "" } {
 		
 		if { $attribute == "" } {
-		        return $nodes
+			return $nodes
 		} else {
-		        if { [llength $nodes] == 1 } {
-		        
-		        if { $value != "" } {
-		                return [$nodes setAttribute $attribute $value]
-		        } else {                
-		                return [$nodes getAttribute $attribute ""]
-		        }
-		        } else {
-		        set listAttr {}
-		        foreach node $nodes {
-		                if { $value != "" } {
-		                $nodes setAttribute $attribute $value
-		                } else {                
-		                lappend listAttr [$node getAttribute $attribute ""]
-		                }
-		                
-		        }
-		        return $listAttr
-		        }
-		}                
+			if { [llength $nodes] == 1 } {
+				if { $value != "" } {
+					return [$nodes setAttribute $attribute $value]
+				} else {
+					return [$nodes getAttribute $attribute ""]
+				}
+			} else {
+				set listAttr {}
+				foreach node $nodes {
+					if { $value != "" } {
+						$nodes setAttribute $attribute $value
+					} else {
+						lappend listAttr [$node getAttribute $attribute ""]
+					}
+				}
+				return $listAttr
+			}
+		}
 	} else {
 		return "No_node_in_xml"
 	}
