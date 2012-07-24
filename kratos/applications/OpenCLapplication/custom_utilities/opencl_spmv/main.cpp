@@ -25,7 +25,7 @@ int64_t Timer()
 
 int main(int argc, char *argv[])
 {
-    int64_t t1, t2, T1, T2;
+    int64_t t1, t2, T1=0, T2=0;
 
     Kratos::OpenCL::DeviceGroup DeviceGroup(CL_DEVICE_TYPE_GPU, true);
 
