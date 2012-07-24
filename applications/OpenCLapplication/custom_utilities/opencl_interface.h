@@ -1448,7 +1448,7 @@ public:
             CurrentKernels[i] = clCreateKernel(Programs[_ProgramIndex][i], _KernelName, &Err);
             KRATOS_OCL_CHECK(Err);
 
-            size_t WorkGroupSize, MaxWorkGroupSize, PreferredWorkGroupSizeMultiple;
+            size_t WorkGroupSize, MaxWorkGroupSize, PreferredWorkGroupSizeMultiple=0;
 
             Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &MaxWorkGroupSize, NULL);
             KRATOS_OCL_CHECK(Err);
@@ -1461,15 +1461,13 @@ public:
             {
 
 #if KRATOS_OCL_VERSION > 100
-
+		PreferredWorkGroupSizeMultiple = 0;
                 Err = clGetKernelWorkGroupInfo(CurrentKernels[i], DeviceIDs[i], CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE, sizeof(size_t), &PreferredWorkGroupSizeMultiple, NULL);
                 KRATOS_OCL_CHECK(Err);
-std::cout << "line 1467" << std::endl;
 #else
                 // For OpenCL 1.0 only
 
                 PreferredWorkGroupSizeMultiple = 64;  // This seems to be a better choice for nVidia GPUs
-std::cout << "line 1472" << std::endl;
 #endif
 
                 // Select an optimal WorkGroupSize
