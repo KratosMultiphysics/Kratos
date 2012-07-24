@@ -2,10 +2,13 @@ domain_size = *GenData(Dimensions)
 Integration_Scheme = "*GenData(Integration_Scheme)"
 SolutionType = "*GenData(SolutionType)"
 DampRatioType = "*GenData(DampRatioType)"
-DeltaOption = "*GenData(Delta_Option)"
+BoundingBoxOption= "*GenData(bounding_box_option)"
 ContinuumOption= "*GenData(Continuum_Option)"
+DeltaOption = "*GenData(Delta_Option)"
 RotationOption= "*GenData(Rotation_Option)"
 RotationalSpringOption= "*GenData(Rotation_Spring)"
+*format "%10.5e"
+bounding_box_enlargement_factor = *GenData(bounding_box_enlargement_factor)
 *format "%10.5e"
 search_step = *GenData(search_step)
 *format "%10.5e"
