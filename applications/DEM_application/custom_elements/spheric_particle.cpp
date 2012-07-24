@@ -546,14 +546,14 @@ namespace Kratos
                             //M: el damping tangencial dona petits problemes... cal realment un damping?
 
                             /*
-                            if( abs(equiv_visc_damp_ratio * RelVel[0]) > abs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
+                            if( abs(equiv_visc_damp_ratio * RelVel[0]) > fabs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
                             else { visco_damping[0]= equiv_visc_damp_ratio * RelVel[0]; }
 
-                            if( abs(equiv_visc_damp_ratio * RelVel[1]) > abs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
+                            if( abs(equiv_visc_damp_ratio * RelVel[1]) > fabs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
                             else { visco_damping[1]= equiv_visc_damp_ratio * RelVel[1]; }
                             */
 
-                            if( abs(equiv_visc_damp_ratio * LocalRelVel[2]) > abs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
+                            if( fabs(equiv_visc_damp_ratio * LocalRelVel[2]) > fabs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
                             else { visco_damping[2]= equiv_visc_damp_ratio * LocalRelVel[2]; }
 
 
@@ -743,9 +743,6 @@ namespace Kratos
                 double LocalDeltRotaDisp[3] = {0.0};
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
 
-
-
-
                 GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
 
                 GlobalRotaSpringMomentOld[1] = mRotaSpringMoment[ 1 ];
@@ -760,13 +757,11 @@ namespace Kratos
                 double Inertia_J = Inertia_I * 2.0;
 
 
-
                 LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn / equiv_area;
 
                 LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn / equiv_area;
 
                 LocalRotaSpringMoment[2] +=  - Inertia_J * LocalDeltRotaDisp[2] * ks / equiv_area;
-
 
 
                 ////Judge if the rotate spring is broken or not
