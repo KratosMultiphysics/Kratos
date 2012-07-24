@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
- // Py_NoSiteFlag = 1;
+  Py_NoSiteFlag = 1;
 
   Py_Initialize();
 
