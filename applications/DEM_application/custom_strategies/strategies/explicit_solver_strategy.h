@@ -110,6 +110,7 @@ namespace Kratos
       
        ExplicitSolverStrategy(ModelPart& model_part,   
 			      const int        dimension,
+                              const double     enlargement_factor,
 			      const double     damping_ratio,       ///para calcular la matriz de amortiguamiento proporcional a la masa
                               const double     fraction_delta_time,
                               const double     max_delta_time,
@@ -122,7 +123,8 @@ namespace Kratos
 			)
 			: SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
                         
-                            mdimension(dimension) //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual.
+                            mdimension(dimension), //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual.
+                            mParticle_Creator_Destructor()
 
                         {
 
@@ -136,6 +138,7 @@ namespace Kratos
 			   mInitializeWasPerformed      = false;
                            mComputeTime                 = false;
 			   mInitialConditions           = false;
+                           mEnlargementFactor           = enlargement_factor;
                            mdamping_ratio               = damping_ratio;
                            mfraction_delta_time         = fraction_delta_time;
                            mmax_delta_time              = max_delta_time;
@@ -158,17 +161,14 @@ namespace Kratos
       {
 	KRATOS_TRY
 
-     //    KRATOS_WATCH("NO HA FALLAT0")
+    
         std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
 
         int time_step = rCurrentProcessInfo[TIME_STEPS];
-	/*
-	#ifdef _OPENMP
-	double start_prod = omp_get_wtime();   
-	#endif
-	*/
+
+
 //        std::cout<<"------------------------------------------------------------------------"<<std::endl;
 //        std::cout<<"                 KRATOS DEM APPLICATION. TIME STEPS = "           <<  time_step    <<std::endl;
 //        std::cout<<"------------------------------------------------------------------------"<<std::endl;
@@ -191,42 +191,20 @@ namespace Kratos
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
-       //3. Neighbouring search. Every N times.
+       //3. Neighbouring search. Every N times. +bounding box destruction
         
         if ( (time_step + 1)%mnstepsearch == 0 )
         {
+            if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
+            {
+                BoundingBoxUtility(mEnlargementFactor);
+            }
+
             SearchNeighbours(r_model_part,false); //extension option false;
         }
 
 	
-        /*
-        ///Initialize solution step
-	InitializeSolutionStep();
-
-	if(mInitialConditions==false){
-	   ComputeInitialConditions();
-	   GetForce();
-	}
-
-        /// Computa los valores del paso de las velocidades y aceleraciones
-        ComputeOldVelocitiesAndAccelerations();
-
-	/// Actualizacion de los desplazamientos
-        MoveMesh();
-
-        ///Computing The new internal and external forces  for n+1 step
-
-        ///Finalize solution step
-	FinalizeSolutionStep();
-	
-	///Computing energies
-	CalculateEnergies();
-
-        #ifdef _OPENMP
-	double stop_prod = omp_get_wtime();
-	std::cout << "  Time solving                                 = "<<   stop_prod - start_prod    << "  seconds" << std::endl; 
-	#endif
-        */
+     
 
         //std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
@@ -560,16 +538,16 @@ namespace Kratos
        	void BoundingBoxUtility(double enlargement_factor)
 	{
         
+
         KRATOS_TRY
 
         ModelPart& r_model_part              = BaseType::GetModelPart();
-	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
-          
-        Calculate_Surrounding_Bounding_Box(r_model_part,enlargement_factor);
+
+
+
+        mParticle_Creator_Destructor.DestroyDistantParticles( r_model_part );
         
         //Destroy_Distant_Particles(r_model_part);
-
-
 
 
         KRATOS_CATCH("")
@@ -622,10 +600,11 @@ namespace Kratos
 
 
     private:
-            
 
     const unsigned int    mdimension;
-    unsigned int    minitial_conditions_size;  
+    Particle_Creator_Destructor mParticle_Creator_Destructor;
+
+    unsigned int    minitial_conditions_size;
     unsigned int    mcontact_conditions_size;  
     bool   mInitialCalculations;
     bool   mElementsAreInitialized;
@@ -639,7 +618,8 @@ namespace Kratos
     bool   mcontinuum_simulating_option;
 
     bool   mvirtual_mass;
-    
+
+    double mEnlargementFactor;
     double mdamping_ratio;
     double malpha_damp;
     double mbeta_damp; 
@@ -766,24 +746,6 @@ namespace Kratos
              Neighbours_Calculator<3, ParticleType>::Search_Neighbours(pElements,  rCurrentProcessInfo, extension_option);
 
       }//SearchNeighbours
-
-
- 
-
-   void  Calculate_Surrounding_Bounding_Box(ModelPart r_model_part, double enlargement_factor)
-
-       {
-      /*
-       typedef ElementsContainerType                                           ParticleContainerType;
-       ParticleContainerType& pElements = r_model_part.ElementsArray();
-              
-        Particle_Creator_Destructor::CalculateSurroundingBoundingBox(pElements, r_model_part, enlargement_factor);
-       */
-       
-       Particle_Creator_Destructor::CalculateSurroundingBoundingBox( r_model_part, enlargement_factor);
-    
-
-   }//Calculate Surrounding Bounding Box
 
     
     }; // Class ExplicitSolverStrategy 
