@@ -10,6 +10,11 @@ QUESTION: SolutionType#CB#(Incremental,Absolutal)
 VALUE: Incremental
 QUESTION: DampRatioType#CB#(ViscDamp,LocalDamp,BothDamp)
 VALUE: LocalDamp
+QUESTION: Bounding_Box_Option#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,HIDE,bounding_box_enlargement_factor,#CURRENT#)(ON,RESTORE,bounding_box_enlargement_factor,#CURRENT#)
+QUESTION: bounding_box_enlargement_factor
+VALUE: 2.0
 QUESTION: Continuum_Option#CB#(ON,OFF)
 VALUE: ON
 QUESTION: Delta_Option#CB#(ON,OFF)

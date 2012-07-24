@@ -90,8 +90,6 @@ solver.type_id=type_id
 if(continuum_option =="ON"):
   solver.continuum_simulating_OPTION=True
 
-solver.search_radius_extension=search_radius_extension
-
 if(delta_option =="ON"):
   solver.delta_OPTION=True
   
@@ -117,7 +115,8 @@ solver.delta_time=dt
 n_step_destroy_distant = DEM_explicit_solver_var.search_step      # how many steps between elimination of distant particles?
 n_step_search = DEM_explicit_solver_var.search_step
 solver.n_step_search = n_step_search
-bounding_box_enlargement_factor = 2.0    # by what factor do we want to enlarge the strict bounding box
+
+bounding_box_enlargement_factor = DEM_explicit_solver_var.bounding_box_enlargement_factor    # by what factor do we want to enlarge the strict bounding box
 
 extra_radius = 0.0
 max_radius = 0.0
@@ -135,6 +134,9 @@ for node in solid_model_part.Nodes:
       first_it = False
   if rad < min_radius:  
       min_radius = rad
+      
+if(bounding_box_option =="ON"):
+  solver.bounding_box_OPTION=1  #xapuza
 
 extra_radius = 2.5 * max_radius
 prox_tol = 0.000001 * min_radius  #currently not in use.
