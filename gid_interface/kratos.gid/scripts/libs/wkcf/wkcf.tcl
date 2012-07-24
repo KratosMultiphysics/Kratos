@@ -13,7 +13,6 @@
 #
 #    HISTORY:
 #   
-#     5.1- 22/07/12-G. Socorro, call the proc WriteGroupMeshProperties to write the group properties
 #     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
 #                               MonolithicWallCondition2D/MonolithicWallCondition3D for monolithic solver
 #     4.9- 04/06/12-J. Garate,  Correct "WALL_LAW_Y"
@@ -645,7 +644,7 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 		    "Is-Slip" {
 			# Write is-slip boundary condition
 			# set kwordlist [list "IS-SLIP"]
-			set kwordlist [list "IS_STRUCTURE"]
+			set kwordlist [list "IS_STRUCTURE" "Y_WALL"]
 			::wkcf::WriteFluidIsSlipBC $AppId $ccondid $kwordlist
 		    }
 		    "WallLaw" {

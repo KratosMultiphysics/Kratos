@@ -674,18 +674,6 @@ proc ::KMValid::ValidateProjectInformation { allreportlist } {
 	lappend allreportlist "Warning:\n"
     }
     
-    #set xpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ProjectConfiguration'\]/Item\[@id='KratosPath']"
-    #set node [$xml selectNodes $xpath]
-    
-    #if {$node != "" } {
-    #	set dv [$node getAttribute dv ""]
-    
-    #	if { ![file isdirectory $dv] } {
-    #		lappend allreportlist ""
-    #		lappend allreportlist "Error: The kratos path '$dv' does not exists."
-    #		lappend allreportlist "Error:"
-    #	}
-    #}
     
     set line1 ""
     set line2 ""
@@ -713,45 +701,38 @@ proc ::KMValid::ValidateProjectConfiguration { allreportlist } {
 # Accede a un nodo principal como LOADS o CONDITIONS y mira si tiene algún grupo asignado
 #
 proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
-    
-    set nullProps {}
-    set xpath "$appPath/Container\[@id='$rootContainer'\]/Container"
-    set returnNodes 1
-    set assignedGroups [::KMValid::groupsWithEntities $xml $xpath $returnNodes]
-    
-    if { [llength $assignedGroups] } {
-	
-	foreach nodeGroup $assignedGroups {
-	    
-	    foreach nodeContainer [$nodeGroup childNodes] {
-		
-		set nodeItems [$nodeContainer childNodes]
-		foreach item $nodeItems {
-		    set idItem [$item getAttribute id ""]
-		    set dv [$item getAttribute dv ""]
-		    if { $dv == "" } {
-			lappend nullProps [$item getAttribute id ""]
+   
+	set nullProps {}
+	set xpath "$appPath/Container\[@id='$rootContainer'\]/Container"
+	set returnNodes 1
+	set assignedGroups [::KMValid::groupsWithEntities $xml $xpath $returnNodes]
+
+	if { [llength $assignedGroups] } {
+
+		foreach nodeGroup $assignedGroups {
+
+			foreach nodeContainer [$nodeGroup childNodes] {
+			
+				set nodeItems [$nodeContainer childNodes]
+				foreach item $nodeItems {
+					set idItem [$item getAttribute id ""]
+					set dv [$item getAttribute dv ""]
+					if { $dv == "" } {
+					lappend nullProps [$item getAttribute id ""]
+					}
+				}
+		    }
+		    if { [llength $nullProps] } {
+			
+			set parentPID [[$nodeGroup parentNode] getAttribute pid ""]
+			set groupId [$nodeGroup getAttribute id ""]
+
+			lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
+			
+			
 		    }
 		}
-	    }
-	    if { [llength $nullProps] } {
-		
-		set parentPID [[$nodeGroup parentNode] getAttribute pid ""]
-		set groupId [$nodeGroup getAttribute id ""]
-		
-		#if { $firstEmptyProp } {
-		#set firstEmptyProp 0
-		#lappend allreportlist "Error: LOADS:"
-		#}
-		
-		lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
-		
-		
-	    }
-	}
-	#if { ! $firstEmptyProp } {
-	#lappend allreportlist "Error:\n"
-	#}
+
     } else {
 	
 	#En el caso de Initial conditions se ha cambiado de error a warning, por lo que se ha creado
@@ -769,7 +750,8 @@ proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 }
 
 proc ::KMValid::SlipNoSlipList { {type "slip"} } {
-    
+    # De momento solo funciona con Slip y No Slip
+	# Busca busca los grupos que pertenecen a $type
     global KPriv
     
     if { $type == "slip"} {
@@ -795,9 +777,10 @@ proc ::KMValid::SlipNoSlipList { {type "slip"} } {
 	return $nosliplist
     }
 }
-proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
 
-    global KPriv
+proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
+	# De momento solo funciona con Slip y No Slip
+	# Busca si hay grupos o nodos en comun entre firstcomp y secondcomp
 
     set msg [list]
     # Primero buscamos los grupos que pertenecen a Slip y a No Slip
@@ -824,57 +807,57 @@ proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
 proc ::KMValid::CheckRepeatedNodes { grouplist1 grouplist2 Item1 Item2 } {
     # Comprueba que ningun nodo esté en $grouplist1 y en $grouplist2
 
-    set l1nlist [list]
-    set l2nlist [list]
-    set cformat "%10i"
-    set rnodes ""
-    foreach group $grouplist1 {
-	set gprop [dict create]
-	dict set gprop $group "$cformat"
-	lappend l1nlist {*}[write_calc_data nodes -return -sorted $gprop]
-	unset gprop
-    }
-    # wa "l1nlist:$l1nlist"
-    # Check for repeated nodes only if the first list is not empty
-    if {[llength $l1nlist]} { 
-	foreach group $grouplist2 {
-	    set gprop [dict create]
-	    dict set gprop $group "$cformat"
-	    lappend l2nlist {*}[write_calc_data nodes -return -sorted $gprop]
-	    unset gprop
-	}
-	# wa "l2nlist:$l2nlist"
-	# Check only if l2nlist is not empty
-	if {[llength $l2nlist]} {
-	    set rnodes [::KMValid::FindRepeated $l1nlist $l2nlist]
-	    if {[llength $rnodes]} {
-		return "Warning: Repeated node ($rnodes) between the $Item1 and $Item2 boundary condition. Check the group properties assigned to this boundary conditions"
-	    } 
-	}
+	set l1nlist [list]
+	set l2nlist [list]
+	set cformat "%10i"
+	set rnodes ""
+	foreach group $grouplist1 {
+		set gprop [dict create]
+		dict set gprop $group "$cformat"
+		lappend l1nlist {*}[write_calc_data nodes -return -sorted $gprop]
+		unset gprop
+		}
+		# wa "l1nlist:$l1nlist"
+		# Check for repeated nodes only if the first list is not empty
+		if {[llength $l1nlist]} { 
+		foreach group $grouplist2 {
+		    set gprop [dict create]
+		    dict set gprop $group "$cformat"
+		    lappend l2nlist {*}[write_calc_data nodes -return -sorted $gprop]
+		    unset gprop
+		}
+		# wa "l2nlist:$l2nlist"
+		# Check only if l2nlist is not empty
+		if {[llength $l2nlist]} {
+		    set rnodes [::KMValid::FindRepeated $l1nlist $l2nlist]
+		    if {[llength $rnodes]} {
+			return "Warning: Repeated node ($rnodes) between the $Item1 and $Item2 boundary condition. Check the group properties assigned to this boundary conditions"
+		    } 
+		}
     }
     return ""
 }
 
 proc ::KMValid::FindRepeated {nlist1 nlist2} {
+	# Busca si hay nodos repetidos entre nlist1 y nlist2
+	# Necesita eficiencia. En el peor caso puede recorrer cientos de miles de nodos
+	set total [append nlist1 $nlist2]
+	set total [lsort $total]
+	set rec [lsort -unique $total]
 
-    set total [append nlist1 $nlist2]
-    
-    set total [lsort $total]
-    set rec [lsort -unique $total]
-    
-    set a [llength $total]
-    set b [llength $rec]
-    if { $a != $b } {
-	set i 1
-	
-	foreach item $total {
-	    
-	    if { $item == [lindex $total $i] } {
-		return $item
-		break
-	    }
-	    incr i 1
+	set a [llength $total]
+	set b [llength $rec]
+	if { $a != $b } {
+		set i 1
+		
+		foreach item $total {
+
+		    if { $item == [lindex $total $i] } {
+			return $item
+			break
+			}
+			incr i 1
+		}
 	}
-    }
-    return ""
+	return ""
 }
