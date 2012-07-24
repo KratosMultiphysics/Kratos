@@ -77,6 +77,7 @@ class ExplicitStrategy:
 
         self.rotation_OPTION                = 0  #its 1/0 xapuza
         self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
+        self.bounding_box_OPTION            = 0  #its 1/0 xapuza
 
         #problem specific parameters
 
@@ -121,6 +122,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
+        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
 
         
         #####
@@ -132,7 +134,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
        
         #creating the solution strategy
-        self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size,  self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
+        self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
                                             self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
