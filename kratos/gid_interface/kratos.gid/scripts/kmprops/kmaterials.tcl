@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
 #	1.3- 20/07/12-J. Garate, Materials Tab Frame Combos with multiple values 
 #	1.2- 19/07/12-J. Garate, Materials Tab Frame and service functions 
 #	1.1- 12/06/12-J. Garate, Materials Tab Frame and service functions 
@@ -37,22 +38,22 @@ package provide KMat 1.0
 
 # Create a base namespace KMat
 namespace eval ::KMat:: {
-    
+
 	# Path of the base window 
 	variable WinPath ".gid.kmprops"
 	# Tree material properties path
 	variable TreeMatsPath
 	# Notebook material properties path
 	variable NbMatsPath
-	
+
 	variable WinLayout 
 	variable SystemHighlight
 	variable SystemHighlightText
-	
+
 	variable lastSelected {}
 	variable abdlist
 	variable xml ""
-	
+
 	# Se inicializan las clases dinámicamente leyendo del xml
 	variable visibilityVars {}
 
@@ -258,10 +259,60 @@ proc ::KMat::CreateTreeProperties {w} {
 }
 
 #---------------------------------------------------------------------------------------------- 
+# Lee el xml y carga el árbol de propiedades de forma recursiva (sin maximo de niveles)
+#----------------------------------------------------------------------------------------------
+
+proc ::KMat::FillTreeMatRecursive { } {
+	variable abdlist; variable TreeMatsPath
+	global KPriv
+	set KPriv(materialsId) {}
+	
+	set T $TreeMatsPath
+	set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
+	
+	foreach node $nodes {
+		::KMat::FillNextLevel 0 $node $T $node
+	}
+}
+
+proc ::KMat::FillNextLevel { depth acumPath T node } {
+
+	global KPriv
+	
+	set ParentPath "root"
+	set parent ""
+	
+	if {$depth != 0} {
+		set parent [lrange $acumPath 0 0]
+		set ParentPath [$parent getAttribute id ""]
+		foreach elem [lrange $acumPath 1 end] {
+			set split [::KMat::splitNode $elem]
+			append ParentPath "//$split"
+		}
+		lappend acumPath $node
+	
+		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T $parent $ParentPath]
+		set nodes [$node childNodes]
+		incr depth 1
+		if {$item != -1} {
+			foreach node2 $nodes {
+				::KMat::FillNextLevel $depth $acumPath $T $node2
+			}
+		}
+	} else {
+		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMat::stateNode $node] [$node getAttribute open "0"]]
+		set nodes2 [$node childNodes]
+		foreach node2 $nodes2 {
+			::KMat::FillNextLevel 1 $acumPath $T $node2
+		}
+	}
+}
+
+#---------------------------------------------------------------------------------------------- 
 # Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles -> Recursiva (Proximamente)
 #----------------------------------------------------------------------------------------------
 proc ::KMat::FillTreeMat { } {
-    
+
     variable abdlist; variable TreeMatsPath
     global KPriv
     set KPriv(materialsId) {}
@@ -271,12 +322,12 @@ proc ::KMat::FillTreeMat { } {
     
     foreach node $nodes {			  
 		#Nos guardamos todos los Id	
-		#		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] "normal" [$node getAttribute open "0"]]
+		#set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] "normal" [$node getAttribute open "0"]]
 		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMat::stateNode $node] [$node getAttribute open "0"]]
 		
 		set nodes2 [$node childNodes]
 		foreach node2 $nodes2 {
-			#			set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] "normal" [$node2 getAttribute open "0"]]
+			#set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] "normal" [$node2 getAttribute open "0"]]
 		    set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] [::KMat::stateNode $node2] [$node2 getAttribute open "0"]]
 		    if {$item2 != -1} {					
 			lappend KPriv(materialsId) [$node2 getAttribute pid ""]
@@ -435,13 +486,6 @@ proc ::KMat::buildfatherFrame { T item {class "Tab"} } {
 
 		set ::KMat::cmb$id $value
 		incr count
-		
-		#if { $id == "ABD" } {
-		#	set clase "Tab"
-		#	grid [ttk::button $fTab.bProp$id -text "ABD Matrix"  -command "::KMat::buildTabFrameABD $T $item $clase" ] \
-		#	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-		#	tooltip::tooltip $fTab.bPropABD [= "ABD Matrix"]
-		#}
     }
 
 	set clase [lappend fTab $listItems]
@@ -455,13 +499,9 @@ proc ::KMat::buildfatherFrame { T item {class "Tab"} } {
 	tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
 }
 
-proc ::KMat::Microaccept {T class item {acceptItems ""} } {
-	::KMat::acceptTabFrame $T $acceptItems $class $item 
-	::KMat::buildfatherFrame $T $item
-}
-
 proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
 	# Crea el arbol de Tabs
+	
 	global KPriv
 
     # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
@@ -501,14 +541,10 @@ proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
 		set row [::KMat::CreateTabTree $node $listTabs $T $f]
 		# Aqui ya se han creado los Notebooks y los combos
 		
-		#set nb ${f}.nb$row
-		#catch {destroy $nb}
 		
 		# Si pulsan Esc también forzamos la salida del Tab
 		bind $T <KeyPress> "if { %k == 27 } { ::KMProps::DestroyBottomFrame }"
-		
-		#bind $T <KeyPress> "if { %k == 13 } { [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
-		#bind $::KMProps::WinPath <KeyPress> "if { %k == 13   } { [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
+
 		incr row 1
 
 		#Finalmente colocamos los Botones de OK y de Cancel debajo de todo
@@ -544,7 +580,7 @@ proc ::KMat::CreateTabTree {node listTabs T f} {
 				set nbPath [ttk::notebook $nb ]
 				grid $nbPath -row $level -sticky nsew
 				ttk::notebook::enableTraversal $nb
-				#bind $nb <<NotebookTabChanged>> [list ::KMat::UpdateTabProperties $node $nb $listTabs $T $f ]
+				
 			} else {
 				# Tratamos los demas nb, que se acoplan sobre el tab correspondiente del nb anterior
 				set nb [::KMat::GetNBPath $f $level $parent $listTabs $stopid $id]
@@ -554,7 +590,6 @@ proc ::KMat::CreateTabTree {node listTabs T f} {
 				}
 				grid [ttk::notebook $nb ] -row $level -sticky nsew -in [::KMat::GetParentNB $nb 1]
 				ttk::notebook::enableTraversal $nb
-				#bind $nb <<NotebookTabChanged>> [list ::KMat::UpdateTabProperties $node $nb $listTabs $T $f]
 			}
 		}
 		# Finalmente añadimos el tab
@@ -758,7 +793,8 @@ proc ::KMat::addTabtoNb { f level parent tid listTabs stopid} {
 }
 
 proc ::KMat::Combos {node row framePath} {
-
+	# Cuando un tab es padre (sus hijos son Items, no containers" creamos los combos
+	
 	global KPriv
 	incr row 1
 
@@ -766,7 +802,7 @@ proc ::KMat::Combos {node row framePath} {
 	# Los combos a añadir son los hijos del nodo
 	
 	for {set i 0} { $i < [llength $listContainer] } {incr i} {
-		#Para cada hijo, obtenemos sus datos
+		# Para cada hijo, obtenemos sus datos
 		set id [[lindex $listContainer $i] getAttribute id ""]
 		set pid [[lindex $listContainer $i] getAttribute pid ""]
 		set value [[lindex $listContainer $i] getAttribute value ""]
@@ -776,7 +812,7 @@ proc ::KMat::Combos {node row framePath} {
 			destroy $framePath.lbl$id
 		}
 
-		#Para cada item añadimos label y combo
+		# Para cada item añadimos label y combo
 		grid [ttk::label $framePath.lbl$id -text "$pid:" ] \
 		-row [expr $i+2] -column 0 -pady 2 -sticky nw -in $framePath
 
@@ -789,7 +825,7 @@ proc ::KMat::Combos {node row framePath} {
 			dict set ::Itemsdict $id $lista
 		}
 		
-		#Obtenemos la lista de valores para el combo si existe
+		# Obtenemos la lista de valores para el combo si existe
 
 		set icomboList ""
 
@@ -806,11 +842,6 @@ proc ::KMat::Combos {node row framePath} {
 		
 		if { [llength $comboList] > 0 } {
 
-			if {[string length $id] == 2 } { 
-				set width 15
-			} else {
-				set width 20
-			}
 			if { [winfo exists $framePath.cmb$id ] } {
 				destroy $framePath.cmb$id
 			}
@@ -1438,8 +1469,7 @@ proc ::KMat::CopyMaterial { {T ""} {name ""} } {
     
     
     return $name   
-    
-    
+
 }
 
 
@@ -1463,35 +1493,34 @@ proc ::KMat::SetMatToRename { T item newtext } {
 	msg "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
 	return
     }
-    
-    
+
     #Guardamos el nivel del item a renombrar
     set fullname [DecodeName [$T item tag names $item]]
     set splitted [::KEGroups::split2 $fullname //]
     set whereRename [llength $splitted]
-    
+
     #Recorremos toda su familia		cambiando cada path
     set items [$T item descendants $item]
-    
+
     foreach i $items {		
 	set fullname [DecodeName [$T item tag names $i]]
 	set splitted [::KEGroups::split2 $fullname //]
-	
+
 	#Sustituimos la posición apropiada del path por el nuevo nombre
 	set splitted [::KEGroups::listReplace $splitted [lindex $splitted [expr $whereRename - 1]] m.$newtext]
-	
+
 	#Reconstruimos el nuevo path
 	set fullNewName ""
 	foreach iSplit $splitted {		
-	    set fullNewName "$fullNewName$iSplit//"
+		set fullNewName "$fullNewName$iSplit//"
 	}
 	set fullNewName [string range $fullNewName 0 end-2]
 	
 	#Cambiamos la etiqueta (el path) en el arbol
 	$T item tag remove $i [list names [$T item tag names $i]]
 	$T item tag add $i [EncodeName $fullNewName]
-    }
-    
+	}
+
     #Cambiamos el item a renombrar 
     set fullname [DecodeName [$T item tag names $item]]
     
@@ -1499,8 +1528,7 @@ proc ::KMat::SetMatToRename { T item newtext } {
     
     #Renombramos también todas las ocurrencias del material en el .spd de propiedades
     ::KMProps::checkMaterials $oldId $newtext
-    
-    
+
     return ""
 }
 

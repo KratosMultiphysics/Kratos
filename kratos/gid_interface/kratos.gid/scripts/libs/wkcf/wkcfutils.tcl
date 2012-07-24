@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     2.0- 23/07/12-G. Socorro, add the "ConstantValue" to the Is-Slip condition
 #     1.9- 13/05/12-G. Socorro, set/unset the local variable ctbclink (condition to bc linker)
 #     1.8- 07/05/12-G. Socorro, add the CleanAutomatic, CleanAutomaticConditionGroup and AssignConditionToGroup
 #     1.7- 20/04/12-G. Socorro, update the proc GetBoundaryConditionProperties to include is-slip and walllaw boundary conditions
@@ -279,7 +280,7 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 	    set cbcgrouplist [::xmlutils::setXmlContainerIds $cxpath]
 	    # WarnWinText "cbcgrouplist:$cbcgrouplist"
 	    if {[llength $cbcgrouplist]} {
-		# Update boundary condtion type identifier
+		# Update boundary condition type identifier
 		lappend dprops($AppId,AllBCTypeId) $cbctid
 		# WarnWinText "inside cbcgrouplist:$cbcgrouplist"
 		foreach cgroupid $cbcgrouplist {

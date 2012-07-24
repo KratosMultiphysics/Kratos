@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.3- 24/07/12-G. Socorro, update the procedure WriteFluidIsSlipBC to write Y_Wall nodaldata
 #     1.2- 22/07/12-G. Socorro, modify the Is-Slip BC, correct a bug when write inlet BC 
 #     1.1- 08/06/12-G. Socorro, add a new variable Use_slip_conditions when use is-slip or wall-law conditions
 #     1.0- 04/06/12-G. Socorro, set Laplacian form=1 for the fractional step case
@@ -1078,6 +1079,11 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	set inittime [clock seconds]
     }
 
+    # Set the keyword values
+    set isstructurekw [lindex $kwordlist 0]
+    set isywallkw [lindex $kwordlist 1]
+
+    set state 0
     # Variable to control when use slip conditions
     set dprops($AppId,UseSlipConditions) 0
 
@@ -1096,26 +1102,40 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 		set GiDElemType "Linear"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set dprops($AppId,UseSlipConditions) 1
-		    set f "%10i [format "%4i" $activateval]\n"
+		    set f "%10d [format "%4i" $activateval] %10d %10d\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
-		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
+		    write_calc_data puts "Begin ConditionalData $isstructurekw // GUI is-slip condition group identifier: $cgroupid"
 		    # write_calc_data connectivities -sorted $gprop
 		    foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+			# wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
 			# Check that exists this element in the dictionary with the condition indentifier links
 			if {[dict exists $ctbclink $elemid]} {
 			    set condid [dict get $ctbclink $elemid]
-			    write_calc_data puts "[format "%10d %10g" $condid $ConstantValue]"
+			    write_calc_data puts "[format "%10d %10d" $condid $activateval]"
 			}
 		    }
 		    write_calc_data puts "End ConditionalData"
 		    write_calc_data puts ""
+		    unset gprop
+
+		    # Write Y_Wall values
+		    set gprop [dict create]
+		    set f "%10d [format "%4d" $state] [format "%10g" $ConstantValue]\n"
+		    set f [subst $f]
+		    dict set gprop $cgroupid "$f"
+		    write_calc_data puts " Begin NodalData $isywallkw // GUI Y-Wall condition group identifier: $cgroupid"
+		    write_calc_data nodes $gprop 
+		    write_calc_data puts "End NodalData"
+		    write_calc_data puts ""
+		
+		    unset gprop
 		}
 	    } elseif {$ndime == "3D"} {
 		set GiDElemType "Triangle"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set dprops($AppId,UseSlipConditions) 1
-		    set f "%10i [format "%4i" $activateval]\n"
+		    set f "%10d [format "%4i" $activateval] %10d %10d %10d\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
 		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
@@ -1124,15 +1144,27 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 			# Check that exists this element in the dictionary with the condition indentifier links
 			if {[dict exists $ctbclink $elemid]} {
 			    set condid [dict get $ctbclink $elemid]
-			    write_calc_data puts "[format "%10d %10g" $condid $ConstantValue]"
+			    write_calc_data puts "[format "%10d %10d" $condid $cfixval]"
 			}
 		    }
 		    write_calc_data puts "End ConditionalData"
 		    write_calc_data puts ""
+		    unset gprop
+		    
+		    # Write Y_Wall values
+		    set gprop [dict create]
+		    set f "%10d [format "%4d" $state] [format "%10g" $ConstantValue]\n"
+		    set f [subst $f]
+		    dict set gprop $cgroupid "$f"
+		    write_calc_data puts " Begin NodalData $isywallkw // GUI Y-Wall condition group identifier: $cgroupid"
+		    write_calc_data nodes $gprop 
+		    write_calc_data puts "End NodalData"
+		    write_calc_data puts ""
+		
+		    unset gprop
 		} 
 	    }
 	}
-	unset gprop
     }
 
     # For debug
