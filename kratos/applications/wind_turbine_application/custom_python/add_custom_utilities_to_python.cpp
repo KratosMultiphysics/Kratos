@@ -80,6 +80,7 @@ namespace Python
     	class_< WindTurbineRotationUtilities > ("WindTurbineRotationUtilities", init< ModelPart& >())
         .def("DoRotationAndRemesh", &WindTurbineRotationUtilities::DoRotationAndRemesh)
         .def("DoExtractFaceNodes", &WindTurbineRotationUtilities::DoExtractFaceNodes)
+        .def("GetRemeshingRank", &WindTurbineRotationUtilities::GetRemeshingRank)
         ;
 
 	typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
