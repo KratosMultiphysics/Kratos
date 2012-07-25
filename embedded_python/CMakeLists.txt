@@ -13,9 +13,9 @@ set( EMBEDDED_PYTHON_SOURCES
 
 
 ###############################################################
-add_executable(krun ${EMBEDDED_PYTHON_SOURCES} )
-target_link_libraries(krun  ${PYTHON_LIBRARIES})
-install(TARGETS krun DESTINATION . )
+add_executable(runkratos ${EMBEDDED_PYTHON_SOURCES} )
+target_link_libraries(runkratos  ${PYTHON_LIBRARIES})
+install(TARGETS runkratos DESTINATION . )
 
 message("python libraries to be installed are: " ${PYTHON_LIBRARIES} )
 install(FILES ${PYTHON_LIBRARIES} DESTINATION .)
