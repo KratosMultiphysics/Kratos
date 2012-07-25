@@ -63,6 +63,6 @@ double ParallelSmoothMeshInGPU(TMesh *aMesh , TVertexesEvaluator fc, double minE
 void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement call);
 void enterCritical();
 void leaveCritical();
-
+void clearPool() ;
 int incrementalID();
 void setNumThreads(int nt);
