@@ -46,17 +46,14 @@ SolverType = ProjectParameters.SolverType
 if(SolverType == "FractionalStep"):
     import vms_fractional_step_solver as solver
     solver.AddVariables(fluid_model_part)
-elif(SolverType == "pressure_splitting"):
-    import decoupled_solver_eulerian as solver
-    solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    import monolithic_solver_eulerian as solver
+    import vms_monolithic_solver as solver
     solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     import monolithic_solver_eulerian_compressible as solver
     solver.AddVariables(fluid_model_part)
 else:
-    raise NameError("solver type not supported: options are FractionalStep - pressure_splitting - monolithic_solver_eulerian")
+    raise NameError("solver type not supported: options are FractionalStep  - monolithic_solver_eulerian")
 
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -105,8 +102,6 @@ else:
 ##adding dofs
 if(SolverType == "FractionalStep"):
     solver.AddDofs(fluid_model_part)
-elif(SolverType == "pressure_splitting"):
-    solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
     solver.AddDofs(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
@@ -130,7 +125,7 @@ if(laplacian_form >= 2):
 
 # decoupled solver schemes: need solver for pressure and solver fol velocity
 
-if ProjectParameters.SolverType in ["pressure_splitting","FractionalStep"]:
+if ProjectParameters.SolverType in ["FractionalStep"]:
     # Velocity preconditioner
     try:
         if ProjectParameters.Velocity_Preconditioner_type == 'Diagonal':
@@ -239,59 +234,41 @@ oss_switch = ProjectParameters.use_orthogonal_subscales
 #fluid solver
 if(SolverType == "FractionalStep"):
     fluid_solver = solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
-    #fluid_solver.max_val_its = ProjectParameters.max_vel_its
-    #fluid_solver.max_press_its = ProjectParameters.max_press_its
-    #fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
-    #fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
-    #fluid_solver.use_dt_in_stabilization = False
-    #fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    #fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
-    #fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
-    #fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
-    ##fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
-    ## Solver definition
+    fluid_solver.max_val_its = ProjectParameters.max_vel_its
+    fluid_solver.max_press_its = ProjectParameters.max_press_its
+    fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector            
+    fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
+    fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
+    fluid_solver.dynamic_tau = float(dynamic_tau)
+    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
+    # Solver definition
     #fluid_solver.velocity_linear_solver = velocity_linear_solver
     #fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
-if(SolverType == "pressure_splitting"):
-    fluid_solver = solver.DecoupledSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
-    fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
-    fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
-    fluid_solver.use_inexact_newton = False
-    fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
-    # Solver definition
-    fluid_solver.velocity_linear_solver = velocity_linear_solver
-    fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = int(oss_switch)
+    fluid_solver.dynamic_tau = float(dynamic_tau)
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
     fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
     fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
     fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
     fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
+    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
     # Solver definition
     fluid_solver.linear_solver = monolithic_linear_solver
     # fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_switch);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
+    fluid_solver.oss_switch = int(oss_switch)
+    fluid_solver.dynamic_tau = float(dynamic_tau)
     fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
     fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
     fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
     fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
     fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.CalculateReactions = ProjectParameters.Calculate_reactions
+    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
     # Solver definition
     fluid_solver.linear_solver = monolithic_linear_solver
     # fluid_solver.velocity_linear_solver = velocity_linear_solver
@@ -326,6 +303,15 @@ else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
     # Initialize .post.list file (GiD postprocess list)
     f = open(ProjectParameters.problem_name+'.post.lst','w')
     f.write('Multiple\n')
+    
+    
+    
+#######################################33
+#preparing output of point graphs
+import point_graph_printer
+import define_output
+output_nodes_list = define_output.DefineOutputPoints()
+graph_printer = point_graph_printer.PrintGraphPrinter(output_nodes_list, fluid_model_part, variables_dictionary, domain_size)
 
 
 # Stepping and time settings
@@ -356,6 +342,8 @@ while(time <= final_time):
 
     if(step >= 3):
         fluid_solver.Solve()
+        
+        graph_printer.PrintGraphs(time)
 
     if(output_time <= out):
         if Multifile:
