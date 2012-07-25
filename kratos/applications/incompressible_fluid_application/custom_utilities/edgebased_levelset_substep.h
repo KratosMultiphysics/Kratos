@@ -3486,7 +3486,7 @@ private:
             double dist = mdistances[i_node];
             if (dist <= 0.0)
             {
-                double mu = mViscosity[i_node];
+                double nu = mViscosity[i_node];
                 array_1d<double, TDim>& rhs_i = rhs[i_node];
                 const array_1d<double, TDim>& U_i = vel[i_node];
                 const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
@@ -3503,8 +3503,8 @@ private:
                 area = sqrt(area);
 
                 //now compute the skin friction
-                double mod_uthaw = sqrt(mod_vel * mu / ym);
-                double y_plus = ym * mod_uthaw / mu;
+                double mod_uthaw = sqrt(mod_vel * nu / ym);
+                double y_plus = ym * mod_uthaw / nu;
 
                 if (y_plus > y_plus_incercept)
                 {
@@ -3512,10 +3512,10 @@ private:
                     unsigned int it = 0;
                     double dx = 1e10;
                     //                        KRATOS_WATCH(fabs(dx));
-                    while (fabs(dx) > toll * mod_uthaw && it < itmax)
+                    while ( (fabs(dx) > toll * mod_uthaw) && (it < itmax) )
                     {
                         double a = 1.0 / k;
-                        double temp = a * log(ym * mod_uthaw / mu) + B;
+                        double temp = a * log(ym * mod_uthaw / nu) + B;
                         double y = mod_uthaw * (temp) - mod_vel;
                         double y1 = temp + a;
                         dx = y / y1;
@@ -3541,16 +3541,25 @@ private:
 
 
                 // Reducing wall friction for the large element near wall. Pooyan.
-                double reducing_factor = 1.00;
-                double h_min = mHavg[i_node];
-                if(ym < h_min)
-                    reducing_factor = ym / h_min;
-                //KRATOS_WATCH(h_min);
-                //KRATOS_WATCH(ym);
-                //KRATOS_WATCH(reducing_factor);
-                if (mod_vel > 1e-12)
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] -= reducing_factor * U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+/*                double reducing_factor = 1.00;
+                double h_min = mHavg[i_node];*/
+		
+		double tau = mod_vel * mod_vel ;
+		
+		if (mod_vel > 1e-12)
+		  for (unsigned int comp = 0; comp < TDim; comp++)
+                        rhs_i[comp] -= tau * area *U_i[comp] / mod_vel;
+		    
+		
+		
+//                 if(ym < h_min)
+//                     reducing_factor = ym / h_min;
+//                 //KRATOS_WATCH(h_min);
+//                 //KRATOS_WATCH(ym);
+//                 //KRATOS_WATCH(reducing_factor);
+//                 if (mod_vel > 1e-12)
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         rhs_i[comp] -= reducing_factor * U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
 
 
 
