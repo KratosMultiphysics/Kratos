@@ -22,7 +22,7 @@
 bool* _faces;
 int innerID = 0;
 int innerNumThreads =12;
-
+static TList<TObject*> * resultedClusters = NULL;  
 
 void setNumThreads(int nt)
 {
@@ -633,17 +633,23 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 	int	iv ,i ,nsimCh;
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
-	TList<TObject*> * resultedClusters; 
+	
 	// Tama�o maximo de procesos simultaneos
 	nsimCh = ASSIGNMENT_SIZE;
 	//----------------------------------------
 	// Initialization part!
 	startProcess((char*)("Initialization"));
-	resultedClusters = new TList<TObject*>();	
-	for (i = 0 ; i<nsimCh ; i++)
+
+	// Initialize variables
+	vRes = new TList<TObject*>();
+	if ( resultedClusters == NULL)
 	{
-		TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
-		resultedClusters->Add( (TObject*)(e));
+		resultedClusters = new TList<TObject*>();	
+		for (i = 0 ; i<nsimCh ; i++)
+		{
+			TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
+			resultedClusters->Add( (TObject*)(e));
+		}
 	}
 
 	vertexesCopy = aMesh->vertexes;
@@ -766,7 +772,29 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 	aMesh->updateRefs();	
 	endProcess((char*)("updateRefs"));
 
+	// Clear variables;
+	delete vRes;
+
+	for (int i = 0; i<resultedClusters->Count(); i++)
+	{
+		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));					
+	}
+
 	return numEvaluatedClusters;
+}
+
+void clearPool()
+{
+	for (int i = 0; i<resultedClusters->Count(); i++)
+	{
+		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
+		resultedClusters->setElementAt(i, NULL);
+		delete resC ;
+	}
+	
+	delete resultedClusters ;	
+
+	resultedClusters = NULL;
 }
 
 double ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc, double minExpAngle )

@@ -274,6 +274,8 @@ double TElementsCluster::getMinAngle()
 
 TElementsCluster::~TElementsCluster()
 {
+	fc =NULL;
+	vC =NULL;
 	delete(  goodTetraList);
 	delete(  surfaceT);
 	delete(  vertexes);
@@ -281,6 +283,9 @@ TElementsCluster::~TElementsCluster()
 	delete(  elements2);
 	delete(  newElements);
 	delete(  tempL );
+    delete (elements );
+	delete (tempTetraList);
+	delete (inspectedElements);
 }
 
 
