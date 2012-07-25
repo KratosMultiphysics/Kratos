@@ -3601,7 +3601,7 @@ private:
 
                 if (mod_vel > 1e-12)
                     for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw * density / (mod_vel);
+                        rhs_i[comp] -= U_i[comp] * area * mod_uthaw * mod_uthaw  / (mod_vel);
 
 
 
