@@ -381,16 +381,28 @@ namespace Kratos
 
                 array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
+		array_1d<double, 3 > vel_old        = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY,2); //Ignasi . VELOCITY = VELOCITY,1
+                array_1d<double, 3 > other_vel_old  = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY,2); //Ignasi
 
                 array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
                 array_1d<double, 3 > other_delta_displ      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
 
                 double DeltDisp[3] = {0.0};
                 double RelVel [3] = {0.0};
-
+		double RelVel_old [3] = {0.0};//Ignasi
+                double DeltRelVel[3] = {0.0};//Ignasi
+		
                 RelVel[0] = (vel[0] - other_vel[0]);
                 RelVel[1] = (vel[1] - other_vel[1]);
                 RelVel[2] = (vel[2] - other_vel[2]);
+		
+		RelVel_old[0] = (vel_old[0] - other_vel_old[0]);//Ignasi
+                RelVel_old[1] = (vel_old[1] - other_vel_old[1]);//Ignasi
+                RelVel_old[2] = (vel_old[2] - other_vel_old[2]);//Ignasi
+
+		DeltRelVel[0] = RelVel[0] -  RelVel_old[0];//Ignasi
+                DeltRelVel[1] = RelVel[1] -  RelVel_old[1];//Ignasi
+                DeltRelVel[2] = RelVel[2] -  RelVel_old[2];//Ignasi
 
                 //DeltDisp in global cordinates
 
@@ -424,6 +436,7 @@ namespace Kratos
                     }//if rotation_OPTION
 
                     double LocalDeltDisp[3] = {0.0};
+		    double LocalDeltRelVel[3] = {0.0};//Ignasi
                     double LocalContactForce[3]  = {0.0};
                     double GlobalContactForce[3] = {0.0};
                     double LocalRelVel[3] = {0.0};
@@ -435,6 +448,7 @@ namespace Kratos
                     GlobalContactForce[2] = mContactForces[2];
 
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+		    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRelVel, LocalDeltRelVel);//Ignasi
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
@@ -448,7 +462,18 @@ namespace Kratos
 
              if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                                   // for attached particles we enter onlty if the particle is still attached.
-                    {
+             {   
+		 /*if ( (fabs(LocalDeltDisp[2]) >= indentation) ) {
+                     
+                     LocalContactForce[2] = kn * indentation;
+                 }
+                 else {
+
+                     LocalContactForce[2] += - kn * LocalDeltDisp[2];
+                 }*/ //This allows us to avoid the error in the calculation of the first and last step with indentation > 0.0 . 
+                     //Before uncommenting it, you have to comment LocalContactForce[2]+= - kn * LocalDeltDisp[2] below, and  
+                     //erase the condition (fabs(LocalContactForce[2] + kn * LocalDeltDisp[2]) < 1e-12) in the Viscodamping section. Ignasi
+
                         LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                         LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
                         LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
@@ -469,9 +494,9 @@ namespace Kratos
 
                         }
 
-                    }
+             }
                     
-             if ( (indentation < 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 1) )
+             if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 1) )
              {
                         LocalContactForce[0] = 0.0;  // 0: first tangential
                         LocalContactForce[1] = 0.0;  // 1: second tangential
@@ -535,34 +560,47 @@ namespace Kratos
                             }
                         }
 
-                // VISCODAMPING (applyied locally)
-
-                        if (damp_id == 2 || damp_id == 3 )
+          // VISCODAMPING (applyied locally)
+		
+	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) ) {
+                 
+                if ( (fabs(LocalDeltDisp[2]) >= indentation) && ((fabs(LocalContactForce[2] + kn * LocalDeltDisp[2])) < 1e-12) ) {
+                    
+                    LocalContactForce[0] += - equiv_visc_damp_ratio * LocalRelVel[0];
+                    LocalContactForce[1] += - equiv_visc_damp_ratio * LocalRelVel[1];
+                    LocalContactForce[2] += - equiv_visc_damp_ratio * LocalRelVel[2];
+                }
+                else {
+                    
+                    LocalContactForce[0] += - equiv_visc_damp_ratio * LocalDeltRelVel[0];
+                    LocalContactForce[1] += - equiv_visc_damp_ratio * LocalDeltRelVel[1];
+                    LocalContactForce[2] += - equiv_visc_damp_ratio * LocalDeltRelVel[2];
+                }
+             } //Ignasi
+                        /*if (damp_id == 2 || damp_id == 3 )
                         {
 
-                            double visco_damping[3] = {0,0,0};
+                            double visco_damping[3] = {0,0,0};*/
                             //the damping is never larger than the force.
 
                             //M: el damping tangencial dona petits problemes... cal realment un damping?
 
                             /*
-                            if( abs(equiv_visc_damp_ratio * RelVel[0]) > fabs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
+                            if( fabs(equiv_visc_damp_ratio * RelVel[0]) > fabs(LocalContactForce[0]) )   {visco_damping[0]= LocalContactForce[0]; }
                             else { visco_damping[0]= equiv_visc_damp_ratio * RelVel[0]; }
 
-                            if( abs(equiv_visc_damp_ratio * RelVel[1]) > fabs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
+                            if( fabs(equiv_visc_damp_ratio * RelVel[1]) > fabs(LocalContactForce[1]) )   {visco_damping[1]= LocalContactForce[1]; }
                             else { visco_damping[1]= equiv_visc_damp_ratio * RelVel[1]; }
                             */
 
-                            if( fabs(equiv_visc_damp_ratio * LocalRelVel[2]) > fabs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
-                            else { visco_damping[2]= equiv_visc_damp_ratio * LocalRelVel[2]; }
+                            /*if( fabs(equiv_visc_damp_ratio * LocalRelVel[2]) > fabs(LocalContactForce[2]) )   {visco_damping[2]= LocalContactForce[2]; }
+                            else { visco_damping[2]= equiv_visc_damp_ratio * LocalRelVel[2]; }*/
 
-
-                            LocalContactForce[0] = LocalContactForce[0] - visco_damping[0];
+                            /*LocalContactForce[0] = LocalContactForce[0] - visco_damping[0];
                             LocalContactForce[1] = LocalContactForce[1] - visco_damping[1];
                             LocalContactForce[2] = LocalContactForce[2] - visco_damping[2];
 
-                        }
-
+                        }*/
 
                 // TRANSFORMING TO GLOBAL FORCES AND ADDING UP
 
