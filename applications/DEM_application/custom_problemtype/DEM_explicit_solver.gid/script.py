@@ -27,7 +27,7 @@ model_part_io_solid = ModelPartIO(input_file_name)
 model_part_io_solid.ReadModelPart(solid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-solid_model_part.SetBufferSize(2)
+solid_model_part.SetBufferSize(3)
 
 ##adding dofs
 SolverStrategy.AddDofs(solid_model_part)
@@ -56,6 +56,7 @@ else:
     type_id = 1
 
 damp_ratio_type = DEM_explicit_solver_var.DampRatioType
+
 if(damp_ratio_type == "ViscDamp"):
     damp_id = 2
 elif(damp_ratio_type == "LocalDamp"):
@@ -63,6 +64,7 @@ elif(damp_ratio_type == "LocalDamp"):
 else:
     damp_id = 3
     
+solver.damp_id=damp_id
 
 gravity = Vector(3)
 gravity[0] = DEM_explicit_solver_var.gravity_x
@@ -79,6 +81,8 @@ search_radius_extension=DEM_explicit_solver_var.search_radius_extension
 
 rotation_option =DEM_explicit_solver_var.RotationOption
 rotation_spring_option=DEM_explicit_solver_var.RotationalSpringOption
+
+bounding_box_option = DEM_explicit_solver_var.BoundingBoxOption
 
 if(delta_option=="OFF"):
   search_radius_extension=0.0;
@@ -164,8 +168,6 @@ print 'Calculation starts at instant: ' + str(current_pr_time)
 
 while(time < final_time):
 	  
-    
- 
     #solver.Critical_Time()
 
     time = time + dt
