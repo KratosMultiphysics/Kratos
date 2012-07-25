@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.4- 25/07/12-G. Socorro, add VolumeOutput to 3D problem
 #     1.3- 24/07/12-G. Socorro, update the procedure WriteFluidIsSlipBC to write Y_Wall nodaldata
 #     1.2- 22/07/12-G. Socorro, modify the Is-Slip BC, correct a bug when write inlet BC 
 #     1.1- 08/06/12-G. Socorro, add a new variable Use_slip_conditions when use is-slip or wall-law conditions
@@ -1565,6 +1566,13 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     puts $fileid "output_step = $output_step"
 
     # For results
+    if {$ndime =="3D"} {
+	#  For volumen output
+	set cxpath "$rootid//c.Results//i.VolumeOutput"
+	set VolumeOutput [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "VolumeOutput = $VolumeOutput"
+    }
+
     puts $fileid ""
     # On nodes results
     set cnrlist [list "Velocity" "Pressure" "Reactions" "Distance"]
