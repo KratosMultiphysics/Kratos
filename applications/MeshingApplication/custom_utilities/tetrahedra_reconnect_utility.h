@@ -659,7 +659,8 @@ public:
         // Get back in Kratos
         innerConvertToKratos(refMP , m , removeFreeVertexes);
         delete m;
-        m = NULL;
+        m = NULL;		
+		clearPool();
     }
 
 
