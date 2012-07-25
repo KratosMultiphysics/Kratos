@@ -147,18 +147,22 @@ void WindTurbineRotationUtilities::FillElementRegions()
                 bool warn = false;
                 destRegion = DecideElementRegion(mNumberOfNodesPerElement, elemBelongings, oppositeVertex, warn);
 
-                if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
+                // pushing the element in the proper container member
+                if (warn)
                 {
-                    // pushing the element in the proper container member
-                    if (warn)
-                        std::cout << "Undefined belongings (" << destRegion << ")for element " << itr->Id() << std::endl;
-                    else
+                    std::cout << "Undefined belongings (" << destRegion << ")for element " << itr->Id() << std::endl << ", with regions in the multiplicity vector: " << std::endl;
+                    for (unsigned int i = 0; i < mNumberOfNodesPerElement; i++)
+                        std::cout << elemBelongings[i].Region() << ", " << std::endl;
+                    exit(-1);
+                }
+                else
+                {
+                    if (mEchoLevel > WIND_TURBINE_ECHOLEVEL_INFO)
                     {
                         std::cout << "Assigning Element " << itr->Id() << " to region " << destRegion;
                         if (oppositeVertex)
-                            std::cout << " with vertex in " << oppositeVertex;
+                            std::cout << " with vertex in " << oppositeVertex << std::endl;
                     }
-                    std::cout << std::endl;
                 }
 
                 switch (destRegion)
@@ -601,7 +605,7 @@ void WindTurbineRotationUtilities::RegenerateCrownElements3D()
         inData.holelist = new REAL[3];
         *(inData.holelist) = (REAL)0.0;
         *(inData.holelist + 1) = (REAL)0.0;
-        *(inData.holelist + 2) = (REAL)(-0.75);
+        *(inData.holelist + 2) = (REAL)0.0; //(-0.75); TODO: clean this owful hard-coded setting
         inData.numberofholes = 1;
 
         inData.numberoffacets = mNumberOfBoundaryFaces;   // constrained facets
@@ -984,6 +988,12 @@ unsigned int WindTurbineRotationUtilities::DecideElementRegion(const unsigned in
                                             {
                                                 destRegion = WIND_TURBINE_CROWN_REGION;
                                             }
+                                            else if ((regionMultiplicity[1].Region() == WIND_TURBINE_CROWN_REGION && regionMultiplicity[2].Region() == WIND_TURBINE_EXTERNAL_CYL_BASE)
+                                                || (regionMultiplicity[2].Region() == WIND_TURBINE_CROWN_REGION && regionMultiplicity[1].Region() == WIND_TURBINE_EXTERNAL_CYL_BASE))
+                                            {
+                                                edgeOppositeVertex = WIND_TURBINE_CROWN_REGION;
+                                                destRegion = WIND_TURBINE_CROWN_REGION;
+                                            }
                                             else
                                             {
                                                 std::cout << "Warning: (part 2 WIND_TURBINE_OUTER_INTERF_REGION)!" << std::endl;
@@ -1212,6 +1222,8 @@ double WindTurbineRotationUtilities::CalculateRotationVelocity(double NewRotAngl
 // this function is for debug purposes
 void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, const int& domainSize)
 {
+    if (mThisRank == mRemeshingRank)
+    {
         //construct a new auxiliary model part
         auxModelPart.SetBufferSize(mrGlobalModelPart.GetBufferSize());
         //mspalart_model_part.Nodes() = mr_model_part.Nodes();
@@ -1263,7 +1275,9 @@ void WindTurbineRotationUtilities::DoExtractFaceNodes(ModelPart& auxModelPart, c
         }
 
         auxModelPart.Elements() = mCrownElems;
-
+    }
+    else
+        auxModelPart.Clear();
 }
 
 
@@ -1630,7 +1644,8 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
                                 outerNodesRefsContainer.push_back(pNewNode);
                             }
                             // i must attach the new nodes to the model part
-                            mrGlobalModelPart.AddNode(pNewNode);
+//                            mrGlobalModelPart.AddNode(pNewNode);          // trying substituting this .AddNode() with a .push_back() (and then a .Sort() suddently out of this cycle)
+                            mrGlobalModelPart.Nodes().push_back(pNewNode);
                         }
                     }
                 }
@@ -1638,6 +1653,7 @@ void WindTurbineRotationUtilities::Parallel_MigrateEntities(const EntitiesContai
             }
         }
 
+        mrGlobalModelPart.Nodes().Sort();
 
         // appending the outer interface nodes and update the list pivot offset
         mFirstOuterInterfaceNodeOffset = mInterfaceNodes.size();

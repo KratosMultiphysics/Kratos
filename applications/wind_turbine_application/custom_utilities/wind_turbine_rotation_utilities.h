@@ -81,8 +81,9 @@ public:
 
         void DoRotationAndRemesh(const int&, const double&, const double&);
 
-        // debugging function
+        // debugging functions
         void DoExtractFaceNodes(ModelPart&, const int&);
+        int GetRemeshingRank() { return mRemeshingRank; }
 
 private:
 	ModelPart& mrGlobalModelPart;
