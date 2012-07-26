@@ -184,23 +184,61 @@ void ASGS3D_ENR::CalculateRightHandSide(VectorType& rRightHandSideVector, Proces
 //************************************************************************************
 //************************************************************************************
 //checked
-void ASGS3D_ENR::CalculateMassContribution(MatrixType& K, const double volume, const double density)
+void ASGS3D_ENR::CalculateMassContribution(MatrixType& K, const array_1d<double, 4 > & N_at_igauss, const double volume, const double density)
 {
     KRATOS_TRY
-    double lump_mass_fac = volume * 0.25;
+    boost::numeric::ublas::bounded_matrix<double, 4, 4 > ConsistentMass = ZeroMatrix(4, 4);
+    boost::numeric::ublas::bounded_matrix<double, 16, 16 > ConsistentMassFull = ZeroMatrix(16, 16);
 
-    int nodes_number = 4;
-    int dof = 3;
+    ConsistentMass=volume*density*outer_prod(N_at_igauss, trans(N_at_igauss));
+
+    //KRATOS_WATCH(ConsistentMass);
+    //double lump_mass_fac = volume * 0.25;
+
+    //int nodes_number = 4;
+    //int dof = 3;
+
+    for (int i = 0; i < 4; i++)
+    {
+        int row = 4* i;
+        for (int j = 0; j < 4; j++)
+	    {
+	    int column=4*j;
+            ConsistentMassFull(row,   column) += ConsistentMass(i,j);   ConsistentMassFull(row,   column+1) += ConsistentMass(i,j);   ConsistentMassFull(row,   column+2) += ConsistentMass(i,j);
+            ConsistentMassFull(row+1, column) += ConsistentMass(i,j);   ConsistentMassFull(row+1, column+1) += ConsistentMass(i,j);   ConsistentMassFull(row+1, column+2) += ConsistentMass(i,j);
+            ConsistentMassFull(row+2, column) += ConsistentMass(i,j);   ConsistentMassFull(row+1, column+1) += ConsistentMass(i,j);   ConsistentMassFull(row+2, column+2) += ConsistentMass(i,j);
+
+	    }
+    }
+    //KRATOS_WATCH(ConsistentMassFull)
+    
+    double lumped_term=0.0;
+    for (int i = 0; i < 16; i++)
+    {
+       lumped_term=0.0;
+       for (int j=0;j<16;j++)
+  	  {
+          lumped_term+=ConsistentMassFull(i,j);		
+	  }
+       for (int j=0;j<16;j++)
+	  {
+	     if(i==j)
+	          K(i,j)+=lumped_term;		
+	  }
+    }
+    
+    /*
     for (int nd = 0; nd < nodes_number; nd++)
     {
         int row = nd * (dof + 1);
         for (int jj = 0; jj < dof; jj++)
             K(row + jj, row + jj) += density / 1.0 * lump_mass_fac;
     }
-
+    */
     KRATOS_CATCH("")
 
 }
+
 
 //************************************************************************************
 //************************************************************************************
@@ -246,6 +284,8 @@ void ASGS3D_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProces
     unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
+
+    boost::numeric::ublas::bounded_matrix<double, 16, 16 > ConsistentMass = ZeroMatrix(16, 16);
     //this loops is in progress
     for(unsigned int igauss=0; igauss<n_subdivisions; igauss++)
     {
@@ -266,7 +306,7 @@ void ASGS3D_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProces
         CalculateTau(N_at_igauss,tauone, delta_t, Volume, density, viscosity);
 
         //the next three functions are correct
-        CalculateMassContribution(rMassMatrix, Volume, density);
+        CalculateMassContribution(rMassMatrix, N_at_igauss, Volume, density);
         //add stablilization terms due to advective term (a)grad(V) * ro*Acce
         CalculateAdvMassStblTerms(rMassMatrix, DN_DX, N_at_igauss, tauone, Volume, density);
         //add stablilization terms due to grad term grad(q) * ro*Acce
@@ -939,6 +979,8 @@ void ASGS3D_ENR::CalculateTau(const array_1d<double,4>& N, double& tauone, const
     //tauone = 1.0 / ( (dyn_st_beta)/time + 4.0 * mu / (ele_length * ele_length * density) + 2.0 * advvel_norm / ele_length);
     tauone=time/density;
 
+
+    //tauone*=0.1;
     //tauone = time;
     KRATOS_CATCH("")
 

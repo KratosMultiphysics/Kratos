@@ -239,7 +239,7 @@ protected:
     ///@}
     ///@name Private Operators
     ///@{
-    virtual void CalculateMassContribution(MatrixType& K, const double volume, const double density);
+    virtual void CalculateMassContribution(MatrixType& K, const array_1d<double,4>& partition_N, const double volume, const double density);
 
     //Pavel: below is changed for several gauss points
     virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double partition_volume, const double nu, const double rho);
