@@ -233,63 +233,64 @@ public:
         }
 
 
+		if (number_of_triangles!=0) 
+		{
+			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
 
-        for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
+			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
+			{
+				Geometry<Node<3> >&geom = i_condition->GetGeometry();
+				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)
+				{
+					int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+					Condition_Nodes[position] =  -1 ; //a -1 means we need this node!
+				}
+			}//done. now we know all the nodes that will have to be added to the new model part.
 
-        for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++)
-        {
-            Geometry<Node<3> >&geom = i_condition->GetGeometry();
-            for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)
-            {
-                int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
-                Condition_Nodes[position] =  -1 ; //a -1 means we need this node!
-            }
-        }//done. now we know all the nodes that will have to be added to the new model part.
+			//we loop all the nodes in the old model part and copy the ones used by conditions to the new model part:
+			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index)
+			{
+				if (Condition_Nodes[index]==-1)
+				{
+					++number_of_nodes; //one new node!
+					Condition_Nodes[index] = number_of_nodes + number_of_previous_nodes; //we give this node consecutives ids. now we create the new node
+					ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index;
+					Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
+					pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
+					pnode->GetValue(FATHER_NODES).resize(0);
+					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
+					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
+					pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //lo anterior no anduvo... creo q es así entonces. o hace falta el GetValue?
 
-        //we loop all the nodes in the old model part and copy the ones used by conditions to the new model part:
-        for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index)
-        {
-            if (Condition_Nodes[index]==-1)
-            {
-                ++number_of_nodes; //one new node!
-                Condition_Nodes[index] = number_of_nodes + number_of_previous_nodes; //we give this node consecutives ids. now we create the new node
-                ModelPart::NodesContainerType::iterator it_node = this_model_part.Nodes().begin()+index;
-                Node < 3 > ::Pointer pnode = new_model_part.CreateNewNode(number_of_nodes+number_of_previous_nodes, it_node->X(), it_node->Y(), it_node->Z());  //recordar que es el nueevo model part!!
-                pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
-                pnode->GetValue(FATHER_NODES).resize(0);
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
-                pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
-                pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //lo anterior no anduvo... creo q es así entonces. o hace falta el GetValue?
+					pnode->X0() = it_node->X0();
+					pnode->Y0() = it_node->Y0();
+					pnode->Z0() = it_node->Z0();
+				}
+			}//finished the list of nodes to be added.
 
-                pnode->X0() = it_node->X0();
-                pnode->Y0() = it_node->Y0();
-                pnode->Z0() = it_node->Z0();
-            }
-        }//finished the list of nodes to be added.
+			//now to the conditions!
+			vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
+			Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
+			Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
 
-        //now to the conditions!
-        vector<int>  triangle_nodes(3); //here we'll save the nodes' ids with the new node names
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");         //condition type
-        Properties::Pointer properties = this_model_part.GetMesh().pGetProperties(plane_number); 		//this will allow us later to turn this layer on/off in GID
-
-        for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
-        {
-            Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
-            for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
-            {
-                int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
-                triangle_nodes[i]=Condition_Nodes[position]; // saving the i nodeId
-            } //nodes id saved. now we have to create the element.
-            Triangle3D3<Node<3> > geometry(
-                new_model_part.Nodes()(triangle_nodes[0]),  //condition to be added
-                new_model_part.Nodes()(triangle_nodes[1]),
-                new_model_part.Nodes()(triangle_nodes[2])
-            );
-            Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
-            new_model_part.Conditions().push_back(p_condition);
-            ++number_of_triangles;
-        }
-
+			for(ModelPart::ConditionsContainerType::iterator i_condition = rConditions.begin() ; i_condition != rConditions.end() ; i_condition++) //looping all the conditions
+			{
+				Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
+				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
+				{
+					int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+					triangle_nodes[i]=Condition_Nodes[position]; // saving the i nodeId
+				} //nodes id saved. now we have to create the element.
+				Triangle3D3<Node<3> > geometry(
+					new_model_part.Nodes()(triangle_nodes[0]),  //condition to be added
+					new_model_part.Nodes()(triangle_nodes[1]),
+					new_model_part.Nodes()(triangle_nodes[2])
+				);
+				Condition::Pointer p_condition = rReferenceCondition.Create(number_of_triangles+1, geometry, properties); //está bien? acá la verdad ni idea. sobre todo number_of_triangles (la posición). o debe ser un puntero de elemento en vez de un entero?
+				new_model_part.Conditions().push_back(p_condition);
+				++number_of_triangles;
+			}
+		}
         KRATOS_WATCH("Finished copying conditions surfaces")
         KRATOS_CATCH("")
 
