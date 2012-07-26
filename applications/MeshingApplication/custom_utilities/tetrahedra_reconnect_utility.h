@@ -37,6 +37,9 @@
 #include "u_ProcessTime.h"
 #include "u_TetGenInterface.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 
 namespace Kratos
@@ -94,7 +97,7 @@ public:
         innerConvertFromKratos(r_model_part , m );
         refMP = r_model_part;
 
-        maxNumThreads = 16;
+        maxNumThreads = 0;
         blockSize = 2048;
 
     }
@@ -520,7 +523,18 @@ public:
 		}
 
         if (debugMode) std::cout <<"...Start Optimization..." <<"\n";
-        OpenMPUtils::SetNumThreads(maxNumThreads);
+		// maxNumThreads works as a FLAG
+		//    when equals to 0, take "max available threads"
+		//    in other case, take "set num threads"
+
+        if ( maxNumThreads == 0)
+		{
+			#ifdef _OPENMP
+			OpenMPUtils::SetNumThreads(omp_get_max_threads());			
+			#endif
+		}
+		else
+			OpenMPUtils::SetNumThreads(maxNumThreads);
 
         if (debugMode)
         {
@@ -532,6 +546,9 @@ public:
         {
             stopTimers();
         }
+		std::cout <<"...Trying to allocate memmory\n";
+		preparePool();
+		std::cout <<"...Allocate memmory OK\n";
 
         for (int iter = 0 ; iter< iterations ; iter ++)
         {
@@ -660,7 +677,10 @@ public:
         innerConvertToKratos(refMP , m , removeFreeVertexes);
         delete m;
         m = NULL;		
+		std::cout <<"...Trying to release memmory\n";
 		clearPool();
+		std::cout <<"...Release memmory OK\n";
+		
     }
 
 
