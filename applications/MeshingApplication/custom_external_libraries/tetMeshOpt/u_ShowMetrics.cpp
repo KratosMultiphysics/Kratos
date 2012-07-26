@@ -76,16 +76,19 @@ void TetQuality::print()
 {
 	std :: cout <<"----------------------------------------"<<"\n";
 	std :: cout << "Mesh quality: " <<"\n";
-	std :: cout << "Min diedral Angle :" <<this->fDieMin <<"\n";
-	std :: cout << "Max diedral Angle :" <<this->fDieMax <<"\n";
-	std :: cout << "Min Face Angle :" <<this->fFaceMin <<"\n";
-	std :: cout << "Max Face Angle :" <<this->fFaceMax <<"\n";
-	std :: cout << "Min Volume :" <<this->fVolMin <<"\n";
-	std :: cout << "Max Volume :" <<this->fVolMax <<"\n";
-	std :: cout << "Min Quality :" <<this->fMinQuality <<"\n";
-	std :: cout << "Max Quality :" <<this->fMaxQuality <<"\n";
+	std :: cout << "Diedral Angle. Min :" <<this->fDieMin<< " Max :" <<this->fDieMax <<"\n";	
+	std :: cout << "Face Angle. Min :" <<this->fFaceMin << " Max :" <<this->fFaceMax <<"\n";
+	std :: cout << "Volume. Min :" <<this->fVolMin<< " Max :" <<this->fVolMax <<"\n";	
+	std :: cout << "Quality. Min :" <<this->fMinQuality<< " Max :" <<this->fMaxQuality <<"\n";	
 	std :: cout << "Average diedral Angle :" <<this->DieAveMin <<"\n";
 	std :: cout << "Num negative elements :" <<this->nonPositive <<"\n";
-	std :: cout << "Num elements :" << this->aMesh->elements->Count() <<"\n";
-	std :: cout << "Num vertexes :" << this->aMesh->vertexes->Count() <<"\n";
+	int ne = this->aMesh->elements->Count();
+	int nv = this->aMesh->vertexes->Count();
+	int nt = 0;
+	if (aMesh->fFaces )
+		nt = aMesh->fFaces->Count();
+	std :: cout << "#Elements :" << ne << " #Vertexes: "<< nv << " #Faces: " << nt <<"\n";
+	
+	
+
 }

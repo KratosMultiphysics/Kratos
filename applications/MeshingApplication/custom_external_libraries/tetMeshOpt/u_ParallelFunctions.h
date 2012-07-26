@@ -64,5 +64,6 @@ void parallelFor(int from, int to,  TList<TObject*>* elements,TStForLoopElement 
 void enterCritical();
 void leaveCritical();
 void clearPool() ;
+void preparePool();
 int incrementalID();
 void setNumThreads(int nt);

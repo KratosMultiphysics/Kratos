@@ -22,7 +22,7 @@
 bool* _faces;
 int innerID = 0;
 int innerNumThreads =12;
-static TList<TObject*> * resultedClusters = NULL;  
+TList<TObject*> * resultedClusters = NULL;  	
 
 void setNumThreads(int nt)
 {
@@ -167,7 +167,6 @@ void localProcessI(int i, int thId  ,TObject* destObject)
 
 void fastGetSurfaceTriangles(TMesh* aMesh)
 {
-
 	int i,j , numT;
 	TVertex*v0,*v1,*v2;
 	TTetra *t;
@@ -276,7 +275,6 @@ void lpEvaluateClusterByFace(int i, int thId  ,TObject* destObject)
 				//if (aCluster->getMinAngle() > minExpectedAngle) continue;
 				aCluster->generateSubMesh();				
 
-				
 				if (aCluster->evaluateSet()>0) 
 				{
 					aCluster->updateMesh(true);
@@ -390,8 +388,7 @@ void lpEvaluateClusterByEdge(int i, int thId  ,TObject* destObject)
 	TList<TVertex*>* vl = new TList<TVertex*>();
 	TVertex *v0,*v1;
 	int j;
-
-
+	
 	v0 = aCluster->inspVertex;
 	// obtengo nuevamente los vecinos de orden 1	
 	v0->getVertexNeighboursByElem(vl,1,true);
@@ -633,7 +630,7 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 	int	iv ,i ,nsimCh;
 	TList<TObject*> *vRes;
 	TList<TVertex*> *vertexesCopy;
-	
+    
 	// Tama�o maximo de procesos simultaneos
 	nsimCh = ASSIGNMENT_SIZE;
 	//----------------------------------------
@@ -642,18 +639,27 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 
 	// Initialize variables
 	vRes = new TList<TObject*>();
-	if ( resultedClusters == NULL)
+	if (resultedClusters == NULL)
 	{
+		std :: cout <<"*********** Creating clusters**************** \n";
 		resultedClusters = new TList<TObject*>();	
-		for (i = 0 ; i<nsimCh ; i++)
+		for (i = 0 ; i<ASSIGNMENT_SIZE ; i++)
 		{
 			TElementsCluster* e = new TElementsCluster(aMesh,vrelaxQuality) ;
 			resultedClusters->Add( (TObject*)(e));
 		}
 	}
+	else
+	{
+		for (i = 0 ; i<ASSIGNMENT_SIZE ; i++)
+		{
+			TElementsCluster* e = (TElementsCluster*)(  resultedClusters->elementAt(i)); 
+			e->originalMesh = aMesh;
+		}
+	}
+	
 
 	vertexesCopy = aMesh->vertexes;
-	vRes = new TList<TObject*>();
 
 	int numClusters, numEvaluatedClusters;
 	numClusters = numEvaluatedClusters = 0;
@@ -665,7 +671,7 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 
 			for (i = 0 ;i<(int)(vertexesCopy->Count()) ; i++)
 			{
-				TVertex *v = vertexesCopy->structure[i];
+				TVertex *v = vertexesCopy->elementAt(i);
 				v->visited = 0;
 				v->flag = 0;
 				v->isdestroyed = false;
@@ -673,7 +679,7 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 				v->elementsList->Pack();			
 				for (int j = 0; j<(int)(v->elementsList->Count());j++)
 				{
-					TTetra *t = (TTetra*)(v->elementsList->structure[j]);				
+					TTetra *t = (TTetra*)(v->elementsList->elementAt(j));				
 					minQ = Min( minQ , t->fMinDiedralAngle);
 				}
 				v->calidad = minQ ; 
@@ -774,18 +780,37 @@ double ParallelEvaluateCluster(TMesh *aMesh , TVertexesEvaluator fc, int mode, b
 
 	// Clear variables;
 	delete vRes;
-
+	/*
 	for (int i = 0; i<resultedClusters->Count(); i++)
 	{
 		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));					
 	}
 
+	for (int i = 0; i<resultedClusters->Count(); i++)
+	{
+		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
+		resultedClusters->setElementAt(i, NULL);
+		delete resC ;
+	}
+	
+	delete resultedClusters ;	
+	*/
 	return numEvaluatedClusters;
 }
 
+void preparePool()
+{
+		resultedClusters = new TList<TObject*>();	
+		for (int i = 0 ; i<ASSIGNMENT_SIZE ; i++)
+		{
+			TElementsCluster* e = new TElementsCluster(NULL,vrelaxQuality) ;
+			resultedClusters->Add( (TObject*)(e));
+		}
+
+}
 void clearPool()
 {
-	for (int i = 0; i<resultedClusters->Count(); i++)
+	for (int i = 0; i<ASSIGNMENT_SIZE; i++)
 	{
 		TElementsCluster* resC = (TElementsCluster*)(resultedClusters->elementAt(i));			
 		resultedClusters->setElementAt(i, NULL);
@@ -795,6 +820,7 @@ void clearPool()
 	delete resultedClusters ;	
 
 	resultedClusters = NULL;
+	
 }
 
 double ParallelEvaluateClusterByNode(TMesh *aMesh , TVertexesEvaluator fc, double minExpAngle )
