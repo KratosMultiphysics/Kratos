@@ -227,8 +227,8 @@ namespace Kratos
 			noalias(DeltaVel) = (i)->FastGetSolutionStepValue(VELOCITY)  - (i)->FastGetSolutionStepValue(VELOCITY,1);			
 			DeltaPressure = (i)->FastGetSolutionStepValue(PRESSURE)  - (i)->FastGetSolutionStepValue(PRESSURE,1);
 
-			array_1d<double,3>& CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,0);
-			array_1d<double,3>& OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+			//array_1d<double,3>& CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,0);
+			//array_1d<double,3>& OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
 
 			array_1d<double,3>& CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,0);
 			array_1d<double,3>& OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
@@ -236,23 +236,50 @@ namespace Kratos
 			double& CurrentPressurerRate = (i)->FastGetSolutionStepValue(PRESSURE_DT,0);
 			double& OldPressurerRate = (i)->FastGetSolutionStepValue(PRESSURE_DT,1);
 
-			array_1d<double,3>& OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
+			//array_1d<double,3>& OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY,1);
 			
 			UpdateTimeDerivative(CurrentPressurerRate,DeltaPressure,OldPressurerRate);
 
 			(this)->UpdateAcceleration(CurrentAcceleration, DeltaVel,OldAcceleration);
-			(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
+			//(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
 			
 			//to not move nodes with fixed flag
+			/*
 			if(i->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
 			if(i->IsFixed(DISPLACEMENT_Y)) CurrentDisplacement[1] = 0.0;
 			if(i->IsFixed(DISPLACEMENT_Z)) CurrentDisplacement[2] = 0.0;
 
-
+	
+			//at the IS_INTERFACE nodes we assume the velocity to be assigned (FSI example)
+			
+			if (i->FastGetSolutionStepValue(IS_INTERFACE)!=1.0)		
+			{
 			i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
 			i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
 			i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
 
+				if(this->mMeshVelocity == 0.0)//EUlerian
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
+				    }
+
+				if(this->mMeshVelocity == 1.0)
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X,1);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y,1);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z,1);
+				    }
+				if(this->mMeshVelocity == 2.0)//Lagrangian
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z);
+				    }
+
+			}
+			*/			
 			}
 			
 			KRATOS_CATCH("")
@@ -316,28 +343,52 @@ namespace Kratos
 				double& CurrentPressurerRate = (i)->FastGetSolutionStepValue(PRESSURE_DT,0);
 				double& OldPressurerRate = (i)->FastGetSolutionStepValue(PRESSURE_DT,1);
 
-				array_1d<double,3>& OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
-				array_1d<double,3>& CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,0);
+				//array_1d<double,3>& OldDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+				//array_1d<double,3>& CurrentDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT,0);
 
 				UpdateTimeDerivative(CurrentPressurerRate, DeltaPressure,OldPressurerRate);
 		
 				(this)->UpdateAcceleration(CurrentAcceleration, DeltaVel,OldAcceleration);
-				(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
+				//(this)->UpdateDisplacement(CurrentDisplacement,OldDisplacement,OldVelocity,OldAcceleration,CurrentAcceleration);
 		
 				//to not move nodes with fixed flag
-				if(i->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
-				if(i->IsFixed(DISPLACEMENT_Y)) CurrentDisplacement[1] = 0.0;
-				if(i->IsFixed(DISPLACEMENT_Z)) CurrentDisplacement[2] = 0.0;
-			   
-				i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-				i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-				i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
-			   
+				//to not move nodes with fixed flag
+				/*
+				    if(i->IsFixed(DISPLACEMENT_X)) CurrentDisplacement[0] = 0.0;
+				    if(i->IsFixed(DISPLACEMENT_Y)) CurrentDisplacement[1] = 0.0;
+				    if(i->IsFixed(DISPLACEMENT_Z)) CurrentDisplacement[2] = 0.0;
+
+				//at the IS_INTERFACE nodes we assume the velocity to be assigned (FSI example)
+				if (i->FastGetSolutionStepValue(IS_INTERFACE)!=1.0)		
+				{
+
+				    if(this->mMeshVelocity == 0)
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = 0.0;
+				    }
+
+				    if(this->mMeshVelocity == 1)
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X,1);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y,1);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z,1);
+				    }
+				    if(this->mMeshVelocity == 2)
+				    {
+					i->FastGetSolutionStepValue(MESH_VELOCITY_X) = i->FastGetSolutionStepValue(VELOCITY_X);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Y) = i->FastGetSolutionStepValue(VELOCITY_Y);
+					i->FastGetSolutionStepValue(MESH_VELOCITY_Z) = i->FastGetSolutionStepValue(VELOCITY_Z);
+				    }
+
+			   	}
+				*/
 			}
 		std::cout << "end of prediction" << std::endl;
 		KRATOS_CATCH("")
 		}
-		
+		 
 		
 //******************************************************************************************
 //******************************************************************************************
@@ -362,25 +413,29 @@ namespace Kratos
 			//*********update density DENSITY_AIR 
 			//if the distance at the node is negative - this is air
 			//and if this node was air also in the previous step
-			if (in->FastGetSolutionStepValue(DISTANCE)<0.0 && in->FastGetSolutionStepValue(DISTANCE,2)<0.0)
+			if (in->FastGetSolutionStepValue(DISTANCE)<=0.0 && in->FastGetSolutionStepValue(DISTANCE,2)<=0.0)
 				{
 				const double old_rho = in->FastGetSolutionStepValue(DENSITY, 1);	
 				double pr = in->FastGetSolutionStepValue(PRESSURE);
 				double old_pr = in->FastGetSolutionStepValue(PRESSURE,1);
 				double alpha = 1.0;
 				
+				//CHAPUZA!!!!!!!!!!!!!!!
+				//if (pr<=0.0)
+				//	pr=old_pr;
+				
 				if(old_pr == 0.0 ) 	
 					alpha = 0.0;
 				else
 				  alpha = pow(pr/old_pr, 1.0/1.4);
 				  
-				double predicted_density = old_rho*alpha;
+				double predicted_density = old_rho*alpha;				
 				in->FastGetSolutionStepValue(DENSITY) = predicted_density;	
 
 				sound_vel=sqrt(1.4*pr/predicted_density);
 				}
 			//if this is water and was water in the previous step
-			else if (in->FastGetSolutionStepValue(DISTANCE)>=0.0 && in->FastGetSolutionStepValue(DISTANCE,2)>=0.0 )
+			else if (in->FastGetSolutionStepValue(DISTANCE)>0.0 && in->FastGetSolutionStepValue(DISTANCE,2)>0.0 )
 				{
 				//*******update water density DENSITY
 				const double old_rho_w = in->FastGetSolutionStepValue(DENSITY ,1);	
@@ -397,7 +452,7 @@ namespace Kratos
 				//CalculateSoundVelocity(in);
 				}
 			//if it is air in this step, but was water in the previous step
-			else if (in->FastGetSolutionStepValue(DISTANCE)<0.0 && in->FastGetSolutionStepValue(DISTANCE,2)>=0.0 )
+			else if (in->FastGetSolutionStepValue(DISTANCE)<=0.0 && in->FastGetSolutionStepValue(DISTANCE,2)>0.0 )
 				{
 				const double ref_rho_air = 1.0;
 				const double ref_pres_air = 100000.0;		
@@ -412,7 +467,7 @@ namespace Kratos
 				sound_vel=sqrt(1.4*pr/predicted_density);
 				}
 			//if it is WATER in this step, but was AIR in the previous step
-			else if (in->FastGetSolutionStepValue(DISTANCE)>=0.0 && in->FastGetSolutionStepValue(DISTANCE,2)<0.0 )
+			else if (in->FastGetSolutionStepValue(DISTANCE)>0.0 && in->FastGetSolutionStepValue(DISTANCE,2)<=0.0 )
 				{
 				//*******update water density DENSITY
 				const double ref_rho_water = 1000.0;
@@ -428,10 +483,32 @@ namespace Kratos
 				double alpha2 = (ref_pres_water  * K2 + K1)/ref_rho_water;			
 		  		sound_vel= sqrt(alpha2*pow((predicted_density/ref_rho_water), (K2-1.0)));	
 				}
+			else 	
+				{
+				KRATOS_WATCH(in->FastGetSolutionStepValue(DISTANCE))
+				KRATOS_WATCH(in->FastGetSolutionStepValue(DISTANCE,2))
+				KRATOS_WATCH("==================================================================================================================================================")
+				}
+			
 		
 			in->FastGetSolutionStepValue(SOUND_VELOCITY)=sound_vel;
-			//KRATOS_WATCH(sound_vel)
-			//KRATOS_WATCH(in->FastGetSolutionStepValue(DENSITY)) 
+			if (sound_vel<1.0)
+			{
+				KRATOS_WATCH("==================================================================================================================================================")
+				KRATOS_WATCH(sound_vel)
+KRATOS_WATCH(in->FastGetSolutionStepValue(DISTANCE)) 
+KRATOS_WATCH(in->FastGetSolutionStepValue(DISTANCE, 2)) 
+KRATOS_WATCH(in->FastGetSolutionStepValue(DENSITY)) 
+KRATOS_WATCH(in->FastGetSolutionStepValue(DENSITY,1)) 
+KRATOS_WATCH(in->FastGetSolutionStepValue(PRESSURE)) 
+KRATOS_WATCH(in->FastGetSolutionStepValue(PRESSURE,1)) 
+			in->FastGetSolutionStepValue(SOUND_VELOCITY)=in->FastGetSolutionStepValue(SOUND_VELOCITY,1);
+			in->FastGetSolutionStepValue(DENSITY)=in->FastGetSolutionStepValue(DENSITY,1);
+			in->FastGetSolutionStepValue(PRESSURE)=in->FastGetSolutionStepValue(PRESSURE,1);	
+
+				KRATOS_WATCH("==================================================================================================================================================")			
+			}
+//KRATOS_WATCH(in->FastGetSolutionStepValue(DENSITY)) 
 		  
 		  }
 			/*			
@@ -552,6 +629,14 @@ namespace Kratos
 			}
 
 		}
+
+		/////////////////////////// TRYING JUST FOR WATER
+			double K1=2070000000.0; 
+			double K2=7.15;			
+			double alpha = (pressure_n * K2 + K1)/density_n;			
+	  		sound_vel= sqrt(alpha*pow((density/density_n), (K2-1.0)));
+		/////////////////////////////////
+
 		
 		if (sound_vel==0.0)
 			KRATOS_ERROR(std::logic_error, "Sound velocity cannot be zero neither in water nor in air.. Something is wrong", "")
