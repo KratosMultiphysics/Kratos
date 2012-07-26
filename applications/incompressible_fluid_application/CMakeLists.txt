@@ -38,7 +38,7 @@ set( KRATOS_INCOMPRESSIBLE_FLUID_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_2d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d_enriched.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d_comp_enriched.cpp 
+# 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_3d_comp_enriched.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/v-p-precond_2d.cpp   	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_pr_dc_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/asgs_compressible_2d.cpp
