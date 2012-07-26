@@ -55,7 +55,7 @@
 
 #include "custom_elements/asgs_3d.h"
 #include "custom_elements/asgs_3d_enriched.h"
-#include "custom_elements/asgs_3d_comp_enriched.h"
+// #include "custom_elements/asgs_3d_comp_enriched.h"
 #include "custom_elements/asgs_compressible_3d.h"
 #include "custom_elements/asgs_comp_pr_dc_3d.h"
 
@@ -325,7 +325,7 @@ private:
 
         const ASGS3D mASGS3D;
         const ASGS3D_ENR mASGS3D_ENR;
-        const ASGS3D_COMP_ENR mASGS3D_COMP_ENR;
+//         const ASGS3D_COMP_ENR mASGS3D_COMP_ENR;
         const ASGSCompressible3D mASGSCompressible3D;
 
 
