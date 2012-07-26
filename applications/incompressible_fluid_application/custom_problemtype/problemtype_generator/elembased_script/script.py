@@ -1,9 +1,9 @@
-import elembased_levelset_var
+import problem_settings
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
-domain_size = elembased_levelset_var.domain_size
+domain_size = problem_settings.domain_size
 
 ##################################################################
 ##################################################################
@@ -11,7 +11,7 @@ domain_size = elembased_levelset_var.domain_size
 
 #including kratos path
 import sys
-sys.path.append(elembased_levelset_var.kratos_path)
+sys.path.append(problem_settings.kratos_path)
 
 #importing Kratos main library
 from KratosMultiphysics import *
@@ -33,7 +33,7 @@ import level_set_elembased_fluid_solver
 level_set_elembased_fluid_solver.AddVariables(fluid_model_part)
 
 #introducing input file name
-input_file_name = elembased_levelset_var.problem_name
+input_file_name = problem_settings.problem_name
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -42,7 +42,7 @@ deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
 
 ##selecting output format
-if(elembased_levelset_var.print_layers == True):
+if(problem_settings.print_layers == True):
     gid_io = EdgebasedGidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 else:
     gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
@@ -61,11 +61,11 @@ level_set_elembased_fluid_solver.AddDofs(fluid_model_part)
 small_value = 0.0001
 n_active = 0
 for node in fluid_model_part.Nodes:
-    node.SetSolutionStepValue(VISCOSITY,0,elembased_levelset_var.viscosity)
-    node.SetSolutionStepValue(DENSITY,0,elembased_levelset_var.density)
-    node.SetSolutionStepValue(BODY_FORCE_X, 0, elembased_levelset_var.body_force_x)
-    node.SetSolutionStepValue(BODY_FORCE_Y, 0, elembased_levelset_var.body_force_y)
-    node.SetSolutionStepValue(BODY_FORCE_Z, 0, elembased_levelset_var.body_force_z)
+    node.SetSolutionStepValue(VISCOSITY,0,problem_settings.viscosity)
+    node.SetSolutionStepValue(DENSITY,0,problem_settings.density)
+    node.SetSolutionStepValue(BODY_FORCE_X, 0, problem_settings.body_force_x)
+    node.SetSolutionStepValue(BODY_FORCE_Y, 0, problem_settings.body_force_y)
+    node.SetSolutionStepValue(BODY_FORCE_Z, 0, problem_settings.body_force_z)
     node.Free(PRESSURE)
     node.SetSolutionStepValue(PRESSURE,0,0.0)
     dist = node.GetSolutionStepValue(DISTANCE)
@@ -87,16 +87,16 @@ for node in fluid_model_part.Nodes:
         
 #constructing the solver
 body_force = Vector(3)
-body_force[0] = elembased_levelset_var.body_force_x
-body_force[1] = elembased_levelset_var.body_force_y
-body_force[2] = elembased_levelset_var.body_force_z
+body_force[0] = problem_settings.body_force_x
+body_force[1] = problem_settings.body_force_y
+body_force[2] = problem_settings.body_force_z
 ##print body_force
-viscosity   = elembased_levelset_var.viscosity
-density     = elembased_levelset_var.density
+viscosity   = problem_settings.viscosity
+density     = problem_settings.density
 fluid_solver = level_set_elembased_fluid_solver.ElemBasedLevelSetSolver(fluid_model_part,domain_size,body_force)
 
-fluid_solver.redistance_frequency = elembased_levelset_var.redistance_frequency
-fluid_solver.number_of_extrapolation_layers = elembased_levelset_var.extrapolation_layers
+fluid_solver.redistance_frequency = problem_settings.redistance_frequency
+fluid_solver.number_of_extrapolation_layers = problem_settings.extrapolation_layers
 
 fluid_solver.Initialize()
 ####
@@ -105,18 +105,18 @@ fluid_solver.Initialize()
 print "fluid solver created"
 
 #settings to be changed
-##Dt = elembased_levelset_var.time_step  
-final_time = elembased_levelset_var.max_time
-output_dt = elembased_levelset_var.output_dt
-coef = elembased_levelset_var.delta_time_coefficient
+##Dt = problem_settings.time_step  
+final_time = problem_settings.max_time
+output_dt = problem_settings.output_dt
+coef = problem_settings.delta_time_coefficient
 
-#number_of_inital_steps = elembased_levelset_var.number_of_inital_steps
-#initial_time_step = elembased_levelset_var.initial_time_step
+#number_of_inital_steps = problem_settings.number_of_inital_steps
+#initial_time_step = problem_settings.initial_time_step
 out = 0
 
 
 ###mesh to be printed
-if(elembased_levelset_var.print_layers == False):
+if(problem_settings.print_layers == False):
     mesh_name = 0.0
     gid_io.InitializeMesh( mesh_name)
     gid_io.WriteMesh( fluid_model_part.GetMesh() )
@@ -130,7 +130,7 @@ time = 0.0
 step = 0
 initial_time_step = 0.00001
 next_output_time = output_dt
-Dt_old = elembased_levelset_var.time_step
+Dt_old = problem_settings.time_step
 
 while(time < final_time):
 
@@ -151,7 +151,7 @@ while(time < final_time):
 
     if(step >= 3):
 ##        ##Calculate Dt when a jump in velocity is reached
-##        Dt_old = elembased_levelset_var.time_step
+##        Dt_old = problem_settings.time_step
 ##        Dt_new = fluid_solver.CalculateDelta_t(Dt)
 ##        if(Dt_old >= coef * Dt_new):
 ##            Dt = coef * Dt_new
@@ -160,8 +160,8 @@ while(time < final_time):
 
     time_to_print = time - time_old_print
 #    if(time >= next_output_time):
-    if(time_to_print >= elembased_levelset_var.output_dt ):
-        if(elembased_levelset_var.print_layers == True):
+    if(time_to_print >= problem_settings.output_dt ):
+        if(problem_settings.print_layers == True):
             #writing mesh 
             gid_io.InitializeMesh( time );
             gid_io.WriteMesh((fluid_model_part).GetMesh());
@@ -182,7 +182,7 @@ while(time < final_time):
         gid_io.WriteNodalResults(AUX_INDEX,fluid_model_part.Nodes,time,0)
         gid_io.Flush()
 
-        if(elembased_levelset_var.print_layers == True):
+        if(problem_settings.print_layers == True):
             gid_io.FinalizeResults()
 	time_old_print = time
 #        next_output_time = time + output_dt
@@ -193,7 +193,7 @@ while(time < final_time):
  #   out = out + 1
     step = step + 1
       
-if(elembased_levelset_var.print_layers == False):
+if(problem_settings.print_layers == False):
     gid_io.FinalizeResults()    
         
 
