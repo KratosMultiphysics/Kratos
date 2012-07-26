@@ -24,9 +24,7 @@ proc BeforeRunCalculation { batfilename basename dir problemtypedir gidexe args 
     set varfile [open $filename a]
     puts $varfile "problem_name = '${basename}'"
     puts $varfile "problem_path = '${dir}'"
-    if { [string match "unix" $::tcl_platform(platform)] } {
-        puts $varfile "kratos_path = '${::kaux::kratos_path}'"
-    }
+    puts $varfile "kratos_path = '${::kaux::kratos_path}'"
     puts $varfile ""
     close $varfile
 }
@@ -52,7 +50,7 @@ proc InitKratosPT { ptdir } {
     } else {
 	# Setup path is standard in Windows, do not ask it to the user, and do not try to open a file in the problemtype folder (it could require permisions we don't have)
 	set ::kaux::kratos_path ""
-        set knowpath 1
+        set knownpath 1
     }
 
     # If path to kratos is unknown, ask it to user
