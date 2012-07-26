@@ -199,9 +199,13 @@ protected:
     virtual void CalculateGradMassStblTerms(MatrixType& M,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const array_1d<double,4>& N, const double thawone,const double volume, const double density);
     //Pavel
     virtual void CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rRightHandSideVector, const double dt);
+    virtual void CalculateEnrichmentOperators(boost::numeric::ublas::bounded_matrix<double, 1, 12 > & Dstar, boost::numeric::ublas::bounded_matrix<double, 12, 1 > & Gstar,  boost::numeric::ublas::bounded_matrix<double, 1, 4 > & Lap_star, boost::numeric::ublas::bounded_matrix<double, 1, 4 > & N_Nstar, double & f_star, double & Lap, double & Mstar, const double delta_t );
+    virtual void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
+    virtual void FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo );
+	
     virtual void EvaluateAtGaussPoint(double& rResult, const Variable< double >& rVariable, const array_1d< double, 4 >& N, const int n_step );
-
-    virtual double EvaluateSoundVelAtGaussPoint(const double distance_at_gauss_point, const double density, const double pressure, const double density_n, const double pressure_n);
+    virtual void GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo );
+    //virtual double EvaluateSoundVelAtGaussPoint(const double distance_at_gauss_point, const double density, const double pressure, const double density_n, const double pressure_n);
     ///@}
     ///@name Protected Operators
     ///@{
@@ -241,7 +245,7 @@ protected:
     ///@}
     ///@name Private Operators
     ///@{
-    virtual void CalculateMassContribution(MatrixType& K, const double volume, const double density, const double sound_vel);
+    virtual void CalculateMassContribution(MatrixType& K, const array_1d<double,4>& partition_N, const double volume, const double density, const double sound_vel);
 
     //Pavel: below is changed for several gauss points
     virtual void CalculateViscousTerm(MatrixType& K,const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double partition_volume, const double nu, const double rho);
@@ -258,9 +262,10 @@ protected:
     virtual void AddBodyForceAndMomentum(VectorType& F, const array_1d<double,4>& N, const double volume, const double density);
 
     //Pavel: below is changed for several gauss points
-    virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, const double time,const double partition_volume, const double density, const double viscosity);
-
+    virtual void CalculateTau(const array_1d<double,4>& N, double& thawone, double& tautwo, const double time,const double partition_volume, const double density, const double viscosity);
+	virtual void CalculateDivStblTerm(MatrixType& K, const boost::numeric::ublas::bounded_matrix<double,4,3>& DN_DX, const double tautwo, const double Volume, const double density);
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+	virtual void ChangeLumpedToConsistPressMassMatrix(VectorType& rRightHandSideVector, const double sound_vel, const double Volume, const double delta_t, const double density);
 private:
     ///@}
 
