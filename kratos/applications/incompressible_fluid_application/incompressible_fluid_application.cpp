@@ -78,7 +78,7 @@ mVP_PRECOND2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Elemen
     mASGSCompressible2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mASGS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
 mASGS3D_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),	
+// 		mASGS3D_COMP_ENR(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),	
     mASGSCompressible3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mASGSCOMPPRDC2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mASGSCOMPPRDC3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
@@ -184,7 +184,7 @@ void KratosIncompressibleFluidApplication::Register()
 		KRATOS_REGISTER_ELEMENT("VP_PRECOND2D", mVP_PRECOND2D);
 		KRATOS_REGISTER_ELEMENT("ASGS3D", mASGS3D);	
 		KRATOS_REGISTER_ELEMENT("ASGS3D_ENR", mASGS3D_ENR);	
-		KRATOS_REGISTER_ELEMENT("ASGS3D_COMP_ENR", mASGS3D_COMP_ENR);	
+// 		KRATOS_REGISTER_ELEMENT("ASGS3D_COMP_ENR", mASGS3D_COMP_ENR);	
 		KRATOS_REGISTER_ELEMENT("ASGSPRDC2D", mASGSPRDC2D);	
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible2D", mASGSCompressible2D);
  		KRATOS_REGISTER_ELEMENT("ASGSCompressible3D", mASGSCompressible3D);
