@@ -112,6 +112,10 @@ final_time = DEM_explicit_solver_var.max_time
 output_dt  = DEM_explicit_solver_var.output_dt
 dt = DEM_explicit_solver_var.max_time_step
 
+solver.Critical_Time()
+   
+dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+
 solver.delta_time=dt
 
 # bounding box
@@ -175,9 +179,9 @@ while(time < final_time):
 
     solid_model_part.ProcessInfo[TIME_STEPS] = step
     
-    if ((step + 1) % n_step_destroy_distant == 0):
+    ##if ((step + 1) % n_step_destroy_distant == 0):
   
-        solver.Destroy_Particles(solid_model_part)
+        ##solver.Destroy_Particles(solid_model_part)
     
     solver.Solve()
 
