@@ -127,8 +127,7 @@ namespace Kratos {
 
 	if (FractionalStepNumber==2)
 	{
-// 		int nodes_number = 3;
-// 		int dim = 2;
+
 		//unsigned int matsize = nodes_number * (dim + 1);	
 
 		//viscous term
