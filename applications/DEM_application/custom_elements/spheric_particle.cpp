@@ -501,7 +501,6 @@ namespace Kratos
                         LocalContactForce[0] = 0.0;  // 0: first tangential
                         LocalContactForce[1] = 0.0;  // 1: second tangential
                         LocalContactForce[2] = 0.0;  // 2: normal force
-                        KRATOS_WATCH(LocalContactForce[2])
              }
                     
               // TENSION FAILURE
