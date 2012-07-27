@@ -38,7 +38,7 @@ class SolvingStrategyPython:
         #contact utility
         self.cu = ContactUtility( 3 )
         #default values for some variables
-        self.max_iter = 10
+        self.max_iter = 30
         self.echo_level = 1
         self.builder_and_solver = builder_and_solver
         
@@ -69,6 +69,33 @@ class SolvingStrategyPython:
             self.scheme.Initialize(self.model_part)
         if (self.scheme.ElementsAreInitialized() == False): 
             self.scheme.InitializeElements(self.model_part)
+
+    #######################################################################
+    def SolveLagrange( self ):
+          #print self.model_part
+        ## - storing original condition size before adding virtual conditions.
+        ## - performing contact search
+        ## - creating virtual link conditions for the assembling
+        if( self.PerformContactAnalysis == False ):
+            self.PerformNewtonRaphsonIteration()
+            #finalize the solution step
+            self.FinalizeSolutionStep(self.CalculateReactionsFlag)
+            #clear if needed - deallocates memory 
+            if(self.ReformDofSetAtEachStep == True):
+                self.Clear();
+            return
+        print "setting up contact conditions"
+        last_real_node = len(self.model_part.Nodes)
+        originalPosition =  self.cu.SetUpContactConditionsLagrangeTying(self.model_part )
+        self.PerformNewtonRaphsonIteration()
+        self.cu.CleanLagrangeTying( self.model_part, originalPosition, last_real_node )
+        (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
+        #finalize the solution step
+        self.FinalizeSolutionStep(self.CalculateReactionsFlag)
+        #clear if needed - deallocates memory 
+        if(self.ReformDofSetAtEachStep == True):
+            self.Clear();
+      
             
     #######################################################################
     def Solve(self):
@@ -115,8 +142,8 @@ class SolvingStrategyPython:
                 break
         if( uzawaConverged == False ):
             print "uzawa algorithm failes to converge within maximum number of iterations"
-        ## end of UZAWA loop
-        ## cleaning up the conditions
+        ### end of UZAWA loop
+        ### cleaning up the conditions
         self.cu.Clean( self.model_part, originalPosition )
         (self.builder_and_solver).SetReshapeMatrixFlag(self.ReformDofSetAtEachStep)
         #finalize the solution step
@@ -147,9 +174,25 @@ class SolvingStrategyPython:
         normDx = self.ExecuteIteration(self.echo_level,self.MoveMeshFlag,calculate_norm)
         it = 1
 
+        original_penalty = 0.0
+        if( self.PerformContactAnalysis == True ):
+            for cond in self.model_part.Conditions:
+                if( cond.GetValue( IS_CONTACT_SLAVE ) ):
+                    original_penalty = cond.GetValue( PENALTY )[0]
+                    break
+
         #non linear loop
         converged = False
         while(it < self.max_iter and converged == False):
+            #increase penalty...
+            if( self.PerformContactAnalysis == True ):
+                for cond in self.model_part.Conditions:
+                    if( cond.GetValue( IS_CONTACT_SLAVE ) ):
+                        penalty = cond.GetValue( PENALTY )
+                        for i in range(0,len(penalty)):
+                            penalty[i] = 1.0*penalty[i]
+                        cond.SetValue( PENALTY, penalty )
+            #end of increase penalty
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
@@ -166,6 +209,15 @@ class SolvingStrategyPython:
             it = it + 1
         if( it == self.max_iter ):
             print("Iteration did not converge")
+
+        if( self.PerformContactAnalysis == True ):
+            for cond in self.model_part.Conditions:
+                if( cond.GetValue( IS_CONTACT_SLAVE ) ):
+                    penalty = cond.GetValue( PENALTY )
+                    for i in range(0,len(penalty)):
+                        penalty[i] = original_penalty
+                    cond.SetValue( PENALTY, penalty )
+
     #######################################################################
     #######################################################################
 
@@ -206,8 +258,35 @@ class SolvingStrategyPython:
             self.PlotSparsityScheme( self.A )
         if(echo_level >= 3):
             print "SystemMatrix = ", self.A 
-            print "solution obtained = ", self.Dx 
+        #printA = []
+        #printdx = []
+        #printb = []
+        #for i in range(0,len(self.Dx)):
+        #    if( abs(self.Dx[i]) < 1.0e-10 ):
+         #       printdx.append(0.0)
+         #   else:
+         #       printdx.append(self.Dx[i])
+         #   if( abs(self.b[i]) < 1.0e-6 ):
+         #       printb.append(0.0)
+         #   else:
+         #       printb.append(self.b[i])
+         #   row = []
+         #   for j in range(0,len(self.Dx)):
+         #       if( abs(self.A[(i,j)]) < 1.0 ):
+         #           row.append( 0.0 )
+         #       else:
+         #           row.append(self.A[(i,j)])
+         #   printA.append(row)
+            print "solution obtained = ", self.Dx
+            #formatted_printdx = [ '%.6f' % elem for elem in printdx ]
+            #print formatted_printdx
+            #formatted_printb = [ '%.4f' % elem for elem in printb ]
             print "RHS = ", self.b
+        #print formatted_printb
+        #print "Matrix: "
+        #for i in range(0,len(self.Dx)):
+        #    formatted_printA = [ '%.1f' % elem for elem in printA[i] ]
+        #    print(formatted_printA)
         self.AnalyseSystemMatrix(self.A)
             
         #perform update
