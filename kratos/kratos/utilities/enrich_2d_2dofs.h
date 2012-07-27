@@ -235,6 +235,9 @@ public:
 		  const double adim_Nenriched_j_aux = 1.0 /(face_gauss_N(i_aux));
 		  const double adim_Nenriched_node4 = node4_relative_position * adim_Nenriched_j_aux / (1.0 - node4_relative_position ) ;
 		  const double adim_Nenriched_node5 = node5_relative_position * adim_Nenriched_j_aux / (1.0 - node5_relative_position ) ;
+		  const double adim_Nenriched_node4_b = (2.0 - node4_relative_position * adim_Nenriched_j_aux) / (1.0 - node4_relative_position );
+		  const double adim_Nenriched_node5_b = (2.0 - node5_relative_position * adim_Nenriched_j_aux) / (1.0 - node5_relative_position );
+		  
 		  face_gauss_Nenriched(i_aux)= 1.0;
 		  face_gauss_Nenriched(j_aux)= 0.0; //actualy it's not defined, it's a discontinous function
 		 
@@ -247,10 +250,10 @@ public:
 		 rGradientsValue[0](0,0)=DN_DX(j_aux,0)*adim_Nenriched_node4+DN_DX(k_aux,0)*adim_Nenriched_node5;
 		 rGradientsValue[0](0,1)=DN_DX(j_aux,1)*adim_Nenriched_node4+DN_DX(k_aux,1)*adim_Nenriched_node5;		  //	      i   j,k				 i    j,k
 		 
-		 rGradientsValue[0](1,0)=(DN_DX(j_aux,0)+DN_DX(k_aux,0))*adim_Nenriched_i_aux;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
-		 rGradientsValue[0](1,1)=(DN_DX(j_aux,1)+DN_DX(k_aux,1))*adim_Nenriched_i_aux;			    	//															/
+		 rGradientsValue[0](1,0)=DN_DX(j_aux,0)*adim_Nenriched_node4_b+DN_DX(k_aux,0)*adim_Nenriched_node5_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
+		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_node4_b+DN_DX(k_aux,1)*adim_Nenriched_node5_b;				//															/
 		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_node4+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_node5;
-		 NEnriched(0,1)=(rGPShapeFunctionValues(0,j_aux)+rGPShapeFunctionValues(0,k_aux))*adim_Nenriched_i_aux;;  
+		 NEnriched(0,1)=NEnriched(0,0);  
 		 //now we must calculate the position of the new nodes to get the area.
 		 //coord_subdomain=rPoints; //easier to start this way. node 1 is already ok.
 		 coord_subdomain(0,0)=rPoints(i_aux,0);
