@@ -115,6 +115,9 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
             self.MoveMeshFlag = True
         #definition of the convergence criteria
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
+        #self.conv_criteria = MultiPhaseFlowCriteria(1.0e-13,1.0e-13)
+        #self.conv_criteria = ResidualBasedMultiPhaseCriteria(self.toll,self.absolute_tol)
+        #self.conv_criteria = ResidualCriteria(1.0e-9,1.0e-9)
         #self.conv_criteria = DisplacementCriteria(self.toll,self.absolute_tol)
         builder_and_solver = ResidualBasedEliminationBuilderAndSolverDeactivation(self.structure_linear_solver)
         #builder_and_solver = MultiPhaseBuilderAndSolver(self.structure_linear_solver)
