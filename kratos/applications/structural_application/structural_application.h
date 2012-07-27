@@ -102,7 +102,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/face_pressure3D.h"
 #include "custom_conditions/faceforce3D.h"
 #include "custom_conditions/contact_link_3D.h"
-#include "custom_conditions/contact_link_3D.h"
 #include "custom_conditions/contact_link_3D_newmark.h"
 #include "custom_conditions/master_contact_face_3D.h"
 #include "custom_conditions/master_contact_face_3D_newmark.h"
@@ -176,6 +175,7 @@ KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_GLOBAL_POINT );
 KRATOS_DEFINE_VARIABLE( Point<3>, MASTER_CONTACT_CURRENT_GLOBAL_POINT );
 KRATOS_DEFINE_VARIABLE( Point<3>, SLAVE_CONTACT_GLOBAL_POINT );
 KRATOS_DEFINE_VARIABLE( double , INSITU_STRESS_SCALE );
+KRATOS_DEFINE_VARIABLE( double, REFERENCE_WATER_PRESSURE );
 KRATOS_DEFINE_VARIABLE( double , OVERCONSOLIDATION_RATIO );
 KRATOS_DEFINE_VARIABLE(double, EXCESS_PORE_WATER_PRESSURE);
 KRATOS_DEFINE_VARIABLE(Vector, COORDINATES);
