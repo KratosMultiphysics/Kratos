@@ -68,10 +68,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_conditions/contact_link_3D.h"
 #include "custom_conditions/contact_link_3D_kinematic_linear.h"
+#include "custom_conditions/contact_link_3D_lagrange_tying.h"
 #include "structural_application.h"
 
 //default builder and solver
 // #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include <geometries/point_3d.h>
 
 namespace Kratos
 {
@@ -95,6 +97,7 @@ public:
     typedef std::size_t IndexType;
 
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
+    typedef ModelPart::NodesContainerType NodesArrayType;
 
     typedef Geometry<Node<3> > GeometryType;
 
@@ -120,6 +123,122 @@ public:
     /**
      * Operations
      */
+    
+    /**
+     * Setting up the contact condition using LagrangeTying contact links
+     */
+    int SetUpContactConditionsLagrangeTying( ModelPart& mr_model_part )
+    {
+        //getting the array of the conditions
+        ConditionsArrayType& ConditionsArray = mr_model_part.Conditions();
+        //setting up candidate master conditions
+        ConditionsArrayType MasterConditionsArray;
+        //setting up an array of linking conditions
+        ConditionsArrayType LinkingConditions;
+        //setting up an array of new nodes for contact conditions
+        NodesArrayType ContactNodes;
+        int lastRealCondition = mr_model_part.Conditions().size();
+        int lastExistingNodeId = (mr_model_part.NodesEnd()-1)->Id();
+
+        if(lastRealCondition != 0 )
+        {
+
+            for( ConditionsArrayType::ptr_iterator it =
+                        ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end();
+                    ++it )
+            {
+                if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
+                {
+                    if( (*it)->GetValue( IS_CONTACT_MASTER ) )
+                    {
+                        MasterConditionsArray.push_back( *it );
+                    }
+                }
+            }
+            int properties_index = mr_model_part.NumberOfProperties();
+            PropertiesType::Pointer tempProperties( new PropertiesType(properties_index+1) );
+            mr_model_part.AddProperties( tempProperties );
+
+            ConditionsArrayType::ptr_iterator it_begin=ConditionsArray.ptr_begin();
+            ConditionsArrayType::ptr_iterator it_end=ConditionsArray.ptr_end();
+
+            for (ConditionsArrayType::ptr_iterator it = it_begin; it!=it_end; ++it)
+            {
+                if( (*it)->GetValue( ACTIVATION_LEVEL ) == 0 )
+                {
+                    if( (*it)->GetValue( IS_CONTACT_SLAVE ) )
+                    {
+                        for( IndexType i = 0; i < (*it)->GetGeometry().IntegrationPoints().size(); i++ )
+                        {
+                            Point<3> MasterContactLocalPoint;
+                            Point<3> SlaveContactLocalPoint;
+                            Condition::Pointer CurrentMaster ;
+                            if( SearchPartner(
+                                        mr_model_part,
+                                        (**it),
+                                        MasterConditionsArray, i,
+                                        MasterContactLocalPoint,
+                                        SlaveContactLocalPoint,
+                                        CurrentMaster ))
+                            {
+                                IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
+                                //creating contact link element
+//                                 Point<3> contact_point_global;
+//                                 GlobalCoordinates( **it, contact_point_global, (GeometryType::CoordinatesArrayType)SlaveContactLocalPoint );
+//                                 NodeType::Pointer p_node(new NodeType(*i_node));
+//                 last_id++;
+                
+                                Node<3>::Pointer contact_node_global( new Node<3>( *(mr_model_part.NodesEnd()-1) ) );
+                                contact_node_global->SetId(++lastExistingNodeId);
+//                                 contact_node_global->AddDof( DISPLACEMENT_X );
+//                                 contact_node_global->AddDof( DISPLACEMENT_Y );
+//                                 contact_node_global->AddDof( DISPLACEMENT_Z );
+//                                 contact_node_global->AddDof( WATER_PRESSURE );
+//                                 contact_node_global->AddDof( AIR_PRESSURE );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_X );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_Y );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_Z );
+                                GeometryType::Pointer temp_pointGeometry =  GeometryType::Pointer( new Point3D<Node<3> >(contact_node_global) );
+                                Condition::Pointer newLink = Condition::Pointer( new Contact_Link_3D_Lagrange_Tying(newId,
+                                                             temp_pointGeometry,
+                                                             tempProperties,
+                                                             CurrentMaster,
+                                                             *it,
+                                                             MasterContactLocalPoint,
+                                                             SlaveContactLocalPoint, i) );
+                                ContactNodes.push_back( contact_node_global );
+                                LinkingConditions.push_back( newLink );
+                            }
+                            else
+                            {
+//                                                     std::cout << "no contact partner found for condition: " << (*it)->Id() <<", integration point " << i << std::endl;
+                            }
+                        }
+                    }
+                }
+            }
+            //adding linking to model_part
+            KRATOS_WATCH(LinkingConditions.size());
+            if( LinkingConditions.size() == 0 )
+            {
+                std::cout << "!!!!!! NO LINKING CONDITIONS FOUND !!!!!!" << std::endl;
+            }
+            for(  ConditionsArrayType::ptr_iterator it=LinkingConditions.ptr_begin();
+                    it != LinkingConditions.ptr_end(); ++it )
+            {
+                mr_model_part.Conditions().push_back( *it );
+            }
+            for( NodesArrayType::ptr_iterator it=ContactNodes.ptr_begin(); it != ContactNodes.ptr_end(); it++ )
+            {
+                mr_model_part.AddNode( *it );
+            }
+            ContactNodes.clear();
+            LinkingConditions.clear();
+            KRATOS_WATCH( mr_model_part );
+        }
+        return lastRealCondition;
+
+    }
 
     /**
      * Setting up the contact conditions.
@@ -198,8 +317,11 @@ public:
                                         SlaveContactLocalPoint,
                                         CurrentMaster ))
                             {
+//                                 if( fabs(MasterContactLocalPoint[0]) > 0.999 || fabs(MasterContactLocalPoint[1]) < 0.001 )
+//                                     KRATOS_WATCH( MasterContactLocalPoint );
                                 IndexType newId = (mr_model_part.Conditions().end()-1)->Id()+LinkingConditions.size()+1;
                                 //creating contact link element
+//                                 Condition::Pointer newLink = Condition::Pointer( new ContactLink3D(newId,
                                 Condition::Pointer newLink = Condition::Pointer( new ContactLink3D_Kinematic_Linear(newId,
                                                              tempGeometry,
                                                              tempProperties,
@@ -207,6 +329,21 @@ public:
                                                              *it,
                                                              MasterContactLocalPoint,
                                                              SlaveContactLocalPoint, i) );
+//                                 Point<3> contact_point_global;
+//                                 GlobalCoordinates( **it, contact_point_global, (GeometryType::CoordinatesArrayType)SlaveContactLocalPoint );
+//                                 Node<3>::Pointer contact_node_global( new Node<3>( mr_model_part.NodesEnd()->Id(), contact_point_global ) );
+//                                 mr_model_part.AddNode( contact_node_global );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_X );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_Y );
+//                                 contact_node_global->AddDof( LAGRANGE_DISPLACEMENT_Z );
+//                                 GeometryType::Pointer temp_pointGeometry =  GeometryType::Pointer( new Point3D<Node<3> >(contact_node_global) );
+//                                 Condition::Pointer newLink = Condition::Pointer( new ContactLink3D_Lagrange_Tying(newId,
+//                                                              temp_pointGeometry,
+//                                                              tempProperties,
+//                                                              CurrentMaster,
+//                                                              *it,
+//                                                              MasterContactLocalPoint,
+//                                                              SlaveContactLocalPoint, i) );
 
                                 LinkingConditions.push_back( newLink );
                             }
@@ -827,7 +964,7 @@ public:
         }
         else
         {
-            if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ /*fabs(wriggers_crit) < 1e-4)*/sqrt(cumulative_penetration/Index) < 1e-5 )
+            if(/*(fabs(absolute/Index) < 1e-3 || fabs(ratio/absolute) < 1e-2) &&*/ /*fabs(wriggers_crit) < 1e-4)*/sqrt(cumulative_penetration/Index) < 1e-5 && (wriggers_crit-sqrt(cumulative_penetration/Index)) < 5.0  )
 //                         sqrt(wriggers_crit)/Index < 3e-4)
             {
                 if( this->mEchoLevel > 0 )
@@ -856,6 +993,23 @@ public:
         mr_model_part.Conditions().erase(
             mr_model_part.Conditions().begin()+lastRealCondition,
             mr_model_part.Conditions().end() );
+    }
+
+    /**
+     * This function cleans up the conditions list after uzawa iteration
+     * @param mr_model_part the modelpart
+     * @param lastRealCondition number of the last condition that is not a contact linking,
+     *   all conditions having a greater number/index will be erased
+     */
+    void CleanLagrangeTying( ModelPart& mr_model_part, int lastRealCondition, int lastRealNode )
+    {
+        // cleaning up model part
+        mr_model_part.Conditions().erase(
+            mr_model_part.Conditions().begin()+lastRealCondition,
+            mr_model_part.Conditions().end() );
+        mr_model_part.Nodes().erase(
+            mr_model_part.Nodes().begin()+lastRealNode,
+            mr_model_part.Nodes().end() );
     }
 
 
