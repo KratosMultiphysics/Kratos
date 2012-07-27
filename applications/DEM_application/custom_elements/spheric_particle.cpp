@@ -264,7 +264,8 @@ namespace Kratos
             double Friction         = tan( FriAngle / 180.0 * M_PI);
 
             double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-            double critic_damp_fraction = this->GetGeometry()[0].GetSolutionStepValue(VISCO_DAMP_COEFF);
+            //double visco_damp_coeff = this->GetGeometry()[0].GetSolutionStepValue(VISCO_DAMP_COEFF);
+            double restitution_coeff = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
             double mass                 = mRealMass;
 
             double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
@@ -293,8 +294,13 @@ namespace Kratos
              // GETTING NEIGHBOUR PROPERTIES
              
                 double other_radius                 = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                double other_critic_damp_fraction   = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
-                double equiv_visc_damp_ratio        = (critic_damp_fraction + other_critic_damp_fraction) / 2.0;   //M: is it correct to be a simple mean.
+                double other_density                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_DENSITY);
+                double other_mass                   = 4.0 / 3.0 * M_PI * other_radius * other_radius * other_radius * other_density;
+                double equiv_mass                   = sqrt(mass*other_mass);//(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
+                //double other_visco_damp_coeff       = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
+                double other_restitution_coeff      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RESTITUTION_COEFF);
+                double equiv_visco_damp_coeff;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
+                double equiv_restitution_coeff      = sqrt(restitution_coeff * other_restitution_coeff); //I: we assume this.
                 // double other_mass                   = neighbour_iterator.mRealMass;
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
                 double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
@@ -363,7 +369,15 @@ namespace Kratos
 
                 double kn               = M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
-              
+                if(equiv_restitution_coeff>0){
+                    
+                    equiv_visco_damp_coeff  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+                }
+                else {
+                    
+                    equiv_visco_damp_coeff  = -( (2*log(1e-8)*sqrt(equiv_mass*kn)) / (sqrt( (log(1e-8)*log(1e-8)) + (M_PI*M_PI) )) );
+                }
+
                 //OÑATE. PROBETES.
  //                kn               = 197760000;
    //              ks               = 51593000;
@@ -381,35 +395,33 @@ namespace Kratos
 
                 array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
                 array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
-		array_1d<double, 3 > vel_old        = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY,2); //Ignasi . VELOCITY = VELOCITY,1
-                array_1d<double, 3 > other_vel_old  = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY,2); //Ignasi
 
                 array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
                 array_1d<double, 3 > other_delta_displ      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+		
+		array_1d<double, 3 > delta_vel            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_VELOCITY);
+                array_1d<double, 3 > other_delta_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_VELOCITY);
 
                 double DeltDisp[3] = {0.0};
                 double RelVel [3] = {0.0};
-		double RelVel_old [3] = {0.0};//Ignasi
                 double DeltRelVel[3] = {0.0};//Ignasi
 		
                 RelVel[0] = (vel[0] - other_vel[0]);
                 RelVel[1] = (vel[1] - other_vel[1]);
                 RelVel[2] = (vel[2] - other_vel[2]);
-		
-		RelVel_old[0] = (vel_old[0] - other_vel_old[0]);//Ignasi
-                RelVel_old[1] = (vel_old[1] - other_vel_old[1]);//Ignasi
-                RelVel_old[2] = (vel_old[2] - other_vel_old[2]);//Ignasi
-
-		DeltRelVel[0] = RelVel[0] -  RelVel_old[0];//Ignasi
-                DeltRelVel[1] = RelVel[1] -  RelVel_old[1];//Ignasi
-                DeltRelVel[2] = RelVel[2] -  RelVel_old[2];//Ignasi
 
                 //DeltDisp in global cordinates
 
                DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
                DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
                DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
-                
+               
+	       //DeltRelVel in global cordinates
+               
+               DeltRelVel[0] = delta_vel[0] - other_delta_vel[0];
+               DeltRelVel[1] = delta_vel[1] - other_delta_vel[1];
+               DeltRelVel[2] = delta_vel[2] - other_delta_vel[2];
+ 
                     if ( rotation_OPTION == 1 )
                     {
 
@@ -565,15 +577,15 @@ namespace Kratos
                  
                 if ( (fabs(LocalDeltDisp[2]) >= indentation) && ((fabs(LocalContactForce[2] + kn * LocalDeltDisp[2])) < 1e-12) ) {
                     
-                    LocalContactForce[0] += - equiv_visc_damp_ratio * LocalRelVel[0];
-                    LocalContactForce[1] += - equiv_visc_damp_ratio * LocalRelVel[1];
-                    LocalContactForce[2] += - equiv_visc_damp_ratio * LocalRelVel[2];
+                    LocalContactForce[0] += - equiv_visco_damp_coeff * LocalRelVel[0];
+                    LocalContactForce[1] += - equiv_visco_damp_coeff * LocalRelVel[1];
+                    LocalContactForce[2] += - equiv_visco_damp_coeff * LocalRelVel[2];
                 }
                 else {
                     
-                    LocalContactForce[0] += - equiv_visc_damp_ratio * LocalDeltRelVel[0];
-                    LocalContactForce[1] += - equiv_visc_damp_ratio * LocalDeltRelVel[1];
-                    LocalContactForce[2] += - equiv_visc_damp_ratio * LocalDeltRelVel[2];
+                    LocalContactForce[0] += - equiv_visco_damp_coeff * LocalDeltRelVel[0];
+                    LocalContactForce[1] += - equiv_visco_damp_coeff * LocalDeltRelVel[1];
+                    LocalContactForce[2] += - equiv_visco_damp_coeff * LocalDeltRelVel[2];
                 }
              } //Ignasi
                         /*if (damp_id == 2 || damp_id == 3 )
