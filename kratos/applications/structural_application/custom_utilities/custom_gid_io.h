@@ -180,7 +180,7 @@ public:
         {
             WriteGaussPoints();
 
-            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
+            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES || rVariable == PLASTIC_STRAIN_VECTOR )
                 GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                  GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             else if( (rVariable == MATERIAL_PARAMETERS) || (rVariable == INTERNAL_VARIABLES) )
@@ -207,7 +207,7 @@ public:
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
-                            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
+                            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES || rVariable == PLASTIC_STRAIN_VECTOR )
                             {
                                 if(ValuesOnIntPoint[i].size() ==6 )
                                     GiD_Write3DMatrix( it->Id(),
@@ -245,7 +245,7 @@ public:
                         for(unsigned int i=0; i<mIndexContainer.size(); i++)
                         {
                             int index = mIndexContainer[i];
-                            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES )
+                            if( rVariable == INSITU_STRESS || rVariable == PRESTRESS || rVariable == STRESSES || rVariable == PLASTIC_STRAIN_VECTOR )
                             {
                                 if(ValuesOnIntPoint[i].size() ==6 )
                                     GiD_Write3DMatrix( it->Id(),
