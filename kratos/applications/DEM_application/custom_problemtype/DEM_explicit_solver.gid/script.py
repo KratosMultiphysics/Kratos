@@ -139,8 +139,8 @@ for node in solid_model_part.Nodes:
   if rad < min_radius:  
       min_radius = rad
       
-if(bounding_box_option =="ON"):
-  solver.bounding_box_OPTION=1  #xapuza
+#if(bounding_box_option =="ON"):
+  #solver.bounding_box_OPTION=1  #xapuza
 
 extra_radius = 2.5 * max_radius
 prox_tol = 0.000001 * min_radius  #currently not in use.
@@ -150,7 +150,8 @@ solver.enlargement_factor = bounding_box_enlargement_factor
 
 #Calculate Bounding BoX.
 
-solver.Calculate_Model_Surrounding_Bounding_Box(solid_model_part, bounding_box_enlargement_factor)
+if(bounding_box_option =="ON"):
+   solver.Calculate_Model_Surrounding_Bounding_Box(solid_model_part, bounding_box_enlargement_factor)
 
 #Initialize the problem.
 
@@ -177,14 +178,14 @@ while(time < final_time):
     solid_model_part.CloneTimeStep(time)
 
     solid_model_part.ProcessInfo[TIME_STEPS] = step
-    
-    if ((step + 1) % n_step_destroy_distant == 0):
-  
-        solver.Destroy_Particles(solid_model_part)
+
+    if(bounding_box_option =="ON"):     
+        if ((step + 1) % n_step_destroy_distant == 0):
+            solver.Destroy_Particles(solid_model_part)
     
     solver.Solve()
 
-    dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+    #dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
        
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
