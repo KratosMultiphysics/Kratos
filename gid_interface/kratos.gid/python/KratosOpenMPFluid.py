@@ -2,6 +2,7 @@
 ##################################################################
 #import the configuration data as read from the GiD
 import ProjectParameters
+import define_output
 
 def PrintResults(model_part):
     print "Writing results. Please run Gid for viewing results of analysis."
@@ -24,6 +25,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
 ## defining variables to be used
 
@@ -76,10 +78,13 @@ if ProjectParameters.GiDWriteMeshFlag == True:
 else:
     deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 
-if ProjectParameters.GiDWriteConditionsFlag == True:
-    write_conditions = WriteConditionsFlag.WriteConditions
+if(ProjectParameters.VolumeOutput == True):
+    if ProjectParameters.GiDWriteConditionsFlag == True:
+	write_conditions = WriteConditionsFlag.WriteConditions
+    else:
+	write_conditions = WriteConditionsFlag.WriteElementsOnly
 else:
-    write_conditions = WriteConditionsFlag.WriteElementsOnly
+    write_conditions = WriteConditionsFlag.WriteConditions
 
 if ProjectParameters.GiDMultiFileFlag == "Single":
     multifile = MultiFileFlag.SingleFile
@@ -278,38 +283,89 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
 
 print "fluid solver created"
 
-###mesh to be printed (single mesh case)
-if ProjectParameters.GiDMultiFileFlag == "Single":
-    mesh_name = 0.0
-    gid_io.InitializeMesh( mesh_name )
-    gid_io.WriteMesh( fluid_model_part.GetMesh() )
-    gid_io.FinalizeMesh()
 
-    gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
-    Multifile = False
 
-    # Write .post.list file (GiD postprocess list)
-    f = open(ProjectParameters.problem_name+'.post.lst','w')
-    f.write('Single\n')
-    if ProjectParameters.GiDPostMode == "Binary":
-        f.write(ProjectParameters.problem_name+'.post.bin\n')
-    elif ProjectParameters.GiDPostMode == "Ascii":
-        f.write(ProjectParameters.problem_name+'_0.post.msh\n')
-    f.close()
+cut_model_part = ModelPart("CutPart");
+if(ProjectParameters.VolumeOutput == True):
+    ###mesh to be printed (single mesh case)
+    if ProjectParameters.GiDMultiFileFlag == "Single":
+	mesh_name = 0.0
+	gid_io.InitializeMesh( mesh_name )
+	gid_io.WriteMesh( fluid_model_part.GetMesh() )
+	gid_io.FinalizeMesh()
+
+	gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
+	Multifile = False
+
+	# Write .post.list file (GiD postprocess list)
+	f = open(ProjectParameters.problem_name+'.post.lst','w')
+	f.write('Single\n')
+	if ProjectParameters.GiDPostMode == "Binary":
+	    f.write(ProjectParameters.problem_name+'.post.bin\n')
+	elif ProjectParameters.GiDPostMode == "Ascii":
+	    f.write(ProjectParameters.problem_name+'_0.post.msh\n')
+	f.close()
+	
+    else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
+	Multifile = True
+
+	# Initialize .post.list file (GiD postprocess list)
+	f = open(ProjectParameters.problem_name+'.post.lst','w')
+	f.write('Multiple\n')
+else:
+    #generate the cuts
+    Cut_App = Cutting_Application();
+    Cut_App.FindSmallestEdge(fluid_model_part)
     
-else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
-    Multifile = True
+    cut_number = 1
 
-    # Initialize .post.list file (GiD postprocess list)
-    f = open(ProjectParameters.problem_name+'.post.lst','w')
-    f.write('Multiple\n')
+    cut_list = define_output.DefineCutPlanes()
+    print cut_list
+    
+    for item in cut_list:
+       print item
+       n = Vector( item[0] )
+       p = Vector( item[1] )
+       Cut_App.GenerateCut(fluid_model_part,cut_model_part,n,p, cut_number , 0.01)
+       cut_number = cut_number + 1
+       print "generated cut number =",cut_number
+      
+    if(len(cut_model_part.Conditions) != 0):
+	Cut_App.AddSkinConditions(fluid_model_part,cut_model_part, cut_number)
+	cut_number += 1      
+    
+    ###mesh to be printed (single mesh case)
+    if ProjectParameters.GiDMultiFileFlag == "Single":
+	mesh_name = 0.0
+	gid_io.InitializeMesh( mesh_name )
+	gid_io.WriteMesh( cut_model_part.GetMesh() )
+	gid_io.FinalizeMesh()
+
+	gid_io.InitializeResults(mesh_name,(cut_model_part).GetMesh())
+	Multifile = False
+
+	# Write .post.list file (GiD postprocess list)
+	f = open(ProjectParameters.problem_name+'.post.lst','w')
+	f.write('Single\n')
+	if ProjectParameters.GiDPostMode == "Binary":
+	    f.write(ProjectParameters.problem_name+'.post.bin\n')
+	elif ProjectParameters.GiDPostMode == "Ascii":
+	    f.write(ProjectParameters.problem_name+'_0.post.msh\n')
+	f.close()
+	
+    else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
+	Multifile = True
+
+	# Initialize .post.list file (GiD postprocess list)
+	f = open(ProjectParameters.problem_name+'.post.lst','w')
+	f.write('Multiple\n')    
     
     
     
 #######################################33
 #preparing output of point graphs
 import point_graph_printer
-import define_output
+
 output_nodes_list = define_output.DefineOutputPoints()
 graph_printer = point_graph_printer.PrintGraphPrinter(output_nodes_list, fluid_model_part, variables_dictionary, domain_size)
 
@@ -346,15 +402,29 @@ while(time <= final_time):
         graph_printer.PrintGraphs(time)
 
     if(output_time <= out):
-        if Multifile:
-            gid_io.InitializeMesh( time )
-            gid_io.WriteMesh( fluid_model_part.GetMesh() )
-            gid_io.FinalizeMesh()
+	if(ProjectParameters.VolumeOutput == True):
+	    if Multifile:
+		gid_io.InitializeMesh( time )
+		gid_io.WriteMesh( fluid_model_part.GetMesh() )
+		gid_io.FinalizeMesh()
 
-            gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
-        
-        PrintResults(fluid_model_part)
-        out = 0
+		gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
+	    
+	    PrintResults(fluid_model_part)
+	    out = 0
+	else:
+	    cut_model_part.CloneTimeStep(time)
+	    Cut_App.UpdateCutData(cut_model_part,fluid_model_part)
+	    
+	    if Multifile:
+		gid_io.InitializeMesh( time )
+		gid_io.WriteMesh( cut_model_part.GetMesh() )
+		gid_io.FinalizeMesh()
+
+		gid_io.InitializeResults(time,(cut_model_part).GetMesh())
+	    
+	    PrintResults(cut_model_part)
+	    out = 0	    
 
         if Multifile:
             gid_io.FinalizeResults()
