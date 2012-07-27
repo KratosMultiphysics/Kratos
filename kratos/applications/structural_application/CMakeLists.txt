@@ -102,7 +102,8 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/master_contact_face_3D.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_face_3D.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D.cpp 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_kinematic_linear.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_kinematic_linear.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_lagrange_tying.cpp  
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_newmark.cpp 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_point_3d.cpp 
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_explicit.cpp
