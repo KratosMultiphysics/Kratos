@@ -123,14 +123,16 @@ double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rV
     if ( rThisVariable == POISSON_RATIO )
         return mNU;
 
-    KRATOS_ERROR( std::logic_error, "this variable is not supported", "" );
+    rValue = 0.0;
+    return( rValue );
 }
 
 Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
-        return mPrestress;
+        Vector rValue = mPrestressFactor*mPrestress;
+        return rValue;
     }
 
     if ( rThisVariable == STRESSES )
