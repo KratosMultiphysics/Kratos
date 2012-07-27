@@ -91,22 +91,24 @@ public:
 
         //check that variables needed are in the model part
         if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
-            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","")
-            if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
-                KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","")
+            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","");
+        
+        if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+            KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
-                if(is_distributed == true)
-                    if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
-                        KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
-// KRATOS_WATCH(is_distributed)
+        if(is_distributed == true)
+            if(!(rmodel_part.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+                 KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
+                         
 
-                        //reset the variables needed
-                        int node_size = rmodel_part.Nodes().size();
+        //reset the variables needed
+        int node_size = rmodel_part.Nodes().size();
+        
         #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
-            it->FastGetSolutionStepValue(rAreaVar) = 0.0;
+            //it->FastGetSolutionStepValue(rAreaVar) = 0.0;
             double& dist = it->FastGetSolutionStepValue(rDistanceVar);
             it->SetValue(rDistanceVar,dist); //here we copy the distance function to the fixed database
 
@@ -115,7 +117,7 @@ public:
             else
                 it->SetValue(IS_FLUID,0.0);
 
-            dist = 0.0;
+            dist = max_distance;
 
 
             it->SetValue(IS_VISITED,0);
@@ -134,55 +136,73 @@ public:
         boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
         int elem_size = rmodel_part.Elements().size();
 
-        #pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(lumping_factor,elem_size)
-        for(int i = 0; i<elem_size; i++)
+#pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(lumping_factor,elem_size)
+        for (int i = 0; i < elem_size; i++)
         {
-            PointerVector< Element>::iterator it=rmodel_part.ElementsBegin()+i;
+            PointerVector< Element>::iterator it = rmodel_part.ElementsBegin() + i;
 
-            Geometry<Node<3> >&geom = it->GetGeometry();
+             Geometry<Node < 3 > >& element_geometry = it->GetGeometry();
 
-            for(unsigned int i=0; i<TDim+1; i++)
-                dist[i] = geom[i].GetValue(rDistanceVar);
+             for (unsigned int i = 0; i < TDim + 1; i++)
+                 dist[i] = element_geometry[i].GetValue(rDistanceVar);
 
-            bool is_divided = IsDivided(dist);
+             bool is_divided = IsDivided(dist);
 
-            if(is_divided == true)
-            {
-                double Volume;
-                GeometryUtils::CalculateGeometryData(geom,DN_DX,N,Volume);
+             if (is_divided == true)
+             {
+                 GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
 
-                ComputeExactDistances(DN_DX,Volume,geom,dist,exact_dist);
+                 // loop over nodes and apply the new distances.
+                 for (unsigned int i_node = 0; i_node < element_geometry.size(); i_node++)
+                 {
+                    double& distance = element_geometry[i_node].GetSolutionStepValue(rDistanceVar);
+                    double new_distance = dist[i_node];
 
-                for(unsigned int i=0; i<TDim+1; i++)
-                {
-                    geom[i].SetLock();
-                    geom[i].FastGetSolutionStepValue(rDistanceVar) += exact_dist[i]*Volume*lumping_factor;
-                    geom[i].FastGetSolutionStepValue(rAreaVar) += Volume*lumping_factor;
-                    geom[i].UnSetLock();
+                    element_geometry[i_node].SetLock();
+
+                    if (fabs(distance) > fabs(new_distance))
+                        distance = new_distance;
+
+                    element_geometry[i_node].GetValue(IS_VISITED) = 1;
+
+                    element_geometry[i_node].UnSetLock();
                 }
             }
         }
 
 
-        //mpi sync variables
+            //mpi sync variables
         rmodel_part.GetCommunicator().AssembleCurrentData(rAreaVar);
-        rmodel_part.GetCommunicator().AssembleCurrentData(rDistanceVar);
+        rmodel_part.GetCommunicator().SynchronizeCurrentDataToMin(rDistanceVar);
 
-        #pragma omp parallel for firstprivate(node_size)
+//        #pragma omp parallel for firstprivate(node_size)
+//        for(int i = 0; i<node_size; i++)
+//        {
+//            ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
+//            double& area = it->FastGetSolutionStepValue(rAreaVar);
+//            if(area > 1e-20) //this implies that node was computed
+//            {
+//                double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+//                distance /= area;
+//
+//                it->SetValue(IS_VISITED,1.0); //node is marked as already visitedz
+//            }
+//
+//        }
+
+        #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
-            double& area = it->FastGetSolutionStepValue(rAreaVar);
-            if(area > 1e-20) //this implies that node was computed
-            {
-                double& distance = it->FastGetSolutionStepValue(rDistanceVar);
-                distance /= area;
 
-                it->SetValue(IS_VISITED,1.0); //node is marked as already visitedz
-            }
+            double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 
+            if(it->GetValue(IS_VISITED) != 1.00)
+                dist = 0.00;
         }
 
+        
+        
         //*****************************************************************+
         //*****************************************************************+
         //*****************************************************************+
@@ -264,13 +284,14 @@ public:
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
-            const double area = it->FastGetSolutionStepValue(rAreaVar);
+//            const double area = it->FastGetSolutionStepValue(rAreaVar);
             double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 
             if(dist < 0.0)
                 KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
 
-            if(dist > max_distance || area <1e-20)
+//            if(dist > max_distance || area <1e-20)
+            if(dist > max_distance)
                 dist = max_distance;
 
             if(it->GetValue(IS_FLUID) == 1.0)
