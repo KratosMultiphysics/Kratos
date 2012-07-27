@@ -234,9 +234,11 @@ void  AddCustomUtilitiesToPython()
     ( "ContactUtility",
       init<int>() )
     .def( "SetUpContactConditions", &ContactUtility::SetUpContactConditions )
+    .def( "SetUpContactConditionsLagrangeTying", &ContactUtility::SetUpContactConditionsLagrangeTying )
     .def( "Update", &ContactUtility::Update )
     .def( "IsConverged", &ContactUtility::IsConverged )
     .def( "Clean", &ContactUtility::Clean )
+    .def( "CleanLagrangeTying", &ContactUtility::CleanLagrangeTying )
     ;
 // VM
     class_<VolumeUtility, boost::noncopyable >
