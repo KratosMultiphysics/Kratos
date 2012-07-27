@@ -446,35 +446,33 @@ protected:
     /**
      * Member Variables
      */
-    Vector mCurrentPlasticStrains;
-    Vector mPrestress;
-    double mAlpha;
-    double mOldAlpha;
-    Matrix mCtangent;
-    Vector mCurrentStress;
 
     double mDensity, mE, mNU, mG, mK, mEta, mXi, mCohesion, mHardening, mPrestressFactor;
-    double mdGamma;
+//     double mdGamma;
+    double mAlpha;
+    double mOldAlpha;
 
-
-
-    double unit4thSym3D[6][6];
-    double unit2nd3D[6];
-    Matrix mConsistentTangent;
+    //double unit4thSym3D[6][6];
+    //double unit2nd3D[6];
 
     Vector mOldStrain;
     Vector mCurrentStrain;
     Vector mOldSElasticStrain;
     Vector mCurrentElasticStrain;
-    Vector mCurrentStrainInc;
+//     Vector mCurrentStrainInc;
     Vector mOldStress;
-
-    double mModelData[10];
+    Vector mCurrentStress;
     Vector mOldPlasticStrains;
+    Vector mCurrentPlasticStrains;
+    Vector mPrestress;
 
+    Matrix mCtangent;
+    Matrix mCtangentInv;
 
-    bool isYielded;
+//     bool mIsYielded;
+//     bool mIsApex;
 
+    Matrix InverseC ( Matrix& InvC );
 
 private:
 
@@ -494,15 +492,15 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw );
     }
 
-    void CalculateStress( const Vector& StrainVector, Vector& StressVector );
+    void CalculateStress( const Vector& StrainVector, Vector& StressVector, bool& isYielded, bool& isApex, double& dGamma );
 
-    void CalculateConstitutiveMatrix( const Vector& StrainVector, Matrix& rResult );
+    void CalculateConstitutiveMatrix( const Vector& StrainVector, Matrix& rResult, bool& isYielded, bool& isApex, double& dGamma );
 
     void CalculateElasticMatrix( Matrix& C, const double E, const double NU );
 
-    void CalculateUnit4thSym3D();
+//     void CalculateUnit4thSym3D();
 
-    void CalculateUnit2nd3D();
+//     void CalculateUnit2nd3D();
 
 
 }; // Class DruckerPrager
