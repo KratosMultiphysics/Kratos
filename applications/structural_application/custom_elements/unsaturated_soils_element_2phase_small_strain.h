@@ -269,6 +269,7 @@ private:
     unsigned int mNodesDispMin;
     unsigned int mNodesDispMax;
     Matrix mInitialDisp;
+    std::vector<double> mReferencePressures;
 
 
     std::vector< Matrix > mInvJ0;
