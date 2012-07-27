@@ -104,6 +104,7 @@ class TrilinosLevelSetSolver:
         self.vel_abs_criteria = 1e-9
         self.press_abs_criteria = 1e-9
         self.fluid_solver.ReformDofSetAtEachStep = False
+        self.fluid_solver.alpha = -0.3
 
         ################################################
         #properties of the two fluids
