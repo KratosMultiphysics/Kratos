@@ -192,6 +192,11 @@ namespace Kratos
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
        //3. Neighbouring search. Every N times. +bounding box destruction
+
+        if (time_step == 1)
+        {    
+               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox( r_model_part, mEnlargementFactor );
+        }
         
         if ( (time_step + 1)%mnstepsearch == 0 )
         {
@@ -543,8 +548,6 @@ namespace Kratos
 
         ModelPart& r_model_part              = BaseType::GetModelPart();
 
-
-
         mParticle_Creator_Destructor.DestroyDistantParticles( r_model_part );
         
         //Destroy_Distant_Particles(r_model_part);
@@ -553,7 +556,7 @@ namespace Kratos
         KRATOS_CATCH("")
 
 
-        } //BoundingBoxUtility()
+        } //BoundingBBouoxUtility()
 
 
 
