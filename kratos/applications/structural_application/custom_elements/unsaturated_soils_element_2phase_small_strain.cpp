@@ -208,6 +208,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::Initialize()
     if ( mConstitutiveLawVector.size() != integration_points.size() )
     {
         mConstitutiveLawVector.resize( integration_points.size() );
+        mReferencePressures.resize( integration_points.size() );
         InitializeMaterial();
     }
 
@@ -697,7 +698,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateOnIntegrationPoints( c
 
         if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
         {
-            Output[PointNumber] = waterPressure - ( 9.81 * 1000.0 * gp_position[2] );
+            Output[PointNumber] = waterPressure - mReferencePressures[PointNumber];
         }
 
         if ( rVariable == AIR_PRESSURE )
@@ -2125,6 +2126,19 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( co
             noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PRESTRESS, rValues[i] );
         }
     }
+    
+    
+    if ( rVariable == PLASTIC_STRAIN_VECTOR )
+    {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        {
+            if ( rValues[i].size() != 6 )
+                rValues[i].resize( 6 );
+
+            noalias( rValues[i] ) = mConstitutiveLawVector[i]->GetValue( PLASTIC_STRAIN_VECTOR, rValues[i] );
+        }
+    }
+
 
     //To Plot Internal variables
     if ( rVariable == INTERNAL_VARIABLES )
@@ -2236,6 +2250,19 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( co
 void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+    
+    if( rVariable == PLASTICITY_INDICATOR )
+    {
+        if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
+            rValues.resize( GetGeometry().IntegrationPoints().size() );
+
+        //reading integration points and local gradients
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        {
+            rValues[Point] = mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] );
+        }
+        return;
+    }
 
     unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
 
@@ -2286,7 +2313,7 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( co
 
         if ( rVariable == EXCESS_PORE_WATER_PRESSURE )
         {
-            rValues[PointNumber] = waterPressure - ( 9.81 * 1000.0 * (12.75-gp_position[2]) );
+            rValues[PointNumber] = waterPressure - mReferencePressures[PointNumber];
         }
 
     }
@@ -2346,9 +2373,19 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( co
 
 void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+    if( rVariable == REFERENCE_WATER_PRESSURE )
     {
-        mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        {
+            mReferencePressures[i] = rValues[i];
+        }
+    }
+    else
+    {
+        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+        {
+            mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
+        }
     }
 
 }
