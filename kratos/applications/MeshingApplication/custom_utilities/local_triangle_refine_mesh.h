@@ -290,8 +290,10 @@ public:
             noalias(Coordinate_New_Node[i]) = 0.50 * (Coord_Node_1 + Coord_Node_2);
             /// inserting the news node in the model part
 
-            Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
-            pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
+            //Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
+            Node < 3 >::Pointer pnode = Node < 3 >::Pointer(new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
+	    pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
+	    pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
             it_node1 = this_model_part.NodesBegin() + pos1;
             it_node2 = this_model_part.NodesBegin() + pos2;
@@ -330,6 +332,10 @@ public:
                     new_step_data[j] = 0.5 * (step_data1[j] + step_data2[j]);
                 }
             }
+            
+            
+            this_model_part.Nodes().push_back(pnode);
+        
 
             //      /// WARNING =  only for reactions;
             //      const double zero = 0.00;
@@ -342,7 +348,9 @@ public:
             //                             KRATOS_CATCH("")
             //                  }
             //       }
-        }
+           }
+           
+        this_model_part.Nodes().Sort();
     }
 
 
