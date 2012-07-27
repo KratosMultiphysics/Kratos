@@ -27,7 +27,7 @@ model_part_io_solid = ModelPartIO(input_file_name)
 model_part_io_solid.ReadModelPart(solid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-solid_model_part.SetBufferSize(3)
+solid_model_part.SetBufferSize(2)
 
 ##adding dofs
 SolverStrategy.AddDofs(solid_model_part)
