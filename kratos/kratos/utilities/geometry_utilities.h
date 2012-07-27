@@ -235,6 +235,475 @@ public:
 
 
 
+    /**
+     * Calculate the exact distances to an isosurface define by a set of initial
+     * distances
+     * @param ThisGeometryThe tetrahedra itself. Note: If the geometry is not a
+     * tetrahedra the result is undefined and may cause memory error.
+     * @param Distances The distances which define the isosurface as input and
+     * the same argument is used to give the calculated exact distance
+     */
+    template<std::size_t TSize>
+    static void CalculateTetrahedraDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
+    {
+        // Calculating the intersection points
+        array_1d<Point<3>, 4> intersection_points;
+        int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
+
+//        for(int i = 0 ; i < number_of_intersection_points ; i++)
+//            KRATOS_WATCH(intersection_points[i]);
+
+
+		if(number_of_intersection_points == 0)
+		{
+			std::cout << "Warning: The intersection with interface hasn't found!" << std::endl;
+		}
+		else if(number_of_intersection_points == 1)
+		{ // There is one point with zero distance. The distance of the nodes are their distance to this point
+//                    std::cout << "1 intersection point" << std::endl;
+			array_1d<double,3> temp;
+			// loop over nodes to calculate their distance to the zero distance node.
+                        for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                        {
+				noalias(temp) = intersection_points[0] - ThisGeometry[i_node];
+				Distances[i_node] = norm_2(temp);
+//                        KRATOS_WATCH(ThisGeometry[i_node].Id());
+//                        KRATOS_WATCH(intersection_points[0]);
+//                        KRATOS_WATCH(ThisGeometry[i_node].Coordinates());
+//                        KRATOS_WATCH(Distances[i_node]);
+
+			}
+//                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+//                       {
+//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                       }
+
+		}
+		else if(number_of_intersection_points == 2)
+		{
+
+//                    std::cout << "2 intersection points" << std::endl;
+			// loop over nodes to calculate their distance to the zero distance line.
+                        for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                        {
+				Distances[i_node] = PointDistanceToLineSegment3D(intersection_points[0], intersection_points[1], ThisGeometry[i_node]);
+//                        KRATOS_WATCH(intersection_points[0]);
+//                        KRATOS_WATCH(intersection_points[1]);
+//                        KRATOS_WATCH(ThisGeometry[i_node]);
+//                        KRATOS_WATCH(Distances[i_node]);
+			}
+//                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+//                       {
+//                           Distances[i_node] = ThisGeometry[i_node].Z(); // To be removed. Pooyan.
+//                       }
+
+		}
+		else if(number_of_intersection_points == 3)
+		{
+//                    std::cout << "3 intersection points" << std::endl;
+			// loop over nodes to calculate their distance to the zero distance triangle.
+                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                       {
+				Distances[i_node] = PointDistanceToTriangle3D(intersection_points[0], intersection_points[1], intersection_points[2], ThisGeometry[i_node]);
+//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+                       }
+
+		}
+		else if(number_of_intersection_points == 4)
+		{
+                    //std::cout << "4 intersection points" << std::endl;
+//                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+//                       {
+//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                        }
+
+			// loop over nodes to calculate their distance to the each zero distance triangle.
+                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                       {   // here I'm taking in account the order of edges where I'm looking for intersection
+                           double d1 = PointDistanceToTriangle3D(intersection_points[0], intersection_points[1], intersection_points[3], ThisGeometry[i_node]);
+                           double d2 = PointDistanceToTriangle3D(intersection_points[0], intersection_points[3], intersection_points[2], ThisGeometry[i_node]);
+
+//                           KRATOS_WATCH(d1);
+//                           KRATOS_WATCH(d2);
+//                           KRATOS_WATCH(Distances[i_node] );
+
+ 			   Distances[i_node] = (d1 > d2) ? d2 : d1;
+                       }
+
+		}
+
+
+
+    }
+
+
+
+
+    /**
+     * This function calculates the coordinates of the intersecion points
+     * between edges of tetrahedra and a isosurface given by the distances in
+     * its corners
+     * @param ThisGeometry The tetrahedra itself. Note: If the geometry is not a
+     * tetrahedra the result is undefined and may cause memory error.
+     * @param Distances The distances of the 4 nodes of the tetrahedra to the
+     * iso surface.
+     * @param IntersectionPoints The result intersection points
+     * @return Number of intersection points.
+     */
+    template<std::size_t TSize1, std::size_t TSize2>
+    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point<3>, TSize2>& IntersectionPoints)
+    {
+        const double epsilon = 1e-15; //1.00e-9;
+
+        int number_of_intersection_points = 0;
+        for(int i = 0 ; i < 4 ; i++)
+        {
+            if(fabs(Distances[i]) < epsilon)
+            {
+                noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) = ThisGeometry[i].Coordinates();
+
+                number_of_intersection_points++;
+                continue;
+            }
+            for(int j = i + 1 ; j < 4 ; j++)
+            {
+                if(fabs(Distances[j]) < epsilon)
+                    continue; // we will add it to the intersections by the i index to be unique
+
+                if(Distances[i] * Distances[j] < 0.00)  // The interface passes through the edge
+                {
+
+                    double delta_d = fabs(Distances[i]) + fabs(Distances[j]);  // we know that both distances are greater than epsilon.
+
+                    double di = fabs(Distances[i]) / delta_d;
+                    double dj = fabs(Distances[j]) / delta_d;
+
+                    noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) = dj * ThisGeometry[i].Coordinates();
+                    noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) += di * ThisGeometry[j].Coordinates();
+
+                    number_of_intersection_points++;
+                }
+            }
+        }
+
+		return number_of_intersection_points;
+	}
+
+
+    /**
+     * This function calculates the distance of a 3D point to a 3D line segment
+     * @param LinePoint1 First point of the line segment
+     * @param LinePoint2 End point of the line segment
+     * @param ToPoint The point which distance is required
+     * @return The distance between the point and the line
+     */
+    static double PointDistanceToLineSegment3D(Point<3> const& LinePoint1,
+                                 Point<3> const& LinePoint2,
+                                  Point<3> const& ToPoint)
+    {
+        const double epsilon = 1e-15; //1.00e-9;
+
+		array_1d<double,3> v1 = LinePoint2 - LinePoint1;
+		array_1d<double,3> v2 = LinePoint1 - ToPoint;
+		array_1d<double,3> v3;
+
+//                KRATOS_WATCH(LinePoint1);
+//                KRATOS_WATCH(LinePoint2);
+//                KRATOS_WATCH(ToPoint.Coordinates());
+//
+//
+
+		double square_distance = inner_prod(v1,v1);
+
+		if(square_distance < epsilon) // near zero length line
+			return norm_2(v2); // we return the distance to the first point of line
+
+		double t = - inner_prod(v1,v2) / square_distance;
+
+//                KRATOS_WATCH(t);
+
+		if(t < 0.00) // it is before point 1
+		{ // we return the distance to point 1
+			v3 = LinePoint1 - ToPoint;
+
+			return norm_2(v3);
+		}
+
+		if(t > 1.00) // it is after point 2
+		{ // we return the distance to point 2
+			v3 = LinePoint2 - ToPoint;
+
+			return norm_2(v3);
+		}
+
+		// The projection point is between point 1 and 2 of the line segment
+		v3 = LinePoint1 * (1.00 - t) + LinePoint2 * t;
+//
+//                KRATOS_WATCH(v3);
+//                KRATOS_WATCH(v3 - ToPoint);
+
+		return norm_2(v3 - ToPoint);
+
+    }
+
+    /**
+     * This function calculates the distance of a 3D point to a 3D triangle
+     * @param TrianglePoint1 First point of triangle
+     * @param TrianglePoint2 Second point of triangle
+     * @param TrianglePoint3 Third point of triangle
+     * @param ToPoint The point which distance is required
+     * @return The distance between the point and the triangle
+     */
+    static double PointDistanceToTriangle3D(Point<3> const& TrianglePoint1,
+                                 Point<3> const& TrianglePoint2,
+                                 Point<3> const& TrianglePoint3,
+                                 Point<3> const& ToPoint)
+    {
+		// The implementation is done using following reference:
+		// http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+
+
+
+		array_1d<double, 3> e0 = TrianglePoint2 - TrianglePoint1;
+		array_1d<double, 3> e1 = TrianglePoint3 - TrianglePoint1;
+		array_1d<double, 3> dd = TrianglePoint1 - ToPoint;
+
+		double a = inner_prod(e0, e0);
+		double b = inner_prod(e0, e1);
+		double c = inner_prod(e1, e1);
+		double d = inner_prod(e0, dd);
+		double e = inner_prod(e1, dd);
+		double f = inner_prod(dd, dd);
+
+		double det = a*c-b*b;
+		double s = b*e-c*d;
+		double t = b*d-a*e;
+
+		double square_distance = 0.00;
+
+		if ( s + t <= det )
+		{
+			if ( s < 0.00 )
+			{
+				if ( t < 0.00 )
+				{ // region 4
+					if (d < 0)
+					{
+						t = 0;
+						if (-d >= a)
+						{
+							s = 1;
+							square_distance = a + 2*d + f;
+						}
+						else
+						{
+							s = -d/a;
+							square_distance = d*s + f;
+						}
+					}
+					else
+					{
+						s = 0;
+						if (e >= 0)
+						{
+							t = 0;
+							square_distance = f;
+						}
+						else
+						{
+							if (-e >= c)
+							{
+								t = 1;
+								square_distance = c + 2*e + f;
+							}
+							else
+							{
+								t = -e/c;
+								square_distance = e*t + f;
+							}
+						}
+					}
+				}
+				else
+				{ // region 3
+					s = 0.00;
+					if(e >= 0.00)
+					{
+						t = 0.00;
+						square_distance = f;
+					}
+					else
+					{
+						if (-e >= c)
+						{
+							t = 1.00;
+							square_distance = c + 2*e +f;
+						}
+						else
+						{
+							t = -e/c;
+							square_distance = e*t + f;
+						}
+					}
+
+				}
+			}
+			else if ( t < 0.00 )
+                        { // region 5
+                            t = 0;
+                            if (d >= 0)
+                            {
+                                s = 0;
+                                square_distance = f;
+                            }
+                            else
+                            {
+                                if (-d >= a)
+                                {
+                                    s = 1;
+                                    square_distance = a + 2.00 * d + f;
+                                }
+                                else
+                                {
+                                    s = -d / a;
+                                    square_distance = d * s + f;
+                                }
+                            }
+                        }
+                        else
+			{ // region 0
+				double inv_det = 1.00 / det;
+				s *= inv_det;
+				t *= inv_det;
+				square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+			}
+		}
+		else
+		{
+			if ( s < 0.00 )
+			{ // region 2
+				double temp0 = b + d;
+				double temp1 = c + e;
+				if (temp1 > temp0)  // minimum on edge s+t=1
+				{
+					double numer = temp1 - temp0;
+					double denom = a - 2*b + c;
+					if(numer >= denom)
+					{
+						s = 1.00;
+						t = 0.00;
+						square_distance = a + 2*d + f;
+					}
+					else
+					{
+						s = numer/denom;
+						t = 1.00-s;
+						square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+					}
+				}
+				else          // minimum on edge s=0
+				{
+					s = 0.00;
+					if(temp1 <= 0.00)
+					{
+						t = 1;
+						square_distance = c + 2*e + f;
+					}
+					else
+					{
+						if(e >= 0.00)
+						{
+							t = 0.00;
+							square_distance = f;
+						}
+						else
+						{
+							t = -e/c;
+							square_distance = e*t + f;
+						}
+					}
+				}
+			}
+			else if ( t < 0.00 )
+			{ // region 6
+				double temp0 = b + e;
+				double temp1 = a + d;
+				if (temp1 > temp0)
+				{
+					double numer = temp1 - temp0;
+					double denom = a - 2*b + c;
+					if(numer >= denom)
+					{
+						s = 0.00;
+						t = 1.00;
+						square_distance = c + 2*e + f;
+					}
+					else
+					{
+						t = numer/denom;
+						s = 1.00-t;
+						square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+					}
+				}
+				else
+				{
+					t = 0.00;
+					if(temp1 <= 0.00)
+					{
+						s = 1;
+						square_distance = a + 2*d + f;
+					}
+					else
+					{
+						if(d >= 0.00)
+						{
+							s = 0.00;
+							square_distance = f;
+						}
+						else
+						{
+							s = -d/a;
+							square_distance = d*s + f;
+						}
+					}
+				}
+			}
+			else
+			{ // region 1
+				double numer = c + e - b - d;
+
+				if (numer <= 0.00)
+				{
+					s = 0.00;
+					t = 1.00;
+					square_distance = c + 2.00 * e + f;
+				}
+				else
+				{
+					double denom = a - 2.00 * b + c;
+					if (numer >= denom)
+					{
+						s = 1.00;
+						t = 0.00;
+						square_distance = a + 2.00 * d + f;
+					}
+					else
+					{
+						s = numer / denom;
+						t = 1.00 - s;
+						square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
+					}
+				}
+			}
+		}
+
+                if(square_distance < 0.00)
+                    return 0.00; // avoiding -0 case!!
+
+        return std::sqrt(square_distance);
+    }
+
+
 
 };
 
