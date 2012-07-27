@@ -410,7 +410,7 @@ void KinematicLinear::CalculateAll( MatrixType& rLeftHandSideMatrix,
     //Current displacements
     for ( unsigned int node = 0; node < GetGeometry().size(); node++ )
         noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
-
+    
     /////////////////////////////////////////////////////////////////////////
     //// Integration in space over quadrature points
     /////////////////////////////////////////////////////////////////////////
@@ -421,7 +421,7 @@ void KinematicLinear::CalculateAll( MatrixType& rLeftHandSideMatrix,
         CalculateBoperator( B, DN_DX );
 
         //calculate strain
-        CalculateStrain( B, CurrentDisp, StrainVector );
+        CalculateStrain( B, CurrentDisp, StrainVector );        
 
         //calculate stress
 //             mConstitutiveLawVector[PointNumber]->UpdateMaterial( StrainVector,
@@ -459,7 +459,7 @@ void KinematicLinear::CalculateAll( MatrixType& rLeftHandSideMatrix,
             AddInternalForcesToRHS( rRightHandSideVector, B, StressVector, integration_points[PointNumber].Weight(), mDetJ0[PointNumber] );
         }
     }//loop over integration points
-
+    
     KRATOS_CATCH( "" )
 }
 
@@ -797,7 +797,7 @@ void KinematicLinear::AddBodyForcesToRHS( Vector& R, const Vector& N_DISP, doubl
 void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operator, Vector& StressVector, double Weight, double detJ )
 {
     KRATOS_TRY
-
+    
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
@@ -811,7 +811,6 @@ void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operato
             }
         }
     }
-
 //         noalias(R) -= detJ*Weight* prod(trans(B_Operator),StressVector);
 
     KRATOS_CATCH( "" )
@@ -1031,9 +1030,6 @@ void KinematicLinear::GetValueOnIntegrationPoints( const Variable<Vector>& rVari
 */
 void KinematicLinear::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    if ( !( rVariable == DP_EPSILON ) )
-        return;
-
     if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
         rValues.resize( GetGeometry().IntegrationPoints().size() );
 
