@@ -62,10 +62,10 @@ namespace Kratos
 	{
 	   public:
 	      SaveFlagModelPartProcess(ModelPart& fluid_model_part,ModelPart& changing_fluid_model_part, int domain_size, Kratos::Variable<double>& flag, double value )
-			:Process(), fluid_model(fluid_model_part), changing_model(changing_fluid_model_part), domain_size(domain_size), m_flag(flag), f_value(value)
-
+			:Process(), fluid_model(fluid_model_part), changing_model(changing_fluid_model_part), domain_size(domain_size), f_value(value), m_flag(flag) 
 		{
 		}
+
 		///@name Type Definitions
 		///@{
 
@@ -128,7 +128,7 @@ namespace Kratos
 				int n_flag = 0;
 				double nd_val = 0.0;
 				
-				if( elem_size == (domain_size +1) )
+				if( elem_size == static_cast<unsigned int>(domain_size +1) )
 				{
 				  for(unsigned int i=0;i<elem_size;i++)
 				  {
