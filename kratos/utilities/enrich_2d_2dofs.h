@@ -254,8 +254,6 @@ public:
 		 rGPShapeFunctionValues(0,i_aux)=one_third*(1.0 + node4_relative_position + node5_relative_position);  //we create 3 gauss points, 
 		 rGPShapeFunctionValues(0,j_aux)=one_third*(1.0 - node4_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
 		 rGPShapeFunctionValues(0,k_aux)=one_third*(1.0 - node5_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
-		 //rGradientsValue[0](0,0)=(DN_DX(j_aux,0)+DN_DX(k_aux,0))*adim_Nenriched_i_aux;
-		 //rGradientsValue[0](0,1)=(DN_DX(j_aux,1)+DN_DX(k_aux,1))*adim_Nenriched_i_aux;		  //	      i   j,k				 i    j,k
 		 rGradientsValue[0](0,0)=DN_DX(j_aux,0)*adim_Nenriched_node4+DN_DX(k_aux,0)*adim_Nenriched_node5;
 		 rGradientsValue[0](0,1)=DN_DX(j_aux,1)*adim_Nenriched_node4+DN_DX(k_aux,1)*adim_Nenriched_node5;		  //	      i   j,k				 i    j,k
 		 
@@ -264,7 +262,6 @@ public:
 		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_node4+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_node5;
 		 NEnriched(0,1)=NEnriched(0,0);  
 		 //now we must calculate the position of the new nodes to get the area.
-		 //coord_subdomain=rPoints; //easier to start this way. node 1 is already ok.
 		 coord_subdomain(0,0)=rPoints(i_aux,0);
 		 coord_subdomain(0,1)=rPoints(i_aux,1);
 		 coord_subdomain(1,0)=rPoints(i_aux,0)*(node4_relative_position)+rPoints(j_aux,0)*(1.0-node4_relative_position);
@@ -331,19 +328,7 @@ public:
 		 
 		 NEnriched(2,0)= rGPShapeFunctionValues(1,0)*adim_Nenriched_j_aux;
 		 NEnriched(2,1)= -NEnriched(2,0);
-		 //now we must calculate the position of the new nodes to get the area.
-		 /*
-		 coord_subdomain=rPoints; //easier to start this way. node 2 and 3 is already ok.
-		 coord_subdomain(0,0)=rPoints(0,0)*(node5_relative_postion)+rPoints(2,0)*(1.0-node5_relative_postion);
-		 coord_subdomain(0,1)=rPoints(0,0)*(node5_relative_postion)+rPoints(2,2)*(1.0-node5_relative_postion);
-		 Area1=CalculateVolume2D(coord_subdomain);
-		 */
-		 
 
-		 
-		 
-		 
-		 
 		 
 		 rVolumes(2)=Area-rVolumes(0)-rVolumes(1);
 		 KRATOS_WATCH(rVolumes(2));
