@@ -200,7 +200,10 @@ public:
             double& is_visited = it->GetValue(IS_VISITED);
 
             if(is_visited == 0.00)
+            {
                 dist = 0.00;
+                it->GetSolutionStepValue(rAreaVar) = 0.00;
+            }
             else if(is_visited > 1.00) // This is due to the fact that I'm using the assemble instead of sync 
                 is_visited = 1.00;
         }
