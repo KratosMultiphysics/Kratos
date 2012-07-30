@@ -90,12 +90,20 @@ class EnrichmentUtilities_2D
 public:
 
     /**
-     * The method to calculate the ernriched shape functions for given tetrahedra.
+     * 
+     * IMPORANT. data is returned in a 'particular' format: READ LINE 122
+     * 
+     * The method to calculate the ernriched shape functions for given triangle
+     * Basically, two shape functions are provided, 
+     * 1)one is the enrichment to capturate discontinuities in the gradients of the pressure 
+     *       ("Improving Eulerian two-phase flow finite element approximation with discontinuous gradient (i.e pressure) shape functions" Coppola-Owen and Codina) 
+     * 2) the second one is to capturate discontinuities in the varialbe(ie. pressure). it is a shape function that is zero on the nodes and has a constant discontinuity along the found interfase)
+     * 
      * @param rPoints A 3x3 matrix where row i has the coordinates of node i.
      * @param DN_DX The gradient of the shape functions Ni respect to the reference coordinates
      * @param rDistances is an input  vector of 3 size which holds relative distance for each node.
      *        it is used internally to mark the position of the zero level
-     * @param rVolumes Result vector with size 3 (maximumn number of partitions) holding the volume of each partition ?                  O DEBE SER 2????????????????????????????????
+     * @param rVolumes Result vector with size 3 (maximumn number of partitions) holding the volume of each partition ? 
      * @param rShapeFunctionValues Result 3x3 matrix where each row represents a partition and holds the shape functions N1 to N3 ( the cut)
      *        of the original triangle evaluated in the gauss point (center) of the partition.
      *        so that it is  N(gauss_index, node_index)
@@ -106,6 +114,16 @@ public:
      *        matrix is for possible future improvement.
      * @param Nenriched is a Matrix that contains for every gauss point the values of the enriched shape functions at the position of the gauss point
      *        so that Nenriched(1,0) contains the value of the enriched shape function "0" at the gauss point "1"
+     * @param face_gauss_N is the location of the (single) integration point of the interfase: its midpoint.
+     * @param face_gauss_N_enrich is the value of the enrichment shape functions in the integration point
+     * 		  actually it's value is always the same so no need to use it: the shape functions were defined to make it 1 in the first shape function,
+     * 		  And 1 and -1 the second shape function (it's discontinous, so it has these two values in the interfase)
+     * 		  WARNING: therefore the discontinuity in the shape function is equal to 2.
+     * @param type_of_cut: (read line 140) The idea is to return the information ordered in a different way to reduce a bit calculations in the elements:
+     *        Gauss points, derivatives and areas are returned  so that the first in the partition that is 'alone': the one that is on one side of the shape function
+     * 		  the other two are the ones in the other side, meaning they have the same derivatives and , for example, densities.
+     *        Therefore there's no need to read them twice in this side, but the drawback is that the variables 'i_aux' have to be defined.
+     * 
      * @return number of partitions created which can be from 1 to 3.
      *         1 holds for only 1 partition which is the original element. (No partitioning needed)
      */
@@ -120,28 +138,19 @@ public:
     {
         KRATOS_TRY
 
-		unsigned int i,j,k;
-		unsigned int i_aux,j_aux,k_aux;
- //       const int n_nodes = 3; // it works only for triangles
- //       const int n_edges = 3; // it works only for triangles
-		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;     4 only ij ; 5 only jk ;  6 only ik   
-							   //                  (somehow they look like the quadratic shape functions for a triangle
+		//unsigned int i,j,k;
+		unsigned int i_aux,j_aux,k_aux; //
+		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   NOT IMPLEMENTED YET:  4 only ij ; 5 only jk ;  6 only ik   
 		const double one_third=1.0/3.0;
 		bounded_matrix<double, 3, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
-		//array_1d<double,3>& GP1, GP2, GP3;
-		double Area;//, Area1, Area2, Area3;
-        //boost::numeric::ublas::bounded_matrix<double,3,2>& DN_DX_element;
-        //array_1d<double,3>& N_element;
-		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third;
+		double Area;//area of the complete element
+		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
 		Area = CalculateVolume2D( rPoints );
 
-        //const int edge_i[] = {0, 0, 0, 1, 1, 2};
-        //const int edge_j[] = {1, 2, 3, 2, 3, 3};    
-        
+
         //to begin with we must check whether our element is cut or not by the interfase.
         if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
 		{
-			//CalculateGeometryData(rPoints, DN_DX, rShapeFunctionValues,rVolumes);   //mmmm revisar!
 			rVolumes(0)=Area;
 			rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third;
 			NEnriched(0,0) = 0.0;
