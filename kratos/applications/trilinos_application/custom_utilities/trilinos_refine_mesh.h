@@ -1200,6 +1200,8 @@ protected:
                 //		      }
             }
 
+            this_model_part.Nodes().Sort();
+
             ///* all of the elements to be erased are at the end
             this_model_part.Elements().Sort();
 
@@ -1263,10 +1265,7 @@ protected:
         double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
 
         //generate the new node
-        Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
-
-        unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
-        pnode->SetBufferSize(buffer_size);
+        Node < 3 >::Pointer pnode = AuxCreateNewNode(model_part,new_id,X,Y,Z);
 
         pnode->X0() = X0;
         pnode->Y0() = Y0;
@@ -1292,6 +1291,7 @@ protected:
         }
 
         ///* intepolating the data
+        unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
 
         for (unsigned int step = 0; step < buffer_size; step++)
         {
