@@ -204,8 +204,11 @@ public:
                 dist = 0.00;
                 it->GetSolutionStepValue(rAreaVar) = 0.00;
             }
-            else if(is_visited > 1.00) // This is due to the fact that I'm using the assemble instead of sync 
+            else if(is_visited >= 1.00) // This is due to the fact that I'm using the assemble instead of sync
+            {
                 is_visited = 1.00;
+                it->GetSolutionStepValue(rAreaVar) = 1.00; // This is not correct
+            }
         }
 
         
@@ -291,14 +294,14 @@ public:
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rmodel_part.NodesBegin()+i;
-//            const double area = it->FastGetSolutionStepValue(rAreaVar);
+            const double area = it->FastGetSolutionStepValue(rAreaVar);
             double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 
             if(dist < 0.0)
                 KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
 
-//            if(dist > max_distance || area <1e-20)
-            if(dist > max_distance)
+            if(dist > max_distance || area <1e-20)
+            //if(dist > max_distance)
                 dist = max_distance;
 
             if(it->GetValue(IS_FLUID) == 1.0)
