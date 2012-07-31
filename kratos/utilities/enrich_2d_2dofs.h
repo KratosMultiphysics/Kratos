@@ -137,7 +137,7 @@ public:
 	
 		//unsigned int i,j,k;
 		unsigned int i_aux,j_aux,k_aux; //
-		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   NOT IMPLEMENTED YET:  4 only ij ; 5 only jk ;  6 only ik   
+		type_of_cut = 0;   // 0 means no cuts, 1 means element is cut through edges ij,ik;    2 ij,jk ;    3 ik , kj ;   INTERFASES ON nodes are not contemplated   
 		const double one_third=1.0/3.0;
 		bounded_matrix<double, 3, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
 		double Area;//area of the complete element
@@ -216,6 +216,30 @@ public:
 			 rPartitionsSign[j_aux] = -1;
 			 rPartitionsSign[k_aux] = -1;
 		 }
+		 
+		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
+		//since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
+		const double unsigned_distance0=fabs(rDistances(0));
+		const double unsigned_distance1=fabs(rDistances(1));
+		const double unsigned_distance2=fabs(rDistances(2));
+		//we begin by finding the largest distance:
+		double longest_distance=fabs(unsigned_distance0);
+		if (unsigned_distance1>longest_distance)
+			longest_distance=unsigned_distance1;
+		if (unsigned_distance2>longest_distance)
+			longest_distance=unsigned_distance2;
+		//Now we set a maximum relative distance
+		const double tolerable_distance =longest_distance*0.000001;	// (1/100,000 seems to have good results)
+			
+		//and now we check if a distance is too small:
+		if (unsigned_distance0<tolerable_distance)
+			rDistances(0)=tolerable_distance*rPartitionsSign[0];
+		if (unsigned_distance1<tolerable_distance)
+			rDistances(1)=tolerable_distance*rPartitionsSign[1];
+		if (unsigned_distance2<tolerable_distance)
+			rDistances(2)=tolerable_distance*rPartitionsSign[2];
+		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
+		 
 		 
 		 //for (int jj = 0; jj < 3; jj++)
 		 //	KRATOS_WATCH(rDistances(jj));
