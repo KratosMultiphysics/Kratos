@@ -438,7 +438,7 @@ protected:
     }
 
     virtual void EvaluateConvVelocity(array_1d<double,3>& rConvection,
-                                            const ShapeFunctionsType& rN);
+                                      const ShapeFunctionsType& rN);
 
     virtual void EvaluateConvVelocity(array_1d<double,3>& rConvection,
                                       const array_1d<double,3>& rSubscaleVel,
@@ -511,7 +511,8 @@ protected:
     virtual void MassResidual(double& rResult);
 
     virtual void AddViscousTerm(MatrixType& rDampMatrix,
-                                const double Weight);
+                                const double Weight,
+                                const ShapeDerivativesType& rDN_DX);
 
     virtual void DenseSystemSolve(const Matrix& rA,
                                   const Vector& rB,

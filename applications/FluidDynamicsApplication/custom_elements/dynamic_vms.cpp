@@ -96,7 +96,10 @@ void DynamicVMS<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 template< unsigned int TDim >
 void DynamicVMS<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
+//    this->LinearUpdateSubscale(rCurrentProcessInfo);
     this->UpdateSubscale(rCurrentProcessInfo);
+//    for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(this->mIntegrationMethod); g++)
+//        mSubscaleVel[g] = array_1d<double,3>(3,0.0);
 }
 
 
@@ -807,7 +810,7 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix
 
     double ViscCoeff = 0.0;
     Matrix ViscousTerm = ZeroMatrix(LocalSize,LocalSize);
-    this->AddViscousTerm(ViscousTerm,1.0);
+    this->AddViscousTerm(ViscousTerm,1.0,mDN_DX);
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
@@ -879,7 +882,6 @@ void DynamicVMS<TDim>::CalculateASGSVelocityContribution(MatrixType &rDampMatrix
                     rDampMatrix(ColIndex+TDim,RowIndex+d) += Gij + StabGij;
                 }
 
-
                 // Pressure Laplacian grad(q) Tau_t grad(p)
                 double Lij =  mDN_DX(i,0) * mDN_DX(j,0);
                 for (unsigned int d = 1; d < TDim; d++)
@@ -949,7 +951,7 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
 
     double ViscCoeff = 0.0;
     Matrix ViscousTerm = ZeroMatrix(LocalSize,LocalSize);
-    this->AddViscousTerm(ViscousTerm,1.0);
+    this->AddViscousTerm(ViscousTerm,1.0,mDN_DX);
 
     for (unsigned int g = 0; g < NumGauss; g++)
     {
@@ -1043,9 +1045,9 @@ void DynamicVMS<TDim>::CalculateOSSVelocityContribution(MatrixType &rDampMatrix,
             double qF = 0.0;
             for (unsigned int d = 0; d < TDim; d++)
             {
-                // v f and a*grad(v) Tau_t f
-                vF = BodyForce[d] * Ni_mod;
-                // Tracking term and projection: a*grad(v) * ( OldSubscaleU / Dt - MomentumProjection )
+                // v f
+                vF = BodyForce[d] * N[i];
+                // a*grad(v) Tau_t f and Tracking term and projection: a*grad(v) * ( OldSubscaleU / Dt - MomentumProjection )
                 vF += Convection[i] * MomentumStabRHS[d];
                 // Mass Projection term  div(v) * Tau_2 * MassProj
                 vF -= mDN_DX(i,d) * Tau_2 * MassProjection;
@@ -1302,7 +1304,7 @@ void DynamicVMS<TDim>::MassResidual(double &rResult)
 }
 
 template<>
-void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight)
+void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
 {
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 3; // TDim + 1
@@ -1317,12 +1319,12 @@ void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight)
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * mDN_DX(i,0) * mDN_DX(j,0) + mDN_DX(i,1) * mDN_DX(j,1) );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * mDN_DX(i,0) * mDN_DX(j,1) + mDN_DX(i,1) * mDN_DX(j,0) );
+            rDampMatrix(FirstRow,FirstCol) += Weight * ( FourThirds * rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) );
+            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * mDN_DX(i,1) * mDN_DX(j,0) + mDN_DX(i,0) * mDN_DX(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * mDN_DX(i,1) * mDN_DX(j,1) + mDN_DX(i,0) * mDN_DX(j,0) );
+            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( FourThirds * rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,0) * rDN_DX(j,0) );
 
             // Update Counter
             FirstRow += BlockSize;
@@ -1333,7 +1335,7 @@ void DynamicVMS<2>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight)
 }
 
 template<>
-void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight)
+void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight, const ShapeDerivativesType& rDN_DX)
 {
     const unsigned int NumNodes = this->GetGeometry().PointsNumber();
     const unsigned int BlockSize = 4; // TDim + 1
@@ -1348,22 +1350,22 @@ void DynamicVMS<3>::AddViscousTerm(MatrixType &rDampMatrix, const double Weight)
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
             // (dN_i/dx_k dN_j/dx_k)
-            const double Diag =  mDN_DX(i,0) * mDN_DX(j,0) + mDN_DX(i,1) * mDN_DX(j,1) + mDN_DX(i,2) * mDN_DX(j,2);
+            const double Diag =  rDN_DX(i,0) * rDN_DX(j,0) + rDN_DX(i,1) * rDN_DX(j,1) + rDN_DX(i,2) * rDN_DX(j,2);
 
             // First Row
-            rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * mDN_DX(i,0) * mDN_DX(j,0) + Diag );
-            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * mDN_DX(i,0) * mDN_DX(j,1) + mDN_DX(i,1) * mDN_DX(j,0) );
-            rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * mDN_DX(i,0) * mDN_DX(j,2) + mDN_DX(i,2) * mDN_DX(j,0) );
+            rDampMatrix(FirstRow,FirstCol) += Weight * ( OneThird * rDN_DX(i,0) * rDN_DX(j,0) + Diag );
+            rDampMatrix(FirstRow,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,0) );
+            rDampMatrix(FirstRow,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,0) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,0) );
 
             // Second Row
-            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * mDN_DX(i,1) * mDN_DX(j,0) + mDN_DX(i,0) * mDN_DX(j,1) );
-            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * mDN_DX(i,1) * mDN_DX(j,1) + Diag );
-            rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * mDN_DX(i,1) * mDN_DX(j,2) + mDN_DX(i,2) * mDN_DX(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,1) );
+            rDampMatrix(FirstRow+1,FirstCol+1) += Weight * ( OneThird * rDN_DX(i,1) * rDN_DX(j,1) + Diag );
+            rDampMatrix(FirstRow+1,FirstCol+2) += Weight * ( nTwoThirds * rDN_DX(i,1) * rDN_DX(j,2) + rDN_DX(i,2) * rDN_DX(j,1) );
 
             // Third Row
-            rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * mDN_DX(i,2) * mDN_DX(j,0) + mDN_DX(i,0) * mDN_DX(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * mDN_DX(i,2) * mDN_DX(j,1) + mDN_DX(i,1) * mDN_DX(j,2) );
-            rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * mDN_DX(i,2) * mDN_DX(j,2) + Diag );
+            rDampMatrix(FirstRow+2,FirstCol) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,0) + rDN_DX(i,0) * rDN_DX(j,2) );
+            rDampMatrix(FirstRow+2,FirstCol+1) += Weight * ( nTwoThirds * rDN_DX(i,2) * rDN_DX(j,1) + rDN_DX(i,1) * rDN_DX(j,2) );
+            rDampMatrix(FirstRow+2,FirstCol+2) += Weight * ( OneThird * rDN_DX(i,2) * rDN_DX(j,2) + Diag );
 
             // Update Counter
             FirstRow += BlockSize;
