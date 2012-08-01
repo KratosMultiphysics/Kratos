@@ -523,13 +523,13 @@ public:
         }
 
         //loop over all integration points
-        for ( int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             //defining single jacobian matrix
             Matrix jacobian = ZeroMatrix( 2, 2 );
             //loop over all nodes
 
-            for ( int i = 0; i < this->PointsNumber(); i++ )
+            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
                 jacobian( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
@@ -572,12 +572,12 @@ public:
         ShapeFunctionsGradientsType shape_functions_gradients = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
         //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint =  CalculateShapeFunctionsIntegrationPointsValues( ThisMethod )[IntegrationPointIndex];
+        vector<double> ShapeFunctionValuesInIntegrationPoint =  row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex);
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
 
-        for ( int i = 0; i < this->PointsNumber(); i++ )
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
             rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
@@ -602,7 +602,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, const PointType& rPoint ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
         //setting up size of jacobian matrix
         rResult.resize( 2, 2 );
@@ -613,7 +613,7 @@ public:
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
 
-        for ( int i = 0; i < this->PointsNumber(); i++ )
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
             rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
@@ -652,7 +652,7 @@ public:
         }
 
         //for all integration points
-        for ( int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             rResult[pnt] = DeterminantOfJacobian( pnt, ThisMethod );
         }
@@ -711,7 +711,7 @@ public:
      * KLUDGE: PointType needed for proper functionality
      * KLUDGE: works only with explicitly generated Matrix object
      */
-    virtual double DeterminantOfJacobian( const /*Point<3>*/PointType& rPoint ) const
+    virtual double DeterminantOfJacobian( const CoordinatesArrayType& rPoint ) const
     {
         Matrix jacobian = ZeroMatrix( 2, 2 );
         jacobian = Jacobian( jacobian, rPoint );
@@ -752,7 +752,7 @@ public:
         }
 
         //loop over all integration points
-        for ( int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             Matrix tempMatrix( 2, 2 );
             rResult[pnt] = InverseOfJacobian( tempMatrix, pnt, ThisMethod );
@@ -969,7 +969,7 @@ public:
         ShapeFunctionsGradientsType& rResult,
         IntegrationMethod ThisMethod ) const
     {
-        const int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber( ThisMethod );
 
         if ( integration_points_number == 0 )
             KRATOS_ERROR( std::logic_error,
@@ -994,7 +994,7 @@ public:
         JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
 
         //loop over all integration points
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
         {
             rResult[pnt].resize( 4, 2 );
 
@@ -1002,8 +1002,8 @@ public:
             {
                 for ( int j = 0; j < 2; j++ )
                 {
-                    row( rResult, pnt )( i, j ) = ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
-                                                  + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
+                    rResult[pnt]( i, j ) = ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
+                                         + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) );
                 }
             }
         }//end of loop over integration points
@@ -1241,7 +1241,7 @@ public:
             rResult.swap( temp );
         }
 
-        for ( int i = 0; i < this->PointsNumber(); i++ )
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             rResult[i].resize( 9, 2 );
             noalias( rResult[i] ) = ZeroMatrix( 2, 2 );
@@ -1342,7 +1342,7 @@ public:
             rResult[i].swap( temp );
         }
 
-        for ( int i = 0; i < this->PointsNumber(); i++ )
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
             for ( int j = 0; j < 2; j++ )
             {
@@ -1351,13 +1351,13 @@ public:
             }
         }
 
-        double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
+//        double fx1 = 0.5 * ( rPoint[0] - 1 ) * rPoint[0];
 
-        double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
-        double fx3 = 1 - rPoint[0] * rPoint[0];
-        double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
-        double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
-        double fy3 = 1 - rPoint[1] * rPoint[1];
+//        double fx2 = 0.5 * ( rPoint[0] + 1 ) * rPoint[0];
+//        double fx3 = 1 - rPoint[0] * rPoint[0];
+//        double fy1 = 0.5 * ( rPoint[1] - 1 ) * rPoint[1];
+//        double fy2 = 0.5 * ( rPoint[1] + 1 ) * rPoint[1];
+//        double fy3 = 1 - rPoint[1] * rPoint[1];
 
         double gx1 = 0.5 * ( 2 * rPoint[0] - 1 );
         double gx2 = 0.5 * ( 2 * rPoint[0] + 1 );
@@ -1626,6 +1626,8 @@ private:
                 Quadrature < QuadrilateralGaussianIntegrationPoints2,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < QuadrilateralGaussianIntegrationPoints3,
+                2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < QuadrilateralGaussianIntegrationPoints4,
                 2, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
@@ -1645,7 +1647,9 @@ private:
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::GI_GAUSS_2 ),
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::GI_GAUSS_3 )
+                    GeometryData::GI_GAUSS_3 ),
+                Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::GI_GAUSS_4 ),
             }
         };
         return shape_functions_values;
@@ -1664,7 +1668,9 @@ private:
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
                 ( GeometryData::GI_GAUSS_2 ),
                 Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
-                ( GeometryData::GI_GAUSS_3 )
+                ( GeometryData::GI_GAUSS_3 ),
+                Quadrilateral2D9<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients
+                ( GeometryData::GI_GAUSS_4 ),
             }
         };
         return shape_functions_local_gradients;
