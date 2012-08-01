@@ -57,6 +57,12 @@ Text += ThermoMechanical_benchmarks.Run()
 os.chdir(ApplicationsRoot + "trilinos_application//test_examples")
 import trilinos_benchmarks
 Text += trilinos_benchmarks.Run()
+
+# DEM application
+os.chdir(ApplicationsRoot + "DEM_application/test_examples")
+import DEM_benchmarks
+Text += DEM_benchmarks.Run()
+
 # Add other directories here
 
 #print Text
