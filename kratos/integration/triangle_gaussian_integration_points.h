@@ -198,6 +198,11 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( 1.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 );
+        msIntegrationPoints[1] = IntegrationPointType( 3.00 / 5.00 , 1.00 / 5.00 , 25.00 / 96.00 );
+        msIntegrationPoints[2] = IntegrationPointType( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 );
+        msIntegrationPoints[3] = IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 );
         return msIntegrationPoints;
     }
 
@@ -223,6 +228,55 @@ private:
 //  		IntegrationPointType( 1.00 / 5.00 , 3.00 / 5.00 , 25.00 / 96.00 ),
 // 		IntegrationPointType( 1.00 / 3.00 , 1.00 / 3.00 , -27.00 / 96.00 )
 //    };
+
+class TriangleGaussianIntegrationPoints4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(TriangleGaussianIntegrationPoints4);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 6> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()    {  return 6; }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        const double wa = 0.109951743655322;
+        const double wb = 0.223381589678011;
+        const double Na1 = 0.816847572980459;
+        const double Nb1 = 0.108103018168070;
+        const double Na2 = 0.091576213509771;
+        const double Nb2 = 0.445948490915965;
+        // This is added to solve the problem of static initialization. Pooyan.
+        msIntegrationPoints[0] = IntegrationPointType( Na2, Na2, wa );
+        msIntegrationPoints[1] = IntegrationPointType( Na1, Na2, wa );
+        msIntegrationPoints[2] = IntegrationPointType( Na2, Na1, wa );
+        msIntegrationPoints[3] = IntegrationPointType( Nb2, Nb2, wb );
+        msIntegrationPoints[4] = IntegrationPointType( Nb1, Nb2, wb );
+        msIntegrationPoints[5] = IntegrationPointType( Nb2, Nb1, wb );
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Triangle gaussian quadrature 3 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class TriangleGaussianIntegrationPoints4
+
 
 ///@name Type Definitions
 ///@{

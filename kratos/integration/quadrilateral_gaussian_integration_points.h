@@ -174,6 +174,17 @@ public:
 
     static IntegrationPointsArrayType& IntegrationPoints()
     {
+        msIntegrationPoints[0] = IntegrationPointType( -std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), 25.00/81.00 );
+        msIntegrationPoints[1] = IntegrationPointType( 0.00 , -std::sqrt(3.00/5.00), 40.00/81.00 );
+        msIntegrationPoints[2] = IntegrationPointType(  std::sqrt(3.00/5.00) , -std::sqrt(3.00/5.00), 25.00/81.00 );
+
+        msIntegrationPoints[3] = IntegrationPointType( -std::sqrt(3.00/5.00), 0.00, 40.00/81.00 );
+        msIntegrationPoints[4] = IntegrationPointType( 0.00 , 0.00, 64.00/81.00 );
+        msIntegrationPoints[5] = IntegrationPointType( std::sqrt(3.00/5.00), 0.00, 40.00/81.00 );
+
+        msIntegrationPoints[6] = IntegrationPointType( -std::sqrt(3.00/5.00), std::sqrt(3.00/5.00), 25.00/81.00 );
+        msIntegrationPoints[7] = IntegrationPointType( 0.00, std::sqrt(3.00/5.00), 40.00/81.00 );
+        msIntegrationPoints[8] = IntegrationPointType( std::sqrt(3.00/5.00), std::sqrt(3.00/5.00), 25.00/81.00 );
         return msIntegrationPoints;
     }
 
@@ -189,7 +200,96 @@ private:
 
     static IntegrationPointsArrayType msIntegrationPoints;
 
-}; // Class QuadrilateralGaussianIntegrationPoints2
+}; // Class QuadrilateralGaussianIntegrationPoints3
+
+class QuadrilateralGaussianIntegrationPoints4
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints4);
+    typedef std::size_t SizeType;
+
+    static const unsigned int Dimension = 2;
+
+    typedef IntegrationPoint<2> IntegrationPointType;
+
+    typedef boost::array<IntegrationPointType, 16> IntegrationPointsArrayType;
+
+    typedef IntegrationPointType::PointType PointType;
+
+    static SizeType IntegrationPointsNumber()    {  return 16; }
+
+    static IntegrationPointsArrayType& IntegrationPoints()
+    {
+        msIntegrationPoints[0] = IntegrationPointType( -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[1] = IntegrationPointType( -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[2] = IntegrationPointType( -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[3] = IntegrationPointType( -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+
+        msIntegrationPoints[4] = IntegrationPointType( -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[5] = IntegrationPointType( -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[6] = IntegrationPointType( -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[7] = IntegrationPointType( -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+
+        msIntegrationPoints[8] = IntegrationPointType(  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[9] = IntegrationPointType(  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[10]= IntegrationPointType(  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[11]= IntegrationPointType(  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 + std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+
+        msIntegrationPoints[12]= IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[13]= IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), -std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[14]= IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 - 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 + std::sqrt(5.0/6.0)/6.0));
+        msIntegrationPoints[15]= IntegrationPointType(  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ),  std::sqrt( (3.0 + 2.0 * std::sqrt(6.0/5.0)) / 7.0 ), (0.5 - std::sqrt(5.0/6.0)/6.0)*(0.5 - std::sqrt(5.0/6.0)/6.0));
+        return msIntegrationPoints;
+    }
+
+    std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Quadrilateral gaussian quadrature 4 ";
+        return buffer.str();
+    }
+protected:
+
+private:
+
+    static IntegrationPointsArrayType msIntegrationPoints;
+
+}; // Class QuadrilateralGaussianIntegrationPoints4
+
+//class QuadrilateralGaussianIntegrationPoints5
+//{
+//public:
+//    KRATOS_CLASS_POINTER_DEFINITION(QuadrilateralGaussianIntegrationPoints5);
+//    typedef std::size_t SizeType;
+
+//    static const unsigned int Dimension = 2;
+
+//    typedef IntegrationPoint<2> IntegrationPointType;
+
+//    typedef boost::array<IntegrationPointType, 25> IntegrationPointsArrayType;
+
+//    typedef IntegrationPointType::PointType PointType;
+
+//    static SizeType IntegrationPointsNumber()    {  return 25; }
+
+//    static IntegrationPointsArrayType& IntegrationPoints()
+//    {
+//        return msIntegrationPoints;
+//    }
+
+//    std::string Info() const
+//    {
+//        std::stringstream buffer;
+//        buffer << "Quadrilateral gaussian quadrature 5 ";
+//        return buffer.str();
+//    }
+//protected:
+
+//private:
+
+//    static IntegrationPointsArrayType msIntegrationPoints;
+
+//}; // Class QuadrilateralGaussianIntegrationPoints5
 
 
 ///@name Type Definitions
