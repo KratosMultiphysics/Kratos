@@ -56,6 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <iomanip>
 
 // External includes
+#define USE_CONST
 #include "gidpost/source/gidpost.h"
 
 // Project includes
