@@ -317,7 +317,8 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b)
         {
-            std::cout << "prediction" << std::endl;
+            if (rModelPart.GetCommunicator().MyPID() == 0)
+                std::cout << "prediction" << std::endl;
 
             int NumThreads = OpenMPUtils::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
@@ -377,7 +378,8 @@ namespace Kratos {
                 }
             }
 
-            std::cout << "end of prediction" << std::endl;
+            if (rModelPart.GetCommunicator().MyPID() == 0)
+                std::cout << "end of prediction" << std::endl;
 
         }
 
