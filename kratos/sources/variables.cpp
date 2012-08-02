@@ -550,6 +550,7 @@ KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 
    
 //for Vulcan application
+Kratos::Variable<double> LAST_AIR( "LAST AIR" );
 Kratos::Variable<double> PRESSURES( "PRESSURES (N/m2)" );
 KRATOS_CREATE_VARIABLE( double, MATERIAL )
 Kratos::Variable<Kratos::array_1d<double, 3> > VELOCITIES( "VELOCITIES (m/s)", Kratos::zero_vector<double>( 3 ) );
@@ -999,6 +1000,7 @@ void KratosApplication::RegisterVariables()
 
 
     // For Vulcan application
+    KRATOS_REGISTER_VARIABLE( LAST_AIR )
     KRATOS_REGISTER_VARIABLE( PRESSURES )
     KRATOS_REGISTER_VARIABLE( MATERIAL )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( VELOCITIES )
