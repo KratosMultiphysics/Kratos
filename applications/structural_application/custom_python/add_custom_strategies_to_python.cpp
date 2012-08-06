@@ -108,7 +108,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/multiphase_builder_and_solver.h"
+// #include "custom_strategies/builder_and_solvers/multiphase_builder_and_solver.h"
 // #include "custom_strategies/builder_and_solvers/modal_analysis_builder_and_solver.h"
 //#include "custom_strategies/builder_and_solvers/modal_analysis_builder_and_solver.h"
 
@@ -158,7 +158,7 @@ void  AddCustomStrategiesToPython()
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
     BuilderAndSolverType;
 
-            typedef MultiPhaseBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> MultiPhaseBuilderAndSolverType;
+//            typedef MultiPhaseBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> MultiPhaseBuilderAndSolverType;
 
 //	typedef ResidualBasedPredictorCorrectorVelocityBossakScheme< SparseSpaceType, LocalSpaceType > //ResidualBasedPredictorCorrectorVelocityBossakSchemeType;
 
@@ -246,9 +246,9 @@ void  AddCustomStrategiesToPython()
             ("ResidualBasedMultiPhaseCriteria", init<double, double >() )
             ;
 
-            class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
-            ( "MultiPhaseBuilderAndSolver", init<LinearSolverType::Pointer>() )
-            ;
+            //class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
+            //( "MultiPhaseBuilderAndSolver", init<LinearSolverType::Pointer>() )
+            //;
 
 
 
