@@ -40,7 +40,9 @@ KRATOS_CREATE_VARIABLE(double, SYZ)
 
 KratosMixedElementApplication::KratosMixedElementApplication():
     mSigmaUElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mIrriducibleElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    mIrriducibleElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mSigmaUElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mIrriducibleElement3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
     // 		mElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {
 }
@@ -61,6 +63,8 @@ void KratosMixedElementApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("SigmaUElement2D", mSigmaUElement2D);
     KRATOS_REGISTER_ELEMENT("IrriducibleElement2D", mIrriducibleElement2D);
+    KRATOS_REGISTER_ELEMENT("SigmaUElement3D", mSigmaUElement3D);
+    KRATOS_REGISTER_ELEMENT("IrriducibleElement3D", mIrriducibleElement3D);
 //        KRATOS_REGISTER_ELEMENT("Elemt3D", mElem3D);
 
 }
