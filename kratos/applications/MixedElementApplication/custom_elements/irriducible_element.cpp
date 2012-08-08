@@ -125,8 +125,14 @@ void IrriducibleElement::Initialize()
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
-    }
+        nintegration_points = 1;
+
+        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        array_1d<double, 4 > N;
+
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);
+        mDN_DX.resize(4,3, false);
+        noalias(mDN_DX) = DN_DX;    }
 
 
     //compute and save original area and shape functions
@@ -328,7 +334,35 @@ void IrriducibleElement::CalculateB(
         }
         else
         {
-            KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+	    //xx
+            B(0, index + 0) = DN_DX(i, 0);
+            B(0, index + 1) = 0.0;
+            B(0, index + 2) = 0.0;
+	    
+	    //yy
+            B(1, index + 0) = 0.0;
+            B(1, index + 1) = DN_DX(i, 1);
+	    B(1, index + 2) = 0.0;
+	    
+	    //zz
+            B(2, index + 0) = 0.0;
+            B(2, index + 1) = 0.0;
+	    B(2, index + 2) = DN_DX(i, 2);	    
+	    
+	    //eps_xy
+            B(3, index + 0) = DN_DX(i, 1);
+            B(3, index + 1) = DN_DX(i, 0);
+	    B(3, index + 2) = 0.0;
+	    
+	    //eps_ xz
+            B(4, index + 0) = DN_DX(i, 2);
+            B(4, index + 1) = 0.0;
+	    B(4, index + 2) = DN_DX(i, 0);
+	    
+	    //eps yz
+            B(5, index + 0) = 0.0;
+            B(5, index + 1) = DN_DX(i, 2);
+	    B(5, index + 2) = DN_DX(i, 1);	
         }
     }
 
@@ -360,8 +394,20 @@ void IrriducibleElement::EquationIdVector(EquationIdVectorType& rResult, Process
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+      {
+        unsigned int block_size = 3;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (rResult.size() != MatSize) rResult.resize(MatSize, false);
 
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+
+            rResult[index]     = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+	    rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+    }
 }
 
 //************************************************************************************
@@ -378,11 +424,17 @@ void IrriducibleElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInf
         {
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+    {
+        for (unsigned int i = 0; i < GetGeometry().size(); i++)
+        {
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+	    ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
+    }
 }
 
 //************************************************************************************
@@ -540,8 +592,19 @@ void IrriducibleElement::GetValuesVector(Vector& values, int Step)
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
-}
+    {
+        unsigned int block_size = 2;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index ] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
+            values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
+	    values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+        }
+    }}
 
 
 //************************************************************************************
@@ -566,7 +629,16 @@ void IrriducibleElement::GetFirstDerivativesVector(Vector& values, int Step)
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "")
+        unsigned int block_size = 3;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index ] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X, Step);
+            values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y, Step);
+	    values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z, Step);
+        }
     }
 
 
@@ -594,7 +666,16 @@ void IrriducibleElement::GetSecondDerivativesVector(Vector& values, int Step)
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "")
+        unsigned int block_size = 2;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index ] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_X, Step);
+            values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Y, Step);
+	    values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION_Z, Step);
+        }
     }
 }
 
