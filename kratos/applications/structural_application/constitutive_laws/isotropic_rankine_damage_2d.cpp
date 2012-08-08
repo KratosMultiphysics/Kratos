@@ -205,6 +205,7 @@ void IsotropicRankineDamage2D::CalculateMaterialResponse(const Vector& StrainVec
     const double Gf = props[FRACTURE_ENERGY]; //***************************
     const double sigma0 = props[YIELD_STRESS]; //***************************
     const double r0 = sigma0; //***************************
+    const double retat = props[VISCOSITY];
 
     //compute elastic stress
     Matrix Cel(3,3);
@@ -223,12 +224,16 @@ void IsotropicRankineDamage2D::CalculateMaterialResponse(const Vector& StrainVec
 
     //compute actualized damage indicator
     double r = mrold;
-    if(tau > r) r=tau;
-//        KRATOS_WATCH(tau);
-//        KRATOS_WATCH(r);
-//        KRATOS_WATCH(r0);
-//        KRATOS_WATCH(mr);
-//        KRATOS_WATCH(mrold);
+    if(tau > r)      
+    {
+      if(retat == 0) r=tau;
+      else
+      {
+	  double dt = CurrentProcessInfo[DELTA_TIME];
+	  double ratio = dt/retat;
+	  r = std::max( r , (mrold + ratio*tau)/(1.0+ratio) );
+      }
+    }
 
 
 
