@@ -207,6 +207,10 @@ private:
     ///@{
     const SigmaUElement   mSigmaUElement2D;
     const IrriducibleElement   mIrriducibleElement2D;
+
+    const SigmaUElement   mSigmaUElement3D;
+    const IrriducibleElement   mIrriducibleElement3D;
+
     // 		const Elem3D   mElem3D;
 
 
