@@ -66,6 +66,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/mohr_coulomb_plane_strain.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/brittle_material_2d.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_rankine_damage_2d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/isotropic_rankine_damage_3d.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws/tutorial_damage_model.cpp
 
 	#rankine_yield_function.cpp

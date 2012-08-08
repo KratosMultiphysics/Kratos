@@ -69,7 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/convergencecriterias/multiphaseflow_criteria.h"
-#include "custom_strategies/convergencecriterias/resisualbased_multiphase_criteria.h"
+// #include "custom_strategies/convergencecriterias/resisualbased_multiphase_criteria.h"
 //#include "custom_strategies/convergencecriterias/residual_displacement_criteria.h"
 //#include "custom_strategies/convergencecriterias/res_dis_criteria.h"
 // #include "solving_strategies/convergencecriterias/displacement_criteria.h"
@@ -153,7 +153,7 @@ void  AddCustomStrategiesToPython()
     typedef MultiPhaseFlowCriteria< SparseSpaceType,  LocalSpaceType >
     MultiPhaseFlowCriteriaType;
     
-    typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
+//     typedef ResidualBasedMultiPhaseCriteria< SparseSpaceType, LocalSpaceType > ResidualBasedMultiPhaseCriteriaType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>
     BuilderAndSolverType;
@@ -241,10 +241,10 @@ void  AddCustomStrategiesToPython()
             ("MultiPhaseFlowCriteria", init<double, double >() )
             ;
             
-            class_< ResidualBasedMultiPhaseCriteriaType,
-            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-            ("ResidualBasedMultiPhaseCriteria", init<double, double >() )
-            ;
+//             class_< ResidualBasedMultiPhaseCriteriaType,
+//             bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+//             ("ResidualBasedMultiPhaseCriteria", init<double, double >() )
+//             ;
 
             //class_ < MultiPhaseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable >
             //( "MultiPhaseBuilderAndSolver", init<LinearSolverType::Pointer>() )

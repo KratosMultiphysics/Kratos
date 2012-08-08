@@ -87,6 +87,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "constitutive_laws/isotropic_planestress_wrinkling.h"
 #include "constitutive_laws/isotropic_damage_2d.h"
 #include "constitutive_laws/isotropic_rankine_damage_2d.h"
+#include "constitutive_laws/isotropic_rankine_damage_3d.h"
 #include "constitutive_laws/isotropic_damage_3d.h"
 #include "constitutive_laws/plasticity_2d.h"
 #include "constitutive_laws/plane_stress_J2.h"
@@ -224,7 +225,12 @@ void  AddConstitutiveLawsToPython()
     .def( init<>() )
     ;
 
-
+    class_<IsotropicRankineDamage3D, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "IsotropicRankineDamage3D",
+      init<>() )
+    .def( init<>() )
+    ;
+    
     class_< VonMises3D, bases< ConstitutiveLawBaseType >,  boost::noncopyable >
     ( "VonMises3D",
       init<>() )
