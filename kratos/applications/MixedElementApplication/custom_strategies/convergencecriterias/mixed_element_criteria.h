@@ -190,7 +190,7 @@ public:
                     if (i_dof->GetVariable() == DISPLACEMENT_X || i_dof->GetVariable() == DISPLACEMENT_Y || i_dof->GetVariable() == DISPLACEMENT_Z)
                     {
                         delta_disp_norm += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-                        disp_norm += i_dof->GetSolutionStepValue() * i_dof->GetSolutionStepValue();
+                        disp_norm += pow( i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1)  , 2);
                     }
                     else
                     {
@@ -202,7 +202,7 @@ public:
             }
 
             delta_disp_norm = sqrt(delta_disp_norm);
-            disp_norm = sqrt(disp_norm);
+            disp_norm = sqrt(disp_norm+1e-20);
             delta_stress_norm = sqrt(delta_stress_norm);
             stress_norm = sqrt(stress_norm);
 
@@ -216,8 +216,8 @@ public:
 
             if (
                 (disp_ratio < mRatioTolerance || delta_disp_norm < mAlwaysConvergedNorm)
-                &&
-                (delta_stress_norm < mRatioTolerance || delta_stress_norm < mAlwaysConvergedNorm)
+/*                &&
+                (delta_stress_norm < mRatioTolerance || delta_stress_norm < mAlwaysConvergedNorm)*/
             )
             {
                 std::cout << "Congratulations the time step solution is converged..." << std::endl;
