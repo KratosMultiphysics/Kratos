@@ -114,8 +114,6 @@ void SigmaUElement::Initialize()
 //        KRATOS_WATCH("ln114")
     if (dim == 2)
     {
-        nintegration_points = 3;
-
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > DN_DX;
         array_1d<double, 3 > N;
 
@@ -125,7 +123,12 @@ void SigmaUElement::Initialize()
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+        boost::numeric::ublas::bounded_matrix<double, 4,3 > DN_DX;
+        array_1d<double, 4 > N;
+
+        GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, mArea0);
+        mDN_DX.resize(4,3, false);
+        noalias(mDN_DX) = DN_DX;    
     }
 
 
@@ -199,47 +202,58 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
     std::vector< Vector > stresses_vector(nnodes);
     Vector stress_discontinuous(StrainSize,0.0);
     Vector aux_stress_discontinuous(StrainSize);
+    
+    std::vector< Vector > nodal_disc_stress_vector(nnodes);
+    std::vector< Vector > nodal_eps_vector(nnodes);
+    
+    Matrix identity(StrainSize,StrainSize);
+    identity = ZeroMatrix(StrainSize,StrainSize);
+    for(unsigned int k=0; k<StrainSize; k++)
+      identity(k,k) = 1.0;
+    
 
 
     for(unsigned int igauss=0; igauss<GetGeometry().size(); igauss++)
     {
         //get nodal strain
         GetNodalVariable(eps_h, igauss, dim);
+	
+	nodal_eps_vector[igauss].resize(StrainSize,false);
+	noalias(nodal_eps_vector[igauss]) = eps_h;
 
         noalias(avg_eps_h ) += weight*eps_h;
 
         noalias(N)=ZeroVector(nnodes);
         N[igauss] = 1.0;
-//KRATOS_WATCH(discontinuous_strain)
 
-//            KRATOS_WATCH(aux_stress_discontinuous)
         //compute continuous stress
         stresses_vector[igauss].resize(StrainSize,false);
         mConstitutiveLawVector[igauss]->CalculateMaterialResponse(eps_h,F,stresses_vector[igauss],C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
-//KRATOS_WATCH(stresses_vector[igauss])
 
         //average constitutitve law on the center point
         noalias(Cavg) += weight * C;
-//            noalias(stress_discontinuous) += weight * stresses_vector[igauss];
-
-//                        //compute (and average) discontinuous stress
-//            mConstitutiveLawVector[igauss]->CalculateMaterialResponse(discontinuous_strain,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,false);
-//            noalias(stress_discontinuous) += weight * aux_stress_discontinuous;
+	
+	//auxiliary stress computed from discontinuous strain but with nodal C
+	nodal_disc_stress_vector[igauss].resize(StrainSize,false);
+	noalias(nodal_disc_stress_vector[igauss]) = prod(identity,discontinuous_strain);
 
         //compute block 11
         for(unsigned int k=0; k<StrainSize; k++)
             for(unsigned int l=0; l<StrainSize; l++)
-                block11(igauss*StrainSize+k,igauss*StrainSize+l) += mArea0*weight*C(k,l);
-//KRATOS_WATCH(block11);
-        //compute s-u block (12)
+                block11(igauss*StrainSize+k,igauss*StrainSize+l) += mArea0*weight*identity(k,l);
+
+	//compute s-u block (12)
         noalias(block12_aux) = mArea0*weight * prod(C,B);
 
         //write block12_aux into block12
         for(unsigned int k=0; k<StrainSize; k++)
             for(unsigned int l=0; l<dim*nnodes; l++)
-                block12(igauss*StrainSize+k,l) = block12_aux(k,l);
-
-//KRATOS_WATCH(block12);
+                block12(igauss*StrainSize+k,l) = mArea0*weight*B(k,l);
+	    
+        //write block12_aux into block12
+        for(unsigned int k=0; k<StrainSize; k++)
+            for(unsigned int l=0; l<dim*nnodes; l++)
+                block21(l,igauss*StrainSize+k) = block12_aux(k,l);	    
     }
 
     //compute discontinuous stressavg_eps_h
@@ -248,7 +262,8 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 ////        mpDiscontinuousConstitutiveLaw->CalculateMaterialResponse(discontinuous_strain,F,stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
 ////noalias(Cavg) = C;
 //        KRATOS_WATCH(234)
-    noalias(block21) = trans(block12);
+//     noalias(block21) = trans(block12);
+    
 //KRATOS_WATCH(Cavg);
     //compute block 22 (note that Cavg is used here)
     Cavg *= mArea0;
@@ -259,7 +274,7 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 //        mpDiscontinuousConstitutiveLaw->CalculateMaterialResponse(avg_eps_h,F,aux_stress_discontinuous,C,rCurrentProcessInfo,GetProperties(),GetGeometry(),N,true,1,true);
 
     //compute tau
-    double tau=0.1;
+    double tau=0.01;
 
 //        double L = rCurrentProcessInfo[DIAMETER];
 //        double A = GetGeometry().Area();
@@ -339,7 +354,7 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         for(unsigned int l=0; l<StrainSize; l++)
         {
 
-            rRightHandSideVector[i_sigma_block_start+l] = coeff*(stresses_vector[i][l] - stress_discontinuous[l] );
+            rRightHandSideVector[i_sigma_block_start+l] = coeff*(nodal_eps_vector[i][l] - discontinuous_strain[l] /*stress_discontinuous[l]*/ );
         }
 
         for(unsigned int l=0; l<dim; l++)
@@ -509,7 +524,35 @@ void SigmaUElement::CalculateB(
         }
         else
         {
-            KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+	    //xx
+            B(0, index + 0) = DN_DX(i, 0);
+            B(0, index + 1) = 0.0;
+            B(0, index + 2) = 0.0;
+	    
+	    //yy
+            B(1, index + 0) = 0.0;
+            B(1, index + 1) = DN_DX(i, 1);
+	    B(1, index + 2) = 0.0;
+	    
+	    //zz
+            B(2, index + 0) = 0.0;
+            B(2, index + 1) = 0.0;
+	    B(2, index + 2) = DN_DX(i, 2);	    
+	    
+	    //eps_xy
+            B(3, index + 0) = DN_DX(i, 1);
+            B(3, index + 1) = DN_DX(i, 0);
+	    B(3, index + 2) = 0.0;
+	    
+	    //eps_ xz
+            B(4, index + 0) = DN_DX(i, 2);
+            B(4, index + 1) = 0.0;
+	    B(4, index + 2) = DN_DX(i, 0);
+	    
+	    //eps yz
+            B(5, index + 0) = 0.0;
+            B(5, index + 1) = DN_DX(i, 2);
+	    B(5, index + 2) = DN_DX(i, 1);	    
         }
     }
 
@@ -543,8 +586,25 @@ void SigmaUElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo 
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+    {
+        unsigned int block_size = 9;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (rResult.size() != MatSize) rResult.resize(MatSize, false);
 
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            rResult[index]     = GetGeometry()[i].GetDof(SX).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(SY).EquationId();
+	    rResult[index + 2] = GetGeometry()[i].GetDof(SZ).EquationId();
+            rResult[index + 3] = GetGeometry()[i].GetDof(SXY).EquationId();
+	    rResult[index + 4] = GetGeometry()[i].GetDof(SXZ).EquationId();
+	    rResult[index + 5] = GetGeometry()[i].GetDof(SYZ).EquationId();
+            rResult[index + 6] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+            rResult[index + 7] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+	    rResult[index + 8] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+        }
+    }
 }
 
 //************************************************************************************
@@ -564,11 +624,23 @@ void SigmaUElement::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo & C
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(SXY));
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
             ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+    {
+        for (unsigned int i = 0; i < GetGeometry().size(); i++)
+        {
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(SX));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(SY));
+	    ElementalDofList.push_back(GetGeometry()[i].pGetDof(SZ));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(SXY));
+	    ElementalDofList.push_back(GetGeometry()[i].pGetDof(SXZ));
+	    ElementalDofList.push_back(GetGeometry()[i].pGetDof(SYZ));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
+            ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
+	    ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
+        }
+    }
 }
 
 //************************************************************************************
@@ -729,7 +801,25 @@ void SigmaUElement::GetValuesVector(Vector& values, int Step)
         }
     }
     else
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "");
+    {
+        unsigned int block_size = 5;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index] = GetGeometry()[i].FastGetSolutionStepValue(SX, Step);
+            values[index + 1] = GetGeometry()[i].FastGetSolutionStepValue(SY, Step);
+	    values[index + 2] = GetGeometry()[i].FastGetSolutionStepValue(SZ, Step);
+	    values[index + 3] = GetGeometry()[i].FastGetSolutionStepValue(SXY, Step);
+	    values[index + 4] = GetGeometry()[i].FastGetSolutionStepValue(SXZ, Step);
+            values[index + 5] = GetGeometry()[i].FastGetSolutionStepValue(SYZ, Step);
+            values[index + 6] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_X, Step);
+            values[index + 7] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Y, Step);
+	    values[index + 8] = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT_Z, Step);
+        }
+    }
 }
 
 
@@ -758,7 +848,24 @@ void SigmaUElement::GetFirstDerivativesVector(Vector& values, int Step)
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "")
+        unsigned int block_size = 9;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index]     = 0.0;
+            values[index + 1] = 0.0;
+            values[index + 2] = 0.0;
+	    values[index + 3] = 0.0;
+	    values[index + 4] = 0.0;
+	    values[index + 5] = 0.0;
+	    
+	    const array_1d<double,3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+            values[index + 6] = vel[0];
+            values[index + 7] = vel[1];
+	    values[index + 8] = vel[2];
+        }
     }
 
 
@@ -789,7 +896,24 @@ void SigmaUElement::GetSecondDerivativesVector(Vector& values, int Step)
     }
     else
     {
-        KRATOS_ERROR(std::logic_error, "3d not yet implemented", "")
+        unsigned int block_size = 9;
+        unsigned int MatSize = number_of_nodes * block_size;
+        if (values.size() != MatSize) values.resize(MatSize, false);
+        for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
+            unsigned int index = i * block_size;
+            values[index]     = 0.0;
+            values[index + 1] = 0.0;
+            values[index + 2] = 0.0;
+	    values[index + 3] = 0.0;
+	    values[index + 4] = 0.0;
+	    values[index + 5] = 0.0;
+	    
+	    const array_1d<double,3>& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+            values[index + 6] = acc[0];
+            values[index + 7] = acc[1];
+	    values[index + 8] = acc[2];
+        }
     }
 }
 
@@ -812,10 +936,16 @@ void SigmaUElement::GetNodalVariable(Vector& value, unsigned int i, const unsign
         value[2] = GetGeometry()[i].FastGetSolutionStepValue(SXY);
     }
     else
-        KRATOS_ERROR(std::logic_error,"3D not yet implemented","")
-
-
+    {
+        value[0] = GetGeometry()[i].FastGetSolutionStepValue(SX);
+        value[1] = GetGeometry()[i].FastGetSolutionStepValue(SY);
+        value[2] = GetGeometry()[i].FastGetSolutionStepValue(SZ);
+        value[3] = GetGeometry()[i].FastGetSolutionStepValue(SXY);
+        value[4] = GetGeometry()[i].FastGetSolutionStepValue(SXZ);
+        value[5] = GetGeometry()[i].FastGetSolutionStepValue(SYZ);
     }
+
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -839,7 +969,7 @@ void SigmaUElement::GetS(Vector& value, const unsigned int dim)
     {
         const unsigned int StrainSize = 3;
         if(value.size() != StrainSize*GetGeometry().size())
-            value.resize(StrainSize*GetGeometry().size());
+            value.resize(StrainSize*GetGeometry().size(),false);
 
         unsigned int counter=0;
         for(unsigned int i=0; i<GetGeometry().size(); i++)
@@ -850,7 +980,22 @@ void SigmaUElement::GetS(Vector& value, const unsigned int dim)
         }
     }
     else
-        KRATOS_ERROR(std::logic_error,"3D not yet implemented","");
+    {
+        const unsigned int StrainSize = 6;
+        if(value.size() != StrainSize*GetGeometry().size())
+            value.resize(StrainSize*GetGeometry().size(),false);
+
+        unsigned int counter=0;
+        for(unsigned int i=0; i<GetGeometry().size(); i++)
+        {
+            value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SX);
+            value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SY);
+	    value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SZ);
+            value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SXY);
+            value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SXZ);
+            value[counter++] = GetGeometry()[i].FastGetSolutionStepValue(SYZ);
+        }
+    }
 }
 
 } // Namespace Kratos
