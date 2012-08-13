@@ -57,8 +57,8 @@ class IncompressibleFluidSolver:
         self.domain_size = domain_size
 
         #assignation of parameters to be used
-        self.vel_toll = 0.001;
-        self.press_toll = 0.001;
+        self.vel_toll = 1e-20; #0.001;
+        self.press_toll = 1e-7 #0.001;
         self.max_vel_its = 6;
         self.max_press_its = 3;
         self.time_order = 2;
@@ -75,7 +75,7 @@ class IncompressibleFluidSolver:
 #        pILUPrecond = ILU0Preconditioner()
 ##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
-        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+        self.velocity_linear_solver =  BICGSTABSolver(1e-30, 5000,pDiagPrecond)
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
         self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 
@@ -176,9 +176,9 @@ class IncompressibleFluidSolver:
             pPrecond = DiagonalPreconditioner()
             turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
 
-            self.solver_settings.SetTurbulenceProcess(TurbulenceModelLabel.SpalartAllmaras,
+            self.solver_settings.SetTurbulenceModel(TurbulenceModelLabel.SpalartAllmaras,
                                              turbulence_linear_solver,
-                                             sa_non_linear_toll,
+                                             sa_non_linear_tol,
                                              sa_max_it)
 
         self.solver = FSStrategy(self.model_part,
