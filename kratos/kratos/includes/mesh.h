@@ -223,11 +223,11 @@ public:
     Mesh Clone()
     {
         typename NodesContainerType::Pointer p_nodes(new NodesContainerType(*mpNodes));
-        typename PropertiesContainerType::Pointer p_poroperties(new PropertiesContainerType(*mpProperties));
+        typename PropertiesContainerType::Pointer p_properties(new PropertiesContainerType(*mpProperties));
         typename ElementsContainerType::Pointer p_elements(new ElementsContainerType(*mpElements));
         typename ConditionsContainerType::Pointer p_conditions(new ConditionsContainerType(*mpConditions));
 
-        return Mesh(p_nodes, p_poroperties, p_elements, p_conditions);
+        return Mesh(p_nodes, p_properties, p_elements, p_conditions);
     }
 
     ///@}
