@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.5- 20/08/12-G. Socorro, correct a bug when write is_structure for 3D problems
 #     1.4- 25/07/12-G. Socorro, add VolumeOutput to 3D problem
 #     1.3- 24/07/12-G. Socorro, update the procedure WriteFluidIsSlipBC to write Y_Wall nodaldata
 #     1.2- 22/07/12-G. Socorro, modify the Is-Slip BC, correct a bug when write inlet BC 
@@ -1139,7 +1140,7 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 		    set f "%10d [format "%4i" $activateval] %10d %10d %10d\n"
 		    set f [subst $f]
 		    dict set gprop $cgroupid "$f"
-		    write_calc_data puts "Begin ConditionalData $kwordlist // GUI is-slip condition group identifier: $cgroupid"
+		    write_calc_data puts "Begin ConditionalData $isstructurekw // GUI is-slip condition group identifier: $cgroupid"
 		    # write_calc_data connectivities -sorted $gprop
 		    foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
 			# Check that exists this element in the dictionary with the condition indentifier links
