@@ -193,7 +193,7 @@ namespace Kratos
 
        //3. Neighbouring search. Every N times. +bounding box destruction
 
-        if (time_step == 1)
+        if (time_step == 1) //BB calculation on the first timestep
         {    
                mParticle_Creator_Destructor.CalculateSurroundingBoundingBox( r_model_part, mEnlargementFactor );
         }
@@ -208,9 +208,11 @@ namespace Kratos
             SearchNeighbours(r_model_part,false); //extension option false;
         }
 
-	
-     
+        //4.Final operations
+        FinalizeSolutionStep();
 
+	
+ 
         //std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
 	KRATOS_CATCH("")
@@ -571,17 +573,6 @@ namespace Kratos
 	{
 	}
 
-	void MoveMesh()
-	{
-	}
-
-	void FinalizeSolutionStep()
-	{
-	}
-
-	void CalculateEnergies()
-	{
-	}
 	*/
 	  
 	void MoveMesh()
@@ -590,6 +581,42 @@ namespace Kratos
 
 	void FinalizeSolutionStep()
 	{
+
+          KRATOS_TRY
+
+          ModelPart& r_model_part          = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements     = r_model_part.Elements();
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+           #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          //unsigned int index = 0;
+
+          #pragma omp parallel for //private(index)
+          for(int k=0; k<number_of_threads; k++)
+
+          {
+
+            typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+            typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+            for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+
+                (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+
+             } //loop over particles
+
+          }// loop threads OpenMP
+
+         KRATOS_CATCH("")
+
 	}
 	  
 	void CalculateEnergies()

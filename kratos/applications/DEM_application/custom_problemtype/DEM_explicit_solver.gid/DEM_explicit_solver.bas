@@ -108,6 +108,16 @@ Begin NodalData RADIUS
 *end elems 
 End NodalData
 
+*Set cond volume_GROUP_ID *elems
+
+Begin NodalData GROUP_ID
+*loop elems *OnlyInCond
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*elemsconec(1) 0 *cond(GROUP_ID)
+*endif
+*end elems 
+End NodalData
+
 Begin NodalData PARTICLE_CONTINUUM
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
