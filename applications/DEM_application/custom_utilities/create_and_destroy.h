@@ -149,14 +149,12 @@ public:
             else
             {
 
-                KRATOS_WATCH((*(*particle_pointer_it)).Id())
-
-                     KRATOS_WATCH(coor[1])
-                      KRATOS_WATCH(mLowPoint[1])
-                       KRATOS_WATCH(mHighPoint[1])
-
+            //KRATOS_WATCH((*(*particle_pointer_it)).Id()) KRATOS_WATCH(coor[1])  KRATOS_WATCH(mLowPoint[1]) KRATOS_WATCH(mHighPoint[1])
 
             }
+
+            //rNodes.Sort(); //this makes the calculation go so slowly
+            //rNodes.Unique();
 
             //KRATOS_WATCH(rElements.size())
             //KRATOS_WATCH((r_model_part.Elements()).size())

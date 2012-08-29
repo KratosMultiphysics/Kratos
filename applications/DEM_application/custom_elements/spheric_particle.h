@@ -74,12 +74,7 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor. 
-      SphericParticle() : DiscreteElement() {
-
-       //mContinuumGroup = this->GetValue(PARTICLE_CONTINUUM);
-       //mFailureId = !(mContinuumGroup); // if ContinuumGroup != 0 --> mFailureId = 0; mFailureId is 1 when mContinuumGroup=0;
-       
-      }
+      SphericParticle();
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -136,7 +131,7 @@ namespace Kratos
        //array_1d<double,3>& mContactForces;
 
        int mContinuumGroup;
-       int mFailureId;
+       double& mFailureId;
 
        //auxiliar variables
 
@@ -197,6 +192,7 @@ namespace Kratos
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
+        void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);

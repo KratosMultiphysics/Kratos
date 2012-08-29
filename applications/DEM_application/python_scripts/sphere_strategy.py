@@ -6,6 +6,7 @@ from KratosMultiphysics.DEMApplication import *
 
 def AddVariables(model_part):
     #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
+    model_part.AddNodalSolutionStepVariable(GROUP_ID)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
@@ -80,6 +81,16 @@ class ExplicitStrategy:
         self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
         self.bounding_box_OPTION            = 0  #its 1/0 xapuza
 
+        #global parameters
+        self.global_variables_OPTION        = 0 #its 1/0 xapuza
+        self.global_kn                      = 1000.0
+        self.global_kt                      = 1000.0
+        self.global_kr                      = 1000.0
+        self.global_rn                      = 1000.0
+        self.global_rt                      = 1000.0
+        self.global_rr                      = 1000.0
+        self.global_fri_ang                 = 40
+
         #problem specific parameters
 
         self.force_calculation_type_id      =1
@@ -124,13 +135,21 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
-
         
         #####
 
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)    #M: = a type_id
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)                                   #M: = a damp_type
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+
+        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_KR, self.global_kr)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_RN, self.global_rn)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_RT, self.global_rt)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_RR, self.global_rr)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_FRI_ANG, self.global_fri_ang)
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
        

@@ -26,17 +26,19 @@ namespace Kratos
 {
      // using namespace GeometryFunctions;
 
+      SphericParticle::SphericParticle() : DiscreteElement(),
+      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
 
-
-      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry) {}
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry),
+      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
 
       SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties)
-      {}
+      : DiscreteElement(NewId, pGeometry, pProperties),
+      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes)
-      {}
+      : DiscreteElement(NewId, ThisNodes),
+      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -63,7 +65,15 @@ namespace Kratos
 
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
-        mFailureId          = !(mContinuumGroup);
+
+        //TO BE IMPROVED: i would like to work with mFailureId as integer. the problem is that it has to be exported to GID to be plotted.
+
+        //provisional way is:
+        if(mContinuumGroup==0)  {mFailureId=1.0;}
+        else                    {mFailureId=0.0;}
+
+        //easiest way is:   
+        //mFailureId          = !(mContinuumGroup);
            
         if(mDimension ==2)
         {
@@ -101,11 +111,12 @@ namespace Kratos
 
         ComputeParticleContactForce(rCurrentProcessInfo);
 
-
         if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
         {
               ComputeParticleRotationSpring(rCurrentProcessInfo);
         }
+
+       CharacteristicParticleFailureId(rCurrentProcessInfo);
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -113,6 +124,7 @@ namespace Kratos
       }
       void SphericParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+
       {
 
           double radius = GetGeometry()(0)->GetSolutionStepValue(RADIUS);
@@ -124,7 +136,11 @@ namespace Kratos
       }
 
       void SphericParticle::SetInitialContacts(int case_opt) //vull ficar que sigui zero si no son veins cohesius.
+
       {
+
+          if(this->GetGeometry()(0)->Id()==2896){KRATOS_WATCH(this->GetGeometry()(0)->Coordinates())}
+
 
           // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
@@ -196,7 +212,7 @@ namespace Kratos
 
                         } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
 
-                        else mFailureId=1;      //NO NEED to store the initial neighbour;
+                        else mFailureId=1.0;      //NO NEED to store the initial neighbour;
                         //M:also we can say that the particle is detached --> this can be a flag for the forces.
 
                         i++;
@@ -204,12 +220,12 @@ namespace Kratos
                }//if I found myself.
 
             } //end for: ParticleWeakIteratorType ineighbour
-      }//SET INITIAL CONTACTS.
+      }//SetInitialContacts
 
 
-        void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
+       void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
 
-        {
+       {
 
             KRATOS_TRY
 
@@ -226,6 +242,7 @@ namespace Kratos
             int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];
             int type_id                         = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
             int rotation_OPTION                 = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
+            int global_variables_OPTION         = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]; //M:  it's 1/0, should be a boolean
 
             int case_OPTION                     = rCurrentProcessInfo[CASE_OPTION];
             bool delta_OPTION;
@@ -277,19 +294,14 @@ namespace Kratos
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
 
             force  = mass*gravity + applied_force;
-            //KRATOS_WATCH(mass)
-            //KRATOS_WATCH(gravity)
-            //KRATOS_WATCH(force)
-            //KRATOS_WATCH(applied_force)
-
+            
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-
 
             size_t iContactForce = 0;
 
-
             for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
             neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+
             {
              // GETTING NEIGHBOUR PROPERTIES
              
@@ -318,7 +330,7 @@ namespace Kratos
                 //double& mContactFailureId_double    = int(r_VectorContactFailureId[iContactForce]);
                 //int mContactFailureId               = int(mContactFailureId_double);
 
-                array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
+                //array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
 
 
                 if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
@@ -367,20 +379,36 @@ namespace Kratos
 
                 Friction                = tan( (FriAngle + other_FriAngle) * 0.5  / 180.0 * M_PI);
 
+                //MACRO PARAMETERS
+             
                 double kn               = M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+                double RN               = CTension * equiv_area; //tensile strenght
+                double RT_base          = CCohesion * equiv_area; //cohesion
+             
+                if (global_variables_OPTION == 1) //globally defined parameters
+                {
+
+                   KRATOS_WATCH("-------GLOBAL VARIABLES----------")
+
+                   kn       = rCurrentProcessInfo[GLOBAL_KN];
+                   ks       = rCurrentProcessInfo[GLOBAL_KT];
+                   RN       = rCurrentProcessInfo[GLOBAL_RN];
+                   RT_base  = rCurrentProcessInfo[GLOBAL_RT];
+                   Friction = tan( (rCurrentProcessInfo[GLOBAL_FRI_ANG])*(M_PI/180) );
+                
+                }
+
                 if(equiv_restitution_coeff>0){
                     
                     equiv_visco_damp_coeff  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
                 }
+
                 else {
                     
                     equiv_visco_damp_coeff  = -( (2*log(1e-8)*sqrt(equiv_mass*kn)) / (sqrt( (log(1e-8)*log(1e-8)) + (M_PI*M_PI) )) );
                 }
 
-                //OÑATE. PROBETES.
- //                kn               = 197760000;
-   //              ks               = 51593000;
 
                 // FORMING LOCAL CORDINATES
 
@@ -455,9 +483,9 @@ namespace Kratos
                     //double GlobalContactForceOld[3] = {0.0};
 
 
-                    GlobalContactForce[0] = mContactForces[0];   //M:aqui tenim guardades les del neighbour calculator.
-                    GlobalContactForce[1] = mContactForces[1];
-                    GlobalContactForce[2] = mContactForces[2];
+                    GlobalContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0];   //M:aqui tenim guardades les del neighbour calculator.
+                    GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1];
+                    GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2];
 
                     GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
 		    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRelVel, LocalDeltRelVel);//Ignasi
@@ -467,13 +495,9 @@ namespace Kratos
 
              // FORCES
 
-                    //M: aqui estem guardant la força total local, que es la suma de la total que teniem més l'increment, es el metode incremental.
-                    //mcontact forces esta inicialitzat per mitjà de GetContactForces en el NeighboursCalculator.
-                    //aqui em falta lu de pi i tal.... oi???
-                    //M: these are arrays of vectors of 3 components.
 
              if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
-                                                                                                                  // for attached particles we enter onlty if the particle is still attached.
+                                                                                                              // for attached particles we enter only if the particle is still attached.
              {   
 		 /*if ( (fabs(LocalDeltDisp[2]) >= indentation) ) {
                      
@@ -486,29 +510,32 @@ namespace Kratos
                      //Before uncommenting it, you have to comment LocalContactForce[2]+= - kn * LocalDeltDisp[2] below, and  
                      //erase the condition (fabs(LocalContactForce[2] + kn * LocalDeltDisp[2]) < 1e-12) in the Viscodamping section. Ignasi
 
-                        LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
-                        LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
-                        LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
-                        
-                        //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
+                 //Miquel: this shall work for the first and last steps of the contact but can also actuate in intermediate steps if (deltaof one step > indent) would not be a good result.
 
-                        if(type_id == 2)  //  1--- incremental; 2 --- absolut i amb el cas hertzià
-                        {
-                            ///Cfeng:for compression,hertzian model
-                            LocalContactForce[2] = kn * pow(indentation, 1.5);
+                LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
+                LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
+                LocalContactForce[2] += - kn * LocalDeltDisp[2];  // 2: normal force
 
-                            if(indentation > 0.0) // usually theory considers the tension to be linear and compression non linear
-                            {
+                //ABSOLUTE METHOD FOR NORMAL FORCE (Allows non-linearity)
 
-                             LocalContactForce[2] = kn * indentation;
+                if(type_id == 2)  //  1--- incremental; 2 --- absolut i amb el cas hertzià
+                {
+                    ///Cfeng:for compression,hertzian model
+                    LocalContactForce[2] = kn * indentation;
 
-                            }
+                    if(indentation > 0.0) // usually theory considers the tension to be linear and compression non linear
+                    {
 
-                        }
+                     LocalContactForce[2] = kn * pow(indentation, 1.5);
+
+                    }
+
+                }
 
              }
                     
-             if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 1) )
+             if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
+
              {
                         LocalContactForce[0] = 0.0;  // 0: first tangential
                         LocalContactForce[1] = 0.0;  // 1: second tangential
@@ -517,77 +544,102 @@ namespace Kratos
                     
               // TENSION FAILURE
 
-                       if (-LocalContactForce[2] > (CTension * equiv_area))  //M:si la tensio supera el limit es seteja tot a zero.
-                      //OÑATE. PROBETES.
-                       // if (-LocalContactForce[2] > (649.85))
-                        {
-                            LocalContactForce[0]  = 0.0;
-                            LocalContactForce[1]  = 0.0;
-                            LocalContactForce[2]  = 0.0;
+           if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
 
-                            this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3.0;  //tensile failure case.
-                          //mContactFailureId        = 3;
-                            //M: podria ficar que ara la cohesion = dinamic cohesion, not static... ??
-                        }
+            {
 
-                        // SHEAR FAILURE
+                LocalContactForce[0]  = 0.0;
+                LocalContactForce[1]  = 0.0;
+                LocalContactForce[2]  = 0.0;
 
-                        else
-                        {
-                              
-                            //OÑATE //AMB FRICCIO
-                            //double ShearForceMax = 5524.9 + 0.84*LocalContactForce[2];
-                             double ShearForceMax = LocalContactForce[2] * Friction + CCohesion * equiv_area;  // MOHR COULOMB MODEL.
+                this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3.0;  //tensile failure case.
+            
+                //M: podria ficar que ara la cohesion = dinamic cohesion, not static... ??
+            }
 
-                           if(LocalContactForce[2] < 0.0)
-                            {
+            // SHEAR FAILURE
 
-                                ShearForceMax = CCohesion * equiv_area;
-                                //OÑATE
-                                //ShearForceMax = 5524.9;
+            if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+            {
+                double ShearForceMax = RT_base + LocalContactForce[2] * Friction ;  // MOHR COULOMB MODEL.
 
-                            }
+                if(LocalContactForce[2] < 0.0)
+                {
 
-                            
-                            double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
-                                                 +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
+                    ShearForceMax = RT_base;
 
-                            //No cohesion or friction, no shear resistance
+                }
 
-                            if(ShearForceMax == 0.0)
-                            {
-                                LocalContactForce[0] = 0.0;
-                                LocalContactForce[1] = 0.0;
-                            }
 
-                            else if(ShearForceNow > ShearForceMax)     // the actual shear force is actualized to the maximum one, never over; also decomposed in the same directions.
-                            {
-                                LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
-                                LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
 
-                                //mContactFailureId = 4; // Shear failure case.
-                               this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4.0;
-                                //M: podria ficar que ara la cohesion = dinamic cohesion, not static... ??
-                            }
-                        }
+                //No cohesion or friction, no shear resistance
+
+                if(ShearForceMax == 0.0)
+                {
+                    LocalContactForce[0] = 0.0;
+                    LocalContactForce[1] = 0.0;
+                }
+
+                else if(ShearForceNow > ShearForceMax)     // the actual shear force is actualized to the maximum one, never over; also decomposed in the same directions.
+                {
+                    LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
+                    LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+
+                    //mContactFailureId = 4; // Shear failure case.
+                   this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4.0;
+                    //M: podria ficar que ara la cohesion = dinamic cohesion, not static... ??
+                }
+            }
 
           // VISCODAMPING (applyied locally)
+
+                    //*** the compbrobation is component-wise since localContactForce and RelVel have in principle no relationship.
+                    // the visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
+                    // but in oposite direction the visco damping can't overpass the force...
+
 		
-	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) ) {
+	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
+
+             {
                  
-                if ( (fabs(LocalDeltDisp[2]) >= indentation) && ((fabs(LocalContactForce[2] + kn * LocalDeltDisp[2])) < 1e-12) ) {
-                    
-                    LocalContactForce[0] += - equiv_visco_damp_coeff * LocalRelVel[0];
-                    LocalContactForce[1] += - equiv_visco_damp_coeff * LocalRelVel[1];
-                    LocalContactForce[2] += - equiv_visco_damp_coeff * LocalRelVel[2];
+                if ( (fabs(LocalDeltDisp[2]) >= indentation) && ((fabs(LocalContactForce[2] + kn * LocalDeltDisp[2])) < 1e-12) )
+
+                    {
+
+
+                    double OldLocalContactForce[3]  = {0.0}; //M.
+                    for (unsigned int index = 0; index < 3; index++)
+                        {
+                           OldLocalContactForce[index] = LocalContactForce[index];
+
+                           LocalContactForce[index] += - equiv_visco_damp_coeff * LocalRelVel[index];
+
+                           if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;} //the contact force can not change the direction due to the visco damp.
+                        }
+                    }
+                
+                else
+
+                {
+                    double OldLocalContactForce[3]  = {0.0}; //M.
+
+                        for (unsigned int index = 0; index < 3; index++)
+                            {
+                               OldLocalContactForce[index] = LocalContactForce[index];
+
+                               LocalContactForce[index] += - equiv_visco_damp_coeff * LocalDeltRelVel[index];
+
+                               if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;} //the contact force can not change the direction due to the visco damp.
+                            }
                 }
-                else {
-                    
-                    LocalContactForce[0] += - equiv_visco_damp_coeff * LocalDeltRelVel[0];
-                    LocalContactForce[1] += - equiv_visco_damp_coeff * LocalDeltRelVel[1];
-                    LocalContactForce[2] += - equiv_visco_damp_coeff * LocalDeltRelVel[2];
-                }
+
              } //Ignasi
+                    //Miquel: ok. but, the visco damping can be higher than the local contact force itself. I've corrected it.
+
+
+
                         /*if (damp_id == 2 || damp_id == 3 )
                         {
 
@@ -621,11 +673,11 @@ namespace Kratos
                     force[1] += GlobalContactForce[1];
                     force[2] += GlobalContactForce[2];
 
-                // SAVING INTO THE LOCAL SYSTEM ARRAYS FOR NEXT STEPS
+                // SAVING FOR NEXT STEPS
 
-                    mContactForces[0] = GlobalContactForce[0];
-                    mContactForces[1] = GlobalContactForce[1];
-                    mContactForces[2] = GlobalContactForce[2];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalContactForce[1];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalContactForce[2];
 
                     if ( rotation_OPTION == 1 )
                     {
@@ -649,36 +701,32 @@ namespace Kratos
         }//ComputeParticleContactForce
 
 
-      void SphericParticle::ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo )
+       void SphericParticle::ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo )
 
-      {
+       {
 
-          array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);
-          double LocalDampRatio   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+          KRATOS_TRY
+          array_1d<double,3>& force = this->GetGeometry()[0].GetSolutionStepValue(RHS);
+          double LocalDampRatio     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
 
               // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
-
+             
                 for (int iDof = 0; iDof < 3; iDof++)
                 {
-                    //if (this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY)[iDof] > 0.0)
-                    /*if (this->GetGeometry()(0)->GetSolutionStepValue(RHS)[iDof] > 0.0)
-                    {
-                        force[iDof] = force[iDof] - LocalDampRatio * fabs(force[iDof]);
-                    }
-                    else
-                    {
-                        force[iDof] = force[iDof] + LocalDampRatio * fabs(force[iDof]);
-                    }*/
-                    //KRATOS_WATCH(force[iDof])
-                    force[iDof] = force[iDof] - LocalDampRatio * force[iDof];
-                    //KRATOS_WATCH(force[iDof])
+                   
+                    force[iDof] = (1 - LocalDampRatio) * force[iDof];
+                    
                 }
+           
+            KRATOS_CATCH("")
 
       } //ApplyLocalForcesDamping
 
-    void SphericParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
+       void SphericParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
 
-    {
+       {
+
+       KRATOS_TRY
        // int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];  //M: revisable....en principi akest era per visco o local de forces no per moment.
 
         array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
@@ -700,13 +748,181 @@ namespace Kratos
             }
         }
 
+    KRATOS_CATCH("")
 
     } //ApplyLocalMomentsDamping
 
 
+       void SphericParticle::CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo )
 
-        void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
-        {
+       {  
+
+       KRATOS_TRY
+
+       // SETTING THE CARACHTERISTIC FAILURE TYPE OF THE PARTICLE (THE DOMINANT ONE) FOR VISUALITZATION.
+
+            /* ContactFailureId = 2 (partially detached) it's never considerer in a contact, but it can be a desired output on the visualitzation.
+             *
+             * If the particle has no neighbour, but it is not from ContinuumGroup = 0 its becouse it has lost all the neighbours,
+             * we are not interested in its global failure type but in its neighbours failure type. See: //// DETECTING A COHESIVE PARTICLE THAT HAS BEEN COMPLETELY DETACHED. in AfterForceCalculation.
+             *
+             * If one of the failure types completely dominates over the others this is the FailureId choosen for the particle
+             *
+             * If its partially detached by some type(s) of failure but the dominant contact state is "still atached", so failureId =0, we chose FailureId = 2.
+             *
+             * If the particle is not simulating the continuum, the failure type is 1 (default set from the particle whose ContinuumGroup is 0); It won't be printed as output.
+             *
+             */
+
+            /*
+             *   mFailureId values:
+             *      0 := all neighbours attached
+             *      1 := General detachment (all neighbours lost or no initial continuum case)
+             *      2 := Partially detached and no dominance
+             *      3 := tensile dominating on the contact detachment
+             *      4 := shear dominating on the contact detachment
+             */
+
+
+
+
+
+
+            int tempType[5] = {0,0,0,0,0};
+
+
+
+
+            if (mFailureId != 1.0)  // for mFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
+            {
+                
+                ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+                
+
+                unsigned int itype = 0;
+
+                for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();  //loop over neighbours, just to run the index.
+                    neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+                {
+
+                    if( int(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype]) == 0)
+                    {
+                        tempType[0]++;
+                    }
+                    else if( int(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype]) == 1)
+                    {
+                        tempType[1]++;
+                    }
+
+                    // mContactFailureId == 2 intentionally skipped!
+
+                    else if( int(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype]) == 3)
+                    {
+                        tempType[3]++;
+                    }
+                    else if( int(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype]) == 4)
+                    {
+                        tempType[4]++;
+                    }
+
+                    itype++;
+
+                }
+
+                if ( tempType[0] == 0)  //no neighbour is attached
+                {
+
+                     mFailureId = 1.0;
+
+                }   // no one neighbour is attached (but maybe still contacting).
+
+                else if( (tempType[3] > tempType[4]) ) //some neighbour attached but failure 3 dominates over 4.
+                {
+                    mFailureId = 3.0;
+                }
+
+                else if( (tempType[4] > tempType[3]) ) // the same but 4 dominates over 3.
+                {
+                    mFailureId = 4.0;
+                }
+                else if ( (tempType[4] > 0) || (tempType[3] > 0) ) // no 3 neither 4 dominates but one of them may exist.
+                {
+
+                   mFailureId = 2.0;  // Partially detached / mix case.
+                }
+                else
+                {
+
+                   mFailureId = 0.0;  // last option: no one detached.
+                }
+
+            }// if (mFailureId != 1)
+
+
+            if(this->GetGeometry()(0)->Id()==1890)
+
+            {
+
+                if(rCurrentProcessInfo[TIME_STEPS]>4950)
+                {
+
+                   ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+                   unsigned int itype = 0;
+
+                   KRATOS_WATCH("VEINS AL PAS DE TEMPS ")
+                   KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+
+                    for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();  //loop over neighbours, just to run the index.
+                        neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+                    {
+
+                        KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype])
+                        //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype])
+                        itype++;
+
+                    }
+
+                    KRATOS_WATCH("tipus acumulats ")
+
+                   for(int aa = 0; aa != 5; aa++)
+                   {
+
+                    KRATOS_WATCH(tempType[aa])
+                   }
+
+                    KRATOS_WATCH(mFailureId)
+
+                    KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+
+                    
+
+
+                }
+
+
+            }
+      //this->GetValue(PARTICLE_FAILURE_ID)=mFailureId ;
+
+       /*
+       //testing
+       if (mFailureId != 0.0)
+            {
+            KRATOS_WATCH(mFailureId)
+            KRATOS_WATCH(this->GetValue(PARTICLE_FAILURE_ID))
+            }
+        */
+      
+
+            KRATOS_CATCH("")
+
+    } //CharacteristicParticleFailureId
+
+
+
+       void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
+       {
 
         double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
 
@@ -764,7 +980,7 @@ namespace Kratos
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
 
                 //CF: NEEEEW!
-                array_1d<double,3>& mContactForces = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ];
+               // array_1d<double,3> mContactForces = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ];
                 // BY MIKEL
 
                 array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
@@ -817,9 +1033,9 @@ namespace Kratos
                 double GlobalContactForce[3]  = {0.0};
                 double LocalContactForce [3]  = {0.0};
 
-                GlobalContactForce[0] = mContactForces[ 0 ];
-                GlobalContactForce[1] = mContactForces[ 1 ];
-                GlobalContactForce[2] = mContactForces[ 2 ]; //GlobalContactForce[2] = mContactForces[3 * iContactForce  + 2 ];
+                GlobalContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 0 ];
+                GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 1 ];
+                GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 2 ]; //GlobalContactForce[2] = mContactForces[3 * iContactForce  + 2 ];
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
 
                 double ForceN  = LocalContactForce[2];
@@ -862,9 +1078,11 @@ namespace Kratos
         }//ComputeParticleRotationSpring
 
 
-        void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
+       void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
-        void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo){
+       void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
+
+       {
 
             ElementalDofList.resize( 0 );
 
@@ -880,8 +1098,9 @@ namespace Kratos
             }
         }
 
-        void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
-        {
+       void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+
+       {
 
           int case_opt         = rCurrentProcessInfo[CASE_OPTION];
           int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
@@ -897,10 +1116,17 @@ namespace Kratos
 
 
         }
-        void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo){}
+       void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+       
+       {
 
-        void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
-        {
+           this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_FAILURE_ID) = this->GetValue(PARTICLE_FAILURE_ID);
+           // the elemental variable is copied to a nodal variable (same name) in order to export the results onto GiD Post.
+       }
+
+       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+
+       {
 
             if (rVariable == DELTA_TIME)
             {
@@ -923,7 +1149,7 @@ namespace Kratos
                 {
                    ApplyLocalForcesDamping( rCurrentProcessInfo );
 
-                   if ( rotation_OPTION != 0 )
+                   if ( rotation_OPTION != 0 && (damp_id !=4) ) //M: maybe a new damping option should be implemented to choose independently damping on rotation
                    {
                        ApplyLocalMomentsDamping( rCurrentProcessInfo );
                    }
@@ -932,8 +1158,8 @@ namespace Kratos
         }
 
 
-        void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
-        void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
-        void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+       void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
+       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
+       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
 }  // namespace Kratos.
