@@ -28,7 +28,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_LOCAL_DAMP_RATIO)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_FAILURE_ID)
+    model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
 
     model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)

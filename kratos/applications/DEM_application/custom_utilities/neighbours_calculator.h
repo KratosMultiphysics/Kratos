@@ -218,7 +218,7 @@ namespace Kratos {
                 vector< array_1d<double, 3 > > TempContactForce;
                 TempContactForce.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES));
 
-                vector< double > TempContactFailureId; //M: temporarily defined as a double.. ha de ser un int.
+                vector< int > TempContactFailureId; //M: temporarily defined as a double.. ha de ser un int.
                 TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
                 
                 vector< double > TempContactDelta;
@@ -319,7 +319,12 @@ namespace Kratos {
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][2] = TempContactForce[OldNeighbourCounter][2];
 
                                         (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1] = TempContactFailureId[OldNeighbourCounter];
+                                        /*
+                                        KRATOS_WATCH((*particle_pointer_it)->Id())
+                                        KRATOS_WATCH((old_neighbour)->Id())
 
+                                        KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1])
+                                        */
                                         (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
                                         (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
                                         (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];

@@ -131,7 +131,7 @@ namespace Kratos
        //array_1d<double,3>& mContactForces;
 
        int mContinuumGroup;
-       double* mpFailureId;
+       int* mpFailureId;
 
        //auxiliar variables
 /*

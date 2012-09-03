@@ -1,7 +1,7 @@
 domain_size = *GenData(Dimensions)
 CriticalTimeOption = "*GenData(Critical_Time_Option)"
 Integration_Scheme = "*GenData(Integration_Scheme)"
-SolutionType = "*GenData(SolutionType)"
+NormalForceCalculation = "*GenData(Normal_Force_Calculation)"
 DampRatioType = "*GenData(DampRatioType)"
 BoundingBoxOption= "*GenData(Bounding_Box_option)"
 ContinuumOption= "*GenData(Continuum_Option)"
