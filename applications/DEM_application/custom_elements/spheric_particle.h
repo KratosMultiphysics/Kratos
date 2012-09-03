@@ -74,7 +74,7 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor. 
-      SphericParticle();
+      
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -125,23 +125,23 @@ namespace Kratos
        //int mContactFailureId;
 
        //vector< double > mVectorContactInitialDelta; R: cal cridar-ho cada cop per no fer copia!!
-       double mContactInitialDelta;
+       //double mContactInitialDelta;
 
-       vector<array_1d<double,3> > mVectorContactForces;
+       //vector<array_1d<double,3> > mVectorContactForces;
        //array_1d<double,3>& mContactForces;
 
        int mContinuumGroup;
-       double& mFailureId;
+       double* mpFailureId;
 
        //auxiliar variables
-
+/*
        double mOld_Displacement_X;
        double mOld_Displacement_Y;
        double mOld_Displacement_Z;
        double mDisplacement_X;
        double mDisplacement_Y;
        double mDisplacement_Z;
-
+*/
 
     
 
@@ -187,6 +187,9 @@ namespace Kratos
       
     protected:
 
+
+       SphericParticle();
+
         void SetInitialContacts(int case_opt);
 
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
@@ -204,12 +207,12 @@ namespace Kratos
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
 
         unsigned int mDimension;
-        double mDampType;
-        double mTimeStep;
+        //double mDampType;
+        //double mTimeStep;
       
         double mRealMass;
 
-        std::vector<double> mForce;
+        //std::vector<double> mForce;
 
 
         ///@name Protected static Member Variables
@@ -250,9 +253,7 @@ namespace Kratos
       
     private:
 
-        
-        
-       
+
       ///@name Static Member Variables 
       ///@{ 
         
@@ -287,7 +288,24 @@ namespace Kratos
         
       ///@}    
       ///@name Un accessible methods 
-      ///@{ 
+      ///@{
+
+
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      virtual void save(Serializer& rSerializer) const
+      {
+          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
+      }
       
       
       

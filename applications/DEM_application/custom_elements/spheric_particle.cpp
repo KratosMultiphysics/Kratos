@@ -26,19 +26,15 @@ namespace Kratos
 {
      // using namespace GeometryFunctions;
 
-      SphericParticle::SphericParticle() : DiscreteElement(),
-      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
+      SphericParticle::SphericParticle() : DiscreteElement(){}
 
-      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry),
-      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
+      SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry) : DiscreteElement(NewId, pGeometry){}
 
       SphericParticle::SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties),
-      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
+      : DiscreteElement(NewId, pGeometry, pProperties){}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes),
-      mFailureId(this->GetValue(PARTICLE_FAILURE_ID)) {}
+      : DiscreteElement(NewId, ThisNodes){}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -53,6 +49,8 @@ namespace Kratos
 
         KRATOS_TRY
 
+        mpFailureId = &(this->GetValue(PARTICLE_FAILURE_ID));
+
         //mDimension = this->GetGeometry().WorkingSpaceDimension();
         mDimension = 3; ///WARNING: I: to be revised.
         
@@ -66,14 +64,14 @@ namespace Kratos
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
 
-        //TO BE IMPROVED: i would like to work with mFailureId as integer. the problem is that it has to be exported to GID to be plotted.
+        //TO BE IMPROVED: i would like to work with *mpFailureId as integer. the problem is that it has to be exported to GID to be plotted.
 
         //provisional way is:
-        if(mContinuumGroup==0)  {mFailureId=1.0;}
-        else                    {mFailureId=0.0;}
+        if(mContinuumGroup==0)  {*mpFailureId=1.0;}
+        else                    {*mpFailureId=0.0;}
 
         //easiest way is:   
-        //mFailureId          = !(mContinuumGroup);
+        //*mpFailureId          = !(mContinuumGroup);
            
         if(mDimension ==2)
         {
@@ -139,9 +137,6 @@ namespace Kratos
 
       {
 
-          if(this->GetGeometry()(0)->Id()==2896){KRATOS_WATCH(this->GetGeometry()(0)->Coordinates())}
-
-
           // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
           //Node<3>& my_node = GetGeometry()[0];
@@ -183,6 +178,11 @@ namespace Kratos
 
                     int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_CONTINUUM);
 
+                    //default:
+                    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=1.0;
+                    this->GetValue(PARTICLE_CONTACT_DELTA)[i]=0.0;
+
+
                         /* this loop will set only the 0 (contunuum simulating case) to the initial neighbours. The force calculator will change this
                          * values depending of the type of failure as it is describre here:
                          *
@@ -204,20 +204,39 @@ namespace Kratos
                             this->GetValue(PARTICLE_INITIAL_DELTA)[i]  =   initial_delta; //M:R:els guardo sempre, en forces i tal si és car accedir aquest valor podem demanar el flag pero no crec ke sigui car.
                             this->GetValue(PARTICLE_CONTACT_DELTA)[i]  =   initial_delta;
 
-                            if (r_other_continuum_group == mContinuumGroup && (mContinuumGroup != 0) ) {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0; }
-                            else                                             this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=1; // MRMR:  //generally detached    //diferent group
+                            if (r_other_continuum_group == mContinuumGroup && (mContinuumGroup != 0) ) {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0.0; }
+                            else {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=1.0; 
+                            
+                            KRATOS_WATCH("EN LA INICIALITZACIO")
+
+                            KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
+
+                                    
+                            } // MRMR:  //generally detached    //diferent group
                                                                                                                              //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
 
 
 
                         } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
 
-                        else mFailureId=1.0;      //NO NEED to store the initial neighbour;
+                        else {*mpFailureId=1.0;}      //NO NEED to store the initial neighbour;
+                            
+                        //this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=1;}
+
+
                         //M:also we can say that the particle is detached --> this can be a flag for the forces.
 
                         i++;
 
                }//if I found myself.
+
+
+         
+                   
+
+
+
+
 
             } //end for: ParticleWeakIteratorType ineighbour
       }//SetInitialContacts
@@ -272,8 +291,8 @@ namespace Kratos
 
             // GETTING PARTICLE PROPERTIES
 
-        //    int FailureId = mFailureId;
-            int continuum_group     = mContinuumGroup;
+        //    int FailureId = *mpFailureId;
+          //  int continuum_group     = mContinuumGroup;
 
             double Tension          = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
             double Cohesion         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
@@ -333,7 +352,7 @@ namespace Kratos
                 //array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
 
 
-                if (continuum_simulation_OPTION && (continuum_group!=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0))
+                if (continuum_simulation_OPTION && (*mpFailureId=0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0.0))
                 {
                     // Test for Average, 120531, should be discussed
                     CTension  = (Tension + other_tension)   * 0.5;
@@ -496,10 +515,10 @@ namespace Kratos
              // FORCES
 
 
-             if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
+             if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0.0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                               // for attached particles we enter only if the particle is still attached.
-             {   
-		 /*if ( (fabs(LocalDeltDisp[2]) >= indentation) ) {
+             {
+                 /*if ( (fabs(LocalDeltDisp[2]) >= indentation) ) {
                      
                      LocalContactForce[2] = kn * indentation;
                  }
@@ -534,7 +553,7 @@ namespace Kratos
 
              }
                     
-             if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
+             if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0.0) )
 
              {
                         LocalContactForce[0] = 0.0;  // 0: first tangential
@@ -544,7 +563,7 @@ namespace Kratos
                     
               // TENSION FAILURE
 
-           if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
+           if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0.0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
 
             {
 
@@ -559,7 +578,7 @@ namespace Kratos
 
             // SHEAR FAILURE
 
-            if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+            if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0.0)
             {
                 double ShearForceMax = RT_base + LocalContactForce[2] * Friction ;  // MOHR COULOMB MODEL.
 
@@ -600,7 +619,7 @@ namespace Kratos
                     // but in oposite direction the visco damping can't overpass the force...
 
 		
-	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
+	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0.0) ) )
 
              {
                  
@@ -775,7 +794,7 @@ namespace Kratos
              */
 
             /*
-             *   mFailureId values:
+             *   *mpFailureId values:
              *      0 := all neighbours attached
              *      1 := General detachment (all neighbours lost or no initial continuum case)
              *      2 := Partially detached and no dominance
@@ -793,7 +812,7 @@ namespace Kratos
 
 
 
-            if (mFailureId != 1.0)  // for mFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
+            if (*mpFailureId != 1.0)  // for *mpFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
             {
                 
                 ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -833,31 +852,31 @@ namespace Kratos
                 if ( tempType[0] == 0)  //no neighbour is attached
                 {
 
-                     mFailureId = 1.0;
+                     *mpFailureId = 1.0;
 
                 }   // no one neighbour is attached (but maybe still contacting).
 
                 else if( (tempType[3] > tempType[4]) ) //some neighbour attached but failure 3 dominates over 4.
                 {
-                    mFailureId = 3.0;
+                    *mpFailureId = 3.0;
                 }
 
                 else if( (tempType[4] > tempType[3]) ) // the same but 4 dominates over 3.
                 {
-                    mFailureId = 4.0;
+                    *mpFailureId = 4.0;
                 }
                 else if ( (tempType[4] > 0) || (tempType[3] > 0) ) // no 3 neither 4 dominates but one of them may exist.
                 {
 
-                   mFailureId = 2.0;  // Partially detached / mix case.
+                   *mpFailureId = 2.0;  // Partially detached / mix case.
                 }
                 else
                 {
 
-                   mFailureId = 0.0;  // last option: no one detached.
+                   *mpFailureId = 0.0;  // last option: no one detached.
                 }
 
-            }// if (mFailureId != 1)
+            }// if (*mpFailureId != 1)
 
 
             if(this->GetGeometry()(0)->Id()==1890)
@@ -892,7 +911,7 @@ namespace Kratos
                     KRATOS_WATCH(tempType[aa])
                    }
 
-                    KRATOS_WATCH(mFailureId)
+                    KRATOS_WATCH(*mpFailureId)
 
                     KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
 
@@ -903,13 +922,13 @@ namespace Kratos
 
 
             }
-      //this->GetValue(PARTICLE_FAILURE_ID)=mFailureId ;
+      //this->GetValue(PARTICLE_FAILURE_ID)=*mpFailureId ;
 
        /*
        //testing
-       if (mFailureId != 0.0)
+       if (*mpFailureId != 0.0)
             {
-            KRATOS_WATCH(mFailureId)
+            KRATOS_WATCH(*mpFailureId)
             KRATOS_WATCH(this->GetValue(PARTICLE_FAILURE_ID))
             }
         */

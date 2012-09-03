@@ -372,7 +372,24 @@ namespace Kratos
         
       ///@}    
       ///@name Private Inquiry 
-      ///@{ 
+      ///@{
+
+      ///@}
+      ///@name Serialization
+      ///@{
+
+      friend class Serializer;
+
+      virtual void save(Serializer& rSerializer) const
+      {
+          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+      }
+
+      virtual void load(Serializer& rSerializer)
+      {
+          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+      }
+
         
         
       ///@}    
