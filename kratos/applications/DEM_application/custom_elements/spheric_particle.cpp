@@ -406,7 +406,7 @@ namespace Kratos
 
                 else {
                     
-                    equiv_visco_damp_coeff  = -( (2*log(1e-8)*sqrt(equiv_mass*kn)) / (sqrt( (log(1e-8)*log(1e-8)) + (M_PI*M_PI) )) );
+                    equiv_visco_damp_coeff  = -( 2*sqrt(equiv_mass*kn) );
                 }
 
 
