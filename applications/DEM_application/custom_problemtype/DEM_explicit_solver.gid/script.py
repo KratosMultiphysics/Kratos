@@ -110,12 +110,12 @@ elif (integration_scheme == 'const_average_acc'):
 else:
     print('scheme not defined')
 
-solution_type = DEM_explicit_solver_var.SolutionType
+normal_force_calculation = DEM_explicit_solver_var.NormalForceCalculation
 
-if(solution_type == "Absolutal"):
-    type_id = 2
-else:
-    type_id = 1
+if (normal_force_calculation == "Linear"):
+    force_calculation_type_id = 0
+elif (normal_force_calculation == "Hertz"):
+    force_calculation_type_id = 1
 
 damp_ratio_type = DEM_explicit_solver_var.DampRatioType
 
@@ -157,7 +157,7 @@ if(delta_option=="OFF"):
   search_radius_extension=0.0;
 
 solver.time_scheme=time_scheme
-solver.type_id=type_id
+solver.force_calculation_type_id=force_calculation_type_id
 
 if(continuum_option =="ON"):
   solver.continuum_simulating_OPTION=True
@@ -335,7 +335,7 @@ while(time < final_time):
         gid_io.WriteNodalResults(RADIUS, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_COHESION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
         #gid_io.PrintOnGaussPoints(PARTICLE_FAILURE_ID, solid_model_part, time)   #there are no gauss points defined for spheres
         if (rotation_option == 1): ##xapuza

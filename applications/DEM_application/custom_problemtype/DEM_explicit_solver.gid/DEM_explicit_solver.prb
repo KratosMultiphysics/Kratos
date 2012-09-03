@@ -8,8 +8,8 @@ QUESTION: Critical_Time_Option#CB#(ON,OFF)
 VALUE: ON
 QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
 VALUE: forward_euler
-QUESTION: SolutionType#CB#(Incremental,Absolutal)
-VALUE: Incremental
+QUESTION: Normal_Force_Calculation#CB#(Linear,Hertz)
+VALUE: Linear
 QUESTION: DampRatioType#CB#(ViscDamp,LocalDamp,BothDamp,NoDamp)
 VALUE: LocalDamp
 QUESTION: Bounding_Box_Option#CB#(ON,OFF)
