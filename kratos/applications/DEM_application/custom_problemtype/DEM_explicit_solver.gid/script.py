@@ -56,6 +56,8 @@ if(1<2):
 
   mean=sum_radi/i
   var =sum_squared/i-mean**2
+  if(abs(var)<1e-05):
+    var=0
   std_dev=var**0.5
   
   Model_Data.write("Radius Mean: "+str(mean)+'\n')
@@ -249,7 +251,9 @@ time_old_print = 0.0
 current_pr_time = timer.clock()
 current_real_time = timer.time()
 
-print 'Calculation starts at instant: ' + str(current_pr_time)
+print ('Calculation starts at instant: ' + str(current_pr_time)+'\n')
+
+print ('Last TIME STEP is expected to be: ' + str(int(final_time/dt)) +'\n' )
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
