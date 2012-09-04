@@ -95,6 +95,9 @@ namespace Kratos
             MomentOfInertia = 0.4 * radius * radius;
 
         }
+        
+        KRATOS_WATCH(*mpFailureId)
+
 
 
         KRATOS_CATCH( "" )
@@ -232,18 +235,21 @@ namespace Kratos
                             {
 
                                 this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0;
-                                *mpFailureId=0; // if there is a unique cohesive contact, the FailureId becomes 0.
+                                *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.
 
                             }
                          
                         }//for continuum_simulation_OPTION                                                                                                 //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
 
                     } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
-
+KRATOS_WATCH( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
                     i++;
 
                 }//if I found myself.
             } //end for: ParticleWeakIteratorType ineighbour
+
+            KRATOS_WATCH(*mpFailureId)
+
         }//SetInitialContacts
 
 
@@ -357,11 +363,19 @@ namespace Kratos
                 //array_1d<double,3>& mContactForces  = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce];
 
 
-                if ( continuum_simulation_OPTION && (*mpFailureId=0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0) )
+/*
+                KRATOS_WATCH( continuum_simulation_OPTION)
+                        KRATOS_WATCH(*mpFailureId)
+                        KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+*/
+                if ( continuum_simulation_OPTION && (*mpFailureId==0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0) )
                 {
                     // Test for Average, 120531, should be discussed
                     CTension  = (Tension + other_tension)   * 0.5;
                     CCohesion = (Cohesion + other_cohesion) * 0.5;
+
+                    KRATOS_WATCH(CTension)
+                    KRATOS_WATCH(CCohesion)       
                     /*
                     CTensionUP    = 2* Tension * other_tension;
                     if(CTensionUP==0){
@@ -543,7 +557,7 @@ namespace Kratos
                         case 1:
 
                             if(indentation >= 0.0) {LocalContactForce[2]= kn * pow(indentation, 1.5); }
-                            else { kn * indentation; }
+                            else { LocalContactForce[2] = kn * indentation; }
                             break;
 
                         default:
