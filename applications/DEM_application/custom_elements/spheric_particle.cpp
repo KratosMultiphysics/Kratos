@@ -96,7 +96,7 @@ namespace Kratos
 
         }
         
-        KRATOS_WATCH(*mpFailureId)
+        //KRATOS_WATCH(*mpFailureId)
 
 
 
@@ -115,6 +115,7 @@ namespace Kratos
         if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
         {
               ComputeParticleRotationSpring(rCurrentProcessInfo);
+            //ComputeParticleRotationSpring_TRIAL(rCurrentProcessInfo);
         }
 
        CharacteristicParticleFailureId(rCurrentProcessInfo);
@@ -242,13 +243,13 @@ namespace Kratos
                         }//for continuum_simulation_OPTION                                                                                                 //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
 
                     } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
-KRATOS_WATCH( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
+//KRATOS_WATCH( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
                     i++;
 
                 }//if I found myself.
             } //end for: ParticleWeakIteratorType ineighbour
 
-            KRATOS_WATCH(*mpFailureId)
+            //KRATOS_WATCH(*mpFailureId)
 
         }//SetInitialContacts
 
@@ -374,8 +375,10 @@ KRATOS_WATCH( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
                     CTension  = (Tension + other_tension)   * 0.5;
                     CCohesion = (Cohesion + other_cohesion) * 0.5;
 
-                    KRATOS_WATCH(CTension)
-                    KRATOS_WATCH(CCohesion)       
+                    //KRATOS_WATCH(CTension)
+                    //KRATOS_WATCH(CCohesion)
+
+
                     /*
                     CTensionUP    = 2* Tension * other_tension;
                     if(CTensionUP==0){
@@ -1016,6 +1019,159 @@ KRATOS_WATCH( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i])
                 DeltRotaDisp[2] = -(AngularVel[2] - Other_AngularVel[2]) * dt;
 
                 double LocalDeltRotaDisp[3] = {0.0};
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
+
+                GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
+
+                GlobalRotaSpringMomentOld[1] = mRotaSpringMoment[ 1 ];
+
+                GlobalRotaSpringMomentOld[2] = mRotaSpringMoment[ 2 ];
+
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalRotaSpringMomentOld, LocalRotaSpringMoment);
+
+
+                double Inertia_I = (inertia + other_inertia) * 0.5;
+
+                double Inertia_J = Inertia_I * 2.0;
+
+
+                LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn / equiv_area;
+
+                LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn / equiv_area;
+
+                LocalRotaSpringMoment[2] +=  - Inertia_J * LocalDeltRotaDisp[2] * ks / equiv_area;
+
+
+                ////Judge if the rotate spring is broken or not
+                double GlobalContactForce[3]  = {0.0};
+                double LocalContactForce [3]  = {0.0};
+
+                GlobalContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 0 ];
+                GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 1 ];
+                GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 2 ]; //GlobalContactForce[2] = mContactForces[3 * iContactForce  + 2 ];
+                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
+
+                double ForceN  = LocalContactForce[2];
+                double ForceS  = sqrt( LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]);
+                double MomentS = sqrt(LocalRotaSpringMoment[0] * LocalRotaSpringMoment[0] + LocalRotaSpringMoment[1] * LocalRotaSpringMoment[1]);
+                double MomentN = LocalRotaSpringMoment[2];
+
+                //////bending stress and axial stress add together, use edge of the bar will failure first
+                double TensiMax = -ForceN / equiv_area + MomentS        / Inertia_I * equiv_radius;
+                double ShearMax = ForceS  / equiv_area + fabs(MomentN)  / Inertia_J * equiv_radius;
+
+                if(TensiMax > Tension || ShearMax > Cohesion)
+                {
+                    mRotaSpringFailureType[iContactForce] = 1;
+
+
+                    LocalRotaSpringMoment[0] = 0.0;
+                    LocalRotaSpringMoment[1] = 0.0;
+                    LocalRotaSpringMoment[2] = 0.0;
+                }
+
+                GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotaSpringMoment, GlobalRotaSpringMoment);
+
+
+
+                mRotaSpringMoment[ 0 ] = GlobalRotaSpringMoment[0];
+                mRotaSpringMoment[ 1 ] = GlobalRotaSpringMoment[1];
+                mRotaSpringMoment[ 2 ] = GlobalRotaSpringMoment[2];
+
+                ////feedback, contact moment----induce by rotation spring
+                mRota_Moment[0] -= GlobalRotaSpringMoment[0];
+                mRota_Moment[1] -= GlobalRotaSpringMoment[1];
+                mRota_Moment[2] -= GlobalRotaSpringMoment[2];
+            }
+
+            iContactForce++;
+            }
+
+
+        }//ComputeParticleRotationSpring
+
+       void SphericParticle::ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo)
+       {
+
+        /*
+                    c=objecte_contacte(particula,vei)
+
+            força=(c.RADI)*3;
+
+          */
+
+        double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
+        double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+        double young          = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
+        double poisson        = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+        double radius         = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+        double inertia        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_INERTIA);
+
+        array_1d<double, 3 > & mRota_Moment = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
+
+        ParticleWeakVectorType& rE             = this->GetValue(NEIGHBOUR_ELEMENTS);
+
+        Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
+
+        size_t iContactForce = 0;
+
+        for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
+        {
+
+            //if(mIfInitalContact[iContactForce] == 1 && mRotaSpringFailureType[iContactForce] == 0) ///M.S:NEWWWW, IF THE SPRING BRAKES... NO MORE CONTRIBUION.
+            if( mRotaSpringFailureType[iContactForce] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
+            //mmm.. what about the other failure types? if a contact is broken due to shear or tensile, it cant be a bending
+            {
+
+                array_1d<double, 3 > & mRotaSpringMoment  = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[ iContactForce ];
+
+                double other_radius    = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                double other_young     = ineighbour->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
+                double other_poisson   = ineighbour->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+                double other_tension   = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
+                double other_cohesion  = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+                double other_inertia   = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
+
+                Tension  = (Tension  + other_tension ) * 0.5;
+                Cohesion = (Cohesion + other_cohesion) * 0.5;
+
+                double equiv_radius     = (radius + other_radius) * 0.5 ;
+                double equiv_area       = M_PI * equiv_radius * equiv_radius;
+                double equiv_poisson    = (poisson + other_poisson) * 0.5 ;
+                double equiv_young      = (young  + other_young)  * 0.5;
+
+                double kn               = equiv_young * equiv_area / (2.0 * equiv_radius);
+                double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+
+                //CF: NEEEEW!
+               // array_1d<double,3> mContactForces = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ];
+                // BY MIKEL
+
+                array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
+
+               /////Cfeng: Forming the Local Contact Coordinate system
+                double NormalDir[3]           = {0.0};
+                double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+                NormalDir[0] = other_to_me_vect[0];
+                NormalDir[1] = other_to_me_vect[1];
+                NormalDir[2] = other_to_me_vect[2];
+                GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);
+
+                double LocalRotaSpringMoment[3]     = {0.0};
+                double GlobalRotaSpringMoment[3]    = {0.0};
+                double GlobalRotaSpringMomentOld[3] = {0.0};
+
+                double DeltRotaDisp[3] = {0.0};
+                double LocalDeltRotaDisp[3] = {0.0};
+
+                //array_1d<double, 3 >
+
+                DeltRotaDisp[0] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[0];
+                DeltRotaDisp[1] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[1];
+                DeltRotaDisp[2] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[2];
+
+
+          
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
 
                 GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];

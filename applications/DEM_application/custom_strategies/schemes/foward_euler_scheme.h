@@ -220,9 +220,10 @@ namespace Kratos
                 double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
                 double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-                array_1d<double, 3 > & AngularVel      = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 > & RotaMoment      = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                array_1d<double, 3 > & Rota_Displace   = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                array_1d<double, 3 > & AngularVel           = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 > & RotaMoment           = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
+                array_1d<double, 3 > & delta_rotation_displ = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
+                array_1d<double, 3 > & Rota_Displace        = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
 
                 bool If_Fix_Rotation[3] = {false, false, false};
                 If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
@@ -242,9 +243,10 @@ namespace Kratos
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
 
                          AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
-                     
 
-                         Rota_Displace[iterator] += AngularVel[iterator] * delta_t / M_PI * 180.0;
+                         delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0;
+
+                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator];
                      
                     }
                    
