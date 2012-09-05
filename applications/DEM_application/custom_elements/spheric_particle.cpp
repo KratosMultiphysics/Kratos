@@ -641,40 +641,20 @@ namespace Kratos
 
              {
 
-
-                 //IGNASI: trec lo de <1e-12 pk ho farem absolut
-                //if ( (fabs(LocalDeltDisp[2]) >= indentation) && ((fabs(LocalContactForce[2] + kn * LocalDeltDisp[2])) < 1e-12) )
-                    if ( fabs(LocalDeltDisp[2]) >= indentation )
-                    {
-
-
-                    double OldLocalContactForce[3]  = {0.0}; //M.
-                    for (unsigned int index = 0; index < 3; index++)
-                        {
-                           OldLocalContactForce[index] = LocalContactForce[index];
-
-                           LocalContactForce[index] += - equiv_visco_damp_coeff * LocalRelVel[index];
-
-                           if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;} //the contact force can not change the direction due to the visco damp.
-                        }
-                    }
-                
-                else
-
-                {
+      
                     double OldLocalContactForce[3]  = {0.0}; //M.
 
                         for (unsigned int index = 0; index < 3; index++)
                             {
                                OldLocalContactForce[index] = LocalContactForce[index];
 
-                               LocalContactForce[index] += - equiv_visco_damp_coeff * LocalDeltRelVel[index];
+                               LocalContactForce[index] += - equiv_visco_damp_coeff * LocalRelVel[index];
 
                                if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;} //the contact force can not change the direction due to the visco damp.
                             }
                 }
 
-             } 
+             
 
 
                 // TRANSFORMING TO GLOBAL FORCES AND ADDING UP
