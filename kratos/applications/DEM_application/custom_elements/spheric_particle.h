@@ -199,6 +199,7 @@ namespace Kratos
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
+        void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
         
         //FOR DEM_FEM APP
         
