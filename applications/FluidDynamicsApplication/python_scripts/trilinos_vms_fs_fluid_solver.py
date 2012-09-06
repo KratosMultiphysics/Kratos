@@ -109,17 +109,7 @@ class IncompressibleFluidSolver:
         velocity_nit_max = 1000
         velocity_linear_tol = 1e-6
        
-        pressure_aztec_parameters = ParameterList()
-        pressure_aztec_parameters.set("AZ_solver","AZ_bicgstab");
-        #pressure_preconditioner_type = "IC"
-        pressure_preconditioner_type = "ILU"
-        #pressure_preconditioner_type = "AZ_none"
-        pressure_aztec_parameters.set("AZ_output",32);
-        #pressure_aztec_parameters.set("AZ_output","AZ_none");
-        pressure_preconditioner_parameters = ParameterList()
-        pressure_overlap_level = 0
-        pressure_nit_max = 1000
-        pressure_linear_tol = 1e-3
+
         
         self.velocity_linear_solver =  AztecSolver(velocity_aztec_parameters,velocity_preconditioner_type,velocity_preconditioner_parameters,velocity_linear_tol,velocity_nit_max,velocity_overlap_level);
         #self.velocity_linear_solver.SetScalingType(AztecScalingType.NoScaling)
@@ -128,8 +118,24 @@ class IncompressibleFluidSolver:
         #self.velocity_linear_solver.SetScalingType(AztecScalingType.SymmetricScaling)
         #self.pressure_linear_solver.SetScalingType(AztecScalingType.SymmetricScaling) 
         
-        self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
-        self.pressure_linear_solver.SetScalingType(AztecScalingType.LeftScaling) 
+
+        pressure_nit_max = 1000
+        pressure_linear_tol = 1e-6
+        
+        #pressure_aztec_parameters = ParameterList()
+        #pressure_aztec_parameters.set("AZ_solver","AZ_bicgstab");
+        ##pressure_preconditioner_type = "IC"
+        #pressure_preconditioner_type = "ILU"
+        ##pressure_preconditioner_type = "AZ_none"
+        #pressure_aztec_parameters.set("AZ_output",32);
+        ##pressure_aztec_parameters.set("AZ_output","AZ_none");
+        #pressure_preconditioner_parameters = ParameterList()
+        #pressure_overlap_level = 0
+        #self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
+        
+        import PressureMultiLevelSolver
+	self.pressure_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol,pressure_nit_max)
+        #self.pressure_linear_solver.SetScalingType(AztecScalingType.LeftScaling) 
         
         
         
