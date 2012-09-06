@@ -187,7 +187,7 @@ public:
      */
     bool Solve(SparseMatrixType& rA, SparseVectorType& rX, SparseVectorType& rB)
     {
-        KRATOS_WATCH("entered in solver")
+//         KRATOS_WATCH("entered in solver")
         if (this->IsNotConsistent(rA, rX, rB))
             return false;
 
@@ -196,11 +196,11 @@ public:
         // 	  BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
         //  	  BaseType::GetPreconditioner()->ApplyInverseRight(rX);
         // 	  BaseType::GetPreconditioner()->ApplyLeft(rB);
-        KRATOS_WATCH("ln173")
+//         KRATOS_WATCH("ln173")
         bool is_solved = IterativeSolve(rA, rX, rB);
 
         //  	  BaseType::GetPreconditioner()->Finalize(rX);
-        KRATOS_WATCH("ln177")
+//         KRATOS_WATCH("ln177")
         // 	  GetTimeTable()->Stop(Info());
 
         return is_solved;
@@ -336,7 +336,7 @@ private:
         //note that this has to be done only once if the matrix structure is preserved
         if (massume_constant_structure == false || mw.size() == 0)
         {
-            std::cout << "constructing the W matrix and the reduced size one" << std::endl;
+//             std::cout << "constructing the W matrix and the reduced size one" << std::endl;
             DeflationUtils::ConstructW(mmax_reduced_size, rA, mw, mAdeflated);
         }
 
@@ -345,7 +345,7 @@ private:
 
         std::size_t reduced_size = mAdeflated.size1();
 
-        std::cout << "within solver: full size=" << full_size << " reduced_size=" << reduced_size << " deflation factor = " << double(full_size) / double(reduced_size) << std::endl;
+//         std::cout << "within solver: full size=" << full_size << " reduced_size=" << reduced_size << " deflation factor = " << double(full_size) / double(reduced_size) << std::endl;
 
         // To save some time, we do the factorization once, and do the solve several times.
         // When this is available through the LinearSolver interface, replace this.
@@ -357,7 +357,7 @@ private:
         Factorization.copyFromCSRMatrix(mAdeflated);
         Factorization.factorize();
 
-        std::cout << "********** Factorization done!" << std::endl;
+//         std::cout << "********** Factorization done!" << std::endl;
 
         SparseVectorType r(full_size), t(full_size), d(full_size), p(full_size), q(full_size);
         SparseVectorType th(reduced_size), dh(reduced_size);
