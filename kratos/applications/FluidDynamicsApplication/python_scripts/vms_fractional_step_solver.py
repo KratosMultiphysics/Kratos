@@ -75,9 +75,13 @@ class IncompressibleFluidSolver:
 #        pILUPrecond = ILU0Preconditioner()
 ##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
-        self.velocity_linear_solver =  BICGSTABSolver(1e-30, 5000,pDiagPrecond)
+        self.velocity_linear_solver =  ScalingSolver( BICGSTABSolver(1e-6, 5000,pDiagPrecond), True )
 ##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
-        self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+        #self.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+        
+        assume_constant_structure = True
+        max_reduced_size = 1000
+        self.pressure_linear_solver = ScalingSolver( DeflatedCGSolver(1e-6,5000,assume_constant_structure,max_reduced_size) , True)
 
         self.dynamic_tau = 0.001
 
