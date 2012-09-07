@@ -41,7 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: kazem $
+//   Last modified by:    $Author: kazem, pavel $
 //   Date:                $Date: 2009-01-21 14:15:02 $
 //   Revision:            $Revision: 1.6 $
 //
