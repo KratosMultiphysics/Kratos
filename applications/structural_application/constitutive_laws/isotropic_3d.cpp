@@ -114,17 +114,36 @@ bool Isotropic3D::Has( const Variable<Matrix>& rThisVariable )
     return false;
 }
 
+
 double& Isotropic3D::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    if ( rThisVariable == PRESTRESS_FACTOR )
-        return mPrestressFactor;
-    if ( rThisVariable == YOUNG_MODULUS )
-        return mE;
-    if ( rThisVariable == POISSON_RATIO )
-        return mNU;
-
-    rValue = 0.0;
-    return( rValue );
+    if ( rThisVariable == PRESTRESS_FACTOR ){
+        rValue = mPrestressFactor;
+    return rValue;
+    }
+    if(rThisVariable == YOUNG_MODULUS ){
+       rValue = mE;
+       return rValue;
+     }
+ 
+   
+    if ( rThisVariable == POISSON_RATIO ){
+        rValue = mNU;
+        return rValue;
+    }
+   
+    if(rThisVariable==DAMAGE){
+        rValue = 0.00;
+        return rValue;
+    }
+   
+    if (rThisVariable==DELTA_TIME){
+        rValue = sqrt(mE/mDE);
+        return rValue;
+    }
+  
+    rValue = 0.00;
+    return rValue;
 }
 
 Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
@@ -199,6 +218,7 @@ void Isotropic3D::InitializeMaterial( const Properties& props,
     mPrestressFactor = 1.0;
     mE = props[YOUNG_MODULUS];
     mNU = props[POISSON_RATIO];
+    mDE = props[DENSITY];
 }
 
 void Isotropic3D::ResetMaterial( const Properties& props,
