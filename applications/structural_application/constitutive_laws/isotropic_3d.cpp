@@ -150,13 +150,19 @@ Vector& Isotropic3D::GetValue( const Variable<Vector>& rThisVariable, Vector& rV
 {
     if ( rThisVariable == INSITU_STRESS || rThisVariable == PRESTRESS )
     {
-        Vector rValue = mPrestressFactor*mPrestress;
+        const unsigned int size = mPrestress.size();
+    rValue.resize(size, false );
+        rValue = mPrestressFactor*mPrestress;
         return rValue;
     }
 
     if ( rThisVariable == STRESSES )
-        return mCurrentStress;
-
+    {  
+        const unsigned int size = mCurrentStress.size();
+        rValue.resize(size, false );
+        rValue  = mCurrentStress;
+        return rValue;
+    }
     if ( rThisVariable == PLASTIC_STRAIN_VECTOR )
     {
         rValue = ZeroVector( 6 );
