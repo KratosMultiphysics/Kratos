@@ -31,7 +31,7 @@
 
 #include "custom_conditions/fluid3d_neumann.h"
 #include "custom_conditions/monolithic2d_neumann.h"
-//#include "custom_conditions/monolithic3d_neumann.h"
+#include "custom_conditions/monolithic3d_neumann.h"
 
 #include "custom_conditions/no_slip_condition_2d.h"
 //#include "custom_conditions/no_slip_fract_step.h"
@@ -55,7 +55,7 @@
 
 #include "custom_elements/asgs_3d.h"
 #include "custom_elements/asgs_3d_enriched.h"
-// #include "custom_elements/asgs_3d_comp_enriched.h"
+#include "custom_elements/asgs_3d_comp_enriched.h"
 #include "custom_elements/asgs_compressible_3d.h"
 #include "custom_elements/asgs_comp_pr_dc_3d.h"
 
@@ -123,6 +123,8 @@ KRATOS_DEFINE_VARIABLE(double, DENSITY_AIR)
 
 KRATOS_DEFINE_VARIABLE(double, AIR_SOUND_VELOCITY)
 KRATOS_DEFINE_VARIABLE(double, SOUND_VELOCITY)
+KRATOS_DEFINE_VARIABLE(double, ENRICHED_PRESSURE)
+KRATOS_DEFINE_VARIABLE(double, ENRICHED_PRESSURE_IT)
 KRATOS_DEFINE_VARIABLE(int, ACTIVATE_TAU2)
 
 
@@ -325,7 +327,7 @@ private:
 
         const ASGS3D mASGS3D;
         const ASGS3D_ENR mASGS3D_ENR;
-//         const ASGS3D_COMP_ENR mASGS3D_COMP_ENR;
+         const ASGS3D_COMP_ENR mASGS3D_COMP_ENR;
         const ASGSCompressible3D mASGSCompressible3D;
 
 
@@ -337,7 +339,7 @@ private:
 
 
         const Monolithic2DNeumann mMonolithic2DNeumann;
-        //const Monolithic3DNeumann  mMonolithic3DNeumann;
+        const Monolithic3DNeumann  mMonolithic3DNeumann;
 
 
     const Fluid2DGLS_expl mFluid2DGLS_expl;
