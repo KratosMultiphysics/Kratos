@@ -712,6 +712,30 @@ public:
 
     }
 
+   void WriteLocalAxesOnNodes( Variable<array_1d<double, 3> > const& rVariable,
+                            NodesContainerType& rNodes,
+                            double SolutionTag, std::size_t SolutionStepNumber)
+    {
+
+        Timer::Start("Writing Results");
+
+        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+                         SolutionTag, GiD_LocalAxes,
+                         GiD_OnNodes, NULL, NULL, 0, NULL );
+
+        for (NodesContainerType::iterator i_node = rNodes.begin();
+                i_node != rNodes.end() ; ++i_node)
+        {
+            array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
+                                        SolutionStepNumber );
+            GiD_WriteLocalAxes( i_node->Id(), temp[0], temp[1], temp[2] );
+        }
+        GiD_EndResult();
+
+        Timer::Stop("Writing Results");
+
+    }
+
     ///mesh writing functions
     /**
      * opens a new mesh group

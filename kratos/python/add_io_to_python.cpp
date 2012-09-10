@@ -135,6 +135,11 @@ void (GidIO<>::*pointer_to_array1d_write_nodal_results)(
 //         void (GidIO::*pointer_to_vector_write_nodal_results)(Variable<Vector > const& rVariable, GidIO::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO::WriteNodalResults;
 void (GidIO<>::*pointer_to_matrix_write_nodal_results)(Variable<Matrix > const& rVariable, GidIO<>::NodesContainerType& rNodes, double SolutionTag, std::size_t SolutionStepNumber) = &GidIO<>::WriteNodalResults;
 
+void (GidIO<>::*local_axes_write_nodal_results)( Variable<array_1d<double, 3> > const& rVariable,
+        GidIO<>::NodesContainerType& rNodes, double SolutionTag,
+        std::size_t SolutionStepNumber ) = &GidIO<>::WriteLocalAxesOnNodes;
+
+
 //         void (GidIO::*pointer_to_double_cond_print_on_gauss_points)(const Variable<double>& rVariable,
 //               ModelPart& r_model_part, double SolutionTag) = &GidIO::CondPrintOnGaussPoints;
 //         void (GidIO<>::*pointer_to_double_print_on_gauss_points)(const Variable<double >& rVariable,
@@ -213,6 +218,8 @@ void  AddIOToPython()
 
 //                    .def("WriteNodalResults",pointer_to_vector_write_nodal_results)
     .def("WriteNodalResults",pointer_to_matrix_write_nodal_results)
+
+    .def("WriteLocalAxesOnNodes",local_axes_write_nodal_results)
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
     .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
