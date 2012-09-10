@@ -114,7 +114,7 @@ namespace Kratos
 
         if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
         {
-              ComputeParticleRotationSpring(rCurrentProcessInfo);
+             ComputeParticleRotationSpring(rCurrentProcessInfo);
             //ComputeParticleRotationSpring_TRIAL(rCurrentProcessInfo);
         }
 
@@ -1092,7 +1092,7 @@ namespace Kratos
 
        void SphericParticle::ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo)
        {
-
+        double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
         /*
                     c=objecte_contacte(particula,vei)
 
@@ -1119,7 +1119,7 @@ namespace Kratos
         {
 
             //if(mIfInitalContact[iContactForce] == 1 && mRotaSpringFailureType[iContactForce] == 0) ///M.S:NEWWWW, IF THE SPRING BRAKES... NO MORE CONTRIBUION.
-            if( mRotaSpringFailureType[iContactForce] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
+            //if( mRotaSpringFailureType[iContactForce] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
             //mmm.. what about the other failure types? if a contact is broken due to shear or tensile, it cant be a bending
             {
 
@@ -1143,10 +1143,6 @@ namespace Kratos
                 double kn               = equiv_young * equiv_area / (2.0 * equiv_radius);
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
 
-                //CF: NEEEEW!
-               // array_1d<double,3> mContactForces = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ];
-                // BY MIKEL
-
                 array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
 
                /////Cfeng: Forming the Local Contact Coordinate system
@@ -1162,16 +1158,22 @@ namespace Kratos
                 double GlobalRotaSpringMomentOld[3] = {0.0};
 
                 double DeltRotaDisp[3] = {0.0};
+                double DeltRotaDisp2[3] = {0.0};
+
                 double LocalDeltRotaDisp[3] = {0.0};
 
-                //array_1d<double, 3 >
-
-                DeltRotaDisp[0] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[0];
-                DeltRotaDisp[1] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[1];
-                DeltRotaDisp[2] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[2];
-
-
-          
+                double TargetDeltRotaDist[3] = {0.0};
+                double NeighbourDeltRotaDist[3] = {0.0};
+                
+                for (int i=0;i<3;i++)
+                {
+                
+                    TargetDeltRotaDist[i] = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
+                    NeighbourDeltRotaDist[i] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
+                    DeltRotaDisp2[i] =  - ( TargetDeltRotaDist[i] - NeighbourDeltRotaDist[i] );
+                
+                }
+              
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
 
                 GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
@@ -1244,6 +1246,51 @@ namespace Kratos
         }//ComputeParticleRotationSpring
 
 
+
+        void SphericParticle::CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo )
+        {
+
+            //1. rotate the local axes
+
+            array_1d<double,3>  CentrePoint = this->GetGeometry()(0)->Coordinates();
+
+            array_1d<double,3> LineVector = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
+
+            double RotationAngle;
+            
+            GeometryFunctions::norm(LineVector,RotationAngle);
+
+            boost::numeric::ublas::vector<array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);                       
+            
+            for (int e = 0; e<3; e++)
+            {
+
+                array_1d<double,3>& TargetPoint = TargetPointVector[e];
+
+               GeometryFunctions::RotatePointAboutArbitraryLine( TargetPoint, CentrePoint, LineVector, RotationAngle);
+
+            }
+        
+            //2. calculate the Euler angles from the rotation
+
+            array_1d<double,3>  OriginalVector_X  = ZeroVector(3);
+            OriginalVector_X[0] = 1.0;
+            OriginalVector_X[1] = 0.0;
+            OriginalVector_X[2] = 0.0;
+
+            array_1d<double,3>  OriginalVector_Z  = ZeroVector(3);
+            OriginalVector_X[0] = 0.0;
+            OriginalVector_X[1] = 0.0;
+            OriginalVector_X[2] = 1.0;
+
+            array_1d<double,3>  RotatedVector_X   = TargetPointVector[0] - CentrePoint;
+            array_1d<double,3>  RotatedVector_Z   = TargetPointVector[2] - CentrePoint;
+            array_1d<double,3>& EulerAngles       = this->GetGeometry()(0)->GetSolutionStepValue(EULER_ANGLES);
+
+            GeometryFunctions::CalculateEulerAngles(OriginalVector_X, OriginalVector_Z, RotatedVector_X, RotatedVector_Z, EulerAngles );
+
+       }
+
        void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
        void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
@@ -1282,7 +1329,7 @@ namespace Kratos
 
 
         }
-       void SphericParticle::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
        
        {
 
@@ -1321,6 +1368,15 @@ namespace Kratos
                    }
                 }
             } //DAMPING
+
+            if (rVariable == EULER_ANGLES)
+            {
+                CalculateLocalAxes( rCurrentProcessInfo );
+
+            } //DAMPING
+
+
+
         }
 
 

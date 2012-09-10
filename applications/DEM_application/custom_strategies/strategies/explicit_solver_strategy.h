@@ -211,14 +211,13 @@ namespace Kratos
         //4.Final operations
         FinalizeSolutionStep();
 
-	
- 
+
+
         //std::cout <<"FINISHED SOLVE"<<std::endl;
 	return 0.00;   
 	KRATOS_CATCH("")
 	
       }
-
 
 
        void CriticalTime()
@@ -588,6 +587,8 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements     = r_model_part.Elements();
 
+          int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
+
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
           #else
@@ -602,14 +603,31 @@ namespace Kratos
           #pragma omp parallel for //private(index)
           for(int k=0; k<number_of_threads; k++)
 
-          {
+            {
 
             typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
 
-                (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+              (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+
+              //Rotate trihedron
+ 
+                if (trihedron_OPTION==1)
+                {
+              
+
+                    array_1d<double,3> dummy(3,0.0);
+                   
+                    (it)->Calculate(EULER_ANGLES, dummy, rCurrentProcessInfo);
+
+
+                }
+
+
+
+
 
              } //loop over particles
 

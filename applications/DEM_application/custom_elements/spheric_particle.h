@@ -99,8 +99,8 @@ namespace Kratos
       void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
       void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
       void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
-      void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-      void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+      void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -196,6 +196,7 @@ namespace Kratos
         void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
+        void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);

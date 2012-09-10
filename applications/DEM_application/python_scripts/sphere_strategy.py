@@ -35,6 +35,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
    
 
     print "variables for the explicit solver added correctly"
@@ -76,6 +78,7 @@ class ExplicitStrategy:
         self.delta_OPTION                   = False
         self.continuum_simulating_OPTION    = False
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
+        self.trihedron_OPTION               = 0
 
         self.rotation_OPTION                = 0  #its 1/0 xapuza
         self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
@@ -135,6 +138,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
+        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         
         #####
 
