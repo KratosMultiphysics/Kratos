@@ -146,6 +146,7 @@ delta_option 		= DEM_explicit_solver_var.DeltaOption
 search_radius_extension	= DEM_explicit_solver_var.search_radius_extension
 
 rotation_option 	= DEM_explicit_solver_var.RotationOption
+trihedron_option	= DEM_explicit_solver_var.TrihedronOption
 rotation_spring_option	= DEM_explicit_solver_var.RotationalSpringOption
 
 bounding_box_option 	= DEM_explicit_solver_var.BoundingBoxOption
@@ -169,8 +170,12 @@ solver.search_radius_extension=search_radius_extension
 
 if(rotation_option =="ON"):
   solver.rotation_OPTION=1  #xapuza
+if(trihedron_option =="ON"):
+  solver.trihedron_OPTION=1  #xapuza 
 if(rotation_spring_option =="ON"):
   solver.rotation_spring_OPTION=1  #xapuza
+ 
+    
 
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
   
@@ -337,10 +342,11 @@ while(time < final_time):
         gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
-        #gid_io.PrintOnGaussPoints(PARTICLE_FAILURE_ID, solid_model_part, time)   #there are no gauss points defined for spheres
+        
         if (rotation_option == 1): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
             gid_io.WriteNodalResults(MOMENT, solid_model_part.Nodes, time, 0)
+            gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, solid_model_part.Nodes, time, 0)
         #gid_io.Flush()      
         gid_io.FinalizeResults()    
 	time_old_print = time

@@ -230,8 +230,6 @@ namespace Kratos
                 If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
                 If_Fix_Rotation[2] = i->pGetDof(VELOCITY_Z)->IsFixed();
 
-                
-
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
                     if(If_Fix_Rotation[iterator] == false)
@@ -243,17 +241,20 @@ namespace Kratos
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
 
                          AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
+                        
+                         delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
+                         //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
 
-                         delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0;
-
-                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator];
+                      
+                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator]; // it is not used...
                      
                     }
                    
 
                     else
                     {
-                       /*
+                       
+                        /*
                        *
                        *
                        *  implementation of fixed rotational motion.
@@ -273,12 +274,7 @@ namespace Kratos
         KRATOS_CATCH(" ")
      }
 	
-   
-
-
-     
-
-     
+ 
       /// Turn back information as a string.
       virtual std::string Info() const
       {

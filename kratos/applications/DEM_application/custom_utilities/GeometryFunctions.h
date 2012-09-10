@@ -28,6 +28,13 @@ namespace Kratos
             Vector[1] = Vector[1] / distance;
             Vector[2] = Vector[2] / distance;
     }
+      static inline void norm( array_1d<double,3>& Vector, double& distance)
+    {
+            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            Vector[0] = Vector[0] / distance;
+            Vector[1] = Vector[1] / distance;
+            Vector[2] = Vector[2] / distance;
+    }
 
     static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3])
     {
@@ -62,7 +69,19 @@ namespace Kratos
         return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
     }
 
+    static inline double DotProduct(const array_1d<double,3> Vector1, const array_1d<double,3> Vector2)
+    {
+        return Vector1[0] * Vector2[0] + Vector1[1] * Vector2[1] + Vector1[2] * Vector2[2];
+    }
+
     static inline void CrossProduct(double u[3], double v[3], double ReturnVector[3])
+    {
+    	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
+	ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
+	ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
+    }
+
+    static inline void CrossProduct( const array_1d<double,3>& u, const array_1d<double,3>& v, array_1d<double,3>& ReturnVector)
     {
     	ReturnVector[0] = u[1]*v[2] - u[2]*v[1];
 	ReturnVector[1] = v[0]*u[2] - u[0]*v[2];
@@ -289,9 +308,62 @@ namespace Kratos
          }
      }
 
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ///////////////******Rotate a point over an arbitrary line though an arbitrary point******/////////////////////////////////////
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+     static inline void RotatePointAboutArbitraryLine(array_1d<double,3>& TargetPoint, const array_1d<double,3>& CentrePoint, const array_1d<double,3>& LineVector, const double RotationAngle)
+     {
+
+        const double O = RotationAngle;
+
+        double x = TargetPoint[0], a = CentrePoint[0], u = LineVector[0];
+        double y = TargetPoint[1], b = CentrePoint[1], v = LineVector[1];
+        double z = TargetPoint[2], c = CentrePoint[2], w = LineVector[2];
+
+        double L = u*u+v*v+w*w;
+
+        if (L==0)
+        {
+
+            KRATOS_WATCH("WARNING! Nul vector for the rotation!")
+
+        }
+
+        else
+
+        {
+
+        TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))*(1/L);
+        TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))*(1/L);
+        TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))*(1/L);
+
+        }
+
+     }
+
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ///////////////******EULER ANGLES from 2 vectors******/////////////////////////////////////////////////////////////////////////
+     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+    static inline void CalculateEulerAngles(const array_1d<double,3>& OriginalVector_X, const array_1d<double,3>& OriginalVector_Z,
+                const array_1d<double,3>& RotatedVector_X, const array_1d<double,3>& RotatedVector_Z, array_1d<double,3>& EulerAngles)
+    {
 
+        array_1d< double,3 > N = ZeroVector(3);
+        
+        CrossProduct( OriginalVector_Z, RotatedVector_Z, N);
+        
+        double return1 = DotProduct(N,OriginalVector_X);   //cos(Alpha)
+        double return2 = DotProduct(OriginalVector_Z, RotatedVector_Z); //cos(Beta)
+        double return3 = DotProduct(N,RotatedVector_X); //cos(Gamma)
+
+        EulerAngles[0] = acos(return1);
+        EulerAngles[1] = acos(return2);
+        EulerAngles[2] = acos(return3);
+
+    }
      static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double Particle_Coord[3], double rad)
      {
          bool If_Conact = false;

@@ -26,7 +26,9 @@ QUESTION: Search_Radius_Extension
 VALUE: 0.01
 QUESTION: Rotation_Option#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#)(ON,RESTORE,Rotation_Spring,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Trihedron_Option,#CURRENT#)(ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Trihedron_Option,#CURRENT#)
+QUESTION: Trihedron_Option#CB#(ON,OFF)
+VALUE: ON
 QUESTION: Rotation_Spring#CB#(ON,OFF)
 VALUE: ON
 QUESTION: Global_Variables_Option#CB#(ON,OFF)
