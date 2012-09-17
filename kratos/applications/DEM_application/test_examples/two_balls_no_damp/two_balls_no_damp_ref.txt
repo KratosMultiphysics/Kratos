@@ -1,18 +1,2 @@
 KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
 KRATOS_BENCHMARK | Float | Node displacement | -0.04909905 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.2001 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.0415684546157 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.3002 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.000261717211635 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.4003 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.0572512779075 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.5004 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.035796157787 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.6005 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.000936149185697 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.7006 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.0643724386843 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.8007 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.0293187440335 | 0.05 | None
-KRATOS_BENCHMARK | Float | Time | 0.9008 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.00234861246986 | 0.05 | None
