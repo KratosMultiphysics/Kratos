@@ -14,11 +14,11 @@ def Run():
 	#VMS2D element test
 	
 	Text += "DEM element test: "
-	os.chdir("two_balls_no_damp")	
+	os.chdir("two_balls_no_damp.gid")	
 	sys.path.append(os.getcwd())
 
-	print "running the two_balls_no_damp benchmark test..."
-        Msg = benchmarking.RunBenchmark("script.py", "two_balls_no_damp_ref.txt")
+	print "running the two_balls_no_damp.gid benchmark test..."
+        Msg = benchmarking.RunBenchmark("two_balls_no_damp.py", "two_balls_no_damp_ref.txt")
 
         if (Msg == True):
             Text += "OK\n"
