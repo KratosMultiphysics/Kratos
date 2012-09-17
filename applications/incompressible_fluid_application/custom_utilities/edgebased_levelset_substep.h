@@ -495,6 +495,13 @@ public:
 	    double nu = mViscosity[i_node];
 	    
 	    double delta_t_i = 0.25*mY_wall*mY_wall/nu;
+	    
+	    // Reducing wall friction for the large element near wall. Pooyan.
+		double reducing_factor = 1.00;
+                double h_min = mHavg[i_node];
+		if(mY_wall < h_min)
+                     reducing_factor = mY_wall / h_min;
+		delta_t_i /= reducing_factor;
 	    	    
 	    if (delta_t_i < delta_t)
                 delta_t = delta_t_i;
