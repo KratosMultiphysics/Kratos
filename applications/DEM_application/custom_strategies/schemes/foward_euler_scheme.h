@@ -99,6 +99,7 @@ namespace Kratos
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
 
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
+
              double vel_old[3] = {0.0};
             
 	     aux = delta_t / mass;
@@ -225,10 +226,13 @@ namespace Kratos
                 array_1d<double, 3 > & delta_rotation_displ = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
                 array_1d<double, 3 > & Rota_Displace        = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
 
+                //KRATOS_WATCH(delta_rotation_displ)
+
                 bool If_Fix_Rotation[3] = {false, false, false};
                 If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
                 If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
                 If_Fix_Rotation[2] = i->pGetDof(VELOCITY_Z)->IsFixed();
+
 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
@@ -236,14 +240,17 @@ namespace Kratos
                     {
                          double RotaAcc = 0.0;
                          RotaAcc = (RotaMoment[iterator]) / PMass / PMomentOfInertia;
-
+                       
                          double RotaVelOld = AngularVel[iterator];
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
 
                          AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
                         
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-                         //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
+
+                         //KRATOS_WATCH( i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[iterator])
+
+                                 //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
 
                       
                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator]; // it is not used...
@@ -253,6 +260,11 @@ namespace Kratos
 
                     else
                     {
+
+                        delta_rotation_displ[iterator]= 0.0;
+                       // KRATOS_WATCH(delta_rotation_displ[iterator])
+                        //KRATOS_WATCH("hOLA")
+                        
                        
                         /*
                        *
@@ -263,6 +275,7 @@ namespace Kratos
                        */
 
                     }
+
                      RotaMoment[iterator] = 0.0;
 
 

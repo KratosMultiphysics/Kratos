@@ -147,6 +147,7 @@ search_radius_extension	= DEM_explicit_solver_var.search_radius_extension
 
 rotation_option 	= DEM_explicit_solver_var.RotationOption
 trihedron_option	= DEM_explicit_solver_var.TrihedronOption
+print(trihedron_option)
 rotation_spring_option	= DEM_explicit_solver_var.RotationalSpringOption
 
 bounding_box_option 	= DEM_explicit_solver_var.BoundingBoxOption
@@ -303,7 +304,8 @@ while(time < final_time):
 	force_node_x = node.GetSolutionStepValue(RHS,0)[0]
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
-	
+	print(force_node_y)
+	print(step)
 	
 
       
@@ -343,9 +345,9 @@ while(time < final_time):
         gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
         
-        if (rotation_option == 1): ##xapuza
+        if (rotation_option == "ON"): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(MOMENT, solid_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(PARTICLE_MOMENT, solid_model_part.Nodes, time, 0)
             gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, solid_model_part.Nodes, time, 0)
         #gid_io.Flush()      
         gid_io.FinalizeResults()    

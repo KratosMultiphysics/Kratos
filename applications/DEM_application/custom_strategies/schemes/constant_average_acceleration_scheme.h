@@ -52,7 +52,7 @@ namespace Kratos
      void Calculate(ModelPart& model_part)
      {
         KRATOS_TRY
-        //KRATOS_WATCH("hola wwi")
+        
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         

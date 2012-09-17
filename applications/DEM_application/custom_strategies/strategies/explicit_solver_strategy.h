@@ -185,8 +185,8 @@ namespace Kratos
 
         GetForce();
 
-            //1.1. Calculate Local Dampings
-            ApplyLocalDampings();
+        //1.1. Calculate Local Dampings
+        ApplyLocalDampings();
                
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
@@ -315,7 +315,7 @@ namespace Kratos
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
         //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-
+        
 
         //1. Search Neighbours with tolerance
 
@@ -609,18 +609,20 @@ namespace Kratos
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
+            
 
               (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
 
               //Rotate trihedron
- 
+              //KRATOS_WATCH(trihedron_OPTION)
                 if (trihedron_OPTION==1)
                 {
               
 
                     array_1d<double,3> dummy(3,0.0);
+                    double dummy2 =0.0;
                    
-                    (it)->Calculate(EULER_ANGLES, dummy, rCurrentProcessInfo);
+                    (it)->Calculate(PRESSURE, dummy2, rCurrentProcessInfo);
 
 
                 }
@@ -687,8 +689,10 @@ namespace Kratos
       {
           KRATOS_TRY
           ModelPart& r_model_part          = BaseType::GetModelPart();
-          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements     = r_model_part.Elements();
+
+          int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
 
           //Matrix MassMatrix;
           #ifdef _OPENMP
@@ -711,6 +715,21 @@ namespace Kratos
               //  Element::GeometryType& geom = it->GetGeometry(); ///WARNING: COMMENTED AVOIDING WARNING COMPILATION
                 (it)->Initialize();
                 //(it)->MassMatrix(MassMatrix, rCurrentProcessInfo); //NELSON: fa falta????
+
+
+            // 4. Set the Local Initial Axes for the trihedron Option
+                if (trihedron_OPTION==1)
+                {
+
+                double dummy =0.0;
+
+                (it)->Calculate(DUMMY_LOCAL_AXES, dummy, rCurrentProcessInfo);
+
+
+                }
+
+
+
              
              }
           }

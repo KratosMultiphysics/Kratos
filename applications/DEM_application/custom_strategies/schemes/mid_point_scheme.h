@@ -5,20 +5,14 @@
 //   Revision:            $Revision: 1.1.1.1 $
 //
 
-
-
 #if !defined(KRATOS_MID_POINT__SCHEME_H_INCLUDED )
 #define  KRATOS_MID_POINT__SCHEME_H_INCLUDED
-
-
 
 // System includes
 #include <string>
 #include <iostream> 
 
-
 // External includes 
-
 
 // Project includes
 #include "integration_scheme.h"
