@@ -31,10 +31,15 @@ namespace Kratos
       static inline void norm( array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            
+            if(distance != 0.0)
+            {
             Vector[0] = Vector[0] / distance;
             Vector[1] = Vector[1] / distance;
             Vector[2] = Vector[2] / distance;
-    }
+            }
+
+      }
 
     static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3])
     {
@@ -315,6 +320,10 @@ namespace Kratos
      static inline void RotatePointAboutArbitraryLine(array_1d<double,3>& TargetPoint, const array_1d<double,3>& CentrePoint, const array_1d<double,3>& LineVector, const double RotationAngle)
      {
 
+  
+    
+          
+
         const double O = RotationAngle;
 
         double x = TargetPoint[0], a = CentrePoint[0], u = LineVector[0];
@@ -322,6 +331,19 @@ namespace Kratos
         double z = TargetPoint[2], c = CentrePoint[2], w = LineVector[2];
 
         double L = u*u+v*v+w*w;
+
+
+        /*
+        KRATOS_WATCH(x)
+        KRATOS_WATCH(y)
+                KRATOS_WATCH(z)
+         KRATOS_WATCH(u)
+         KRATOS_WATCH(v)
+                KRATOS_WATCH(w)
+         KRATOS_WATCH(a)
+                KRATOS_WATCH(b)
+                KRATOS_WATCH(c)
+         */
 
         if (L==0)
         {
@@ -337,7 +359,7 @@ namespace Kratos
         TargetPoint[0] = ((a*(v*v+w*w)-u*(b*v+c*w-u*x-v*y-w*z))*(1-cos(O))+L*x*cos(O)+sqrt(L)*(-c*w+b*w-w*y+v*z)*sin(O))*(1/L);
         TargetPoint[1] = ((b*(u*u+w*w)-v*(a*u+c*w-u*x-v*y-w*z))*(1-cos(O))+L*y*cos(O)+sqrt(L)*(c*u-a*w+w*x-u*z)*sin(O))*(1/L);
         TargetPoint[2] = ((c*(u*u+v*v)-w*(a*u+b*v-u*x-v*y-w*z))*(1-cos(O))+L*z*cos(O)+sqrt(L)*(-b*u+a*v-v*x+u*y)*sin(O))*(1/L);
-
+ 
         }
 
      }
@@ -352,9 +374,11 @@ namespace Kratos
     {
 
         array_1d< double,3 > N = ZeroVector(3);
-        
+
+
+
         CrossProduct( OriginalVector_Z, RotatedVector_Z, N);
-        
+
         double return1 = DotProduct(N,OriginalVector_X);   //cos(Alpha)
         double return2 = DotProduct(OriginalVector_Z, RotatedVector_Z); //cos(Beta)
         double return3 = DotProduct(N,RotatedVector_X); //cos(Gamma)

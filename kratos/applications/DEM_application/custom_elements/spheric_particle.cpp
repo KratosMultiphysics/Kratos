@@ -114,8 +114,7 @@ namespace Kratos
 
         if( (rCurrentProcessInfo[ROTATION_OPTION] != 0) && (rCurrentProcessInfo[ROTATION_SPRING_OPTION] != 0) )
         {
-             ComputeParticleRotationSpring(rCurrentProcessInfo);
-            //ComputeParticleRotationSpring_TRIAL(rCurrentProcessInfo);
+            ComputeParticleRotationSpring(rCurrentProcessInfo);
         }
 
        CharacteristicParticleFailureId(rCurrentProcessInfo);
@@ -430,7 +429,7 @@ namespace Kratos
                 if (global_variables_OPTION == 1) //globally defined parameters
                 {
 
-                   KRATOS_WATCH("-------GLOBAL VARIABLES----------")
+                  // KRATOS_WATCH("-------GLOBAL VARIABLES----------")
 
                    kn       = rCurrentProcessInfo[GLOBAL_KN];
                    ks       = rCurrentProcessInfo[GLOBAL_KT];
@@ -447,7 +446,7 @@ namespace Kratos
 
                 else {
 
-                    equiv_visco_damp_coeff  = -( 2*sqrt(equiv_mass*kn) );
+                    equiv_visco_damp_coeff  = ( 2*sqrt(equiv_mass*kn) );
                 }
 
 
@@ -540,6 +539,7 @@ namespace Kratos
                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                               // for attached particles we enter only if the particle is still attached.
                 {
+               
 
                 // TANGENTIAL FORCE: incremental calculation. YADE develops a complicated "absolute method"
 
@@ -553,7 +553,7 @@ namespace Kratos
                     {
                         case 0:
 
-                            if(indentation >= 0.0) {LocalContactForce[2]= kn * indentation; }
+                            if(indentation >= 0.0) {LocalContactForce[2]= kn * indentation;}
                             else {LocalContactForce[2]= kn * indentation; }
                             break;
 
@@ -647,7 +647,7 @@ namespace Kratos
                         OldLocalContactForce[2] = LocalContactForce[2];
                     
                         LocalContactForce[2] += - equiv_visco_damp_coeff * LocalRelVel[2];
-
+                        
                         if(LocalContactForce[2]*OldLocalContactForce[2]<0){LocalContactForce[2]=0.0;} //the contact force can not change the direction due to the visco damp.
                         
                         if ( fabs(LocalContactForce[0] + ks * LocalDeltDisp[0]) < 1e-12 ) {
@@ -682,8 +682,12 @@ namespace Kratos
                     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
                     force[0] += GlobalContactForce[0];
+                     if(this->Id()==2){             KRATOS_WATCH(force[1])}
                     force[1] += GlobalContactForce[1];
+                     if(this->Id()==2){             KRATOS_WATCH(force[1])}
                     force[2] += GlobalContactForce[2];
+
+                    
 
                 // SAVING FOR NEXT STEPS
 
@@ -872,7 +876,7 @@ namespace Kratos
 
             }// if (*mpFailureId != 1)
 
-
+      /*
             if(this->GetGeometry()(0)->Id()==1890)
 
             {
@@ -916,9 +920,10 @@ namespace Kratos
 
 
             }
+       
       //this->GetValue(PARTICLE_FAILURE_ID)=*mpFailureId ;
 
-       /*
+       
        //testing
        if (*mpFailureId != 0.0)
             {
@@ -933,170 +938,13 @@ namespace Kratos
     } //CharacteristicParticleFailureId
 
 
-
        void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
        {
-
-        double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
-
-
-        double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-        double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
-        double young          = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-        double poisson        = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-        double radius         = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-        double inertia        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_INERTIA);
-
-        array_1d<double, 3 > & mRota_Moment = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
-
-        //Vector & mContactForces      = this->GetValue(PARTICLE_CONTACT_FORCE);
-       //esta dintre del loop
-
-        //Vector & mIfInitalContact    = this->GetValue(PARTICLE_IF_INITIAL_CONTACT);
-
-        //C.F//ParticleWeakVector & rE      = this->GetValue(NEIGHBOUR_PARTICLE_ELEMENTS);
-        ParticleWeakVectorType& rE             = this->GetValue(NEIGHBOUR_ELEMENTS);
-
-
-//        Vector & mRotaSpringMoment       = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT);  //ESTA A DINTRE
-
-        Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
-
-        size_t iContactForce = 0;
-
-        for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
-        {
-
-
-            //C.F//if(mIfInitalContact[iContactForce] == 1 && mRotaSpringFailureType[iContactForce] == 0)
-
-            {
-
-       array_1d<double, 3 > & mRotaSpringMoment  = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[ iContactForce ];
-//        Vector & mRotaSpringMoment
-                double other_radius    = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                double other_young     = ineighbour->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-                double other_poisson   = ineighbour->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-                double other_tension   = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-                double other_cohesion  = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
-                double other_inertia   = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
-
-                Tension  = (Tension  + other_tension ) * 0.5;
-                Cohesion = (Cohesion + other_cohesion) * 0.5;
-
-                double equiv_radius     = (radius + other_radius) * 0.5 ;
-                double equiv_area       = M_PI * equiv_radius * equiv_radius;
-                double equiv_poisson    = (poisson + other_poisson) * 0.5 ;
-                double equiv_young      = (young  + other_young)  * 0.5;
-
-                double kn               = equiv_young * equiv_area / (2.0 * equiv_radius);
-                double ks               = kn / (2.0 * (1.0 + equiv_poisson));
-
-                //CF: NEEEEW!
-               // array_1d<double,3> mContactForces = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ];
-                // BY MIKEL
-
-                array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
-
-               /////Cfeng: Forming the Local Contact Coordinate system
-                double NormalDir[3]           = {0.0};
-                double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-                NormalDir[0] = other_to_me_vect[0];
-                NormalDir[1] = other_to_me_vect[1];
-                NormalDir[2] = other_to_me_vect[2];
-                GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);
-
-                double LocalRotaSpringMoment[3]     = {0.0};
-                double GlobalRotaSpringMoment[3]    = {0.0};
-                double GlobalRotaSpringMomentOld[3] = {0.0};
-
-                //////delt rotation, pay attention to the negative sign beforce the brackets,the negtive sign depends on the Force stored in the paticle
-                array_1d<double, 3 > AngularVel       = GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 > Other_AngularVel = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                double DeltRotaDisp[3] = {0.0};
-                DeltRotaDisp[0] = -(AngularVel[0] - Other_AngularVel[0]) * dt;  //C.F. mtimestep
-                DeltRotaDisp[1] = -(AngularVel[1] - Other_AngularVel[1]) * dt;
-                DeltRotaDisp[2] = -(AngularVel[2] - Other_AngularVel[2]) * dt;
-
-                double LocalDeltRotaDisp[3] = {0.0};
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRotaDisp, LocalDeltRotaDisp);
-
-                GlobalRotaSpringMomentOld[0] = mRotaSpringMoment[ 0 ];
-
-                GlobalRotaSpringMomentOld[1] = mRotaSpringMoment[ 1 ];
-
-                GlobalRotaSpringMomentOld[2] = mRotaSpringMoment[ 2 ];
-
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalRotaSpringMomentOld, LocalRotaSpringMoment);
-
-
-                double Inertia_I = (inertia + other_inertia) * 0.5;
-
-                double Inertia_J = Inertia_I * 2.0;
-
-
-                LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn / equiv_area;
-
-                LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn / equiv_area;
-
-                LocalRotaSpringMoment[2] +=  - Inertia_J * LocalDeltRotaDisp[2] * ks / equiv_area;
-
-
-                ////Judge if the rotate spring is broken or not
-                double GlobalContactForce[3]  = {0.0};
-                double LocalContactForce [3]  = {0.0};
-
-                GlobalContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 0 ];
-                GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 1 ];
-                GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[ iContactForce ][ 2 ]; //GlobalContactForce[2] = mContactForces[3 * iContactForce  + 2 ];
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
-
-                double ForceN  = LocalContactForce[2];
-                double ForceS  = sqrt( LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]);
-                double MomentS = sqrt(LocalRotaSpringMoment[0] * LocalRotaSpringMoment[0] + LocalRotaSpringMoment[1] * LocalRotaSpringMoment[1]);
-                double MomentN = LocalRotaSpringMoment[2];
-
-                //////bending stress and axial stress add together, use edge of the bar will failure first
-                double TensiMax = -ForceN / equiv_area + MomentS        / Inertia_I * equiv_radius;
-                double ShearMax = ForceS  / equiv_area + fabs(MomentN)  / Inertia_J * equiv_radius;
-
-                if(TensiMax > Tension || ShearMax > Cohesion)
-                {
-                    mRotaSpringFailureType[iContactForce] = 1;
-
-
-                    LocalRotaSpringMoment[0] = 0.0;
-                    LocalRotaSpringMoment[1] = 0.0;
-                    LocalRotaSpringMoment[2] = 0.0;
-                }
-
-                GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotaSpringMoment, GlobalRotaSpringMoment);
-
-
-
-                mRotaSpringMoment[ 0 ] = GlobalRotaSpringMoment[0];
-                mRotaSpringMoment[ 1 ] = GlobalRotaSpringMoment[1];
-                mRotaSpringMoment[ 2 ] = GlobalRotaSpringMoment[2];
-
-                ////feedback, contact moment----induce by rotation spring
-                mRota_Moment[0] -= GlobalRotaSpringMoment[0];
-                mRota_Moment[1] -= GlobalRotaSpringMoment[1];
-                mRota_Moment[2] -= GlobalRotaSpringMoment[2];
-            }
-
-            iContactForce++;
-            }
-
-
-        }//ComputeParticleRotationSpring
-
-       void SphericParticle::ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo)
-       {
-        double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
+        //double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
         /*
                     c=objecte_contacte(particula,vei)
 
-            força=(c.RADI)*3;
+            força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the paramaters. easier...
 
           */
 
@@ -1158,7 +1006,7 @@ namespace Kratos
                 double GlobalRotaSpringMomentOld[3] = {0.0};
 
                 double DeltRotaDisp[3] = {0.0};
-                double DeltRotaDisp2[3] = {0.0};
+                //double DeltRotaDisp2[3] = {0.0};
 
                 double LocalDeltRotaDisp[3] = {0.0};
 
@@ -1170,7 +1018,7 @@ namespace Kratos
                 
                     TargetDeltRotaDist[i] = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
                     NeighbourDeltRotaDist[i] = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[i];
-                    DeltRotaDisp2[i] =  - ( TargetDeltRotaDist[i] - NeighbourDeltRotaDist[i] );
+                    DeltRotaDisp[i] =  - ( TargetDeltRotaDist[i] - NeighbourDeltRotaDist[i] );
                 
                 }
               
@@ -1245,7 +1093,30 @@ namespace Kratos
 
         }//ComputeParticleRotationSpring
 
+void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo )
 
+        {
+            KRATOS_WATCH("INITIALIZE_AXES")
+
+            //1. Create the local axes (points)
+
+            array_1d<double,3> CentrePoint = this->GetGeometry()(0)->Coordinates();
+           
+            this->GetValue(ARROW_POINT) = vector< array_1d<double,3> >();
+            this->GetValue(ARROW_POINT).resize(3);
+            vector< array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);
+   
+            TargetPointVector[0]=CentrePoint;
+            TargetPointVector[1]=CentrePoint;
+            TargetPointVector[2]=CentrePoint;
+         
+            TargetPointVector[0][0] += 1.0;
+            TargetPointVector[1][1] += 1.0;
+            TargetPointVector[2][2] += 1.0;
+
+            KRATOS_WATCH(TargetPointVector)
+
+         }
 
         void SphericParticle::CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo )
         {
@@ -1256,16 +1127,26 @@ namespace Kratos
 
             array_1d<double,3> LineVector = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
 
+            
+            //KRATOS_WATCH(LineVector)
+ 
             double RotationAngle;
             
             GeometryFunctions::norm(LineVector,RotationAngle);
 
-            boost::numeric::ublas::vector<array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);                       
+           
+            //KRATOS_WATCH(LineVector)
+            // KRATOS_WATCH(RotationAngle)
+
+            // KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
             
+            //vector<array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);
+  
+             
             for (int e = 0; e<3; e++)
             {
 
-                array_1d<double,3>& TargetPoint = TargetPointVector[e];
+                array_1d<double,3>& TargetPoint = this->GetValue(ARROW_POINT)[e];
 
                GeometryFunctions::RotatePointAboutArbitraryLine( TargetPoint, CentrePoint, LineVector, RotationAngle);
 
@@ -1279,15 +1160,27 @@ namespace Kratos
             OriginalVector_X[2] = 0.0;
 
             array_1d<double,3>  OriginalVector_Z  = ZeroVector(3);
-            OriginalVector_X[0] = 0.0;
-            OriginalVector_X[1] = 0.0;
-            OriginalVector_X[2] = 1.0;
+            OriginalVector_Z[0] = 0.0;
+            OriginalVector_Z[1] = 0.0;
+            OriginalVector_Z[2] = 1.0;
 
-            array_1d<double,3>  RotatedVector_X   = TargetPointVector[0] - CentrePoint;
-            array_1d<double,3>  RotatedVector_Z   = TargetPointVector[2] - CentrePoint;
+            array_1d<double,3>  RotatedVector_X   = this->GetValue(ARROW_POINT)[0] - CentrePoint;
+            array_1d<double,3>  RotatedVector_Z   = this->GetValue(ARROW_POINT)[2] - CentrePoint;
             array_1d<double,3>& EulerAngles       = this->GetGeometry()(0)->GetSolutionStepValue(EULER_ANGLES);
-
-            GeometryFunctions::CalculateEulerAngles(OriginalVector_X, OriginalVector_Z, RotatedVector_X, RotatedVector_Z, EulerAngles );
+            
+            array_1d<double,3> Eu = ZeroVector(3);
+            Eu[0]=EulerAngles[0]-1.57080e+00;
+            Eu[1]=EulerAngles[1]-0.0;
+            Eu[2]=EulerAngles[2]-1.57080e+00;
+            
+           // KRATOS_WATCH(Eu)
+/*
+            KRATOS_WATCH(OriginalVector_X)
+             KRATOS_WATCH(RotatedVector_X)
+             KRATOS_WATCH(OriginalVector_Z)
+             KRATOS_WATCH(RotatedVector_Z)
+*/
+            GeometryFunctions::CalculateEulerAngles(OriginalVector_X, OriginalVector_Z, RotatedVector_X, RotatedVector_Z, EulerAngles );        
 
        }
 
@@ -1341,6 +1234,8 @@ namespace Kratos
 
        {
 
+           //KRATOS_WATCH(rVariable)
+
             if (rVariable == DELTA_TIME)
             {
                 double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -1369,15 +1264,23 @@ namespace Kratos
                 }
             } //DAMPING
 
-            if (rVariable == EULER_ANGLES)
+             if (rVariable == DUMMY_LOCAL_AXES) //M.S: CANVIAR!!
+
             {
+                CalculateInitialLocalAxes( rCurrentProcessInfo );
+
+            } //EULER_ANGLES
+
+            if (rVariable == PRESSURE) //M.S: CANVIAR!!
+
+            {               
                 CalculateLocalAxes( rCurrentProcessInfo );
 
-            } //DAMPING
+            } //EULER_ANGLES
 
 
 
-        }
+        }//calculate
 
 
        void SphericParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
