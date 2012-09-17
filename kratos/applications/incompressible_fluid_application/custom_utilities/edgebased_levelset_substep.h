@@ -1461,29 +1461,29 @@ public:
         KRATOS_TRY
 
 
-        if(mWallLawIsActive == false)
-        {
-            //apply conditions on corner edges
-            int edge_size = medge_nodes_direction.size();
-            #pragma omp parallel for firstprivate(edge_size)
-            for (int i = 0; i < edge_size; i++)
-            {
-                int i_node = medge_nodes[i];
-                const array_1d<double, TDim>& direction = medge_nodes_direction[i];
-                double dist = mdistances[i_node];
-
-                if(dist <= 0.0)
-                {
-                    array_1d<double, TDim>& U_i = VelArray[i_node];
-                    double temp=0.0;
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        temp += U_i[comp] * direction[comp];
-
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        U_i[comp] = direction[comp]*temp;
-                }
-            }
-
+//         if(mWallLawIsActive == false)
+//         {
+//             //apply conditions on corner edges
+//             int edge_size = medge_nodes_direction.size();
+//             #pragma omp parallel for firstprivate(edge_size)
+//             for (int i = 0; i < edge_size; i++)
+//             {
+//                 int i_node = medge_nodes[i];
+//                 const array_1d<double, TDim>& direction = medge_nodes_direction[i];
+//                 double dist = mdistances[i_node];
+// 
+//                 if(dist <= 0.0)
+//                 {
+//                     array_1d<double, TDim>& U_i = VelArray[i_node];
+//                     double temp=0.0;
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         temp += U_i[comp] * direction[comp];
+// 
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         U_i[comp] = direction[comp]*temp;
+//                 }
+//             }
+// 
             //apply conditions on corners
             int corner_size = mcorner_nodes.size();
             for (int i = 0; i < corner_size; i++)
@@ -1494,7 +1494,7 @@ public:
                 for (unsigned int comp = 0; comp < TDim; comp++)
                     U_i[comp] = 0.0;
             }
-        }
+//         }
 
 
         //slip condition
@@ -3467,7 +3467,7 @@ private:
         //parameters:
         double k = 0.41;
         double B = 5.1;
-        double density = mRho;
+//         double density = mRho;
 
         double toll = 1e-6;
         double ym = mY_wall; //0.0825877; //0.0093823
@@ -3479,7 +3479,7 @@ private:
 
         //slip condition
         int slip_size = mSlipBoundaryList.size();
-        #pragma omp parallel for firstprivate(slip_size,B,density,toll,ym,y_plus_incercept,itmax)
+        #pragma omp parallel for firstprivate(slip_size,B,toll,ym,y_plus_incercept,itmax)
         for (int i_slip = 0; i_slip < slip_size; i_slip++)
         {
             unsigned int i_node = mSlipBoundaryList[i_slip];
@@ -3540,15 +3540,19 @@ private:
                 //                    }
 
 
-                // Reducing wall friction for the large element near wall. Pooyan.
-/*                double reducing_factor = 1.00;
-                double h_min = mHavg[i_node];*/
-		
+                
 		double tau = mod_vel * mod_vel ;
+		
+		// Reducing wall friction for the large element near wall. Pooyan.
+		double reducing_factor = 1.00;
+                double h_min = mHavg[i_node];
+		if(ym < h_min)
+                     reducing_factor = ym / h_min;
+		tau *= reducing_factor;
 		
 		if (mod_vel > 1e-12)
 		  for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] -= tau * area *U_i[comp] / mod_vel;
+                        rhs_i[comp] -=   tau * area *U_i[comp] / mod_vel;
 		    
 		
 		
