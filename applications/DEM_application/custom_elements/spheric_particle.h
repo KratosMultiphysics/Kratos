@@ -193,7 +193,7 @@ namespace Kratos
         void SetInitialContacts(int case_opt);
 
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
-        void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
+        //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
         void CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo );

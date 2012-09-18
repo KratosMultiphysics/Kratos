@@ -540,7 +540,6 @@ namespace Kratos
                                                                                                               // for attached particles we enter only if the particle is still attached.
                 {
                
-
                 // TANGENTIAL FORCE: incremental calculation. YADE develops a complicated "absolute method"
 
                     LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
@@ -637,7 +636,7 @@ namespace Kratos
                     // but in oposite direction the visco damping can't overpass the force...
 
 		
-	     if ( (damp_id == 2 || damp_id == 3 ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
+	     if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
 
              {
 
@@ -674,20 +673,15 @@ namespace Kratos
                         }
                 }
 
-             
-
-
                 // TRANSFORMING TO GLOBAL FORCES AND ADDING UP
 
                     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
                     force[0] += GlobalContactForce[0];
-                     if(this->Id()==2){             KRATOS_WATCH(force[1])}
+                  //   if(this->Id()==2){             KRATOS_WATCH(force[1])}
                     force[1] += GlobalContactForce[1];
-                     if(this->Id()==2){             KRATOS_WATCH(force[1])}
+                   //  if(this->Id()==2){             KRATOS_WATCH(force[1])}
                     force[2] += GlobalContactForce[2];
-
-                    
 
                 // SAVING FOR NEXT STEPS
 
@@ -716,28 +710,6 @@ namespace Kratos
 
         }//ComputeParticleContactForce
 
-
-       void SphericParticle::ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo )
-
-       {
-
-          KRATOS_TRY
-          array_1d<double,3>& force = this->GetGeometry()[0].GetSolutionStepValue(RHS);
-          double LocalDampRatio     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
-
-              // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
-             
-                for (int iDof = 0; iDof < 3; iDof++)
-                {
-                   
-                    force[iDof] = (1 - LocalDampRatio) * force[iDof];
-                    
-                }
-           
-            KRATOS_CATCH("")
-
-      } //ApplyLocalForcesDamping
-
        void SphericParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
 
        {
@@ -746,21 +718,22 @@ namespace Kratos
        // int damp_id                         = rCurrentProcessInfo[DAMP_TYPE];  //M: revisable....en principi akest era per visco o local de forces no per moment.
 
         array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-        double LocalDampRatio                   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+        double RotaDampRatio                    = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO);
 
         // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
 
+        KRATOS_WATCH(RotaDampRatio)
 
         for (int iDof = 0; iDof < 3; iDof++)
         {
             if (this->GetGeometry()(0)->GetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
             {
-                 RotaMoment[iDof] = RotaMoment[iDof] - LocalDampRatio * fabs(RotaMoment[iDof]);
+                 RotaMoment[iDof] = RotaMoment[iDof] - RotaDampRatio * fabs(RotaMoment[iDof]);
 
             }
             else
             {
-                 RotaMoment[iDof] = RotaMoment[iDof] + LocalDampRatio * fabs(RotaMoment[iDof]);
+                 RotaMoment[iDof] = RotaMoment[iDof] + RotaDampRatio * fabs(RotaMoment[iDof]);
             }
         }
 
@@ -798,10 +771,6 @@ namespace Kratos
              *      3 := tensile dominating on the contact detachment
              *      4 := shear dominating on the contact detachment
              */
-
-
-
-
 
 
             int tempType[5] = {0,0,0,0,0};
@@ -1248,20 +1217,12 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
                 }
             } //CRITICAL DELTA CALCULATION
 
-            if (rVariable == PARTICLE_LOCAL_DAMP_RATIO)
+            if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
             {
-                int damp_id             = rCurrentProcessInfo[DAMP_TYPE];
-                int rotation_OPTION     = rCurrentProcessInfo[ROTATION_OPTION];
-
-                if (damp_id == 1 || damp_id == 3 )
-                {
-                   ApplyLocalForcesDamping( rCurrentProcessInfo );
-
-                   if ( rotation_OPTION != 0 && (damp_id !=4) ) //M: maybe a new damping option should be implemented to choose independently damping on rotation
-                   {
-                       ApplyLocalMomentsDamping( rCurrentProcessInfo );
-                   }
-                }
+     
+                  ApplyLocalMomentsDamping( rCurrentProcessInfo );
+                   
+                
             } //DAMPING
 
              if (rVariable == DUMMY_LOCAL_AXES) //M.S: CANVIAR!!
@@ -1288,3 +1249,31 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
        void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
 }  // namespace Kratos.
+
+
+
+
+
+
+
+/*
+       void SphericParticle::ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo )
+
+       {
+
+          KRATOS_TRY
+          array_1d<double,3>& force = this->GetGeometry()[0].GetSolutionStepValue(RHS);
+          double LocalDampRatio     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_LOCAL_DAMP_RATIO);
+
+              // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
+
+                for (int iDof = 0; iDof < 3; iDof++)
+                {
+
+                    force[iDof] = (1 - LocalDampRatio) * force[iDof];
+                }
+
+            KRATOS_CATCH("")
+
+      } //ApplyLocalForcesDamping
+ */
