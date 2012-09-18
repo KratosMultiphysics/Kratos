@@ -1,0 +1,34 @@
+domain_size = 3
+CriticalTimeOption = "ON"
+Integration_Scheme = "forward_euler"
+NormalForceCalculation = "Linear"
+DampRatioType = "NoDamp"
+BoundingBoxOption= "OFF"
+ContinuumOption= "OFF"
+DeltaOption = "OFF"
+RotationOption= "OFF"
+TrihedronOption= "OFF"
+RotationalSpringOption= "OFF"
+GlobalVariablesOption= "OFF"
+bounding_box_enlargement_factor = 2.00000e+00
+search_step = 1.00000e+01
+search_radius_extension = 1.00000e-02
+global_kn = 3.00000e+03
+global_kt = 1.00000e+03
+global_kr = 1.00000e+03
+global_rn = 1.00000e+03
+global_rt = 1.00000e+03
+global_rr = 1.00000e+03
+global_fri_ang = 4.00000e+01
+max_time = 3.00000e+00
+dt_safety_factor = 2.00000e+00
+max_time_step = 5.00000e-05
+output_dt = 5.00000e-02
+gravity_x = 0.00000e+00
+gravity_y = -9.81000e+00
+gravity_z = 0.00000e+00
+# Declare Python Variables
+problem_name = 'two_balls_no_damp'
+problem_path = '/home/CIMNE/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid'
+kratos_path = '/home/CIMNE/kratos'
+
