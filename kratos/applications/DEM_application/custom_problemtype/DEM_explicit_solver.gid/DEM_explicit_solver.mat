@@ -23,7 +23,7 @@ VALUE: 45
 QUESTION: Tension
 VALUE: 2.01e6
 
-QUESTION: LocalDampRatio
+QUESTION: RotaDampRatio
 VALUE: 0.5
 
 QUESTION: Static_friction_coef
@@ -40,7 +40,7 @@ VALUE: 1
 
 END MATERIAL
 
-NUMBER: 1 MATERIAL: Steel
+NUMBER: 2 MATERIAL: Steel
 
 QUESTION: Continuum_group
 VALUE: 0
@@ -63,7 +63,7 @@ VALUE: 45
 QUESTION: Tension
 VALUE: 2.01e6
 
-QUESTION: LocalDampRatio
+QUESTION: RotaDampRatio
 VALUE: 0.1
 
 QUESTION: Static_friction_coef
@@ -80,7 +80,7 @@ VALUE: 14
 
 END MATERIAL
 
-NUMBER: 1 MATERIAL: Mat2
+NUMBER: 3 MATERIAL: Mat2
 
 QUESTION: Continuum_group
 VALUE: 1
@@ -103,7 +103,7 @@ VALUE: 45
 QUESTION: Tension
 VALUE: 2.01e6
 
-QUESTION: LocalDampRatio
+QUESTION: RotaDampRatio
 VALUE: 0.1
 
 QUESTION: Static_friction_coef

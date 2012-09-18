@@ -27,7 +27,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_LOCAL_DAMP_RATIO)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
     model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
 
     model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
@@ -98,6 +98,7 @@ class ExplicitStrategy:
 
         self.force_calculation_type_id      =1
         self.damp_id                        =1
+        self.rota_damp_id                   =1
         self.search_radius_extension        = 0.0
 
         self.dummy_switch                   =0
@@ -142,8 +143,9 @@ class ExplicitStrategy:
         
         #####
 
-        self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)    #M: = a type_id
-        self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)                                   #M: = a damp_type
+        self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)    
+        self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
+        self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)

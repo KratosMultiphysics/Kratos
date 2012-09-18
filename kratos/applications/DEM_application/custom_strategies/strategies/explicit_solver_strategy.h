@@ -111,7 +111,7 @@ namespace Kratos
        ExplicitSolverStrategy(ModelPart& model_part,   
 			      const int        dimension,
                               const double     enlargement_factor,
-			      const double     damping_ratio,       ///para calcular la matriz de amortiguamiento proporcional a la masa
+			      const double     damping_ratio,
                               const double     fraction_delta_time,
                               const double     max_delta_time,
                               const double     n_step_search,
@@ -139,7 +139,7 @@ namespace Kratos
                            mComputeTime                 = false;
 			   mInitialConditions           = false;
                            mEnlargementFactor           = enlargement_factor;
-                           mdamping_ratio               = damping_ratio;
+                           mdamping_ratio               = damping_ratio; //not in use
                            mfraction_delta_time         = fraction_delta_time;
                            mmax_delta_time              = max_delta_time;
                            molddelta_time               = 0.00;
@@ -156,6 +156,37 @@ namespace Kratos
 			}
       /// Destructor.
       virtual ~ExplicitSolverStrategy(){}
+
+      void Initialized()
+        {
+            KRATOS_TRY
+
+       //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
+
+        ModelPart& r_model_part           = BaseType::GetModelPart();
+        //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+
+
+        //1. Search Neighbours with tolerance
+
+        bool extension_option = true;
+        SearchNeighbours(r_model_part,extension_option);
+
+        //2. Initializing elements
+	  if(mElementsAreInitialized == false)
+	     InitializeElements();
+	  mInitializeWasPerformed   = true;
+
+
+        // 3. Set Initial Contacts
+          if(mdelta_option || mcontinuum_simulating_option){
+              Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
+
+          }
+
+          KRATOS_CATCH("")
+        }
+      
        
       double Solve()
       {
@@ -186,7 +217,14 @@ namespace Kratos
         GetForce();
 
         //1.1. Calculate Local Dampings
-        ApplyLocalDampings();
+
+        int rota_damp_id            = rCurrentProcessInfo[ROTA_DAMP_TYPE];
+        int rotation_OPTION         = rCurrentProcessInfo[ROTATION_OPTION];
+      
+        if ( (rotation_OPTION == 1) && (rota_damp_id == 1) ) 
+        {
+            ApplyRotationalDampings();
+        }
                
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
@@ -307,35 +345,7 @@ namespace Kratos
         }
       */
 	
-	void Initialized()
-        {
-            KRATOS_TRY
-
-       //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
-
-        ModelPart& r_model_part           = BaseType::GetModelPart();
-        //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-        
-
-        //1. Search Neighbours with tolerance
-
-        bool extension_option = true;
-        SearchNeighbours(r_model_part,extension_option);
-
-        //2. Initializing elements
-	  if(mElementsAreInitialized == false)
-	     InitializeElements();
-	  mInitializeWasPerformed   = true;
-
-
-        // 3. Set Initial Contacts
-          if(mdelta_option || mcontinuum_simulating_option){
-              Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
-
-          }
-
-          KRATOS_CATCH("")
-        }
+	
 	
 	void GetForce()
 	{
@@ -451,51 +461,6 @@ namespace Kratos
 
         }
 
-        void ApplyLocalDampings()
-        {
-
-            KRATOS_TRY
-
-            ModelPart& r_model_part           = BaseType::GetModelPart();
-            ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-            ElementsArrayType& pElements      = r_model_part.Elements();
-
-            #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-            #else
-            int number_of_threads = 1;
-            #endif
-
-            vector<unsigned int> element_partition;
-            OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
-
-            //unsigned int index = 0;
-
-            #pragma omp parallel for //private(index)
-            for(int k=0; k<number_of_threads; k++)
-
-            {
-
-                typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
-                typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
-
-                double dummy = 0.0;
-
-                for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
-                {
-
-                    it->Calculate(PARTICLE_LOCAL_DAMP_RATIO, dummy, rCurrentProcessInfo);
-
-                } //loop over particles
-
-            }// loop threads OpenMP
-
-            KRATOS_CATCH("")
-
-        }//Apply local damps
-
- 
-
 	void InitializeSolutionStep()
 	{
 
@@ -561,8 +526,6 @@ namespace Kratos
 
 
 
-
-
          /*
           *
           * void ComputeInitialConditions()
@@ -573,7 +536,55 @@ namespace Kratos
 	}
 
 	*/
-	  
+
+
+           void ApplyRotationalDampings()
+        {
+
+            KRATOS_TRY
+
+            ModelPart& r_model_part           = BaseType::GetModelPart();
+            ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+            ElementsArrayType& pElements      = r_model_part.Elements();
+
+            #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+            #else
+            int number_of_threads = 1;
+            #endif
+
+            vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+            //unsigned int index = 0;
+
+            #pragma omp parallel for //private(index)
+            for(int k=0; k<number_of_threads; k++)
+
+            {
+
+                typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+                typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+                double dummy = 0.0;
+
+                for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+                {
+
+                    it->Calculate(PARTICLE_ROTATION_DAMP_RATIO, dummy, rCurrentProcessInfo);
+
+                } //loop over particles
+
+            }// loop threads OpenMP
+
+            KRATOS_CATCH("")
+
+        }//Apply local damps
+
+
+
+
+
 	void MoveMesh()
 	{
 	}
@@ -624,11 +635,7 @@ namespace Kratos
                    
                     (it)->Calculate(PRESSURE, dummy2, rCurrentProcessInfo);
 
-
                 }
-
-
-
 
 
              } //loop over particles
@@ -842,7 +849,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined 
-
-
-
-

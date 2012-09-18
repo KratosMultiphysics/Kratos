@@ -175,10 +175,10 @@ Begin NodalData PARTICLE_TENSION
 *end elems 
 End NodalData
 
-Begin NodalData PARTICLE_LOCAL_DAMP_RATIO
+Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(LocalDampRatio)
+*elemsconec(1) 0 *elemsmatprop(RotaDampRatio)
 *endif
 *end elems 
 End NodalData
