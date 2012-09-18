@@ -11,23 +11,22 @@ def Run():
 	Text = "========== DEM ==========\n"
 
         ###############################################################################
-	#VMS2D element test
 	
 	Text += "DEM element test: "
 	os.chdir("two_balls_no_damp.gid")	
 	sys.path.append(os.getcwd())
 
-	print "running the two_balls_no_damp.gid benchmark test..."
+	print "running the DEM two_balls_no_damp test..."
         Msg = benchmarking.RunBenchmark("two_balls_no_damp.py", "two_balls_no_damp_ref.txt")
 
         if (Msg == True):
             Text += "OK\n"
-            print "two_balls_no_damp element test succesful"
+            print "two_balls_no_damp test succesful"
         else:
             Text += "FAILED\n"
             Text += Msg
             Text += "\n\n"
-            print "two_balls_no_damp element test FAILED"
+            print "two_balls_no_damp example test FAILED"
 
 
 	os.chdir("..")
