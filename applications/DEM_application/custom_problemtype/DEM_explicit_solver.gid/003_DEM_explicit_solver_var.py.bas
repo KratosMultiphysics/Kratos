@@ -11,6 +11,9 @@ TrihedronOption= "*GenData(Trihedron_Option)"
 RotationalSpringOption= "*GenData(Rotation_Spring)"
 RotaDampId = "*GenData(Rota_Damp_Id)"
 GlobalVariablesOption= "*GenData(Global_Variables_Option)"
+VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
+*format "%10.5e"
+VirtualMassCoefficient = *GenData(Virtual_Mass_Coefficient)
 *format "%10.5e"
 bounding_box_enlargement_factor = *GenData(Bounding_Box_Enlargement_Factor)
 *format "%10.5e"

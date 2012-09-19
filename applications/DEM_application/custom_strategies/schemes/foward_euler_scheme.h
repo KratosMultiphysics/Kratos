@@ -72,8 +72,10 @@ namespace Kratos
 	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
-	double aux     = 0;
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+	double aux                  = 0;
+	double delta_t              = rCurrentProcessInfo[DELTA_TIME];
+        double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
+
 
         vector<unsigned int> node_partition;
 	NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -98,12 +100,20 @@ namespace Kratos
   	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
 
-	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);
+	     double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
 
              double vel_old[3] = {0.0};
-            
+
 	     aux = delta_t / mass;
-          
+
+             if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+             {
+
+                 aux = (1 - virtual_mass_coeff)* (delta_t / mass);
+
+                 if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
+
+             }
 	   
 	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
              {  

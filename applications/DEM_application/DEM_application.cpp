@@ -41,6 +41,8 @@ namespace Kratos
         KRATOS_CREATE_VARIABLE(Vector, INITIAL_AXES_TRACKING)
         KRATOS_CREATE_VARIABLE(int, plot_OPTIONS)
 
+        KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
+        KRATOS_CREATE_VARIABLE(double, NODAL_MASS_COEFF)
 
         //M:possible future blocks (no FEM) interaction
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FAILURE_ID)
@@ -66,6 +68,9 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
                 
+
+                KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_OPTION)
+                KRATOS_REGISTER_VARIABLE(NODAL_MASS_COEFF)
 
                 /* Define In Global variables.cpp
                 KRATOS_REGISTER_VARIABLE(DELTA_TIME)

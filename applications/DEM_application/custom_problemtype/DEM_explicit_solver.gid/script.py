@@ -159,7 +159,14 @@ rotation_spring_option	= DEM_explicit_solver_var.RotationalSpringOption
 bounding_box_option 	= DEM_explicit_solver_var.BoundingBoxOption
 
 global_variables_option = DEM_explicit_solver_var.GlobalVariablesOption
- 
+
+virtual_mass_option 	= DEM_explicit_solver_var.VirtualMassOption
+virtual_mass_coeff 	= DEM_explicit_solver_var.VirtualMassCoefficient
+
+if(virtual_mass_option == "ON"):
+    solver.virtual_mass_OPTION=1 #xapuza
+    
+solver.nodal_mass_coeff=virtual_mass_coeff    
 
 if(delta_option=="OFF"):
   search_radius_extension=0.0;
@@ -265,7 +272,7 @@ current_real_time = timer.time()
 
 print ('Calculation starts at instant: ' + str(current_pr_time)+'\n')
 
-print ('Last TIME STEP is expected to be: ' + str(int(final_time/dt)) +'\n' )
+print ('Last TIME STEP is expected to be: ' + str(int(final_time/dt)) + 'if no critical time step modification ' +'\n' )
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
@@ -276,6 +283,7 @@ displacementlist = []
 
 while(time < final_time):
 
+    dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
     time = time + dt
     solid_model_part.CloneTimeStep(time)
 

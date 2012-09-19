@@ -722,8 +722,7 @@ namespace Kratos
 
         // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
 
-        KRATOS_WATCH(RotaDampRatio)
-
+        
         for (int iDof = 0; iDof < 3; iDof++)
         {
             if (this->GetGeometry()(0)->GetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
