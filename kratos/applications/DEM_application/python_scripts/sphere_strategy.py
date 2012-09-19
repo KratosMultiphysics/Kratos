@@ -72,6 +72,8 @@ class ExplicitStrategy:
         self.gravity[1] = -9.81
         self.gravity[2] = 0.0
         self.delta_time                     = 0.00001;
+        self.virtual_mass_OPTION            = 0; #its 1/0 xapuza
+        self.nodal_mass_coeff               = 0.0;
       
         #type of problem:
 
@@ -135,6 +137,8 @@ class ExplicitStrategy:
             if(self.continuum_simulating_OPTION==False): self.case_OPTION = 0
             else: self.case_OPTION = 3
 
+        self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
+        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
