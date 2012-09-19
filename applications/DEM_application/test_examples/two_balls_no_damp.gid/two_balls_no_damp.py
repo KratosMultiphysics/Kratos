@@ -149,18 +149,23 @@ if (normal_force_calculation == "Linear"):
 elif (normal_force_calculation == "Hertz"):
     force_calculation_type_id = 1
 
-damp_ratio_type = DEM_explicit_solver_var.DampRatioType
+damp_ID = DEM_explicit_solver_var.DampId
 
-if(damp_ratio_type == "ViscDamp"):
-    damp_id = 2
-elif(damp_ratio_type == "LocalDamp"):
+if(damp_ID == "ViscDamp"):
     damp_id = 1
-elif(damp_ratio_type == "BothDamp"):
-    damp_id = 3
 else:
-    damp_id = 4
+    damp_id = 0
     
 solver.damp_id=damp_id
+
+rota_damp_ID = DEM_explicit_solver_var.RotaDampId
+
+if(rota_damp_ID == "LocalDamp"):
+    rota_damp_id = 1
+else:
+    rota_damp_id = 0
+    
+solver.rota_damp_id=rota_damp_id
 
 gravity = Vector(3)
 gravity[0] = DEM_explicit_solver_var.gravity_x
