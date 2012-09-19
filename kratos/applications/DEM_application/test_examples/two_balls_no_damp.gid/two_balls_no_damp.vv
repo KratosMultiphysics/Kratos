@@ -1,0 +1,40 @@
+BeginZE /home/CIMNE/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid/two_balls_no_damp.vv
+   x -9.50345 9.50345
+   y 5 -5
+   z -15 15
+   e 5
+   v -0 -0 -8.74228e-08
+   r -1
+   m 1 -1.74846e-07 0 0 1.74846e-07 1 0 0 0 0 1 0 0 0 0 1
+   c 0 0 0
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 0
+   LightVector 79.9141 59.3677 122.328 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.095
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/CIMNE/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid/two_balls_no_damp.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+
+BeginInfo
+eJzdV8tu2zgU3fsrCMymBVJDsvOCMRggadTAM7YT2G7qWRGURMmcUqRKSrHdIv8+l9RbVuYDZpNI58jUfZx7SG0Dfju+Grsu2n6Hiw/FzcfRgon8iMJ9kKbBJZqO3bHrfII/159CGpGcZ+jXby7aLJ/RNxqiP3OBJjfIuZpN3Nmlg75uP6OJ407Qh9Bxr52b249v6Hh7ja8vR1sZc+SOb2bocbFDr0znhCMWIuc4mV4gkmU0STN4YLTdU0UR00hIJF+p4uRkfxJIkdFjNh6NnlIqHvlshBB68VYPT+sZ+nWvGBHoGSJ8M/gacG/tGWZJNUE7130rnl9v5k8rgN3xFbLUNWQ+seTDfPO8uPsbzVdfntbLu23xoM8yjRQke3uBYkWpMBc+z6n5T3i6J8i5QCFNsz2aXF4gnVERMG5YuFRUQiJju/7v3/5AXpJzkjERoy8KEkL3eRRRZdjFfDnfbuCF5mZJjmgL2eZQig37SWdQ1svbivE4TaiAsOYiZAHVMzR1HOeMfaEqO6enD/2Vr64r7nPuU7hI33n33SthnPicQv9CSCyhiVQnpO1DDlrenzKqy7VYkifoINV3k6vIE58qJCNEy+Bm6Mpx0F8jWxhvt/VWpi82/ccFvnt+Xng4JcF3GuKUHSnXDQyaACFgohQ5Yen/Q4PMkut7bLuAsyL4GlTkgH1bZ11hkSKxiQOnSsaKJGe43pMQ+lLCe8IjHHFJsiKaCmcJiSG/6hZ6mzFNkpTTDtQLSAYBzzWTAv/IqTpVsF25DLSXVyqZiZVApDRrpVHgOlXwigorIi8X0G0UIsWciDgnMcUuKKLFyUP3DpPEZ1CICi1TwL5UZvWAQ5Z9LpBJqqg2mZ1RICyckLOfUPGKSRgOwbCazwQdpJTU2idqiAtlNu3jCVNKwghjRVNKznIS0IlUHkzRIpwdZJ9XUEgoW9PUTBGhU6lNSplixwovlTnYwpLr6a1Eu2o7MGE6AC+wyHaOYeREiOmPHKwDgtXUSKFsOdBDqgV4oJrTPleUBksR2NVgEjHxY1VdwyWpr20QgeRSdaHBuBo6ykXwDsVlzAIs0y6aMJGQYxfTuQ9VL8pp0ICzFL9KnicU75locNAg49Dqtks0pDA/yUqBFlB6ahuGwQoX8WUuQg2crhe3TgK9h/GpfKyiIhnDWjAcNWBmtVSCz1k2hDcKMUyc5pU8eqNu2D3TWS0dA1hnKUKySdZPlrZZZFHuRj2usdQC5BT237Bfh3cMyVIDhlTg/BSDEmQUaVo/DaYQwDtg0FRC6lg0hX6ERJ26mqqUArZGA9gsVY8u7MmISrcw1YRf5VOzRQnwQZFaaEZO3WSHb6cPPQDTELpf21+HabysD7e8rE9VftXGuQyxz4ju4+WwDr69259B62oTev14X2MsgQbXe5GB+tMzv18WgktkSPuiM6Qi5rADlmUns0L/w4Dnq8f1ewax9DZ3VqqYCRNJg5XjEcIExTUK8oITSHuLt3DXRi10CvxAtVu9eqn8BTyshoZOBwBzFu8zsPwjpsdUinJ3BKK/DQME74ipgNAiDi0oDafAzxsD+Pn2cAa62DX4k7eBXxMom5kmG8LmcV4MSWs/arDMnNgqqNmr+9QGQ8DUTl7C0nKvtvh7e3+H7M5FhwI5l9ju/IRm0eYE0rptH0E2X1cDhvcG1G5mPwQ23vrFHvcNZHfRmNr+BWYmzanEElbb9tsDpBXJPqbs0dyiVi92dwCvKLXVEGCNUKGiikWpdpUWOSW6LcZdkVPkg9tFLG6QtFz0rfP1Yr5MLntfJp8Xc2+1/V8m9wRdg28u+HyoLuHzCy291VcD/QutsCeQ
+EndInfo
