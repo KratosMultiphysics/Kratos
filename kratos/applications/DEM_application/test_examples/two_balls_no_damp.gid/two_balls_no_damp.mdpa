@@ -79,7 +79,7 @@ Begin NodalData PARTICLE_TENSION
 2 0 2.01e6
 End NodalData
 
-Begin NodalData PARTICLE_LOCAL_DAMP_RATIO
+Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
 1 0 0
 2 0 0
 End NodalData

@@ -1,14 +1,15 @@
 domain_size = 3
-CriticalTimeOption = "ON"
+CriticalTimeOption = "OFF"
 Integration_Scheme = "forward_euler"
 NormalForceCalculation = "Linear"
-DampRatioType = "NoDamp"
+DampId = "NoDamp"
 BoundingBoxOption= "OFF"
 ContinuumOption= "OFF"
 DeltaOption = "OFF"
 RotationOption= "OFF"
 TrihedronOption= "OFF"
 RotationalSpringOption= "OFF"
+RotaDampId = "LocalDamp"
 GlobalVariablesOption= "OFF"
 bounding_box_enlargement_factor = 2.00000e+00
 search_step = 1.00000e+01
