@@ -130,6 +130,7 @@ public:
 
     {
 
+
         for(ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
             it->FastGetSolutionStepValue(VISCOSITY) = viscosity;
 
@@ -157,6 +158,7 @@ public:
 
 
 
+		std::cout << "Edge based level set substep solver is created" << std::endl;
 
     };
 
@@ -495,7 +497,7 @@ public:
 	    double nu = mViscosity[i_node];
 	    
 	    double delta_t_i = 0.25*mY_wall*mY_wall/nu;
-	    
+	    	    
 	    // Reducing wall friction for the large element near wall. Pooyan.
 		double reducing_factor = 1.00;
                 double h_min = mHavg[i_node];
@@ -1492,6 +1494,7 @@ public:
 
 //         if(mWallLawIsActive == false)
 //         {
+			std::cout << "applying corners condition" << std::endl;
             //apply conditions on corner edges
             int edge_size = medge_nodes_direction.size();
             #pragma omp parallel for firstprivate(edge_size)
@@ -2815,6 +2818,64 @@ public:
             mr_matrix_container.WriteScalarToDatabase(DISTANCE, mdistances, mr_model_part.Nodes());
         }
 
+       void FindBubbles()
+        {
+			int n_nodes = mdistances.size();
+			ValuesVectorType last_air(n_nodes);
+
+			mr_matrix_container.SetToZero(last_air);
+
+			mr_matrix_container.FillScalarFromDatabase(LAST_AIR, last_air, mr_model_part.Nodes());
+
+			const int max_bubble_nodes = 12;
+			const int min_bubble_nodes = 2;
+
+			std::vector<bool> is_visited(n_nodes, 0);
+
+			// loop over the nodes to find a outside node.
+			for (int i_node = 0; i_node < n_nodes; i_node++)
+			{
+				double dist = mdistances[i_node];
+
+				if ((is_visited[i_node] == 0) && (dist > 0.0)) // node is outside the domain and has not visited yet
+				{
+					std::vector<int> outside_nodes(n_nodes,0);
+					outside_nodes[0] = i_node;
+					is_visited[i_node] = 1;
+					int n_outside = 1;
+
+					for(int i = 0 ; i < n_outside ; i++) // loop over founded outside nodes. NOTE: n_outside is increasing inside the loop
+					{
+						int this_node = outside_nodes[i];
+
+						// loop over neighbours of this node
+						for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[this_node]; csr_index != mr_matrix_container.GetRowStartIndex()[this_node + 1]; csr_index++)
+						{
+							unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+							if((is_visited[j_neighbour] == 0) && (mdistances[j_neighbour] >= 0.0)) // the neighbour node is outside the fluid and not visited yet
+							{
+									outside_nodes[n_outside] = j_neighbour;
+									n_outside++;
+							}
+							is_visited[j_neighbour] = 1;
+						}
+					}
+					//KRATOS_WATCH(i_node);
+					//KRATOS_WATCH(n_outside);
+					//KRATOS_WATCH(is_first_outside);
+					if ((n_outside <= max_bubble_nodes) && (n_outside >= min_bubble_nodes)) 
+					{
+						//KRATOS_WATCH(i_node);
+						//KRATOS_WATCH(n_outside);
+						for(int i = 0 ; i < n_outside ; i++)
+							last_air[outside_nodes[i]] = 1.00;
+					}
+				}
+			}
+
+
+            mr_matrix_container.WriteScalarToDatabase(LAST_AIR, last_air, mr_model_part.Nodes());
+        }
 
     void CalculatePorousResistanceLaw(unsigned int res_law)
     {
@@ -3569,7 +3630,7 @@ private:
                 //                    }
 
 
-                
+		
 		double tau = mod_vel * mod_vel ;
 		
 		// Reducing wall friction for the large element near wall. Pooyan.
@@ -3579,9 +3640,9 @@ private:
                      reducing_factor = ym / h_min;
 		tau *= reducing_factor;
 		
-		if (mod_vel > 1e-12)
-		  for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] -=   tau * area *U_i[comp] / mod_vel;
+                if (mod_vel > 1e-12)
+                    for (unsigned int comp = 0; comp < TDim; comp++)
+                        rhs_i[comp] -= tau * area *U_i[comp] / mod_vel;
 		    
 		
 		
