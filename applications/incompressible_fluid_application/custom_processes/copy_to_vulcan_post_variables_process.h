@@ -100,8 +100,7 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITY variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITIES) == false)
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
-            if (mrModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
-                KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
+
 			return 0;
 		}
 		
@@ -134,8 +133,13 @@ namespace Kratos
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = i_node->FastGetSolutionStepValue(VELOCITY);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = i_node->FastGetSolutionStepValue(PRESSURE);
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
 				 }
+				 else
+				 {
+					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
+					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
+				 }
+
 			 }
 		 }
 
