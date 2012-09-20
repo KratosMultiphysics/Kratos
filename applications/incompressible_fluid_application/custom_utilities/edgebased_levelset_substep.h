@@ -434,8 +434,8 @@ public:
             vel_norm /= eps_i;
 
             //use CFL condition to compute time step size
-            double delta_t_i = 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) + porosity_coefficient);
-            double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * nu / (havg_i * havg_i) + porosity_coefficient);
+            double delta_t_i = 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) /*+ porosity_coefficient*/);
+            double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * nu / (havg_i * havg_i) /*+ porosity_coefficient*/);
             double delta_t_i_avg_novisc = 1.0 / (2.0 * vel_norm /havg_i );
 
             //considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
@@ -490,24 +490,25 @@ public:
         }
         
         //take into account wall law in the estimation
-        int slip_size = mSlipBoundaryList.size();
-        for (int i_slip = 0; i_slip < slip_size; i_slip++)
-        {
-            unsigned int i_node = mSlipBoundaryList[i_slip];
-	    double nu = mViscosity[i_node];
-	    
-	    double delta_t_i = 0.25*mY_wall*mY_wall/nu;
-	    	    
-	    // Reducing wall friction for the large element near wall. Pooyan.
-		double reducing_factor = 1.00;
-                double h_min = mHavg[i_node];
-		if(mY_wall < h_min)
-                     reducing_factor = mY_wall / h_min;
-		delta_t_i /= reducing_factor;
-	    	    
-	    if (delta_t_i < delta_t)
-                delta_t = delta_t_i;
-	}
+//         int slip_size = mSlipBoundaryList.size();
+//         for (int i_slip = 0; i_slip < slip_size; i_slip++)
+//         {
+//             unsigned int i_node = mSlipBoundaryList[i_slip];
+// 	    double nu = mViscosity[i_node];
+// 	    
+// 	    double delta_t_i = 0.25*mY_wall*mY_wall/nu;
+// 	    
+// 	    // Reducing wall friction for the large element near wall. Pooyan.
+// 		double reducing_factor = 1.00;
+//                 double h_min = mHavg[i_node];
+// 		if(mY_wall < h_min)
+//                      reducing_factor = mY_wall / h_min;
+// 		delta_t_i /= reducing_factor;
+// 	    	    
+// 	    if (delta_t_i < delta_t)
+//                 delta_t = delta_t_i;
+// 	}
+
 	
 // 	mdelta_t_avg = delta_t; //this should not be done ... remove it or decide what to do...
 
@@ -602,6 +603,8 @@ public:
         mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
+	
+	ValuesVectorType diag_stiffness(n_nodes);
 
         //read time step size from Kratos
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -700,29 +703,29 @@ public:
             mr_matrix_container.AssignVectorToVector(mvel_n, mvel_n1); //mvel_n1 = mvel_n
 
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
-            mr_matrix_container.Add_Minv_value(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
-            mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),diag_stiffness,rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //second step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
-            mr_matrix_container.Add_Minv_value(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetInvertedMass(), rhs);
-            mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //third step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
-            mr_matrix_container.Add_Minv_value(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetInvertedMass(), rhs);
-            mr_matrix_container.Add_Minv_value(mvel_n1, mvel_n, delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //fourth step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs);
-            mr_matrix_container.Add_Minv_value(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
 
             //compute right-hand side
             mr_matrix_container.AssignVectorToVector(mWork, mvel_n1);
@@ -746,7 +749,8 @@ public:
         const CalcVectorType& vel,
         const ValuesVectorType& pressure,
         const CalcVectorType& convective_velocity,
-        CalcVectorType& rhs)
+        CalcVectorType& rhs,
+	ValuesVectorType& diag_stiffness)
     {
         KRATOS_TRY
 
@@ -800,10 +804,11 @@ public:
                 //applying the effect of the porosity
                 //double porosity_coefficient = ComputePorosityCoefficient(nu_i,norm_2(U_i),eps_i, d_i);
                 double porosity_coefficient = ComputePorosityCoefficient( norm_2(U_i), eps_i, lindarcy_i, nonlindarcy_i);
+		diag_stiffness[i_node] = m_i * porosity_coefficient;
 // KRATOS_WATCH("after");
 // KRATOS_WATCH(d_i);
-                for (unsigned int comp = 0; comp < TDim; comp++)
-                    rhs_i[comp] -= m_i * porosity_coefficient * U_i[comp];
+//                 for (unsigned int comp = 0; comp < TDim; comp++)
+//                     rhs_i[comp] -= m_i * porosity_coefficient * U_i[comp];
 
                 //std::cout << i_node << "rhs =" << rhs_i << "after adding body force" << std::endl;
                 //convective term
@@ -870,7 +875,7 @@ public:
 
         //apply wall resistance
         if(mWallLawIsActive == true)
-            ComputeWallResistance(vel,rhs);
+            ComputeWallResistance(vel,diag_stiffness);
 
         //boundary integrals --> finishing the calculation of the pressure gradient
         //				int loop_size1 = mPressureOutletList.size();
@@ -3551,7 +3556,8 @@ private:
 
     void ComputeWallResistance(
         const CalcVectorType& vel,
-        CalcVectorType& rhs
+	ValuesVectorType& diag_stiffness
+//         CalcVectorType& rhs
     )
     {
         //parameters:
@@ -3577,7 +3583,7 @@ private:
             if (dist <= 0.0)
             {
                 double nu = mViscosity[i_node];
-                array_1d<double, TDim>& rhs_i = rhs[i_node];
+                //array_1d<double, TDim>& rhs_i = rhs[i_node];
                 const array_1d<double, TDim>& U_i = vel[i_node];
                 const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
 
@@ -3640,9 +3646,11 @@ private:
                      reducing_factor = ym / h_min;
 		tau *= reducing_factor;
 		
-                if (mod_vel > 1e-12)
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        rhs_i[comp] -= tau * area *U_i[comp] / mod_vel;
+		if (mod_vel > 1e-12)
+		  diag_stiffness[i_node] += tau * area / mod_vel;
+// 		  for (unsigned int comp = 0; comp < TDim; comp++)
+//                         rhs_i[comp] -=   tau * area *U_i[comp] / mod_vel;
+
 		    
 		
 		
@@ -3750,7 +3758,36 @@ private:
       KRATOS_CATCH("");
     }
 
+    void Add_Effective_Inverse_Multiply(
+        CalcVectorType& destination,
+        const CalcVectorType& origin1,
+        const double value,
+        const ValuesVectorType& mass,
+	const ValuesVectorType& diag_stiffness,
+        const CalcVectorType& origin	
+    )
+    {
+        KRATOS_TRY
 
+        int loop_size = destination.size();
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < loop_size; i_node++)
+        {
+            array_1d<double, TDim>& dest = destination[i_node];
+            const double m = mass[i_node];
+	    const double d = diag_stiffness[i_node];
+            const array_1d<double, TDim>& origin_vec1 = origin1[i_node];
+            const array_1d<double, TDim>& origin_value = origin[i_node];
+
+            double temp = value / (m + value*d);
+            for (unsigned int comp = 0; comp < TDim; comp++)
+                dest[comp] = origin_vec1[comp] + temp * origin_value[comp];
+        }
+
+
+
+        KRATOS_CATCH("")
+    }
 
 
 };
