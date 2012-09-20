@@ -1494,7 +1494,7 @@ public:
 
 //         if(mWallLawIsActive == false)
 //         {
-			std::cout << "applying corners condition" << std::endl;
+			//std::cout << "applying corners condition" << std::endl;
             //apply conditions on corner edges
             int edge_size = medge_nodes_direction.size();
             #pragma omp parallel for firstprivate(edge_size)
