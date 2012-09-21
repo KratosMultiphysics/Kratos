@@ -89,9 +89,6 @@ if(1<2):
       others.append(node)
 
 
-
-
-
 #creating a solver object
 
 dimension=DEM_explicit_solver_var.domain_size;
@@ -174,6 +171,9 @@ if(delta_option=="OFF"):
 solver.time_scheme=time_scheme
 solver.force_calculation_type_id=force_calculation_type_id
 
+if (compute_critical_time =="ON"):
+  solver.critical_time_OPTION=1; #xapuza
+
 if(continuum_option =="ON"):
   solver.continuum_simulating_OPTION=True
 
@@ -188,11 +188,10 @@ if(trihedron_option =="ON"):
   solver.trihedron_OPTION=1  #xapuza 
 if(rotation_spring_option =="ON"):
   solver.rotation_spring_OPTION=1  #xapuza
- 
-    
+       
 
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
-  
+
 # global variable settings
 
 if(global_variables_option =="ON"):
@@ -256,8 +255,8 @@ solver.Initialize()
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (compute_critical_time =="ON"):
-  solver.Critical_Time() 
-
+  solver.Initial_Critical_Time() 
+  
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
     print("WARNING: Delta time has been modifyed to the critical one")
     dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -272,7 +271,7 @@ current_real_time = timer.time()
 
 print ('Calculation starts at instant: ' + str(current_pr_time)+'\n')
 
-print ('Last TIME STEP is expected to be: ' + str(int(final_time/dt)) + 'if no critical time step modification ' +'\n' )
+print ('Total number of TIME STEPs expected in the calculation are: ' + str(int(final_time/dt)) + ' if no critical time step modification ' +'\n' )
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
@@ -318,8 +317,6 @@ while(time < final_time):
 	force_node_x = node.GetSolutionStepValue(RHS,0)[0]
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
-	print(force_node_y)
-	print(step)
 	
 
       

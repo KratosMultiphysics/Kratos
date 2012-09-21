@@ -4,8 +4,6 @@ PROBLEM DATA
 BOOK: Problem Parameters
 QUESTION: Number_of_processors
 VALUE: 1
-QUESTION: Critical_Time_Option#CB#(ON,OFF)
-VALUE: ON
 QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
 VALUE: forward_euler
 QUESTION: Normal_Force_Calculation#CB#(Linear,Hertz)
@@ -59,6 +57,9 @@ QUESTION: Search_Step
 VALUE: 10
 QUESTION: Calculation_Time
 VALUE: 7.0
+QUESTION: Critical_Time_Option#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,HIDE,Dt_Safety_Factor,#CURRENT#)(ON,RESTORE,Dt_Safety_Factor,#CURRENT#)
 QUESTION: Dt_Safety_Factor
 VALUE: 2.0
 QUESTION: Max_Time_Step

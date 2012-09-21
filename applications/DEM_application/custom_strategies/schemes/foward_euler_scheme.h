@@ -228,8 +228,13 @@ namespace Kratos
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
             {
 
-                double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
+                //double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
+
                 double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+                double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF]
+
+
+
 
                 array_1d<double, 3 > & AngularVel           = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 > & RotaMoment           = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -249,7 +254,15 @@ namespace Kratos
                     if(If_Fix_Rotation[iterator] == false)
                     {
                          double RotaAcc = 0.0;
-                         RotaAcc = (RotaMoment[iterator]) / PMass / PMomentOfInertia;
+                         
+                         RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia);
+
+                         if(rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                                {
+
+                                RotaAcc = RotaAcc * coeff;
+
+                                }
                        
                          double RotaVelOld = AngularVel[iterator];
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;

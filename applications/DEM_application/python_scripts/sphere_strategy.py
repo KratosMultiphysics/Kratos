@@ -77,6 +77,8 @@ class ExplicitStrategy:
       
         #type of problem:
 
+        self.critical_time_OPTION           = 0 #its 1/0 xapuza
+
         self.delta_OPTION                   = False
         self.continuum_simulating_OPTION    = False
         self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
@@ -108,7 +110,7 @@ class ExplicitStrategy:
         #problem utilities
         self.enlargement_factor             = 1;
         self.n_step_search                  = 1;
-        self.safety_factor                  = 1; #for critical time step
+        self.safety_factor                  = 1.0; #for critical time step
 
         self.create_and_destroy             = particle_destructor_and_constructor();
 
@@ -136,7 +138,7 @@ class ExplicitStrategy:
         elif(self.delta_OPTION==False):
             if(self.continuum_simulating_OPTION==False): self.case_OPTION = 0
             else: self.case_OPTION = 3
-
+        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
@@ -175,8 +177,8 @@ class ExplicitStrategy:
         #self.solver.SetCohesiveContacts()
 
  #######################################################################
-    def Critical_Time(self):
-        (self.solver).CriticalTime()
+    def Initial_Critical_Time(self):
+        (self.solver).InitialCriticalTime()
 
     #######################################################################   
     def Solve(self):
