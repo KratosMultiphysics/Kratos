@@ -136,7 +136,7 @@ namespace Kratos
 		  (
 		  "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialized)
-                  .def("CriticalTime", &ExplicitSolverStrategyType::CriticalTime)
+                  .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
 		  ;
 		  
 		}

@@ -43,6 +43,8 @@ namespace Kratos
 
         KRATOS_CREATE_VARIABLE(int, VIRTUAL_MASS_OPTION)
         KRATOS_CREATE_VARIABLE(double, NODAL_MASS_COEFF)
+        KRATOS_CREATE_VARIABLE(double, HISTORICAL_MIN_K)
+        KRATOS_CREATE_VARIABLE(int, CRITICAL_TIME_OPTION)
 
         //M:possible future blocks (no FEM) interaction
         KRATOS_CREATE_VARIABLE(Vector,     PARTICLE_BLOCK_CONTACT_FAILURE_ID)
@@ -71,6 +73,10 @@ namespace Kratos
 
                 KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_OPTION)
                 KRATOS_REGISTER_VARIABLE(NODAL_MASS_COEFF)
+                
+                KRATOS_REGISTER_VARIABLE(HISTORICAL_MIN_K)
+                KRATOS_REGISTER_VARIABLE(CRITICAL_TIME_OPTION)
+
 
                 /* Define In Global variables.cpp
                 KRATOS_REGISTER_VARIABLE(DELTA_TIME)

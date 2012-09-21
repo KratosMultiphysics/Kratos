@@ -36,6 +36,7 @@ End Elements
 *Set cond volume_VELOCITY *elems
 *Add cond surface_VELOCITY *elems
 *Add cond line_VELOCITY *elems
+*Add cond test_PARTICLES *elems
 *#Add cond point_VELOCITY *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
@@ -109,6 +110,7 @@ Begin NodalData RADIUS
 End NodalData
 
 *Set cond volume_GROUP_ID *elems
+*Add cond test_PARTICLES *elems
 
 Begin NodalData GROUP_ID
 *loop elems *OnlyInCond

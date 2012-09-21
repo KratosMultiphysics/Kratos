@@ -161,6 +161,8 @@ namespace Kratos
         {
             KRATOS_TRY
 
+
+            KRATOS_WATCH(msafety_factor)
        //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
@@ -258,7 +260,7 @@ namespace Kratos
       }
 
 
-       void CriticalTime()
+       void InitialCriticalTime()
       {
 	KRATOS_TRY
 
@@ -402,61 +404,46 @@ namespace Kratos
             mpScheme->Calculate(r_model_part);
 	
         }
-
-        
+       
         void ComputeCriticalTime()
-	{
+        {
 
             KRATOS_TRY
 
             ModelPart& r_model_part             = BaseType::GetModelPart();
             ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
 
-            if(mvirtual_mass == true)
+            double TimeStepTemp = 0.0;
+
+            ElementsArrayType& pElements        = r_model_part.Elements();
+
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+
+            double mfactor=1;
+
+            for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
             {
-                if(mtimestep > 0.9)
+                it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
+
+                if(mtimestep > TimeStepTemp)
                 {
-                    mtimestep = 0.9;
+                    mtimestep = TimeStepTemp;
+                    mfactor = msafety_factor;
                 }
 
-                std::cout<<"******************Virtual Mass TimeStep is Used******************" <<std::endl;
             }
-            else
-            {
-                  double TimeStepTemp = 0.0;
+           
+            mtimestep = mtimestep/mfactor;
 
-                  ElementsArrayType& pElements     = r_model_part.Elements();
 
-                  typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-                  typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
-
-                  double mfactor=1;
-                  
-                  for(ElementsArrayType::iterator it = it_begin; it!= it_end; it++)
-                  {
-                      it->Calculate(DELTA_TIME, TimeStepTemp, rCurrentProcessInfo);
-
-                     if(mtimestep > TimeStepTemp)
-                      {
-                          mtimestep = TimeStepTemp;                                          
-                          mfactor = msafety_factor;
-                      }
-                      
-                      
-                  }
-               
-                  mtimestep = mfactor * mtimestep;
-
-                  std::cout<<"******************Real Mass TimeStep is Used******************" <<std::endl;
-            }
-
-            
             if (mtimestep < rCurrentProcessInfo[DELTA_TIME])
             {
-            rCurrentProcessInfo[DELTA_TIME] = mtimestep;
+                rCurrentProcessInfo[DELTA_TIME] = mtimestep;
             }
+
             std::cout<<"******************Calculating TimeStep Is "<<mtimestep<<  "******************" <<std::endl;
-                               
+
             KRATOS_CATCH("")
 
         }

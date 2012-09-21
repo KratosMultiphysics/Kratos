@@ -20,6 +20,21 @@ namespace Kratos
     namespace GeometryFunctions
     {
 
+    static inline double min(double a, double b)
+    {
+        double output;
+        if (a<=b) output = a;
+        else output = b;
+        return output;
+    }
+
+    static inline double max(double a, double b)
+    {
+        double output;
+        if (a>=b) output = a;
+        else output = b;
+        return output;
+    }
 
     static inline void norm(double Vector[3])
     {

@@ -203,6 +203,7 @@ proc InitGIDProject {dir} {
 	}
 	GiDMenu::Create "DEM explicit solver" PRE
 	GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE "GidOpenConditions \"Nodal Values\"" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Test Particles "] 1 PRE "GidOpenConditions \"Test Particles\"" "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 2 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 3 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "---"] 4 PRE "" "" ""

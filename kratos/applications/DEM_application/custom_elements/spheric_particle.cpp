@@ -81,7 +81,7 @@ namespace Kratos
 
             Inertia = 0.25 * M_PI * radius * radius * radius  * radius ;
 
-            MomentOfInertia = 0.5 * radius * radius;
+            MomentOfInertia = 0.5 * radius * radius * mass;
 
         }
         else
@@ -92,7 +92,7 @@ namespace Kratos
 
             Inertia = 0.25 * M_PI * radius * radius * radius  * radius ;
 
-            MomentOfInertia = 0.4 * radius * radius;
+            MomentOfInertia = 0.4 * radius * radius * mass;
 
         }
         
@@ -436,6 +436,18 @@ namespace Kratos
                    RN       = rCurrentProcessInfo[GLOBAL_RN];
                    RT_base  = rCurrentProcessInfo[GLOBAL_RT];
                    Friction = tan( (rCurrentProcessInfo[GLOBAL_FRI_ANG])*(M_PI/180) );
+
+                }
+
+                //historical minimun K for the critical time:
+                if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]==1)
+
+                {
+                    double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
+                    if( (kn<historic) || (ks<historic))
+                    {
+                        historic = GeometryFunctions::min(kn,ks);
+                    }
 
                 }
 
@@ -1187,8 +1199,6 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
           array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.
           noalias(force)                      = ZeroVector(3);
 
-
-
         }
        void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
        
@@ -1206,15 +1216,38 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
 
             if (rVariable == DELTA_TIME)
             {
-                double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                Output = 0.34 * sqrt( mRealMass / K);
+                double mass     = mRealMass;
+                double coeff    = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
-                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+
+                if (coeff>1.0)
                 {
-                    Output = Output * 0.5; //factor for critical time step when rotation is allowed.
+                    KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",coeff)
                 }
-            } //CRITICAL DELTA CALCULATION
+
+                else if ((coeff==1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]))
+                {
+                    Output = 9.0E09;
+                }
+
+                else
+                {
+                    if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                    {
+                      mass = mass/(1-coeff);
+                    }
+
+                    double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+                    double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+
+                    Output = 0.34 * sqrt( mRealMass / K);
+
+                    if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+                    {
+                        Output = Output * 0.5; //factor for critical time step when rotation is allowed.
+                    }
+                }
+            }//CRITICAL DELTA CALCULATION
 
             if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
             {
