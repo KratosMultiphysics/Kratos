@@ -231,7 +231,7 @@ namespace Kratos
                 //double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
 
                 double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-                double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF]
+                double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
 
 
