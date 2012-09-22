@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.1- 21/09/12-G. Socorro, write bat file only when ::tcl_platform(os) eq "Linux"
 #     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
 #                               MonolithicWallCondition2D/MonolithicWallCondition3D for monolithic solver
 #     4.9- 04/06/12-J. Garate,  Correct "WALL_LAW_Y"
@@ -186,8 +187,10 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	::wkcf::WriteConstitutiveLawsProperties
     }
 
-    # Write bat file
-    # ::wkcf::WriteBatFile
+    # Write bat file only for the Linux OS
+    if {($::tcl_platform(os) eq "Linux")} {
+	::wkcf::WriteBatFile $AppId
+    }
     
     # Unset some local variables
     ::wkcf::UnsetLocalVariables

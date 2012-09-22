@@ -124,17 +124,18 @@
         <Item id="SolverType" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
         <Item id="SolverTypeFreeSurf" pid="Solver type" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
         <Item id="EnvironmentTemperature" pid="Environment temperature" fluidType="Incompressible" dv="0.0" help=""/>
-        <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModel" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>        
-         <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModel="Smagorinsky-Lilly" dv="0.2" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
+        <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>        
+         <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
+	 <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
            </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
         <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
-	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType ="MPI" help="Number of processors"/>
+	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	  <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	   <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
 	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP" values="BiConjugate gradient stabilized,MixedUP" help="Iterative solver type options"/>
 	  <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
-	  <Item id="MonolithicISMaximumIteration" pid="Solver maximum iteration" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
+	  <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
 	  <Item id="MonolithicMixedUPKrylovSpaceDimension" pid="Krylov space dimension" monolithiciterativesolvertype="MixedUP" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="30" help="Mixed UP Krylov space dimension"/>
 	  <Item id="MonolithicPreconditionerType" pid="Preconditioner type" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Diagonal" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
 	  <Item id="VelocityLinearSolverType" pid="Velocity linear solver type" class="velocityLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
@@ -168,7 +169,7 @@
 	      <Item id="MaximumPressureIterations" pid="Maximum pressure iterations" fluidSolvTyp="ElementBased,EdgeBased" dv="3" help=""/>
 	      <Item id="MaximumIterations" pid="Maximum iterations" fluidSolvTyp="Monolithic,PressureSplitting" dv="10" help=""/>
 	      <Item id="TimeOrder" pid="Time order" dv="2" fluidSolvTyp="ElementBased,EdgeBased" ivalues="1,2" values="1,2" help=""/>
-	      <Item id="LaplacianForm" pid="Laplacian form" dv="Discrete" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
+	      <Item id="LaplacianForm" pid="Laplacian form" state="hidden" dv="Discrete" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
 	      <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
 	      <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
 	    </Container>
@@ -199,7 +200,7 @@
 	    <Container id="Flag-Variable" pid="Flag-Variable" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
         </Container>
         <Container id="Results" pid="Results" class="Tab" help="Results" open="1">
-        <Item id="VolumeOutput" pid="Volume output" dv="False" nDim="3D" class="UseCuts" ivalues="True,False" values="True,False" help="Volume output"/>
+        <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
         <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
 	    <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
 	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
@@ -216,7 +217,7 @@
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
 	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
 	    </Container>
-	     <Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="False" idTemplate="CutProperties" help="Cut plane postprocess options" open="1">
+	     <Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="No" idTemplate="CutProperties" help="Cut plane postprocess options" open="1">
 	      </Container>
 	       <Container id="DragOptions" pid="Drag calculation" class="Groups" idTemplate="DragProperties" GiDEntity="point,line,surface" help="Drag calculation properties" open="1">
 	      </Container>
@@ -250,7 +251,7 @@
 	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="1"/>
 	  </Container>
         <Container id="Results" pid="Results" class="Tab" help="Results" open="1">
-        <Item id="VolumeOutput" pid="Volume output" dv="False" nDim="3D" class="UseCuts" ivalues="True,False" values="True,False" help="Volume output"/>
+        <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
         <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
 	    <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
 	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
@@ -434,6 +435,6 @@
     	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModel,UseCuts,monolithiciterativesolvertype,PSolutionType</Class>
+        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType</Class>
     </ClassConfiguration>
 </Kratos_Data>

@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.6- 22/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties
 #     1.5- 20/08/12-G. Socorro, correct a bug when write is_structure for 3D problems
 #     1.4- 25/07/12-G. Socorro, add VolumeOutput to 3D problem
 #     1.3- 24/07/12-G. Socorro, update the procedure WriteFluidIsSlipBC to write Y_Wall nodaldata
@@ -1099,9 +1100,10 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 	if {$wmethod} {
 	    set gprop [dict create]
 	    set f ""
-	    dict set gprop $cgroupid "$f"
 	    if {$ndime == "2D"} {
 		set GiDElemType "Linear"
+		set f "%10d %10d %10d"
+		dict set gprop $cgroupid "$f"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set dprops($AppId,UseSlipConditions) 1
 		    set f "%10d [format "%4i" $activateval] %10d %10d\n"
@@ -1134,6 +1136,8 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 		    unset gprop
 		}
 	    } elseif {$ndime == "3D"} {
+		set f "%10d %10d %10d %10d"
+		dict set gprop $cgroupid "$f"
 		set GiDElemType "Triangle"
 		if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
 		    set dprops($AppId,UseSlipConditions) 1
@@ -1344,7 +1348,7 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     # Write fluid solver method
     # 0 => Old format
     # 1 => New format
-    set wfsmethod 0
+    set wfsmethod 1
     set rootid "$AppId"
     
     # Kratos key word xpath
@@ -1438,16 +1442,16 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
 		# WarnWinText "TurbulenceModel:$TurbulenceModel"
 		if {$TurbulenceModel eq "Off"} {
-		    puts $fileid "    TurbulenceModel = None"
+		    puts $fileid "    TurbulenceModel = \"no_turbulence\""
 		} elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
-		    puts $fileid "    TurbulenceModel = $TurbulenceModel"
+		    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
 		    # Get the smagorinsky-lilly constant
 		    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
 		    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
 		    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
 		    puts $fileid "    SmagorinskyConstant = $SmagorinskyConstant"
 		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
-		    puts $fileid "    TurbulenceModel = $TurbulenceModel"
+		    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
 		}
 	    }
 
@@ -1522,6 +1526,11 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
     set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
     
+    # For use automatic delta time
+    set cxpath "$rootid//c.SolutionStrategy//i.UseAutomaticDeltaTime"
+    set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
+    puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
+
     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
     puts $fileid "Dt = $DeltaTime"
     puts $fileid "Start_time = $StartTime"
@@ -1571,7 +1580,11 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	#  For volumen output
 	set cxpath "$rootid//c.Results//i.VolumeOutput"
 	set VolumeOutput [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "VolumeOutput = $VolumeOutput"
+	if {$VolumeOutput eq "Yes"} {
+	    puts $fileid "VolumeOutput = True"
+	} else {
+	    puts $fileid "VolumeOutput = False"
+	}
     }
 
     puts $fileid ""
