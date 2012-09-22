@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     2.1- 21/09/12-G. Socorro, update the proc WriteBatFile to write the bat file for Linux OS
 #     2.0- 23/07/12-G. Socorro, add the "ConstantValue" to the Is-Slip condition
 #     1.9- 13/05/12-G. Socorro, set/unset the local variable ctbclink (condition to bc linker)
 #     1.8- 07/05/12-G. Socorro, add the CleanAutomatic, CleanAutomaticConditionGroup and AssignConditionToGroup
@@ -905,39 +906,59 @@ proc ::wkcf::AlignSurfNormals {direction} {
     }
 }
 
-proc ::wkcf::WriteBatFile {} {
-  
-    set batfilename "Kratos.win.bat"
-    set ProblemTypePath [::KUtils::GetPaths "PTDir"]
-    set batfullname [file native [file join $ProblemTypePath $batfilename]]
+proc ::wkcf::WriteBatFile {AppId} {
+    # ABSTRACT: Write the Kratos bat files
 
-    # First delete the file
-    set res ""
-    catch { set res [file delete -force $batfullname] }
-    
-    # Create the new file
-    set f [open $batfullname w]
-    # WarnWinText "batfullname:$batfullname res:$res f:$f"
+    # Get the parallel solution type
+    set rootid "$AppId"
+    # Kratos key word xpath
+    set kxpath "Applications/$rootid"
+    set cproperty "dv"
+    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 
-    puts $f "REM @ECHO OFF"
-    puts $f "REM Identification for arguments"
-    puts $f "REM basename                          = %1"
-    puts $f "REM Project directory                 = %2"
-    puts $f "REM Problem directory                 = %3"
-    puts $f " "
-    puts $f "REM OutputFile: %2\\%1.info"
-    puts $f "REM ErrorFile: %2\\%1.err"
-    puts $f " "
+    if {$ParallelSolutionType eq "MPI"} {
+	
+	set batfilename "kratos-mpi.unix.bat"
+	set ProblemTypePath [::KUtils::GetPaths "PTDir"]
+	set batfullname [file native [file join $ProblemTypePath $batfilename]]
+	
+	# First delete the file
+	set res ""
+	catch { set res [file delete -force $batfullname] }
+	
+	# Create the new file
+	set f [open $batfullname w]
+	# WarnWinText "batfullname:$batfullname res:$res f:$f"
+	
+	puts $f "REM @ECHO OFF"
+	puts $f "REM Identification for arguments"
+	puts $f "REM basename                          = %1"
+	puts $f "REM Project directory                 = %2"
+	puts $f "REM Problem directory                 = %3"
+	puts $f " "
+	puts $f "REM OutputFile: %2\\%1.info"
+	puts $f "REM ErrorFile: %2\\%1.err"
+	puts $f " "
+	
+	
+	puts $f "DEL %2\\%1.info"
+	puts $f "DEL %2\\%1.post.bin"
+	puts $f "DEL %2\\%1.err"
+	
+	puts $f "REM Run the python script"
+	
+	#  Get the number of processors
+	set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+	set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+	# wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+	if {$MPINumberOfProcessors>0} {
+	    puts $f "mpirun -np $MPINumberOfProcessors python kratosMPI.py > %2\\%1.info 2> %2\\%1.err"
+	}
 
+	close $f
+    }
 
-    puts $f "DEL %2\\%1.info"
-    puts $f "DEL %2\\%1.post.bin"
-    puts $f "DEL %2\\%1.err"
-
-    puts $f "REM Run the python script"
-    puts $f "python KratosOpenMP.py > %2\\%1.info 2> %2\\%1.err"
-
-    close $f
 }
 
 # From Fluid_only problem type: Unassigns automatically assigned GiD Conditions (Model Parts, Conditions, Elements) from given entity types

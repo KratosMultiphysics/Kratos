@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     1.7- 21/09/12- G. Socorro, correct a bug in the proc BeforeMeshGeneration use {*} to get all the surface identifier
 #     1,6- 22/07/12- G. Socorro, modify the BeforeMeshGeneration to automatically mesh de boundary lines/surfaces when use Is-Slip BC
 #     1.5- 09/05/12- G. Socorro, use conditions only in the fluid application
 #     1.4- 07/05/12- G. Socorro, update the proc BeforeMeshGeneration to write the Condition2D and Condition3D properties
@@ -234,8 +235,10 @@ proc BeforeMeshGeneration {elementsize} {
 		set blinelist [::wkcf::FindBoundaries $entitytype]
 		# wa "belist:$blinelist"
 		
+		# Assign the linear element to all this lines
+
 		# Automatically meshing all the boundary lines
-		GiD_Process Mescape Meshing MeshCriteria Mesh Lines $blinelist escape 
+		GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
 		
 		# Assign the boundary condition
 		::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
@@ -259,13 +262,17 @@ proc BeforeMeshGeneration {elementsize} {
 	    
 	    # Check for use Is-Slip BC
 	    set issliplist [::KMValid::SlipNoSlipList "slip"]
+	    # WarnWinText "issliplist:$issliplist"
 	    if {[llength $issliplist]} {
 		# Find boundaries
 		set bsurfacelist [::wkcf::FindBoundaries $entitytype]
 		# WarnWinText "bsurfacelist:$bsurfacelist"
 		
+		# Assign the triangle element type
+		GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape 
+	
 		# Automatically meshing all the boundary surfaces
-		GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces $bsurfacelist escape 
+		GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
 		
 		# Assign the boundary condition
 		::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
@@ -419,3 +426,40 @@ proc EndGIDPostProcess { } {
     	}
     }
 }
+
+proc SelectGIDBatFile {directory basename } {
+
+    set batfilename ""
+    
+    # Get the parallel solution type
+    set rootid "Fluid"
+    # Kratos key word xpath
+    set kxpath "Applications/$rootid"
+    set cproperty "dv"
+    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+    
+    if {$ParallelSolutionType eq "MPI"} {
+	if {($::tcl_platform(os) eq "Linux")} {
+	    set batfilename "kratos-mpi.unix.bat"
+	}
+    } else {
+	# OpenMP
+	if {($::tcl_platform(os) eq "Linux")} {
+	    set batfilename "kratos.unix.bat"
+	} else {
+	    set batfilename "kratos.win.bat"
+	}
+    }
+
+    # Calculate arguments
+    #set args ""
+    # set ret "$batfilename $args"
+    set ret "$batfilename"
+    # WarnWinText "\n\nret:$ret" 
+    if {$batfilename != ""} {
+	return $ret
+    } else {
+	return ""
+    }
+}  
