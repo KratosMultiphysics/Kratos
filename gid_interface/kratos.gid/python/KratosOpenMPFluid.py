@@ -233,6 +233,11 @@ elif "monolithic_solver_eulerian": # single coupled solver
     elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
         monolithic_linear_solver = ParallelMKLPardisoSolver()
 
+#copy Y_WALL
+for node in fluid_model_part.Nodes:
+    y = node.GetSolutionStepValue(Y_WALL,0)
+    node.SetValue(Y_WALL,y)
+
 dynamic_tau = ProjectParameters.use_dt_in_stabilization
 oss_switch = ProjectParameters.use_orthogonal_subscales
 #creating the solvers
