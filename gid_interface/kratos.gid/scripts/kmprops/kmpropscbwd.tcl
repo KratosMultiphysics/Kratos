@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.3- 23/09/12- GSM, update the proc specialComboAction to disabled FSI application
 #   0.2- 23/07/12- GSM, modify some proc to use PFEM options 
 #   0.1- 29/03/2012 G. Socorro, create a base source code from the kmprops.tcl script
 #
@@ -316,12 +317,16 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
 proc ::KMProps::specialComboAction { T clase selCombo item id } {
     
     global KPriv 
+
+    # Variable used to disabked the FSI
+    set disabledFSI 1
+    # wa "clase:$clase selCombo:$selCombo item:$item id:$id"
     if { $clase == "application" } {
 	
 	if {$selCombo == "Yes"} {
 	    
-	    #Este combo solo permite una aplicación activa al mismo tiempo
-	    #Así que desactivamos el resto
+	    # Este combo solo permite una aplicación activa al mismo tiempo
+	    # Así que desactivamos el resto
 	    set padre [$T item parent $item]
 	    set fullParent [DecodeName [$T item tag names $padre]]
 	    set parentId [::xmlutils::setXml $fullParent id]
@@ -333,40 +338,56 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		}
 	    }
 	    
-	    #Activamos la que corresponda
+	    # Activamos la que corresponda
 	    if { $id == "FluidStructureInteraction" } {
-		
-		#Activamos Fluidos y Estructuras
-		::xmlutils::setXml "StructuralAnalysis" state "write" "normal"
-		::xmlutils::setXml "StructuralAnalysis" open "write" 1
-		::xmlutils::setXml "Fluid" state "write" "normal"
-		::xmlutils::setXml "Fluid" open "write" 1
-		
-		::xmlutils::setXml "PFEM" state "write" "hiddenAll"
-		::xmlutils::setXml "PFEM" open "write" 0
-
-		#Forzamos el tipo de fluido a "Incompressible"
-		set fluidType [::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv]
-		if { $fluidType == "Compressible"} {
-		    ::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv "write" "Incompressible"
+	
+		if {$disabledFSI} {
+		    ::xmlutils::setXml "FluidStructureInteraction" state "write" "hiddenAll"
+		    ::xmlutils::setXml "FluidStructureInteraction" open "write" 0
+		} else {
+		    # Activamos Fluidos y Estructuras
+		    ::xmlutils::setXml "StructuralAnalysis" state "write" "normal"
+		    ::xmlutils::setXml "StructuralAnalysis" open "write" 1
+		    ::xmlutils::setXml "Fluid" state "write" "normal"
+		    ::xmlutils::setXml "Fluid" open "write" 1
+		    
+		    ::xmlutils::setXml "PFEM" state "write" "hiddenAll"
+		    ::xmlutils::setXml "PFEM" open "write" 0
+		    
+		    # Forzamos el tipo de fluido a "Incompressible"
+		    set fluidType [::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv]
+		    if { $fluidType == "Compressible"} {
+			::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv "write" "Incompressible"
+		    }
 		}
 	    } else {
-		#Activamos la aplicación seleccionada
+		# Activamos la aplicación seleccionada
 		::xmlutils::setXml "$id" state "write" "normal"
-		#La desplegamos
+		# La desplegamos
 		::xmlutils::setXml "$id" open "write" 1
+
+		if {$disabledFSI} {
+		    ::xmlutils::setXml "FluidStructureInteraction" state "write" "hiddenAll"
+		    ::xmlutils::setXml "FluidStructureInteraction" open "write" 0
+		}
 	    }
 	    
 	} else {
 	    
 	    if { $id == "FluidStructureInteraction" } {
-		#if{ [::xmlutils::setXml "${fullParent}//i.${aplicId}" dv] } {}
-		::xmlutils::setXml "StructuralAnalysis" state "write" "hiddenAll"
-		::xmlutils::setXml "Fluid" state "write" "hiddenAll"
-		::xmlutils::setXml "PFEM" state "write" "hiddenAll"
+		if {$disabledFSI} {
+		    ::xmlutils::setXml "FluidStructureInteraction" state "write" "hiddenAll"
+		    ::xmlutils::setXml "FluidStructureInteraction" open "write" 0
+		} else {
+		    #if{ [::xmlutils::setXml "${fullParent}//i.${aplicId}" dv] } {}
+		    ::xmlutils::setXml "StructuralAnalysis" state "write" "hiddenAll"
+		    ::xmlutils::setXml "Fluid" state "write" "hiddenAll"
+		    ::xmlutils::setXml "PFEM" state "write" "hiddenAll"
+		}
 	    } else {
 		::xmlutils::setXml "$id" state "write" "hiddenAll"
 	    }
+	    
 	}
     }
     
