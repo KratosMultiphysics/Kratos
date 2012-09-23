@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.2- 23/09/12-G. Socorro, Write the GroupMeshProperties before  the cut and graph properties to get the mesh reference
 #     5.1- 21/09/12-G. Socorro, write bat file only when ::tcl_platform(os) eq "Linux"
 #     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
 #                               MonolithicWallCondition2D/MonolithicWallCondition3D for monolithic solver
@@ -157,17 +158,14 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	    # Write nodal data for density and viscosity            
 	    ::wkcf::WritePropertyAtNodes $AppId
 	    
-	    # Write the cutting and point history properties
-	    ::wkcf::WriteCutAndGraph $AppId
-	 
-	}
-
-	# For fluid application
-	if {$AppId == "Fluid"} {
 	    # Write all group properties
 	    # ::wkcf::WriteGroupProperties $AppId
 	    ::wkcf::WriteGroupMeshProperties $AppId
+
+	    # Write the cutting and point history properties
+	    ::wkcf::WriteCutAndGraph $AppId
 	}
+
 
 	# End
 	write_calc_data end

@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.5- 23/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the drag forces
 #     0.4- 22/07/12-G. Socorro, write the group properties using the new mesh format
 #     0.3- 05/05/12-G. Socorro, write the group properties using the fast method 
 #     0.2- 03/04/12-G. Socorro, change Group by GroupNodes
@@ -49,8 +50,12 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
     # Write assigned group to the elements
     #
     set meshgroupid 0
-     
+
+    # Init the global mesh identifier list
+    set dprops($AppId,AllMeshId) [list]
+    
     if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+
 	# For all defined kratos elements        
 	foreach celemid $dprops($AppId,AllKElemId) {
 	    # Check for all defined group identifier for this element
@@ -65,6 +70,10 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
 		    dict set gprop $cgroupid "$f"
 		    if {[write_calc_data nodes -count $gprop]>0} {
 			incr meshgroupid 1
+			# Create the meshid-group identifier mapping
+			lappend dprops($AppId,AllMeshId) $meshgroupid
+			set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+
 			# Write mesh properties for this group
 			write_calc_data puts "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
 			# Write nodes
@@ -84,6 +93,37 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
 		    unset gprop
 		}
 	    }
+	}
+
+	# For all defined group in the drag calculation
+	# Get the value
+	set basexpath "$AppId//c.Results//c.DragOptions"
+	set dragproplist [::xmlutils::setXmlContainerIds $basexpath]
+	wa "dragproplist:$dragproplist"
+	foreach cgroupid $dragproplist {
+	    # Group properties format 
+	    set gprop [dict create]
+	    set f "%10i\n"
+	    set f [subst $f]
+	    dict set gprop $cgroupid "$f"
+	    if {[write_calc_data nodes -count $gprop]>0} {
+		incr meshgroupid 1
+		# Create the meshid-group identifier mapping
+		lappend dprops($AppId,AllMeshId) $meshgroupid
+		set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+		
+		# Write mesh properties for this group
+		write_calc_data puts "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+		# Write nodes
+		write_calc_data puts " "
+		write_calc_data puts " Begin MeshNodes"
+		write_calc_data nodes -sorted $gprop
+		write_calc_data puts " End MeshNodes"
+		write_calc_data puts " "
+		write_calc_data puts "End Mesh"
+		write_calc_data puts ""
+	    }
+	    unset gprop
 	}
     }
  }
