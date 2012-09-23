@@ -232,6 +232,14 @@ elif "monolithic_solver_eulerian": # single coupled solver
         monolithic_linear_solver = SuperLUSolver()
     elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
         monolithic_linear_solver = ParallelMKLPardisoSolver()
+    elif ProjectParameters.Monolithic_Linear_Solver == "MixedUP":
+        velocity_linear_solver = SuperLUIterativeSolver()
+	pressure_linear_solver = ScalingSolver( BICGSTABSolver(1e-3, 500) , True)
+	m = 5
+	max_it = m
+	monolithic_linear_solver = MixedUPLinearSolver(velocity_linear_solver,pressure_linear_solver,1e-6,max_it,m)
+    elif ProjectParameters.Monolithic_Linear_Solver == "SuperLUIterativeSolver":    
+        monolithic_linear_solver = ScalingSolver( SuperLUIterativeSolver() , True )
 
 #copy Y_WALL
 for node in fluid_model_part.Nodes:
@@ -446,4 +454,4 @@ else:
     gid_io.FinalizeResults()
     
           
-        
+        SuperLUIterativeSolver
