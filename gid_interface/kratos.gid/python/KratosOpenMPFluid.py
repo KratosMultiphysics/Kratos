@@ -453,5 +453,3 @@ if Multifile:
 else:
     gid_io.FinalizeResults()
     
-          
-        SuperLUIterativeSolver
