@@ -42,7 +42,7 @@
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
             <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
 	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="disabled" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
-            <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
+            <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" state="disabled" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
             <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="disabled" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>            
         </Container>
     </RootData>
@@ -133,7 +133,7 @@
 	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	  <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	   <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
-	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP" values="BiConjugate gradient stabilized,MixedUP" help="Iterative solver type options"/>
+	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP,SuperLUIterativeSolver" values="BiConjugate gradient stabilized,MixedUP,SuperLU iterative solver" help="Iterative solver type options"/>
 	  <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
 	  <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
 	  <Item id="MonolithicMixedUPKrylovSpaceDimension" pid="Krylov space dimension" monolithiciterativesolvertype="MixedUP" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="30" help="Mixed UP Krylov space dimension"/>
@@ -194,7 +194,7 @@
             <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidType="Incompressible" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
-            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="ElementBased" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
+            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
             <Container id="WallLaw" state="hidden" pid="Wall law" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
 	    <Container id="Flag-Variable" pid="Flag-Variable" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
