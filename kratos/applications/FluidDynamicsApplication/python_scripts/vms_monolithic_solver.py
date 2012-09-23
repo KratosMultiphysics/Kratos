@@ -51,7 +51,11 @@ class MonolithicSolver:
         self.move_mesh_strategy = 0
         
         #definition of the solvers
-        self.linear_solver =  SkylineLUFactorizationSolver()
+	try:
+	    from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+	    self.linear_solver = SuperLUIterativeSolver()
+	except:
+            self.linear_solver =  SkylineLUFactorizationSolver()
 ##        self.linear_solver =SuperLUSolver()
 ##        self.linear_solver = MKLPardisoSolver()
 
@@ -141,7 +145,10 @@ class MonolithicSolver:
     def Clear(self):
         (self.solver).Clear()
         
-
+    ########################################################################
+    def ActivateSmagorinsky(self,C):
+        for elem in self.model_part.Elements:
+            elem.SetValue(C_SMAGORINSKY,C)
 
 
 
