@@ -293,6 +293,13 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     # fluid_solver.pressure_linear_solver = pressure_linear_solver
     fluid_solver.Initialize()
 
+##activate turbulence model
+if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
+    fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
+elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+    print "implement this!!!"
+     
+
 
 print "fluid solver created"
 
