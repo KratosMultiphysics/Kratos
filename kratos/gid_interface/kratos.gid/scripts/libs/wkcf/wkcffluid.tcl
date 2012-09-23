@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     1.7- 23/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties in the 
+#                               that wfsmethod=0
 #     1.6- 22/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties
 #     1.5- 20/08/12-G. Socorro, correct a bug when write is_structure for 3D problems
 #     1.4- 25/07/12-G. Socorro, add VolumeOutput to 3D problem
@@ -1348,7 +1350,7 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     # Write fluid solver method
     # 0 => Old format
     # 1 => New format
-    set wfsmethod 1
+    set wfsmethod 0
     set rootid "$AppId"
     
     # Kratos key word xpath
@@ -1442,7 +1444,7 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
 		# WarnWinText "TurbulenceModel:$TurbulenceModel"
 		if {$TurbulenceModel eq "Off"} {
-		    puts $fileid "    TurbulenceModel = \"no_turbulence\""
+		    puts $fileid "    TurbulenceModel = \"None\""
 		} elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
 		    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
 		    # Get the smagorinsky-lilly constant
@@ -1452,6 +1454,25 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		    puts $fileid "    SmagorinskyConstant = $SmagorinskyConstant"
 		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
 		    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
+		}
+
+	    } else {
+
+		# Get the turbulence properties
+		set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
+		set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
+		# WarnWinText "TurbulenceModel:$TurbulenceModel"
+		if {$TurbulenceModel eq "Off"} {
+		    puts $fileid "TurbulenceModel = \"None\""
+		} elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
+		    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
+		    # Get the smagorinsky-lilly constant
+		    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
+		    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
+		    puts $fileid "SmagorinskyConstant = $SmagorinskyConstant"
+		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
+		    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
 		}
 	    }
 
@@ -1677,7 +1698,7 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
 	# preconditioner type
 	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}PreconditionerType"
 	set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
-	# WarnWinText "IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
+	# WarnWinText "vartype:$vartype IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
 	
 	# Solver type
 	set lsolver [::xmlutils::getKKWord $kxpath $IterativeSolverType]
@@ -1805,5 +1826,38 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
     # Return the cut properties
     puts $fileid "    return cut_planes_list"
     
+    # Write the drag forcest properties
+    # Kratos key word xpath
+    set kxpath "Applications/$AppId"
+
+    puts $fileid ""
+    puts $fileid "def DefineDragList():"
+    puts $fileid "    drag_list = \[\]"
+    # Get the value
+    set basexpath "$AppId//c.Results//c.DragOptions"
+    set dragproplist [::xmlutils::setXmlContainerIds $basexpath]
+    # wa "dragproplist:$dragproplist"
+    foreach cdpid $dragproplist {
+	# Get the drag force properties
+	set cxpath "${basexpath}//c.${cdpid}//c.MainProperties"
+	set alldragprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+	# wa "alldragprop:$alldragprop"
+	if {[llength $alldragprop]} {
+	    if {(([info exists dprops($AppId,Mesh,$cdpid,MeshIdGroup)]) && ($dprops($AppId,Mesh,$cdpid,MeshIdGroup) !=""))} { 
+		# Get the mesh identifier
+		set MeshIdGroup $dprops($AppId,Mesh,$cdpid,MeshIdGroup)
+	    	
+		# Get the file identifier
+		set filename [lindex $alldragprop 0 1]
+		
+		# add each mesh identifier with the file when will be write the drag forces "fileidentifier"
+		puts $fileid "    drag_list.append( \[ $MeshIdGroup, \"$filename\" \] )"
+	    }
+	}
+    }
+
+    # Return the drag forces properties
+    puts $fileid "    return drag_list"
+
     close $fileid
 }
