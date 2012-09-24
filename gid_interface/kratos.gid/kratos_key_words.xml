@@ -78,6 +78,8 @@
 		<Item id="Continuous" kkword="1" />
 		<Item id="Discrete" kkword="2" />
 		<Item id="DiscreteWithDt" kkword="3" />
+		<Item id="MixedUP" kkword="MixedUP" />
+		<Item id="SuperLUIterativeSolver" kkword="SuperLUIterativeSolver" />
 		<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
         <Item id="ConjugateGradient" kkword="Conjugate gradient" />
         <Item id="Diagonal" kkword="Diagonal" />
