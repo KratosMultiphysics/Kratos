@@ -99,7 +99,7 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
 	# Get the value
 	set basexpath "$AppId//c.Results//c.DragOptions"
 	set dragproplist [::xmlutils::setXmlContainerIds $basexpath]
-	wa "dragproplist:$dragproplist"
+	# wa "dragproplist:$dragproplist"
 	foreach cgroupid $dragproplist {
 	    # Group properties format 
 	    set gprop [dict create]
