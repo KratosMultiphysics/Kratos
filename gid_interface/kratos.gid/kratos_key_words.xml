@@ -80,6 +80,7 @@
 		<Item id="DiscreteWithDt" kkword="3" />
 		<Item id="MixedUP" kkword="MixedUP" />
 		<Item id="SuperLUIterativeSolver" kkword="SuperLUIterativeSolver" />
+		<Item id="DivergenceCleareanceStep" kkword="divergence_cleareance_step" />
 		<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
         <Item id="ConjugateGradient" kkword="Conjugate gradient" />
         <Item id="Diagonal" kkword="Diagonal" />
