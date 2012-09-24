@@ -426,8 +426,8 @@
                 <Item id="Px" pid="X" dv="0.0" help="X coordinate of the output point"/>
                 <Item id="Py" pid="Y" dv="0.0" help="Y coordinate of the output point"/>
                 <Item id="Pz" pid="Z" dv="0.0" nDim="3D" help="Z coordinate of the output point"/>
-                <Item id="VariableId2d" pid="Variable to be plotted"  nDim="2D" ivalues="Pressure,Velocity_x,Velocity_y" values="Pressure,Velocity_x,Velocity_y" help="Variable to be plotted for this output point"/>
-                <Item id="VariableId3d" pid="Variable to be plotted" nDim="3D" ivalues="Pressure,Velocity_x,Velocity_y,Velocity_z" values="Pressure,Velocity_x,Velocity_y,Velocity_z" help="Variable to be plotted for this output point"/>
+                <Item id="VariableId2d" pid="Variable to be plotted"  nDim="2D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
+                <Item id="VariableId3d" pid="Variable to be plotted" nDim="3D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
                 <Item id="FileId" pid="Output file"  dv="" help="Output file identifier"/>
             </Container>
         </Template>
