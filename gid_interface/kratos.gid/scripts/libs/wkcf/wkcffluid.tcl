@@ -1599,7 +1599,7 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
     # Get the kratos keyword
     set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
-    wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
+    # wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
     puts $fileid "$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"
 
     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
