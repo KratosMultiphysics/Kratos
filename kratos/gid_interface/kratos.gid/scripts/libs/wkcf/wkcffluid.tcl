@@ -12,8 +12,6 @@
 #
 #    HISTORY:
 #
-#     1.8- 24/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write the group-meshid link and the turbulence
-#                               properties for the model "Spalart-Allmaras" (turbulence viscosity and group-meshid array)
 #     1.7- 23/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties in the 
 #                               that wfsmethod=0
 #     1.6- 22/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties
@@ -1596,6 +1594,14 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
 
+    # Get the divergence clearance step
+    set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
+    set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
+    # Get the kratos keyword
+    set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
+    wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
+    puts $fileid "$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"
+
     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
     puts $fileid "Dt = $DeltaTime"
     puts $fileid "Start_time = $StartTime"
@@ -1887,7 +1893,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
     # Return the cut properties
     puts $fileid "    return cut_planes_list"
     
-    # Write the drag forces properties
+    # Write the drag forcest properties
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
 
