@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.3- 24/09/12-G. Socorro, create a new variable "wbatfile" to control when write the bat file for Kratos 
 #     5.2- 23/09/12-G. Socorro, Write the GroupMeshProperties before  the cut and graph properties to get the mesh reference
 #     5.1- 21/09/12-G. Socorro, write bat file only when ::tcl_platform(os) eq "Linux"
 #     5.0- 07/06/12-G. Socorro, modify the proc WriteConditions to write WallCondition2D/WallCondition3D for fractional step solver and 
@@ -102,6 +103,9 @@ namespace eval ::wkcf:: {
     # 0 => Metodo antiguo (Poco eficiente)
     # 1 => Metodo nuevo (write_calc_data)
     variable wmethod 
+
+    # To write the bat file
+    variable wbatfile
 }
 
 proc ::wkcf::WriteCalculationFiles {filename} {
@@ -185,9 +189,12 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	::wkcf::WriteConstitutiveLawsProperties
     }
 
-    # Write bat file only for the Linux OS
-    if {($::tcl_platform(os) eq "Linux")} {
-	::wkcf::WriteBatFile $AppId
+    variable wbatfile
+    if {$wbatfile} {
+	# Write bat file only for the Linux OS
+	if {($::tcl_platform(os) eq "Linux")} {
+	    ::wkcf::WriteBatFile $AppId
+	}
     }
     
     # Unset some local variables
