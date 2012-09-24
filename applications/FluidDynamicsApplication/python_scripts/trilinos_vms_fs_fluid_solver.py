@@ -374,5 +374,8 @@ class IncompressibleFluidSolver:
 
         self.solver.AddIterationStep(turbulence_model);
 
-        
+    ########################################################################
+    def ActivateSmagorinsky(self,C):
+        for elem in self.model_part.Elements:
+            elem.SetValue(C_SMAGORINSKY,C)        
 
