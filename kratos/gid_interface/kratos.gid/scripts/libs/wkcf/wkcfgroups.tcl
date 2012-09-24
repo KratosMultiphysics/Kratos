@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.6- 24/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the Spalart-Allmaras turbulence model
 #     0.5- 23/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the drag forces
 #     0.4- 22/07/12-G. Socorro, write the group properties using the new mesh format
 #     0.3- 05/05/12-G. Socorro, write the group properties using the fast method 
@@ -124,6 +125,56 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
 		write_calc_data puts ""
 	    }
 	    unset gprop
+	}
+
+	# Check for used Spalart-Allmaras turbulence model
+	set rootid "$AppId"
+	set cproperty "dv"
+	# Get the turbulence properties
+	set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
+	set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "TurbulenceModel:$TurbulenceModel"
+	if {$TurbulenceModel eq "Spalart-Allmaras"} {
+	    variable ndime
+	    # Get the values
+	    set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
+	    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+	    # wa "gproplist:$gproplist"
+	    foreach cgroupid $gproplist {
+		# Get the group properties
+		set cxpath "${basexpath}//c.${cgroupid}//c.MainProperties"
+		set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+		# wa "allgprop:$allgprop"
+		if {[llength $allgprop]} {
+		    set Activate [lindex $allgprop 0 1]
+		    # wa "Activate:$Activate"
+		    if {$Activate} {
+			# Group properties format 
+			set gprop [dict create]
+			set f "%10i\n"
+			set f [subst $f]
+			dict set gprop $cgroupid "$f"
+			if {[write_calc_data nodes -count $gprop]>0} {
+			    incr meshgroupid 1
+			    # Create the meshid-group identifier mapping
+			    lappend dprops($AppId,AllMeshId) $meshgroupid
+			    set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+			    
+			    # Write mesh properties for this group
+			    write_calc_data puts "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+			    # Write nodes
+			    write_calc_data puts " "
+			    write_calc_data puts " Begin MeshNodes"
+			    write_calc_data nodes -sorted $gprop
+			    write_calc_data puts " End MeshNodes"
+			    write_calc_data puts " "
+			    write_calc_data puts "End Mesh"
+			    write_calc_data puts ""
+			}
+			unset gprop
+		    }
+		}
+	    }
 	}
     }
  }

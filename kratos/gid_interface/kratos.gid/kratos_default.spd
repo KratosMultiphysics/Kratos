@@ -127,7 +127,9 @@
         <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>        
          <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
 	 <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
-           </Container>
+	 <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="1"/>
+	 <Container id="Spalart-AllmarasGroupId3D" pid="Spalart-Allmaras groups" nDim="3D" GiDEntity="point,line,surface" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="1"/>          
+ </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
         <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
@@ -395,6 +397,11 @@
 	<Template id="IsBoundary" icon="groupsTree.gif" help="Is-boundary conditional data">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="Activate" pid="Activate" dv="1" ivalues="1,0" values="1,0" help="Select the activate option value"/>
+	    </Container>
+        </Template>
+	<Template id="TurbulenceGroupId" icon="groupsTree.gif" help="">
+            <Container id="MainProperties" pid="New group" state="hidden" help="Values">
+	      <Item id="Activate" pid="Activate" dv="1" ivalues="1,0" values="1,0" help="Select the activate option value"/>
 	    </Container>
         </Template>
          <Template id="WallLaw" icon="groupsTree.gif" help="Wall law nodaI data">

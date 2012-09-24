@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     1.8- 24/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write the group-meshid link and the turbulence
+#                               properties for the model "Spalart-Allmaras" (turbulence viscosity and group-meshid array)
 #     1.7- 23/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties in the 
 #                               that wfsmethod=0
 #     1.6- 22/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties
@@ -1473,6 +1475,48 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		    puts $fileid "SmagorinskyConstant = $SmagorinskyConstant"
 		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
 		    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
+		    # Get the value of the turbulence viscosity
+		    set cxpath "$rootid//c.AnalysisData//i.TurbulentViscosity"
+		    set TurbulentViscosity [::xmlutils::setXml $cxpath $cproperty]
+		    # wa "TurbulentViscosity:$TurbulentViscosity"
+		    puts $fileid "TurbulentViscosity = $TurbulentViscosity"
+		    
+		    # Try to get the group-mesh link  
+		    # SA_wall_group_ids = [1, 5, 3]
+		    # Get the values
+		    set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
+		    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+		    # wa "gproplist:$gproplist"
+		    if {[llength $gproplist]} {
+			set meshidlist [list]
+			foreach cgroupid $gproplist {
+			    # Get the group properties
+			    set cxpath "${basexpath}//c.${cgroupid}//c.MainProperties"
+			    set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+			    # wa "allgprop:$allgprop"
+			    if {[llength $allgprop]} {
+				set Activate [lindex $allgprop 0 1]
+				# wa "Activate:$Activate"
+				if {$Activate} {
+				    if {[info exists dprops($AppId,Mesh,$cgroupid,MeshIdGroup)]} {
+					set MeshIdGroup $dprops($AppId,Mesh,$cgroupid,MeshIdGroup)
+					# wa "MeshIdGroup:$MeshIdGroup"
+					if {$MeshIdGroup !=""} {
+					    append meshidlist "$MeshIdGroup,"
+					}
+				    }
+				}
+			    }
+			}
+			# wa "meshidlist:$meshidlist"
+			set findcomma [string last "," $meshidlist]
+			if {$findcomma !="-1"} {
+			    set meshidlist [string range $meshidlist 0 end-1]
+			    append meshidlist "\]"
+			    set endmeshidlist "\[${meshidlist}"
+			    puts $fileid "SA_wall_group_ids = $endmeshidlist"
+			}
+		    }
 		}
 	    }
 
@@ -1584,6 +1628,23 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	if {$dprops($AppId,UseSlipConditions)} {
 	    puts $fileid "Use_slip_conditions = True"
 	}
+    }
+
+    # Write the group dictionary
+    set arrinfo [array get dprops $AppId,Mesh,*,MeshIdGroup]
+    if {[llength $arrinfo]} {
+	puts $fileid ""
+	puts $fileid "groups_dictionary = \{"
+	foreach {name val} $arrinfo {
+	    set lastchar [string last "h," $name] 
+	    set firstchar [string first ",MeshIdGroup" $name] 
+	    set groupid "[string range $name [expr $lastchar+2] [expr $firstchar-1]]"
+	    # wa "name:$name val:$val lastchar:$lastchar firstchar:$firstchar groupid:$groupid"
+	    if {$val !=""} {
+		puts $fileid "        \"$groupid\" : $val," 
+	    }
+	}
+	puts $fileid "                   \}"
     }
 
     puts $fileid ""
@@ -1826,7 +1887,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
     # Return the cut properties
     puts $fileid "    return cut_planes_list"
     
-    # Write the drag forcest properties
+    # Write the drag forces properties
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
 
