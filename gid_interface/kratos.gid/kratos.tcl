@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     1.8- 24/09/12- G. Socorro, modify the event SelectGIDBatFile to include the number of processors in the command line
 #     1.7- 21/09/12- G. Socorro, correct a bug in the proc BeforeMeshGeneration use {*} to get all the surface identifier
 #     1,6- 22/07/12- G. Socorro, modify the BeforeMeshGeneration to automatically mesh de boundary lines/surfaces when use Is-Slip BC
 #     1.5- 09/05/12- G. Socorro, use conditions only in the fluid application
@@ -430,6 +431,7 @@ proc EndGIDPostProcess { } {
 proc SelectGIDBatFile {directory basename } {
 
     set batfilename ""
+    set args ""
     
     # Get the parallel solution type
     set rootid "Fluid"
@@ -439,9 +441,18 @@ proc SelectGIDBatFile {directory basename } {
     set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
     set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
     
+
     if {$ParallelSolutionType eq "MPI"} {
 	if {($::tcl_platform(os) eq "Linux")} {
 	    set batfilename "kratos-mpi.unix.bat"
+	    #  Get the number of processors
+	    set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+	    set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+	    if {$MPINumberOfProcessors>0} {
+		# Calculate arguments
+		set args "$MPINumberOfProcessors"
+	    }
 	}
     } else {
 	# OpenMP
@@ -451,12 +462,10 @@ proc SelectGIDBatFile {directory basename } {
 	    set batfilename "kratos.win.bat"
 	}
     }
-
-    # Calculate arguments
-    #set args ""
-    # set ret "$batfilename $args"
-    set ret "$batfilename"
-    # WarnWinText "\n\nret:$ret" 
+    
+    set ret "$batfilename $args"
+    # set ret "$batfilename"
+    # wa "\n\nret:$ret" 
     if {$batfilename != ""} {
 	return $ret
     } else {

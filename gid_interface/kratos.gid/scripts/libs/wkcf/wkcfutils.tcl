@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     2.2- 24/09/12-G. Socorro, init the new variable "wbatfile" to 0
 #     2.1- 21/09/12-G. Socorro, update the proc WriteBatFile to write the bat file for Linux OS
 #     2.0- 23/07/12-G. Socorro, add the "ConstantValue" to the Is-Slip condition
 #     1.9- 13/05/12-G. Socorro, set/unset the local variable ctbclink (condition to bc linker)
@@ -116,6 +117,10 @@ proc ::wkcf::Preprocess {} {
     # 1 => Metodo nuevo (write_calc_data)
     variable wmethod 
     set wmethod 1
+
+    # To write the bat file
+    variable wbatfile
+    set wbatfile 0
 
     # Debug/Release variable [0 => Debug, 1 => Release] Timers
     set pflag 1
