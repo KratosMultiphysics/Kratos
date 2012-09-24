@@ -292,6 +292,7 @@ elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
 fluid_solver.Initialize()     
 
 
+
 print "fluid solver created"
 
 
@@ -332,6 +333,7 @@ else:
 
     cut_list = define_output.DefineCutPlanes()
     print cut_list
+    
     
     for item in cut_list:
        print item
@@ -410,14 +412,20 @@ while(time <= final_time):
     if(step >= 3):
         fluid_solver.Solve()
         
-        if(step < 20):
-	  print "DOING DIVERGENCE CLEAREANCE"
-	  buffer_size = fluid_model_part.GetBufferSize()
-	  for i in range(0,buffer_size-1):
-	    for node in fluid_model_part.Nodes:
-	      vel = node.GetSolutionStepValue(VELOCITY)
-	      node.SetSolutionStepValue(VELOCITY,i,vel)
-	      node.SetSolutionStepValue(PRESSURE,i,0.0)
+        if(step < 4):
+	  for k in range(0,20):
+	      print "DOING DIVERGENCE CLEAREANCE"
+	      buffer_size = fluid_model_part.GetBufferSize()
+	      for i in range(0,buffer_size):
+		for node in fluid_model_part.Nodes:
+		  vel = node.GetSolutionStepValue(VELOCITY)
+		  node.SetSolutionStepValue(VELOCITY,i,vel)
+		  node.SetSolutionStepValue(PRESSURE,i,0.0)
+		  
+		if(SolverType == "monolithic_solver_eulerian"):
+		  for node in fluid_model_part.Nodes:
+		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
+	      fluid_solver.Solve()
         
         graph_printer.PrintGraphs(time)
 
