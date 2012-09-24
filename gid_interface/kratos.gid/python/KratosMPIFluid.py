@@ -53,7 +53,7 @@ if(SolverType == "FractionalStep"):
     import trilinos_vms_fs_fluid_solver as solver
     solver.AddVariables(fluid_model_part)
 elif(SolverType == "monolithic_solver_eulerian"):
-    import vms_monolithic_solver as solver
+    import trilinos_vms_monolithic_solver as solver
     solver.AddVariables(fluid_model_part)
 else:
     raise NameError("solver type not supported: options are FractionalStep  - monolithic_solver_eulerian")
@@ -146,7 +146,6 @@ if(SolverType == "FractionalStep"):
     fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
     fluid_solver.dynamic_tau = float(dynamic_tau)
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.oss_switch = int(oss_switch)
@@ -157,12 +156,14 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
     fluid_solver.max_iter = ProjectParameters.max_iterations
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    fluid_solver.Initialize()
-elif(SolverType == "monolithic_solver_eulerian_compressible"): 
-    print "monolithic_solver_eulerian_compressible is not available in mpi"
-    err
 
+##activate turbulence model
+if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
+    fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
+elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+    print "implement this!!!"
 
+fluid_solver.Initialize()
 print "fluid solver created"
 
 
@@ -261,6 +262,10 @@ output_time = ProjectParameters.output_time
 time = ProjectParameters.Start_time
 out = 0
 step = 0
+zero_vector = Vector(3)
+zero_vector[0] = 0.0
+zero_vector[1] = 0.0
+zero_vector[2] = 0.0
 
 while(time <= final_time):
 
@@ -278,6 +283,21 @@ while(time <= final_time):
 
     if(step >= 3):
         fluid_solver.Solve()
+        
+        if(step < 20):
+	    if(mpi.rank == 0):
+	      print "DOING DIVERGENCE CLEAREANCE"
+	    buffer_size = fluid_model_part.GetBufferSize()
+	    for i in range(0,buffer_size):
+	      for node in fluid_model_part.Nodes:
+		vel = node.GetSolutionStepValue(VELOCITY)
+		node.SetSolutionStepValue(VELOCITY,i,vel)
+		node.SetSolutionStepValue(PRESSURE,i,0.0)
+		
+	      if(SolverType == "monolithic_solver_eulerian"):
+		for node in fluid_model_part.Nodes:
+		  node.SetSolutionStepValue(ACCELERATION,0,zero_vector)
+
         
         graph_printer.PrintGraphs(time)
 
