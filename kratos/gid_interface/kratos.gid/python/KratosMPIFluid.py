@@ -30,6 +30,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MetisApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
 ## defining variables to be used
 
@@ -284,19 +285,21 @@ while(time <= final_time):
     if(step >= 3):
         fluid_solver.Solve()
         
-        if(step < 20):
-	    if(mpi.rank == 0):
-	      print "DOING DIVERGENCE CLEAREANCE"
-	    buffer_size = fluid_model_part.GetBufferSize()
-	    for i in range(0,buffer_size):
-	      for node in fluid_model_part.Nodes:
-		vel = node.GetSolutionStepValue(VELOCITY)
-		node.SetSolutionStepValue(VELOCITY,i,vel)
-		node.SetSolutionStepValue(PRESSURE,i,0.0)
-		
-	      if(SolverType == "monolithic_solver_eulerian"):
-		for node in fluid_model_part.Nodes:
-		  node.SetSolutionStepValue(ACCELERATION,0,zero_vector)
+        if(step < 4):
+	    for k in range(0,20):
+		if(mpi.rank == 0):
+		  print "DOING DIVERGENCE CLEAREANCE"
+		buffer_size = fluid_model_part.GetBufferSize()
+		for i in range(0,buffer_size):
+		  for node in fluid_model_part.Nodes:
+		    vel = node.GetSolutionStepValue(VELOCITY)
+		    node.SetSolutionStepValue(VELOCITY,i,vel)
+		    node.SetSolutionStepValue(PRESSURE,i,0.0)		    
+		  if(SolverType == "monolithic_solver_eulerian"):
+		    for node in fluid_model_part.Nodes:
+		      node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
+		      
+		fluid_solver.Solve()
 
         
         graph_printer.PrintGraphs(time)
