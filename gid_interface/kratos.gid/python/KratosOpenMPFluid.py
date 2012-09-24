@@ -259,10 +259,6 @@ if(SolverType == "FractionalStep"):
     fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
     fluid_solver.dynamic_tau = float(dynamic_tau)
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    # Solver definition
-    #fluid_solver.velocity_linear_solver = velocity_linear_solver
-    #fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian"): 
     fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.oss_switch = int(oss_switch)
@@ -273,10 +269,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
     fluid_solver.max_iter = ProjectParameters.max_iterations
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    # Solver definition
     fluid_solver.linear_solver = monolithic_linear_solver
-    # fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
 elif(SolverType == "monolithic_solver_eulerian_compressible"): 
     fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
     fluid_solver.oss_switch = int(oss_switch)
@@ -287,18 +280,16 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
     fluid_solver.max_iter = ProjectParameters.max_iterations
     fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-    # Solver definition
     fluid_solver.linear_solver = monolithic_linear_solver
-    # fluid_solver.velocity_linear_solver = velocity_linear_solver
-    # fluid_solver.pressure_linear_solver = pressure_linear_solver
-    fluid_solver.Initialize()
+
 
 ##activate turbulence model
 if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
     fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
 elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
     print "implement this!!!"
-     
+
+fluid_solver.Initialize()     
 
 
 print "fluid solver created"
@@ -404,7 +395,7 @@ step = 0
 
 while(time <= final_time):
 
-    if(step < 5):
+    if(step < 3):
         Dt = initial_Dt
     else:
         Dt = full_Dt
@@ -418,6 +409,15 @@ while(time <= final_time):
 
     if(step >= 3):
         fluid_solver.Solve()
+        
+        if(step < 20):
+	  print "DOING DIVERGENCE CLEAREANCE"
+	  buffer_size = fluid_model_part.GetBufferSize()
+	  for i in range(0,buffer_size-1):
+	    for node in fluid_model_part.Nodes:
+	      vel = node.GetSolutionStepValue(VELOCITY)
+	      node.SetSolutionStepValue(VELOCITY,i,vel)
+	      node.SetSolutionStepValue(PRESSURE,i,0.0)
         
         graph_printer.PrintGraphs(time)
 
