@@ -46,7 +46,7 @@ class PrintGraphPrinter:
 		  
 		
 				
-		aaa = str("output for var: ") + str(item[1]) + str(" on node with coord") + str(item[0]) + "\n"
+		aaa = str("#output for var: ") + str(item[1]) + str(" on node with coord") + str(item[0]) + "\n"
 		outfile.write(aaa)
 		
 		self.N.append(shape_functions)
