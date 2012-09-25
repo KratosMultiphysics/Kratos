@@ -71,6 +71,11 @@ install(TARGETS KratosCore DESTINATION libs )
 #     SET_TARGET_PROPERTIES( KratosCore PROPERTIES COMPILE_FLAGS -fPIC)
 # endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+if(${INSTALL_PYTHON_FILES} MATCHES ON)
+  get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts DESTINATION kratos/python_scripts  FILES_MATCHING PATTERN "*.py"  PATTERN ".svn" EXCLUDE)
+endif(${INSTALL_PYTHON_FILES} MATCHES ON)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(Kratos SHARED ${KRATOS_PYTHON_SOURCES})
