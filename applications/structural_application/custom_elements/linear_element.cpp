@@ -366,8 +366,7 @@ void LinearElement::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 void LinearElement::InitializeMaterial()
 {
     KRATOS_TRY
-    KRATOS_WATCH( GetProperties()[CONSTITUTIVE_LAW] );
-
+    
     if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
