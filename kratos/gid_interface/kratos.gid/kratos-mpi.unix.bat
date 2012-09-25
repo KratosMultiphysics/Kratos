@@ -1,19 +1,17 @@
-REM @ECHO OFF
-REM Identification for arguments
-REM basename                          = %1
-REM Project directory                 = %2
-REM Problem directory                 = %3
-REM GiD installation path             = %4
-REM Number of processor               = %5
+#!/bin/bash -i
+echo hola
+echo par1 : $1
+echo "1. param: $1" > /tmp/kk.txt
+echo "2. param: $2" >> /tmp/kk.txt
+echo "3. param: $3" >> /tmp/kk.txt
+echo "4. param: $4" >> /tmp/kk.txt
+echo "5. param: $5" >> /tmp/kk.txt
+#    OutputFile: $2/$1.info
+#    ErrorFile: $2/$1.err
+#delete previous result file
+rm -f "$2/$1.post.bin"
+rm -f "$2/$1.info"
+rm -f "$2/$1.err"
+rm -f "$2/$1.flavia.dat"
 
-REM ECHO 1: %1; 2: %2; 3: %3; 4: %4 5: %5 > test.txt
- 
-REM OutputFile: %2\%1.info
-REM ErrorFile: %2\%1.err
- 
-DEL %2\%1.info
-DEL %2\%1.post.bin
-DEL %2\%1.err
-
-REM Run the python script
-mpirun -np %5 python kratosMPI.py > %2\%1.info 2> %2\%1.err
+mpirun -np $5 /usr/bin/python KratosMPI.py >"$2/$1.info" 2>"$2/$1.err"
