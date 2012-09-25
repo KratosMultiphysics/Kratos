@@ -64,7 +64,8 @@ else:
 if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
   fluid_model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
   fluid_model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
-  fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+  fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+
   fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
   
 #introducing input file name
@@ -409,10 +410,7 @@ while(time <= final_time):
 
     out = out + Dt
 
-if Multifile:
-    f.close()
-else:
-    gid_io.FinalizeResults()
+gid_io.FinalizeResults()
     
           
         
