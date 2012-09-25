@@ -80,6 +80,8 @@ class IncompressibleFluidSolver:
 
         self.dynamic_tau = 0.001
         self.activate_tau2 = False
+        
+        self.Comm = CreateCommunicator()
 
 
 ##        ########################################################
@@ -185,7 +187,7 @@ class IncompressibleFluidSolver:
 #        print "in python: okkio using Coupled Strategy"
 #        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
 
-        self.Comm = CreateCommunicator()
+        
 ##        print self.Comm
 
         MoveMeshFlag = False
@@ -336,43 +338,45 @@ class IncompressibleFluidSolver:
 
 
     def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-        for node in wall_nodes:
-            node.SetValue(IS_VISITED,1.0)
+	self.wall_nodes  = wall_nodes
+	self.use_spalart_allmaras = True
+        #for node in wall_nodes:
+            #node.SetValue(IS_VISITED,1.0)
 
-        if(self.domain_size == 2):
-            self.redistance_utils = ParallelDistanceCalculator2D()
-        else:
-            self.redistance_utils = ParallelDistanceCalculator3D()
+        #if(self.domain_size == 2):
+            #self.redistance_utils = ParallelDistanceCalculator2D()
+        #else:
+            #self.redistance_utils = ParallelDistanceCalculator3D()
 
-        max_levels = 100
-        max_distance = 1000
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+        #max_levels = 100
+        #max_distance = 1000
+        #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
 
-        non_linear_tol = 0.001
-        max_it = 10
-        reform_dofset = self.ReformDofAtEachIteration
-        time_order = self.time_order
+        #non_linear_tol = 0.001
+        #max_it = 10
+        #reform_dofset = self.ReformDofAtEachIteration
+        #time_order = self.time_order
 
-        turb_aztec_parameters = ParameterList()
-        turb_aztec_parameters.set("AZ_solver","AZ_gmres");
-        turb_aztec_parameters.set("AZ_kspace",100);
-        turb_aztec_parameters.set("AZ_output","AZ_none");
+        #turb_aztec_parameters = ParameterList()
+        #turb_aztec_parameters.set("AZ_solver","AZ_gmres");
+        #turb_aztec_parameters.set("AZ_kspace",100);
+        #turb_aztec_parameters.set("AZ_output","AZ_none");
 
-        turb_preconditioner_type = "ILU"
-        turb_preconditioner_parameters = ParameterList()
-        turb_overlap_level = 0
-        turb_nit_max = 1000
-        turb_linear_tol = 1e-9
+        #turb_preconditioner_type = "ILU"
+        #turb_preconditioner_parameters = ParameterList()
+        #turb_overlap_level = 0
+        #turb_nit_max = 1000
+        #turb_linear_tol = 1e-9
 
-        turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
-        turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+        #turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
+        #turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
 
-        turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
-        turbulence_model.AdaptForFractionalStep()
-        if(DES==True):
-            turbulence_model.ActivateDES(CDES);
+        #turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+        #turbulence_model.AdaptForFractionalStep()
+        #if(DES==True):
+            #turbulence_model.ActivateDES(CDES);
 
-        self.solver.AddIterationStep(turbulence_model);
+        #self.solver.AddIterationStep(turbulence_model);
 
     ########################################################################
     def ActivateSmagorinsky(self,C):

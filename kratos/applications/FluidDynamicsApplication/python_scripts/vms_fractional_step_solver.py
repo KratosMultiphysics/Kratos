@@ -170,15 +170,18 @@ class IncompressibleFluidSolver:
                 node.SetValue(IS_VISITED,1.0)
 
             distance_calculator = BodyDistanceCalculationUtils()
-            distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
-
+            if(self.domain_size == 2):
+	      distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+	    else:
+	      distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE,100.0)
+	      
             sa_non_linear_tol = 0.001
             sa_max_it = 10
 
             reform_dofset = self.ReformDofAtEachIteration
             time_order = self.time_order
             pPrecond = DiagonalPreconditioner()
-            turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
+            turbulence_linear_solver =  BICGSTABSolver(1e-9, 5000,pPrecond)
 
             self.solver_settings.SetTurbulenceModel(TurbulenceModelLabel.SpalartAllmaras,
                                              turbulence_linear_solver,
@@ -270,25 +273,27 @@ class IncompressibleFluidSolver:
             elem.SetValue(C_SMAGORINSKY,C)
 
     def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-        import KratosMultiphysics.FluidDynamicsApplication as KCFD
-        for node in wall_nodes:
-            node.SetValue(IS_VISITED,1.0)
+        self.use_spalart_allmaras = True
+        self.wall_nodes = wall_nodes
+        #import KratosMultiphysics.FluidDynamicsApplication as KCFD
+        #for node in wall_nodes:
+            #node.SetValue(IS_VISITED,1.0)
 
-        distance_calculator = BodyDistanceCalculationUtils()
-        distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+        #distance_calculator = BodyDistanceCalculationUtils()
+        #distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
 
-        non_linear_tol = 0.001
-        max_it = 10
-        reform_dofset = self.ReformDofAtEachIteration
-        time_order = self.time_order
-        pPrecond = DiagonalPreconditioner()
-        turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
-        turbulence_model = KCFD.SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
-##        turbulence_model.AdaptForFractionalStep()
-        if(DES==True):
-            turbulence_model.ActivateDES(CDES);
+        #non_linear_tol = 0.001
+        #max_it = 10
+        #reform_dofset = self.ReformDofAtEachIteration
+        #time_order = self.time_order
+        #pPrecond = DiagonalPreconditioner()
+        #turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
+        #turbulence_model = KCFD.SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
+###        turbulence_model.AdaptForFractionalStep()
+        #if(DES==True):
+            #turbulence_model.ActivateDES(CDES);
 
-        self.solver.AddIterationStep(turbulence_model);
+        #self.solver.AddIterationStep(turbulence_model);
 
 
 

@@ -84,6 +84,8 @@ class MonolithicSolver:
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
         self.use_slip_conditions = False
+        
+        self.turbulence_model = None
     
 ##        print "Construction monolithic solver finished"
         
@@ -111,7 +113,15 @@ class MonolithicSolver:
                                            self.rel_pres_tol,self.abs_pres_tol)
 ##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
-	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy, self.domain_size )
+	if self.turbulence_model == None:
+            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               ( self.alpha,self.move_mesh_strategy,self.domain_size )
+        else:
+            self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
+                               (self.alpha,\
+                                self.move_mesh_strategy,\
+                                self.domain_size,\
+                                self.turbulence_model)
 	
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.compute_reactions, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
@@ -150,5 +160,33 @@ class MonolithicSolver:
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,C)
 
+    ########################################################################
+    def ActivateSpalartAllmaras(self,wall_nodes,DES=False,CDES=1.0):
 
+        number_of_avg_elems = 10
+        number_of_avg_nodes = 10
+        neighbour_search = FindNodalNeighboursProcess(self.model_part,number_of_avg_elems,number_of_avg_nodes)
+        neighbour_search.Execute()
+
+        for node in wall_nodes:
+          node.SetValue(IS_VISITED,1.0)
+          node.SetSolutionStepValue(DISTANCE,0,0.0)
+
+        # Compute distance function
+        distance_calculator = BodyDistanceCalculationUtils()
+        if(self.domain_size == 2):
+	  distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+        elif(self.domain_size == 3):
+	  distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE,100.0)
+
+        non_linear_tol = 0.001
+        max_it = 10
+        reform_dofset = self.ReformDofSetAtEachStep
+        time_order = 2
+        pPrecond = DiagonalPreconditioner()
+        turbulence_linear_solver =  BICGSTABSolver(1e-9, 5000,pPrecond)
+
+        self.turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+        if DES:
+            self.turbulence_model.ActivateDES(CDES)
 
