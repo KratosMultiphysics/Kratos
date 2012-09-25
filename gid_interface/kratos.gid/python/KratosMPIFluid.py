@@ -245,9 +245,8 @@ else:
        cut_number = cut_number + 1
        print "generated cut number =",cut_number
       
-    if(len(cut_model_part.Conditions) != 0):
-	Cut_App.AddSkinConditions(fluid_model_part,cut_model_part, cut_number)
-	cut_number += 1      
+    Cut_App.AddSkinConditions(fluid_model_part,cut_model_part, cut_number)
+    cut_number += 1      
     
     ###mesh to be printed (single mesh case)
     mesh_name = mpi.rank
