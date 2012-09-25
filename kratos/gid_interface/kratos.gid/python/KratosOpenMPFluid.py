@@ -10,6 +10,12 @@ def PrintResults(model_part):
         gid_io.WriteNodalResults(variables_dictionary[variable_name],model_part.Nodes,time,0)
     for variable_name in ProjectParameters.gauss_points_results:
         gid_io.PrintOnGaussPoints(variables_dictionary[variable_name],model_part,time)
+        
+    if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+	gid_io.WriteNodalResults(VISCOSITY,model_part.Nodes,time,0)
+	#gid_io.WriteNodalResults(MOLECULAR_VISCOSITY,model_part.Nodes,time,0)
+	#gid_io.WriteNodalResults(TURBULENT_VISCOSITY,model_part.Nodes,time,0)
+	#gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
 
 
 ##################################################################
@@ -57,6 +63,11 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
 else:
     raise NameError("solver type not supported: options are FractionalStep  - monolithic_solver_eulerian")
 
+if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+  fluid_model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+  fluid_model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+  fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+  fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
 
@@ -99,10 +110,7 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-if SolverType == "FractionalStep":
-    fluid_model_part.SetBufferSize(3)
-else:
-    fluid_model_part.SetBufferSize(2)
+fluid_model_part.SetBufferSize(3)
 
 ##adding dofs
 if(SolverType == "FractionalStep"):
@@ -112,6 +120,10 @@ elif(SolverType == "monolithic_solver_eulerian"):
 elif(SolverType == "monolithic_solver_eulerian_compressible"):
     solver.AddDofs(fluid_model_part)
 
+if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+    for node in fluid_model_part.Nodes:
+       node.AddDof(TURBULENT_VISCOSITY)
+       
 # If Lalplacian form = 2, free all pressure Dofs
 laplacian_form = ProjectParameters.laplacian_form 
 if(laplacian_form >= 2):
@@ -287,7 +299,28 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
 if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
     fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
 elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
-    print "implement this!!!"
+    ##apply the initial turbulent viscosity on all of the nodes
+    turb_visc = ProjectParameters.TurbulentViscosity
+    for node in fluid_model_part.Nodes:
+      node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,turb_visc);
+      visc = node.GetSolutionStepValue(VISCOSITY)
+      node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
+      if(node.IsFixed(VELOCITY_X)):
+	  node.Fix(TURBULENT_VISCOSITY)
+	  
+	  
+    ##select nodes on the wall
+    wall_nodes = []
+    for i in ProjectParameters.SA_wall_group_ids:
+       nodes = fluid_model_part.GetNodes(i) ##get the nodes of the wall for SA.
+       for node in nodes:
+	  wall_nodes.append(node)
+	  node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
+	  node.Fix(TURBULENT_VISCOSITY)
+	  
+    DES = False
+    fluid_solver.ActivateSpalartAllmaras(wall_nodes,DES)
+       
 
 fluid_solver.Initialize()     
 
@@ -373,8 +406,44 @@ else:
 	f = open(ProjectParameters.problem_name+'.post.lst','w')
 	f.write('Multiple\n')    
     
+#######################################33
+#######################################33
+#define the drag computation list   
+drag_list = define_output.DefineDragList()
+drag_file_output_list = []
+for it in drag_list:
+    f = open(it[1],'w')
+    drag_file_output_list.append(f)
+    tmp = "#Drag for group " + it[1] + "\n"
+    f.write(tmp)
+    tmp = "time RX RY RZ"
+    f.write(tmp)
+    f.flush()
     
+print drag_file_output_list
     
+def PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time):
+    i = 0
+    for it in drag_list:
+      print it[0]
+      nodes = fluid_model_part.GetNodes(it[0])
+      drag = Vector(3);
+      drag[0]=0.0; drag[1]=0.0; drag[2]=0.0;
+      for node in nodes:
+	reaction = node.GetSolutionStepValue(REACTION,0)
+	drag[0] += reaction[0]
+	drag[1] += reaction[1]
+	drag[2] += reaction[2]
+	
+      output = str(time) + " " + str(drag[0]) +  " " + str(drag[1]) +  " " + str(drag[2]) + "\n"
+      #print drag_file_output_list[i]
+      #print output
+      drag_file_output_list[i].write(output)
+      drag_file_output_list[i].flush()
+      i = i+1
+
+
+
 #######################################33
 #preparing output of point graphs
 import point_graph_printer
@@ -413,7 +482,7 @@ while(time <= final_time):
         fluid_solver.Solve()
         
         if(step < 4):
-	  for k in range(0,20):
+	  for k in range(0,ProjectParameters.divergence_cleareance_step):
 	      print "DOING DIVERGENCE CLEAREANCE"
 	      buffer_size = fluid_model_part.GetBufferSize()
 	      for i in range(0,buffer_size):
@@ -423,6 +492,8 @@ while(time <= final_time):
 		  node.SetSolutionStepValue(PRESSURE,i,0.0)
 		  
 		if(SolverType == "monolithic_solver_eulerian"):
+		  zero_vector = Vector(3)
+		  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
 		  for node in fluid_model_part.Nodes:
 		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
 	      fluid_solver.Solve()
@@ -439,6 +510,7 @@ while(time <= final_time):
 		gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
 	    
 	    PrintResults(fluid_model_part)
+	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 	    out = 0
 	else:
 	    cut_model_part.CloneTimeStep(time)
@@ -452,6 +524,7 @@ while(time <= final_time):
 		gid_io.InitializeResults(time,(cut_model_part).GetMesh())
 	    
 	    PrintResults(cut_model_part)
+	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 	    out = 0	    
 
         if Multifile:
@@ -467,4 +540,8 @@ if Multifile:
     f.close()
 else:
     gid_io.FinalizeResults()
+    
+for i in drag_file_output_list:
+  i.close();
+  
     
