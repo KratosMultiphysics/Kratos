@@ -150,6 +150,8 @@ public:
         mWallLawIsActive = false;
 
         mnumsubsteps=5;
+	
+	mmax_dt = 0.0;
 
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
@@ -237,7 +239,12 @@ public:
 
         mdiv_error.resize(n_nodes);
         mr_matrix_container.SetToZero(mdiv_error);
-
+	
+	mWallReductionFactor.resize(n_nodes);
+        mr_matrix_container.SetToZero(mWallReductionFactor);
+	
+	mdiag_stiffness.resize(n_nodes);
+	mr_matrix_container.SetToZero(mdiag_stiffness);
 
 //	    ValuesVectorType external_pressure;
 //	    external_pressure.resize(n_nodes);
@@ -376,6 +383,12 @@ public:
                 inode != mr_model_part.NodesEnd();
                 inode++)
             inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
+	
+	
+	
+
+
+
 
         KRATOS_CATCH("")
     }
@@ -604,7 +617,7 @@ public:
         mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 	
-	ValuesVectorType diag_stiffness(n_nodes);
+	
 
         //read time step size from Kratos
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -612,8 +625,11 @@ public:
 
 
         //compute intrinsic time
-        double time_inv_avg = 1.0/mdelta_t_avg;
+         double time_inv_avg = 1.0/mdelta_t_avg;
 
+// 	if(mmax_dt < mdelta_t_avg) mmax_dt = mdelta_t_avg;
+// 	double time_inv_avg = 1.0/mmax_dt;
+	
         double stabdt_pressure_factor  = mstabdt_pressure_factor;
         double stabdt_convection_factor  = mstabdt_convection_factor;
         double tau2_factor = mtau2_factor;
@@ -645,6 +661,33 @@ public:
 
             mTau2[i_node] = (nu_i + h_avg_i*vel_norm*0.5)*tau2_factor;
         }
+        
+//         int slip_size = mSlipBoundaryList.size();
+//         #pragma omp parallel for firstprivate(slip_size)
+//         for (int i_slip = 0; i_slip < slip_size; i_slip++)
+//         {
+// 	    unsigned int i_node = mSlipBoundaryList[i_slip];
+// 	    double& h_avg_i = mHavg[i_node];
+// 
+//             array_1d<double, TDim>& a_i = mvel_n1[i_node];
+//             const double nu_i = mViscosity[i_node];
+//             const double eps_i = mEps[i_node];
+//             //const double d_i = mD[i_node];
+//             const double lindarcy_i = mA[i_node];
+//             const double nonlindarcy_i = mB[i_node];
+// 
+//             double vel_norm = norm_2(a_i);
+// 
+//             //double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
+//             double porosity_coefficient = ComputePorosityCoefficient(vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
+//             vel_norm /= eps_i;
+// 
+//             double tau = 1.0 / (2.0 * vel_norm / h_avg_i  + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+//             double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i  + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+//             mTauPressure[i_node] = tau;
+//             mTauConvection[i_node] = tau_conv;       
+// 	  
+// 	}
 
 
         //calculating the convective projection
@@ -703,29 +746,29 @@ public:
             mr_matrix_container.AssignVectorToVector(mvel_n, mvel_n1); //mvel_n1 = mvel_n
 
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
-            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),diag_stiffness,rhs);
-            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,mdiag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),mdiag_stiffness,rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //second step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
-            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
-            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,mdiag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, 0.5 * delta_t_substep, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //third step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
-            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
-            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, delta_t_substep, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,mdiag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 3.0, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
+            Add_Effective_Inverse_Multiply(mvel_n1, mvel_n, delta_t_substep, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
             ApplyVelocityBC(mvel_n1);
 
             //fourth step
             mr_matrix_container.SetToZero(rhs);
-            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,diag_stiffness);
-            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),diag_stiffness, rhs);
+            CalculateRHS(mvel_n1, mPn, mvel_n1, rhs,mdiag_stiffness);
+            Add_Effective_Inverse_Multiply(mWork, mWork, delta_t_substep / 6.0, mr_matrix_container.GetLumpedMass(),mdiag_stiffness, rhs);
 
             //compute right-hand side
             mr_matrix_container.AssignVectorToVector(mWork, mvel_n1);
@@ -1085,6 +1128,7 @@ public:
         mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
         //for (int i_node = 0; i_node < n_nodes; i_node++)
         //    std::cout << mvel_n1[i_node] << std::endl;
+	
 
         //loop over all nodes
 //            double rho_inv = 1.0 / mRho;
@@ -1348,6 +1392,8 @@ public:
             }
 
         }
+        
+        
 
         mr_matrix_container.WriteVectorToDatabase(PRESS_PROJ, mXi, rNodes);
 
@@ -1406,7 +1452,10 @@ public:
                     // 							edge_ij.Sub_Gp(correction,delta_p_i,delta_p_j);
                 }
                 //compute prefactor
-                double coefficient = delta_t * m_inv;
+//                 double coefficient = delta_t * m_inv;
+		const double m = mr_matrix_container.GetLumpedMass()[i_node];
+		const double d = mdiag_stiffness[i_node];
+		double coefficient = delta_t / (m + delta_t*d);
 
                 //correct fractional momentum
                 for (unsigned int comp = 0; comp < TDim; comp++)
@@ -1499,38 +1548,41 @@ public:
 
 //         if(mWallLawIsActive == false)
 //         {
-			//std::cout << "applying corners condition" << std::endl;
-            //apply conditions on corner edges
-            int edge_size = medge_nodes_direction.size();
-            #pragma omp parallel for firstprivate(edge_size)
-            for (int i = 0; i < edge_size; i++)
-            {
-                int i_node = medge_nodes[i];
-                const array_1d<double, TDim>& direction = medge_nodes_direction[i];
-                double dist = mdistances[i_node];
-
-                if(dist <= 0.0)
-                {
-                    array_1d<double, TDim>& U_i = VelArray[i_node];
-                    double temp=0.0;
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        temp += U_i[comp] * direction[comp];
-
-                    for (unsigned int comp = 0; comp < TDim; comp++)
-                        U_i[comp] = direction[comp]*temp;
-                }
-            }
+// 			std::cout << "applying corners condition" << std::endl;
+//             apply conditions on corner edges
+//             int edge_size = medge_nodes_direction.size();
+//             #pragma omp parallel for firstprivate(edge_size)
+//             for (int i = 0; i < edge_size; i++)
+//             {
+//                 int i_node = medge_nodes[i];
+//                 const array_1d<double, TDim>& direction = medge_nodes_direction[i];
+//                 double dist = mdistances[i_node];
 // 
-            //apply conditions on corners
-            int corner_size = mcorner_nodes.size();
-            for (int i = 0; i < corner_size; i++)
-            {
-                int i_node = mcorner_nodes[i];
-
-                array_1d<double, TDim>& U_i = VelArray[i_node];
-                for (unsigned int comp = 0; comp < TDim; comp++)
-                    U_i[comp] = 0.0;
-            }
+//                 if(dist <= 0.0)
+//                 {
+//                      array_1d<double, TDim>& U_i = VelArray[i_node];
+// // 		     for (unsigned int comp = 0; comp < TDim; comp++)
+// //                         U_i[comp] = 0.0;
+// 		     
+//                     double temp=0.0;
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         temp += U_i[comp] * direction[comp];
+// 
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         U_i[comp] = direction[comp]*temp;
+//                 }
+//             }
+// // // 
+// //             //apply conditions on corners
+//             int corner_size = mcorner_nodes.size();
+//             for (int i = 0; i < corner_size; i++)
+//             {
+//                 int i_node = mcorner_nodes[i];
+// 
+//                 array_1d<double, TDim>& U_i = VelArray[i_node];
+//                 for (unsigned int comp = 0; comp < TDim; comp++)
+//                     U_i[comp] = 0.0;
+//             }
 //         }
 
 
@@ -2238,7 +2290,9 @@ public:
         mA.clear();
         mB.clear();
         mdiv_error.clear();
-
+	mWallReductionFactor.clear();
+	mdiag_stiffness.clear();
+	
         KRATOS_CATCH("")
     }
 
@@ -2595,6 +2649,78 @@ public:
     {
         mWallLawIsActive = true;
         mY_wall = Ywall;
+	
+	double max_angle_overall = 0.0;
+	
+	//compute wall reduction factor
+	         //slip condition
+        int slip_size = mSlipBoundaryList.size();
+        #pragma omp parallel for firstprivate(slip_size)
+        for (int i_slip = 0; i_slip < slip_size; i_slip++)
+        {
+	    unsigned int i_node = mSlipBoundaryList[i_slip];
+	    const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+	    double AI = norm_2(an_i);	    
+	    array_1d<double,TDim> nI = an_i/AI;
+	    double min_dot_prod = 1.0;
+	    
+	    for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+            {
+                        unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			const array_1d<double, TDim>& an_j = mSlipNormal[j_neighbour];
+			double AJ = norm_2(an_j);	    
+			
+			if(AJ > 1e-20) //...a slip node!
+			{
+			    double tmp = 0.0;
+			    for (unsigned int comp = 0; comp < TDim; comp++)
+				tmp += nI[comp] * an_j[comp];
+			    tmp /= AJ;
+			    tmp = fabs(tmp);			
+			    if(tmp < min_dot_prod) min_dot_prod = tmp;
+			}
+	    }
+	    double max_angle = acos(min_dot_prod);
+	    
+// 	    max_angle *= 2.0;
+// 	    if(max_angle > 3.1415926*0.5) max_angle = 3.1415926*0.5;
+	    
+	    if(max_angle > max_angle_overall) max_angle_overall = max_angle;
+	    
+	      mWallReductionFactor[i_node] = sin(max_angle) ;
+	  
+	}
+	std::cout << "max angle between normals found in the model = " << max_angle_overall << std::endl;
+
+// 	mr_matrix_container.WriteScalarToDatabase(YOUNG_MODULUS, mWallReductionFactor, mr_model_part.Nodes());
+	
+	
+         //slip condition
+//         int slip_size = mSlipBoundaryList.size();
+//         #pragma omp parallel for firstprivate(slip_size)
+//         for (int i_slip = 0; i_slip < slip_size; i_slip++)
+//         {
+// 	    unsigned int i_node = mSlipBoundaryList[i_slip];
+// 	    double h = mHavg[i_node];
+// 	    if(mY_wall < h)
+// 	      mWallReductionFactor[i_node] = mY_wall/h;
+// 	}
+// 	  
+// 	int edge_size = medge_nodes.size();
+// 	#pragma omp parallel for firstprivate(edge_size)
+// 	for (int i = 0; i < edge_size; i++)
+// 	{
+// 	    int i_node = medge_nodes[i];
+// 	    mWallReductionFactor[i_node] = 100.0;
+// 	}
+// // 
+// // 	//apply conditions on corners
+// 	int corner_size = mcorner_nodes.size();
+// 	for (int i = 0; i < corner_size; i++)
+// 	{
+// 	    int i_node = mcorner_nodes[i];
+// 	    mWallReductionFactor[i_node] = 1000.0;
+//  	}
     }
 
     double ComputeVolumeVariation()
@@ -2958,6 +3084,7 @@ public:
 
 
 private:
+    double mmax_dt;
     MatrixContainer& mr_matrix_container;
     ModelPart& mr_model_part;
 
@@ -3001,6 +3128,7 @@ private:
 
     //flag to differentiate interior and boundary nodes
     ValuesVectorType mNodalFlag;
+    ValuesVectorType mWallReductionFactor;
     
     
     //lists of nodes with different types of boundary conditions
@@ -3037,6 +3165,8 @@ private:
     IndicesVectorType mcorner_nodes;
 
     ValuesVectorType mEps;
+    ValuesVectorType mdiag_stiffness;
+    
 //     ValuesVectorType mD;
     ValuesVectorType mA;
     ValuesVectorType mB;
@@ -3637,17 +3767,17 @@ private:
 
 
 		
-		double tau = mod_vel * mod_vel ;
+		double tau = mod_uthaw * mod_uthaw  ;
 		
 		// Reducing wall friction for the large element near wall. Pooyan.
-		double reducing_factor = 1.00;
-                double h_min = mHavg[i_node];
-		if(ym < h_min)
-                     reducing_factor = ym / h_min;
-		tau *= reducing_factor;
+// 		double reducing_factor = 1.00;
+//                 double h_min = mHavg[i_node];
+// 		if(ym < h_min)
+//                      reducing_factor = ym / h_min;
+		tau *= mWallReductionFactor[i_node];
 		
 		if (mod_vel > 1e-12)
-		  diag_stiffness[i_node] += tau * area / mod_vel;
+		  diag_stiffness[i_node] = tau * area / mod_vel;
 // 		  for (unsigned int comp = 0; comp < TDim; comp++)
 //                         rhs_i[comp] -=   tau * area *U_i[comp] / mod_vel;
 
@@ -3781,7 +3911,7 @@ private:
 
             double temp = value / (m + value*d);
             for (unsigned int comp = 0; comp < TDim; comp++)
-                dest[comp] = origin_vec1[comp] + temp * origin_value[comp];
+                dest[comp] = temp *( m/value * origin_vec1[comp] +  origin_value[comp] );
         }
 
 
