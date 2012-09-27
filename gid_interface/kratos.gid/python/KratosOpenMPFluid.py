@@ -176,7 +176,8 @@ if ProjectParameters.SolverType in ["FractionalStep"]:
     elif ProjectParameters.Velocity_Linear_Solver == "Super LU":
         velocity_linear_solver = SuperLUSolver()
     elif ProjectParameters.Velocity_Linear_Solver == "Parallel MKL Pardiso":
-        velocity_linear_solver = ParallelMKLPardisoSolver()
+        from KratosMultiphysics.MKLSolversApplication import MKLPardisoSolver
+        velocity_linear_solver = MKLPardisoSolver()
 
     # Pressure preconditioner
     try:
@@ -210,7 +211,9 @@ if ProjectParameters.SolverType in ["FractionalStep"]:
     elif ProjectParameters.Pressure_Linear_Solver == "Super LU":
         pressure_linear_solver = SuperLUSolver()
     elif ProjectParameters.Pressure_Linear_Solver == "Parallel MKL Pardiso":
-        pressure_linear_solver = ParallelMKLPardisoSolver()
+        from KratosMultiphysics.MKLSolversApplication import MKLPardisoSolver
+        pressure_linear_solver = MKLPardisoSolver()
+        
 elif "monolithic_solver_eulerian": # single coupled solver
     # preconditioner
     try:
@@ -243,8 +246,6 @@ elif "monolithic_solver_eulerian": # single coupled solver
         monolithic_linear_solver = SkylineLUFactorizationSolver()
     elif ProjectParameters.Monolithic_Linear_Solver == "Super LU":
         monolithic_linear_solver = SuperLUSolver()
-    elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
-        monolithic_linear_solver = ParallelMKLPardisoSolver()
     elif ProjectParameters.Monolithic_Linear_Solver == "MixedUP":
         velocity_linear_solver = SuperLUIterativeSolver()
 	pressure_linear_solver = ScalingSolver( BICGSTABSolver(1e-3, 500) , True)
@@ -253,7 +254,10 @@ elif "monolithic_solver_eulerian": # single coupled solver
 	monolithic_linear_solver = MixedUPLinearSolver(velocity_linear_solver,pressure_linear_solver,1e-6,max_it,m)
     elif ProjectParameters.Monolithic_Linear_Solver == "SuperLUIterativeSolver":    
         monolithic_linear_solver = ScalingSolver( SuperLUIterativeSolver() , True )
-
+    elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
+        from KratosMultiphysics.MKLSolversApplication import MKLPardisoSolver
+        monolithic_linear_solver = MKLPardisoSolver()
+        
 #copy Y_WALL
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL,0)
