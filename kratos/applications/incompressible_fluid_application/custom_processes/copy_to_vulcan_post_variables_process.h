@@ -100,6 +100,8 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITY variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITIES) == false)
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
+            if (mrModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
+                KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
 
 			return 0;
 		}
@@ -109,6 +111,8 @@ namespace Kratos
 			  Check();
 			  double max_distance = 0.00;
 			  double min_distance = -1.00e-6;
+			  double max_temp = mrModelPart.GetProcessInfo()[AUX_INDEX];
+			  double min_temp = mrModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];
 
 			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 			 {
@@ -133,12 +137,20 @@ namespace Kratos
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = i_node->FastGetSolutionStepValue(VELOCITY);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = i_node->FastGetSolutionStepValue(PRESSURE);
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
+
+					 double temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
+					 if(temp > max_temp)
+							temp = max_temp;
+					 if (temp < min_temp)
+							temp = min_temp;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES) = temp;
+
 				 }
 				 else
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES) = min_temp;
 				 }
 
 			 }
