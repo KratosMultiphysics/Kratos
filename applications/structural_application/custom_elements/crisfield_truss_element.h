@@ -417,7 +417,7 @@ private:
                             const Vector& U,
                             double weight );
 
-
+    int Check( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Private Operations
