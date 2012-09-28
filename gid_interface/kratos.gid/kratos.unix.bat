@@ -7,4 +7,8 @@ rm -f $2/$1.info
 rm -f $2/$1.err
 rm -f $2/$1.flavia.dat
 
+# Set the number of threads for OpenMP
+export OMP_NUM_THREADS=$5
+
+# Run Python using the script KratosOpenMP.py
 python KratosOpenMP.py > $2/$1.info 2> $2/$1.err
