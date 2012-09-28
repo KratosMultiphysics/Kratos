@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.8- 28/09/12-G. Socorro, set VolumeOutput = True by default in 2D problems
 #     1.7- 23/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties in the 
 #                               that wfsmethod=0
 #     1.6- 22/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties
@@ -1673,6 +1674,9 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	} else {
 	    puts $fileid "VolumeOutput = False"
 	}
+    } else {
+	# Set the default value for 2D
+	puts $fileid "VolumeOutput = True"
     }
 
     puts $fileid ""
