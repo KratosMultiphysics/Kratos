@@ -230,6 +230,12 @@ protected:
      * @return tau: multiplied by Residual of the momentum equation
     */
     virtual void CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,const double& K, const double time, const double area, const ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateArtifitialViscosity(double& art_visc,  
+						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+						      array_1d<double, 3 > ms_vel_gauss,
+						      const Variable<double>& temperature,
+						      const double volume,
+						      const double scaled_K);    
 
 private:
     ///@name Static Member Variables
