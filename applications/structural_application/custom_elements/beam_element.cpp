@@ -341,14 +341,14 @@ void BeamElement::CalculateSectionProperties()
         mArea = GetValue(AREA);
     if( GetProperties().Has(INERTIA) )
     {
-        Matrix& inertia = GetProperties()[INERTIA];
+        Matrix& inertia = GetProperties()[LOCAL_INERTIA];
         mInertia_x = inertia(0,0);
         mInertia_y = inertia(1,1);
         mInertia_Polar = inertia(2,2);
     }
     else
     {
-        Matrix& inertia = GetValue(INERTIA);
+        Matrix& inertia = GetValue(LOCAL_INERTIA);
         mInertia_x = inertia(0,0);
         mInertia_y = inertia(1,1);
         mInertia_Polar = inertia(2,2);
@@ -1172,8 +1172,8 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
     if(CROSS_AREA.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered","");
-    if(INERTIA.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"INERTIA has Key zero! (check if the application is correctly registered","");
+    if(LOCAL_INERTIA.Key() == 0)
+        KRATOS_ERROR(std::invalid_argument,"LOCAL_INERTIA has Key zero! (check if the application is correctly registered","");
     if(ROTATION.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered","");
 
@@ -1194,7 +1194,7 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //verify that the inertia is given by properties
-    if (this->GetProperties().Has(INERTIA)==false)
+    if (this->GetProperties().Has(LOCAL_INERTIA)==false)
     {
         if( GetValue(INERTIA)(0,0) == 0.0 )
             KRATOS_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
