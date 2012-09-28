@@ -78,7 +78,7 @@
         <Container id="Elements" pid="Elements" help="Elements" open="1" icon="femelements.gif">
             <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
             <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
-            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield Truss Element" open="1"/>
+            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield Truss Element" open="1"/>
             <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="1"/>
             <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="1"/>
             <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
@@ -133,6 +133,7 @@
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
         <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
+	<Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
 	  <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
 	   <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
 	  <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP,SuperLUIterativeSolver" values="BiConjugate gradient stabilized,MixedUP,SuperLU iterative solver" help="Iterative solver type options"/>
@@ -284,9 +285,15 @@
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
+         <Template id="TrussTLagrangian" icon="groupsTree.gif" help="Total Lagrangian">
+            <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Linear" ivalues="Linear" values="Linear" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
+        </Template>
         <Template id="TLagrangian3D" icon="groupsTree.gif" help="Total Lagrangian">
             <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
-                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Tetrahedra,Hexahedra" values="Tetrahedra,Hexahedra" help="Element Type"/>
+                <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra,Hexahedra" values="Tetrahedra,Hexahedra" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
@@ -413,7 +420,7 @@
         <Template id="CutProperties" icon="cutplane.gif" help="Cut properties">
             <Container id="Origin" pid="Origin" help="Origin properties">
                 <Item id="OX" pid="X" dv="0.0" help="X coordinate"/>
-                <Item id="OY" pid="Y" dv="0.0" help="Y coordinate"/>
+                <Item id="OY" pid="Y" dv="0.0" help="Y coordinate" sbi="PickCoordinates" sbp="Pick" sbxp="OX,OY,OZ"/>
                 <Item id="OZ" pid="Z" dv="0.0" nDim="3D" help="Z coordinate"/>
             </Container>
               <Container id="NormalToPlane" pid="Normal to plane" help="Normal to the plane">
@@ -425,10 +432,10 @@
         <Template id="HistoryOutputOnPoints" icon="outputgraph.gif" help="History output on points properties">
             <Container id="HistoryGraph" pid="History graph" help="History graph properties">
                 <Item id="Px" pid="X" dv="0.0" help="X coordinate of the output point"/>
-                <Item id="Py" pid="Y" dv="0.0" help="Y coordinate of the output point"/>
+                <Item id="Py" pid="Y" dv="0.0" help="Y coordinate of the output point" sbi="PickCoordinates" sbp="Pick" sbxp="Px,Py,Pz"/>
                 <Item id="Pz" pid="Z" dv="0.0" nDim="3D" help="Z coordinate of the output point"/>
-                <Item id="VariableId2d" pid="Variable to be plotted"  nDim="2D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
-                <Item id="VariableId3d" pid="Variable to be plotted" nDim="3D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
+                <Item id="VariableId2d" pid="Variable"  nDim="2D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
+                <Item id="VariableId3d" pid="Variable" nDim="3D" ivalues="Pressure,Velocity" values="Pressure,Velocity" help="Variable to be plotted for this output point"/>
                 <Item id="FileId" pid="Output file"  dv="" help="Output file identifier"/>
             </Container>
         </Template>
