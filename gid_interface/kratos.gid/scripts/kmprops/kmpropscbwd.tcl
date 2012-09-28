@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.4- 27/09/12- J.Garate, Change combo's size
 #   0.3- 23/09/12- GSM, update the proc specialComboAction to disabled FSI application
 #   0.2- 23/07/12- GSM, modify some proc to use PFEM options 
 #   0.1- 29/03/2012 G. Socorro, create a base source code from the kmprops.tcl script
@@ -123,14 +124,20 @@ proc ::KMProps::cmbDisable { fullname f {id "" }} {
 
 proc ::KMProps::getCmbWidth { comboList } {
     
-    set width 15
+    set width 10
     
     # Validamos el tamaño de los string del combo para ponerle uno o otro tamaño
     foreach c $comboList {
+    if { [string length $c] > 5 } {
+	    set width 10
+	}
+	if { [string length $c] > 10 } {
+	    set width 15
+	}
 	if { [string length $c] > 15 } {
 	    set width 20
 	}
-	if { [string length $c] > 20 } {
+    if { [string length $c] > 20 } {
 	    set width 25
 	}
     }
