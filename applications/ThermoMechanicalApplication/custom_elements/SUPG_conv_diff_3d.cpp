@@ -230,6 +230,11 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     double old_res = inner_prod(a_dot_grad_and_mass, step_unknown);
     old_res += heat_source;
     noalias(rRightHandSideVector) +=  tau * a_dot_grad * old_res;
+    
+    //add shock capturing 
+    double art_visc = 0.0;
+    CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
+    noalias(rLeftHandSideMatrix) += art_visc  * Laplacian_Matrix;	    
 
 
     //subtracting the dirichlet term
@@ -328,7 +333,58 @@ void SUPGConvDiff3D::CalculateTau(array_1d<double, 3 >& ms_adv_vel, double& tau,
 
 
 }
+//*************************************************************************************
+//*************************************************************************************
+void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,  
+						      boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX, 
+						      array_1d<double, 3 > ms_vel_gauss,
+						      const Variable<double>& temperature,
+						      const double volume,
+						      const double scaled_K)
+{
+	KRATOS_TRY
+	
+	 array_1d<double, 3 > grad_t;
+         unsigned int number_of_nodes = GetGeometry().PointsNumber();	 
+	 double temp_cup = GetGeometry()[0].FastGetSolutionStepValue(temperature);
+	 grad_t[0] = DN_DX(0,0) * temp_cup;
+	 grad_t[1] = DN_DX(0,1) * temp_cup;	
+	 grad_t[2] = DN_DX(0,2) * temp_cup;	 
+	 
+	for( int ii=1; ii < number_of_nodes; ++ii)
+	{	
+	   temp_cup = GetGeometry()[ii].FastGetSolutionStepValue(temperature);
+	   grad_t[0] += DN_DX(ii,0) * temp_cup;
+	   grad_t[1] += DN_DX(ii,1) * temp_cup;	
+	   grad_t[2] += DN_DX(ii,2) * temp_cup;		   
+	}
+	
+	double norm_grad_t = MathUtils<double>::Norm3(grad_t);
+	if(norm_grad_t < 0.000001)
+	  art_visc = 0.0;
+	else
+	{
+	  double a_parallel = (ms_vel_gauss[0]*grad_t[0] + ms_vel_gauss[1]*grad_t[1] + ms_vel_gauss[2]*grad_t[2]) / norm_grad_t;
+	  a_parallel = abs(a_parallel);
+	  double ele_length = pow(12.0*volume,0.333333333333333333333);
+	  ele_length = 0.666666667 * ele_length * 1.732;	  
+	  
+	  double Peclet_parallel = a_parallel*ele_length / (2.0*scaled_K);
+	  
+	  double alpha = 3.0 - 1.0/Peclet_parallel;
+	  
+	  if (alpha < 0.0)
+	       alpha = 0.0;
+	  
+	  art_visc = 0.5 * alpha * ele_length * a_parallel;
+	  
+	}
+	
+        this->GetValue(PR_ART_VISC) = art_visc;
 
+	KRATOS_CATCH("")  
+  
+}
 
 } // Namespace Kratos
 
