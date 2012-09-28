@@ -243,6 +243,8 @@ namespace Kratos
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
                 noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
+                this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
+
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
             else
@@ -512,6 +514,46 @@ namespace Kratos
                     }
                 }
             }
+        }
+
+        /// Apply condition to prevent numerical problems due to flow into the domain in unexpected places.
+        /** This condition prevents problems arising from inflow in outflow areas, typically due to vortices
+         *  exiting the domain.
+         * @param rLocalMatrix Local LHS matrix
+         * @param rLocalVector Local RHS vector
+         */
+        void ApplyInflowCondition(MatrixType& rLocalMatrix,
+                                  VectorType& rLocalVector)
+        {
+            const double N = 1.0 / static_cast<double>(TNumNodes);
+            const double Weight = N * N * this->GetGeometry().DomainSize();
+
+            unsigned int FirstRow = 0;
+            const unsigned int LocalSize = TNumNodes;// + 1;
+
+            for( unsigned int j = 0; j < TNumNodes; j++ )
+            {
+                const NodeType& rConstNode = this->GetGeometry()[j];
+                if ( rConstNode.GetValue(IS_STRUCTURE) == 0.0 )
+                {
+                    const array_1d<double,3>& rNormal = this->GetGeometry()[j].FastGetSolutionStepValue(NORMAL);
+                    const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                    double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
+
+                    if( Proj  < 0 )
+                    {
+                        double Tij = Proj * Weight;
+                        for (unsigned int d = 0; d < TDim;d++)
+                            rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
+                    }
+                }
+
+                FirstRow += LocalSize;
+            }
+
+            VectorType Values = ZeroVector(rLocalVector.size());
+            this->GetValuesVector(Values);
+            noalias(rLocalVector) -= prod(rLocalMatrix,Values);
         }
 
 
