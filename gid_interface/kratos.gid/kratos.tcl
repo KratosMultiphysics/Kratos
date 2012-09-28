@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     1.9- 28/09/12- G. Socorro, modify the event SelectGIDBatFile tp include the number of threads for the OpenMP case
 #     1.8- 24/09/12- G. Socorro, modify the event SelectGIDBatFile to include the number of processors in the command line
 #     1.7- 21/09/12- G. Socorro, correct a bug in the proc BeforeMeshGeneration use {*} to get all the surface identifier
 #     1,6- 22/07/12- G. Socorro, modify the BeforeMeshGeneration to automatically mesh de boundary lines/surfaces when use Is-Slip BC
@@ -456,6 +457,14 @@ proc SelectGIDBatFile {directory basename } {
 	}
     } else {
 	# OpenMP
+	#  Get the number of threads
+	set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+	set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	# wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
+	if {$OpenMPNumberOfThreads>0} {
+	    # Calculate arguments
+	    set args "$OpenMPNumberOfThreads"
+	}
 	if {($::tcl_platform(os) eq "Linux")} {
 	    set batfilename "kratos.unix.bat"
 	} else {
