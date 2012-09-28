@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#	1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
 #	1.3- 20/07/12-J. Garate, Materials Tab Frame Combos with multiple values 
 #	1.2- 19/07/12-J. Garate, Materials Tab Frame and service functions 
@@ -1197,7 +1198,7 @@ proc ::KMat::DeleteMaterial { {T ""} {name ""} } {
 	foreach it $items {
 	    lappend tuttoItem "[lindex [$T item text $it] 0]"
 	}
-	set aviso "Are you sure you want to delele $tuttoItem ?"
+	set aviso "Are you sure you want to delete $tuttoItem ?"
 	set confirmado [::WinUtils::confirmBox "." "$aviso"]
 	if { $confirmado == "ok" } {
 
@@ -1404,7 +1405,7 @@ proc ::KMat::InsertNewMaterial { MatName T {state 1} {type "Generic"} {parent ""
 
 
 proc ::KMat::BeginEditMaterial { T } {
-    set I [$T item id active]
+    set I [$T selection get 0]
     set C 0
     set E elemTxtRead
 
@@ -2149,10 +2150,10 @@ proc ::KMat::setXPath { path } {
 proc ::KMat::FromNodetoItem { node } {
 	
 	set path [::xmlutils::getPathFromNode $node 1 mats]
-	msg "path $path"
+	#msg "path $path"
 	set item [::KMat::FromPathtoItem $path] 
 	
-	msg "item = $item"
+	#msg "item = $item"
 	return $item
 }
 

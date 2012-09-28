@@ -13,7 +13,8 @@
 #
 #  HISTORY:
 # 
-#   0.5- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
+#   0.7- 27/09/12-J. Garate, Pick Coordinates Button
+#   0.6- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
 #   0.5- 12/04/2012 JGarate, Ahora selecciona por defecto el primer elemento en Geometry Auto Group
 #   0.4- 10/04/2012 JGarate, Cambio de iconos para AutoGroup. Corregidos los problemas en mesh con algunos elementos
 #   0.3- 04/04/2012 JGarate, Corregido el error en mallado, por el cual no se permitia usar el Auto New Group, porque no mostraba los botones de seleccion
@@ -68,9 +69,9 @@ proc ::KMProps::DestroyBottomFrame { } {
     
     set f ${NbPropsPath}.fBottom    
     if {[winfo exists $f]} {
-	foreach w [winfo children $f] {
-	    destroy $w
-	}
+        foreach w [winfo children $f] {
+            destroy $w
+        }
     	destroy $f
     }
     return $f
@@ -106,114 +107,116 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	    #Si tiene como mínimo el container y un item ponemos tab y dentro label-combos
 	    if {[llength $listContainer] >= 2} {
 		
-		set idContainer [lindex $listContainer 0]
-		
-		#Si solo hay un container le damos el nombre del item pulsado, no del template
-		if {[llength $listT] == 1} {
-		    set pid "[$T item text $item 0]"
-		} else {
-		    set pid [= [::KMProps::getPropTemplate $idTemplate pid $idContainer]]
-		    #Lo limitamos por si es demasiado largo
-		    set pid "[string range $pid 0 20]"
-		}
-		
-		# Para cada container declaramos un tab
-		set fTab ${nb}.f$idContainer
-		$nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
-		    -text "$pid"
-		
-		for {set i 1} { $i < [llength $listContainer] } {incr i} {
-		    
-		    set id [lindex $listContainer $i]
-		    
-		    #Si no coincide la dimensión 2D/3D no lo ponemos
-		    set nDim [::KMProps::getPropTemplate $idTemplate nDim "$idContainer//$id"]
-		    if { $nDim == "" || $nDim == $::KMProps::nDim } {
-			
-			#Comprobamos el estado para ver si está activo o no
-			set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
-			
-			if {$state != "hidden"} {
-			    
-			    set pid [::KMProps::getPropTemplate $idTemplate pid "$idContainer//$id"]
-			    set tooltip [::KMProps::getPropTemplate $idTemplate tooltip "$idContainer//$id"]
-			    set dv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
-			    set function [::KMProps::getPropTemplate $idTemplate function "$idContainer//$id"]
-			    
-			    #Obtenemos la lista de valores para el combo si existe
-			    set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" $fullname]
-			    set icomboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "ivalues" $fullname]
-			    
-			    set CBState [::KMProps::getPropTemplate $idTemplate CBState "$idContainer//$id"]
-			    if { $CBState == "normal" } {
-				set values $comboList
-				set comboList {}
-			    } else {
-				set values {}
-			    }
-			    
-			    #Para cada item añadimos label y combo
-			    grid [ttk::label $fTab.lbl$id -text "$pid:" ] \
-				-row $i -column 0 -pady 2 -sticky nw -in $fTab
-			    
-			    if { [llength $comboList] > 0 } {
-				
-				if {$state != "disable"} {
-				    set state "readonly"
-				}
-				if {[string length $id] == 2 && ([string index $id end] == "x" || [string index $id end] == "y" || [string index $id end] == "z") } { 
-				    set width 15
-				} else {
-				    set width 20
-				}
-				grid [ttk::combobox $fTab.cmb$id -values $comboList -state $state -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMProps::cmb$id"] \
-				    -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
-				tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
-				
-				if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
-				    bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb $id"
-				    set activation 1
-				}
-				::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate 
-				
-			    } else {
-				
-				if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
-				    if { $activation } {
-					set activeId "A[string range $id 1 1]"
-					set value [set "::KMProps::cmb$activeId"]
-					if { $value == 0 } {
-					    set state "disabled"
-					}
-				    }
-				}
-				
-				grid [ttk::combobox $fTab.cmb$id -state $state -values $values -textvariable "::KMProps::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
-				    -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
-				tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
-				
-				#set dv [::KMProps::getPropTemplate $idTemplate dvText "$idContainer//$id"]
-				set ::KMProps::cmb$id $dv
-				
-			    }
-			    if {$function != "" } {
-				grid [ttk::button $fTab.funct$id -text "functions" -command "KFun::InitBaseWindow $fTab $id" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]]  \
-				    -row $i -column 2 -sticky nw  -pady 0 -padx 3 -in $fTab
-				tooltip::tooltip $fTab.funct$id [= "Function manager"]
-				set img [::WinUtils::GetImage "functions.gif"]
-				if { $img != -1 } { $fTab.funct$id configure -image $img }
-				
-				grid [ttk::button $fTab.deleteFunct$id -text "delete" -command "::KMProps::unassignFunction $fTab $id $fullname" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]] \
-				    -row $i -column 3 -sticky nw  -pady 0 -padx 2 -in $fTab
-				tooltip::tooltip $fTab.deleteFunct$id [= "Unassign function"]
-				set img [::WinUtils::GetImage "delete_icon.gif"]
-				if { $img != -1 } { $fTab.deleteFunct$id configure -image $img }
-				
-			    }
-			}
-		    }                                                
-		}
-	    }                                                
+            set idContainer [lindex $listContainer 0]
+            
+            #Si solo hay un container le damos el nombre del item pulsado, no del template
+            if {[llength $listT] == 1} {
+                set pid "[$T item text $item 0]"
+            } else {
+                set pid [= [::KMProps::getPropTemplate $idTemplate pid $idContainer]]
+                #Lo limitamos por si es demasiado largo
+                set pid "[string range $pid 0 20]"
+            }
+            
+            # Para cada container declaramos un tab
+            set fTab ${nb}.f$idContainer
+            $nb add [ttk::labelframe $fTab -text "[= Properties]" -padding {10 0 10 10}] \
+                -text "$pid"
+            
+            for {set i 1} { $i < [llength $listContainer] } {incr i} {
+                
+                set id [lindex $listContainer $i]
+                
+                #Si no coincide la dimensión 2D/3D no lo ponemos
+                set nDim [::KMProps::getPropTemplate $idTemplate nDim "$idContainer//$id"]
+                if { $nDim == "" || $nDim == $::KMProps::nDim } {
+                    
+                    #Comprobamos el estado para ver si está activo o no
+                    set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
+                    
+                    if {$state != "hidden"} {
+                        
+                        set pid [::KMProps::getPropTemplate $idTemplate pid "$idContainer//$id"]
+                        set tooltip [::KMProps::getPropTemplate $idTemplate tooltip "$idContainer//$id"]
+                        set dv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
+                        set function [::KMProps::getPropTemplate $idTemplate function "$idContainer//$id"]
+                        
+                        #Obtenemos la lista de valores para el combo si existe
+                        set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" $fullname]
+                        set icomboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "ivalues" $fullname]
+                        
+                        set CBState [::KMProps::getPropTemplate $idTemplate CBState "$idContainer//$id"]
+                        if { $CBState == "normal" } {
+                        set values $comboList
+                        set comboList {}
+                        } else {
+                        set values {}
+                        }
+                        
+                        #Para cada item añadimos label y combo
+                        grid [ttk::label $fTab.lbl$id -text "$pid:" ] \
+                        -row $i -column 0 -pady 2 -sticky nw -in $fTab
+                        
+                        if { [llength $comboList] > 0 } {
+                            
+                            if {$state != "disable"} {
+                                set state "readonly"
+                            }
+                            if {[string length $id] == 2 && ([string index $id end] == "x" || [string index $id end] == "y" || [string index $id end] == "z") } { 
+                                set width 15
+                            } else {
+                                set width 20
+                            }
+                            grid [ttk::combobox $fTab.cmb$id -values $comboList -state $state -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMProps::cmb$id"] \
+                                -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
+                            tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
+                            
+                            if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
+                                bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb $id"
+                                set activation 1
+                            }
+                            ::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate 
+                        
+                        } else {
+                        
+                            if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
+                                if { $activation } {
+                                set activeId "A[string range $id 1 1]"
+                                set value [set "::KMProps::cmb$activeId"]
+                                if { $value == 0 } {
+                                    set state "disabled"
+                                }
+                                }
+                            }
+                            
+                            grid [ttk::combobox $fTab.cmb$id -state $state -values $values -textvariable "::KMProps::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
+                                -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
+                            tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
+                            
+                            #set dv [::KMProps::getPropTemplate $idTemplate dvText "$idContainer//$id"]
+                            set ::KMProps::cmb$id $dv
+                        
+                        }
+                        
+                
+                        if {$function != "" } {
+                            grid [ttk::button $fTab.funct$id -text "functions" -command "KFun::InitBaseWindow $fTab $id" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]]  \
+                                -row $i -column 2 -sticky nw  -pady 0 -padx 3 -in $fTab
+                            tooltip::tooltip $fTab.funct$id [= "Function manager"]
+                            set img [::WinUtils::GetImage "functions.gif"]
+                            if { $img != -1 } { $fTab.funct$id configure -image $img }
+                            
+                            grid [ttk::button $fTab.deleteFunct$id -text "delete" -command "::KMProps::unassignFunction $fTab $id $fullname" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]] \
+                                -row $i -column 3 -sticky nw  -pady 0 -padx 2 -in $fTab
+                            tooltip::tooltip $fTab.deleteFunct$id [= "Unassign function"]
+                            set img [::WinUtils::GetImage "delete_icon.gif"]
+                            if { $img != -1 } { $fTab.deleteFunct$id configure -image $img }
+                        
+                        }
+                    }
+                }
+            }
+	    }
 	}
 	
 	#
@@ -282,7 +285,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 			    set i "[string range $i 0 [expr [string length $i] - 5]]_sel.gif"
 			    set ::KMProps::selectedEntity $command
 			}
-			#msg $command
+			
 			set fb "${f}.b$command"
 			grid [ttk::button $fb -text "$i" -command "::KMProps::changeImage $command $i $f" -style TMenubutton.Toolbutton -width 15] \
 			    -row 1 -column 0 -sticky nw  -pady 3 -padx [expr (50 * $col) + 15] -in $f
@@ -290,10 +293,10 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 				set command [string range $command 8 end]
 				#append i "element_" $i
 			}
-			#msg $i
+			
 			tooltip::tooltip $fb [= "Entity $command"]
 			set img [::WinUtils::GetImage $i]
-			#msg $img
+			
 			if { $img != -1 } {
 			    $fb configure -image $img
 			}
@@ -308,7 +311,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	
 	#COMBO DE GRUPOS
 	set fGroups $f.cGroups
-	#set filterGroups [::KMProps::getGroups $entityList]
+    
 	set filterGroups [Cond_Groups list]
 	grid [ttk::combobox $fGroups -state readonly -values "$filterGroups" -textvariable "::KMProps::selGroup" \
 		-postcommand "::KMProps::changeGroups [list $entityList] $fGroups" -width 15] \
@@ -347,13 +350,7 @@ proc ::KMProps::unassignFunction { f id fullname } {
 	$fcmb configure -state normal
     }
     
-    set ::KMProps::cmb$id "0.0"
-    
-    #set fFun "${::KMProps::WinPath}.functions"
-    #if {[winfo exists $fFun]} {        
-    #        destroy $fFun
-    #}
-    
+    set ::KMProps::cmb$id "0.0"    
 }
 
 proc ::KMProps::assignFunction { f id idFunction } {
@@ -411,130 +408,143 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
     set listT [::KMProps::getTemplateStructure $idTemplate]
     # WarnWinText "listT:$listT"
     if {[llength $listT] >= 1 } {
-	set nb ${f}.nb
-	grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
-	
-	#Lista de listas con formato {idContainer idItem1 idItem2...}
-	foreach listContainer $listT {
-	    
-	    #Si tiene como mínimo el container(1er elemento) y un item ponemos tab y dentro label-combos
-	    if {[llength $listContainer] > 1} {
-		
-		set idContainer [lindex $listContainer 0]
-		
-		set pid [::KMProps::getPropTemplate $idTemplate pid $idContainer]
-		# wa "idContainer:$idContainer pid:$pid cero:[lindex $listT 0 0]"
-		# Para cada container declaramos un tab
-		set fTab ${nb}.f$idContainer
-		set ptxt "[= Properties]"
-		$nb add [ttk::labelframe $fTab -text "$ptxt" -padding {10 0 10 10}] \
-		    -text "[string range $pid 0 20]"
-		
-		#En el caso del primer tab forzamos el item de "Nombre de propiedad" y 2campos mas
-		if { $idContainer == [lindex $listT 0 0] } {
-		    
-		    # Property identifier
-		    if {$idTemplate eq "CutProperties"} {
-			set cptxt [= "Cut Id"]
-			set cbhelp [= "Choose a new cut identifier"]
-			set whatoption "Cut"
-		    } elseif {$idTemplate eq "HistoryOutputOnPoints"} {
-			set cptxt [= "Graph Id"]
-			set cbhelp [= "Choose a new graph identifier"]
-			set whatoption "Graph"
-		    } else {
-			set cptxt [= "Property Id"]
-			set cbhelp [= "Choose a new property identifier"]
-			set whatoption "Property"
-		    }
+        set nb ${f}.nb
+        grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
+        
+        #Lista de listas con formato {idContainer idItem1 idItem2...}
+        foreach listContainer $listT {
+            
+            #Si tiene como mínimo el container(1er elemento) y un item ponemos tab y dentro label-combos
+            if {[llength $listContainer] > 1} {
+            
+                set idContainer [lindex $listContainer 0]
+                
+                set pid [::KMProps::getPropTemplate $idTemplate pid $idContainer]
+                # wa "idContainer:$idContainer pid:$pid cero:[lindex $listT 0 0]"
+                # Para cada container declaramos un tab
+                set fTab ${nb}.f$idContainer
+                set ptxt "[= Properties]"
+                $nb add [ttk::labelframe $fTab -text "$ptxt" -padding {10 0 10 10}] \
+                    -text "[string range $pid 0 20]"
+                
+                #En el caso del primer tab forzamos el item de "Nombre de propiedad" y 2campos mas
+                if { $idContainer == [lindex $listT 0 0] } {
+                    
+                    # Property identifier
+                    if {$idTemplate eq "CutProperties"} {
+                    set cptxt [= "Cut Id"]
+                    set cbhelp [= "Choose a new cut identifier"]
+                    set whatoption "Cut"
+                    } elseif {$idTemplate eq "HistoryOutputOnPoints"} {
+                    set cptxt [= "Graph Id"]
+                    set cbhelp [= "Choose a new graph identifier"]
+                    set whatoption "Graph"
+                    } else {
+                    set cptxt [= "Property Id"]
+                    set cbhelp [= "Choose a new property identifier"]
+                    set whatoption "Property"
+                    }
 
-		    grid [ttk::label $fTab.lblName -text "$cptxt:" ] \
-			-row 0 -column 0 -pady 5 -sticky nw -in $fTab
-		    
-		    grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 10	 ] \
-			-row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
+                    grid [ttk::label $fTab.lblName -text "$cptxt:" ] \
+                    -row 0 -column 0 -pady 5 -sticky nw -in $fTab
+                    
+                    grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 10	 ] \
+                    -row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
 
-		    tooltip::tooltip $fTab.cmbPropertyName $cbhelp
-		    
-		    set ::KMProps::propertyName "[::KEGroups::GetAutomaticPropertyName $fullname "$whatoption"]"
-		    focus $fTab.cmbPropertyName
-		}
-		
-		for {set i 1} { $i < [llength $listContainer] } {incr i} {
-		    
-		    set id [lindex $listContainer $i]
-		    
-		    #Los nodos ocultos no se deben mostrar
-		    set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
-		    if {$state != "hidden" } {
-			
-			#Si no coincide la dimensión 2D/3D no lo ponemos
-			set nDim [::KMProps::getPropTemplate $idTemplate nDim "$idContainer//$id"]
-			if { $nDim == "" || $nDim == $::KMProps::nDim } {
-			    
-			    set pid [::KMProps::getPropTemplate $idTemplate pid "$idContainer//$id"]
-			    set tooltip [::KMProps::getPropTemplate $idTemplate tooltip "$idContainer//$id"]
-			    set dv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
-			    
-			    set CBState [::KMProps::getPropTemplate $idTemplate CBState "$idContainer//$id"]
-			    if { $CBState == "normal" } {
-				set values $comboList
-				set comboList {}
-			    } else {
-				set values {}
-			    }
-			    
-			    # Es importante que ElemType sea el primer combo para actualizar el "dv" en el xml
-			    if { $id == "ElemType" } {
-				set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "" $dv]
-			    } else {
-				set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "$fullname"]
-			    }
-			    
-			    #Para cada item añadimos label y combo
-			    grid [ttk::label $fTab.lbl$id -text "$pid:" ] \
-				-row $i -column 0 -pady 5 -sticky nw -in $fTab
-			    #msg $comboList
-			    
-			    if { [llength $comboList] } {
-				#msg $fTab.cmb$id
-				grid [ttk::combobox $fTab.cmb$id -values $comboList -state readonly -width [::KMProps::getCmbWidth $comboList] \
-					  -textvariable "::KMProps::cmb$id" \
-					  -postcommand [list ::KMProps::changeCmbValues "$fTab.cmb$id" "$idContainer//$id" "$idTemplate" "" "$fullname"] ] \
-				    -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
-				
-				::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate
-				tooltip::tooltip $fTab.cmb$id $tooltip
-				#En este caso se tendrá qué recargar si existe el combo de "Material Model"
-				if { $id == "ElemType" } {
-				    bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbElemTypeChange $fTab.cmb$id $idContainer//$id $idTemplate"
-				}
-				
-			    } else {
-				#msg $fTab.cmb$id
-				grid [ttk::combobox $fTab.cmb$id -state normal -values $values -textvariable "::KMProps::cmb$id"] \
-				    -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
-				set ::KMProps::cmb$id $dv
-				tooltip::tooltip $fTab.cmb$id $tooltip
-			    }
-			    
-			    
-			    #En el caso de ElemType actualizamos la variable de filtrado del Thickness
-			    if { $id == "ElemType" } {
-				set ::KMProps::ElemTypeThickness $dv
-				
-				#En el caso del Thickness, no siempre se mostrará
-			    } elseif { $id == "Thickness" && ![::KMProps::showThickness]} {
-				
-				grid remove $fTab.lbl$id
-				grid remove $fTab.cmb$id
-				
-			    }
-			}
-		    }
-		}
-	    }                                                
-	}
+                    tooltip::tooltip $fTab.cmbPropertyName $cbhelp
+                    
+                    set ::KMProps::propertyName "[::KEGroups::GetAutomaticPropertyName $fullname "$whatoption"]"
+                    focus $fTab.cmbPropertyName
+                }
+                for {set i 1} { $i < [llength $listContainer] } {incr i} {
+                    
+                    set id [lindex $listContainer $i]
+                    
+                    #Los nodos ocultos no se deben mostrar
+                    set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
+                    if {$state != "hidden" } {
+                    
+                        #Si no coincide la dimensión 2D/3D no lo ponemos
+                        set nDim [::KMProps::getPropTemplate $idTemplate nDim "$idContainer//$id"]
+                        if { $nDim == "" || $nDim == $::KMProps::nDim } {
+                            
+                            set pid [::KMProps::getPropTemplate $idTemplate pid "$idContainer//$id"]
+                            set tooltip [::KMProps::getPropTemplate $idTemplate tooltip "$idContainer//$id"]
+                            set dv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
+                            
+                            set CBState [::KMProps::getPropTemplate $idTemplate CBState "$idContainer//$id"]
+                            if { $CBState == "normal" } {
+                                set values $comboList
+                                set comboList {}
+                            } else {
+                                set values {}
+                            }
+                            
+                            # Es importante que ElemType sea el primer combo para actualizar el "dv" en el xml
+                            if { $id == "ElemType" } {
+                                set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "" $dv]
+                            } else {
+                                set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "$fullname"]
+                            }
+                            
+                            #Para cada item añadimos label y combo
+                            grid [ttk::label $fTab.lbl$id -text "$pid:" ] \
+                            -row $i -column 0 -pady 5 -sticky nw -in $fTab
+                            
+                            
+                            if { [llength $comboList] } {
+                            
+                            grid [ttk::combobox $fTab.cmb$id -values $comboList -state readonly -width [::KMProps::getCmbWidth $comboList] \
+                                  -textvariable "::KMProps::cmb$id" \
+                                  -postcommand [list ::KMProps::changeCmbValues "$fTab.cmb$id" "$idContainer//$id" "$idTemplate" "" "$fullname"] ] \
+                                -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
+                            
+                            ::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate
+                            tooltip::tooltip $fTab.cmb$id $tooltip
+                            
+                            set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
+                            
+                            
+                            #En este caso se tendrá qué recargar si existe el combo de "Material Model"
+                            if { $id == "ElemType" } {
+                                bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbElemTypeChange $fTab.cmb$id $idContainer//$id $idTemplate"
+                            }
+                            
+                            } else {
+                                
+                                grid [ttk::combobox $fTab.cmb$id -state normal -width [::KMProps::getCmbWidth $comboList] -values $values -textvariable "::KMProps::cmb$id"] \
+                                    -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
+                                set ::KMProps::cmb$id $dv
+                                tooltip::tooltip $fTab.cmb$id $tooltip
+                                
+                                # Pick Coordinates Button
+                                set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
+                                if { $psb == "PickCoordinates" } {
+                                    set sbxp [::KMProps::getPropTemplate $idTemplate sbxp "$idContainer//$id"]
+                                    set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
+                                    grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
+                                    -row $i -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
+                                    tooltip::tooltip $fTab.btn$id "Pick Coordinates"
+                                }
+                            }
+                            
+                            
+                            #En el caso de ElemType actualizamos la variable de filtrado del Thickness
+                            if { $id == "ElemType" } {
+                                set ::KMProps::ElemTypeThickness $dv
+                                
+                            #En el caso del Thickness, no siempre se mostrará
+                            } elseif { $id == "Thickness" && ![::KMProps::showThickness]} {
+                            
+                                grid remove $fTab.lbl$id
+                                grid remove $fTab.cmb$id
+                            
+                            }
+                        }
+                    }
+                }
+            }                                                
+        }
     }
     
     grid [ttk::button $f.bPropOk -text [= "Ok"]  -command "::KMProps::acceptProperty $T $idTemplate $fullname $item {$listT}" ] \
@@ -547,6 +557,16 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
     tooltip::tooltip $f.bPropCancel [= "Cancel the defined properties"]
     
     bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
+    
+}
+
+proc ::KMProps::selectionButton { psb } {
+    set xyz [GidUtils::GetCoordinates]
+    set psb [split $psb ","]
+    
+    foreach var $psb val $xyz {
+        set ::KMProps::cmb$var $val
+    }
     
 }
 
@@ -799,14 +819,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 			
 			#Nos guardamos cada item para actualizar sus valores al final
 			lappend acceptItems $nieto $fTab
-			
-			## Es importante que ElemType sea el primer combo para actualizar el "dv" en el xml
-			#if { $id == "ElemType" } {
-			#        set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "" $dv]
-			#} else {
-			#        set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate]
-			#}
-			
+
 			set comboList [::xmlutils::getXMLValues "$fullname"]
 			
 			set CBState [::xmlutils::setXml $fullname CBState]
@@ -1016,22 +1029,6 @@ proc ::KMProps::acceptTabFrame { T listItems class {itemSel ""}} {
 	#Guarda el nuevo valor en el xml
 	::xmlutils::setXml $fullname dv "write" $selCombo
 	$T item style set $item C0 styAnyRead
-	
-	#Al final ya se hace un refresh
-	#if {$cmbState == "disabled"} {
-	#  $T item element configure $item C0 elemTxtRead -fill { gray }
-	#} else {
-	#  $T item element configure $item C0 elemTxtRead -text "$pid: $selComboText" -fill { black }
-	#}
-	
-	#Guarda el nuevo valor en el xml (si está desabilitado deja el que había)
-	#if {$cmbState == "disabled"} {
-	#  ::xmlutils::setXml $fullname dv "write" $selCombo
-	#  ::xmlutils::setXml $fullname state "write" "disabled"
-	#} else {
-	#  ::xmlutils::setXml $fullname state "write" "normal"
-	#}
-	
 	
 	#Si el combo era especial se tendrá q reconstruir el árbol
 	set clase [::xmlutils::setXml $fullname class]
