@@ -138,6 +138,9 @@ class ExplicitStrategy:
         elif(self.delta_OPTION==False):
             if(self.continuum_simulating_OPTION==False): self.case_OPTION = 0
             else: self.case_OPTION = 3
+
+        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED,0);
+        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS,0);
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)

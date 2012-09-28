@@ -190,7 +190,7 @@ namespace Kratos
 
        SphericParticle();
 
-        void SetInitialContacts(int case_opt);
+        void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo );
 
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );

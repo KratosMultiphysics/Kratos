@@ -234,8 +234,6 @@ namespace Kratos
                 double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
 
-
-
                 array_1d<double, 3 > & AngularVel           = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 > & RotaMoment           = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 > & delta_rotation_displ = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
@@ -259,9 +257,7 @@ namespace Kratos
 
                          if(rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                                 {
-
-                                RotaAcc = RotaAcc * coeff;
-
+                                  RotaAcc = RotaAcc * ( 1 - coeff );
                                 }
                        
                          double RotaVelOld = AngularVel[iterator];

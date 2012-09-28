@@ -32,7 +32,9 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
-      
+        KRATOS_CREATE_VARIABLE (int, NEIGH_INITIALIZED)
+        KRATOS_CREATE_VARIABLE( int, TOTAL_CONTACTS )
+
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_MOMENT );
 
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_ROTATION_ANGLE );
@@ -69,7 +71,10 @@ namespace Kratos
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
-                
+
+
+                KRATOS_REGISTER_VARIABLE ( NEIGH_INITIALIZED )
+                KRATOS_REGISTER_VARIABLE ( TOTAL_CONTACTS )
 
                 KRATOS_REGISTER_VARIABLE(VIRTUAL_MASS_OPTION)
                 KRATOS_REGISTER_VARIABLE(NODAL_MASS_COEFF)

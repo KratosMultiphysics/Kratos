@@ -136,7 +136,7 @@ namespace Kratos
 
       }
 
-        void SphericParticle::SetInitialContacts(int case_opt) //vull ficar que sigui zero si no son veins cohesius.
+        void SphericParticle::SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
 
         {
             bool delta_OPTION;
@@ -221,12 +221,21 @@ namespace Kratos
                     //THESE ARE THE CASES THAT NEED TO STORE THE INITIAL NEIGHBOURS
                     {
 
+                        //Number of contacts accounting.
+
+                        int& total_number_of_contacts = rCurrentProcessInfo[TOTAL_CONTACTS];
+
+                        total_number_of_contacts++;
+
+
                         r_initial_neighbours.push_back(*ineighbour);
 
                         if (delta_OPTION == true)
                         {
                             this->GetValue(PARTICLE_INITIAL_DELTA)[i]  =   initial_delta;
                             this->GetValue(PARTICLE_CONTACT_DELTA)[i]  =   initial_delta; //these variables are different and need to be kept.
+
+
                         }
 
                         if (continuum_simulation_OPTION == true)
@@ -1188,12 +1197,15 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
 
        {
 
-          int case_opt         = rCurrentProcessInfo[CASE_OPTION];
-          int mSwitch          = rCurrentProcessInfo[DUMMY_SWITCH];
+          int case_opt                  = rCurrentProcessInfo[CASE_OPTION];
+          int mSwitch                   = rCurrentProcessInfo[DUMMY_SWITCH];
+          int neighbours_initialized    = rCurrentProcessInfo[NEIGH_INITIALIZED];
 
-          if( (mSwitch==0) && (case_opt!=0) )
+          if( (mSwitch==0) && (case_opt!=0) && (neighbours_initialized == 0) )
           {
-                SetInitialContacts(case_opt);  //si finalment nomes has de fer aixo el switch el pots ficar a la strategia i testalvies que i entrem cada cop a comprobar.
+           
+                SetInitialContacts(case_opt, rCurrentProcessInfo);
+              
           }
 
           array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.

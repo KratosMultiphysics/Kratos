@@ -21,6 +21,7 @@
 
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "includes/variables.h"
+#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -162,12 +163,15 @@ namespace Kratos
             KRATOS_TRY
 
 
-            KRATOS_WATCH(msafety_factor)
        //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
         //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
 
+        //Initialitzations:
+
+        
+            
 
         //1. Search Neighbours with tolerance
 
@@ -184,6 +188,7 @@ namespace Kratos
           if(mdelta_option || mcontinuum_simulating_option){
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
 
+     
           }
 
           KRATOS_CATCH("")
@@ -195,7 +200,7 @@ namespace Kratos
 	KRATOS_TRY
 
     
-        std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
+        //std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
         ModelPart& r_model_part              = BaseType::GetModelPart();
 	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
 
@@ -480,16 +485,14 @@ namespace Kratos
 
                 (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
 
-             } //loop over particles
+              } //loop over particles
 
           }// loop threads OpenMP
 
         //modifying a switch
 
 
-
         KRATOS_CATCH("")
-
 
         }
 
@@ -745,6 +748,8 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
           ElementsArrayType& pElements     = r_model_part.Elements();
 
+          int& neighbours_initialized   = rCurrentProcessInfo[NEIGH_INITIALIZED];
+
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
           #else
@@ -772,6 +777,20 @@ namespace Kratos
              } //loop over particles
 
           }// loop threads OpenMP
+
+        if(neighbours_initialized==0)
+        {
+            int Total_Number_of_Particles   = pElements.size();
+            double Total_Number_of_Contacts = double((rCurrentProcessInfo[TOTAL_CONTACTS])/2);
+            double Coordination_Number      = ((Total_Number_of_Contacts*2)/Total_Number_of_Particles);
+            KRATOS_WATCH("")
+            KRATOS_WATCH(Total_Number_of_Particles)
+            KRATOS_WATCH(Total_Number_of_Contacts)
+            KRATOS_WATCH(Coordination_Number)
+            KRATOS_WATCH("")
+
+            neighbours_initialized = 1;
+        }
 
         //modifying a switch
       
