@@ -49,6 +49,7 @@ model_part = ModelPart("StructurePart");
 model_part.AddNodalSolutionStepVariable(FORCE);
 if(ProjectParameters.Rotational_Dofs == "True"):
   model_part.AddNodalSolutionStepVariable(ROTATION);
+  model_part.AddNodalSolutionStepVariable(MOMENTUM);
 
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
@@ -109,9 +110,9 @@ model_part.SetBufferSize(2)
 ##importing the rotational dofs degrees of freedom if necessary
 if(ProjectParameters.Rotational_Dofs == "True"):
   for node in model_part.Nodes:
-    node.AddDof(ROTATION_X)
-    node.AddDof(ROTATION_Y)
-    node.AddDof(ROTATION_Z)
+      node.AddDof(ROTATION_X,MOMENTUM_X);
+      node.AddDof(ROTATION_Y,MOMENTUM_Y);
+      node.AddDof(ROTATION_Z,MOMENTUM_Z);
 
 #importing the solver files
 
