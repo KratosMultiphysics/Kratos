@@ -1,204 +1,268 @@
-#################################################################
-##################################################################
-#import the configuration data as read from the GiD
+# -*- coding: utf-8 -*-
+import re
+import math
+import sys
 import ProjectParameters
-
-
-
-def PrintResults(model_part):
-        print "Writing results. Please run Gid for viewing results of analysis."
-        for variable_name in ProjectParameters.nodal_results:
-            gid_io.WriteNodalResults(varibles_dictionary[variable_name],model_part.Nodes,time,0)
-        for variable_name in ProjectParameters.gauss_points_results:
-            gid_io.PrintOnGaussPoints(varibles_dictionary[variable_name],model_part,time)
-
-
 
 
 ##################################################################
 ##################################################################
 #setting the domain size for the problem to be solved
 domain_size = ProjectParameters.domain_size
-
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
-#including kratos path
-kratos_libs_path            = ProjectParameters.kratos_path + '/libs' ##kratos_root/libs
-kratos_applications_path    = ProjectParameters.kratos_path + '/applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
 #importing Kratos main library
-from Kratos import *
-kernel = Kernel()   #defining kernel
 
-#importing applications
-import applications_interface
-applications_interface.Import_IncompressibleFluidApplication = True
-applications_interface.Import_ExternalSolversApplication = True
-applications_interface.ImportApplications(kernel, kratos_applications_path)
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.MeshingApplication import *
 
-## from now on the order is not anymore crucial
 ##################################################################
 ##################################################################
-from KratosIncompressibleFluidApplication import *
-from KratosExternalSolversApplication import *
 
-
-## defining variables to be used
-
-varibles_dictionary = {"PRESSURE" : PRESSURE,
-                       "VELOCITY" : VELOCITY}
-
-#defining a model part for the fluid 
+#defining a model part for the fluid and one for the structure
 fluid_model_part = ModelPart("FluidPart");  
-
 #############################################
+
+
 ##importing the solvers needed
-SolverType = ProjectParameters.SolverType
-if(SolverType == "FractionalStep"):
-    import incompressible_fluid_solver
-    incompressible_fluid_solver.AddVariables(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian"):
-    import monolithic_solver_eulerian
-    monolithic_solver_eulerian.AddVariables(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    import monolithic_solver_eulerian_compressible
-    monolithic_solver_eulerian_compressible.AddVariables(fluid_model_part)
-else:
-    raise "solver type not supported: options are FractionalStep - Monolithic"
+import edgebased_levelset_substep_solver
+edgebased_levelset_substep_solver.AddVariables(fluid_model_part)
+fluid_model_part.AddNodalSolutionStepVariable(Y_WALL)
+fluid_model_part.AddNodalSolutionStepVariable(DENSITY)
 
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
-multifile = MultiFileFlag.MultipleFiles
+multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
 write_conditions = WriteConditionsFlag.WriteElementsOnly
-gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
+
+gid_io = GidIO(input_file_name+"_F_k",gid_mode,multifile,deformed_mesh_flag, write_conditions)
+    
 model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-fluid_model_part.SetBufferSize(3)
+fluid_model_part.SetBufferSize(2)
 
 ##adding dofs
-if(SolverType == "FractionalStep"):
-    incompressible_fluid_solver.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian"):
-    monolithic_solver_eulerian.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    monolithic_solver_eulerian_compressible.AddDofs(fluid_model_part)
+edgebased_levelset_substep_solver.AddDofs(fluid_model_part)
 
-#########select here the laplacian form!!!!!!!!!!!!!!!!!
-laplacian_form = ProjectParameters.laplacian_form 
-if(laplacian_form >= 2):
-    for node in fluid_model_part.Nodes:
-        node.Free(PRESSURE)
 
-##check to ensure that no node has zero density or pressure
+
+##we assume here that all of the internal nodes are marked with a negative distance
+##set the distance of all of the internal nodes to a small value
+small_value = 0.0001
+n_active = 0
 for node in fluid_model_part.Nodes:
-    if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ",node.Id," has zero density!"
-        raise 'node with zero density found'
-    if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ",node.Id," has zero viscosity!"
-        raise 'node with zero VISCOSITY found'
+    dist = node.GetSolutionStepValue(DISTANCE)
+    if(dist < 0.0):
+        n_active = n_active + 1
+        node.SetSolutionStepValue(DISTANCE,0,-small_value)
+    else:
+        node.SetSolutionStepValue(DISTANCE,0,small_value)
+       
+if(n_active == 0):
+    raise "ERROR. At least one node has to be initialized with a distance lesser than 0"
 
-#creating the solvers
-#fluid solver
-if(SolverType == "FractionalStep"):
-    fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
-    fluid_solver.laplacian_form = laplacian_form; #standard laplacian form
-    fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector
-    fluid_solver.max_press_its = ProjectParameters.max_press_its
-    fluid_solver.Initialize()
-elif(SolverType == "monolithic_solver_eulerian"): 
-    fluid_solver = monolithic_solver_eulerian.MonolithicSolver(fluid_model_part,domain_size)
-    oss_swith = ProjectParameters.use_oss
-    dynamic_tau = ProjectParameters.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
-    fluid_solver.Initialize()
-elif(SolverType == "monolithic_solver_eulerian_compressible"): 
-    fluid_solver = monolithic_solver_eulerian_compressible.MonolithicSolver(fluid_model_part,domain_size)
-    oss_swith = ProjectParameters.use_oss
-    dynamic_tau = ProjectParameters.dynamic_tau
-    fluid_model_part.ProcessInfo.SetValue(OSS_SWITCH, oss_swith);               
-    fluid_model_part.ProcessInfo.SetValue(DYNAMIC_TAU, dynamic_tau);
-    fluid_solver.Initialize()
+#make sure that the porosity is not zero on any node (set by default to fluid only)
+for node in fluid_model_part.Nodes:
+    if(node.GetSolutionStepValue(POROSITY) == 0.0):
+        node.SetSolutionStepValue(POROSITY,0,1.0)
+    if(node.GetSolutionStepValue(DIAMETER) == 0.0):
+        node.SetSolutionStepValue(DIAMETER,0,1.0)
+
+    
+#constructing the solver
+body_force = Vector(3)
+body_force[0] = ProjectParameters.body_force_x
+body_force[1] = ProjectParameters.body_force_y
+body_force[2] = ProjectParameters.body_force_z
+viscosity   = ProjectParameters.viscosity
+density     = ProjectParameters.density
+fluid_solver = edgebased_levelset_substep_solver.EdgeBasedLevelSetSolver(fluid_model_part,domain_size,body_force,viscosity,density)
+fluid_solver.redistance_frequency = ProjectParameters.redistance_frequency
+fluid_solver.extrapolation_layers = ProjectParameters.extrapolation_layers
+fluid_solver.stabdt_pressure_factor = ProjectParameters.stabdt_pressure_factor
+fluid_solver.stabdt_convection_factor = ProjectParameters.stabdt_convection_factor
+fluid_solver.compute_porous_resistance_law = 0
+fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-6, 5000)
+
+fluid_solver.Initialize()
+
+print "***********fluid solver created****************"
+
+if(ProjectParameters.wall_law_y > 1e-10):
+    fluid_solver.fluid_solver.ActivateWallResistance(ProjectParameters.wall_law_y);
+    
+####
 
 
 print "fluid solver created"
 
 #settings to be changed
-Dt = ProjectParameters.Dt 
-full_Dt = Dt 
-initial_Dt = 0.001 * full_Dt #0.05 #0.01
+max_Dt = ProjectParameters.Dt
+initial_Dt = 0.001 * max_Dt 
 final_time = ProjectParameters.max_time
-output_step = ProjectParameters.output_step
+output_dt = ProjectParameters.output_time
+safety_factor = ProjectParameters.safety_factor
 
+number_of_inital_steps = ProjectParameters.number_of_initial_steps
+initial_time_step = initial_Dt
 out = 0
 
+original_max_dt = max_Dt
 
-#mesh to be printed
+###mesh to be printed
 mesh_name = 0.0
-gid_io.InitializeMesh( mesh_name)
+gid_io.InitializeMesh( mesh_name )
 gid_io.WriteMesh( fluid_model_part.GetMesh() )
 gid_io.FinalizeMesh()
+gid_io.Flush()
 
-gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
+gid_io.InitializeResults(mesh_name, (fluid_model_part).GetMesh());
+
+normal_calculator = NormalCalculationUtils()
+normal_calculator.CalculateOnSimplex(fluid_model_part.Conditions,3)
 
 
+for condition in fluid_model_part.Conditions:
+    if(condition.GetValue(IS_INLET) > 0.00):
+        normal = condition.GetValue(NORMAL)
+        normal_size = math.sqrt(normal * normal)
+        velocity = ProjectParameters.inlet_velocity * normal / normal_size
+        for node in condition.GetNodes():
+            node.SetSolutionStepValue(VELOCITY, velocity)
+            node.SetSolutionStepValue(TEMPERATURE, ProjectParameters.FLUID_TEMPERATURE )            
+            node.Fix(VELOCITY_X)
+            node.Fix(VELOCITY_Y)
+            node.Fix(VELOCITY_Z)
+            node.Fix(DISTANCE)
+            node.Fix(TEMPERATURE)
+            node.SetValue(IS_VISITED,10.0)
+            #print condition.Id, node.GetSolutionStepValue(VELOCITY)
+
+inlet_nodes_list = []
+for node in fluid_model_part.Nodes:
+    if (node.IsFixed(VELOCITY_X) == True):
+        inlet_nodes_list.append(node)
+	node.Fix(DISTANCE)
+    
+fixed_dist_nodes = []
+for node in fluid_model_part.Nodes:
+  if(node.IsFixed(DISTANCE)):
+    fixed_dist_nodes.append(node);
+    
+def WettenNodes(nodes):
+  for node in nodes:
+    if(node.GetSolutionStepValue(DISTANCE) > 0):
+      node.SetSolutionStepValue(DISTANCE,0,-0.001);
+    
+
+def FreeFixedInletValues(model_part):
+  for node in model_part.Nodes:
+    node.Free(VELOCITY_X)
+    node.Free(VELOCITY_Y)
+    node.Free(VELOCITY_Z) 
+    node.Free(TEMPERATURE) 
+
+
+max_safety_factor = safety_factor
+    
 time = 0.0
 step = 0
-while(time < final_time):
+next_output_time = output_dt
+screen_output_dt = 0.1
+next_screen_output = screen_output_dt
+volume_correction_step = 1
 
-    if(step < 5):
-        Dt = initial_Dt
+print "Process Information"
+print "---------------------------------------------------------------"
+print "Max time          :", final_time
+print "Max delta time    :", max_Dt
+print "Output delta time :",output_dt
+print "Safety factor     :", safety_factor
+
+
+print "Filled %        current time     delta time      mass ratio"
+print "---------------------------------------------------------------"
+sys.stdout.flush()
+
+measured_volume = fluid_solver.fluid_solver.ComputeWetVolume()
+expected_volume = measured_volume
+
+time1= time
+#AssignEnvironmentCondition.AssignCondition()
+switch = 1.0;
+temp_time = 0.0
+##mean_prerssure_file = open("mean_prerssure_file.out", "w")  
+while((time1 < final_time)):
+
+ 
+    if(step < number_of_inital_steps):
+        max_Dt = initial_time_step
     else:
-        Dt = full_Dt
-        
+        max_Dt = original_max_dt
+        #progressively increment the safety factor
+        #in the steps that follow a reduction of it
+        safety_factor = safety_factor * 1.2
+        if(safety_factor > max_safety_factor):
+            safety_factor = max_safety_factor          
+    
+    Dt = fluid_solver.EstimateTimeStep(safety_factor,max_Dt)
     time = time + Dt
-    fluid_model_part.CloneTimeStep(time)
+    time1= time1+Dt
+    percent_done = 100.00 * (time1 / final_time)
+        
+    fluid_model_part.CloneTimeStep(time)     
 
     if(step >= 3):
-        fluid_solver.Solve()
+        #print "time=",time," Dt = ",Dt            
+	WettenNodes(fixed_dist_nodes)
+	fluid_solver.Solve()
 
-    if(out == output_step):
-        if(SolverType == "FractionalStep"):
-            PrintResults(model_part)
-        else:
-            gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(AIR_PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(WATER_PRESSURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
-            #gid_io.WriteNodalResults(DISPLACEMENT,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(MESH_VELOCITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_STRUCTURE,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_BOUNDARY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_POROUS,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(IS_FREE_SURFACE,fluid_model_part.Nodes,time,0)
-            #gid_io.PrintOnGaussPoints(THAWONE,fluid_model_part,time)
-            #gid_io.PrintOnGaussPoints(THAWTWO,fluid_model_part,time)
-            gid_io.WriteNodalResults(ADVPROJ,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DIVPROJ,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DENSITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(DENSITY_AIR,fluid_model_part.Nodes,time,0)
-           ## gid_io.WriteNodalResults(NODAL_H,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(VISCOSITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
-            gid_io.WriteNodalResults(AIR_SOUND_VELOCITY,fluid_model_part.Nodes,time,0)
+    measured_volume = fluid_solver.fluid_solver.ComputeWetVolume()
+    vol_variation =  fluid_solver.fluid_solver.ComputeVolumeVariation()
+    expected_volume = expected_volume + vol_variation
 
+    if(percent_done >= next_screen_output):
+        print
+        print "Filled %.0f" % percent_done,"% \t","%e" % time1, "\t", "%e" % Dt, "\t", measured_volume / expected_volume, "\t", vol_variation
+        sys.stdout.flush()
+        next_screen_output += screen_output_dt
+
+
+# I have to change this part to not duplicate the redistance. Pooyan.
+    if(volume_correction_step > ProjectParameters.redistance_frequency):
+        max_volume_error = 0.999
+        if(measured_volume / expected_volume < max_volume_error):
+            vol_variation =  fluid_solver.fluid_solver.ContinuousVolumeCorrection(expected_volume, measured_volume)
+            fluid_solver.Redistance();
+            volume_correction_step = 1
+        if(measured_volume / expected_volume > 1.00):
+            time1 = time * measured_volume / expected_volume # This is NOT what I like to do! Pooyan.
+
+    volume_correction_step += 1
+
+
+    if(time1 >= next_output_time):
+       
+        gid_io.WriteNodalResults(DISTANCE,fluid_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
+      
+        gid_io.Flush()
+        sys.stdout.flush()
+
+        next_output_time += output_dt
         out = 0
 
     out = out + 1
     step = step + 1
       
-gid_io.FinalizeResults()
-          
-        
+gid_io.FinalizeResults()    
+
+print "Num Steps:", step
+print "END OF RUN EXECUTION"
