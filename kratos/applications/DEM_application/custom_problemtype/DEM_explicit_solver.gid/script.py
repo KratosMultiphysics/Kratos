@@ -277,6 +277,7 @@ results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
 
 forcelist = []
+forcelist2 = []
 timelist = []
 displacementlist = []
 
@@ -288,23 +289,21 @@ while(time < final_time):
 
     solid_model_part.ProcessInfo[TIME_STEPS] = step
     
-    if (1<0):  ##this part is for a special test... will be erased.
+    if (3<2):  ##this part is for a special test... will be erased.
       
-	if (step > 4800):
-	    print("python")
-	    print(step)
-	    print("len(Nodes)=",len(solid_model_part.Nodes))
-	    a=None
-	    count=0
-	    for node in solid_model_part.Nodes:
-	      if node.Id == 1890:
-		a=node
-		print "posicio:",count
-	      count+=1
-		
-		#solid_model_part.Nodes[2896].GetSolutionStepValue(PARTICLE_FAILURE_ID,0)
-	    print(a.GetSolutionStepValue(PARTICLE_FAILURE_ID,0)) 
-	    print("python")
+	if (step > 6998):
+	   
+	   if (step < 7001):
+	      print(step)
+	      a=None
+
+	      for node in solid_model_part.Nodes:
+		if node.Id == 43:
+		  a=node
+				
+	      #solid_model_part.Nodes[43].GetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID,0)
+	      print(a.GetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID,0)) 
+
       
       ####imprimint les forces en un arxiu.
     
@@ -327,6 +326,22 @@ while(time < final_time):
     #writing lists to be printed
     forcelist.append(total_force)
     timelist.append(time)
+    
+    total_force=0
+    force_node= 0
+    
+    for node in inf_layer:
+	
+	force_node = node.GetSolutionStepValue(RHS,0)
+	force_node_x = node.GetSolutionStepValue(RHS,0)[0]
+	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
+	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
+
+	total_force += force_node_y
+    
+    
+    #writing lists to be printed
+    forcelist2.append(total_force)
     
     
     summary_results.write(str(step)+"  "+str(total_force)+'\n')
@@ -388,6 +403,18 @@ if (1<2):
   #ylim(-5.0,103870403.214)
   #legend(('force'))
   savefig('Grafic_1')
+  
+if (1<2):
+  clf()
+  plot(timelist,forcelist2,'b-')
+  grid(True)
+  title('Vertical force vs time')
+  xlabel('time (s)')
+  ylabel('Force (N)')
+  #xlim(0.0,70000)
+  #ylim(-5.0,103870403.214)
+  #legend(('force'))
+  savefig('Grafic_2')
   
   
   
