@@ -796,19 +796,15 @@ namespace Kratos
             int tempType[5] = {0,0,0,0,0};
 
 
-
-
             if (*mpFailureId != 1)  // for *mpFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
             {
                 
-                ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
-
-                
+                ParticleWeakVectorType& r_ini_neighbours             = this->GetValue(INITIAL_NEIGHBOUR_ELEMENTS);
 
                 unsigned int itype = 0;
 
-                for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();  //loop over neighbours, just to run the index.
-                    neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+                for(ParticleWeakIteratorType ini_neighbour_iterator = r_ini_neighbours.begin();  //loop over neighbours, just to run the index.
+                    ini_neighbour_iterator != r_ini_neighbours.end(); ini_neighbour_iterator++)
                 {
 
                     //if( int(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype]) == 0)
@@ -866,11 +862,11 @@ namespace Kratos
             }// if (*mpFailureId != 1)
 
       /*
-            if(this->GetGeometry()(0)->Id()==1890)
+            if(this->GetGeometry()(0)->Id()==43)
 
             {
 
-                if(rCurrentProcessInfo[TIME_STEPS]>4950)
+                if((rCurrentProcessInfo[TIME_STEPS]>6998)&&(rCurrentProcessInfo[TIME_STEPS]<7001))
                 {
 
                    ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -885,7 +881,8 @@ namespace Kratos
                     {
 
                         KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype])
-                        //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[itype])
+
+                        KRATOS_WATCH(neighbour_iterator->Id())
                         itype++;
 
                     }
@@ -912,14 +909,8 @@ namespace Kratos
        
       //this->GetValue(PARTICLE_FAILURE_ID)=*mpFailureId ;
 
-       
-       //testing
-       if (*mpFailureId != 0.0)
-            {
-            KRATOS_WATCH(*mpFailureId)
-            KRATOS_WATCH(this->GetValue(PARTICLE_FAILURE_ID))
-            }
-        */
+       */
+   
       
 
             KRATOS_CATCH("")
