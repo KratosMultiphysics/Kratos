@@ -1238,11 +1238,11 @@ namespace Kratos
 	// VM
     }
 
- int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
-        unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
+//        unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
         //verify that the variables are correctly initialized
 
