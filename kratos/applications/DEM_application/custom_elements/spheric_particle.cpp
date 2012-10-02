@@ -327,12 +327,15 @@ namespace Kratos
             double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
             double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
 
-            array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.
-            //COMPROBAR QUE ES ZERO DEL INITIALIZE SOLUTION STEP
+            array_1d<double,3>& rhs             = this->GetGeometry()[0].GetSolutionStepValue(RHS);
+            array_1d<double,3>& total_forces    = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
+            array_1d<double,3>& damp_forces     = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
 
-            array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //Nelson: se llama force la que hauria d0haver aqui
+            array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
 
-            force  = mass*gravity + applied_force;
+            rhs  = mass*gravity + applied_force;
+
+            total_forces = rhs;
             
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
@@ -656,59 +659,86 @@ namespace Kratos
                     // the visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
                     // but in oposite direction the visco damping can't overpass the force...
 
+
+             double ViscoDampingLocalContactForce[3]    = {0.0};
 		
 	     if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
 
              {
+                    double NewLocalContactForce[3]  = {0.0};
 
-      
-                    double OldLocalContactForce[3]  = {0.0}; //M.
+
+                        ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff * LocalRelVel[2];
+
+                        NewLocalContactForce[2] = LocalContactForce[2] + ViscoDampingLocalContactForce[2];
                         
-                        OldLocalContactForce[2] = LocalContactForce[2];
-                    
-                        LocalContactForce[2] += - equiv_visco_damp_coeff * LocalRelVel[2];
-                        
-                        if(LocalContactForce[2]*OldLocalContactForce[2]<0){LocalContactForce[2]=0.0;} //the contact force can not change the direction due to the visco damp.
+                        if(NewLocalContactForce[2]*LocalContactForce[2]<0){ViscoDampingLocalContactForce[2]= -LocalContactForce[2];} //the contact force can not change the direction due to the visco damp.
                         
                         if ( fabs(LocalContactForce[0] + ks * LocalDeltDisp[0]) < 1e-12 ) {
                         
                             for (unsigned int index = 0; index < 2; index++)
                             {
-                               OldLocalContactForce[index] = LocalContactForce[index];
+                                                                                 
+                               ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalRelVel[index];
 
-                               LocalContactForce[index] += - equiv_visco_damp_coeff * LocalRelVel[index];
+                               NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index];
 
-                               if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;}
+                               if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
+
                             }
                         }
                         else {
                         
                             for (unsigned int index = 0; index < 2; index++)
                             {
-                               OldLocalContactForce[index] = LocalContactForce[index];
+                               ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalDeltRelVel[index];
 
-                               LocalContactForce[index] += - equiv_visco_damp_coeff * LocalDeltRelVel[index];
+                               NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index] ;
 
-                               if(LocalContactForce[index]*OldLocalContactForce[index]<0){LocalContactForce[index]=0.0;}
+                               if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
                             }
                         }
                 }
 
                 // TRANSFORMING TO GLOBAL FORCES AND ADDING UP
 
+
+                    double LocalResultantContactForce[3] ={0.0};
+                    double ViscoDampingGlobalContactForce[3] = {0.0};
+                    double GlobalResultantContactForce[3] = {0.0};
+
+                    for (unsigned int index = 0; index < 3; index++)
+                        {
+
+                        LocalResultantContactForce[index] = LocalContactForce[index]  + ViscoDampingLocalContactForce[index];
+
+                        }
+
+
                     GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+                    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+                    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalResultantContactForce, GlobalResultantContactForce);
 
-                    force[0] += GlobalContactForce[0];
-                  //   if(this->Id()==2){             KRATOS_WATCH(force[1])}
-                    force[1] += GlobalContactForce[1];
-                   //  if(this->Id()==2){             KRATOS_WATCH(force[1])}
-                    force[2] += GlobalContactForce[2];
 
-                // SAVING FOR NEXT STEPS
+                    rhs[0] += GlobalContactForce[0]; //RHS
+                    rhs[1] += GlobalContactForce[1];
+                    rhs[2] += GlobalContactForce[2];
 
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalContactForce[1];
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalContactForce[2];
+                    total_forces[0] += GlobalResultantContactForce[0];
+                    total_forces[1] += GlobalResultantContactForce[1];
+                    total_forces[2] += GlobalResultantContactForce[2];
+
+                    damp_forces[0] += ViscoDampingGlobalContactForce[0];
+                    damp_forces[1] += ViscoDampingGlobalContactForce[1];
+                    damp_forces[2] += ViscoDampingGlobalContactForce[2];
+
+
+                // SAVING CONTACT FORCES FOR NEXT STEPS
+
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalResultantContactForce[0];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalResultantContactForce[1];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalResultantContactForce[2];
+              
 
                     if ( rotation_OPTION == 1 )
                     {
@@ -716,7 +746,7 @@ namespace Kratos
                  ////global moment return back,for the ball self
 
                     double MA[3] = {0.0};
-                    GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+                    GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalResultantContactForce, MA);
                     mRota_Moment[0] -= MA[0] * radius;
                     mRota_Moment[1] -= MA[1] * radius;
                     mRota_Moment[2] -= MA[2] * radius;
@@ -1199,8 +1229,13 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
               
           }
 
-          array_1d<double,3>& force           = this->GetGeometry()[0].GetSolutionStepValue(RHS);//total forces, we reset to 0. and we calculate again.
-          noalias(force)                      = ZeroVector(3);
+          array_1d<double,3>& rhs            = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
+          array_1d<double,3>& total_forces   = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
+          array_1d<double,3>& damp_forces   = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
+
+          noalias(rhs)                       = ZeroVector(3);
+          noalias(total_forces)              = ZeroVector(3);
+          noalias(damp_forces)              = ZeroVector(3);
 
         }
        void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)

@@ -365,6 +365,8 @@ while(time < final_time):
         gid_io.WriteNodalResults(VELOCITY, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(DISPLACEMENT, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(RHS, solid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(TOTAL_FORCES, solid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(DAMP_FORCES, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(RADIUS, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_COHESION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)

@@ -12,6 +12,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
+    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
