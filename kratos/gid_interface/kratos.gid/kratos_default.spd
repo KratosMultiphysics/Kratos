@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.0.6">
+<Kratos_Data version="1.0.7">
     <Groups/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -87,7 +87,7 @@
 	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="1"/>
         </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="1" icon="loads.gif">
-            <Container id="BodyForce" pid="Body force" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
+            <Container id="BodyForce" pid="Body force" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Body forces" open="1"/>
             <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
             <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
             <Container id="Face" pid="Face" class="Groups" nDim="3D" strucType="Solids" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="0"/>
@@ -157,7 +157,7 @@
 	   <Item id="DirectSolverTypeCompressible" pid="Direct solver type" linearSolvTyp="Direct" fluidType="Compressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
 	   <Item id="IterativeSolverTypeCompressible" pid="Iterative solver type" linearSolvTyp="Iterative" fluidType="Compressible" dv="ConjugateGradient" ivalues="ConjugateGradient" values="Conjugate gradient" help=""/>
 	   <Item id="PreconditionerTypeCompressible" pid="Preconditioner type" linearSolvTyp="Iterative" dv="Diagonal" fluidType="Compressible" ivalues="None,Diagonal" values="None,Diagonal" help=""/>
-	   <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
+	   <Item id="StartTime" pid="Start time" dv="0.0" help=""/>
             <Item id="EndTime" pid="End time" dv="1" help=""/>
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" fluidSolvTyp="ElementBased,Monolithic" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
@@ -176,6 +176,24 @@
 	      <Item id="LaplacianForm" pid="Laplacian form" state="hidden" dv="Discrete" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
 	      <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
 	      <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
+	      <Item id="RedistanceFrequency" pid="Redistance frequency" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="5" help="Redistance frequency"/>
+	      <Item id="ExtrapolationLayers" pid="Extrapolation layers" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="10" help="Extrapolation layers"/>
+	      <Item id="StabdtPressureFactor" pid="Stabilized dt pressure factor" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="1.0" help="Stabilized dt pressure factor"/>
+	      <Item id="StabdtConvectionFactor" pid="Stabilized convection factor" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="0.01" help="Stabilized convection factor"/>
+	      <Item id="WallLawY" pid="Wall law value" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="0.0001" help="Wall law value"/>
+	      <Item id="SafetyFactor" pid="Safety factor" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="0.8" help="Safety factor"/>
+	      <Item id="NumberOfInitialSteps" pid="Number of initial steps" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="0.0" help="Number of initial steps"/>
+	    </Container>
+	    <Container id="LevelSetBodyForce" pid="Body force" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" class="Tab" help="Body forces" open="1">
+	      <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
+	      <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
+	      <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
+	      <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
+	    </Container>
+	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" class="Tab" help="Porous zones" open="1">
+	      <Item id="UseErgunEquation" pid="Use Ergun equation" dv="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
+	      <Container id="ErgunEquationNo" pid="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" open="1"/>
+	      <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="1"/>
 	    </Container>
 	  </Container>
 	  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
@@ -183,9 +201,11 @@
             <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"   fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
             <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"    fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
             <Container id="Fluid2DMonolithic" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"   fluidSolvTyp="Monolithic" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="1"/>
-            <Container id="Fluid3DMonolithic" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"    fluidSolvTyp="Monolithic" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="elect the fluid 2D element type" open="1"/>
-            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidSolvTyp="EdgeBased,LevelSet" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidSolvTyp="EdgeBased,LevelSet" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+            <Container id="Fluid3DMonolithic" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"    fluidSolvTyp="Monolithic" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="1"/>
+            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidSolvTyp="EdgeBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidSolvTyp="EdgeBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+	    <Container id="LevelSetFluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidSolvTyp="LevelSet" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+            <Container id="LevelSetFluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidSolvTyp="LevelSet" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
              <Container id="VMS2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidSolvTyp="ElementBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
             <Container id="VMS3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidSolvTyp="ElementBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
         </Container>
@@ -200,6 +220,7 @@
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
             <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
             <Container id="WallLaw" state="hidden" pid="Wall law" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
+	    <Container id="Distance" pid="Distance" class="Groups" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="1"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
 	    <Container id="Flag-Variable" pid="Flag-Variable" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
         </Container>
@@ -234,7 +255,7 @@
       </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
 	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
-	  <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
+	  <Item id="StartTime" pid="Start time" dv="0.0" help=""/>
             <Item id="EndTime" pid="End time" dv="1" help=""/>
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
@@ -277,6 +298,8 @@
     </RootData>
     <RootData id="ConvectionDiffusion" pid="Convection diffusion" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Convection diffusion">
         <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
+    </RootData>
+    <RootData id="Curves" pid="Curves" state="hiddenAll" class="Curves" icon="arc.gif" help="Curve definition">
     </RootData>
      <Templates>
         <Template id="TLagrangian" icon="groupsTree.gif" help="Total Lagrangian">
@@ -417,6 +440,24 @@
                 <Item id="ConstantValue" pid="Value" dv="0.0" help="Define the value"/>
 	    </Container>
         </Template>
+	<Template id="LevelSetDistance" icon="groupsTree.gif" help="Level set distance data">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="DistanceValue" pid="Value" dv="-1e-5" help="Define the value"/>
+	    </Container>
+        </Template>
+	<Template id="PorosityDiameter" icon="groupsTree.gif" help="Porosity and diameter data">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="PorosityValue" pid="Porosity" dv="0.5" help="Define the porosity value"/>
+		<Item id="DiameterValue" pid="Diameter" dv="0.03" help="Define the diameter value"/>
+	    </Container>
+        </Template>
+	<Template id="PorosityDarcy" icon="groupsTree.gif" help="Porosity and darcy law data">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="PorosityValue" pid="Porosity" dv="0.5" help="Define the porosity value"/>
+		<Item id="LinearDarcyCoefficient" pid="Linear Darcy coefficient" dv="0.65" help="Define the linear Darcy coefficient value"/>
+		<Item id="NonLinearDarcyCoefficient" pid="Nonlinear Darcy coefficient" dv="446.51" help="Define the nonlinear Darcy coefficient value"/>
+	    </Container>
+        </Template>
         <Template id="CutProperties" icon="cutplane.gif" help="Cut properties">
             <Container id="Origin" pid="Origin" help="Origin properties">
                 <Item id="OX" pid="X" dv="0.0" help="X coordinate"/>
@@ -444,12 +485,20 @@
             <Item id="OutputFileId" pid="Output file Id"  dv="" help="Output file identifier"/>
             </Container>
         </Template>
+            <Template id="NewCurveId" pid="Curve Id" help="Curve Identifier">
+            <Item id="CurveType" pid="Curve Type" dv="ByPoints" ivalues="ByPoints" help="Type of curve"/>
+            <Item id="XVar" pid="X Variable" dv="Time" ivalues="Time,Temperature" help="Type of curve"/>
+            <Item id="YVar" pid="Y Variable" dv="YoungModulus" ivalues="YoungModulus,More" help="Type of curve"/>
+            <ContainerTable id="Points" pid="Points" dv="0" help="Curve Points">
+		<TItem id ="1" Xval ="0" Yval="0"/>
+	</ContainerTable>
+            </Template>
     </Templates>
     <GlobalProjectSettings>
     	<Item id="ValidateModel" pid="Validate model before calculate" dv="1" widget="check" help=""/>
     	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType</Class>
+        <Class>nDim,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType</Class>
     </ClassConfiguration>
 </Kratos_Data>
