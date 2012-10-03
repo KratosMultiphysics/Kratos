@@ -281,6 +281,20 @@ forcelist2 = []
 timelist = []
 displacementlist = []
 
+multifile = open(input_file_name+'_all'+'.post.lst','w')
+multifile_5 = open(input_file_name+'_5'+'.post.lst','w')
+multifile_10 = open(input_file_name+'_10'+'.post.lst','w')
+multifile_50 = open(input_file_name+'_50'+'.post.lst','w')
+
+multifile.write('Multiple\n')
+multifile_5.write('Multiple\n')
+multifile_10.write('Multiple\n')
+multifile_50.write('Multiple\n')  
+
+index_5 = 1
+index_10 = 1
+index_50 = 1
+
 while(time < final_time):
 
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -377,6 +391,35 @@ while(time < final_time):
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
             gid_io.WriteNodalResults(PARTICLE_MOMENT, solid_model_part.Nodes, time, 0)
             gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, solid_model_part.Nodes, time, 0)
+            
+        multifile.write(input_file_name+'_'+str(time)+'.post.bin\n')
+        
+        if (index_5==5):
+	  
+	  multifile_5.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  
+	  index_5=0
+	  
+	if (index_10==10):
+	  
+	  multifile_10.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  
+	  index_10=0
+	  
+	if (index_50==50):
+	  
+	  multifile_50.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  
+	  index_50=0
+	
+	
+	 
+	index_5 += 1
+	index_10 += 1
+	index_50 += 1
+	
+        
+        
         #gid_io.Flush()      
         gid_io.FinalizeResults()    
 	time_old_print = time
@@ -386,7 +429,10 @@ while(time < final_time):
     
 results.close()
 summary_results.close()
-
+multifile.close()
+multifile_5.close()
+multifile_10.close()
+multifile_50.close()
 
 ###PLOTS
 
