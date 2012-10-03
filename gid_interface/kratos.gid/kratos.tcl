@@ -12,6 +12,8 @@
 #
 #    HISTORY: 
 # 
+#     2.1- 04/10/12- G. Socorro, add the proc BeforeDeleteCondGroup,AfterCreateCondGroup and AfterRenameCondGroup
+#     2.0- 01/10/12- J. Gárate, enable/disable curves module KPriv(CurvesModule) [0 -> Disable  | 1 -> Enable]
 #     1.9- 28/09/12- G. Socorro, modify the event SelectGIDBatFile tp include the number of threads for the OpenMP case
 #     1.8- 24/09/12- G. Socorro, modify the event SelectGIDBatFile to include the number of processors in the command line
 #     1.7- 21/09/12- G. Socorro, correct a bug in the proc BeforeMeshGeneration use {*} to get all the surface identifier
@@ -81,16 +83,15 @@ proc SaveGIDProject {filename} {
 }
 
 proc AfterTransformProblemType { file oldproblemtype newproblemtype } {
-	
+	#WarnWin 1
 	set name [lindex [split $file "/"] end]
 	#msg "${file}/${name}.spd"
-	LoadGIDProject "${file}.gid/${name}.spd"
-	
+	::kfiles::LoadSPD "${file}.gid/${name}.spd"
 	return 0
 }
 
-#proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
-	
+proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
+    #WarnWinText 2
 	#msg "before transform"
 	#global KPriv
 	#msg "$KPriv(dir)"
@@ -106,8 +107,8 @@ proc AfterTransformProblemType { file oldproblemtype newproblemtype } {
 	###Transforma el spd si son versiones distintas
 	 #::xmlutils::checkSpdVersion
 	 #
-	 #return -cancel-
-#}
+	 return -cancel-
+}
 
 proc InitGIDProject { dir } {
 	
@@ -129,8 +130,11 @@ proc InitGIDProject { dir } {
     SRC gid_groups_public.tcl
     gid_groups_conds::init_package
     
+    # For activating the Curves Module [Disabled -> 0 | Enabled -> 1]
+    set KPriv(CurvesModule) 0
+    
     # For release/debug options [Release =>1|Debug => 0]
-    set KPriv(RDConfig) 0
+    set KPriv(RDConfig) 1
     # For distribution srctcl/srctbe options [srctbe =>1|srctcl => 0]
     set KPriv(SRCConfig) 0
 
@@ -288,12 +292,12 @@ proc InitGIDPostProcess {} {
 
     set ::KMProps::RestoreWinFromPost 0
     if {[info exists ::KMProps::Layout]} {
-	if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
-	    set w ".gid.kmprops" 
-	    if {[winfo exists $w]} {
-		destroy $w
-		set ::KMProps::RestoreWinFromPost 1
-	    }
+        if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
+            set w ".gid.kmprops" 
+            if {[winfo exists $w]} {
+            destroy $w
+            set ::KMProps::RestoreWinFromPost 1
+            }
     	}
     }
 
@@ -393,7 +397,19 @@ proc KLoadTBEFiles {dir} {
     }
 } 
 
-proc BeforeDeleteGroup { name } {
+if { [GiD_Info GiDVersion] == "11.0.1" || [GiD_Info GiDVersion] == "11.0" } {
+    proc AfterCreateGroup { name } {
+	return [::AfterCreateCondGroup $name]
+    }
+    proc AfterRenameGroup { oldname newname } {
+	return [::AfterRenameCondGroup $oldname $newname]
+    }
+    proc BeforeDeleteGroup { del_group } { 
+	return [::BeforeDeleteCondGroup $del_group]
+    }
+}  
+
+proc BeforeDeleteCondGroup { name } {
     # wa "delete name:$name"
     
     set DeleteGroup "Delete" 
@@ -403,15 +419,15 @@ proc BeforeDeleteGroup { name } {
 	} 
     }
     if { $DeleteGroup eq "-cancel-" } {
-	return $DeleteGroup
+        return $DeleteGroup
     }
 }
 
-proc AfterCreateGroup { name } {
+proc AfterCreateCondGroup { name } {
      #wa "name:$name"
 }
 
-proc AfterRenameGroup { oldname newname } {
+proc AfterRenameCondGroup { oldname newname } {
     #wa "oldname:$oldname newname:$newname"
     ::KEGroups::RenombraGrupo $oldname $newname 1
     #Si se renombra un grupo, no nos queda otra... no se puede impedir.
