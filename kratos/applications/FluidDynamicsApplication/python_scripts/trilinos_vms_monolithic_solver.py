@@ -79,7 +79,7 @@ class MonolithicSolver:
         #default settings
         self.echo_level = 1
         self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
     
@@ -155,7 +155,7 @@ class MonolithicSolver:
 	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
 
         # If Spalart-Allmaras: Initialize Spalart-Allmaras solver
-        if self.use_spalart_allmaras = True:
+        if self.use_spalart_allmaras == True:
             for node in self.wall_nodes:
                 node.SetValue(IS_VISITED,1.0)
                 node.SetSolutionStepValue(DISTANCE,0,0.0)
@@ -188,7 +188,7 @@ class MonolithicSolver:
             turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
             turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
 
-            self.turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+            self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
             self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size,self.turbulence_model )
         else: # No turbulence model
             self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
