@@ -684,7 +684,7 @@ namespace Kratos
 
                         NewLocalContactForce[2] = LocalContactForce[2] + ViscoDampingLocalContactForce[2];
                         
-                        if(NewLocalContactForce[2]*LocalContactForce[2]<0){ViscoDampingLocalContactForce[2]= -LocalContactForce[2];} //the contact force can not change the direction due to the visco damp.
+                        //if(NewLocalContactForce[2]*LocalContactForce[2]<0){ViscoDampingLocalContactForce[2]= -LocalContactForce[2];} //the contact force can not change the direction due to the visco damp.
                         
                         if ( fabs(LocalContactForce[0] + ks * LocalDeltDisp[0]) < 1e-12 ) {
                         
@@ -695,7 +695,7 @@ namespace Kratos
 
                                NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index];
 
-                               if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
+                              // if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
 
                             }
                         }
@@ -707,7 +707,7 @@ namespace Kratos
 
                                NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index] ;
 
-                               if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
+                               //if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
                             }
                         }
                 }
