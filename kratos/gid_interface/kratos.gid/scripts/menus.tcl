@@ -13,8 +13,11 @@
 #
 #    HISTORY:
 #
+#     1.3-03/10/12-G. Socorro, update some menu option to use the new curve module
+#     1.2-01/10/12-J. Garate, Enable/disable Curves Module
+#     1.1-20/09/12-J. Garate, Add Curve's menu button
 #     1.0-26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
-#     0.9-29/03/12- J.Garate, icon path change to adapt to GiD Themes
+#     0.9-29/03/12-J. Garate, icon path change to adapt to GiD Themes
 #     0.8-29/03/12-G. Socorro, update the call to the model and material window using "::KMProps::StartBaseWindow"
 #     0.7-22/03/12-J. Gárate, Cambio a funciones públicas de los grupos de GiD
 #     0.6-12/03/12-J. Gárate, Adaptacion a los nuevos grupos de GiD
@@ -55,7 +58,7 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
     if {($pos!="-1") && ($pos2==-1)} {
      	set MenuNames [linsert $MenuNames [incr pos] $mname]
      	set NumMenus [llength $MenuNames ]
-	;# WarnWinText "MenuNames:$MenuNames NumMenus:$NumMenus"
+	# WarnWinText "MenuNames:$MenuNames NumMenus:$NumMenus"
      	# Move all the predefined commands one position
      	for {set ii $NumMenus} {$ii > $pos} {incr ii -1} {
 	    set jj [expr $ii - 1]
@@ -96,12 +99,21 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
 				[list -np- ::KMProps::StartBaseWindow] \
 				[list -np- ::KMProps::StartBaseWindow Materials] \
 				"" \
-				[list ] \
+				"" \
 				[list  -np- ::kps::InitSettingWindow]]
     
+    if { [kipt::CurvesModule ] } {
+        set MenuCommands($pos) [list [list -np- Cond_Groups window open] \
+            "" \
+            [list -np- ::KMProps::StartBaseWindow] \
+            [list -np- ::KMProps::StartBaseWindow Materials] \
+            "" \
+            [list -np- ::KCurves::PruebaCurvas] \
+            [list  -np- ::kps::InitSettingWindow]]
+    }
     
-    set MenuAcceler($pos) {"" "" "" "" ""}
-    set MenuIcons($pos) {"" "" "" "" ""}
+    set MenuAcceler($pos) {"" "" "" "" "" "" ""}
+    set MenuIcons($pos) {"" "" "" "" "" "" ""}
 
 }
 
@@ -185,29 +197,60 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
     
     catch { unset KBitmapsNames KBitmapsCommands KBitmapsHelp }
     
-    set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif \
+    
+    if { [kipt::CurvesModule ] } {
+        set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif $KPriv(imagesdir)/arc.gif \
 				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
 				$KPriv(imagesdir)/stop.gif"
 	
-    set KBitmapsCommands(0) [list \
-				 [list -np- Cond_Groups window open] \
-				 [list -np- ::KMProps::StartBaseWindow] \
-				 [list -np- ::KMProps::StartBaseWindow Materials] \
+	set KBitmapsCommands(0) [list \
+				     [list -np- Cond_Groups window open] \
+				     [list -np- ::KMProps::StartBaseWindow] \
+				     [list -np- ::KMProps::StartBaseWindow Materials] \
+				     [list -np- ::KMProps::StartBaseWindow Curve] \
+				     "" \
+				     [list -np- RunWin] \
+				     {Utilities Calculate} \
+				     [list -np- PWViewOutput] \
+				     {Utilities CancelProcess}]
+
+        set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
+				 [= "Define the model properties"] \
+				 [= "Define the material properties"] \
+				 [= "Define the curve properties"] \
 				 "" \
-				 [list -np- RunWin] \
-				 {Utilities Calculate} \
-				 [list -np- PWViewOutput] \
-				 {Utilities CancelProcess}]
-				 
-    set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
-			     [= "Define the model properties"] \
-			     [= "Define the material properties"] \
-			     "" \
-			     [= "Open the process control window"] \
-			     [= "Run the simulation"] \
-			     [= "View process info"] \
-			     [= "Cancel process"]] 
-			     
+				 [= "Open the process control window"] \
+				 [= "Run the simulation"] \
+				 [= "View process info"] \
+				 [= "Cancel process"]] 
+    } else {
+
+	set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif \
+				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
+				$KPriv(imagesdir)/stop.gif"
+	
+	set KBitmapsCommands(0) [list \
+				     [list -np- Cond_Groups window open] \
+				     [list -np- ::KMProps::StartBaseWindow] \
+				     [list -np- ::KMProps::StartBaseWindow Materials] \
+				     "" \
+				     [list -np- RunWin] \
+				     {Utilities Calculate} \
+				     [list -np- PWViewOutput] \
+				     {Utilities CancelProcess}]
+	
+	
+	set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
+				 [= "Define the model properties"] \
+				 [= "Define the material properties"] \
+				 "" \
+				 [= "Open the process control window"] \
+				 [= "Run the simulation"] \
+				 [= "View process info"] \
+				 [= "Cancel process"]] 
+	
+    }
+    
     # prefix values:
     # Pre        Only active in the preprocessor
     # Post       Only active in the postprocessor
@@ -224,7 +267,6 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
     
     AddNewToolbar "${name}bar" ${prefix}${winname}WindowGeom "$winname [list $dir]" \
 	[= "Model definition toolbar"]
-	
 }
 
 proc ::kmtb::EndCreatePreprocessTBar {} {

@@ -2,7 +2,7 @@
 #
 #  NAME: kmpropstree.tcl
 #
-#  PURPOSE: Tree widget used in the kratos main window to manage model/material
+#  PURPOSE: Tree widget used in the kratos main window to manage model/material/curve
 #           properties
 #
 #  QUANTECH ATZ-DEVELOPMENT DEPARTMENT
@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.2- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
 #   0.1- 29/03/2012 G. Socorro, create a base source code from the kmprops.tcl script
 #
 ######################################################################################
@@ -40,7 +41,6 @@ proc ::KMProps::CreateTreeProperties {w} {
 	# Scrollbars
 	set vsb $w.vsb1
 	set hsb $w.hsb1
-	
 	# Create the treectrl and set the scrollbars
 	set T [treectrl $w.t -xscrollcommand [list $hsb set] -yscrollcommand [list $vsb set]]
 	ttk::scrollbar $vsb -orient vertical -command [list $T yview]
@@ -693,12 +693,11 @@ proc ::KMProps::checkMaterials { materialId {editName ""} } {
 	foreach node $nodes {
 	
 	#Si encuentra el grupo intenta borrar el nodo y su descendencia
-	if { [$node getAttribute GCV ""] == "Materials" } {
-		if { [$node getAttribute dv ""] == $materialId } {
-		
-		$node setAttribute dv $editName
-		}
-	}
+        if { [$node getAttribute GCV ""] == "Materials" } {
+            if { [$node getAttribute dv ""] == $materialId } {
+                $node setAttribute dv $editName
+            }
+        }
 	}
 	
 	::KMProps::RefreshTree

@@ -14,9 +14,11 @@
 #
 #    HISTORY:
 # 
-#     0.3-02/04/12-G. Socorro, correct a bug when the layer and the kratos windows are inside
-#     0.2-30/03/12-G. Socorro, add some new procedures CreatePropertiesTabs, StartBaseWindow,etc.
-#     0.1-29/03/12-G. Socorro, create the base source code from KMProps namespace
+#     0.5-  01/10/12- J. Garate, Enable/disable Curves Module
+#     0.4-  20/09/12- J. Garate, Adaptation for New Kratos Interface Version, including Curves support
+#     0.3-  02/04/12- G. Socorro, correct a bug when the layer and the kratos windows are inside
+#     0.2-  30/03/12- G. Socorro, add some new procedures CreatePropertiesTabs, StartBaseWindow,etc.
+#     0.1-  29/03/12- G. Socorro, create the base source code from KMProps namespace
 #
 ###############################################################################
 #                      Procedures that belong to this file
@@ -47,7 +49,9 @@ proc ::KMProps::StartBaseWindow {{whattab "Model"} {what "1"} } {
     # Init some namespace variables
     ::KMProps::Init
     ::KMat::Init
-    
+    if { [kipt::CurvesModule ] } {
+        ::KCurves::Init
+    }
     set w "$winpath"
     # wa "w:$w whattab:$whattab what:$what"
     
@@ -88,7 +92,8 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
     # Arguments:
     # w         => The base window path
     variable NbPropsPath; variable TreePropsPath
-   
+    variable TreeCurvePath
+   global KPriv
     # Create the tabs
     set nb "$w.nb"
     grid [ttk::notebook $nb] -sticky ewns
@@ -114,13 +119,27 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
     # Set the tree material properties path
     set ::KMat::TreeMatsPath [::KMat::CreateTreeAndToolbar $fMat]
     
-    # Model tree
+    if { [kipt::CurvesModule ] } {
+        # Curve properties
+        set txt [= Curves]
+        set fCurv ${nb}.fCurv
+        $nb add [ttk::frame $fCurv -padding {1 1 1 1}] -text "$txt"
+        set ::KMat::NbCurvPath $fCurv
+        set KPriv(TreeCurvePath) [::KCurves::CreateTreeAndToolbar $fCurv]
+    }
+    # Model treeﬂ
     ::KMProps::initVisibilityClass
     ::KMProps::FillTreeProps
 
     # Material tree
     ::KMat::initVisibilityClass
     ::KMat::FillTreeMat
+    
+    if { [kipt::CurvesModule ] } {
+        # Curves tree
+        ::KMProps::initVisibilityClass
+        ::KCurves::FillTreeCurves
+    }
     
     # Select the active tab
     switch -exact -- $whattab {
@@ -129,6 +148,11 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
 	}
 	"Materials" {
 	    $nb select "$nb.fMat"
+	}
+	"Curve" {
+        if { [kipt::CurvesModule ] } {
+            $nb select "$nb.fCurv"
+        }
 	}
     }
 }

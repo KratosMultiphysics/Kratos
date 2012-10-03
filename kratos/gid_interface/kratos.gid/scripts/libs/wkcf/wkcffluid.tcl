@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     2.0- 04/10/12-G. Socorro, update the proc WritePropertyAtNodes_m1 to write the LevelSet variable at nodal level
+#     1.9- 03/10/12-G. Socorro, add the proc WriteFluidDistanceBC and write free surface option in the projectparameter file
 #     1.8- 28/09/12-G. Socorro, set VolumeOutput = True by default in 2D problems
 #     1.7- 23/09/12-G. Socorro, update the proc WriteFluidProjectParameters to write turbulence properties in the 
 #                               that wfsmethod=0
@@ -138,6 +140,65 @@ proc ::wkcf::WritePropertyAtNodes_m1 {AppId} {
 		    # Unset the group dictionary
 		    unset gprop_visco
 		    unset gprop_densi
+		}
+	    }
+	}
+    }
+
+    # Try to write the levelset properties
+    set cproperty "dv"
+    set contid "PorousZones"
+    set kxpath "Applications//$AppId"
+    # Free surface
+    set cxpath "$AppId//c.AnalysisData//i.FreeSurface"
+    set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+    # wa "FreeSurface:$FreeSurface"
+    if {$FreeSurface =="Yes"} {
+	if {[info exists dprops($AppId,AllPorousZonesTypeId)] && [llength $dprops($AppId,AllPorousZonesTypeId)]} {
+	    # Get the application root identifier    
+	    set rootdataid $AppId
+	    set cxpath "$rootdataid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
+	    set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "UseErgunEquation:$UseErgunEquation"
+
+	    # Write the group nodal properties
+	    foreach czonetypeid $dprops($AppId,AllPorousZonesTypeId) {
+		set cproplist [list]
+		if {(($czonetypeid eq "ErgunEquationNo") && ($UseErgunEquation eq "No"))} {
+		    set cproplist [list "PorosityValue" "LinearDarcyCoefficient" "NonLinearDarcyCoefficient"]
+		} elseif {(($czonetypeid eq "ErgunEquationYes") && ($UseErgunEquation eq "Yes"))} {
+		    set cproplist [list "PorosityValue" "DiameterValue"]
+		}
+		if {![llength $cproplist]} {
+		    continue
+		}
+		# wa "czonetypeid:$czonetypeid cproplist:$cproplist"
+		# Check for all defined group identifier for this zone type
+		if {([info exists dprops($AppId,$contid,$czonetypeid,AllGroupId)]) && ([llength $dprops($AppId,$contid,$czonetypeid,AllGroupId)])} {
+		    # For all defined group identifier for this zone type
+		    foreach cgroupid $dprops($AppId,$contid,$czonetypeid,AllGroupId) {
+			# wa "cgroupid:$cgroupid"
+			if {[info exists dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)] && [llength $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)]} {
+			    foreach pid $cproplist pvalue $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps) {
+				# wa "pid:$pid pvalue:$pvalue"
+				# Group properties format for the current property
+				set gprop [dict create]
+				# Write the current variable value for this group
+				set f "%10i [format "%4i" $cpropid]   $pvalue\n"
+				set f [subst $f]
+				dict set gprop $cgroupid "$f"
+				if {[write_calc_data nodes -count $gprop]} {
+				    set vkword [::xmlutils::getKKWord $kxpath "$pid" "kkword"]
+				    # wa "vkword:$vkword"
+				    write_calc_data puts "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
+				    write_calc_data nodes -sorted $gprop
+				    write_calc_data puts "End NodalData"
+				    write_calc_data puts ""
+				}
+				unset gprop
+			    }
+			}
+		    }
 		}
 	    }
 	}
@@ -1226,6 +1287,47 @@ proc ::wkcf::WriteFluidWallLawBC {AppId ccondid kwordlist} {
     }
 }
 
+proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
+    # ASTRACT: Write distance boundary conditions => Nodal data
+    variable dprops; variable wmethod 
+
+    # For debug
+    if {!$::wkcf::pflag} {
+	set inittime [clock seconds]
+    }
+
+    # For all defined group identifier inside this condition type
+    foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
+	# wa "cgroupid:$cgroupid"
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) cvalue
+	# wa "cvalue:$cvalue"
+	if {$wmethod} {
+	    set gprop [dict create]
+	    set f "%10i"
+	    dict set gprop $cgroupid "$f"
+	    if {[write_calc_data nodes -count $gprop]>0} {
+		set f "%10i [format "%10.5f" $cvalue]\n"
+		set f [subst $f]
+		dict set gprop $cgroupid "$f"
+		write_calc_data puts "Begin NodalData $kwordlist // GUI distance condition group identifier: $cgroupid"
+		write_calc_data nodes -sorted $gprop
+		write_calc_data puts "End NodalData"
+		write_calc_data puts ""
+	    }
+	    unset gprop
+	} 
+    }
+ 
+    # For debug
+    if {!$::wkcf::pflag} {
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write fluid distance boundary conditions: [::KUtils::Duration $ttime]"
+    }
+}
+
 proc ::wkcf::WriteOutLetPressureBC {AppId ccondid kwordlist} {
     # ASBTRACT: Write outlet pressure boundary condition
     variable wmethod
@@ -1576,6 +1678,50 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 	    set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
 	    set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
 	    # WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+
+	    # Check for use OpenMP
+	    # Kratos key word xpath
+	    set kxpath "Applications/$rootid"
+	    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	    
+	    if {$ParallelSolutionType eq "OpenMP"} {
+		# Write some project parameters used in the level set solver
+		set pidlist [list "RedistanceFrequency" "ExtrapolationLayers" "StabdtPressureFactor" "StabdtConvectionFactor" "WallLawY" "SafetyFactor" "NumberOfInitialSteps"]
+		foreach cvar $pidlist {
+		    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.${cvar}"
+		    set cvarvalue [::xmlutils::setXml $cxpath $cproperty]
+		    set ckword [::xmlutils::getKKWord $kxpath $cvar]
+		    puts $fileid "$ckword = $cvarvalue"
+		}
+
+		# Write the body force properties
+		set contid "LevelSetBodyForce"
+		set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.GravityValue"
+		set GravityValue [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cx"
+		set Cx [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cy"
+		set Cy [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cz"
+		set Cz [::xmlutils::setXml $cxpath $cproperty]
+		# wa "GravityValue:$GravityValue Cx:$Cx Cy:$Cy Cz:$Cz"
+		set kwordlist [list "body_force_x" "body_force_y" "body_force_z"]
+		set valuelist [list [expr $GravityValue*$Cx] [expr $GravityValue*$Cy] [expr $GravityValue*$Cz]]
+		foreach ckword $kwordlist cvalue $valuelist {
+		    puts $fileid "$ckword = $cvalue"
+		}
+
+		# Porous zone properties
+		set contid "PorousZones"
+		set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
+		set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
+		if {$UseErgunEquation eq "Yes"} {
+		    puts $fileid "UseErgun = True "
+		} else {
+		    puts $fileid "UseErgun = False "
+		}
+ 	    }
 	}
     }
 

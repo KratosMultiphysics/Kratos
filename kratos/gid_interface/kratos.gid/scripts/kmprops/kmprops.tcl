@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   1.6- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
 #   1.5- 04/04/12-J.Garate, finalizada la implementacion de la funcion recursiva de llenado del arbol desde xml, ya en uso
 #   1.4- 02/04/12-J.Garate, add ::KMProps::FillTreePropsRecursive , not in use yet until validation.
 #   1.3- 28/03/12-G. Socorro, pass some procs to the tcl file kmpropswin.tcl
@@ -100,7 +101,7 @@ proc ::KMProps::Init {} {
     variable SystemHighlightText
     variable ngroups
     variable Props
-    
+   
     # Get default colors
     set w [listbox .listbox]
     set SystemHighlight [$w cget -selectbackground]
@@ -145,12 +146,13 @@ proc ::KMProps::FillTreeProps { } {
 	variable TreePropsPath
 	set T $TreePropsPath
 	
-	#Seleccionamos todos los nodos del primer nivel
+	# Seleccionamos todos los nodos del primer nivel
 	set nodes [$::KPriv(xml) selectNodes "/Kratos_Data/RootData\[@id\]"]
 	
 	foreach node $nodes {
 		# Insertamos cada RootData de 1er nivel en el árbol
 		set item [::KMProps::InsertNewProp $node [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMProps::stateNode $node] [$node getAttribute open "0"]]
+		# wa "item:$item"
 		if {$item != -1} {
 			set path "[$node getAttribute id 0]//"
 		        ::KMProps::FillRecursiveChilds $T $path $node $item
@@ -163,11 +165,11 @@ proc ::KMProps::FillRecursiveChilds { T path node item} {
 	set nodes2 [$node childNodes]
 	set pathcp $path
 	foreach node2 $nodes2 {
-		#msg $path
-		#msg $pathcp
-		#msg "[$node2 getAttribute id ""]"
-		#set item3 [::KMProps::InsertNewProp $node3 [::KMProps::splitNode $node3] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMProps::stateNode $node3] [$node3 getAttribute open "0"]]
-		set item2 [::KMProps::InsertNewProp $node2 [::KMProps::splitNode $node2] $T $path "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
+	   # msg $path
+	   # msg $pathcp
+	   # msg "[$node2 getAttribute id ""]"
+	    #set item3 [::KMProps::InsertNewProp $node3 [::KMProps::splitNode $node3] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMProps::stateNode $node3] [$node3 getAttribute open "0"]]
+	    set item2 [::KMProps::InsertNewProp $node2 [::KMProps::splitNode $node2] $T $path "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
 	        if {$item2 != -1} {
 			
 			set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
@@ -179,78 +181,6 @@ proc ::KMProps::FillRecursiveChilds { T path node item} {
 	}
 }
 
-#---------------------------------------------------------------------------------------------- 
-# Lee el xml y carga el árbol de propiedades de forma iterativa como máximo hasta 7 niveles
-#----------------------------------------------------------------------------------------------
-proc ::KMProps::_FillTreeProps { } {
- #En desuso, ahora se usa la recursiva de arriba
-    variable dimension
-    
-    global KPriv
-    
-    # Obtenemos los grupos si aun no han sido cargados (aun no han cargado su ventana)
-    #if { [llength $KPriv(groupsId)] == 0 } {
-	#set  [Cond_Groups list]
-	#msg $nodes
-	#::KEGroups::getXmlGroupsId
-	# TRADUCCION Funcion GiD para obtener todos los grupos
-    #}
-    
-    set T $::KMProps::TreePropsPath
-	
-	#Seleccionamos todos los nodos del primer nivel
-	set nodes [$KPriv(xml) selectNodes "/Kratos_Data/RootData\[@id\]"]
-	#msg $nodes
-	foreach node $nodes {
-		# Insertamos cada RootData de 1er nivel en el árbol
-		set item [::KMProps::InsertNewProp $node [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMProps::stateNode $node] [$node getAttribute open "0"]]
-		if {$item != -1} {
-		        
-		        set nodes2 [$node childNodes]
-		        foreach node2 $nodes2 {
-		        set item2 [::KMProps::InsertNewProp $node2 [::KMProps::splitNode $node2] $T "[$node getAttribute id 0]//" "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
-			#msg "[$node getAttribute id 0]"
-		        if {$item2 != -1} {
-		                
-		                #Seleccionamos los hijos (3º nivel)
-		                set nodes3 [$node2 childNodes]
-		                foreach node3 $nodes3 {
-		                set item3 [::KMProps::InsertNewProp $node3 [::KMProps::splitNode $node3] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMProps::stateNode $node3] [$node3 getAttribute open "0"]]
-		               #msg "[$node getAttribute id 0]//[::KMProps::splitNode $node2]"
-		                if {$item3 != -1} {
-		                        #Seleccionamos los hijos (4º nivel)
-		                        set nodes4 [$node3 childNodes]                 
-		                        foreach node4 $nodes4 {
-		                        set item4 [::KMProps::InsertNewProp $node4 [::KMProps::splitNode $node4] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//[::KMProps::splitNode $node3]//" "$item3" [$node4 hasChildNodes] [::KMProps::stateNode $node4] [$node4 getAttribute open "0"]]
-		                        #msg "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//[::KMProps::splitNode $node3]"
-		                        if {$item4 != -1} {
-		                                #Seleccionamos los hijos (5º nivel)
-		                                set nodes5 [$node4 childNodes]
-		                                foreach node5 $nodes5 {
-		                                set item5 [::KMProps::InsertNewProp $node5 [::KMProps::splitNode $node5] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//[::KMProps::splitNode $node3]//[::KMProps::splitNode $node4]//" "$item4" [$node5 hasChildNodes] [::KMProps::stateNode $node5] [$node5 getAttribute open "0"]]
-		                                
-		                                if {$item5 != -1} {
-		                                        #Seleccionamos los hijos (6º nivel)
-		                                        set nodes6 [$node5 childNodes]   
-		                                        foreach node6 $nodes6 {
-		                                        set item6 [::KMProps::InsertNewProp $node6 [::KMProps::splitNode $node6] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//[::KMProps::splitNode $node3]//[::KMProps::splitNode $node4]//[::KMProps::splitNode $node5]//" "$item5" [$node6 hasChildNodes] [::KMProps::stateNode $node6] [$node6 getAttribute open "0"]]
-		                                        
-		                                        if {$item6 != -1} {
-		                                                #Seleccionamos los hijos (6º nivel)
-		                                                set nodes7 [$node6 childNodes]
-		                                                foreach node7 $nodes7 {
-		                                                set item7 [::KMProps::InsertNewProp $node7 [::KMProps::splitNode $node7] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//[::KMProps::splitNode $node3]//[::KMProps::splitNode $node4]//[::KMProps::splitNode $node5]//[::KMProps::splitNode $node6]//" "$item6" [$node7 hasChildNodes] [::KMProps::stateNode $node7] [$node7 getAttribute open "0"]]
-		                                                }
-		                                        }}
-		                                }}
-		                        }}
-		                }}
-		        }}
-		}}
-	
-	return ""
-}
-
 #
 # Valida varias cosas para cada nodo
 #  DIMENSION (2D / 3D)
@@ -258,6 +188,7 @@ proc ::KMProps::_FillTreeProps { } {
 #
 proc ::KMProps::stateNode { node } {
 	
+    #WarnWin "si"
 	#Validamos para cada nodo si tiene que estar visible 
 	#(en función de los valores elegidos en algunos combos)
 	if { [$node nodeName] == "Item" } {
@@ -329,6 +260,7 @@ proc ::KMProps::stateNode { node } {
 	set value [$node getAttribute dv ""]
 	
 	set class [$node getAttribute class ""]
+	# wa "value:$value class:$class"
 	#Equivalente a Switch $class
 	foreach var $::KMProps::visibilityVars {
 		
@@ -361,115 +293,6 @@ proc ::KMProps::stateNode { node } {
 	return $state
 }
 
-#
-# Valida varias cosas para cada nodo
-#  DIMENSION (2D / 3D)
-#  STATE (normal, hidden, disabled)
-#
-#proc ::KMProps::stateNode2 { node } {
-#        
-#        #Validamos para cada nodo si tiene que estar visible 
-#        #(en función de los valores elegidos en algunos combos)
-#        if { [$node nodeName] == "Item" } {
-#                
-#                #Salvedad para no mostrar la propiedad Thickness en algunos casos
-#                set id [$node getAttribute id ""]
-#                
-#                if { $id == "ElemType" } {
-#                        
-#                        set ::KMProps::ElemTypeThickness [$node getAttribute dv ""]
-#                        
-#                } elseif { $id == "Thickness" } {
-#                        
-#                        if { ![::KMProps::showThickness]} {
-#                                
-#                                return "hidden"
-#                        }
-#                }
-#                
-#                #Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
-#                
-#                set value [$node getAttribute dv ""]
-#                
-#                set class [$node getAttribute class ""]
-#                #Equivalente a Switch $class
-#                foreach var $::KMProps::visibilityVars {
-#                        
-#                        if {$var == $class} {
-#                        
-#                        #Caso especial para el solver de fluidos
-#                        if { $var == "fluidSolvTyp" } {
-#                                
-#                                #El solver de fluidos está duplicado dependiendo de una variable previa
-#                                set freeYesOrNo [$node getAttribute freeSurf ""]
-#                                
-#                                if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-#                                set ::KMProps::fluidSolvTyp "$value"
-#                                }
-#                        } else {
-#                                #Caso general
-#                                set ::KMProps::$var $value
-#                        }
-#                        }
-#                }
-#        } else {
-#                
-#                #Caso especial para application
-#                #set class [$node getAttribute class ""]
-#                #if { $class == "application" } {
-#                
-#                #set apliState [$node getAttribute state ""]
-#                
-#                #if {$apliState != "hiddenAll" } {
-#                #set ::KMProps::application [$node getAttribute id ""]
-#                #}
-#                #}
-#        }
-#        
-#        set state [$node getAttribute state "normal"]
-#        
-#        #Si el estado es hiddenAll se oculta el nodo y toda su descendencia
-#        if {$state == "hiddenAll"} {
-#                return "-1"
-#        }
-#        if { [$node nodeName] == "Item" } {
-#                
-#                #Salvedad para no mostrar la propiedad Thickness en algunos casos
-#                set id [$node getAttribute id ""]
-#                if { $id == "PressureValue" } {
-#                        set id $id
-#                }
-#        }
-#                
-#        foreach var $::KMProps::visibilityVars {
-#                
-#                set globalVar [set ::KMProps::$var]
-#                
-#                set nodeValuesVar [split [$node getAttribute $var ""] ","]
-#
-#                
-#                #Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
-#                # y no coincide con el valor seleccionado, ocultamos el nodo        
-#                if { $nodeValuesVar != "" } {
-#                        
-#                        if { !($globalVar in $nodeValuesVar) } {
-#                        
-#                        if {$var == "strucType" } {
-#                                if { $globalVar != "Generic"} { 
-#                                
-#                                return -1
-#                                }
-#                        } else {
-#                                
-#                                return -1
-#                        }
-#                        }
-#                }
-#        }
-#        
-#        #Devolvemos el estado del nodo ("normal" por defecto)
-#        return $state
-#}
 
 #
 # Separa cada node en "inicialNombreTag.idNodo"
@@ -486,35 +309,15 @@ proc ::KMProps::splitNode { node } {
 		return "p.[$node getAttribute id ""]"
 	} elseif { [$node tagName] == "Material"} {
 		return "m.[$node getAttribute id ""]"
+	} elseif { [$node tagName] == "ContainerTable"} {
+		return "t.$id"
+	} elseif { [$node tagName] == "TItem"} {
+		return "T.$id"
 	} else {
 		return "NoTree"
 	}
 }
 
-#---------------------------------------------------------------------------------------------- 
-# Lee RECURSIVAMENTE el xml y carga el árbol de propiedades
-#----------------------------------------------------------------------------------------------
-#proc ::KMProps::FillTree { T node path item} {
-#                                
-#                                set path "$path//[::KMProps::splitNode $node]"
-#                                
-#                                
-#                                if { [$node hasChildNodes] } {
-#                                                
-#                                        set item [::KMProps::FillTree $T [lindex [$node childNodes] 0] $path $item]
-#                                                
-#                                } else {
-#                                        set item [::KMProps::InsertProp [$node getAttribute pid ""] [::KMProps::splitNode $node] $T "" "$path" "$item" [$node hasChildNodes] ]
-#                                        
-#                                        set parentNode [$node parentNode]
-#                                        $node delete
-#                                        
-#                                        set item [::KMProps::FillTree $T $parentNode $path $item]
-#                                        return $item
-#                                }
-#                
-#                return ""
-#}
 
 #
 ###################################################################################################

@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.4- 03/10/12-G. Socorro, add a call to the proc WriteFluidDistanceBC to write the distance variable
 #     5.3- 24/09/12-G. Socorro, create a new variable "wbatfile" to control when write the bat file for Kratos 
 #     5.2- 23/09/12-G. Socorro, Write the GroupMeshProperties before  the cut and graph properties to get the mesh reference
 #     5.1- 21/09/12-G. Socorro, write bat file only when ::tcl_platform(os) eq "Linux"
@@ -659,6 +660,11 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 			# Write wall law boundary condition
 			set kwordlist [list "WALL_LAW_Y"]
 			::wkcf::WriteFluidWallLawBC $AppId $ccondid $kwordlist
+		    }
+		    "Distance" {
+			# Write distance boundary condition
+			set kwordlist [list "DISTANCE"]
+			::wkcf::WriteFluidDistanceBC $AppId $ccondid $kwordlist
 		    }
 		}
 	    }
