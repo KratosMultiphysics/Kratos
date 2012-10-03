@@ -52,6 +52,8 @@
         <Item id="Fluid3D" kkword="Fluid3D" usennode="No" />
         <Item id="Fluid2DMonolithic" kkword="VMS2D" usennode="No" />
         <Item id="Fluid3DMonolithic" kkword="VMS3D" usennode="No" />
+	<Item id="LevelSetFluid2D" kkword="TwoFluidVMS2D" usennode="No" />
+        <Item id="LevelSetFluid3D" kkword="TwoFluidVMS3D" usennode="No" />
 	<Item id="VMS2D" kkword="FractionalStep2D" usennode="No" /> 
         <Item id="VMS3D" kkword="FractionalStep3D" usennode="No" /> 
         <Item id="Vx" kkword="VELOCITY_X" />
@@ -67,30 +69,41 @@
         <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
         <Item id="SuperLU" kkword="Super LU" />
         <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
-	    <Item id="GiDPostMode" kkword="GiDPostMode" />
-	    <Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
-		<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
-		<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
-		<Item id="Monolithic" kkword="monolithic_solver_eulerian" />
-		<Item id="PressureSplitting" kkword="pressure_splitting" />
-		<Item id="ElementBased" kkword="FractionalStep" />
-		<Item id="EdgeBased" kkword="FractionalStep" />
-		<Item id="Continuous" kkword="1" />
-		<Item id="Discrete" kkword="2" />
-		<Item id="DiscreteWithDt" kkword="3" />
-		<Item id="MixedUP" kkword="MixedUP" />
-		<Item id="SuperLUIterativeSolver" kkword="SuperLUIterativeSolver" />
-		<Item id="DivergenceCleareanceStep" kkword="divergence_cleareance_step" />
-		<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+	<Item id="GiDPostMode" kkword="GiDPostMode" />
+	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+	<Item id="Monolithic" kkword="monolithic_solver_eulerian" />
+	<Item id="PressureSplitting" kkword="pressure_splitting" />
+	<Item id="ElementBased" kkword="FractionalStep" />
+	<Item id="EdgeBased" kkword="FractionalStep" />
+	<Item id="Continuous" kkword="1" />
+	<Item id="Discrete" kkword="2" />
+	<Item id="DiscreteWithDt" kkword="3" />
+	<Item id="MixedUP" kkword="MixedUP" />
+	<Item id="SuperLUIterativeSolver" kkword="SuperLUIterativeSolver" />
+	<Item id="DivergenceCleareanceStep" kkword="divergence_cleareance_step" />
+	<Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
         <Item id="ConjugateGradient" kkword="Conjugate gradient" />
         <Item id="Diagonal" kkword="Diagonal" />
+	<Item id="RedistanceFrequency" kkword="redistance_frequency" />
+	<Item id="ExtrapolationLayers" kkword="extrapolation_layers" />
+	<Item id="StabdtPressureFactor" kkword="stabdt_pressure_factor" />
+	<Item id="StabdtConvectionFactor" kkword="stabdt_convection_factor" />
+	<Item id="WallLawY" kkword="wall_law_y" />
+	<Item id="SafetyFactor" kkword="safety_factor" />
+	<Item id="NumberOfInitialSteps" kkword="number_of_initial_steps" />
         <Item id="ILU0" kkword="ILU0" />
-		<Item id="GMRES" kkword="GMRES" />
-		<Item id="None" kkword="None" />
-		<Item id="RelativeVelocityTolerance" kkword="velocity_relative_tolerance" />
-		<Item id="AbsoluteVelocityTolerance" kkword="velocity_absolute_tolerance" />
-		<Item id="RelativePressureTolerance" kkword="pressure_relative_tolerance" />
-		<Item id="AbsolutePressureTolerance" kkword="pressure_absolute_tolerance" />
+	<Item id="GMRES" kkword="GMRES" />
+	<Item id="None" kkword="None" />
+	<Item id="RelativeVelocityTolerance" kkword="velocity_relative_tolerance" />
+	<Item id="AbsoluteVelocityTolerance" kkword="velocity_absolute_tolerance" />
+	<Item id="RelativePressureTolerance" kkword="pressure_relative_tolerance" />
+	<Item id="AbsolutePressureTolerance" kkword="pressure_absolute_tolerance" />
+	<Item id="PorosityValue" kkword="POROSITY" />
+	<Item id="LinearDarcyCoefficient" kkword="LIN_DARCY_COEF" />
+	<Item id="NonLinearDarcyCoefficient" kkword="NONLIN_DARCY_COEF" />
+	<Item id="DiameterValue" kkword="DIAMETER" />
     </Fluid>
     <ConvectionDiffusion>
     </ConvectionDiffusion>
