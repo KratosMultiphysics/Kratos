@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #	
+#     2.4- 04/10/12-G. Socorro, add the proc GetPorousZonesProperties to get the properties of the porous zones
+#     2.3- 02/10/12-G. Socorro, update the proc GetBoundaryConditionProperties to include the Distance BC
 #     2.2- 24/09/12-G. Socorro, init the new variable "wbatfile" to 0
 #     2.1- 21/09/12-G. Socorro, update the proc WriteBatFile to write the bat file for Linux OS
 #     2.0- 23/07/12-G. Socorro, add the "ConstantValue" to the Is-Slip condition
@@ -105,6 +107,19 @@ proc ::wkcf::Preprocess {} {
     # Get boundary condition properties
     ::wkcf::GetBoundaryConditionProperties
     
+    if {$FluidApplication =="Yes"} {
+	set AppId "Fluid"
+	set cproperty "dv"
+	# Free surface
+	set cxpath "$AppId//c.AnalysisData//i.FreeSurface"
+	set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "FreeSurface:$FreeSurface"
+	if {$FreeSurface =="Yes"} {
+	    # Get porous zones properties
+	    ::wkcf::GetPorousZonesProperties $AppId
+	}
+    }
+
     if {$StructuralAnalysis =="Yes"} {
 	# Get load properties
 	::wkcf::GetLoadProperties
@@ -348,6 +363,16 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 				lappend proplist $CValue
 			    }
 			}
+			"Distance" {
+			    # Get properties
+			    foreach citem [list "DistanceValue"] {
+				# set xpath
+				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+				set cproperty "dv"
+				set CValue [::xmlutils::setXml $pcxpath $cproperty]
+				lappend proplist $CValue
+			    }
+			}
 		    }
 		    # WarnWinText "proplist:$proplist"
 		    # Kratos BC to group link
@@ -368,6 +393,77 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 	    # Reset the path
 	    set cxpath "$rootdataid//c.Conditions"
 	}
+    }
+}
+
+proc ::wkcf::GetPorousZonesProperties {AppId} {
+    # ABSTRACT: Get all porous zones properties
+    variable dprops
+    
+    # Get the application root identifier    
+    set rootdataid $AppId
+    
+    # Get use Ergun equation value
+    set cproperty "dv"
+    set contid "PorousZones"
+    set cxpath "$rootdataid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
+    set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
+  
+    # wa "UseErgunEquation:$UseErgunEquation"
+    # Get all defined porous zone groups
+    set cxpath "$rootdataid//c.SolutionStrategy//c.${contid}"
+    set cbcproplist [::xmlutils::setXmlContainerIds $cxpath]
+    # wa "cbcproplist:$cbcproplist"
+    # Porous zones type list
+    set dprops($AppId,AllPorousZonesTypeId) [list]
+    foreach cbctid $cbcproplist {
+	# wa "cbctid:$cbctid"
+	set cproplist [list]
+	if {(($cbctid eq "ErgunEquationNo") && ($UseErgunEquation eq "No"))} {
+	    set cproplist [list "PorosityValue" "LinearDarcyCoefficient" "NonLinearDarcyCoefficient"]
+	} elseif {(($cbctid eq "ErgunEquationYes") && ($UseErgunEquation eq "Yes"))} {
+	    set cproplist [list "PorosityValue" "DiameterValue"]
+	}
+	if {![llength $cproplist]} {
+	    continue
+	}
+	# Get the group identifier defined for this condition
+	set cxpath "${cxpath}//c.${cbctid}"
+	set cbcgrouplist [::xmlutils::setXmlContainerIds $cxpath]
+	# wa "cbcgrouplist:$cbcgrouplist cxpath:$cxpath"
+	if {[llength $cbcgrouplist]} {
+	    # Update zones type identifier
+	    lappend dprops($AppId,AllPorousZonesTypeId) $cbctid
+	    # wa "inside cbcgrouplist:$cbcgrouplist cxpath:$cxpath"
+	    foreach cgroupid $cbcgrouplist {
+		set proplist [list]
+		# Get properties
+		foreach cprop $cproplist {
+		    set cvxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${cprop}"
+		    # wa "cvxpath:$cvxpath cprop:$cprop"
+		    set cproperty "dv"
+		    set cvalue [::xmlutils::setXml $cvxpath $cproperty]
+		    lappend proplist $cvalue
+		}
+		# wa "proplist:$proplist"
+		# Kratos porous zones to group link
+		# Group list
+		if {![info exists dprops($AppId,$contid,$cbctid,AllGroupId)]} {
+		    set dprops($AppId,$contid,$cbctid,AllGroupId) [list]
+		}
+		if {$cgroupid ni $dprops($AppId,$contid,$cbctid,AllGroupId)} {
+		    lappend dprops($AppId,$contid,$cbctid,AllGroupId) $cgroupid
+		}
+		# Group properties
+		if {![info exists dprops($AppId,$contid,$cbctid,$cgroupid,GProps)]} {
+		    set dprops($AppId,$contid,$cbctid,$cgroupid,GProps) [list]
+		}
+		set dprops($AppId,$contid,$cbctid,$cgroupid,GProps) $proplist
+		
+	    }
+	}
+	# Reset the path
+	set cxpath "//c.SolutionStrategy//c.${contid}"
     }
 }
 
@@ -923,42 +1019,81 @@ proc ::wkcf::WriteBatFile {AppId} {
     set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 
     if {$ParallelSolutionType eq "MPI"} {
-	
-	set batfilename "kratos-mpi.unix.bat"
-	set ProblemTypePath [::KUtils::GetPaths "PTDir"]
-	set batfullname [file native [file join $ProblemTypePath $batfilename]]
-	
-	# First delete the file
-	set res ""
-	catch { set res [file delete -force $batfullname] }
-	
-	# Create the new file
-	set f [open $batfullname w]
-	# WarnWinText "batfullname:$batfullname res:$res f:$f"
-	
-	puts $f "REM @ECHO OFF"
-	puts $f "REM Identification for arguments"
-	puts $f "REM basename                          = %1"
-	puts $f "REM Project directory                 = %2"
-	puts $f "REM Problem directory                 = %3"
-	puts $f " "
-	puts $f "REM OutputFile: %2\\%1.info"
-	puts $f "REM ErrorFile: %2\\%1.err"
-	puts $f " "
-	
-	
-	puts $f "DEL %2\\%1.info"
-	puts $f "DEL %2\\%1.post.bin"
-	puts $f "DEL %2\\%1.err"
-	
-	puts $f "REM Run the python script"
-	
 	#  Get the number of processors
 	set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
 	set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
 	# wa "MPINumberOfProcessors:$MPINumberOfProcessors"
-	if {$MPINumberOfProcessors>0} {
-	    puts $f "mpirun -np $MPINumberOfProcessors python kratosMPI.py > %2\\%1.info 2> %2\\%1.err"
+	
+	if {($::tcl_platform(os) eq "Linux")} {
+	    # Linux
+	    set batfilename "kratos-mpi.unix.bat"
+	    set ProblemTypePath [::KUtils::GetPaths "PTDir"]
+	    set batfullname [file native [file join $ProblemTypePath $batfilename]]
+	    
+	    # First delete the file
+	    set res ""
+	    catch { set res [file delete -force $batfullname] }
+	    
+	    # Create the new file
+	    set f [open $batfullname w]
+	    # WarnWinText "batfullname:$batfullname res:$res f:$f"
+
+	    puts $f "\#\!\/bin\/bash -i"
+	    puts $f "#  echo hola"
+	    puts $f "#  echo par1 : $1"
+	    puts $f "#  echo \"1. param: $1\" > /tmp/kk.txt"
+	    puts $f "#  echo \"2. param: $2\" >> /tmp/kk.txt"
+	    puts $f "#  echo \"3. param: $3\" >> /tmp/kk.txt"
+	    puts $f "#  echo \"4. param: $4\" >> /tmp/kk.txt"
+	    puts $f "#  echo \"5. param: $5\" >> /tmp/kk.txt"
+	    puts $f "#    OutputFile: \"$2/$1.info\""
+	    puts $f "#    ErrorFile: \"$2/$1.err\""
+	    puts $f "# Delete previous result file"
+	    puts $f "rm -f \"$2/$1.post.bin\""
+	    puts $f "rm -f \"$2/$1.info\""
+	    puts $f "rm -f \"$2/$1.err\""
+	    puts $f "rm -f \"$2/$1.flavia.dat\""
+	    puts $f ""
+	    puts $f "export OMP_NUM_THREADS=1"
+
+	    puts $f "mpirun -np $MPINumberOfProcessors /usr/bin/python KratosMPI.py >\"$2/$1.info\" 2>\"$2/$1.err\""
+
+	} else {
+
+	    # Windows
+		
+	    set batfilename "kratos-mpi.win.bat"
+	    set ProblemTypePath [::KUtils::GetPaths "PTDir"]
+	    set batfullname [file native [file join $ProblemTypePath $batfilename]]
+	    
+	    # First delete the file
+	    set res ""
+	    catch { set res [file delete -force $batfullname] }
+	    
+	    # Create the new file
+	    set f [open $batfullname w]
+	    # WarnWinText "batfullname:$batfullname res:$res f:$f"
+	    
+	    puts $f "REM @ECHO OFF"
+	    puts $f "REM Identification for arguments"
+	    puts $f "REM basename                          = %1"
+	    puts $f "REM Project directory                 = %2"
+	    puts $f "REM Problem directory                 = %3"
+	    puts $f " "
+	    puts $f "REM OutputFile: %2\\%1.info"
+	    puts $f "REM ErrorFile: %2\\%1.err"
+	    puts $f " "
+	    
+	    
+	    puts $f "DEL %2\\%1.info"
+	    puts $f "DEL %2\\%1.post.bin"
+	    puts $f "DEL %2\\%1.err"
+	    
+	    puts $f "REM Run the python script"
+	    
+	    if {$MPINumberOfProcessors>0} {
+		puts $f "mpirun -np $MPINumberOfProcessors python kratosMPI.py > %2\\%1.info 2> %2\\%1.err"
+	    }
 	}
 
 	close $f

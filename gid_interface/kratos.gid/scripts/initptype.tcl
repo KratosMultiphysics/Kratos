@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     0.9-01/10/12-J. Garate, Enable/disable Curves Module
+#     0.8-20/09/12-J. Garate, add Curves, Tables and Plotgraph source files
 #     0.7-04/05/12-G. Socorro, add a new variable to control the group deletion (when exists from the problem type)  
 #     0.6-03/05/12-G. Socorro, Delete all group identifier using ::KUtils::DeleteAllGroupIdentifier and 
 #                              close all group window Cond_Groups window close
@@ -214,7 +216,6 @@ proc kipt::LoadSourceFiles {dir} {
     # WarnWinText "dir:$dir"
     # For scripts directory
     set scriptspath "$dir/scripts"
-    
     if { [catch {source $scriptspath/files.tcl}] } {
 	::kipt::LoadSourceMessage files.tcl        
 	return ""
@@ -254,9 +255,26 @@ proc kipt::LoadSourceFiles {dir} {
 	::kipt::LoadSourceMessage xpathq.tcl
 	return ""
     }
+    if { [kipt::CurvesModule ] } {
+        # For Curves, graphics and tables
+        set curvepath "$dir/scripts/libs/curves"
+        if { [catch {source $curvepath/curves.tcl}] } {
+        ::kipt::LoadSourceMessage curves.tcl
+        return ""
+        }
+        if { [catch {source $curvepath/tables.tcl}] } {
+        ::kipt::LoadSourceMessage tables.tcl
+        return ""
+        }
+        set curvepath "$dir/scripts/libs/graphics"
+        if { [catch {source $curvepath/plotgraph.tcl}] } {
+        ::kipt::LoadSourceMessage plotgraph.tcl
+        return ""
+        }
+    }
     
     # For write calculation file
-    set wkcfpath "$dir/scripts/libs/wkcf"        
+    set wkcfpath "$dir/scripts/libs/wkcf"
     if { [catch {source $wkcfpath/wkcf.tcl}] } {
 	::kipt::LoadSourceMessage wkcf.tcl
 	return ""
@@ -353,5 +371,14 @@ proc kipt::UpdateLanguage {language} {
     ::kmtb::ChangePreprocessMenu $dir
     
     # Postprocess
+    
+}
+
+proc kipt::CurvesModule { } {
+    global KPriv
+    if { [info exists KPriv(CurvesModule)] } {
+        return $KPriv(CurvesModule)
+    } 
+    return 0
     
 }

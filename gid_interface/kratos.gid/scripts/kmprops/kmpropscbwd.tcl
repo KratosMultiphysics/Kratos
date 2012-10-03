@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.5- 03/10/12- GSM, add a message for the "Compressible" fluid case
 #   0.4- 27/09/12- J.Garate, Change combo's size
 #   0.3- 23/09/12- GSM, update the proc specialComboAction to disabled FSI application
 #   0.2- 23/07/12- GSM, modify some proc to use PFEM options 
@@ -402,21 +403,21 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 	
 	if {$var == $clase} {
 	    
-	    #Caso general
+	    # General case
 	    if { [set ::KMProps::$var] != "$selCombo" } {
 		set ::KMProps::$var $selCombo
 		#msg "var$var"
 	    }
 	    
-	    #Casos especiales
-	    #if { $var == "fluidType" } {
-	    #        if {$selCombo == "Compressible" } {
-	    #                WarnWin [= "Compressible Fluids are not still available."]           
-	    #                set fullname [DecodeName [$T item tag names $item]]
-	    #                ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
-	    #        } 
-	    
-	    #} 
+	    # Special cases
+	    if { $var == "fluidType" } {
+		if {$selCombo == "Compressible" } {
+		    set txt [= "Compressible fluids are not available in this version"]   
+		    WarnWin "$txt."
+		    set fullname [DecodeName [$T item tag names $item]]
+		    ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
+		} 
+	    } 
 	}
     }
     return ""

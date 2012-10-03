@@ -11,17 +11,19 @@
 #	CREATED AT: 09/06/2010
 #
 #	HISTORY:
-#       0.9- 20/07/12-GSM, update some proc to delete old source code
-#		0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
-#		0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
-#		0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
-#		0.5- 25/01/11-GSM, show the warning/error message only when find some error
-#		0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
-#		0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
-#		se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
-#		y se valida que el path de Kratos exista en la computadora.
-#		0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
-#		0.1- 25/02/10 KS, create a base source code
+#
+#       1.0- 03/10/12- GSM, correct a bug with the namespace variable Errors
+#       0.9- 20/07/12- GSM, update some proc to delete old source code
+#	0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
+#	0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
+#	0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
+#	0.5- 25/01/11-GSM, show the warning/error message only when find some error
+#	0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
+#	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
+#	se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
+#	y se valida que el path de Kratos exista en la computadora.
+#	0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
+#	0.1- 25/02/10 KS, create a base source code
 #
 ###############################################################################
 
@@ -33,8 +35,8 @@ namespace eval ::KMValid:: {
     
     # Window path
     variable winpath
-    variable Errors 0
-    variable Warnings 0
+    variable Errors 
+    variable Warnings 
     variable initialConditions ""
 }
 
@@ -43,7 +45,15 @@ proc ::KMValid::Init {} {
     variable winpath
 
     set winpath ".gid.modelvalidation"
-    
+
+    variable Errors 
+    set Errors 0
+
+    variable Warnings 
+    set Warnings 0
+
+    variable initialConditions ""
+    set initialConditions ""
 }
 
 proc ::KMValid::ValidateModel {{w .gid.modelvalidation}} {
@@ -212,6 +222,8 @@ proc ::KMValid::CreateReportWindow {w} {
     
     set allreportlist [::KMValid::ValidateProjectInformation $allreportlist]
     
+    # WarnWin "allreportlist:$allreportlist ::KMValid::Errors:$::KMValid::Errors"
+
     # process messages
     ::KMValid::ProcessMessages $w $allreportlist
     
@@ -278,7 +290,7 @@ proc ::KMValid::ProcessMessages {w allreportlist} {
 		}
 	    }
 	}
-	
+	# wa "errorlist:$errorlist"
 	set bcount -1
 	# Error
 	#set applications [list "Structural Annalysis" "Fluid" ]
@@ -367,11 +379,11 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 	
 	set noEntitiesGroups [list ]
 	#set numnoentity 0
-	foreach grup $groups {
+	foreach group $groups {
 	    
-	    if {![::KEGroups::getGroupGiDEntities $grup ALL hasEntities]} {
+	    if {![::KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
 		
-		lappend noEntitiesGroups $grup
+		lappend noEntitiesGroups $group
 		#incr numNoEntity
 	    }
 	}

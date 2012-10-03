@@ -11,7 +11,8 @@
 #    CREATED AT: 01/11/09
 #
 #    HISTORY:
-
+#
+#     0.9- 03/10/12-J. Garate, update transform spd proc
 #     0.8- 27/05/12-J. Garate, Preparacion para actualizar la base de datos de materiales.
 #     0.7- 03/05/12-J. Garate, state/visibility while transfering groups from .spd 
 #     0.6- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
@@ -134,8 +135,10 @@ proc ::kfiles::LoadSPD {filename} {
     #Si estamos cargando el default se tendrán que comprobar las versiones
     if {$filename != "$KPriv(dir)/$xmlNameFile"} {
 	
-	#Transforma el spd si son versiones distintas
-	::xmlutils::checkSpdVersion $filename
+        #Transforma el spd si son versiones distintas
+        if { [::xmlutils::checkSpdVersion $filename] } {
+            ::xmlutils::UpdateSpd $filename
+        }
 	
     }
     
@@ -159,6 +162,7 @@ proc ::kfiles::LoadSPD {filename} {
     set KPriv(xmlMat) [lindex $xmlArray 0]
     set KPriv(encrXmlMat) [lindex $xmlArray 1]
     set KPriv(xmlDocMat) [lindex $xmlArray 2]
+    
     ::xmlutils::checkMatVersion $filename_mat
     
     #

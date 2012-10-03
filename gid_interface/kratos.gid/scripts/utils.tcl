@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.1- 26/09/12- J.Garate, update Parsing function to allow spacing when renaming
 #     1.0- 20/07/12-GSM, update the proc ElemenDosListas and rename it to TwoListRepeatedItems
 #     0.9- 13/07/12- J. Garate, ElemenDosListas Compara 2 listas a ver si hay coincidencias
 #     0.8- 07/05/12- J. Garate, update renaming groups restrictions
@@ -878,11 +879,14 @@ proc ::KUtils::Duration { int_time } {
  }
 
 
-proc ::KUtils::parseTreeStr { texto } {
+proc ::KUtils::parseTreeStr { texto { allowspacing 0} } {
 	
 	set Ltexto [split $texto ""]
-	
-	if { ":" in $Ltexto || "$" in $Ltexto || "@" in $Ltexto  || "." in $Ltexto || "\\" in $Ltexto  || "%" in $Ltexto || "\ " in $Ltexto } {
+    
+    if { $allowspacing == 0 } {
+        if {"\ " in $Ltexto} { return -1 }
+	}
+	if { ":" in $Ltexto || "$" in $Ltexto || "@" in $Ltexto  || "." in $Ltexto || "\\" in $Ltexto  || "%" in $Ltexto } {
 		return -1
 	}
 	#Para reducir el número de espacios

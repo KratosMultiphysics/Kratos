@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.4- 01/10/12-J. Garate, Deleting group function corrected
 #   0.3- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
 #   0.2- 02/04/12-G. Socorro, correct a bug with the combobox path (update the autoNewGroup proc)
 #   0.1- 29/03/12-G. Socorro, create a base source code from the kmprops.tcl script
@@ -284,55 +285,22 @@ proc ::KMProps::deleteGroupCondition { T item } {
     set answer [::WinUtils::confirmBox "." "$aviso" "yesnocancel"]
     if { $answer == "yes" } {
 	
-	#Desasigna de la gemoetría el item seleccionado
-	#::KEGroups::UnAssignCondition $GroupId
-	
-	#Elimina el grupo del xml
-	::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
-	
-	#Elimina el grupo del árbol
-	::KMProps::deleteItem $T $item
-	
+        #Desasigna de la gemoetría el item seleccionado
+        #::KEGroups::UnAssignCondition $GroupId
+        
+        #Elimina el grupo del xml
+        ::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
+        
+        #Elimina el grupo del árbol
+        ::KMProps::deleteItem $T $item
+        
     } elseif {$answer == "no" } {
-	
-	#Consultamos el grupo a eliminar
-	set GroupId [$T item text $item 0]
-	
-	set visibleGroups "[winfo exists $::KEGroups::WinPath]"
-	#Iniciamos la ventana de grupos
-	::KEGroups::InitBaseWindow 
-	
-	#Seleccionamos el item correspondiente de grupos
-	set TG $::KEGroups::TreePath
-	
-	$TG selection clear
-	
-	set grupos [$TG item descendants "root"]
-	foreach grup $grupos {
-	    set gId [$TG item text $grup 0]
-	    if { $gId == $GroupId } {
-		$TG selection add $grup
-	    }
-	}
-	
-	#Borramos recursivamente el grupo seleccionado y sus hijos
-	::KEGroups::DeleteGroupsId $TG
-	
-	#Esto ya se hace desde Grupos y para todo el árbol de propiedades
-	#Elimina el grupo del xml
-	#::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
-	
-	#Elimina el grupo del árbol
-	#$T item delete $item
-	
-	#Si la ventana no estaba visible la volvemos a ocultar (destruir)
-	if { !$visibleGroups } {
-	    
-	    destroy $::KEGroups::WinPath                 
-	} else {
-	    focus $T
-	}
-	
+    
+        ::KEGroups::BorraGrupo [lindex [split [DecodeName [$T item tag names $item]] "."] end]
+        ::xmlutils::unsetXml [DecodeName [$T item tag names $item]]
+        ::KMProps::deleteItem $T $item
+        
+        
     } else {
     }
     
