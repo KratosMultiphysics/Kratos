@@ -30,6 +30,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NORMAL);
     model_part.AddNodalSolutionStepVariable(Y_WALL);
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
+    model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+    model_part.AddNodalSolutionStepVariable(DISTANCE)
 
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
@@ -54,6 +58,10 @@ class MonolithicSolver:
         self.move_mesh_strategy = 0
 
         self.Comm = CreateCommunicator()
+
+        # for Spalart-Allmaras
+        self.use_spalart_allmaras = False
+        self.wall_nodes = None
 
         
         self.linear_solver =  TrilinosLinearSolver()
@@ -146,7 +154,45 @@ class MonolithicSolver:
         self.normal_calculator = NormalCalculationUtils()
 	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
 
-	self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
+        # If Spalart-Allmaras: Initialize Spalart-Allmaras solver
+        if self.use_spalart_allmaras = True:
+            for node in self.wall_nodes:
+                node.SetValue(IS_VISITED,1.0)
+                node.SetSolutionStepValue(DISTANCE,0,0.0)
+
+            if(self.domain_size == 2):
+                self.redistance_utils = ParallelDistanceCalculator2D()
+            else:
+                self.redistance_utils = ParallelDistanceCalculator3D()
+
+            max_levels = 100
+            max_distance = 1000
+            self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+
+            non_linear_tol = 0.001
+            max_it = 10
+            reform_dofset = self.ReformDofSetAtEachStep
+            time_order = 2
+
+            turb_aztec_parameters = ParameterList()
+            turb_aztec_parameters.set("AZ_solver","AZ_gmres");
+            turb_aztec_parameters.set("AZ_kspace",100);
+            turb_aztec_parameters.set("AZ_output","AZ_none");
+
+            turb_preconditioner_type = "ILU"
+            turb_preconditioner_parameters = ParameterList()
+            turb_overlap_level = 0
+            turb_nit_max = 1000
+            turb_linear_tol = 1e-9
+
+            turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
+            turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+
+            self.turbulence_model = SpalartAllmarasTurbulenceModel(self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size,self.turbulence_model )
+        else: # No turbulence model
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
+
         self.time_scheme.Check(self.model_part)
         
         self.conv_criteria = TrilinosUPCriteria(self.vel_criteria,self.vel_abs_criteria,self.press_criteria,self.press_abs_criteria,self.Comm)
@@ -176,6 +222,9 @@ class MonolithicSolver:
     def ActivateSmagorinsky(self,C):
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,C)
-
-
+        
+    ########################################################################
+    def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
+	self.wall_nodes  = wall_nodes
+	self.use_spalart_allmaras = True
 
