@@ -563,12 +563,7 @@ namespace Kratos
                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                               // for attached particles we enter only if the particle is still attached.
                 {
-               
-                // TANGENTIAL FORCE: incremental calculation. YADE develops a complicated "absolute method"
-
-                    LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
-                    LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
-                 
+                                
                 // NORMAL FORCE
 
                     switch (force_calculation_type_id) //  0---linear comp & tension ; 1 --- Hertzian (no linear comp, linear tension)
@@ -592,8 +587,25 @@ namespace Kratos
                             break;
 
                     }
+                    
+                    // TANGENTIAL FORCE: incremental calculation. YADE develops a complicated "absolute method"
 
-                }
+                    LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
+                    LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
+                    
+                    if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
+                    {        
+                    
+                        double TrialShearFactor = sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]) - Friction * fabs(LocalContactForce[2]);
+                    
+                        if ( (TrialShearFactor > 0.0) )
+                        {
+                            LocalContactForce[0] = Friction * fabs(LocalContactForce[2]) * LocalContactForce[0] / sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]);
+                            LocalContactForce[1] = Friction * fabs(LocalContactForce[2]) * LocalContactForce[1] / sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]);
+                        }
+                    }
+                    
+                 }
 
                 if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
 
