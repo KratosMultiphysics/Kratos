@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.0.7">
+<Kratos_Data version="1.0.71">
     <Groups/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -218,7 +218,7 @@
             <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidType="Incompressible" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
-            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
+            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
             <Container id="WallLaw" state="hidden" pid="Wall law" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
 	    <Container id="Distance" pid="Distance" class="Groups" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="1"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="Displacements" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
