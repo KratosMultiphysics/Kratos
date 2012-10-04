@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     2.1- 04/10/12-G. Socorro, write variable using the format node_id 0 node_value
 #     2.0- 04/10/12-G. Socorro, update the proc WritePropertyAtNodes_m1 to write the LevelSet variable at nodal level
 #     1.9- 03/10/12-G. Socorro, add the proc WriteFluidDistanceBC and write free surface option in the projectparameter file
 #     1.8- 28/09/12-G. Socorro, set VolumeOutput = True by default in 2D problems
@@ -157,6 +158,7 @@ proc ::wkcf::WritePropertyAtNodes_m1 {AppId} {
 	if {[info exists dprops($AppId,AllPorousZonesTypeId)] && [llength $dprops($AppId,AllPorousZonesTypeId)]} {
 	    # Get the application root identifier    
 	    set rootdataid $AppId
+	    set cpropid "0"       
 	    set cxpath "$rootdataid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
 	    set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
 	    # wa "UseErgunEquation:$UseErgunEquation"
@@ -1296,6 +1298,7 @@ proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
 	set inittime [clock seconds]
     }
 
+    set cpropid "0"       
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	# wa "cgroupid:$cgroupid"
@@ -1307,7 +1310,7 @@ proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
 	    set f "%10i"
 	    dict set gprop $cgroupid "$f"
 	    if {[write_calc_data nodes -count $gprop]>0} {
-		set f "%10i [format "%10.5f" $cvalue]\n"
+		set f "%10i [format "%5i" $cpropid] [format "%10.5f" $cvalue]\n"
 		set f [subst $f]
 		dict set gprop $cgroupid "$f"
 		write_calc_data puts "Begin NodalData $kwordlist // GUI distance condition group identifier: $cgroupid"
