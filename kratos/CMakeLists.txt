@@ -251,13 +251,16 @@ file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
 kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
 kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
 kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
-import os.path
-kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
-kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
-kratos_scripts=os.path.join(os.path.dirname(__file__),'../python_scripts')
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) 
 sys.path.append(kratos_scripts) 
+##import os.path
+##kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
+##kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
+##kratos_scripts=os.path.join(os.path.dirname(__file__),'../python_scripts')
+##sys.path.append(kratos_libs)
+##sys.path.append(kratos_applications) 
+##sys.path.append(kratos_scripts) 
 ")
 
     file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
