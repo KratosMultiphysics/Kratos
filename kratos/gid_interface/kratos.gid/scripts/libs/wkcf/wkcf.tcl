@@ -214,9 +214,13 @@ proc ::wkcf::SelectPythonScript {} {
     # Get the application root identifier    
     set rootdataid [::wkcf::GetApplicationRootId]
     
+    set cproperty "dv"
+
+    set PDir [file native [::KUtils::GetPaths "PDir"]]
+    set PTDir [::KUtils::GetPaths "PTDir"]
+
     if {$StructuralAnalysis =="Yes"} {
 	# Solution type
-	set cproperty "dv"
 	set cxpath "$rootdataid//c.AnalysisData//i.SolutionType"
 	set SolutionType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "SolutionType:$SolutionType"
@@ -227,30 +231,67 @@ proc ::wkcf::SelectPythonScript {} {
 	    set ppfilename "KratosOpenMPStructuralStatic.py"
 	    set mpifilename "KratosMPIStructuralStatic.py"
 	}
+	
+	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
+	set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
+	
+	set tofname [file native [file join $PDir $endfilename]]
+	set mpitofname [file native [file join $PDir $mpiendfilename]]
+
+	# Copy the script file
+	if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
+	    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+	    return ""
+	}
+	if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
+	    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
+	    return ""
+	}
     }
+
+    # For fluid application
     if {$FluidApplication =="Yes"} {
-	set ppfilename "KratosOpenMPFluid.py"
-	set mpifilename "KratosMPIFluid.py"
+	# Free surface
+	set cxpath "$rootdataid//c.AnalysisData//i.FreeSurface"
+	set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+	# wa "FreeSurface:$FreeSurface"
+
+	# Solver type for free surface
+	set cxpath "$rootdataid//c.AnalysisData//i.SolverTypeFreeSurf"
+	set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
+	# wa "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+	
+	# Check for use OpenMP
+	set cxpath "$rootdataid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	if {$ParallelSolutionType eq "OpenMP"} {
+	    set ppfilename "KratosOpenMPFluid.py"
+	    if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
+		set ppfilename "KratosOpenMPFluidLevelSet.py"
+	    }
+	    
+	    set tofname [file native [file join $PDir $endfilename]]
+	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
+	   	    
+	    # Copy the script file
+	    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		return ""
+	    }
+	    
+	} elseif {$ParallelSolutionType eq "MPI"} {
+	    set mpifilename "KratosMPIFluid.py"
+	    
+	    set mpitofname [file native [file join $PDir $mpiendfilename]]
+	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
+ 
+	    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
+		return ""
+	    }
+	}
     }
-    
-    set PTDir [::KUtils::GetPaths "PTDir"]
-    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
-    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
-    
-    set PDir [file native [::KUtils::GetPaths "PDir"]]
-    set tofname [file native [file join $PDir $endfilename]]
-    set mpitofname [file native [file join $PDir $mpiendfilename]]
-    
-    # Copy the script file
-    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
-	WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
-	return ""
-    }
-    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
-	WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
-	return ""
-    }    
-    
 }
 
 proc ::wkcf::WriteModelPartData {AppId} {
