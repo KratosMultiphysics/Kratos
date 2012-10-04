@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     2.2- 04/10/12- G. Socorro, update the proc SelectGIDBatFile to include the LevelSet bat file 
 #     2.1- 04/10/12- G. Socorro, add the proc BeforeDeleteCondGroup,AfterCreateCondGroup and AfterRenameCondGroup
 #     2.0- 01/10/12- J. Gárate, enable/disable curves module KPriv(CurvesModule) [0 -> Disable  | 1 -> Enable]
 #     1.9- 28/09/12- G. Socorro, modify the event SelectGIDBatFile tp include the number of threads for the OpenMP case
@@ -449,42 +450,80 @@ proc SelectGIDBatFile {directory basename } {
 
     set batfilename ""
     set args ""
-    
-    # Get the parallel solution type
-    set rootid "Fluid"
-    # Kratos key word xpath
-    set kxpath "Applications/$rootid"
+ 
+    # Get application type
+    # Structural analysis
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.StructuralAnalysis"
     set cproperty "dv"
-    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
-    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+    set StructuralAnalysis [::xmlutils::setXml $cxpath $cproperty]
     
+    # WarnWinText "StructuralAnalysis:$StructuralAnalysis"
+    
+    # Fuild application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
+    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
+    
+    # WarnWinText "FluidApplication:$FluidApplication"
+    
+    # Structural analyis
+    if {$StructuralAnalysis eq "Yes"} {
 
-    if {$ParallelSolutionType eq "MPI"} {
-	if {($::tcl_platform(os) eq "Linux")} {
-	    set batfilename "kratos-mpi.unix.bat"
-	    #  Get the number of processors
-	    set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
-	    set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
-	    # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
-	    if {$MPINumberOfProcessors>0} {
-		# Calculate arguments
-		set args "$MPINumberOfProcessors"
+    }
+
+    # Fluid application
+    if {$FluidApplication eq "Yes"} {
+	set rootid "Fluid"
+	# Kratos key word xpath
+	set kxpath "Applications/$rootid"
+	# Get the parallel solution type
+	set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	# Free surface
+	set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
+	set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+	# wa "FreeSurface:$FreeSurface"
+
+	# Solver type for free surface
+	set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
+	set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+
+	if {$ParallelSolutionType eq "MPI"} {
+	    if {($::tcl_platform(os) eq "Linux")} {
+		set batfilename "kratos-mpi.unix.bat"
+		#  Get the number of processors
+		set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+		set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+		# wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+		if {$MPINumberOfProcessors>0} {
+		    # Calculate arguments
+		    set args "$MPINumberOfProcessors"
+		}
 	    }
-	}
-    } else {
-	# OpenMP
-	#  Get the number of threads
-	set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
-	set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
-	# wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
-	if {$OpenMPNumberOfThreads>0} {
-	    # Calculate arguments
-	    set args "$OpenMPNumberOfThreads"
-	}
-	if {($::tcl_platform(os) eq "Linux")} {
-	    set batfilename "kratos.unix.bat"
 	} else {
-	    set batfilename "kratos.win.bat"
+	    # OpenMP
+	    #  Get the number of threads
+	    set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+	    set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
+	    if {$OpenMPNumberOfThreads>0} {
+		# Calculate arguments
+		set args "$OpenMPNumberOfThreads"
+	    }
+	    if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
+	    	if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos.unix.bat"
+		} else {
+		    set batfilename "kratos.win.bat"
+		}
+	    } else {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos.unix.bat"
+		} else {
+		    set batfilename "kratos.win.bat"
+		}
+	    }
 	}
     }
     
