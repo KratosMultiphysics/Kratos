@@ -67,7 +67,7 @@ class IncompressibleFluidSolver:
         self.max_vel_its = 6;
         self.max_press_its = 3;
         self.time_order = 2;
-        self.CalculateReactions = False;
+        self.compute_reactions = False;
         self.ReformDofAtEachIteration = False; 
         self.CalculateNormDxFlag = True;
         self.predictor_corrector = False;
@@ -183,9 +183,9 @@ class IncompressibleFluidSolver:
             self.normal_util = NormalCalculationUtils()
             self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
         
-#        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
+#        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.compute_reactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
 #        print "in python: okkio using Coupled Strategy"
-#        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
+#        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.compute_reactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
 
         
 ##        print self.Comm
@@ -297,8 +297,8 @@ class IncompressibleFluidSolver:
 
         (self.solver).Solve()
 
-        if(self.CalculateReactions == True):
-            self.solver.CalculateReactions()
+        #if(self.compute_reactions == True):
+            #self.solver.compute_reactions()
         #(self.solver).ApplyFractionalVelocityFixity()
         #(self.solver).InitializeFractionalStep(self.step, self.time_order);
         #(self.solver).InitializeProjections(self.step,self.projections_are_initialized);
