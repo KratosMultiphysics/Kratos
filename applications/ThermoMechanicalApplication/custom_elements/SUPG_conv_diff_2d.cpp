@@ -222,8 +222,8 @@ namespace Kratos {
 	//add shock capturing 
 	double art_visc = 0.0;
         CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Area,conductivity_scaled);
-        noalias(rLeftHandSideMatrix) += art_visc  * Laplacian_Matrix;	
-	
+        noalias(rLeftHandSideMatrix) += art_visc  * density * specific_heat * Laplacian_Matrix;	
+
 	//subtracting the dirichlet term
         // RHS -= LHS*temperatures
         for (unsigned int iii = 0; iii < nodes_number; iii++)
@@ -306,7 +306,6 @@ namespace Kratos {
 
         const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
         tau = 1.0 / (dyn_st_beta / time + 4.0 * K / (ele_length * ele_length) + 2.0 * advvel_norm  / ele_length);
-
 
 
         KRATOS_CATCH("")
