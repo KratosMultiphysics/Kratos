@@ -82,7 +82,7 @@ class PrintGraphPrinter:
 		    result[1] += N * a[1]
 		    result[2] += N * a[2]
 	  
-		aaa = str(time) + str(" , ") + str(result[0]) + " , " + str(result[1]) + " , " + str(result[2]) + str(" \n")
+		aaa = str(time) + str(" ") + str(result[0]) + " " + str(result[1]) + " " + str(result[2]) + str(" \n")
 		outfile.write(aaa);
 		
 	    outfile.flush()

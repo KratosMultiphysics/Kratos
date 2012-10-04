@@ -2722,6 +2722,17 @@ public:
 // 	    mWallReductionFactor[i_node] = 1000.0;
 //  	}
     }
+    
+    void ActivateClassicalWallResistance(double Ywall)
+    {
+        mWallLawIsActive = true;
+        mY_wall = Ywall;
+	
+	for (int i = 0; i < mWallReductionFactor.size(); i++)
+	    mWallReductionFactor[i] = 1.0 ;
+	  
+    }
+    
 
     double ComputeVolumeVariation()
     {
@@ -2764,11 +2775,12 @@ public:
         for (int i = 0; i < static_cast<int>(mdistances.size()); i++)
         {
             double dist = mdistances[i];
-            const double m_inv = mr_matrix_container.GetInvertedMass()[i];
+            const double m = mr_matrix_container.GetLumpedMass()[i];
+	    double porosity = mEps[i];
 
             if (dist <= 0.0)
             {
-                wet_volume += 1.0 / m_inv;
+                wet_volume += m/porosity;
             }
         }
 
@@ -3874,7 +3886,7 @@ private:
 	  aux *= 0.5; 
 	  if(aux < 0.0 ) aux=0.0;
 	  
-	  double turbulent_viscosity = Cs*h*h*sqrt(aux);
+	  double turbulent_viscosity = Cs*h*h*sqrt(aux)/**MolecularViscosity*/;
 	  
 // 	  KRATOS_WATCH(aux);
 // 	  KRATOS_WATCH(turbulent_viscosity);
