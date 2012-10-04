@@ -384,6 +384,10 @@ while(time <= final_time):
 		  if(SolverType == "monolithic_solver_eulerian"):
 		    for node in fluid_model_part.Nodes:
 		      node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
+		  if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+		    for node in fluid_model_part.Nodes:
+		      visc = node.GetSolutionStepValue(VISCOSITY)
+		      node.SetSolutionStepValue(VISCOSITY,i,visc)
 		      
 		fluid_solver.Solve()
 
