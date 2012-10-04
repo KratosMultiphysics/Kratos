@@ -493,16 +493,21 @@ while(time <= final_time):
 		for node in fluid_model_part.Nodes:
 		  vel = node.GetSolutionStepValue(VELOCITY)
 		  node.SetSolutionStepValue(VELOCITY,i,vel)
-		  node.SetSolutionStepValue(PRESSURE,i,0.0)
-		  
+		  node.SetSolutionStepValue(PRESSURE,i,0.0)	  
 		if(SolverType == "monolithic_solver_eulerian"):
 		  zero_vector = Vector(3)
 		  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
 		  for node in fluid_model_part.Nodes:
 		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
+		if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+		    for node in fluid_model_part.Nodes:
+		      visc = node.GetSolutionStepValue(VISCOSITY)
+		      node.SetSolutionStepValue(VISCOSITY,i,visc)
+		    
 	      fluid_solver.Solve()
         
         graph_printer.PrintGraphs(time)
+        PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 
     if(output_time <= out):
 	if(ProjectParameters.VolumeOutput == True):
@@ -514,7 +519,6 @@ while(time <= final_time):
 		gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
 	    
 	    PrintResults(fluid_model_part)
-	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 	    out = 0
 	else:
 	    cut_model_part.CloneTimeStep(time)
@@ -528,7 +532,7 @@ while(time <= final_time):
 		gid_io.InitializeResults(time,(cut_model_part).GetMesh())
 	    
 	    PrintResults(cut_model_part)
-	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
+	    
 	    out = 0	    
 
         if Multifile:
