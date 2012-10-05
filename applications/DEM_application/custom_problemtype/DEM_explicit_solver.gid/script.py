@@ -32,68 +32,12 @@ solid_model_part.SetBufferSize(2)
 ##adding dofs
 SolverStrategy.AddDofs(solid_model_part)
 
-
-
-
-if(1<2):
-
-  ## ADVANCED USER INTERACTION
-
-  # Previous Calculations.
-
-  Model_Data = open('Model_Data.txt','w')
-  
-  #mean radius, and standard deviation:
-
-  i = 0
-  sum_radi = 0
-  sum_squared = 0
-  for node in solid_model_part.Nodes:
-  
-    sum_radi += node.GetSolutionStepValue(RADIUS)
-    sum_squared += node.GetSolutionStepValue(RADIUS)**2
-    i+=1
-
-  mean=sum_radi/i
-  var =sum_squared/i-mean**2
-  if(abs(var)<1e-05):
-    var=0
-  std_dev=var**0.5
-  
-  Model_Data.write("Radius Mean: "+str(mean)+'\n')
-  Model_Data.write("Std Deviation: "+str(std_dev)+'\n')
-  
-  Model_Data.close()
-
-  # Defining lists (FOR COMPRESSION TESTS)
-
-  sup_layer = list()
-  inf_layer = list()
-  fix_particles = list()
-  force_measurement = list()
-  special_selection = list()
-  others = list()
-  
-  for node in solid_model_part.Nodes:
-    if (node.GetSolutionStepValue(GROUP_ID)==1):
-      sup_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==2):
-      inf_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==3):
-      fix_particles.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==4):
-      force_measurement.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==5):
-      special_selection.append(node)
-    else:
-      others.append(node)
-
-
 #creating a solver object
 
-dimension=DEM_explicit_solver_var.domain_size;
+dimension=DEM_explicit_solver_var.domain_size
 
-solver = SolverStrategy.ExplicitStrategy(solid_model_part, dimension); #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(solid_model_part, dimension) #here, solver variables initialize as default
+
 
 ##Obtaning options and values
 
@@ -150,7 +94,7 @@ search_radius_extension	= DEM_explicit_solver_var.search_radius_extension
 
 rotation_option 	= DEM_explicit_solver_var.RotationOption
 trihedron_option	= DEM_explicit_solver_var.TrihedronOption
-print(trihedron_option)
+
 rotation_spring_option	= DEM_explicit_solver_var.RotationalSpringOption
 
 bounding_box_option 	= DEM_explicit_solver_var.BoundingBoxOption
@@ -207,9 +151,10 @@ solver.global_fri_ang 	= DEM_explicit_solver_var.global_fri_ang
 
 # time settings
 
-final_time = DEM_explicit_solver_var.max_time
-output_dt  = DEM_explicit_solver_var.output_dt
-dt = DEM_explicit_solver_var.max_time_step
+final_time 	= DEM_explicit_solver_var.max_time
+output_dt  	= DEM_explicit_solver_var.output_dt
+control_time	= DEM_explicit_solver_var.control_time
+dt 		= DEM_explicit_solver_var.max_time_step
 
 solver.delta_time=dt
 
@@ -252,6 +197,73 @@ solver.enlargement_factor = bounding_box_enlargement_factor
 
 solver.Initialize()
 
+
+if(1<2):
+
+  ## ADVANCED USER INTERACTION
+
+  # Previous Calculations.
+
+  Model_Data = open('Model_Data.txt','w')
+  
+  #mean radius, and standard deviation:
+
+  i = 0
+  sum_radi = 0
+  sum_squared = 0
+  for node in solid_model_part.Nodes:
+  
+    sum_radi += node.GetSolutionStepValue(RADIUS)
+    sum_squared += node.GetSolutionStepValue(RADIUS)**2
+    i+=1
+
+  mean=sum_radi/i
+  var =sum_squared/i-mean**2
+  if(abs(var)<1e-05):
+    var=0
+  std_dev=var**0.5
+  
+  Model_Data.write("Radius Mean: "+str(mean)+'\n')
+  Model_Data.write("Std Deviation: "+str(std_dev)+'\n')
+  Model_Data.write('\n')
+  
+  Total_Particles 	= len(solid_model_part.Nodes)
+  Total_Contacts  	= solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS)/2
+  Coordination_Number	= 1.0*(Total_Contacts*2)/Total_Particles
+  
+  Model_Data.write("Total Number of Particles: "+str(Total_Particles)+'\n')
+  Model_Data.write("Total Number of Contacts: "+str(Total_Contacts)+'\n')
+  Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
+  Model_Data.write('\n')
+  
+  Model_Data.write("Porosity: "+str('kike')+'\n')
+  
+  Model_Data.close()
+
+  # Defining lists (FOR COMPRESSION TESTS)
+
+  sup_layer = list()
+  inf_layer = list()
+  fix_particles = list()
+  force_measurement = list()
+  special_selection = list()
+  others = list()
+  
+  for node in solid_model_part.Nodes:
+    if (node.GetSolutionStepValue(GROUP_ID)==1):
+      sup_layer.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==2):
+      inf_layer.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==3):
+      fix_particles.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==4):
+      force_measurement.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==5):
+      special_selection.append(node)
+    else:
+      others.append(node)
+
+
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (compute_critical_time =="ON"):
@@ -266,12 +278,14 @@ time = 0.0
 step = 0
 time_old_print = 0.0
 
-current_pr_time = timer.clock()
-current_real_time = timer.time()
+initial_pr_time = timer.clock()
+initial_real_time = timer.time()
 
-print ('Calculation starts at instant: ' + str(current_pr_time)+'\n')
+print('\n')
+print ('Calculation starts at instant: ' + str(initial_pr_time)+'\n')
 
-print ('Total number of TIME STEPs expected in the calculation are: ' + str(int(final_time/dt)) + ' if no critical time step modification ' +'\n' )
+total_steps_expected = int(final_time/dt)
+print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
@@ -294,6 +308,10 @@ multifile_50.write('Multiple\n')
 index_5 = 1
 index_10 = 1
 index_50 = 1
+
+prev_time = 0.0
+control = 0.0
+cond = 0
 
 while(time < final_time):
 
@@ -331,12 +349,11 @@ while(time < final_time):
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 	
-
       
 	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
 	total_force += force_node_y
     
-    
+   
     #writing lists to be printed
     forcelist.append(total_force)
     timelist.append(time)
@@ -364,7 +381,32 @@ while(time < final_time):
     solver.Solve()
 
     #dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
-       
+    
+    incremental_time = (timer.time()-initial_real_time)- prev_time
+	    
+    if (incremental_time > control_time): 
+      
+      print 'Real time calculation: ' + str(timer.time()-initial_real_time)
+	
+      prev_time = (timer.time()-initial_real_time)
+    
+    if ( (timer.time()-initial_real_time > 60.0) and cond==0):
+	
+	cond=1
+	
+	estimation_time=60.0*(total_steps_expected/step) #seconds
+	
+	print('\n')
+	print('the total calculation estimated time is '+str(estimation_time)+'seconds.'+'\n')
+	print('in minutes :'+str(estimation_time/60)+'min.'+'\n')
+	print('in hours :'+str((estimation_time/60)/60)+'hrs.'+'\n')
+	print('in days :'+str(((estimation_time/60)/60)/24)+'days.'+'\n')	
+	
+	if (((estimation_time/60)/60)/24 > 2.0):
+	  print('Loooooooooool!!! Are you Crazy?????'+'\n')
+	
+    
+    
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
     #print str(time)
@@ -417,9 +459,7 @@ while(time < final_time):
 	index_5 += 1
 	index_10 += 1
 	index_50 += 1
-	
-        
-        
+       
         #gid_io.Flush()      
         gid_io.FinalizeResults()    
 	time_old_print = time
@@ -489,8 +529,8 @@ if (3<2):
 
 
 print 'Calculation ends at instant: ' + str(timer.time())
-elapsed_pr_time = timer.clock() - current_pr_time
-elapsed_real_time = timer.time() - current_real_time
+elapsed_pr_time = timer.clock() - initial_pr_time
+elapsed_real_time = timer.time() - initial_real_time
 print 'Calculation ends at processing time instant: ' + str(timer.clock())
 print 'Elapsed processing time: ' + str(elapsed_pr_time)
 print 'Elapsed real time: ' + str(elapsed_real_time)
