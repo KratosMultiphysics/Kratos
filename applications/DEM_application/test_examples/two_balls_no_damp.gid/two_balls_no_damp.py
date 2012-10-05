@@ -279,7 +279,7 @@ solver.Initialize()
 
 ###############################################################
 node1 = FindNode(solid_model_part.Nodes , 0.0, 1.0, 0.0)
-print node1
+print node1 #there is a memory problem with the string
 ###############################################################
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -309,6 +309,8 @@ summary_results = open('summary_results.txt','w')
 forcelist = []
 timelist = []
 displacementlist = []
+
+
 
 while(time < final_time):
 
