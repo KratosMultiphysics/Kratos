@@ -137,7 +137,6 @@ namespace Kratos
       }
 
         void SphericParticle::SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
-
         {
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
@@ -189,7 +188,6 @@ namespace Kratos
                 if (this->Id() != ((*ineighbour).lock())->Id() )
 
                 {
-
                     array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
                     double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                          other_to_me_vect[1] * other_to_me_vect[1] +
@@ -220,7 +218,6 @@ namespace Kratos
                     if( ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) ) || ( fabs(initial_delta)>1.0e-6 ) ) // R: TOLERANCIA PER DIR QUE TENEN UN IDENTACIÓ O SEPARACIÓ; HAURIA DANAR LLIGADA AMB LU DE LA BUSQUEDA. la busqueda es fa per intersecció, es a dir identació es detecta pero si estan separades un pel ja no es troba com a veí.
                     //THESE ARE THE CASES THAT NEED TO STORE THE INITIAL NEIGHBOURS
                     {
-
                         //Number of contacts accounting.
 
                         int& total_number_of_contacts = rCurrentProcessInfo[TOTAL_CONTACTS];
@@ -234,7 +231,6 @@ namespace Kratos
                         {
                             this->GetValue(PARTICLE_INITIAL_DELTA)[i]  =   initial_delta;
                             this->GetValue(PARTICLE_CONTACT_DELTA)[i]  =   initial_delta; //these variables are different and need to be kept.
-
 
                         }
 
@@ -367,6 +363,11 @@ namespace Kratos
                 double initial_delta = 0.0;
                 double CTension = 0.0;
                 double CCohesion = 0.0;
+
+                //SLIDING
+
+                bool sliding = false;
+
 
                 ///WARNING: XAPUZAAAAA
                 //double& mContactFailureId_double    = int(r_VectorContactFailureId[iContactForce]);
@@ -592,7 +593,7 @@ namespace Kratos
 
                     LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                     LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
-                    
+                /*
                     if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
                     {        
                     
@@ -604,8 +605,9 @@ namespace Kratos
                             LocalContactForce[1] = Friction * fabs(LocalContactForce[2]) * LocalContactForce[1] / sqrt(LocalContactForce[0] * LocalContactForce[0] + LocalContactForce[1] * LocalContactForce[1]);
                         }
                     }
-                    
+                  */
                  }
+
 
                 if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
 
@@ -631,8 +633,10 @@ namespace Kratos
 
                 // SHEAR FAILURE
 
-                if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
-                {
+                //if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+                //{
+                    if(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) {RT_base = 0.0;} //We consider discrete or fractured contacts have no cohesion.
+
                     double ShearForceMax = RT_base + LocalContactForce[2] * Friction ;  // MOHR COULOMB MODEL.
 
                     if(LocalContactForce[2] < 0.0)
@@ -660,10 +664,13 @@ namespace Kratos
 
                         //mContactFailureId = 4; // Shear failure case.
                        this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4;
+
+                       sliding = true;
+
                        
-                        //M: podria ficar que ara la cohesion = dinamic cohesion, not static... ??
+                       
                     }
-                }
+                //}
 
           // VISCODAMPING (applyied locally)
 
@@ -677,16 +684,33 @@ namespace Kratos
 	     if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
 
              {
+
+                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff * LocalRelVel[2];
+
+                for (unsigned int index = 0; index < 2; index++)
+                {
+
+                    if(sliding == false) //only applied when no sliding to help to the regularized friccion law or the spring convergence
+
+                    {
+                        ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalRelVel[index];  //same visco_coeff to all directions???
+
+                    }
+                }
+             }
+
+           /*
+             {
                     double NewLocalContactForce[3]  = {0.0};
 
 
                         ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff * LocalRelVel[2];
 
-                        NewLocalContactForce[2] = LocalContactForce[2] + ViscoDampingLocalContactForce[2];
+                        //NewLocalContactForce[2] = LocalContactForce[2] + ViscoDampingLocalContactForce[2];
                         
                         //if(NewLocalContactForce[2]*LocalContactForce[2]<0){ViscoDampingLocalContactForce[2]= -LocalContactForce[2];} //the contact force can not change the direction due to the visco damp.
                         
-                        if ( fabs(LocalContactForce[0] + ks * LocalDeltDisp[0]) < 1e-12 ) {
+                       if ( fabs(LocalContactForce[0] + ks * LocalDeltDisp[0]) < 1e-12 ) { /// + o seria un - ignasi???, te algun sentit aixo?
                         
                             for (unsigned int index = 0; index < 2; index++)
                             {
@@ -699,18 +723,31 @@ namespace Kratos
 
                             }
                         }
-                        else {
+
+                       // else {
                         
                             for (unsigned int index = 0; index < 2; index++)
                             {
-                               ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalDeltRelVel[index];
 
-                               NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index] ;
+                                //only if non sliding.
+
+                                if( ........  )
+                                {
+
+                                    ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalRelVel[index]; //no delrelvel, relvel. el calculo no tiene porque ser incremental aqui... es el desplazamiento que no tiene referencia pero la vel es relativa local.
+
+                                }
+
+
+                                                                                                                     //considering to implement 2 diferent damp coeffs.
+                              // NewLocalContactForce[index] = LocalContactForce[index] + ViscoDampingLocalContactForce[index] ;
 
                                //if(NewLocalContactForce[index]*LocalContactForce[index]<0){ViscoDampingLocalContactForce[index]= -LocalContactForce[index];}
                             }
-                        }
+                      //  }
                 }
+
+            */
 
                 // TRANSFORMING TO GLOBAL FORCES AND ADDING UP
 

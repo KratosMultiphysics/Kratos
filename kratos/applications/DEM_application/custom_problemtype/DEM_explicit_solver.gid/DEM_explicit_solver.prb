@@ -66,6 +66,8 @@ QUESTION: Max_Time_Step
 VALUE: 0.0001
 QUESTION: Output_Dt
 VALUE: 0.01
+QUESTION: Control_Time
+VALUE: 300.0
 QUESTION: Gravity_X
 VALUE: 0.0
 QUESTION: Gravity_Y

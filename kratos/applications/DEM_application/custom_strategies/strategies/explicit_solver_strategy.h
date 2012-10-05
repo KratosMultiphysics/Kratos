@@ -778,17 +778,8 @@ namespace Kratos
 
           }// loop threads OpenMP
 
-        if(neighbours_initialized==0)
+        if(neighbours_initialized==0) // can be filled with some operation just after the first search
         {
-            int Total_Number_of_Particles   = pElements.size();
-            double Total_Number_of_Contacts = double((rCurrentProcessInfo[TOTAL_CONTACTS])/2);
-            double Coordination_Number      = ((Total_Number_of_Contacts*2)/Total_Number_of_Particles);
-            KRATOS_WATCH("       ")
-            KRATOS_WATCH(Total_Number_of_Particles)
-            KRATOS_WATCH(Total_Number_of_Contacts)
-            KRATOS_WATCH(Coordination_Number)
-            KRATOS_WATCH("       ")
-
             neighbours_initialized = 1;
         }
 

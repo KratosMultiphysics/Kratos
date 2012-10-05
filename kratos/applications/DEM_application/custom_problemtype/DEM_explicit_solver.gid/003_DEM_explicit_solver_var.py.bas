@@ -43,6 +43,8 @@ max_time_step = *GenData(Max_Time_Step)
 *format "%10.5e"
 output_dt = *GenData(Output_Dt)
 *format "%10.5e"
+control_time = *GenData(Control_Time)
+*format "%10.5e"
 gravity_x = *GenData(Gravity_x)
 *format "%10.5e"
 gravity_y = *GenData(Gravity_y)
