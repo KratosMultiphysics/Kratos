@@ -2,6 +2,13 @@
 namespace eval DEM {
 }
 
+proc DEM::Get_Mass_Elements { } {
+  set data [GiD_Info ListMassProperties Elements 1:end]
+  set volume [lindex [split [lindex $data end] =] 1]
+  set volume [format "%10.5e" $volume]
+  return $volume
+}
+
 proc DEM::GetDimensions { } {    
     set epsilon 1.e-10
     set bbox [lindex [GiD_Info layers -bbox -use mesh] 0]

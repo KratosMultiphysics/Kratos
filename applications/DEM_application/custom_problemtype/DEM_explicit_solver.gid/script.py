@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import DEM_explicit_solver_var
 import time as timer
+import sys
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -12,7 +13,6 @@ solid_model_part = ModelPart("SolidPart");
 
 #introducing input file name
 input_file_name = DEM_explicit_solver_var.problem_name
-
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
@@ -236,7 +236,7 @@ if(1<2):
   Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
   Model_Data.write('\n')
   
-  Model_Data.write("Porosity: "+str('kike')+'\n')
+  Model_Data.write("Volume Elements: "+str(DEM_explicit_solver_var.mass_elements)+'\n')
   
   Model_Data.close()
 
@@ -314,30 +314,14 @@ control = 0.0
 cond = 0
 
 while(time < final_time):
-
+ 
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
     time = time + dt
     solid_model_part.CloneTimeStep(time)
 
     solid_model_part.ProcessInfo[TIME_STEPS] = step
-    
-    if (3<2):  ##this part is for a special test... will be erased.
-      
-	if (step > 6998):
-	   
-	   if (step < 7001):
-	      print(step)
-	      a=None
-
-	      for node in solid_model_part.Nodes:
-		if node.Id == 43:
-		  a=node
-				
-	      #solid_model_part.Nodes[43].GetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID,0)
-	      print(a.GetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID,0)) 
-
-      
-      ####imprimint les forces en un arxiu.
+        
+    ####imprimint les forces en un arxiu.
     
     total_force=0
     force_node= 0
@@ -383,27 +367,29 @@ while(time < final_time):
     #dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
     
     incremental_time = (timer.time()-initial_real_time)- prev_time
-	    
+
     if (incremental_time > control_time): 
       
-      print 'Real time calculation: ' + str(timer.time()-initial_real_time)
-	
+      percentage = 100.0*(float(step)/total_steps_expected)
+      print 'Real time calculation: ' + str(timer.time()-initial_real_time) 
+      print 'Percentage Completed: ' +str(percentage) + ' %' 
+      print "TIME STEP = " + str(step) + '\n'
+      	
       prev_time = (timer.time()-initial_real_time)
     
     if ( (timer.time()-initial_real_time > 60.0) and cond==0):
 	
-	cond=1
+      cond=1
 	
-	estimation_time=60.0*(total_steps_expected/step) #seconds
+      estimation_time=60.0*(total_steps_expected/step) #seconds
 	
-	print('\n')
-	print('the total calculation estimated time is '+str(estimation_time)+'seconds.'+'\n')
-	print('in minutes :'+str(estimation_time/60)+'min.'+'\n')
-	print('in hours :'+str((estimation_time/60)/60)+'hrs.'+'\n')
-	print('in days :'+str(((estimation_time/60)/60)/24)+'days.'+'\n')	
+      print('the total calculation estimated time is '+str(estimation_time)+'seconds.'+'\n')
+      print('in minutes :'+str(estimation_time/60)+'min.'+'\n')
+      print('in hours :'+str((estimation_time/60)/60)+'hrs.'+'\n')
+      print('in days :'+str(((estimation_time/60)/60)/24)+'days.'+'\n')	
 	
-	if (((estimation_time/60)/60)/24 > 2.0):
-	  print('Loooooooooool!!! Are you Crazy?????'+'\n')
+      if (((estimation_time/60)/60)/24 > 2.0):
+	print('Loooooooooool!!! Are you Crazy?????'+'\n')
 	
     
     
@@ -413,7 +399,7 @@ while(time < final_time):
     
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
     
-	print "TIME STEP = ", step
+	#print "TIME STEP = ", step
 	gid_io.InitializeMesh(time);
         gid_io.WriteSphereMesh(solid_model_part.GetMesh());
         gid_io.FinalizeMesh();
@@ -460,7 +446,7 @@ while(time < final_time):
 	index_10 += 1
 	index_50 += 1
        
-        #gid_io.Flush()      
+        sys.stdout.flush()      
         gid_io.FinalizeResults()    
 	time_old_print = time
     
