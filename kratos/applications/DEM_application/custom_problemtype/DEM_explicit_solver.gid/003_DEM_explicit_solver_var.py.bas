@@ -50,4 +50,7 @@ gravity_x = *GenData(Gravity_x)
 gravity_y = *GenData(Gravity_y)
 *format "%10.5e"
 gravity_z = *GenData(Gravity_z)
+
+mass_elements=*tcl(DEM::Get_Mass_Elements)
+
 # Declare Python Variables
