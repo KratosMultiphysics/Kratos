@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.8- 09/10/12- G. Socorro, correct a bug when editing the tree in Linux OS => Modify bind $f.cmb <KeyPress> by bind $f.cmb <Return>
 #   0.7- 27/09/12-J. Garate, Pick Coordinates Button
 #   0.6- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
 #   0.5- 12/04/2012 JGarate, Ahora selecciona por defecto el primer elemento en Geometry Auto Group
@@ -972,7 +973,7 @@ proc ::KMProps::buildFrame { T item { type "props" } } {
 	    bind $f.cmb <Escape> "::KMProps::cmbCancel $item $T"
 	}
 	# Si pulsan intro o Esc también forzamos la salida del combo
-	bind $f.cmb <KeyPress> "if { %k == 13  } { ::KMProps::cmbSelectChange $item $T 1 current}"
+	bind $f.cmb <Return> [list ::KMProps::cmbSelectChange $item $T 1 current]
 	bind $T <KeyPress> "if { %k == 27   } { ::KMProps::cmbCancel $item $T }"
 	
 	tooltip::tooltip $f.cmb "$tooltip"
