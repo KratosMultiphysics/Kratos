@@ -561,10 +561,10 @@ protected:
 //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
 //            this->ComputeSplitOssProjections();
 
-            // Additional steps
-            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
-                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
-                (*iExtraSteps)->Execute();
+//            // Additional steps // Moved to end of step
+//            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
+//                 iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
+//                (*iExtraSteps)->Execute();
 
             // Check convergence
             Converged = this->CheckFractionalStepConvergence(NormDv);
@@ -620,6 +620,11 @@ protected:
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,6);
 
         this->CalculateEndOfStepVelocity();
+
+        // Additional steps
+        for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
+             iExtraSteps != mExtraIterationSteps.end(); ++iExtraSteps)
+            (*iExtraSteps)->Execute();
 
 
         return NormDp;
