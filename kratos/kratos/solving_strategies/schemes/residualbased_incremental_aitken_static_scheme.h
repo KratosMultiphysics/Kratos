@@ -105,6 +105,7 @@ public:
                                         TSystemVectorType &b)
     {
         BaseType::InitializeSolutionStep(r_model_part,A,Dx,b);
+        mPreviousDx = ZeroVector(Dx.size());
         mIterationCounter = 0;
     }
 
@@ -121,7 +122,6 @@ public:
                                            TSystemVectorType &b)
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
-        mIterationCounter++;
     }
 
 
@@ -138,6 +138,8 @@ public:
                         TSystemVectorType &Dx,
                         TSystemVectorType &b)
     {
+        mIterationCounter++;
+
         // Compute relaxation factor
         double Omega;
 
@@ -176,7 +178,7 @@ public:
         }
 
         // Store results for next iteration
-        mPreviousDx = Dx;
+        noalias(mPreviousDx) = Dx;
         mOldOmega = Omega;
     }
 

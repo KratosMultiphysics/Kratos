@@ -160,7 +160,6 @@ public:
                                            TSystemVectorType &b)
     {
         BaseType::InitializeNonLinIteration(r_model_part,A,Dx,b);
-        mIterationCounter++;
     }
 
 
@@ -179,6 +178,7 @@ public:
     {
         KRATOS_TRY;
 
+        mIterationCounter++;
         double Omega;
 
         if (mIterationCounter > 1)
