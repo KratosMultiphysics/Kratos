@@ -784,9 +784,9 @@ namespace Kratos
 
                 // SAVING CONTACT FORCES FOR NEXT STEPS
 
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalResultantContactForce[0];
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalResultantContactForce[1];
-                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalResultantContactForce[2];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalContactForce[1];
+                    this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalContactForce[2];
               
 
                     if ( rotation_OPTION == 1 )
@@ -1325,9 +1325,12 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
                     }
 
                     double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                    double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
 
-                    Output = 0.34 * sqrt( mRealMass / K);
+                    if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
+                    K = rCurrentProcessInfo[GLOBAL_KN];
+
+                    Output = 0.34 * sqrt( mass / K);
 
                     if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
                     {

@@ -356,7 +356,7 @@ namespace Kratos {
                                    
                                        if ((ini_neighbour.base())->expired() == false) {
                                    
-                                            if ((*neighbour_it)->Id() == ini_neighbour->Id()) // IF IT'S AN INITIAL NEIGHBOUR //POOOOOYAN, ESTARA BÉ AIXO???? TINDRAN DIFERENTS IDS??? INI NEIGH TINDRA ID??
+                                            if ((*neighbour_it)->Id() == ini_neighbour->Id()) 
                                             {
                                                  (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp-1] = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[InitialNeighboursCounter];
 
