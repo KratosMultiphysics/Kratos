@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.0.71">
+<Kratos_Data version="1.0.73">
     <Groups/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -53,7 +53,10 @@
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Non-Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" icon="solstrategy.gif">
-            <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+	  <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
+	  <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
+	  <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
             <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
             <Item id="IterativeSolverType" pid="Iterative solver type" solverType="Iterative" dv="ConjugateGradient" ivalues="ConjugateGradient,BiConjugateGradientStabilized" values="Conjugate gradient,BiConjugate gradient stabilized" help=""/>
             <Item id="Tolerance" pid="Iterative" solverType="Iterative" dv="1E-6" help=""/>
@@ -78,7 +81,8 @@
         <Container id="Elements" pid="Elements" help="Elements" open="1" icon="femelements.gif">
             <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
             <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
-            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield Truss Element" open="1"/>
+            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="1"/>
+	    <Container id="BeamElement" pid="Beam element" class="Groups" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Beam element type" open="1"/>
             <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="1"/>
             <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="1"/>
             <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
@@ -190,7 +194,7 @@
 	      <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
 	      <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
 	    </Container>
-	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" class="Tab" help="Porous zones" open="1">
+	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" open="1">
 	      <Item id="UseErgunEquation" pid="Use Ergun equation" dv="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
 	      <Container id="ErgunEquationNo" pid="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" open="1"/>
 	      <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="1"/>
@@ -314,6 +318,12 @@
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
+	<Template id="BeamTLagrangian" icon="groupsTree.gif" help="Beam total Lagrangian">
+            <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Linear" ivalues="Linear" values="Linear" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
+        </Template>
         <Template id="TLagrangian3D" icon="groupsTree.gif" help="Total Lagrangian">
             <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra,Hexahedra" values="Tetrahedra,Hexahedra" help="Element Type"/>
@@ -356,6 +366,9 @@
                 <Item id="MatModel" pid="Material model" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness"/>
+		<Item id="Area" pid="Area" dv="1.0" help="Cross section area"/>
+		<Item id="InertiaIx" pid="Inertia Ix" dv="1.0" help="Moment of inertia Ix"/>
+		<Item id="InertiaIy" pid="Inertia Iy" dv="1.0" help="Moment of inertia Iy"/>
             </Container>
         </Template>
         <Template id="PropertiesFluid" icon="propsTree.gif" help="Property">
