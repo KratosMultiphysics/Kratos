@@ -409,6 +409,17 @@ if { [GiD_Info GiDVersion] == "11.0.1" || [GiD_Info GiDVersion] == "11.0" } {
     proc BeforeDeleteGroup { del_group } { 
 	return [::BeforeDeleteCondGroup $del_group]
     }
+} elseif {[GiD_Info GiDVersion] == "11.1.1d"}  {
+
+    proc AfterCreateGroup { name } {
+	return [::AfterCreateCondGroup $name]
+    }
+    proc AfterRenameGroup { oldname newname } {
+	return [::AfterRenameCondGroup $oldname $newname]
+    }
+    proc BeforeDeleteGroup { del_group } { 
+	return [::BeforeDeleteCondGroup $del_group]
+    }
 }  
 
 proc BeforeDeleteCondGroup { name } {
