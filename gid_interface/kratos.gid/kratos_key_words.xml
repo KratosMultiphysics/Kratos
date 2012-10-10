@@ -5,12 +5,13 @@
         <Item id="TotalLagrangian" kkword="TotalLagrangian" usennode="Yes" />
         <Item id="TotalLagrangian3D" kkword="TotalLagrangian" usennode="Yes" />
         <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement" usennode="Yes" />
+	<Item id="BeamElement" kkword="BeamElement" usennode="Yes" />
         <Item id="ShellIsotropic" kkword="IsoShellElement" usennode="No" />
         <Item id="ShellAnisotropic" kkword="ShellAnisotropic" usennode="No" />
         <Item id="LinearElement" kkword="LinearElement" usennode="Yes" />
         <Item id="LinearElement3D" kkword="LinearElement" usennode="Yes" />
-	   <Item id="Membrane" kkword="MembraneElement" usennode="No" />
-        <Item id="EBST" kkword="EBST" usennode="No" />
+	<Item id="Membrane" kkword="MembraneElement" usennode="No" />
+        <Item id="EBST" kkword="EBST3DN" usennode="No" />
         <Item id="Thickness" kkword="THICKNESS" />
         <Item id="Dx" kkword="DISPLACEMENT_X" />
         <Item id="Dy" kkword="DISPLACEMENT_Y" />
@@ -21,8 +22,8 @@
         <Item id="Fx" kkword="FORCE_X" />
         <Item id="Fy" kkword="FORCE_Y" />
         <Item id="Fz" kkword="FORCE_Z" />
-	   <Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
-	   <Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
+	<Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
+	<Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
         <Item id="Displacements" kkword="DISPLACEMENT" />
         <Item id="Forces" kkword="FORCE" />
         <Item id="Reactions" kkword="REACTION" />
@@ -40,10 +41,12 @@
         <Item id="ConjugateGradient" kkword="CG" />
         <Item id="Diagonal" kkword="DIAG" />
         <Item id="ILU0" kkword="ILU0" />
-	    <Item id="GiDPostMode" kkword="GiDPostMode" />
-	   <Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
-	   <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
-	   <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+	<Item id="GiDPostMode" kkword="GiDPostMode" />
+	<Item id="GiDWriteMeshFlag"  kkword="GiDWriteMeshFlag" />
+	<Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+	<Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+	<Item id="Area" kkword="CROSS_AREA" />
+	<Item id="LocalInertia" kkword="LOCAL_INERTIA" />
     </StructuralAnalysis>
     <Fluid>
         <Item id="ASGS2D" kkword="ASGS2D" usennode="No" />
@@ -64,8 +67,8 @@
         <Item id="Velocity_y" kkword="VELOCITY_Y" />
         <Item id="Velocity_z" kkword="VELOCITY_Z" />
         <Item id="Pressure" kkword="PRESSURE" />
-	    <Item id="Reactions" kkword="REACTION" />
-	    <Item id="Distance" kkword="DISTANCE" />
+	<Item id="Reactions" kkword="REACTION" />
+	<Item id="Distance" kkword="DISTANCE" />
         <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
         <Item id="SuperLU" kkword="Super LU" />
         <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
@@ -189,8 +192,16 @@
         <Item id="Solid" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
         <Item id="PlaneStress" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
         <Item id="PlaneStrain" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
-        <Item id="Tickness2D" elementType="PlaneStress"/>
-        <Item id="Tickness3D" elementType="Shell,Membrane,EBST"/>
+        <Item id="Thickness2D" elementType="PlaneStress"/>
+        <Item id="Thickness3D" elementType="Shell,Membrane,EBST"/>
+	<Item id="Area" elementType="Truss,Beam"/>
+	<Item id="InertiaIx" elementType="Beam" matrixid="BeamLocalInertia"/>
+	<Item id="InertiaIy" elementType="Beam" matrixid="BeamLocalInertia"/>
+	<!-- Cross section property list mapping /-->
+	<Item id="CSProperty" propertylist="Thickness,Area,InertiaIx,InertiaIy" propertytypelist="Scalar,Scalar,Matrix,Matrix"/>
+	<!-- All the matrix type identifier list /-->
+	<Item id="CSMatrixId" matrixidlist="BeamLocalInertia"/>
+	<Item id="BeamLocalInertia" matrixkwordid="LocalInertia" matrixndim="2,2" matrixcomp="InertiaIx,InertiaIy" matrixcomppos="1,4" matrixdefvals="0.0,0.0,0.0,0.0"/>
     </ElementCLaws>
     <ElementValidCLaws>
         <Item id="TotalLagrangian" claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" active="1"/>
