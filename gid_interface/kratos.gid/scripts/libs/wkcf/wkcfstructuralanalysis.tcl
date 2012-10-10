@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     0.8- 09/10/12-G. Socorro, correct a bug with the output format in the proc WritePressureLoads_m1 
 #     0.7- 14/05/12-G. Socorro, modify the proc WriteDispRotBC_m1 to write many groups with displacement/rotation bc
 #     0.6- 06/05/12-G. Socorro, update the proc WritePressureLoads to write using the fast method (write_calc_data)   
 #     0.5- 05/05/12-G. Socorro, improve the proc WriteDispRotBC to write using the fast method (write_calc_data)
@@ -354,7 +355,7 @@ proc ::wkcf::WritePressureLoads_m1 {AppId cloadtid} {
 	    # WarnWinText "ckword:$ckword"
 		
 	    if {$PressureValue !="0.0"} {
-		set f "%10i [format "%6i%4i%20.10f" $FixPressure $PressureValue]\n"
+		set f "%10i [format "%6i%20.10f" $FixPressure $PressureValue]\n"
 		set f [subst $f]
 		dict set gprop $cgroupid $f
 		# Set the real pressure value

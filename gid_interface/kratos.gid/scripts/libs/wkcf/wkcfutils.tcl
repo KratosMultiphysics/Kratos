@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #	
+#     2.5- 09/10/12-G. Socorro, add the proc GetCrossSectionProperties, modify other procs to include the structural 
+#                               analysis cross section properties options
 #     2.4- 04/10/12-G. Socorro, add the proc GetPorousZonesProperties to get the properties of the porous zones
 #     2.3- 02/10/12-G. Socorro, update the proc GetBoundaryConditionProperties to include the Distance BC
 #     2.2- 24/09/12-G. Socorro, init the new variable "wbatfile" to 0
@@ -54,9 +56,7 @@ proc ::wkcf::Preprocess {} {
     # WarnWinText "useqelem:$useqelem"
     
     # Get the spatial dimension
-    set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
-    set cproperty "dv"
-    set ndime [::xmlutils::setXml $cxpath $cproperty]
+    set ndime [::xmlutils::GetSpatialDimension]
     
     # Get application type
     # Structural analysis
@@ -486,6 +486,10 @@ proc ::wkcf::GetPropertiesData {} {
     # Process all properties
     variable dprops; variable ActiveAppList
     variable ndime
+
+    # Xpath for element constitutive laws
+    set cexpath "ElementCLaws"
+
     
     # For each active application
     foreach AppId $ActiveAppList {
@@ -510,26 +514,34 @@ proc ::wkcf::GetPropertiesData {} {
 		lappend dprops($AppId,AllMatId) $MatId
 	    }
 	    
-	    # Thickness value
-	    set txpath "$cxpath//c.${propid}//c.MainProperties//i.Thickness"
-	    set cproperty "dv"
-	    set Thickness [::xmlutils::setXml $txpath $cproperty]
-	    # WarnWinText "Thickness:$Thickness"
-	    set dprops($AppId,Property,$propid,Thickness) $Thickness
-	    
 	    # Property type => Base element type
 	    set ptypexpath "$cxpath//c.${propid}//c.MainProperties//i.ElemType"
 	    set cproperty "dv"
 	    set ptype [::xmlutils::setXml $ptypexpath $cproperty]
 	    # WarnWinText "ptype:$ptype"
 	    set dprops($AppId,Property,$propid,BaseElemType) $ptype
-	    
+
 	    # Material model 
 	    set xpath "$cxpath//c.${propid}//c.MainProperties//i.MatModel"
 	    set cproperty "dv"
 	    set MatModel [::xmlutils::setXml $xpath $cproperty]
 	    # WarnWinText "MatModel:$MatModel"
 	    set dprops($AppId,Property,$propid,MatModel) $MatModel
+
+	    # For cross section properties
+	    # Get the property list
+	    set pid "propertylist"
+	    set id "CSProperty"
+	    set CSProperty [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	    # wa "CSProperty:$CSProperty"
+	    foreach cspropid $CSProperty { 
+		# Get the current value
+		set txpath "$cxpath//c.${propid}//c.MainProperties//i.${cspropid}"
+		set cproperty "dv"
+		set cvalue [::xmlutils::setXml $txpath $cproperty]
+		# wa "cspropid:$cspropid cvalue:$cvalue"
+		set dprops($AppId,Property,$propid,${cspropid}) $cvalue
+	    }
 	    
 	    # Set fluency and behavior variables
 	    set dprops($AppId,Material,$MatId,UseFluency) "No"
@@ -540,21 +552,42 @@ proc ::wkcf::GetPropertiesData {} {
 	    # Get material properties
 	    switch -exact -- $MatModel {
 		"Elastic-Isotropic" {
-		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel "One"
-		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-			set cptype "Isotropic2D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
-		    } elseif {(($ptype eq "Solid")||($ptype eq "Shell")||($ptype eq "Membrane")||($ptype eq "Beam")) && ($ndime =="3D")} {
-			set usethick "No"
-			set cptype "Isotropic3D"
-			if {($ptype eq "Shell") || ($ptype eq "Membrane")} {
-			    set usethick "Yes"
+		    if {$ndime eq "2D"} {
+			# 2D case
+			if {$ptype=="PlaneStrain"} {
+			    # Get the material properties
+			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+
+			    # Get the cross section properties
+			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
+			} elseif {$ptype=="PlaneStress"} {
+			    set cptype "Isotropic2D"
+			    # Get the material properties
+			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    
+			    # Get the cross section properties
+			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 			}
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "$usethick"
+		    } elseif {$ndime =="3D"} {
+			# 3D case
+			set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
+			# Check that this ptype is in the list
+			if {$ptype in $ltypelist} {
+			    if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
+				set cptype "Isotropic2D"
+			    } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+				set cptype "Isotropic2D"
+			    } else {
+				set cptype "Isotropic3D"
+			    }
+			    
+			    # Get the material properties
+			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    
+			    # Get the cross section properties
+			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			}
 		    }
 		}
 		"Elastic-Orthotropic" {
@@ -563,25 +596,25 @@ proc ::wkcf::GetPropertiesData {} {
 		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
 			set cptype "Plasticity2D"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
 			set cptype "Plasticity2D"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		} elseif {($ptype=="Solid") && ($ndime =="2D")} {
 			set cptype "Plasticity2D"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
 			set cptype "Plasticity3D"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    }
@@ -590,19 +623,19 @@ proc ::wkcf::GetPropertiesData {} {
 		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
 			set cptype "IsotropicDamage"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "One"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
 			set cptype "IsotropicDamage"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "Yes"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
 			set cptype "IsotropicDamage3D"
 			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel "No"
+			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 		    }
@@ -612,12 +645,12 @@ proc ::wkcf::GetPropertiesData {} {
     }
 }
 
-proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick "No"}} {
+proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel} {
     # Get material properties
     variable dprops
     variable ndime
     
-    # WarnWinText "MaterialProperties =>AppId:$AppId propid:$propid MatId:$MatId ptype:$ptype CMatModel:$CMatModel usethick:$usethick"
+    # wa "MaterialProperties =>AppId:$AppId propid:$propid MatId:$MatId ptype:$ptype CMatModel:$CMatModel"
     # Xpath for constitutive laws
     set clxpath "CLawProperties"
     # Xpath for materials
@@ -625,7 +658,7 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
     
     # Get all material properties
     set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
-    # WarnWinText "mpxpath:$mpxpath"
+    # wa "mpxpath:$mpxpath"
     
     # Set the kratos model keyword base xpath
     set kmxpath "Applications//$AppId"
@@ -637,7 +670,7 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
     set mprops [split [::xmlutils::getKKWord $clxpath $ptype "mprops"] ,]
     # Get xpath values
     set mxpath [split [::xmlutils::getKKWord $clxpath $ptype "mxpath"] ,]
-    # WarnWinText "MatModel:$MatModel mprops:$mprops mxpath:$mxpath"
+    # wa "MatModel:$MatModel mprops:$mprops mxpath:$mxpath"
     set matplist [list]
     foreach pid $mprops xpath $mxpath {
 	# Get the kratos key word
@@ -693,31 +726,196 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel {usethick
 	}
     }
     
-    # WarnWinText "matplist:$matplist"
+    # wa "matplist:$matplist"
     set dprops($AppId,Material,$MatId,Props) $matplist
+ 
+}
+
+proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
+    # Get the cross section properties
+    # Arguments
+    # AppId      => Application identifier
+    # propid     => Current property identifier
+    # belemtype  => Base element type
+    variable dprops
+    variable ndime
+    
+    # wa "MaterialProperties =>AppId:$AppId propid:$propid belemtype:$belemtype"
+    # Xpath for constitutive laws
+    set clxpath "CLawProperties"
+      
+    # Xpath for element constitutive laws
+    set cexpath "ElementCLaws"
+
+    # Set the kratos model keyword base xpath
+    set kmxpath "Applications//$AppId"
+
     # Get others properties
-    # WarnWinText "clxpath:$clxpath ptype:$ptype"
-    set cprops [::xmlutils::getKKWord $clxpath $ptype "cprops"]
-    # WarnWinText "cprops:$cprops"
-    # Check to use thickness value
-    set dprops($AppId,Material,$propid,CProps) [list]
-    switch -exact -- $usethick {
-	"Yes" {
-	    # Get the current value
-	    set Thickness $dprops($AppId,Property,$propid,Thickness)
-	    set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
-	    # Update section properties
-	    set dprops($AppId,Material,$propid,CProps) [list [list $kword $Thickness]]
-	    # WarnWinText "dprops($AppId,Material,$propid,CProps):$dprops($AppId,Material,$propid,CProps)"
+    # wa "clxpath:$clxpath belemtype:$belemtype"
+    # Get the property list
+    set pid "propertylist"
+    set id "CSProperty"
+    set CSProperty [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+    # Get the property type list
+    set pid "propertytypelist"
+    set CSPropertyType [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+    # wa "CSPropertyType:$CSPropertyType"
+
+    # Get the active property list for this property identifier
+    set CPropsList [list]
+    foreach cspropid $CSProperty csproptypeid $CSPropertyType {
+	if {$cspropid eq "Thickness"} {
+	    set endcspropid "${cspropid}${ndime}"
+	} else {
+	    set endcspropid $cspropid
 	}
-	"One" {
-	    set Thickness "1.0"
-	    set kword [::xmlutils::getKKWord $kmxpath [lindex $cprops 0] "kkword"]
-	    # Update section properties
-	    set dprops($AppId,Material,$propid,CProps) [list [list $kword $Thickness]]
-	    # WarnWinText "dprops($AppId,Material,$propid,CProps):$dprops($AppId,Material,$propid,CProps)"
+	# Get the base element type
+	set pid "elementType"
+	set ElementTypeList [split [::xmlutils::getKKWord $cexpath $endcspropid "$pid"] ","]
+	# wa "ElementTypeList:$ElementTypeList"
+	if {$belemtype in $ElementTypeList} {
+	    lappend CPropsList [list $cspropid $csproptypeid]
 	}
     }
+    # wa "CPropsList:$CPropsList"
+    # Init CProps list 
+    set dprops($AppId,Material,$propid,CProps) [list]
+
+    # Process all scalar data type
+    foreach cpropid $CPropsList {
+	lassign $cpropid cspropid csproptypeid
+	# wa "cspropid:$cspropid csproptypeid:$csproptypeid"
+	if {$csproptypeid eq "Scalar"} {
+	    # Get the current value
+	    set cvalue $dprops($AppId,Property,$propid,$cspropid)
+	    set kword [::xmlutils::getKKWord $kmxpath $cspropid "kkword"]
+	    # Update section properties (property type identifier, kratos keyword, current value)
+	    lappend dprops($AppId,Material,$propid,CProps) [list $csproptypeid $kword $cvalue]
+	    # wa "dprops($AppId,Material,$propid,CProps):$dprops($AppId,Material,$propid,CProps)"
+	}
+    }
+   
+    # Process all matrix data type
+    # a) First get all defined matrix identifier
+    set AllMatrixIdList [list]
+    foreach cpropid $CPropsList {
+	lassign $cpropid cspropid csproptypeid
+	if {$csproptypeid eq "Matrix"} {
+	    # Get the matrix identifier for this property
+	    set id "$cspropid"
+	    set pid "matrixid"
+	    set MatrixId [::xmlutils::getKKWord $cexpath "$id" "$pid"]
+	    # wa "MatrixId:$MatrixId"
+	    if {$MatrixId ni $AllMatrixIdList} {
+		lappend AllMatrixIdList $MatrixId
+	    }    
+	}
+    }
+    # wa "AllMatrixIdList:$AllMatrixIdList"
+
+    # b) For each matrix identifier create the matrix properties 
+    set CMatrixProp [list]
+    foreach MatrixId $AllMatrixIdList {
+
+	# Get the keyword for this matrix identifier
+	set id "$MatrixId"
+	set pid "matrixkwordid"
+	set MatrixKWordId [::xmlutils::getKKWord $cexpath "$id" "$pid"]
+	# wa "MatrixKWordId:$MatrixKWordId"
+	# Get the kratos keyword for this matrix
+	set kword [::xmlutils::getKKWord $kmxpath $MatrixKWordId "kkword"]
+	    
+	# Get the matrix dimension for this matrix identifier
+	set id "$MatrixId"
+	set pid "matrixndim"
+	set MatrixNDim [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	lassign $MatrixNDim nrows ncols
+	# wa "MatrixNDim:$MatrixNDim nrows:$nrows ncols:$ncols"
+	    
+	# Get the matrix components for this matrix identifier
+	set id "$MatrixId"
+	set pid "matrixcomp"
+	set MatrixComp [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	# wa "MatrixComp:$MatrixComp"
+	
+	# Get the current value for each component
+	set cvaluelist [list]
+	foreach ccompid $MatrixComp {
+	    set cvalue "0.0"
+	    if {[info exists dprops($AppId,Property,$propid,$ccompid)]} {
+		set cvalue $dprops($AppId,Property,$propid,$ccompid)
+	    }
+	    lappend cvaluelist $cvalue
+	}
+	# wa "cvaluelist:$cvaluelist"
+	# Get the matrix components position for this matrix identifier
+	set id "$MatrixId"
+	set pid "matrixcomppos"
+	set MatrixCompPos [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	# wa "MatrixCompPos:$MatrixCompPos"
+	
+	# Get the matrix default values for this matrix identifier
+	set id "$MatrixId"
+	set pid "matrixdefvals"
+	set MatrixDefVals [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	# wa "MatrixDefVals:$MatrixDefVals"
+	
+	# Set the values for the matrix properties
+	set matbf ""
+	set cmatrixdim "[join $MatrixNDim ","]"
+	append matbf "\[$cmatrixdim\]" " "
+
+	# Init the matrix with the default values
+	set MatrixValues $MatrixDefVals
+	# For each component assign the correct value 
+	set cpos 0
+	foreach mcpos $MatrixCompPos { 
+	    # Get the value
+	    set cvalue [lindex $cvaluelist $cpos] 
+	    incr cpos 1
+	    # Modify the matrix value
+	    lset MatrixValues [expr $mcpos-1] $cvalue
+	}
+	# wa "MatrixValues:$MatrixValues"
+	# Print the value into the buffer
+	# Open the matrix brackets
+	append matbf "(("
+	set cpos 1
+	set vallen [llength $MatrixValues]
+	set valcount 0
+	foreach cval $MatrixValues {
+	    incr valcount 1
+	    if {$cpos<$ncols} {
+		append matbf "$cval,"
+		incr cpos 1
+	    } elseif {$cpos==$ncols} {
+		if {$valcount == $vallen} {
+		    append matbf "$cval)"
+		    break
+		} else {
+		    append matbf "$cval),("
+		}
+		set cpos 1 
+	    }
+	}
+	# End the matrix brackets
+	append matbf "))"
+	# wa "matbf:$matbf"
+	# Set the matrix properties
+	lappend CMatrixProp [list "Matrix" "$kword" "$matbf"]
+    }
+    # wa "CMatrixProp:$CMatrixProp"
+
+    # c) Update the cross section properties array
+    if {[llength $CMatrixProp]} {
+	# Update section properties (property type identifier, kratos keyword, current value)
+	foreach MProp $CMatrixProp {
+	    # wa "MProp:$MProp"
+	    lappend dprops($AppId,Material,$propid,CProps) $MProp
+	}
+    }
+    # wa "dprops($AppId,Material,$propid,CProps):$dprops($AppId,Material,$propid,CProps)"
+
 }
 
 proc ::wkcf::GetElementProperties {} {

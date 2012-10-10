@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.6- 09/10/12-G. Socorro, update others procs to include the cross property functionality
 #   0.5- 03/10/12- GSM, add a message for the "Compressible" fluid case
 #   0.4- 27/09/12- J.Garate, Change combo's size
 #   0.3- 23/09/12- GSM, update the proc specialComboAction to disabled FSI application
@@ -41,6 +42,7 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
     
     global KPriv
     
+    # wa "f:$f fullname:$fullname idTemplate:$idTemplate"
     if { [info exists ::KMProps::cmbElemType] } {
 	
 	set dv [::xmlutils::getComboDv $f $fullname "id" $idTemplate]
@@ -48,7 +50,7 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv $dv
 	
-	#Actualizamos los valores de Material Mode en función del nuevo dv
+	# We update Mode Material values based on the new dv
 	set fMat [string map {"ElemType" "MatModel"} $f]
 	
 	if { $idTemplate == "" } {
@@ -59,25 +61,32 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	    
 	    ::KMProps::changeCmbValues $fMat "MainProperties//MatModel" $idTemplate
 	}
-	
-	set fCmbThick [string map {"ElemType" "Thickness"} $f]
-	set fLblThick [string map {"cmbThickness" "lblThickness"} $fCmbThick]
-	if { [::KMProps::showThickness] } {
-	    
-	    if { [winfo exists $fCmbThick] } { 
-		grid $fCmbThick 
+	# Get the cross section property list
+	set PropertyList [::KMProps::GetCrossSectionPropertyList]
+	# For each property
+	foreach propid $PropertyList {
+	    set fCmbPropId [string map [list "ElemType" "$propid"] $f]
+	    set fLblPropId [string map [list "cmb${propid}" "lbl${propid}"] $fCmbPropId]
+	    # wa "fCmbPropId:$fCmbPropId fLblPropId:$fLblPropId"
+	    # Get the show property state for the current property identifier
+	    set ShowProperty [::KMProps::ShowPropertyByElementType $propid]
+	    if {$ShowProperty} {
+		# Show this property	
+		if { [winfo exists $fCmbPropId] } { 
+		    grid $fCmbPropId 
+		}
+		if { [winfo exists $fLblPropId] } { 
+		    grid $fLblPropId 
+		}
+	    } else {
+		# Hide this property
+		if { [winfo exists $fCmbPropId] } { 
+		    grid remove $fCmbPropId 
+		}
+		if { [winfo exists $fLblPropId] } { 
+		    grid remove $fLblPropId 
+		}
 	    }
-	    if { [winfo exists $fLblThick] } { 
-		grid $fLblThick 
-	    }
-	} else {
-	    if { [winfo exists $fCmbThick] } { 
-		grid remove $fCmbThick 
-	    }
-	    if { [winfo exists $fLblThick] } { 
-		grid remove $fLblThick 
-	    }
-	    
 	}
     }
 }
@@ -175,7 +184,7 @@ proc ::KMProps::cmbCancel { item T  } {
 
 proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
     
-    #msg "cmbselectChange $remove"
+    # WarnWin "cmbselectChange $remove"
     set refresh 0
     set fullname [DecodeName [$T item tag names $item]]
     set idFull [string map { "." "" "//" ""} $fullname]

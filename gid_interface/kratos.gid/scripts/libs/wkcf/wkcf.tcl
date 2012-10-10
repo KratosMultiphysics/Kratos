@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.5- 09/10/12-G. Socorro, modify the procs WriteElementConnectivities (add linear elements) and WriteModelPartData (write cross section properties)
 #     5.4- 03/10/12-G. Socorro, add a call to the proc WriteFluidDistanceBC to write the distance variable
 #     5.3- 24/09/12-G. Socorro, create a new variable "wbatfile" to control when write the bat file for Kratos 
 #     5.2- 23/09/12-G. Socorro, Write the GroupMeshProperties before  the cut and graph properties to get the mesh reference
@@ -320,7 +321,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	    write_calc_data puts "Begin Properties $propid // GUI property identifier: $PropertyId"
 	    # Get the material identifier for this property 
 	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-	    # WarnWinText "PropertyId:$PropertyId MatId:$MatId"
+	    # wa "PropertyId:$PropertyId MatId:$MatId"
 	    write_calc_data puts "// GUI material identifier: $MatId"
 	    # Write material properties
 	    foreach cpropid $dprops($AppId,Material,$MatId,Props) {
@@ -329,13 +330,21 @@ proc ::wkcf::WriteProperties {AppId} {
 		write_calc_data puts " $key $value"
 	    } 
 	    
-	    # Write section (others) properties (thickness, etc)
+	    # Write section (others) properties (thickness, etc.)
 	    if {[info exists dprops($AppId,Material,$PropertyId,CProps)]} {
 		foreach cpropid $dprops($AppId,Material,$PropertyId,CProps) {
-		    # WarnWinText "cpropid:$cpropid"
-		    lassign $cpropid key value
-		    # WarnWinText "key:$key value:$value"
-		    write_calc_data puts " $key $value"
+		    # wa "cpropid:$cpropid"
+		    lassign $cpropid cvaluetype ckeyword cvalue
+		    # wa "cvaluetype:$cvaluetype ckeyword:$ckeyword cvalue:$cvalue"
+		    #  Check the data type
+		    if {$cvaluetype eq "Scalar"} {
+			# Scalar
+			write_calc_data puts " $ckeyword $cvalue"
+		    } elseif {$cvaluetype eq "Matrix"} {
+			# Matrix
+			lassign $cvalue matdim matvalue 
+			write_calc_data puts " $ckeyword ${matdim} $matvalue"
+		    }
 		} 
 	    }
 	    
@@ -536,7 +545,7 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
 		    # Get the GiD entity type, element type and property identifier
 		    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-		    # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+		    # wa "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
 		    
 		    # Get the element identifier => nDimNNode
 		    set etbf ""
@@ -582,6 +591,9 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
 			    set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
 			    write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
 			    switch -exact -- $GiDElemType {
+				"Linear" {
+				    set f "%10d [format "%10d" $GlobalPId] %10d %10d\n"
+				}
 				"Triangle" {
 				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
 				}

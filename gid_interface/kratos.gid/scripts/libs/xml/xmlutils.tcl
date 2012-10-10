@@ -14,6 +14,7 @@
 #
 #        HISTORY:
 #
+#       1.4- 09/10/12- G. Socorro, add the proc GetPropertyElemType 
 #		1.3- 03/10/12.J. Garate, Update ::xmlutils::UpdateSpd
 #		1.2- 01/10/12-J. Garate, Enable/disable Curves Module
 #		1.1- 20/09/12-J. Garate, Adaptacion de más funciones para las creacion / edicion de curvas 
@@ -53,6 +54,25 @@ proc ::xmlutils::initKKWord { } {
 	#                #set KPriv(encrXml) [lindex $xmlArray 1]
 	#
 	#}
+}
+
+proc ::xmlutils::GetPropertyElemType {propId} {
+    # ABSTRACT: Get the property element type for a specific property identifier
+    set cxpath "StructuralAnalysis//c.Properties//c.${propId}//c.MainProperties//i.ElemType"
+    set cproperty "dv"
+    set PropertyElemType [::xmlutils::setXml $cxpath $cproperty]
+
+    return $PropertyElemType
+}
+
+proc ::xmlutils::GetSpatialDimension {} {
+    # ABSTRACT: Get the spatial dimension
+    
+    set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
+    set cproperty "dv"
+    set ndime [::xmlutils::setXml $cxpath $cproperty]
+   
+    return $ndime
 }
 
 proc ::xmlutils::getKKWord {xpath id {cattr kkword}} {
