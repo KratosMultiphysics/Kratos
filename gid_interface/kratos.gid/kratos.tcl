@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     2.4- 10/10/12- G. Socorro, update the proc SelectGIDBatFile to include the structural analysis bat files for MPI and OpenMP
 #     2.2- 04/10/12- G. Socorro, update the proc SelectGIDBatFile to include the LevelSet bat file 
 #     2.1- 04/10/12- G. Socorro, add the proc BeforeDeleteCondGroup,AfterCreateCondGroup and AfterRenameCondGroup
 #     2.0- 01/10/12- J. Gárate, enable/disable curves module KPriv(CurvesModule) [0 -> Disable  | 1 -> Enable]
@@ -135,7 +136,7 @@ proc InitGIDProject { dir } {
     set KPriv(CurvesModule) 0
     
     # For release/debug options [Release =>1|Debug => 0]
-    set KPriv(RDConfig) 1
+    set KPriv(RDConfig) 0
     # For distribution srctcl/srctbe options [srctbe =>1|srctcl => 0]
     set KPriv(SRCConfig) 0
 
@@ -467,7 +468,65 @@ proc SelectGIDBatFile {directory basename } {
     
     # Structural analyis
     if {$StructuralAnalysis eq "Yes"} {
+	set rootid "StructuralAnalysis"
+	# Kratos key word xpath
+	set kxpath "Applications/$rootid"
+	# Get the parallel solution type
+	set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	# Solution type
+	set cxpath "$rootid//c.AnalysisData//i.SolutionType"
+	set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+	# wa "SolutionType:$SolutionType"
 
+	if {$ParallelSolutionType eq "MPI"} {
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuraldynamic-mpi.unix.bat"
+		} else {
+		    # set batfilename "kratos-structuraldynamic-mpi.win.bat"
+		}
+	    } elseif {$SolutionType =="Static"} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuralstatic-mpi.unix.bat"
+		} else {
+		    # set batfilename "kratos-structuralstatic-mpi.win.bat"
+		}
+	    }
+
+	    #  Get the number of processors
+	    set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+	    set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+	    if {$MPINumberOfProcessors>0} {
+		# Calculate arguments
+		set args "$MPINumberOfProcessors"
+	    }
+	} else {
+	    # OpenMP
+	    #  Get the number of threads
+	    set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+	    set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
+	    if {$OpenMPNumberOfThreads>0} {
+		# Calculate arguments
+		set args "$OpenMPNumberOfThreads"
+	    }
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuraldynamic-openmp.unix.bat"
+		} else {
+		    set batfilename "kratos-structuraldynamic-openmp.win.bat"
+		}
+	    } elseif {$SolutionType =="Static"} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuralstatic-openmp.unix.bat"
+		} else {
+		    set batfilename "kratos-structuralstatic-openmp.win.bat"
+		}
+	    }
+	}
     }
 
     # Fluid application
@@ -513,9 +572,9 @@ proc SelectGIDBatFile {directory basename } {
 	    }
 	    if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
 	    	if {($::tcl_platform(os) eq "Linux")} {
-		    set batfilename "kratos.unix.bat"
+		    set batfilename "kratos-openmplevelset.unix.bat"
 		} else {
-		    set batfilename "kratos.win.bat"
+		    set batfilename "kratos-openmplevelset.win.bat"
 		}
 	    } else {
 		if {($::tcl_platform(os) eq "Linux")} {
