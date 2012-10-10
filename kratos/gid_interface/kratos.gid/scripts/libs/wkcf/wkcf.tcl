@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     5.6- 10/10/12-G. Socorro, update the proc SelectPythonScript to select the the active structural analysis python script
 #     5.5- 09/10/12-G. Socorro, modify the procs WriteElementConnectivities (add linear elements) and WriteModelPartData (write cross section properties)
 #     5.4- 03/10/12-G. Socorro, add a call to the proc WriteFluidDistanceBC to write the distance variable
 #     5.3- 24/09/12-G. Socorro, create a new variable "wbatfile" to control when write the bat file for Kratos 
@@ -221,32 +222,49 @@ proc ::wkcf::SelectPythonScript {} {
     set PTDir [::KUtils::GetPaths "PTDir"]
 
     if {$StructuralAnalysis =="Yes"} {
+	# Check for use OpenMP
+	set cxpath "$rootdataid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	# wa "ParallelSolutionType:$ParallelSolutionType"
+	
 	# Solution type
 	set cxpath "$rootdataid//c.AnalysisData//i.SolutionType"
 	set SolutionType [::xmlutils::setXml $cxpath $cproperty]
-	# WarnWinText "SolutionType:$SolutionType"
-	if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-	    set ppfilename "KratosOpenMPStructuralDynamic.py"
-	    set mpifilename "KratosMPIStructuralDynamic.py"
-	} elseif {$SolutionType =="Static"} {
-	    set ppfilename "KratosOpenMPStructuralStatic.py"
-	    set mpifilename "KratosMPIStructuralStatic.py"
-	}
+	# wa "SolutionType:$SolutionType"
 	
-	set fromfname [file native [file join "$PTDir/python" $ppfilename]]
-	set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
+	if {$ParallelSolutionType eq "OpenMP"} {
+	    # OpenMP
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		set ppfilename "KratosOpenMPStructuralDynamic.py"
+	    } elseif {$SolutionType =="Static"} {
+		set ppfilename "KratosOpenMPStructuralStatic.py"
+	    }
 	
-	set tofname [file native [file join $PDir $endfilename]]
-	set mpitofname [file native [file join $PDir $mpiendfilename]]
-
-	# Copy the script file
-	if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
-	    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
-	    return ""
-	}
-	if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
-	    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
-	    return ""
+	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
+	    set tofname [file native [file join $PDir $endfilename]]
+	
+	    # Copy the script file
+	    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		return ""
+	    }
+	
+	} elseif {$ParallelSolutionType eq "MPI"} {
+	    # MPI
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		set mpifilename "KratosMPIStructuralDynamic.py"
+	    } elseif {$SolutionType =="Static"} {
+		set mpifilename "KratosMPIStructuralStatic.py"
+	    }
+	    
+	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
+	    set mpitofname [file native [file join $PDir $mpiendfilename]]
+	    
+	    # Copy the script file
+	    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
+		return ""
+	    }
 	}
     }
 
