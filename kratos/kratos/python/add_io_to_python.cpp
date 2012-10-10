@@ -80,13 +80,13 @@ std::string PrintDatafileIO(DatafileIO const& rDataFileIO)
 
 void WriteNodeMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 {
-    KRATOS_WATCH("writing Node Mesh");
+    KRATOS_WATCH("writing Node Mesh"); 
     dummy.WriteNodeMesh( rThisMesh );
 }
 
 void WriteSphereMesh( GidIO<>& dummy, GidIO<>::MeshType& rThisMesh )
 {
-    KRATOS_WATCH("writing Sphere Mesh");
+    //KRATOS_WATCH("writing Sphere Mesh"); //should be a KRATOS_LOG not a KRATOS_WATCH
     dummy.WriteSphereMesh( rThisMesh );
 }
 
