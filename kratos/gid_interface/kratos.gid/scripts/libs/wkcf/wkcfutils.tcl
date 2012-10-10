@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     2.6- 10/10/12-G. Socorro, update the proc GetPropertiesData to assign the cross section properties for all constitutive laws
 #     2.5- 09/10/12-G. Socorro, add the proc GetCrossSectionProperties, modify other procs to include the structural 
 #                               analysis cross section properties options
 #     2.4- 04/10/12-G. Socorro, add the proc GetPorousZonesProperties to get the properties of the porous zones
@@ -490,7 +491,6 @@ proc ::wkcf::GetPropertiesData {} {
     # Xpath for element constitutive laws
     set cexpath "ElementCLaws"
 
-    
     # For each active application
     foreach AppId $ActiveAppList {
 	# Get the application root identifier    
@@ -597,26 +597,44 @@ proc ::wkcf::GetPropertiesData {} {
 			set cptype "Plasticity2D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+		
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			
 		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
 			set cptype "Plasticity2D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-		} elseif {($ptype=="Solid") && ($ndime =="2D")} {
+			
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+		    } elseif {($ptype=="Solid") && ($ndime =="2D")} {
 			set cptype "Plasticity2D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
 			set cptype "Plasticity3D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 		    }
 		}
 		"Damage" {
@@ -624,20 +642,34 @@ proc ::wkcf::GetPropertiesData {} {
 			set cptype "IsotropicDamage"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
 			set cptype "IsotropicDamage"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+			
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
 			set cptype "IsotropicDamage3D"
 			# Get the material properties
 			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			
 			# Get the material behavior and fluency properties
 			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+			# Get the cross section properties
+			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 		    }
 		}
 	    }
