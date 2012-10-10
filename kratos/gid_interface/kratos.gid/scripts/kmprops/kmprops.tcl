@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   1.7- 09/10/12-G. Socorro, update others procs to include the cross property functionality
 #   1.6- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
 #   1.5- 04/04/12-J.Garate, finalizada la implementacion de la funcion recursiva de llenado del arbol desde xml, ya en uso
 #   1.4- 02/04/12-J.Garate, add ::KMProps::FillTreePropsRecursive , not in use yet until validation.
@@ -188,109 +189,119 @@ proc ::KMProps::FillRecursiveChilds { T path node item} {
 #
 proc ::KMProps::stateNode { node } {
 	
-    #WarnWin "si"
-	#Validamos para cada nodo si tiene que estar visible 
-	#(en función de los valores elegidos en algunos combos)
-	if { [$node nodeName] == "Item" } {
+    # Validate for each node if it has to be visible
+    # (depending on the chosen values in some comboboxes)
+    if { [$node nodeName] == "Item" } {
+	# Get the cross section property list
+	set PropertyList [::KMProps::GetCrossSectionPropertyList]
+	
+	# Special case for the properties (cross section properties)
+	set id [$node getAttribute id ""]
+	if { $id == "ElemType" } {
+	    
+	    set ::KMProps::ElemTypeProperty [$node getAttribute dv ""]
+	    
+	} elseif {$id in $PropertyList} {
+	    # Get the parent node
+	    set parentNode [[$node parentNode] parentNode]
+	    set CurrentPropertyId [$parentNode getAttribute id ""]
+	    # wa "CurrentPropertyId:$CurrentPropertyId"
+	    
+	    # Get the select element base type
+	    set ::KMProps::ElemTypeProperty [::xmlutils::GetPropertyElemType $CurrentPropertyId]
+	    # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
+	   
+	    # Check that this cross section property is active
+	    set ShowProperty [::KMProps::ShowPropertyByElementType $id]
+	    # wa "ShowProperty:$ShowProperty"
+	    if {!$ShowProperty} {
 		
-		#Salvedad para no mostrar la propiedad Thickness en algunos casos
-		set id [$node getAttribute id ""]
+		return "hidden"
+	    }
+	}
+    }
+    
+    set state [$node getAttribute state "normal"]
+    #msg "\n[$node getAttribute id ""]        state:$state"
+    
+    #Si el estado es hiddenAll se oculta el nodo y toda su descendencia
+    if {$state == "hiddenAll"} {
+	return "-1"
+    }
+    
+    #if { [$node nodeName] == "Item" } {
+    #        #Salvedad para no mostrar la propiedad Thickness en algunos casos
+    #        set id [$node getAttribute id ""]
+    #        if { $id == "PressureValue" } {
+    #                set id $id
+    #        }
+    #}
+    
+    foreach var $::KMProps::visibilityVars {
+	
+	set globalVar [set ::KMProps::$var]
+	
+	set nodeValuesVar [split [$node getAttribute $var ""] ","]
+	
+	
+	#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
+	# y no coincide con el valor seleccionado, ocultamos el nodo        
+	if { $nodeValuesVar != "" } {
+	    
+	    if { !($globalVar in $nodeValuesVar) } {
 		
-		if { $id == "ElemType" } {
-		        
-		        set ::KMProps::ElemTypeThickness [$node getAttribute dv ""]
-		        
-		} elseif { $id == "Thickness" } {
-		        
-		        if { ![::KMProps::showThickness]} {
-		                
-		                return "hidden"
-		        }
+		#msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
+		if {$var == "strucType" } {
+		    if { $globalVar != "Generic"} { 
+			#msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+			::KMProps::setNoActiveGroups $node
+			return -1
+		    }
+		} else {
+		    #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+		    ::KMProps::setNoActiveGroups $node
+		    return -1
 		}
-		
+	    }
 	}
+    }
+    
+    #Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
+    #Si no se llega aquí es porque el nodo no era visible, y en ese caso no se tiene que hacer
+    set value [$node getAttribute dv ""]
+    
+    set class [$node getAttribute class ""]
+    # wa "value:$value class:$class"
+    #Equivalente a Switch $class
+    foreach var $::KMProps::visibilityVars {
 	
-	set state [$node getAttribute state "normal"]
-	#msg "\n[$node getAttribute id ""]        state:$state"
-	
-	#Si el estado es hiddenAll se oculta el nodo y toda su descendencia
-	if {$state == "hiddenAll"} {
-		return "-1"
-	}
-	
-	#if { [$node nodeName] == "Item" } {
-	#        #Salvedad para no mostrar la propiedad Thickness en algunos casos
-	#        set id [$node getAttribute id ""]
-	#        if { $id == "PressureValue" } {
-	#                set id $id
-	#        }
-	#}
+	if {$var == $class} {
+	    
+	    #Caso especial para el solver de fluidos
+	    if { $var == "fluidSolvTyp" } {
 		
-	foreach var $::KMProps::visibilityVars {
+		#El solver de fluidos está duplicado dependiendo de una variable previa
+		set freeYesOrNo [$node getAttribute freeSurf ""]
 		
-		set globalVar [set ::KMProps::$var]
-		
-		set nodeValuesVar [split [$node getAttribute $var ""] ","]
-
-		
-		#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
-		# y no coincide con el valor seleccionado, ocultamos el nodo        
-		if { $nodeValuesVar != "" } {
-		        
-		        if { !($globalVar in $nodeValuesVar) } {
-		        
-		        #msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
-		        if {$var == "strucType" } {
-		                if { $globalVar != "Generic"} { 
-		                #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
-		                ::KMProps::setNoActiveGroups $node
-		                return -1
-		                }
-		        } else {
-		                #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
-		                ::KMProps::setNoActiveGroups $node
-		                return -1
-		        }
-		        }
+		if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
+		    set ::KMProps::fluidSolvTyp "$value"
 		}
+	    } else {
+		# General case
+		set ::KMProps::$var $value
+	    }
 	}
-	
-	#Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
-	#Si no se llega aquí es porque el nodo no era visible, y en ese caso no se tiene que hacer
-	set value [$node getAttribute dv ""]
-	
-	set class [$node getAttribute class ""]
-	# wa "value:$value class:$class"
-	#Equivalente a Switch $class
-	foreach var $::KMProps::visibilityVars {
-		
-		if {$var == $class} {
-		
-		        #Caso especial para el solver de fluidos
-		        if { $var == "fluidSolvTyp" } {
-		        
-		                #El solver de fluidos está duplicado dependiendo de una variable previa
-		                set freeYesOrNo [$node getAttribute freeSurf ""]
-		                
-		                if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-		                        set ::KMProps::fluidSolvTyp "$value"
-		                }
-		        } else {
-		                #Caso general
-		                set ::KMProps::$var $value
-		        }
-		}
+    }
+    
+    if { $class == "Group" } {
+	# If you come here to say that the node is visible
+	if { $state == "normal" } {        
+	    $node setAttribute active 1
 	}
-	
-	if { $class == "Group" } {
-		#Si llega aquí quiere decir que el nodo es visible
-		if { $state == "normal" } {        
-		        $node setAttribute active 1
-		}
-	}
-	
-	#Devolvemos el estado del nodo ("normal" por defecto)
-	return $state
+    }
+    # wa "state:$state"
+    # Back node status ("normal" by default)
+    return $state
 }
 
 

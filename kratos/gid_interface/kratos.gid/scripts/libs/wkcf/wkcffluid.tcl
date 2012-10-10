@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     2.1- 05/10/12-G. Socorro, write density and viscosity variable for the LevelSet in the projectparameter.py
 #     2.1- 04/10/12-G. Socorro, write variable using the format node_id 0 node_value
 #     2.0- 04/10/12-G. Socorro, update the proc WritePropertyAtNodes_m1 to write the LevelSet variable at nodal level
 #     1.9- 03/10/12-G. Socorro, add the proc WriteFluidDistanceBC and write free surface option in the projectparameter file
@@ -68,41 +69,22 @@ proc ::wkcf::WritePropertyAtNodes_m1 {AppId} {
     # Write some properties at the nodal level for Fluid application
     variable dprops
 
-    set cproplist [list "Density" "Viscosity"]
-  
-    # Check for all defined kratos elements
-    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+    set cproperty "dv"
+    # Free surface
+    set cxpath "$AppId//c.AnalysisData//i.FreeSurface"
+    set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+    # wa "FreeSurface:$FreeSurface"
 
+    set flag [expr {($FreeSurface eq "No") && ([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])}]
+    # wa "flag:$flag"
+    # Check for all defined kratos elements
+    if {$flag} {
 	
 	# Write viscosity and density for each node identifier
 	set Density 0.0; set Viscosity 0.0
-	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
-	    # Get the material identifier for this property 
-	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-	    # Get the group identifier
-	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
-	    # Get all material properties
-	    set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
-	    # WarnWinText "mpxpath:$mpxpath"
-	    # Get the material properties
-	    foreach pid $cproplist {
-		if {$pid =="Density"} {
-		    set xpath "c.General"
-		    # Get the current value for this properties
-		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-		    set Density [GiD_FormatReal "%10.5e" $cvalue]
-		} elseif {$pid =="Viscosity"} {
-		    set xpath "c.Fluid"
-		    # Get the current value for this properties
-		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-		    set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
-		}
-	    }
-	    # Only the first property
-	    break 
-	}
+	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity 
 	# WarnWinText "Density:$Density Viscosity:$Viscosity"
-	
+
 	set kxpath "Materials"
 	set cpropid "0"        
 
@@ -147,13 +129,10 @@ proc ::wkcf::WritePropertyAtNodes_m1 {AppId} {
     }
 
     # Try to write the levelset properties
-    set cproperty "dv"
     set contid "PorousZones"
     set kxpath "Applications//$AppId"
-    # Free surface
-    set cxpath "$AppId//c.AnalysisData//i.FreeSurface"
-    set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
-    # wa "FreeSurface:$FreeSurface"
+  
+    # For free surface
     if {$FreeSurface =="Yes"} {
 	if {[info exists dprops($AppId,AllPorousZonesTypeId)] && [llength $dprops($AppId,AllPorousZonesTypeId)]} {
 	    # Get the application root identifier    
@@ -244,31 +223,7 @@ proc ::wkcf::WritePropertyAtNodes_m0 {AppId} {
 
 	# Write viscosity and density for each node identifier
 	set Density 0.0; set Viscosity 0.0
-	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
-	    # Get the material identifier for this property 
-	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-	    # Get the group identifier
-	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
-	    # Get all material properties
-	    set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
-	    # WarnWinText "mpxpath:$mpxpath"
-	    # Get the material properties
-	    foreach pid $cproplist {
-		if {$pid =="Density"} {
-		    set xpath "c.General"
-		    # Get the current value for this properties
-		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-		    set Density [GiD_FormatReal "%10.5e" $cvalue]
-		} elseif {$pid =="Viscosity"} {
-		    set xpath "c.Fluid"
-		    # Get the current value for this properties
-		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
-		    set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
-		}
-	    }
-	    # Only the first property
-	    break 
-	}
+	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity 
 	# WarnWinText "Density:$Density Viscosity:$Viscosity"
 	
 	set kxpath "Materials"
@@ -313,6 +268,45 @@ proc ::wkcf::WritePropertyAtNodes_m0 {AppId} {
 	}
 	unset nc
     }
+}
+
+proc ::wkcf::GetDensityViscosityValues {AppId} {
+    # ABSTRACT : Return the viscosity and density values
+    variable dprops
+
+    set Density 0.0; set Viscosity 0.0
+    set flag [expr {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])}]
+    # wa "flag:$flag"
+    
+    if {$flag} {
+	set cproplist [list "Density" "Viscosity"]
+	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
+	    # Get the material identifier for this property 
+	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
+	    # Get the group identifier
+	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
+	    # Get all material properties
+	    set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
+	    # WarnWinText "mpxpath:$mpxpath"
+	    # Get the material properties
+	    foreach pid $cproplist {
+		if {$pid =="Density"} {
+		    set xpath "c.General"
+		    # Get the current value for this properties
+		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+		    set Density [GiD_FormatReal "%10.5e" $cvalue]
+		} elseif {$pid =="Viscosity"} {
+		    set xpath "c.Fluid"
+		    # Get the current value for this properties
+		    set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+		    set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
+		}
+	    }
+	    # Only the first property
+	    break 
+	}
+    }
+    return [list $Density $Viscosity]
 }
 
 proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwordlist} {
@@ -1724,6 +1718,13 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
 		} else {
 		    puts $fileid "UseErgun = False "
 		}
+
+		# Material properties (Density and viscosity)
+		set Density 0.0; set Viscosity 0.0
+		lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity 
+		# wa "Density:$Density Viscosity:$Viscosity"
+		puts $fileid "Density = $Density "
+		puts $fileid "Viscosity = $Viscosity "
  	    }
 	}
     }
