@@ -349,7 +349,8 @@ namespace Kratos
                 double equiv_mass                   = sqrt(mass*other_mass);//(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
                 //double other_visco_damp_coeff       = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VISCO_DAMP_COEFF);
                 double other_restitution_coeff      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RESTITUTION_COEFF);
-                double equiv_visco_damp_coeff;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
+                double equiv_visco_damp_coeff_normal;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
+                double equiv_visco_damp_coeff_tangential;
                 double equiv_restitution_coeff      = sqrt(restitution_coeff * other_restitution_coeff); //I: we assume this.
                 // double other_mass                   = neighbour_iterator.mRealMass;
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
@@ -466,12 +467,22 @@ namespace Kratos
 
                 if(equiv_restitution_coeff>0){
 
-                    equiv_visco_damp_coeff  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+                    equiv_visco_damp_coeff_normal  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
                 }
 
                 else {
 
-                    equiv_visco_damp_coeff  = ( 2*sqrt(equiv_mass*kn) );
+                    equiv_visco_damp_coeff_normal  = ( 2*sqrt(equiv_mass*kn) );
+                }
+                
+                if(equiv_restitution_coeff>0){
+
+                    equiv_visco_damp_coeff_tangential  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*ks)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+                }
+
+                else {
+
+                    equiv_visco_damp_coeff_tangential  = ( 2*sqrt(equiv_mass*ks) );
                 }
 
 
@@ -685,7 +696,7 @@ namespace Kratos
 
              {
 
-                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff * LocalRelVel[2];
+                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
                 for (unsigned int index = 0; index < 2; index++)
                 {
@@ -693,7 +704,7 @@ namespace Kratos
                     if(sliding == false) //only applied when no sliding to help to the regularized friccion law or the spring convergence
 
                     {
-                        ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalRelVel[index];  //same visco_coeff to all directions???
+                        ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  //same visco_coeff to all directions???
 
                     }
                 }
