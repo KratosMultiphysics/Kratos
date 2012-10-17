@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import DEM_explicit_solver_var
 import time as timer
+import os
 import sys
 
 from KratosMultiphysics import *
@@ -287,6 +288,24 @@ print ('Calculation starts at instant: ' + str(initial_pr_time)+'\n')
 total_steps_expected = int(final_time/dt)
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
 
+
+#paths:
+
+main_path 	 = os.getcwd()
+post_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Files'
+list_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Lists'
+neigh_list_path  = str(main_path)+'/'+str(input_file_name)+'_Neigh_Lists'
+data_and_results = str(main_path)+'/'+str(input_file_name)+'_Results_and_Data'
+graphs_path	 = str(main_path)+'/'+str(input_file_name)+'_Graphs'	
+
+for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path]:
+
+  if not os.path.isdir(directory):
+    
+      os.makedirs(str(directory))
+
+os.chdir(data_and_results)
+
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
 
@@ -294,6 +313,8 @@ forcelist = []
 forcelist2 = []
 timelist = []
 displacementlist = []
+
+os.chdir(list_path)
 
 multifile = open(input_file_name+'_all'+'.post.lst','w')
 multifile_5 = open(input_file_name+'_5'+'.post.lst','w')
@@ -303,7 +324,7 @@ multifile_50 = open(input_file_name+'_50'+'.post.lst','w')
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
 multifile_10.write('Multiple\n')
-multifile_50.write('Multiple\n')  
+multifile_50.write('Multiple\n')
 
 index_5 = 1
 index_10 = 1
@@ -313,8 +334,11 @@ prev_time = 0.0
 control = 0.0
 cond = 0
 
+os.chdir(main_path)
+	    
+
 while(time < final_time):
- 
+  
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
     time = time + dt
     solid_model_part.CloneTimeStep(time)
@@ -326,6 +350,8 @@ while(time < final_time):
     total_force=0
     force_node= 0
     
+    os.chdir(data_and_results)
+    
     for node in force_measurement:
 	
 	force_node = node.GetSolutionStepValue(RHS,0)
@@ -333,11 +359,10 @@ while(time < final_time):
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 	
-      
+	
 	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
 	total_force += force_node_y
-    
-   
+	   
     #writing lists to be printed
     forcelist.append(total_force)
     timelist.append(time)
@@ -361,7 +386,8 @@ while(time < final_time):
     
     summary_results.write(str(step)+"  "+str(total_force)+'\n')
 
-       
+    os.chdir(main_path)
+    
     solver.Solve()
 
     #dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -390,8 +416,13 @@ while(time < final_time):
 	
       if (((estimation_time/60)/60)/24 > 2.0):
 	print('Loooooooooool!!! Are you Crazy?????'+'\n')
-	
+	   	      
     
+    os.chdir(list_path)
+    
+    multifile.write(input_file_name+'_'+str(time)+'.post.bin\n')
+    
+    os.chdir(main_path)
     
 ##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
@@ -399,6 +430,27 @@ while(time < final_time):
     
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
     
+	if(2<3): #printing neighbours id's
+	  
+   
+	  os.chdir(neigh_list_path)
+	  neighbours_list = open('neigh_list_'+ str(time),'w')
+      
+	  for elem in solid_model_part.Elements:
+	
+	      ID=(elem.Id)
+	      Neigh_ID = elem.GetValue(NEIGHBOURS_IDS_DOUBLE)
+	      #print(len(Neigh_ID))
+	      
+	      for i in range(len(Neigh_ID)):
+	
+		neighbours_list.write(str(ID)+' '+str(Neigh_ID[i])+'\n')
+	  
+	  neighbours_list.close()
+	  os.chdir(main_path)
+	
+	os.chdir(post_path)
+	
 	#print "TIME STEP = ", step
 	gid_io.InitializeMesh(time);
         gid_io.WriteSphereMesh(solid_model_part.GetMesh());
@@ -412,15 +464,15 @@ while(time < final_time):
         gid_io.WriteNodalResults(RADIUS, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_COHESION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
-        
+             
         if (rotation_option == "ON"): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
             gid_io.WriteNodalResults(PARTICLE_MOMENT, solid_model_part.Nodes, time, 0)
             gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, solid_model_part.Nodes, time, 0)
-            
-        multifile.write(input_file_name+'_'+str(time)+'.post.bin\n')
+        
+        
+        os.chdir(data_and_results)
         
         if (index_5==5):
 	  
@@ -440,6 +492,7 @@ while(time < final_time):
 	  
 	  index_50=0
 	
+	os.chdir(main_path)
 	
 	 
 	index_5 += 1
@@ -452,13 +505,20 @@ while(time < final_time):
     
    
     step += 1
-    
+
+os.chdir(data_and_results)
+
 results.close()
 summary_results.close()
+
+os.chdir(list_path)
+
 multifile.close()
 multifile_5.close()
 multifile_10.close()
 multifile_50.close()
+
+os.chdir(graphs_path)
 
 ###PLOTS
 
@@ -505,7 +565,7 @@ if (3<2):
   savefig('Grafic_energies_1_fe')
 
 
-
+os.chdir(main_path)
 
 
 
