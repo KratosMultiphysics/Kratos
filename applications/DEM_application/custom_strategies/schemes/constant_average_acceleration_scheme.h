@@ -56,7 +56,7 @@ namespace Kratos
 	ProcessInfo& CurrentProcessInfo  = model_part.GetProcessInfo();
 	NodesArrayType& pNodes           = model_part.Nodes(); 
         
-	double aux          = 0;
+	//double aux          = 0;
         array_1d<double, 3 >  new_accel;
         array_1d<double, 3 >  prev_accel;
 	double delta_t      =  CurrentProcessInfo[DELTA_TIME];
@@ -68,7 +68,7 @@ namespace Kratos
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 	
 	
-	#pragma omp parallel for firstprivate(aux) shared(delta_t) 
+#pragma omp parallel for /*firstprivate(aux)*/ shared(delta_t) 
 	for(int k=0; k<number_of_threads; k++)
 	{
 	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -87,7 +87,7 @@ namespace Kratos
 	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);   
              double vel_old[3] = {0.0};
              
-             aux = delta_t / mass;
+	     //             aux = delta_t / mass;
             
 	     new_accel = force / mass;
              prev_accel = prev_force / mass;
