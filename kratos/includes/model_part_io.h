@@ -1376,7 +1376,9 @@ private:
             ReadWord(value);
             ExtractValue(value, elemental_value);
 
-            FindKey(rThisElements, id, "Element")->GetValue(rVariable) =  elemental_value;
+            ModelPart::ElementIterator i_result = rThisElements.find(id);
+            if(i_result != rThisElements.end())
+                i_result->GetValue(rVariable) =  elemental_value;
         }
 
         KRATOS_CATCH("")
@@ -1407,7 +1409,9 @@ private:
             ReadVectorialValue(elemental_value);
             ExtractValue(value, elemental_value);
 
-            FindKey(rThisElements, id, "Element")->GetValue(rVariable) =  elemental_value;
+            ModelPart::ElementIterator i_result = rThisElements.find(id);
+            if(i_result != rThisElements.end())
+                i_result->GetValue(rVariable) =  elemental_value;
         }
 
         KRATOS_CATCH("")
@@ -1479,7 +1483,9 @@ private:
             ReadWord(value);
             ExtractValue(value, conditional_value);
 
-            FindKey(rThisConditions, id, "Condition")->GetValue(rVariable) =  conditional_value;
+            ModelPart::ConditionIterator i_result = rThisConditions.find(id);
+            if(i_result != rThisConditions.end())
+                i_result->GetValue(rVariable) =  conditional_value;
         }
 
         KRATOS_CATCH("")
@@ -1504,13 +1510,13 @@ private:
 
             ExtractValue(value, id);
 
-
-
             // readidng nodal_value
             ReadVectorialValue(conditional_value);
             ExtractValue(value, conditional_value);
 
-            FindKey(rThisConditions, id, "Condition")->GetValue(rVariable) =  conditional_value;
+            ModelPart::ConditionIterator i_result = rThisConditions.find(id);
+            if(i_result != rThisConditions.end())
+                i_result->GetValue(rVariable) =  conditional_value;
         }
 
         KRATOS_CATCH("")
