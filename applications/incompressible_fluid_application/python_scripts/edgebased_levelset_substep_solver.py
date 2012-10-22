@@ -161,7 +161,9 @@ class EdgeBasedLevelSetSolver:
 #            node.SetSolutionStepValue(DISTANCE,1,dist)
 #        self.Redistance()
 
-
+	self.expected_volume = self.fluid_solver.ComputeWetVolume()
+	print "initial wet volume = ", self.expected_volume
+	
 #        print "**********************************************"
         print "finished EdgeBasedLevelSetSolver initialize"
 
@@ -229,7 +231,23 @@ class EdgeBasedLevelSetSolver:
 	    self.WettenNodes()
 
 	self.timer.Stop("Convect Distance")
-
+	
+	##correct volume
+	if(self.use_mass_correction == True):
+	  self.timer.Start("MassCorrection")
+	  self.fluid_solver.ComputeWetVolume()
+	  measured_volume = self.fluid_solver.ComputeWetVolume()
+	  vol_variation =  self.fluid_solver.ComputeVolumeVariation()
+	  self.expected_volume = self.expected_volume + vol_variation
+	  #print "measured volume = ", measured_volume
+	  #print "vol_variation   = ",vol_variation
+	  #print "expected volume = ", self.expected_volume
+	  max_volume_error =  0.99
+	  if(measured_volume / self.expected_volume < max_volume_error):
+	    #print "artificial mass correction"
+	    vol_variation =  self.fluid_solver.ContinuousVolumeCorrection(self.expected_volume, measured_volume)
+ 	  self.timer.Stop("MassCorrection")
+   
         if(self.step == self.redistance_frequency):
 	    self.timer.Start("Redistance")
             self.Redistance()
@@ -243,11 +261,17 @@ class EdgeBasedLevelSetSolver:
         (self.fluid_solver).SolveStep1();
 	self.timer.Stop("Solve Step 1")
 	self.timer.Start("Solve Step 2")
-        (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
+        status = (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
 	self.timer.Stop("Solve Step 2")
-	self.timer.Start("Solve Step 3")
-        (self.fluid_solver).SolveStep3();
-	self.timer.Stop("Solve Step 3")
+	if(status == 0): #everything went fine
+	    self.timer.Start("Solve Step 3")
+	    (self.fluid_solver).SolveStep3();
+	    self.timer.Stop("Solve Step 3")
+	else: #something went wrong ... restart step and do redistance
+	    self.fluid_solver.ReduceTimeStep(self.model_part,self.model_part.ProcessInfo[TIME])
+	    self.step = self.redistance_frequency
+	    self.Solve()
+	    
 
 ##        if(self.step == self.redistance_frequency):
 ##            self.Redistance()
