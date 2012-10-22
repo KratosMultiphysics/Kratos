@@ -1379,6 +1379,8 @@ private:
             ModelPart::ElementIterator i_result = rThisElements.find(id);
             if(i_result != rThisElements.end())
                 i_result->GetValue(rVariable) =  elemental_value;
+            else
+                std::cout  << "WARNING! Assigning " << rVariable.Name() << " to not existing element #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -1412,6 +1414,8 @@ private:
             ModelPart::ElementIterator i_result = rThisElements.find(id);
             if(i_result != rThisElements.end())
                 i_result->GetValue(rVariable) =  elemental_value;
+            else
+                std::cout  << "WARNING! Assigning " << rVariable.Name() << " to not existing element #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -1486,6 +1490,8 @@ private:
             ModelPart::ConditionIterator i_result = rThisConditions.find(id);
             if(i_result != rThisConditions.end())
                 i_result->GetValue(rVariable) =  conditional_value;
+            else
+                std::cout  << "WARNING! Assigning " << rVariable.Name() << " to not existing condition #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
 
         KRATOS_CATCH("")
@@ -1517,6 +1523,8 @@ private:
             ModelPart::ConditionIterator i_result = rThisConditions.find(id);
             if(i_result != rThisConditions.end())
                 i_result->GetValue(rVariable) =  conditional_value;
+            else
+                std::cout  << "WARNING! Assigning " << rVariable.Name() << " to not existing condition #" << id << " [Line " << mNumberOfLines << " ]" << std::endl;
         }
 
         KRATOS_CATCH("")
