@@ -166,32 +166,41 @@ namespace Kratos
        //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
 
         ModelPart& r_model_part           = BaseType::GetModelPart();
-        //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
 
-        //Initialitzations:
-
-        
-            
+        //Initialitzations:        
 
         //1. Search Neighbours with tolerance
 
-        bool extension_option = true;
-        SearchNeighbours(r_model_part,extension_option);
+        bool extension_option = false;
 
+        if(rCurrentProcessInfo[CASE_OPTION] != 0)
+
+        {
+            extension_option = true;
+        }
+
+        SearchIniNeighbours(r_model_part,extension_option);
+   
         //2. Initializing elements
 	  if(mElementsAreInitialized == false)
 	     InitializeElements();
 	  mInitializeWasPerformed   = true;
 
-
         // 3. Set Initial Contacts
           if(mdelta_option || mcontinuum_simulating_option){
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
 
-     
           }
 
-          KRATOS_CATCH("")
+       // 4. Set the Bounding Box
+    
+          if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
+            {
+                mParticle_Creator_Destructor.CalculateSurroundingBoundingBox( r_model_part, mEnlargementFactor );
+            }
+
+              KRATOS_CATCH("")
         }
       
        
@@ -200,9 +209,18 @@ namespace Kratos
 	KRATOS_TRY
 
     
-        //std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
-        ModelPart& r_model_part              = BaseType::GetModelPart();
-	ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+       ModelPart& r_model_part           = BaseType::GetModelPart();
+       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  
+      // ElementsArrayType& pElements      = r_model_part.Elements();
+
+       bool extension_option = false;
+
+
+
+       if(rCurrentProcessInfo[CASE_OPTION] )
+        {
+            extension_option = true;
+        }
 
         int time_step = rCurrentProcessInfo[TIME_STEPS];
 
@@ -223,6 +241,8 @@ namespace Kratos
 
         GetForce();
 
+
+//#############################333
         //1.1. Calculate Local Dampings
 
         int rota_damp_id            = rCurrentProcessInfo[ROTA_DAMP_TYPE];
@@ -232,17 +252,13 @@ namespace Kratos
         {
             ApplyRotationalDampings();
         }
-               
+     
         //2. Motion Integration
         ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
        //3. Neighbouring search. Every N times. +bounding box destruction
 
-        if (time_step == 1) //BB calculation on the first timestep
-        {    
-               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox( r_model_part, mEnlargementFactor );
-        }
-        
+       
         if ( (time_step + 1)%mnstepsearch == 0 )
         {
             if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
@@ -250,7 +266,7 @@ namespace Kratos
                 BoundingBoxUtility(mEnlargementFactor);
             }
 
-            SearchNeighbours(r_model_part,false); //extension option false;
+            SearchNeighbours(r_model_part,extension_option); 
         }
 
         //4.Final operations
@@ -356,6 +372,9 @@ namespace Kratos
 	
 	void GetForce()
 	{
+
+
+
           KRATOS_TRY
 
           //dummy variable
@@ -366,6 +385,10 @@ namespace Kratos
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser
           ElementsArrayType& pElements      = r_model_part.Elements();
+
+          
+
+
 
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
@@ -388,7 +411,7 @@ namespace Kratos
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
                    
-
+           
                     (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
 
                 //we use this function to call the calculate forces in general funct.
@@ -397,7 +420,8 @@ namespace Kratos
 
           }// loop threads OpenMP
 
-        KRATOS_CATCH("")
+   
+          KRATOS_CATCH("")
 
 
 
@@ -771,9 +795,9 @@ namespace Kratos
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
                 //Element::GeometryType& geom = it->GetGeometry();
-                
+            
                 (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
-                                           
+                 
              } //loop over particles
 
           }// loop threads OpenMP
@@ -787,6 +811,36 @@ namespace Kratos
       
         KRATOS_CATCH("")
       }  //Set_Initial_Contacts
+
+
+      void SearchIniNeighbours(ModelPart r_model_part,bool extension_option)
+      {
+       
+
+        typedef DiscreteElement                                                 ParticleType;
+        typedef ParticleType::Pointer                                           ParticlePointerType;
+        typedef ElementsContainerType                                           ParticleContainerType;
+        typedef WeakPointerVector<Element>                                      ParticleWeakVectorType;  //R:hauria de ser Discrete_Element??
+        typedef typename std::vector<ParticlePointerType>                       ParticlePointerVectorType;
+        typedef WeakPointerVector<Element>::iterator                            ParticleWeakIteratorType;
+        typedef typename std::vector<ParticleType>::iterator                    ParticleIteratorType;
+        typedef typename std::vector<ParticlePointerType>::iterator             ParticlePointerIteratorType;
+        typedef std::vector<double>                                             DistanceVectorType;
+        typedef std::vector<double>::iterator                                   DistanceIteratorType;
+
+        ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+        ParticleContainerType& pElements = r_model_part.ElementsArray();
+
+
+        if (mdimension == 2)
+
+             Neighbours_Calculator<2, ParticleType>::Search_Ini_Neighbours(pElements, rCurrentProcessInfo, extension_option);
+
+        else if (mdimension == 3)
+
+             Neighbours_Calculator<3, ParticleType>::Search_Ini_Neighbours(pElements,  rCurrentProcessInfo, extension_option);
+
+      }//SearchIniNeighbours
 
 
       void SearchNeighbours(ModelPart r_model_part,bool extension_option)
@@ -806,7 +860,6 @@ namespace Kratos
 
         ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
         ParticleContainerType& pElements = r_model_part.ElementsArray();
-
 
         if (mdimension == 2)
 

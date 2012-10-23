@@ -39,7 +39,6 @@ dimension=DEM_explicit_solver_var.domain_size
 
 solver = SolverStrategy.ExplicitStrategy(solid_model_part, dimension) #here, solver variables initialize as default
 
-
 ##Obtaning options and values
 
 integration_scheme = DEM_explicit_solver_var.Integration_Scheme
@@ -197,7 +196,6 @@ solver.enlargement_factor = bounding_box_enlargement_factor
 #Initialize the problem.
 
 solver.Initialize()
-
 
 if(1<2):
 
@@ -439,7 +437,8 @@ while(time < final_time):
 	  for elem in solid_model_part.Elements:
 	
 	      ID=(elem.Id)
-	      Neigh_ID = elem.GetValue(NEIGHBOURS_IDS_DOUBLE)
+	      #Neigh_ID = elem.GetValue(NEIGHBOURS_IDS_DOUBLE)
+	      Neigh_ID = elem.GetValue(NEIGHBOURS_IDS)
 	      #print(len(Neigh_ID))
 	      
 	      for i in range(len(Neigh_ID)):
@@ -465,6 +464,8 @@ while(time < final_time):
         gid_io.WriteNodalResults(PARTICLE_COHESION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(EXPORT_ID, solid_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
              
         if (rotation_option == "ON"): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
