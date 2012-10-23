@@ -6,6 +6,7 @@ from KratosMultiphysics.DEMApplication import *
 
 def AddVariables(model_part):
     #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
+    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     model_part.AddNodalSolutionStepVariable(GROUP_ID)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
@@ -175,11 +176,7 @@ class ExplicitStrategy:
                                             self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
-       
-        self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, 1)  #the first step has been done
-              
-            
-        #self.solver.SetCohesiveContacts()
+
 
  #######################################################################
     def Initial_Critical_Time(self):

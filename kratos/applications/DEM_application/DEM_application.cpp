@@ -32,8 +32,13 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
+
+        KRATOS_CREATE_VARIABLE(double, EXPORT_ID)
+
         KRATOS_CREATE_VARIABLE (int, NEIGH_INITIALIZED)
         KRATOS_CREATE_VARIABLE( int, TOTAL_CONTACTS )
+
+        //KRATOS_CREATE_VARIABLE (vector<int> EXPORT_NEIGHBOUR_LIST )
 
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( TOTAL_FORCES )
@@ -75,8 +80,12 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
 
+                KRATOS_REGISTER_VARIABLE( EXPORT_ID)
+
                 KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )
                 KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( TOTAL_FORCES )
+
+              //  KRATOS_REGISTER_VARIABLE ( EXPORT_NEIGHBOUR_LIST )
 
                 KRATOS_REGISTER_VARIABLE ( NEIGH_INITIALIZED )
                 KRATOS_REGISTER_VARIABLE ( TOTAL_CONTACTS )

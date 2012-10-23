@@ -64,16 +64,7 @@ namespace Kratos {
         typedef WeakPointerVector<Element> ParticleWeakVector;
         typedef typename ParticleWeakVector::iterator ParticleWeakIterator;
         typedef ParticleWeakVector::ptr_iterator ParticleWeakIteratorType_ptr;
-        /*
-                    //typedef PointerVector<Particle>                    ParticleVector;
-                    typedef WeakPointerVector<Particle>                ParticleWeakVector;
-                    typedef PointerVector<ParticlePointer>             ParticlePointerVector;
-                    typedef typename ParticleVector::iterator          ParticleIterator;
-                    typedef typename ParticleWeakVector::iterator      ParticleWeakIterator;
-                    //typedef typename ParticlePointerVector::iterator   ParticlePointerIterator;
-
-         *
-         */
+  
         typedef std::vector<double> DistanceVector;
         typename DistanceVector::iterator DistanceIterator;
 
@@ -95,364 +86,391 @@ namespace Kratos {
         virtual ~Neighbours_Calculator() {
         };
 
-        static void Search_Neighbours(ContainerType& pElements, ProcessInfo& rCurrentProcessInfo, bool extension_option) {
 
-            //KRATOS_TRY
-            
-            double radius_extend = 0.0;
-            if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
-            const int case_OPTION = rCurrentProcessInfo[CASE_OPTION];
-            bool delta_OPTION = false;
-            bool continuum_simulation_OPTION = false;
+        static void Search_Ini_Neighbours(ContainerType& pElements, ProcessInfo& rCurrentProcessInfo, bool extension_option)
 
-            /* as we don't accept bool variables we need the CASE_OPTION
-             * this has to be improved...
-             */
+        {
 
-            switch (case_OPTION) {
-                case 0:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = false;
-                    break;
-                case 1:
-                    delta_OPTION = true;
-                    continuum_simulation_OPTION = false;
-                    break;
-                case 2:
-                    delta_OPTION = true;
-                    continuum_simulation_OPTION = true;
-                    break;
-                case 3:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = true;
-                    break;
-                default:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = false;
-            }
+        KRATOS_TRY
 
-            boost::timer kdtree_construction;
+        double radius_extend = 0.0;
+        if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
 
-            unsigned int MaximumNumberOfResults = 100;
+      
+        boost::timer kdtree_construction;
 
+        unsigned int MaximumNumberOfResults = 100;
 
-            //            int step_data_size = model_part.GetNodalSolutionStepDataSize();
-            //            double radius = 2.0 * max_radius;
+        ResultContainerType Results(MaximumNumberOfResults);
+        DistanceVector ResultsDistances(MaximumNumberOfResults);
 
-            ResultContainerType Results(MaximumNumberOfResults);
-            DistanceVector ResultsDistances(MaximumNumberOfResults);
+        bins particle_bin(pElements.begin(), pElements.end());
+        boost::timer search_time;
 
-            //            unsigned int bucket_size = 20;
+        //**************************************************************************************************************************************************************
 
-            bins particle_bin(pElements.begin(), pElements.end());
-            boost::timer search_time;
-            //**************************************************************************************************************************************************************
-
-         //   KRATOS_WATCH(pElements.size())
-            ResultIteratorType results_begin; //= Results.begin();
-            DistanceIteratorType result_distances_begin; //
-            //loop over all of the particles in the list to perform search
-
-          //OPENING PARALELIZED LOOP FOR NEIGHBOURING SEARCH.
+        ResultIteratorType results_begin;
+        DistanceIteratorType result_distances_begin;
 
         for (IteratorType particle_pointer_it = pElements.begin();
                     particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {
+            
+            
 
-               
-                Element::GeometryType& geom = (*particle_pointer_it)->GetGeometry();
-                double search_radius = (1.0 + radius_extend) * geom(0)->GetSolutionStepValue(RADIUS);
 
-                //find all of the new particles within the radius
-                //looks which of the new particles is inside the radius around the working particle
+            Element::GeometryType& geom = (*particle_pointer_it)->GetGeometry();
 
-                results_begin = Results.begin();
-                result_distances_begin = ResultsDistances.begin();
+            double search_radius = (1.0 + radius_extend) * geom(0)->GetSolutionStepValue(RADIUS);
+            
+            //find all of the new particles within the radius
+            //looks which of the new particles is inside the radius around the working particle
 
-                ///WARNING: particle_pointer_it  funcionava també amb .base()
+            results_begin = Results.begin();
+            result_distances_begin = ResultsDistances.begin();
 
-                ///WARNING = To be change
-                (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS) = particle_bin.SearchObjectsInRadius(*(particle_pointer_it),
-                search_radius, results_begin, result_distances_begin, MaximumNumberOfResults) - 1;
+            (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = particle_bin.SearchObjectsInRadiusInner(*(particle_pointer_it),
+            search_radius, results_begin, result_distances_begin, MaximumNumberOfResults);
 
-/*    }
-                for (IteratorType particle_pointer_it = pElements.begin();
+            // CLEARING AND INITIALITZING.
+
+            vector< int > TempIds;
+            TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)); //afegir a getting
+
+            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
+            (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
+
+
+            int n_neighbours = (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS); // the number is correct.
+
+
+
+
+            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(n_neighbours);
+
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
+
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
+
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
+
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
+
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
+
+
+            // STORING THE NEIGHBOURS AND PROPERTIES
+
+            int neighbour_counter = 0;
+
+            for (ResultIteratorType neighbour_it = Results.begin(); neighbour_counter != n_neighbours; ++neighbour_it)
+            {
+
+                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+    
+                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
+
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
+
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
+
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+
+
+                //HE FET QUE AQUÍ NO EM MIRO RES... I EL SET INITIAL NEIGHBOURS AGAFA AIXO I HO MODIFICA CLAR. HO PRODRIA FER AQUI
+
+                ++neighbour_counter;
+
+            } // for each neighbour, neighbour_it.
+
+
+        }//Loop for evey particle as a base.
+
+          KRATOS_CATCH("")
+        }// Search_Neighbours
+
+
+
+
+    
+
+         static void Search_Neighbours(ContainerType& pElements, ProcessInfo& rCurrentProcessInfo, bool extension_option)
+
+        {
+
+
+            
+         KRATOS_TRY
+
+        double radius_extend = 0.0;
+        if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
+
+        const int case_OPTION = rCurrentProcessInfo[CASE_OPTION];
+        bool delta_OPTION = false;
+        bool continuum_simulation_OPTION = false;
+
+        /* as we don't accept bool variables we need the CASE_OPTION
+         * this has to be improved...
+         */
+
+        switch (case_OPTION) {
+            case 0:
+                delta_OPTION = false;
+                continuum_simulation_OPTION = false;
+                break;
+            case 1:
+                delta_OPTION = true;
+                continuum_simulation_OPTION = false;
+                break;
+            case 2:
+                delta_OPTION = true;
+                continuum_simulation_OPTION = true;
+                break;
+            case 3:
+                delta_OPTION = false;
+                continuum_simulation_OPTION = true;
+                break;
+            default:
+                delta_OPTION = false;
+                continuum_simulation_OPTION = false;
+        }
+
+        boost::timer kdtree_construction;
+
+        unsigned int MaximumNumberOfResults = 100;
+
+        ResultContainerType Results(MaximumNumberOfResults);
+        DistanceVector ResultsDistances(MaximumNumberOfResults);
+
+        bins particle_bin(pElements.begin(), pElements.end());
+        boost::timer search_time;
+        //**************************************************************************************************************************************************************
+       
+        ResultIteratorType results_begin;
+        DistanceIteratorType result_distances_begin; 
+
+        //loop over all of the particles in the list to perform search
+
+        for (IteratorType particle_pointer_it = pElements.begin();
                     particle_pointer_it != pElements.end(); ++particle_pointer_it)
-      {
-    */
-                ///WARNING:
+        {
+  
+            Element::GeometryType& geom = (*particle_pointer_it)->GetGeometry();
 
-                // This function, SearchObjectsInRadius has some problems, it finds the particle itself as a neighbours but, the result
-                //stored in GetValue(NUMBER_OF_NEIGHBOURS) = is the correct one, all the neighbours but not itself.
-
-
-                //M:KRATOS WATCHES... DEBBUGUING
-                /*
-                                               int num_neighbours = (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS);
-
-                                               const int& particle_id = (*particle_pointer_it)->Id();
-                                               KRATOS_WATCH("NOVA BUSQUEDA")
-                                               KRATOS_WATCH(particle_id)
-                                               KRATOS_WATCH(search_radius)
-                                               KRATOS_WATCH((*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS))
-
-                                                for (ResultIteratorType iterador_out = Results.begin(); iterador_out!= Results.begin() + (num_neighbours+1); iterador_out++)
-
-                                                {
-
-                                                KRATOS_WATCH((*iterador_out)->Id())
-                                                KRATOS_WATCH((*iterador_out)->GetGeometry()(0)->Coordinates() )
-
-                                                }
-                 */
-
-
-                // SAVING THE OLD NEIGHBOURS, FORCES, FAILURE TYPES AND NUMBER OF NEIGHBOURS.
-
-                ParticleWeakVector TempNeighbours;
-
-
-                TempNeighbours.swap((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS));
-
-
-                vector< array_1d<double, 3 > > TempContactForce;
-                TempContactForce.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES));
-
-                vector< int > TempContactFailureId; //M: temporarily defined as a double.. ha de ser un int.
-                TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
-                
-                vector< double > TempContactDelta;
-                TempContactDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA));   //M: NO ELS GUARDO ELS NORMALS PER TEMP PERO ELS KE ET DESCUIDES LLUNY SI KE ESTAN A TEMP SEMPRE I PASSEM LES DELTES AIXI
- 
-                
-                vector< double > TempRotateSpringFailType;
-                //Vector & RealRotateSpringFailType = rE->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
-                TempRotateSpringFailType.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE));
-                //TempRotateSpringFailType.swap(RealRotateSpringFailType);
-
-
-                vector< array_1d<double, 3 > > TempRotateSpringMoment;
-                TempRotateSpringMoment.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT));
-                
-                
-                /*
-                Vector TempRotateSpringMoment;
-                Vector & RealRotateSpringMoment = rE->GetValue(PARTICLE_ROTATE_SPRING_MOMENT);
-                TempRotateSpringMoment.swap(RealRotateSpringMoment);
-                */
-
-
-                //M:in general we don't search here but we need it for the neigbours that the search calculator doesnt find.
-
-                int n_neighbours = (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS); // the number is correct.
-
-                // CLEARING AND INITIALITZING.
-
-                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
-
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
-
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
-
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
-
-                //if( rCurrentProcessInfo[DUMMY_SWITCH] == 0)   (*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS).resize(n_neighbours);
-
-                //KRATOS_WATCH("alohohohohoh1")
+            double search_radius = (1.0 + radius_extend) * geom(0)->GetSolutionStepValue(RADIUS);
+            
+            //NEW EXTENDED SEARCH METHOD
+            //####################################################################################################################
+            double new_extension = 2.0; ///WARNING: PROVISIONALLY SET AS 2.0. SHOULD BE CALCULATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //####################################################################################################################
         
-                // GETTING NEW NEIGHBOURS
+            search_radius = search_radius*new_extension;
 
+            //find all of the new particles within the radius
+            //looks which of the new particles is inside the radius around the working particle
 
+            results_begin = Results.begin();
+            result_distances_begin = ResultsDistances.begin();
+           
+            (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = particle_bin.SearchObjectsInRadiusInner(*(particle_pointer_it),
+            search_radius, results_begin, result_distances_begin, MaximumNumberOfResults);
 
+             int n_neighbours = (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS); 
 
-                int neighbour_counter = 0;
+            // SAVING THE OLD NEIGHBOURS, FORCES, FAILURE TYPES AND NUMBER OF NEIGHBOURS.
 
-                for (ResultIteratorType neighbour_it = Results.begin(); neighbour_counter != n_neighbours + 1; ++neighbour_it)
- {
+            ParticleWeakVector TempNeighbours;
 
-                    if ((*particle_pointer_it)->Id() != (*neighbour_it)->Id()) { //the bins search finds the particle itself
+            TempNeighbours.swap((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS));
 
+            vector< int > TempIds;
+            TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS));
 
-                        (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+            vector< array_1d<double, 3 > > TempContactForce;
 
-                      
-                        // LOOP TO EXTEND THE VECTORS AND SET A 0.0 VALUE EACH TIME
+            TempContactForce.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES));
 
-                        size_t Notemp = ((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS)).size(); //Notemp its an index that will be amplified for every step of the loop as the NEIGHBOUR_ELEMENTS.size() is getting larger
+            vector< int > TempContactFailureId;
+            TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
 
+            vector< double > TempContactDelta;
+            TempContactDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA));
 
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp - 1] = ZeroVector(3);
+            vector< double > TempRotateSpringFailType;
+            TempRotateSpringFailType.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE));
 
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp - 1] = 1;
+            vector< array_1d<double, 3 > > TempRotateSpringMoment;
+            TempRotateSpringMoment.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT));
 
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp - 1] = 0.0;
+            // CLEARING AND INITIALITZING.
 
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp - 1] = 0.0;
+            (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
+            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
 
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp - 1] = ZeroVector(3);
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
 
-                        // LOOP OVER THE OLD NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN EXISTING ONE AND COPYING THE OLD DATA
+            /*
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
+            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
 
-                        //R: FALTA PER REVISAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
+            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
+            */
 
-                        int OldNeighbourCounter = 0;
-                        for (ParticleWeakIterator old_neighbour = TempNeighbours.begin(); old_neighbour != TempNeighbours.end(); old_neighbour++)
-                        {
-                            // if ((*particle_pointer_it)->Id() != old_neighbour->Id() ) ///WARNING: NO FA FALTA!!!
+            // GETTING NEW NEIGHBOURS
 
-                            {
+            double radius = (*particle_pointer_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
 
-                                if ((old_neighbour.base())->expired() == false) {
-                                    if ((*neighbour_it)->Id() == old_neighbour->Id()) // MIQUEL COMPROBA SI EL TROBES O NO
-                                    {
-                             
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][0] = TempContactForce[OldNeighbourCounter][0];
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][1] = TempContactForce[OldNeighbourCounter][1];
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp-1][2] = TempContactForce[OldNeighbourCounter][2];
+            int InitialNeighbourSize = (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS).size();
 
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1] = TempContactFailureId[OldNeighbourCounter];
-                                        /*
-                                        KRATOS_WATCH((*particle_pointer_it)->Id())
-                                        KRATOS_WATCH((old_neighbour)->Id())
+            int OldNeighbourSize = TempIds.size();
 
-                                        KRATOS_WATCH((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp-1])
-                                        */
-                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
-                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
-                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];
+            int neighbour_counter = 0;
 
-                                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp-1] = TempRotateSpringFailType[OldNeighbourCounter];
+            for (ResultIteratorType neighbour_it = Results.begin(); neighbour_counter != n_neighbours; ++neighbour_it)
+            {
 
+                double initial_delta    = 0.0;
+                int failure_id          = 1;
+                int ini_failure         = 0;
+                double indentation      = 0.0;
 
-                                        break;
-                                    } //end of its an old one??
+                bool already_added      = false;
 
-                                } //end of expired?
-
-                            } // end of its myself
-                            OldNeighbourCounter++;
-                        } //loop old neighbours
-
-
-                        if (delta_OPTION) {
-
-                            //r: FALTA REVISAR
-
-
-                            // LOOP OVER THE INITIAL NEIGHBOURS FOR EVERY NEIGHBOUR TO CHECK IF IT'S AN INITIAL ONE AND THEN COPYING THE DELTA DATA
-                            int InitialNeighboursCounter = 0;
-     
-                            if (((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).size() != 0) {
-                                for (ParticleWeakIterator ini_neighbour = ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).begin(); ini_neighbour != ((*particle_pointer_it)->GetValue(INITIAL_NEIGHBOUR_ELEMENTS)).end(); ini_neighbour++)
-                                {
-                                   
-                                       if ((ini_neighbour.base())->expired() == false) {
-                                   
-                                            if ((*neighbour_it)->Id() == ini_neighbour->Id()) 
-                                            {
-                                                 (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp-1] = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[InitialNeighboursCounter];
-
-                                                 break;
-                                            }
-                                       }
-                               
-
-                                    InitialNeighboursCounter++;
-
-                                } // for initial neighbours
-                            } //if u have some intial neigh
-
-                        }//deltaOPTION
-                        //KRATOS_WATCH("alohohohohoh4.32")
-                    }//end of the: if((*particle_pointer_it)->Id() != (*neighbour_it)->Id()
-
-                    ++neighbour_counter;
-
-                } // for each neighbour, neighbour_it.
-
-                //ADDING NOT FOUND NEIGHBOURS (the ones with negative identation still in tensile contact are not detected, but they are on the old neighbours list).
-
-                ///WARNING : SHA DE REVISAR AKESTA PART ENCARA AMB UN CAS UNA MICA ESPECIAL.
-
-                int TempNeighbourCounter = 0;
-
-                for (ParticleWeakIterator temp_neighbour = TempNeighbours.begin(); temp_neighbour != TempNeighbours.end(); temp_neighbour++)
- {
-                    if (TempContactFailureId[TempNeighbourCounter] == 0) // if they are not detached.
+                for (int IniNeighbourCounter = 0; IniNeighbourCounter != InitialNeighbourSize; IniNeighbourCounter++)
+                {
+                    if ( static_cast<int>((*neighbour_it)->Id()) == (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS)[IniNeighbourCounter]) // is this and initial neighbour?
                     {
-                       
-                        if ((temp_neighbour.base())->expired() == false)
+
+                        initial_delta = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[IniNeighbourCounter];
+                        ini_failure = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_FAILURE_ID)[IniNeighbourCounter]; 
+                        //UUUUU sha de canviar al cpp que es vagi canviant
+
+                    }
+                } //getting initial deltas and initial failure values.
+
+
+                for (int OldNeighbourCounter = 0; OldNeighbourCounter != OldNeighbourSize; OldNeighbourCounter++)
+                {
+                    if (static_cast<int>((*neighbour_it)->Id()) == TempIds[OldNeighbourCounter]) // is this and old neighbour?
+                    {
+
+                        failure_id                          = TempContactFailureId[OldNeighbourCounter];
+
+                        double other_radius                 = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+
+                        array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
+                        double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                              other_to_me_vect[1] * other_to_me_vect[1] +
+                                                              other_to_me_vect[2] * other_to_me_vect[2]);
+                        double radius_sum                   = radius + other_radius;
+                        double indentation                  = radius_sum - distance - initial_delta;
+                                                
+           
+                        if ( indentation >= -1.0e-6 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.
                         {
-                   
-                            if ((*particle_pointer_it)->Id() != temp_neighbour->Id()) {
-                                //KRATOS_WATCH("alohohohohoh5.4")
-                                bool AlreadyAdded = false; //identifying if they are already found ot not.
+                            already_added = true;
 
-                                for (ParticleWeakIterator new_neighbour = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                                        new_neighbour != (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).end(); new_neighbour++) {
-                         
-                                    if (new_neighbour->Id() == (temp_neighbour)->Id()) {
+                            (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
 
-                                        AlreadyAdded = true; //for the ones already found in the new search.
-                                        break;
-                                    }
-                                }
+                            size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
 
-                                if (AlreadyAdded == false) //for the ones not included!
-                                {
-                                          
+                            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
 
-                                    (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(TempNeighbours(TempNeighbourCounter)); //adding the not found neighbours.
+                            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
 
-                                    size_t Notemp = (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).size();
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(Notemp + 1); // adding one more space for every missing neighbour.
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][0] = TempContactForce[TempNeighbourCounter][0]; //copying properties.
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][1] = TempContactForce[TempNeighbourCounter][1];
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[Notemp][2] = TempContactForce[TempNeighbourCounter][2];
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = TempContactForce[OldNeighbourCounter][0];
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = TempContactForce[OldNeighbourCounter][1];
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = TempContactForce[OldNeighbourCounter][2];
 
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(Notemp + 1);
-                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[Notemp] = TempContactFailureId[TempNeighbourCounter];
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];
 
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(Notemp + 1); // adding one more space for every missing neighbour.
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][0] = TempRotateSpringMoment[TempNeighbourCounter][0]; //copying properties.
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][1] = TempRotateSpringMoment[TempNeighbourCounter][1];
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[Notemp][2] = TempRotateSpringMoment[TempNeighbourCounter][2];
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = TempRotateSpringFailType[OldNeighbourCounter];
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = failure_id;
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
 
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(Notemp + 1);
-                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[Notemp] = TempRotateSpringFailType[TempNeighbourCounter];
+                        }
+
+                    }
+
+                }
+
+                //Not old ones:
+
+                double other_radius                 = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+
+                array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
+                double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                              other_to_me_vect[1] * other_to_me_vect[1] +
+                                                              other_to_me_vect[2] * other_to_me_vect[2]);
+                double radius_sum                   = radius + other_radius;
+                indentation                  = radius_sum - distance - initial_delta;
+
+                if ( (already_added == false) && (indentation > 0.0))
+
+                {
+
+                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+
+                size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+
+                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+
+                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
+
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = 0.0;
+
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = 0.0;
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = 0.0;
+
+                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = 1;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = 1;
+                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
+
+                }
 
 
-                                    if (delta_OPTION) {
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(Notemp + 1);
-                                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[Notemp] = TempContactDelta[TempNeighbourCounter];
-                                    }
+                ++neighbour_counter;
 
-                                    (*particle_pointer_it)->GetValue(NUMBER_OF_NEIGHBOURS)++;
+            } // for each neighbour, neighbour_it.
 
-                                }
-                            }// end its myself???
-
-                        }//if not expired
-
-                    } //if not detached
-                    
-                    TempNeighbourCounter++;
-                }//loop over tempneigh
-
-            }//Loop for evey particle as a base.
-
-        //  } //Loop over OMP Threads.
+      
+        }//Loop for evey particle as a base.
 
 
-           // KRATOS_CATCH("")
+          KRATOS_CATCH("")
         }// Search_Neighbours
 
         virtual std::string Info() const {

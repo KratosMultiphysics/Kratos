@@ -99,6 +99,7 @@ namespace Kratos
 	     array_1d<double, 3 > & coor            = i->Coordinates();
   	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
+        
 
 
 	     double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
@@ -129,6 +130,7 @@ namespace Kratos
 	         coor[0]   = initial_coor[0] + displ[0];
                  
                  delta_vel[0] = vel[0] - vel_old[0];
+
                  
              }
              else

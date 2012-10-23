@@ -48,13 +48,14 @@ public:
 
     void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
-      
+
+
         KRATOS_TRY
 
         //Type definitions
         Configure::ElementsContainerType::Pointer pElements         = r_model_part.pElements();
         Configure::ElementsContainerType Elements                   = r_model_part.Elements();
-        
+       
 
         double ref_radius = (*(Elements.begin().base()))->GetValue(RADIUS);
         array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
@@ -84,7 +85,7 @@ public:
         Particle_Creator_Destructor::GetLowNode() = mLowPoint;
         
         //KRATOS_WATCH(mHighPoint)
-          //      KRATOS_WATCH(mLowPoint)
+        //KRATOS_WATCH(mLowPoint)
 
         KRATOS_CATCH("")
          
@@ -94,7 +95,7 @@ public:
     {
 
         KRATOS_TRY
-        
+
         //Type definitions
         Configure::ElementsContainerType::Pointer pElements      = r_model_part.pElements();
         ModelPart::NodesContainerType::Pointer pNodes = r_model_part.pNodes();
@@ -104,7 +105,7 @@ public:
 
         Configure::ElementsContainerType temp_particles_container;
         ModelPart::NodesContainerType temp_nodes_container;
-        //KRATOS_WATCH(temp_particles_container.size())
+
 
         //Copy the elements and clear the element container
         temp_particles_container.reserve(pElements->size());
@@ -112,9 +113,6 @@ public:
         
         temp_particles_container.swap(rElements);
         temp_nodes_container.swap(rNodes);
-
-        //KRATOS_WATCH(temp_particles_container.size())
-        //KRATOS_WATCH(rElements.size())
 
         //Add the ones inside the bounding box
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin();
@@ -136,7 +134,9 @@ public:
             if (include)
             {
                (rElements).push_back(*particle_pointer_it); //adding the elements
-               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
+   
+               
+               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
                {
                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                    (rNodes).push_back( pNode );
@@ -161,6 +161,7 @@ public:
 
 
         }
+
         KRATOS_CATCH("")
        
     }

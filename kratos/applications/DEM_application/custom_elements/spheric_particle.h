@@ -117,7 +117,7 @@ namespace Kratos
 
       //l'he de definir aqui aquest???
  
-       std::size_t& GetNumberOfNeighbours(){return(GetGeometry()(0)->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));};
+       //std::size_t& GetNumberOfNeighbours(){return(GetGeometry()(0)->FastGetSolutionStepValue(NUMBER_OF_NEIGHBOURS));};
 
        
        //double mInitialDelta;
@@ -145,7 +145,7 @@ namespace Kratos
 
     
 
-      // ParticleWeakVectorType mInitialNeighbours = GetGeometry()[0].GetSolutionStepValue(INITIAL_NEIGHBOUR_ELEMENTS);
+     
 
       // std::vector<double>   mInitialDelta = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_INITIAL_DELTA);
       // std::vector<int>  mContactFailureId = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_FAILURE_ID);
