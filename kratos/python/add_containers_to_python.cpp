@@ -125,6 +125,10 @@ void  AddContainersToPython()
     .def( self_ns::str( self ) )
     ;
 
+    class_<Variable<vector<int> >, bases<VariableData>, boost::noncopyable >( "IntegerVectorVariable", no_init )
+    .def( self_ns::str( self ) )
+    ;
+
     class_<Variable<double>, bases<VariableData>, boost::noncopyable >( "DoubleVariable", no_init )
     .def( self_ns::str( self ) )
     ;
@@ -502,7 +506,20 @@ void  AddContainersToPython()
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLUID_TEMPERATURE ); 
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE( AMBIENT_TEMPERATURE ); 
 
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE( NUMBER_OF_NEIGHBOURS ) M: it's a size_t, can't be registered
+
+    //DEM-Application
+
+    //variables for the neighbour search
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(OLD_NEIGHBOURS_IDS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(INI_NEIGHBOURS_IDS)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEIGHBOURS_IDS )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NEIGHBOURS_IDS_DOUBLE )
+
+    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(PARTICLE_INITIAL_FAILURE_ID)
+            
+    //to be classified
+
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RADIUS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_MASS )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( PARTICLE_INERTIA )
