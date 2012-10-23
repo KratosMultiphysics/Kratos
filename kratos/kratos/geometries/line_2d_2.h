@@ -870,8 +870,8 @@ private:
     {
         IntegrationPointsContainerType integration_points = {{
                 Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<GaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<GaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<GaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
