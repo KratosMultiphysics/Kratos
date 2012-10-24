@@ -466,6 +466,7 @@ while(time < final_time):
         gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(EXPORT_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, solid_model_part.Nodes, time, 0)
              
         if (rotation_option == "ON"): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)

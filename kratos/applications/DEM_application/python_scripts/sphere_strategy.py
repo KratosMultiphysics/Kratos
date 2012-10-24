@@ -6,6 +6,7 @@ from KratosMultiphysics.DEMApplication import *
 
 def AddVariables(model_part):
     #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
+    model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
     model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     model_part.AddNodalSolutionStepVariable(GROUP_ID)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)

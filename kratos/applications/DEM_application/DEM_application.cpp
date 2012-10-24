@@ -32,7 +32,9 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
-
+        KRATOS_CREATE_VARIABLE( int, SKIN_SPHERE )
+        KRATOS_CREATE_VARIABLE( double, EXPORT_SKIN_SPHERE )
+                
         KRATOS_CREATE_VARIABLE(double, EXPORT_ID)
 
         KRATOS_CREATE_VARIABLE (int, NEIGH_INITIALIZED)
@@ -80,6 +82,9 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
 
+                KRATOS_REGISTER_VARIABLE( SKIN_SPHERE )
+                KRATOS_REGISTER_VARIABLE( EXPORT_SKIN_SPHERE )
+                        
                 KRATOS_REGISTER_VARIABLE( EXPORT_ID)
 
                 KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DAMP_FORCES )

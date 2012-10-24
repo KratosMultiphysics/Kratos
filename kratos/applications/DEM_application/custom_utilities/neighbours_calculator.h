@@ -216,36 +216,7 @@ namespace Kratos {
         double radius_extend = 0.0;
         if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
 
-        const int case_OPTION = rCurrentProcessInfo[CASE_OPTION];
-        bool delta_OPTION = false;
-        bool continuum_simulation_OPTION = false;
-
-        /* as we don't accept bool variables we need the CASE_OPTION
-         * this has to be improved...
-         */
-
-        switch (case_OPTION) {
-            case 0:
-                delta_OPTION = false;
-                continuum_simulation_OPTION = false;
-                break;
-            case 1:
-                delta_OPTION = true;
-                continuum_simulation_OPTION = false;
-                break;
-            case 2:
-                delta_OPTION = true;
-                continuum_simulation_OPTION = true;
-                break;
-            case 3:
-                delta_OPTION = false;
-                continuum_simulation_OPTION = true;
-                break;
-            default:
-                delta_OPTION = false;
-                continuum_simulation_OPTION = false;
-        }
-
+      
         boost::timer kdtree_construction;
 
         unsigned int MaximumNumberOfResults = 100;
