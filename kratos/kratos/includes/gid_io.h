@@ -505,12 +505,6 @@ public:
             GiD_OpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
         }
-        if ( mUseMultiFile == SingleFile && mMode == GiD_PostBinary )
-        {
-            std::stringstream step_index;
-            step_index << "step" << name;
-            GiD_BeginOnMeshGroup( (char *)(step_index.str()).c_str() );
-        }
         //initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
         {
@@ -544,10 +538,6 @@ public:
         {
             GiD_ClosePostResultFile();
             mResultFileOpen = false;
-        }
-        if ( mUseMultiFile == SingleFile && mMode == GiD_PostBinary )
-        {
-            GiD_EndOnMeshGroup();
         }
         //resetting gauss point containers
         for ( typename std::vector<TGaussPointContainer>::iterator it =
@@ -776,12 +766,6 @@ public:
                 }
                 mResultFileOpen = true;
             }
-            if ( mMode == GiD_PostBinary )
-            {
-                std::stringstream step_index;
-                step_index << "step" << name;
-                GiD_BeginMeshGroup( (char *)(step_index.str()).c_str() );
-            }
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
                 std::stringstream file_name;
@@ -803,8 +787,6 @@ public:
             GiD_ClosePostMeshFile();
             mMeshFileOpen = false;
         }
-        if ( mUseMultiFile == SingleFile && mMode == GiD_PostBinary )
-            GiD_EndMeshGroup();
         if ( mUseMultiFile == SingleFile && mMode == GiD_PostAscii )
         {
             GiD_ClosePostMeshFile();
