@@ -319,7 +319,76 @@ namespace Kratos
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
             size_t iContactForce = 0;
+            
+            double total_equiv_area = 0.0;
+            
+            int n_neighbours = r_neighbours.size();
+            
+            array_1d<double,3> other_to_me_vect_sum;
+            other_to_me_vect_sum[0] = 0.0;
+            other_to_me_vect_sum[1] = 0.0;
+            other_to_me_vect_sum[2] = 0.0;
+            
+            double other_radius_sum = 0.0;
+                      
+            //DETERMINING SKIN OR NOT
+            
+            for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
+            neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
 
+            {   
+                double other_radius     = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                double equiv_area       = 4*M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius));
+                total_equiv_area += equiv_area;
+              
+                array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+                double other_to_me_vect_norm = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                         other_to_me_vect[1] * other_to_me_vect[1] +
+                                                         other_to_me_vect[2] * other_to_me_vect[2]);
+                
+                other_to_me_vect[0] =  other_to_me_vect[0]/other_to_me_vect_norm;
+                other_to_me_vect[1] =  other_to_me_vect[1]/other_to_me_vect_norm;
+                other_to_me_vect[2] =  other_to_me_vect[2]/other_to_me_vect_norm;
+                
+                
+              
+                other_to_me_vect_sum[0] +=  other_to_me_vect[0]*other_radius*other_radius;
+                other_to_me_vect_sum[1] +=  other_to_me_vect[1]*other_radius*other_radius;
+                other_to_me_vect_sum[2] +=  other_to_me_vect[2]*other_radius*other_radius;
+                
+                other_radius_sum += other_radius*other_radius;
+                
+            } //for every neighbour
+            
+            double vect_sum_norm = sqrt(other_to_me_vect_sum[0] * other_to_me_vect_sum[0] +
+                                                         other_to_me_vect_sum[1] * other_to_me_vect_sum[1] +
+                                                         other_to_me_vect_sum[2] * other_to_me_vect_sum[2]);
+            
+            double average_other_radius = 2.0*other_radius_sum/n_neighbours;
+            
+            int& skin_sphere = this->GetValue(SKIN_SPHERE);
+            
+            skin_sphere = 0;
+            
+            if (n_neighbours < 4){
+
+                skin_sphere = 1;
+            }
+            else {
+                if(vect_sum_norm > average_other_radius)
+                {
+                    
+                    skin_sphere = 1;
+
+                }
+                else
+                {
+                    
+                    skin_sphere = 0;
+                }
+            }
+            
+            
             for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
             neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
 
@@ -332,7 +401,8 @@ namespace Kratos
                 double equiv_mass                   = sqrt(mass*other_mass);//(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
                
                 double other_restitution_coeff      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RESTITUTION_COEFF);
-                double equiv_visco_damp_coeff;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
+                double equiv_visco_damp_coeff_normal;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
+                double equiv_visco_damp_coeff_tangential;
                 double equiv_restitution_coeff      = sqrt(restitution_coeff * other_restitution_coeff); //I: we assume this.
               
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
@@ -399,12 +469,84 @@ namespace Kratos
                 double equiv_area       = M_PI * equiv_radius * equiv_radius;
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
                 double equiv_young      = 2 * young * other_young / (young + other_young);
+                
+                double external_polyhedron_area = 4*M_PI*radius*radius;                        
+		double alpha = 1.0;
+                
+                if((skin_sphere == 0))
+                {
+                    switch (n_neighbours)
+                    {
+                        case 4:
+                            external_polyhedron_area = 3.30797*external_polyhedron_area;
+                            break;
+                        case 5:
+                            external_polyhedron_area = 2.60892*external_polyhedron_area;
+                            break;
+                        case 6:
+                            external_polyhedron_area = 1.90986*external_polyhedron_area;
+                            break;
+                        case 7:
+                            external_polyhedron_area = 1.78192*external_polyhedron_area;
+                            break;
+                        case 8:
+                            external_polyhedron_area = 1.65399*external_polyhedron_area;
+                            break;
+                        case 9:
+                            external_polyhedron_area = 1.57175*external_polyhedron_area;
+                            break;
+                        case 10:
+                            external_polyhedron_area = 1.48951*external_polyhedron_area;
+                            break;
+                        case 11:
+                            external_polyhedron_area = 1.40727*external_polyhedron_area;
+                            break;
+                        case 12:
+                            external_polyhedron_area = 1.32503*external_polyhedron_area;
+                            break;
+                        case 13:
+                            external_polyhedron_area = 1.31023*external_polyhedron_area;
+                            break;
+                        case 14:
+                            external_polyhedron_area = 1.29542*external_polyhedron_area;
+                            break;
+                        case 15:
+                            external_polyhedron_area = 1.28061*external_polyhedron_area;
+                            break;
+                        case 16:
+                            external_polyhedron_area = 1.26580*external_polyhedron_area;
+                            break;
+                        case 17:
+                            external_polyhedron_area = 1.25099*external_polyhedron_area;
+                            break;
+                        case 18:
+                            external_polyhedron_area = 1.23618*external_polyhedron_area;
+                            break;
+                        case 19:
+                            external_polyhedron_area = 1.22138*external_polyhedron_area;
+                            break;
+                        case 20:
+                            external_polyhedron_area = 1.20657*external_polyhedron_area;
+                            break;
+                        default:
+                            external_polyhedron_area = 1.15*external_polyhedron_area;
+                            break;
 
+                    }
+
+                    alpha            = external_polyhedron_area/total_equiv_area;
+                }
+                
+                else //skin sphere
+                {
+                    alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
+                }
+                
                 Friction                = tan( (FriAngle + other_FriAngle) * 0.5  / 180.0 * M_PI);
 
                 //MACRO PARAMETERS
 
-                double kn               = M_PI * 0.5 * equiv_young * equiv_radius; 
+                double kn               = alpha*equiv_young*equiv_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
                 double RN               = CTension * equiv_area; //tensile strenght
                 double RT_base          = CCohesion * equiv_area; //cohesion
@@ -436,12 +578,22 @@ namespace Kratos
 
                 if(equiv_restitution_coeff>0){
 
-                    equiv_visco_damp_coeff  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+                    equiv_visco_damp_coeff_normal  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
                 }
 
                 else {
 
-                    equiv_visco_damp_coeff  = ( 2*sqrt(equiv_mass*kn) );
+                    equiv_visco_damp_coeff_normal  = ( 2*sqrt(equiv_mass*kn) );
+                }
+                
+                if(equiv_restitution_coeff>0){
+
+                    equiv_visco_damp_coeff_tangential  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*ks)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+                }
+
+                else {
+
+                    equiv_visco_damp_coeff_tangential  = ( 2*sqrt(equiv_mass*ks) );
                 }
 
 
@@ -655,7 +807,7 @@ namespace Kratos
 
              {
 
-                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff * LocalRelVel[2];
+                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
                 for (unsigned int index = 0; index < 2; index++)
                 {
@@ -663,7 +815,7 @@ namespace Kratos
                     if(sliding == false) //only applied when no sliding to help to the regularized friccion law or the spring convergence
 
                     {
-                        ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff * LocalRelVel[index];  //same visco_coeff to all directions???
+                        ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  //same visco_coeff to all directions???
 
                     }
                 }
@@ -1157,7 +1309,8 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
 
            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID));
            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-         
+           this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
+           
 
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
