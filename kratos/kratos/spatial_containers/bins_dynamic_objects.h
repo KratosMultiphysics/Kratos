@@ -292,7 +292,7 @@ public:
 //************************************************************************
 
     SizeType SearchObjectsInRadiusInner(PointerType& ThisObject, const double& Radius, ResultIteratorType& Results,
-                                   DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults)
+                                        DistanceIteratorType ResultDistances, const SizeType& MaxNumberOfResults)
     {
         PointType Low, High;
         SearchStructureType Box;
@@ -301,6 +301,54 @@ public:
         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
         SearchInRadiusInner(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
+    }
+    
+//************************************************************************
+//************************************************************************
+    
+    void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
+                                    std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
+    {   
+        PointType Low, High;
+        SearchStructureType Box;
+
+        for(size_t i = 0; i < NumberOfObjects; i++)
+        {   
+            ResultIteratorType ResultsPointer            = Results[i].begin();
+            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+            NumberOfResults[i] = 0;
+            
+            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+            
+            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+        }
+
+    }
+    
+//************************************************************************
+//************************************************************************
+    
+    void SearchObjectsInRadiusInner(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
+                                    std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
+    {  
+        PointType Low, High;
+        SearchStructureType Box;
+
+        for(size_t i = 0; i < NumberOfObjects; i++)
+        {   
+            ResultIteratorType ResultsPointer            = Results[i].begin();
+            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+            NumberOfResults[i] = 0;
+            
+            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+            
+            SearchInRadiusInner(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+        }
+
     }
 
 //************************************************************************
