@@ -11,6 +11,7 @@ import structural_solver_static
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE);
     model_part.AddNodalSolutionStepVariable(FORCE);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_OLD);
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT_NULL);
