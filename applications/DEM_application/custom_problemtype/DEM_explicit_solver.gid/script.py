@@ -267,17 +267,18 @@ dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (compute_critical_time =="ON"):
   solver.Initial_Critical_Time() 
-  
+  print("jooo")
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
     print("WARNING: Delta time has been modifyed to the critical one")
     dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
-
+print("jpu")
 #initializations
 time = 0.0
 step = 0
 time_old_print = 0.0
 
 initial_pr_time = timer.clock()
+print("jpu")
 initial_real_time = timer.time()
 
 print('\n')
@@ -413,7 +414,7 @@ while(time < final_time):
       print('in days :'+str(((estimation_time/60)/60)/24)+'days.'+'\n')	
 	
       if (((estimation_time/60)/60)/24 > 2.0):
-	print('Loooooooooool!!! Are you Crazy?????'+'\n')
+	print('WARNING!!!:       VERY LASTING CALCULATION'+'\n')
 	   	      
     
     os.chdir(list_path)

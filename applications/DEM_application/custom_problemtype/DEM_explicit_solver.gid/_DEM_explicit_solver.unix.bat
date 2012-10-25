@@ -2,7 +2,8 @@
 #    OutputFile: $2/$1.info
 #    ErrorFile: $2/$1.err
 #delete previous result file
-rm -f $2/${1}_*.post.bin
+rm -f $2/${1}_Post_Files/${1}_*.post.bin
+rm -f $2/${1}_Neigh_Lists/*
 rm $2/$1.info
 rm $2/$1.flavia.dat
 rm $2/$1.mdpa
