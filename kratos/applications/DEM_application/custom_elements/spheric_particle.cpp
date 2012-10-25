@@ -114,7 +114,7 @@ namespace Kratos
             ComputeParticleRotationSpring(rCurrentProcessInfo);
         }
 
-       //CharacteristicParticleFailureId(rCurrentProcessInfo);
+        CharacteristicParticleFailureId(rCurrentProcessInfo);
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -960,18 +960,18 @@ namespace Kratos
                     {
                         tempType[0]++;
                     }
-                    else if( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[index] == 1)
+                    else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 1)
                     {
                         tempType[1]++;
                     }
 
                     // mContactFailureId == 2 intentionally skipped!
 
-                    else if( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[index] == 3)
+                    else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 3)
                     {
                         tempType[3]++;
                     }
-                    else if( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[index] == 4)
+                    else if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 4)
                     {
                         tempType[4]++;
                     }
