@@ -182,6 +182,7 @@ class ExplicitStrategy:
  #######################################################################
     def Initial_Critical_Time(self):
         (self.solver).InitialCriticalTime()
+        print("gfaoo")
 
     #######################################################################   
     def Solve(self):
