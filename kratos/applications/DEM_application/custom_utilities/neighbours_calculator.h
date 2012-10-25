@@ -112,10 +112,10 @@ namespace Kratos {
                                       ContainerType& pIteratorElements,
                                       int NumberOfElements,
                                       int MaximumNumberOfResults,
-                                      std::vector<std::size_t> NumberOfResults, 
-                                      std::vector<std::vector<PointerType> > Results,
-                                      std::vector<std::vector<double> > ResultsDistances,
-                                      std::vector<double> Radius
+                                      std::vector<std::size_t> &NumberOfResults, 
+                                      std::vector<std::vector<PointerType> > &Results,
+                                      std::vector<std::vector<double> > &ResultsDistances,
+                                      std::vector<double> &Radius
         )
         {
             particle_bin.SearchObjectsInRadiusInner(pIteratorElements.begin(),NumberOfElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults);
