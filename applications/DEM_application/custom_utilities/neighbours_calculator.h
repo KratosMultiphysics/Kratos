@@ -24,6 +24,13 @@
 
 #include "custom_utilities/discrete_particle_configure.h"
 
+/* External includes */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "utilities/openmp_utils.h"
+
 namespace Kratos {
 
     template< //pot no compilar en windows aquest tipus d'assignacio per template.
@@ -157,57 +164,75 @@ namespace Kratos {
             SearchNeighbours(r_model_part,particle_bin,pIteratorElements,NumberOfElements,MaximumNumberOfResults,NumberOfResults,Results,ResultsDistances,Radius);
             
             //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
-            for (IteratorType particle_pointer_it = pIteratorElements.begin();
-                    particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it, ++ResultIterator)
-            {                   
-                (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
+            #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+            #else
+            int number_of_threads = 1;
+            #endif
 
-                // CLEARING AND INITIALITZING.
+            vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pIteratorElements.size(), element_partition);
 
-                vector< int > TempIds;
-                TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)); //afegir a getting
+            #pragma omp parallel for private(ResultIterator)
+            for(int k=0; k<number_of_threads; k++)
+            {
 
-                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
-                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
+                IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
+                IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
+                
+                ResultIterator = k;
+                
+                for (IteratorType particle_pointer_it = it_begin;
+                        particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
+                {                   
+                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
 
-                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(NumberOfResults[ResultIterator]);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(NumberOfResults[ResultIterator]);
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(NumberOfResults[ResultIterator]);
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(NumberOfResults[ResultIterator]);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(NumberOfResults[ResultIterator]);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(NumberOfResults[ResultIterator]);
+                    // CLEARING AND INITIALITZING.
 
-                // STORING THE NEIGHBOURS AND PROPERTIES
+                    vector< int > TempIds;
+                    TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)); //afegir a getting
 
-                unsigned int neighbour_counter = 0;
- 
-                for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
-                {                  
-                    (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
-                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
-                    
-                    Add_To_Modelpart(r_model_part,neighbour_it);
-                    
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
+                    (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
-                    ++neighbour_counter;
+                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(NumberOfResults[ResultIterator]);
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(NumberOfResults[ResultIterator]);
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(NumberOfResults[ResultIterator]);
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(NumberOfResults[ResultIterator]);
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(NumberOfResults[ResultIterator]);
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(NumberOfResults[ResultIterator]);
 
-                }// For each neighbour, neighbour_it.
+                    // STORING THE NEIGHBOURS AND PROPERTIES
 
-            }// Loop for evey particle as a base.
+                    unsigned int neighbour_counter = 0;
+    
+                    for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
+                    {                  
+                        (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                        (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
+                        
+                        Add_To_Modelpart(r_model_part,neighbour_it);
+                        
+                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
+                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
+                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
+                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+
+                        ++neighbour_counter;
+
+                    }// For each neighbour, neighbour_it.
+                }// Loop for evey particle as a base.
+            }// OpenMP loop
             
             Sort_Modelpart(r_model_part);
 
@@ -260,171 +285,189 @@ namespace Kratos {
                         
             Timer::Start("PROCESS");
             ///Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
-            //TODO: Cambiar aquest bucle per fer usar els iteradors dintre i que sigi poaralelitzable amb openMP
-            for (IteratorType particle_pointer_it = pIteratorElements.begin(); particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it, ++ResultIterator)
-            {                   
-                (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
+            #ifdef _OPENMP
+            int number_of_threads = omp_get_max_threads();
+            #else
+            int number_of_threads = 1;
+            #endif
 
-                ParticleWeakVector TempNeighbours;
+            vector<unsigned int> element_partition;
+            OpenMPUtils::CreatePartition(number_of_threads, pIteratorElements.size(), element_partition);
+
+            #pragma omp parallel for private(ResultIterator)
+            for(int k=0; k<number_of_threads; k++)
+            {
+
+                IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
+                IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
                 
-                TempNeighbours.swap((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS));
+                ResultIterator = k;
+                
+                for (IteratorType particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
+                {                   
+                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
+                    
+                    ParticleWeakVector TempNeighbours;
+                    
+                    TempNeighbours.swap((*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS));
 
-                vector< int > TempIds;
-                TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS));
+                    vector< int > TempIds;
+                    TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS));
 
-                vector< array_1d<double, 3 > > TempContactForce;
-                TempContactForce.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES));
+                    vector< array_1d<double, 3 > > TempContactForce;
+                    TempContactForce.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES));
 
-                vector< int > TempContactFailureId;
-                TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
+                    vector< int > TempContactFailureId;
+                    TempContactFailureId.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID));
+        
+                    vector< double > TempContactDelta;
+                    TempContactDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA));
+
+                    vector< double > TempRotateSpringFailType;
+                    TempRotateSpringFailType.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE));
+
+                    vector< array_1d<double, 3 > > TempRotateSpringMoment;
+                    TempRotateSpringMoment.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT));
+                    
+                    //CLEARING AND INITIALITZING
+
+                    (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
+                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
+                    
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
     
-                vector< double > TempContactDelta;
-                TempContactDelta.swap((*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA));
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
 
-                vector< double > TempRotateSpringFailType;
-                TempRotateSpringFailType.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE));
+                    /*
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
+                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
 
-                vector< array_1d<double, 3 > > TempRotateSpringMoment;
-                TempRotateSpringMoment.swap((*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT));
-                
-                //CLEARING AND INITIALITZING
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
+                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
+                    */
+      
+                    // GETTING NEW NEIGHBOURS
 
-                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
-                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
-                
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
- 
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
+                    double radius = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                    int InitialNeighbourSize = (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS).size();
+                    int OldNeighbourSize = TempIds.size();
+                    unsigned int neighbour_counter = 0;
 
-                /*
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
-
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
-                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
-                */
-   
-                // GETTING NEW NEIGHBOURS
-
-                double radius = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                int InitialNeighbourSize = (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS).size();
-                int OldNeighbourSize = TempIds.size();
-                unsigned int neighbour_counter = 0;
-
-                for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
-                {
-                    double initial_delta = 0.0;
-                    int failure_id       = 1;
-                    int ini_failure      = 0;
-                    double indentation   = 0.0;
-                    
-                    bool already_added = false;
-                    
-                    Timer::Start("ADD");
-                    //Add Elements to ghost mesh //TODO: Add elements to local mesh (NYI)
-                    Add_To_Modelpart(r_model_part,neighbour_it);
-                    Timer::Stop("ADD");
-                             
-                    for (int IniNeighbourCounter = 0; IniNeighbourCounter != InitialNeighbourSize; IniNeighbourCounter++)
+                    for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
                     {
-                        if ( static_cast<int>((*neighbour_it)->Id()) == (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS)[IniNeighbourCounter]) // is this and initial neighbour?
+                        double initial_delta = 0.0;
+                        int failure_id       = 1;
+                        int ini_failure      = 0;
+                        double indentation   = 0.0;
+                        
+                        bool already_added = false;
+                        
+                        Timer::Start("ADD");
+                        //Add Elements to ghost mesh //TODO: Add elements to local mesh (NYI)
+                        Add_To_Modelpart(r_model_part,neighbour_it);
+                        Timer::Stop("ADD");
+                                
+                        for (int IniNeighbourCounter = 0; IniNeighbourCounter != InitialNeighbourSize; IniNeighbourCounter++)
                         {
-                            initial_delta = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[IniNeighbourCounter];
-                            ini_failure = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_FAILURE_ID)[IniNeighbourCounter]; 
-                        }
-                    } //getting initial deltas and initial failure values. 
-                    
-                    for (int OldNeighbourCounter = 0; OldNeighbourCounter != OldNeighbourSize; OldNeighbourCounter++)
-                    {
-                        if (static_cast<int>((*neighbour_it)->Id()) == TempIds[OldNeighbourCounter]) // is this and old neighbour?
-                        {
-                            failure_id                          = TempContactFailureId[OldNeighbourCounter];
-                            double other_radius                 = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-                            array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
-                            double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                                  other_to_me_vect[1] * other_to_me_vect[1] +
-                                                                  other_to_me_vect[2] * other_to_me_vect[2]);
-                            double radius_sum                   = radius + other_radius;
-                            double indentation                  = radius_sum - distance - initial_delta;
-
-                            if ( indentation >= -1.0e-6 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.
+                            if ( static_cast<int>((*neighbour_it)->Id()) == (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS)[IniNeighbourCounter]) // is this and initial neighbour?
                             {
-                                already_added = true;
-    
-                                (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                                initial_delta = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[IniNeighbourCounter];
+                                ini_failure = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_FAILURE_ID)[IniNeighbourCounter]; 
+                            }
+                        } //getting initial deltas and initial failure values. 
+                        
+                        for (int OldNeighbourCounter = 0; OldNeighbourCounter != OldNeighbourSize; OldNeighbourCounter++)
+                        {
+                            if (static_cast<int>((*neighbour_it)->Id()) == TempIds[OldNeighbourCounter]) // is this and old neighbour?
+                            {
+                                failure_id                          = TempContactFailureId[OldNeighbourCounter];
+                                double other_radius                 = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+                                array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
+                                double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                                      other_to_me_vect[1] * other_to_me_vect[1] +
+                                                                      other_to_me_vect[2] * other_to_me_vect[2]);
+                                double radius_sum                   = radius + other_radius;
+                                double indentation                  = radius_sum - distance - initial_delta;
 
-                                size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                                if ( indentation >= -1.0e-6 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.
+                                {
+                                    already_added = true;
+        
+                                    (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
 
-                                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
-                                (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = TempContactForce[OldNeighbourCounter][0];
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = TempContactForce[OldNeighbourCounter][1];
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = TempContactForce[OldNeighbourCounter][2];
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];
-                                (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = TempRotateSpringFailType[OldNeighbourCounter];
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = failure_id;
-                                (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
+                                    size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+
+                                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+                                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = TempContactForce[OldNeighbourCounter][0];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = TempContactForce[OldNeighbourCounter][1];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = TempContactForce[OldNeighbourCounter][2];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = TempRotateSpringMoment[OldNeighbourCounter][0];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = TempRotateSpringMoment[OldNeighbourCounter][1];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = TempRotateSpringMoment[OldNeighbourCounter][2];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = TempRotateSpringFailType[OldNeighbourCounter];
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = failure_id;
+                                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
+                                }
                             }
                         }
-                    }
-                    
-                    //Not old ones
-                    
-                    double other_radius = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-                    
-                    array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
- 
-                    double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                           other_to_me_vect[1] * other_to_me_vect[1] +
-                                           other_to_me_vect[2] * other_to_me_vect[2]);
+                        
+                        //Not old ones
+                        
+                        double other_radius = (*neighbour_it)->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+                        
+                        array_1d<double,3> other_to_me_vect = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
+    
+                        double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                              other_to_me_vect[1] * other_to_me_vect[1] +
+                                              other_to_me_vect[2] * other_to_me_vect[2]);
 
-                    double radius_sum = radius + other_radius;
-                    indentation = radius_sum - distance - initial_delta;
+                        double radius_sum = radius + other_radius;
+                        indentation = radius_sum - distance - initial_delta;
 
-                    if ( (already_added == false) && (indentation > 0.0))
-                    {
-                        (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                        if ( (already_added == false) && (indentation > 0.0))
+                        {
+                            (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                        
+                            size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                        
+                            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+                            (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = 0.0;
+                            (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = 1;
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = 1;
+                            (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
+                        }
+
+                        ++neighbour_counter;
+
+                    } // for each neighbour, neighbour_it.
                     
-                        size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                    Timer::Start("SORT");
+                    Sort_Modelpart(r_model_part);
+                    Timer::Stop("SORT");
                     
-                        (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
-                        (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = 1;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = 1;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = initial_delta;
-                    }
-
-                    ++neighbour_counter;
-
-                } // for each neighbour, neighbour_it.
-                
-                Timer::Start("SORT");
-                Sort_Modelpart(r_model_part);
-                Timer::Stop("SORT");
-                
-            }//Loop for evey particle as a base.
+                }//Loop for evey particle as a base.
+            }
             Timer::Stop("PROCESS");
             
             KRATOS_CATCH("")
