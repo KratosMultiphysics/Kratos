@@ -55,7 +55,10 @@ namespace Kratos
       /// Destructor.
       virtual ~FowardEulerScheme(){}
       
-
+      virtual NodesArrayType& GetNodes(ModelPart& model_part)
+      {
+          return model_part.Nodes(); 
+      }
 
      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
@@ -70,7 +73,7 @@ namespace Kratos
         KRATOS_TRY
 
 	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-	NodesArrayType& pNodes           = model_part.Nodes(); 
+	NodesArrayType& pNodes            = GetNodes(model_part);
         
 	double aux                  = 0;
 	double delta_t              = rCurrentProcessInfo[DELTA_TIME];
@@ -209,7 +212,7 @@ namespace Kratos
         KRATOS_TRY   
      
 	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-	NodesArrayType& pNodes           = model_part.Nodes();
+    NodesArrayType& pNodes            = GetNodes(model_part);
 
 	
 	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
