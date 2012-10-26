@@ -78,7 +78,7 @@ node_1 = FindNode(model_part.Nodes, 1.53624,   1.53022,   0.00000)
 solver.Initialize()
 
 Dt = 0.1
-nsteps = 100
+nsteps = 76
 
 gid_io.InitializeResults(mesh_name,(model_part).GetMesh())
 
@@ -107,6 +107,8 @@ for step in range(0,nsteps):
         gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,model_part,time)
     
 
+tf = clock()
+print "Time = ", 0.50*(tf-t0); 
 gid_io.FinalizeResults()
 print "COMPLETED ANALYSIS"
     
