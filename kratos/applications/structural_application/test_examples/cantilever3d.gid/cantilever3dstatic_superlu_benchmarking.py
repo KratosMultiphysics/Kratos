@@ -146,10 +146,10 @@ elif(Kratos_Structural_Application_var.Convergence_Criteria == "Or_Criteria"):
 
 
 
-node_1 = model_part.Nodes[3]
-node_2 = model_part.Nodes[6]
+node_1 = model_part.Nodes[2785]
+node_2 = model_part.Nodes[2778]
 node_3 = model_part.Nodes[1]
-node_4 = model_part.Nodes[2]
+node_4 = model_part.Nodes[104]
 
 solver.Initialize()
 (solver).SetEchoLevel(2);
