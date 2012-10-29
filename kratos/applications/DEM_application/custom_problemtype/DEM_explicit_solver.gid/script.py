@@ -10,7 +10,6 @@ from KratosMultiphysics.DEMApplication import *
 
 #defining a model part for the solid part
 my_timer=Timer();
-solid_model_part = ModelPart("SolidPart");  
 #############################################
 
 #introducing input file name
@@ -192,7 +191,6 @@ prox_tol = 0.000001 * min_radius  #currently not in use.
 bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargement_factor)
 
 solver.enlargement_factor = bounding_box_enlargement_factor
-
 
 #Initialize the problem.
 
@@ -513,13 +511,12 @@ while(time < final_time):
 	  multifile_50.write(input_file_name+'_'+str(time)+'.post.bin\n')
 	  
 	  index_50=0
-	
-	os.chdir(main_path)
-	
 	 
 	index_5 += 1
 	index_10 += 1
 	index_50 += 1
+	
+	os.chdir(main_path)
        
         sys.stdout.flush()      
         gid_io.FinalizeResults()    
