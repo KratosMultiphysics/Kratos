@@ -343,6 +343,7 @@ stresslist.append(0.0)
 
 strain=0.0	    
 
+
 while(time < final_time):
   
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -524,6 +525,23 @@ while(time < final_time):
         gid_io.FinalizeResults()    
 	time_old_print = time
     
+    #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+    
+    for element in solid_model_part.Elements:
+	
+	element.SetValue(SKIN_SPHERE,0)
+	node = element.GetNode(0)
+	x = node.X
+	y = node.Y
+	z = node.Z
+	r = node.GetSolutionStepValue(RADIUS,0)
+	h=0.3
+	d=0.15
+	eps=2
+	
+	if ( (((d/2-eps*r)*(d/2-eps*r))<=(x*x+z*z)<=(eps*d/2*eps*d/2)) or (-0.1<=y<=eps*r) or (h-eps*r<=y<=h*eps) ): #For a tube test with the center of the base at (0,0,0)
+           element.SetValue(SKIN_SPHERE,1)
+
    
     step += 1
 
