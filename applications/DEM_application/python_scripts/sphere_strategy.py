@@ -63,7 +63,8 @@ class ExplicitStrategy:
     
     def __init__(self,model_part,domain_size):
 
-        self.model_part                     = model_part
+        self.model_part                     = model_part    
+        self.contact_model_part             = ModelPart("ContactModelPart")
         self.domain_size                    = domain_size
         self.damping_ratio                  = 0.00;
         self.penalty_factor                 = 10.00
@@ -178,22 +179,26 @@ class ExplicitStrategy:
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
         
+        #copying the nodes to the new model part
+        self.contacts_model_part.Nodes() = self.model_part.Nodes();
 
- #######################################################################
+
+    #######################################################################
     def Initial_Critical_Time(self):
         (self.solver).InitialCriticalTime()   
 
     #######################################################################   
     def Solve(self):
         (self.solver).Solve()
+
     
      #######################################################################
 
-    def Calculate_Model_Surrounding_Bounding_Box(self, model_part, enlargement_factor):
-        self.create_and_destroy.calculate_surrounding_bounding_box( model_part, enlargement_factor)
+    #def Calculate_Model_Surrounding_Bounding_Box(self, model_part, enlargement_factor):
+        #self.create_and_destroy.calculate_surrounding_bounding_box( model_part, enlargement_factor)
 
-    def Destroy_Particles(self, model_part):
-        self.create_and_destroy.destroy_distant_particles( model_part)
+    #def Destroy_Particles(self, model_part):
+        #self.create_and_destroy.destroy_distant_particles( model_part)
 
         
         
