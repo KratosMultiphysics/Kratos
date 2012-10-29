@@ -171,18 +171,17 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(GLOBAL_FRI_ANG, self.global_fri_ang)
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
-       
+        
         #creating the solution strategy
         self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
-                                            self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
+                                            self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)       
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
-
+        
 
  #######################################################################
     def Initial_Critical_Time(self):
-        (self.solver).InitialCriticalTime()
-        print("gfaoo")
+        (self.solver).InitialCriticalTime()   
 
     #######################################################################   
     def Solve(self):

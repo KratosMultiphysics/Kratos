@@ -275,7 +275,7 @@ namespace Kratos {
                 double new_extension = 2.0; ///WARNING: PROVISIONALLY SET AS 2.0. SHOULD BE CALCULATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 //####################################################################################################################
               
-                Radius[particle_pointer_it - pIteratorElements.begin()] = new_extension;//(1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                Radius[particle_pointer_it - pIteratorElements.begin()] = new_extension*((1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
             }
             
             ///Aqui es fa la cerca
@@ -361,7 +361,7 @@ namespace Kratos {
                     {
                         double initial_delta = 0.0;
                         int failure_id       = 1;
-                        int ini_failure      = 0;
+                        //int ini_failure      = 0;
                         double indentation   = 0.0;
                         
                         bool already_added = false;
@@ -376,7 +376,7 @@ namespace Kratos {
                             if ( static_cast<int>((*neighbour_it)->Id()) == (*particle_pointer_it)->GetValue(INI_NEIGHBOURS_IDS)[IniNeighbourCounter]) // is this and initial neighbour?
                             {
                                 initial_delta = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_DELTA)[IniNeighbourCounter];
-                                ini_failure = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_FAILURE_ID)[IniNeighbourCounter]; 
+                                //ini_failure = (*particle_pointer_it)->GetValue(PARTICLE_INITIAL_FAILURE_ID)[IniNeighbourCounter]; 
                             }
                         } //getting initial deltas and initial failure values. 
                         

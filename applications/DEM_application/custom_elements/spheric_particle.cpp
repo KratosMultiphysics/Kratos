@@ -135,7 +135,7 @@ namespace Kratos
       }
 
         void SphericParticle::SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
-        {
+        {           
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
 
@@ -239,6 +239,7 @@ namespace Kratos
 
                 i++;
 
+              
             } //end for: ParticleWeakIteratorType ineighbour
 
 
@@ -248,6 +249,7 @@ namespace Kratos
        void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
 
        {
+           
 
             KRATOS_TRY
 
@@ -463,8 +465,25 @@ namespace Kratos
 
                 double radius_sum                   = radius + other_radius;
 
+              
+                
+                
+                
                 double indentation                  = radius_sum - distance - initial_delta; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
 
+                  if (this->Id()== 491000)
+                {       
+                    
+                    KRATOS_WATCH(radius_sum)
+                    KRATOS_WATCH(distance)
+                    KRATOS_WATCH(initial_delta)
+                    KRATOS_WATCH(indentation)
+            
+                      
+                }
+                
+                
+                
                 double equiv_radius     = 2* radius * other_radius / (radius + other_radius);
                 double equiv_area       = M_PI * equiv_radius * equiv_radius;
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
@@ -682,10 +701,19 @@ namespace Kratos
 
                 // FORCES
 
+            
 
                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                               // for attached particles we enter only if the particle is still attached.
                 {
+             
+                    
+                                              if (this->Id()== 491000)
+                {       KRATOS_WATCH(neighbour_iterator->Id())
+                                                  KRATOS_WATCH(kn)
+                        KRATOS_WATCH(indentation)
+                      
+                }
                                 
                 // NORMAL FORCE
 
@@ -698,6 +726,8 @@ namespace Kratos
                             else {LocalContactForce[2]= kn * indentation; }
                             break;
 
+            
+                            
                         case 1:
 
                             if(indentation >= 0.0) {LocalContactForce[2]= kn * pow(indentation, 1.5); }
@@ -722,13 +752,17 @@ namespace Kratos
                 if ( (indentation <= 0.0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) )
 
                 {
+                                    
                     LocalContactForce[0] = 0.0;  // 0: first tangential
                     LocalContactForce[1] = 0.0;  // 1: second tangential
                     LocalContactForce[2] = 0.0;  // 2: normal force
                 }
 
                 // TENSION FAILURE
-
+                if (this->Id()== 491000)
+                {       KRATOS_WATCH(LocalContactForce[2])
+                        KRATOS_WATCH(RN)
+                }
                 if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
 
                 {
@@ -770,10 +804,17 @@ namespace Kratos
                     LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
 
                     //mContactFailureId = 4; // Shear failure case.
+                    
+              
                    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4;
 
                    sliding = true;
 
+                }
+                
+                        if (this->Id()== 491000)
+                {       KRATOS_WATCH(ShearForceNow)
+                        KRATOS_WATCH(ShearForceMax)
                 }
 
                 //Saving failure to initial neighbour:
@@ -873,7 +914,7 @@ namespace Kratos
                     mRota_Moment[2] -= MA[2] * radius;
 
                     }
-
+                    
                     iContactForce++;
 
             }//for each neighbour
@@ -1289,9 +1330,10 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
 
           if( (case_opt!=0) && (neighbours_initialized == 0) )
           {
-
-                SetInitialContacts(case_opt, rCurrentProcessInfo);
               
+              
+                SetInitialContacts(case_opt, rCurrentProcessInfo);
+                
           }
 
           array_1d<double,3>& rhs            = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.

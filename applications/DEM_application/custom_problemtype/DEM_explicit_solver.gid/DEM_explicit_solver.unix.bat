@@ -5,8 +5,8 @@
 
 #rm -f $2/${1}_*.post.bin
 
-#rm -f $2/$1_Post_Files/${1}_*.post.bin
-#rm -f $2/$1_Neigh_Lists/neigh_list_*.post.bin
+rm -f $2/$1_Post_Files/${1}_*.post.bin
+rm -f $2/$1_Neigh_Lists/neigh_list_*
 rm $2/$1.info
 rm $2/$1.flavia.dat
 rm $2/$1.mdpa
