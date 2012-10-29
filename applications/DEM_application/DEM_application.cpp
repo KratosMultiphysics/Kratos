@@ -22,6 +22,7 @@
 #include "DEM_application.h"
 #include "geometries/point_3d.h"
 #include "geometries/point_2d.h"
+#include "geometries/line_3d_2.h"
 
 namespace Kratos
 {
@@ -72,8 +73,9 @@ namespace Kratos
 	mSphericParticle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mSphericParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mDEM_FEM_Particle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-        mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) )
-
+        mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+        mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+                             
 	{}
         
 	void KratosDEMApplication::Register()
@@ -131,6 +133,9 @@ namespace Kratos
 
                 KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle2D", mDEM_FEM_Particle2D)
                 KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle3D", mDEM_FEM_Particle3D)
+                        
+                KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
+                
 
 	
         }
