@@ -21,6 +21,7 @@
 
 #include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
 #include "includes/variables.h"
+#include "DEM_application.h"
 
 /* System includes */
 #include <limits>
@@ -175,6 +176,7 @@ namespace Kratos
 //               for(int i = 0; i < 30; i++)
 //                   Neighbours_Calculator<2, DiscreteElement>::parallel_partitioning(r_model_part,true);
 //               #endif
+
               InitializeElements();
           }
           
@@ -676,13 +678,10 @@ namespace Kratos
             typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
             typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
             
-            std::cout << pElements.size() << " " << element_partition[k+1] << std::endl;
-            
+                   
             for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
             {   
-                std::cout << it-it_begin << std::endl;
-                //Element::GeometryType& geom = it->GetGeometry();
-              
+                            
                 (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
                                           
             } //loop over particles
@@ -690,7 +689,9 @@ namespace Kratos
         }// loop threads OpenMP
 
         //modifying a switch
-    
+        rCurrentProcessInfo.SetValue(NEIGH_INITIALIZED,1);
+     
+  
         KRATOS_CATCH("")
     }  //Set_Initial_Contacts
     
