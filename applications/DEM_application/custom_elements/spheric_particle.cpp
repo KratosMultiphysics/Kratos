@@ -326,12 +326,12 @@ namespace Kratos
             
             int n_neighbours = r_neighbours.size();
             
-            array_1d<double,3> other_to_me_vect_sum;
+            /*array_1d<double,3> other_to_me_vect_sum;
             other_to_me_vect_sum[0] = 0.0;
             other_to_me_vect_sum[1] = 0.0;
             other_to_me_vect_sum[2] = 0.0;
             
-            double other_radius_sum = 0.0;
+            double other_radius_sum = 0.0;*/
                       
             //DETERMINING SKIN OR NOT
             
@@ -343,7 +343,7 @@ namespace Kratos
                 double equiv_area       = 4*M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius));
                 total_equiv_area += equiv_area;
               
-                array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+                /*array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
                 double other_to_me_vect_norm = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                          other_to_me_vect[1] * other_to_me_vect[1] +
                                                          other_to_me_vect[2] * other_to_me_vect[2]);
@@ -358,21 +358,21 @@ namespace Kratos
                 other_to_me_vect_sum[1] +=  other_to_me_vect[1]*other_radius*other_radius;
                 other_to_me_vect_sum[2] +=  other_to_me_vect[2]*other_radius*other_radius;
                 
-                other_radius_sum += other_radius*other_radius;
+                other_radius_sum += other_radius*other_radius;*/
                 
             } //for every neighbour
             
-            double vect_sum_norm = sqrt(other_to_me_vect_sum[0] * other_to_me_vect_sum[0] +
+            /*double vect_sum_norm = sqrt(other_to_me_vect_sum[0] * other_to_me_vect_sum[0] +
                                                          other_to_me_vect_sum[1] * other_to_me_vect_sum[1] +
                                                          other_to_me_vect_sum[2] * other_to_me_vect_sum[2]);
             
-            double average_other_radius = 2.0*other_radius_sum/n_neighbours;
+            double average_other_radius = 2.0*other_radius_sum/n_neighbours;*/
             
-            int& skin_sphere = this->GetValue(SKIN_SPHERE);
+            //int& skin_sphere = this->GetValue(SKIN_SPHERE);
+            int skin_sphere = this->GetValue(SKIN_SPHERE);
+            //skin_sphere = 0;
             
-            skin_sphere = 0;
-            
-            if (n_neighbours < 4){
+            /*if (n_neighbours < 4){
 
                 skin_sphere = 1;
             }
@@ -388,7 +388,7 @@ namespace Kratos
                     
                     skin_sphere = 0;
                 }
-            }
+            }*/
             
             
             for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
