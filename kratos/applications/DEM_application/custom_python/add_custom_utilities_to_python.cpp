@@ -77,9 +77,9 @@ void  AddCustomUtilitiesToPython(){
      class_<Particle_Creator_Destructor, boost::noncopyable >
     ( "particle_destructor_and_constructor",
       init<>() )
-    .def( "calculate_surrounding_bounding_box", &Particle_Creator_Destructor::CalculateSurroundingBoundingBox )
-    .def( "destroy_distant_particles", &Particle_Creator_Destructor::DestroyDistantParticles )
-    .def( "calculate_surrounding_bounding_box_given_box", &Particle_Creator_Destructor::DestroyDistantParticlesGivenBBox )
+    //.def( "calculate_surrounding_bounding_box", &Particle_Creator_Destructor::CalculateSurroundingBoundingBox )
+    //.def( "destroy_distant_particles", &Particle_Creator_Destructor::DestroyDistantParticles )
+    //.def( "calculate_surrounding_bounding_box_given_box", &Particle_Creator_Destructor::DestroyDistantParticlesGivenBBox )
     ;
 
     }
