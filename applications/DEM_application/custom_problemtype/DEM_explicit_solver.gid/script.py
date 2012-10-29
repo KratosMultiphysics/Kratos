@@ -3,6 +3,7 @@ import DEM_explicit_solver_var
 import time as timer
 import os
 import sys
+import math
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -333,7 +334,14 @@ control = 0.0
 cond = 0
 
 os.chdir(main_path)
-	    
+
+#Adding stress and strain lists
+strainlist=[]
+strainlist.append(0.0)
+stresslist=[]
+stresslist.append(0.0)
+
+strain=0.0	    
 
 while(time < final_time):
   
@@ -360,7 +368,18 @@ while(time < final_time):
 	
 	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
 	total_force += force_node_y
+
+
+    #For a test tube with a 15 cm diameter
+    total_stress = total_force/(math.pi*75*75) #Stress in MPa
+    stresslist.append(total_stress)
+
+
+    #For a test tube of height 30 cm
+    strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
+    strainlist.append(strain)
 	   
+
     #writing lists to be printed
     forcelist.append(total_force)
     timelist.append(time)
@@ -539,6 +558,18 @@ if (1<2):
   #ylim(-5.0,103870403.214)
   #legend(('force'))
   savefig('Grafic_1')
+
+if (1<2):
+  clf()
+  plot(strainlist,stresslist,'b-')
+  grid(True)
+  title('Stress - Strain')
+  xlabel('Strain')
+  ylabel('Stress (MPa)')
+  #xlim(0.0,70000)
+  #ylim(-5.0,103870403.214)
+  #legend(('force'))
+  savefig('stress_strain')
   
 if (1<2):
   clf()
