@@ -27,6 +27,8 @@
 #include "includes/variables.h"
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
+#include "custom_elements/Particle_Contact_Element.h"
+
 
 const long double pi = 3.141592653589793238462643383279;
 
@@ -206,6 +208,8 @@ private:
 
     const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const DEM_FEM_Particle mDEM_FEM_Particle3D;
+    
+    const Particle_Contact_Element mParticleContactElement;
 
 
     //       static const ApplicationCondition  msApplicationCondition;
