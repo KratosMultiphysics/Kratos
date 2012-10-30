@@ -437,13 +437,13 @@ public:
             const double eps_i = mEps[i_node];
             //const double d_i = mD[i_node];
             double nu = mViscosity[i_node];
-            const double lindarcy_i = mA[i_node];
-            const double nonlindarcy_i = mB[i_node];
+//            const double lindarcy_i = mA[i_node];
+//            const double nonlindarcy_i = mB[i_node];
 
             double vel_norm = norm_2(v_i);
 
             //double porosity_coefficient = ComputePorosityCoefficient(nu, vel_norm, eps_i, d_i);
-            double porosity_coefficient = ComputePorosityCoefficient( vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
+//            double porosity_coefficient = ComputePorosityCoefficient( vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
             vel_norm /= eps_i;
 
             //use CFL condition to compute time step size
@@ -1119,7 +1119,7 @@ public:
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 #ifdef _OPENMP
-        double time_inv = 0.0; //1.0/delta_t;
+//        double time_inv = 0.0; //1.0/delta_t;
 
         //read the pressure projection from the database
 #endif
@@ -1133,7 +1133,7 @@ public:
 
         //loop over all nodes
 //            double rho_inv = 1.0 / mRho;
-        #pragma omp parallel for firstprivate(time_inv)
+        #pragma omp parallel for 
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
 
@@ -1361,7 +1361,7 @@ public:
 
         //compute pressure proj for the next step
 
-        #pragma omp parallel for firstprivate(time_inv), private(work_array)
+        #pragma omp parallel for  private(work_array)
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
             array_1d<double, TDim>& xi_i = mXi[i_node];
@@ -1434,7 +1434,7 @@ public:
             {
                 array_1d<double, TDim>& U_i_curr = mvel_n1[i_node];
                 double delta_p_i = (mPn1[i_node] - mPn[i_node]) * rho_inv*factor;
-                const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
+//                const double m_inv = mr_matrix_container.GetInvertedMass()[i_node];
 
                 //setting to zero
                 for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
@@ -2662,7 +2662,7 @@ public:
         mWallLawIsActive = true;
         mY_wall = Ywall;
 
-        for (int i = 0; i < mWallReductionFactor.size(); i++)
+        for (unsigned int i = 0; i < mWallReductionFactor.size(); i++)
             mWallReductionFactor[i] = 1.0 ;
 
     }

@@ -134,7 +134,7 @@ public:
         noalias(center) = ZeroVector(3);
         double area=0.0;
         double volume=0.0;
-        int fail=0.0;
+//        int fail=0.0;
         //int idx;
         //ModelPart::ElementsContainerType& rElements = model_part.Elements();  // to introduce elements container
         //ModelPart::NodesContainerType& rNodes = model_part.Nodes(); // to introduce Nodes container
@@ -315,10 +315,10 @@ public:
                 KRATOS_WATCH("QUADRILATERAL, please change the formula for volume");
                 //volume/=-3.0;
             }
-            else
-            {
-                fail=1.0;
-            }
+//            else
+//            {
+//                fail=1.0;
+//            }
         }
         //return fail;
         return volume;

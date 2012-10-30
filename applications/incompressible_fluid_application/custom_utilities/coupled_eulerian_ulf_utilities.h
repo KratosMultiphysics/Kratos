@@ -883,7 +883,7 @@ public:
                 Properties::Pointer properties = destination_model_part.GetMesh().pGetProperties(1);
                 Geometry< Node<3> >::Pointer geom = im->pGetGeometry();
                 //checks if the intersection is too close to any of the vertices
-                bool bad_intersection=false;
+//                bool bad_intersection=false;
                 //create new condition
 
                 array_1d<double,3> Point1;
@@ -900,8 +900,8 @@ public:
                     if (N[i]<0.00000000000001)
                         which_edge1=i;
                 }
-                if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
-                    bad_intersection=true;
+//                if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
+//                    bad_intersection=true;
 
                 CalculateN_at_Point(im->GetGeometry(), Point2[0], Point2[1], N);
                 for (int i=0; i<3; i++)
@@ -909,8 +909,8 @@ public:
                     if (N[i]<0.00000000000001)
                         which_edge2=i;
                 }
-                if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
-                    bad_intersection=true;
+//                if ( (N[0]<0.1 && N[1]<0.1) || (N[0]<0.1 && N[2]<0.1) || (N[2]<0.1 && N[1]<0.1))
+//                    bad_intersection=true;
 
                 //add only if two intersections intersect two different edges, and no intersection is close to the vertex
 

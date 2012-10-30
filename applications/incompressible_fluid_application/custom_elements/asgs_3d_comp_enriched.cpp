@@ -646,12 +646,12 @@ void ASGS3D_COMP_ENR::CalculatePressureTerm(MatrixType& K, const boost::numeric:
 
 double distance=GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
 
-bool cut_element=false;
+//bool cut_element=false;
 for (int i =1; i<nodes_number; i++)
     {
         if (distance*GetGeometry()[i].FastGetSolutionStepValue(DISTANCE)<0.0)
         {
-            cut_element=true;
+//            cut_element=true;
             break;
         }
     }

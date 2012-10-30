@@ -374,7 +374,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
     residual[1]   = sigma_b - fact1;
     KRATOS_WATCH(residual)
 
-    int singular  = 0.00;
+//    int singular  = 0.00;
     double norma  = norm_2(residual);
 //  double phipsi = 0.00;
     Vector Imput_Parameters;
@@ -404,7 +404,7 @@ bool Standard_Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d
         d(1,0) = -b - 4.00 * cosphi * cosphi *  Partial_Cohesion;
         d(1,1) = -a - 4.00 * cosphi * cosphi *  Partial_Cohesion;
 
-        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         ddgama   = -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB

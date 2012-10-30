@@ -934,7 +934,7 @@ void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVa
 
         CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
 
-        double weight,loc1,loc2,loc3;
+        double /*weight,*/loc1,loc2,loc3;
         //double h = GetProperties()[THICKNESS];
 // 			double h = 1.0; //note that we want the stress NOT the stress multiplied by the thickness
 
@@ -946,7 +946,7 @@ void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVa
 
         //here we calculate everything in the local system of coordinates
         //calculate integration point 1
-        weight = A;
+//        weight = A;
         loc1 = 0.33333333333333;
         loc2 = 0.33333333333333;
         loc3 = 0.33333333333333;
@@ -1004,7 +1004,7 @@ void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<double >& rVa
 
         CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,A);
 
-        double weight,loc1,loc2,loc3;
+        double /*weight,*/loc1,loc2,loc3;
         //double h = GetProperties()[THICKNESS];
         double h = 1.0; //note that we want the stress NOT the stress multiplied by the thickness
 
@@ -1016,7 +1016,7 @@ void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<double >& rVa
 
         //here we calculate everything in the local system of coordinates
         //calculate integration point 1
-        weight = A;
+//        weight = A;
         loc1 = 0.33333333333333;
         loc2 = 0.33333333333333;
         loc3 = 0.33333333333333;

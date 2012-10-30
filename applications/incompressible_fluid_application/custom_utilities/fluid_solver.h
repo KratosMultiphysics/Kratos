@@ -692,7 +692,7 @@ public:
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 #ifdef _OPENMP
-        double time_inv = 0.0; //1.0/delta_t;
+//        double time_inv = 0.0; //1.0/delta_t;
 
         //read the pressure projection from the database
 #endif
@@ -702,7 +702,7 @@ public:
         mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, rNodes);
         mr_matrix_container.FillOldVectorFromDatabase(VELOCITY, mvel_n, rNodes);
 
-        #pragma omp parallel for firstprivate(time_inv)
+        #pragma omp parallel for 
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
 
@@ -874,7 +874,7 @@ public:
 
         //compute pressure proj for the next step
 
-        #pragma omp parallel for firstprivate(time_inv), private(work_array)
+        #pragma omp parallel for  private(work_array)
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
             array_1d<double, TDim>& xi_i = mXi[i_node];

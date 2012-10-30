@@ -1082,7 +1082,7 @@ public:
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
 #ifdef _OPENMP
-        double time_inv = 0.0; //1.0/delta_t;
+//        double time_inv = 0.0; //1.0/delta_t;
 
         //read the pressure projection from the database
 #endif
@@ -1095,7 +1095,7 @@ public:
 
         //loop over all nodes
 //            double rho_inv = 1.0 / mRho;
-        #pragma omp parallel for firstprivate(time_inv)
+        #pragma omp parallel for 
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
 
@@ -1323,7 +1323,7 @@ public:
 
         //compute pressure proj for the next step
 
-        #pragma omp parallel for firstprivate(time_inv), private(work_array)
+        #pragma omp parallel for  private(work_array)
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
             array_1d<double, TDim>& xi_i = mXi[i_node];
@@ -3530,7 +3530,7 @@ private:
         //parameters:
         double k = 0.41;
         double B = 5.1;
-        double density = mRho;
+//        double density = mRho;
         double mu = mViscosity;
         double toll = 1e-6;
         double ym = mY_wall; //0.0825877; //0.0093823
@@ -3542,7 +3542,7 @@ private:
 
         //slip condition
         int slip_size = mSlipBoundaryList.size();
-        #pragma omp parallel for firstprivate(slip_size,B,density,mu,toll,ym,y_plus_incercept,itmax)
+        #pragma omp parallel for firstprivate(slip_size,B,mu,toll,ym,y_plus_incercept,itmax)
         for (int i_slip = 0; i_slip < slip_size; i_slip++)
         {
             unsigned int i_node = mSlipBoundaryList[i_slip];

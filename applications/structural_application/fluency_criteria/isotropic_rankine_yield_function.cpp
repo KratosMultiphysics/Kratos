@@ -377,7 +377,7 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
 
     unsigned int iter    = 0;
     unsigned int max     = 1000;
-    int singular         = 0;
+//    int singular         = 0;
     const double E       = (*mprops)[YOUNG_MODULUS];
     const double NU      = (*mprops)[POISSON_RATIO];
     const double G       = 0.5*E / (1.00 + NU);
@@ -429,7 +429,7 @@ bool Isotropic_Rankine_Yield_Function::Two_Vector_Return_Mapping_To_Corner (cons
         d(1,0) =  2.00 * G / 3.00 - K  - H*Partial_Ep_gama_a;
         d(1,1)   = -4.00 * G / 3.00 - K  - H*Partial_Ep_gama_b;
 
-        singular      =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular      =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         delta_lamda   =  delta_lamda - Vector(prod(d_inv, residual));
         delta_lamda_a =  delta_lamda[0];
         delta_lamda_b =  delta_lamda[1];
@@ -547,7 +547,7 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
 
     unsigned int iter    = 0;
     unsigned int max     = 10;
-    int singular         = 0;
+//    int singular         = 0;
     double norma         = 1.00;
     double delta_lamda_a = 0.00;
     double delta_lamda_b = 0.00;
@@ -620,7 +620,7 @@ void Isotropic_Rankine_Yield_Function::Three_Vector_Return_Mapping_To_Apex(const
         d(2,1)  =  2.00 * G / 3.00 - K - prod_H_b;
         d(2,2)   =  -4.00 * G / 3.00 - K  - prod_H_c;
 
-        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         noalias(delta_lamda) =  delta_lamda - Vector(prod(d_inv, residual));
 
 

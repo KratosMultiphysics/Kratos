@@ -279,7 +279,7 @@ public:
 	{
 	    Geometry< Node<3> >& geom = it->GetGeometry();
 	    
-	    bool erase_el = false;
+//	    bool erase_el = false;
 	    for(unsigned int i=0; i<geom.size(); i++)
 	    {
 		if(geom[i].GetValue(ERASE_FLAG) == true)

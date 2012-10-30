@@ -284,14 +284,14 @@ public:
         KRATOS_WATCH("Solve of Runge Kutta GLS Frac Step Strategy")
         //we estimate the time step for the explicit time integration schem estability
         //ComputeTimeStep(0.8);
-        double dens_error=10000.0;
+//        double dens_error=10000.0;
         SolveStep1();
 
         //we write now the beginning of step pressure to OLD_IT to use it in the second frac step
         SavePressureIt();
         double Dp_norm = this->SolveStep2();
 
-        dens_error=UpdateDensityIdealGas();
+//        dens_error=UpdateDensityIdealGas();
         //if(this->mReformDofAtEachIteration == true )
         //		this->Clear();
         SolveStep3();

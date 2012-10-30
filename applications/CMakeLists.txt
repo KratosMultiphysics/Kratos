@@ -22,8 +22,7 @@ message("METIS_APPLICATION................... ${METIS_APPLICATION}")
 message("TRILINOS_APPLICATION................ ${TRILINOS_APPLICATION}")
 message("TURBULENT_FLOW_APPLICATION.......... ${TURBULENT_FLOW_APPLICATION}")
 message("BLOOD_FLOW_APPLICATION.............. ${BLOOD_FLOW_APPLICATION}")
-message("DEM_FEM_APPLICATION......................${DEM_FEM_APPLICATION}")
-message("WIND_TURBINE_APPLICATION............ ${WIND_TURBINE_APPLICATION}")
+message("PURE_DIFFUSION_APPLICATION.............. ${PURE_DIFFUSION_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -122,9 +121,10 @@ if(${BLOOD_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(blood_flow_application)
 endif(${BLOOD_FLOW_APPLICATION} MATCHES ON)
 
-if(${WIND_TURBINE_APPLICATION} MATCHES ON)
-  add_subdirectory(wind_turbine_application)
-endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
+if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
+  add_subdirectory(pure_diffusion_application)
+endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
+
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

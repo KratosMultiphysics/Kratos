@@ -565,7 +565,7 @@ public:
         array_1d<double, 3 > Xp_2;
         array_1d<double, 3 > intersection;
         double dist_node_point;
-        double dist_node_neigh;
+//        double dist_node_neigh;
         //double dist_neigh_point;
         double dist_node_intersect;
         double weight;
@@ -601,7 +601,7 @@ public:
             Xp_1 = Xp - Coord_Node_1;
             Xp_2 = Coord_Node_2 - Coord_Node_1;
             dist_node_intersect = (inner_prod(versor,Xp_1)) / (inner_prod(versor,Xp_2)) ; //line-plane interesection, this is a RELATIVE distance. ====>   point= Node1 + (Node2-Node1)*dist_node_intersect
-            dist_node_neigh = sqrt( pow((Coord_Node_1[0]- Coord_Node_2[0]),2) + pow((Coord_Node_1[1]- Coord_Node_2[1]),2) + pow((Coord_Node_1[2]- Coord_Node_2[2]),2) ) ; // distance between node and neighbour
+//            dist_node_neigh = sqrt( pow((Coord_Node_1[0]- Coord_Node_2[0]),2) + pow((Coord_Node_1[1]- Coord_Node_2[1]),2) + pow((Coord_Node_1[2]- Coord_Node_2[2]),2) ) ; // distance between node and neighbour
             if (dist_node_point<=(tolerance))  dist_node_intersect=0.0;  // if it's too close to the first node then we just set the weight as 1
             weight = (1.0 - dist_node_intersect) ;  // dist_node_neigh;
             //weight = dist_node_point / dist_node_neigh ; MAL!

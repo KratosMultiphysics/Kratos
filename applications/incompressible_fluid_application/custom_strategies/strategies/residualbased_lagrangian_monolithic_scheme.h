@@ -458,10 +458,10 @@ public:
     void CalculateSoundVelocity(ModelPart::NodesContainerType::iterator& base)
     {
         //calculate sound velocity in AIR
-        double air_rho = 0.0;
-        double air_pr = 0.0;
-        air_rho = base->FastGetSolutionStepValue(DENSITY_AIR );
-        air_pr = base->FastGetSolutionStepValue(AIR_PRESSURE);
+//        double air_rho = 0.0;
+//        double air_pr = 0.0;
+//        air_rho = base->FastGetSolutionStepValue(DENSITY_AIR );
+//        air_pr = base->FastGetSolutionStepValue(AIR_PRESSURE);
 
         //base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY) = 1.4*air_pr/air_rho;
         base->FastGetSolutionStepValue(AIR_SOUND_VELOCITY)= 340.0;

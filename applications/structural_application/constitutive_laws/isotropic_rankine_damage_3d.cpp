@@ -246,7 +246,7 @@ void IsotropicRankineDamage3D::CalculateMaterialResponse(const Vector& StrainVec
     array_1d<double,3> stress_eig;
     ComputeStressEigenvalues(stress,stress_eig);
 
-    double stress_norm = norm_2(stress);
+//    double stress_norm = norm_2(stress);
     double smax = stress_eig[0];
 
     

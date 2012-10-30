@@ -417,9 +417,9 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 	int i ;
 	TVertex *v0,*v1,*v2,*v3;
 	TTetra *t ;
-	bool centerUsed,  invalidCOnfig , result;
+	bool /*centerUsed,*/  invalidCOnfig , result;
 
-	centerUsed = false;
+//	centerUsed = false;
 	result = false;
 	newElements->Clear();
 	if (goodTetraList->Count()>0)
@@ -434,9 +434,9 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 			_t->isdestroyed = true;
 			_t->removeVertexRef();
 		}
-		//Añado los vertices centrales
-		if ((vC!= NULL) && (goodTetraList->indexOf(vC)>0) )
-			centerUsed = true;
+		//AÃ±ado los vertices centrales
+//		if ((vC!= NULL) && (goodTetraList->indexOf(vC)>0) )
+//			centerUsed = true;
 
 
 		// Creo los nuevos elementos
@@ -727,11 +727,11 @@ void evaluateClusterByEdge(TMesh *aMesh , double minExpectedQuality,TVertexesEva
 	TList<TObject*> *inspElements ; //, elements,vertexes,surfaceT,copyEL,vl: TList;
 	TList<TVertex*> *vl;
 	TVertex *v0, *v1;
-	double meshMinQ;
+//	double meshMinQ;
 	TTetra *t;
 	TElementsCluster *aCluster  ;
 
-	meshMinQ = 50000;
+//	meshMinQ = 50000;
 	aMesh->elementsToRemove->Clear();
 	aMesh->selectedElements->Clear();
 
