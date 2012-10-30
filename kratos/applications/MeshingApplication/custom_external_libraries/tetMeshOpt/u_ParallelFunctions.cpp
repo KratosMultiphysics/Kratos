@@ -429,7 +429,7 @@ void lpMeshSmooth(int i, int thId  ,TObject* destObject)
   TList<TObject*> *vList;
   TTetra *t;
   float4 initialPos ,proposed;
-  bool hasNegative;
+//  bool hasNegative;
   double minq,avgq ,minq2, avgq2 ,q,minVol,radius;
        TElementsCluster* aCluster =  (TElementsCluster*)destObject;
 	   TVertex *v = aCluster->inspVertex;
@@ -441,11 +441,11 @@ void lpMeshSmooth(int i, int thId  ,TObject* destObject)
 		minq = 1000000;
 		avgq = 0;
 		radius = 0;
-		hasNegative = false;
+//		hasNegative = false;
 		for (j=0 ; j<vList->Count() ; j++)
 		{
 			t = (TTetra*)(vList->elementAt(j)) ;
-			if (t->getVolume() < 0) hasNegative = true;
+//			if (t->getVolume() < 0) hasNegative = true;
 
 			q = diedralAngle(t->vertexes);
 			minq =Min(minq,q );

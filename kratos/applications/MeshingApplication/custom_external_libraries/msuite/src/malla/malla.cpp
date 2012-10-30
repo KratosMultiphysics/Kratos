@@ -1319,7 +1319,7 @@ bool malla::extrude(const char* tabfile)
     if (o) delete o;
     o=0; // octree
 
-    int i,j,k,start=0,nlen=n.len,elen=e.len,enlen;
+    int i,j,k,start=0,nlen=n.len,elen=e.len; //,enlen;
 
     n.resize(n.len*m.n.len);
     array1<elemento> eori=e;
@@ -1336,7 +1336,7 @@ bool malla::extrude(const char* tabfile)
             n+=n[i];
             nodo& ni=n.last();
             ni.setpos(p);
-            enlen=ni.e.len;
+//            enlen=ni.e.len;
         }
 
         //extruda los elementos

@@ -809,12 +809,12 @@ bool malla::blayer(
 )
 {
     int i,j,k,in,io,nv;
-    bool eoffset,noffset,haynoffset,hayrec,expande;
+    bool eoffset,noffset,haynoffset,hayrec; //,expande;
 
     // verifica deltas
-    for(i=0,expande=false; i<capas; i++)
+    for(i=0/*,expande=false*/; i<capas; i++)
     {
-        if (dcapa[i]<0) expande=true; //hay que recalcular bbox
+        //if (dcapa[i]<0) expande=true; //hay que recalcular bbox
         double delta=fabs(dcapa[i]-((i)? dcapa[i-1] : 0))/10;
         if (delta<ERRADM) return false;
         if (delta<epsilon) epsilon=delta;

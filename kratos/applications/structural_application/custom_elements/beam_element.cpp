@@ -489,7 +489,7 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
     noalias(Vector_zero) =	zero_vector<double>(3);
     noalias(Rotation)    =	zero_matrix<double> (12,12);
 
-    double nx, ny, nz,teta, phi;
+    double nx, ny, nz,teta/*, phi*/;
 
     x_zero(0)= GetGeometry()[0].X0();
     x_zero(1)= GetGeometry()[0].Y0();
@@ -519,17 +519,17 @@ void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
         if (ny == 0.0)
         {
             teta = 0.0;
-            phi  = PI/2.0;
+//            phi  = PI/2.0;
         }
-        else
-        {
-            phi = atan(nz/sqrt(nx*nx+ny*ny));
-        }
+//        else
+//        {
+//            phi = atan(nz/sqrt(nx*nx+ny*ny));
+//        }
     }
     else
     {
         teta = atan(ny/nx);
-        phi  = atan(nz/sqrt(nx*nx+ny*ny));
+//        phi  = atan(nz/sqrt(nx*nx+ny*ny));
     }
 
     if(nx < 0.0)

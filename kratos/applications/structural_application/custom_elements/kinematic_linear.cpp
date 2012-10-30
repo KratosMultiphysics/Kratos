@@ -267,7 +267,7 @@ void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Matrix>& rVar
         noalias( row( CurrentDisp, node ) ) = GetGeometry()[node].GetSolutionStepValue( DISPLACEMENT );
 
     //Declaration of the integration weight
-    double Weight;
+//    double Weight;
 
     //loop over all integration points
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
@@ -279,7 +279,7 @@ void KinematicLinear::CalculateOnIntegrationPoints( const Variable<Matrix>& rVar
         //calculate strain
         CalculateStrain( B, CurrentDisp, StrainVector );
         //assign the integration weight at the current integration point
-        Weight = integration_points[PointNumber].Weight();
+//        Weight = integration_points[PointNumber].Weight();
 
         //calculate material response
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(

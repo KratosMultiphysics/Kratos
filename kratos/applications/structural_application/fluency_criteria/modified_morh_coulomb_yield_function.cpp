@@ -380,15 +380,15 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
 
     double A = 0.00;
-    double B = 0.00;
+//    double B = 0.00;
     double C = 0.00;
     double D = 0.00;
 
 
     double Partial_A_gama_a  = 0.00;
     double Partial_A_gama_b  = 0.00;
-    double Partial_B_gama_a  = 0.00;
-    double Partial_B_gama_b  = 0.00;
+//    double Partial_B_gama_a  = 0.00;
+//    double Partial_B_gama_b  = 0.00;
     double Partial_C_gama_a  = 0.00;
     double Partial_C_gama_b  = 0.00;
     double Partial_D_gama_a  = 0.00;
@@ -398,7 +398,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     double Partial_Ep_gama_b = 0.00;
 
     double norma = norm_2(residual);
-    int singular = 0;
+//    int singular = 0;
     const double raiz2d3 = 0.8164958092773;
     //double aux_1 = 0.00;
     //double aux_2 = 0.00;
@@ -459,8 +459,8 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         Partial_A_gama_a   = 1.00 + (1.00/3.00) * sinpsi + (1.00/3.00) * cospsi * gama_a * Partial_Dilatancy * Partial_Ep_gama_a;
         Partial_A_gama_b   = (1.00/3.00) * gama_a * cospsi * Partial_Dilatancy * Partial_Ep_gama_b + 2.00/3.00;
 
-        Partial_B_gama_a   = (-2.00/3.00) * sinpsi - (2.00/3.00) * gama_a * cospsi * Partial_Dilatancy * Partial_Ep_gama_a;
-        Partial_B_gama_b   = (-2.00/3.00) * gama_a *cospsi * Partial_Dilatancy * Partial_Ep_gama_b - 1.00/3.00;
+//        Partial_B_gama_a   = (-2.00/3.00) * sinpsi - (2.00/3.00) * gama_a * cospsi * Partial_Dilatancy * Partial_Ep_gama_a;
+//        Partial_B_gama_b   = (-2.00/3.00) * gama_a *cospsi * Partial_Dilatancy * Partial_Ep_gama_b - 1.00/3.00;
 
         Partial_C_gama_a   = (1.00/3.00) * sinpsi -1.00 + (1.00/3.00) * gama_a * cospsi * Partial_Dilatancy * Partial_Ep_gama_a;
         Partial_C_gama_b   = (1.00/3.00) * gama_a * cospsi * Partial_Dilatancy * Partial_Ep_gama_b - 1.00/3.00;
@@ -500,7 +500,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
         d(1,1) = -2.00 * G * Partial_A_gama_b - K * Partial_D_gama_b - H * Partial_Ep_gama_b;
 
-        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -568,7 +568,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         cospsi                                          =   std::cos(PI * mMorhCoulomb->mcurrent_dilatancy_angle  / 180.00);
 
         A = gama_a * (1.00 + (1.00/3.00) * sinpsi) + (2.00/3.00) * gama_b;
-        B = -(2.00/3.00) * gama_a * sinpsi - (1.00/3.00) * gama_b;
+//        B = -(2.00/3.00) * gama_a * sinpsi - (1.00/3.00) * gama_b;
         C = gama_a * ( (1.00/3.00) *sinpsi  - 1.00 ) - (1.00/3.00) * gama_b;
         D = 2.00 * gama_a * sinpsi + gama_b;
 
@@ -702,7 +702,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     double Partial_Ep_gama_c = 0.00;
 
     double norma = norm_2(residual);
-    int singular = 0;
+//    int singular = 0;
     const double raiz2d3 = 0.8164958092773;
     //double aux_1   = 0.00;
     //double aux_2   = 0.00;
@@ -711,7 +711,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     double& gama_b = dgama[1];
     double& gama_c = dgama[2];
 
-    double H = 0.00;
+//    double H = 0.00;
 
     Vector Imput(3);
     Imput = ZeroVector(3);
@@ -746,7 +746,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
     Partial_Cohesion      = (mMorhCoulomb->mpSofteningBehavior_Cohesion)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
     Partial_Friction      = (mMorhCoulomb->mpSofteningBehavior_Friction)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
     Partial_Dilatancy     = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
-    H                     = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
+//    H                     = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
     sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
     cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -905,7 +905,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         d(2,2) = -2.00 * G * Partial_A_gama_c - K * Partial_D_gama_c;
 
 
-        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         ddgama         =  -Vector(prod(d_inv, residual));
 
         //Compute Newton-Raphson increment and update variables DGAMA and DGAMB
@@ -967,7 +967,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
         Partial_Cohesion                  = (mMorhCoulomb->mpSofteningBehavior_Cohesion)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
         Partial_Friction                  = (mMorhCoulomb->mpSofteningBehavior_Friction)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
         Partial_Dilatancy                 = (mMorhCoulomb->mpSofteningBehavior_Dilatancy)->FirstDerivateFunctionBehavior(Imput_Parameters_M);
-        H                                 = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
+//        H                                 = (mRankine->mpSofteningBehaviorFt)->FirstDerivateFunctionBehavior(Imput_Parameters_R);
 
         sinphi             =   std::sin(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
         cosphi             =   std::cos(PI * mMorhCoulomb->mcurrent_minternal_friction_angle  / 180.00);
@@ -1120,7 +1120,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
 
 
     double norma         = norm_2(residual);
-    int singular         = 0;
+//    int singular         = 0;
     const double raiz2d3 = 0.8164958092773;
     //double aux_1         = 0.00;
     //double aux_2         = 0.00;
@@ -1398,7 +1398,7 @@ bool Modified_Morh_Coulomb_Yield_Function::Return_Mapping_Intersection_Main_Plan
             }
              count++;
              */
-            singular       =   SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//            singular       =   SD_MathUtils<double>::InvertMatrix(d, d_inv);
         }
 
 

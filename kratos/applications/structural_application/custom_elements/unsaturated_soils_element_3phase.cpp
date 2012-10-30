@@ -882,11 +882,11 @@ void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable
 
     double airPressure;
 
-    double porosity;
+//    double porosity;
 
     double saturation;
 
-    double density;
+//    double density;
 
     Matrix DN_DX(number_of_nodes,dim);
 
@@ -904,7 +904,7 @@ void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable
         if(DN_DX_DISP.size1()!= (number_of_nodes_disp) || DN_DX_DISP.size2()!= dim)
             DN_DX_DISP.resize(number_of_nodes_disp,dim,false);
         noalias(DN_DX_DISP)= ZeroMatrix(number_of_nodes_press, dim);
-
+//
         noalias(DN_DX_DISP)= prod(DN_De_Displacement[PointNumber],mInvJ0[PointNumber]);
 
         // Shape Functions on current spatial quadrature point
@@ -917,8 +917,8 @@ void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable
 
         GetPressures(N_PRESS, capillaryPressure, waterPressure, airPressure);
 
-        porosity= GetPorosity(DN_DX_DISP);
-        density= GetAveragedDensity(capillaryPressure, airPressure, porosity);
+//        porosity= GetPorosity(DN_DX_DISP);
+//        density= GetAveragedDensity(capillaryPressure, airPressure, porosity);
         saturation= GetSaturation(capillaryPressure);
 
 // 				Vector flow_water=GetFlowWater(DN_DX_PRESS, capillaryPressure);
@@ -1609,7 +1609,7 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixUU( Matrix& K,
           +saturation*density_water);
 
     int help1=0;
-    int help2=0;
+//    int help2=0;
 //                     vector<unsigned int> help;
 //                     help.resize(2);
     double DefDet_U;
@@ -1632,19 +1632,19 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixUU( Matrix& K,
                     {
                     case 0:
                         help1= 1;
-                        help2= 2;
+//                        help2= 2;
                         break;
                     case 1:
                         help1= 2;
-                        help2= 0;
+//                        help2= 0;
                         break;
                     case 2:
                         help1= 0;
-                        help2= 1;
+//                        help2= 1;
                         break;
                     default:
                         help1= 0;
-                        help2= 0;
+//                        help2= 0;
                         break;
                     }
                     DefDet_U=
@@ -1722,7 +1722,7 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixUU( Matrix& K,
           +saturation*density_water);
 
     int help1 = 0;
-    int help2 = 0;
+//    int help2 = 0;
 //                             vector<unsigned int> help;
 //                             help.resize(2);
     double DefDet_U;
@@ -1745,7 +1745,7 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixUU( Matrix& K,
                     {
                     case 0:
                         help1= 1;
-                        help2= 2;
+//                        help2= 2;
                         break;
                     case 1:
                         help1= 2;
@@ -1986,7 +1986,7 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixWU
     noalias(flow_water)= GetFlowWater(DN_DX_PRESS,capillaryPressure);
 
     int help1 = 0;
-    int help2 = 0;
+//    int help2 = 0;
 //                 vector<unsigned int> help;
 //                 help.resize(2);
 
@@ -2001,19 +2001,19 @@ void UnsaturatedSoilsElement_3phase::CalculateStiffnesMatrixWU
                 {
                 case 0:
                     help1= 1;
-                    help2= 2;
+//                    help2= 2;
                     break;
                 case 1:
                     help1= 2;
-                    help2= 0;
+//                    help2= 0;
                     break;
                 case 2:
                     help1= 0;
-                    help2= 1;
+//                    help2= 1;
                     break;
                 default:
                     help1= 0;
-                    help2= 0;
+//                    help2= 0;
                     break;
                 }
                 double DefDet_U=

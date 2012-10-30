@@ -105,7 +105,7 @@ void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+//    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
 
     KRATOS_CATCH( "" )

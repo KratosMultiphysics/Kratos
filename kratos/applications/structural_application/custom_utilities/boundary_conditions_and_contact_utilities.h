@@ -420,7 +420,7 @@ public:
         const double RP5  = 0.50;
         const double RP15 = 1.50;
 
-        unsigned int icontact = 0;
+//        unsigned int icontact = 0;
         unsigned int np = 0;
         double a0,a1,a2,b0,b1,b2,c0,c1,c2,n0,n1,n2,fn,fna,fnb;
         double pen,tmp,dmin2,smin,smax;
@@ -535,7 +535,7 @@ public:
                 }
                 else
                 {
-                    icontact=it;
+//                    icontact=it;
                     /* domain of contact  */
                     smin=R0;
                     smax=R1;
@@ -690,12 +690,12 @@ public:
         double xc[4],yc[4],zc[4],uc[4],vc[4],fc[4],xcenc,ycenc,zcenc,xnc,ync,znc;
         double /*zone2,dmin2,*/factor1;
 
-        long /*kprop,icontact,ielem,jelem,icoup,jcoup,*/fnonzero;
+//        long /*kprop,icontact,ielem,jelem,icoup,jcoup,*/fnonzero;
         long i,j,k,inext,jnext,itars,icons;
         long nspoin,ninerc,niners,nbpoin,innerc[3],inners[6];
         //long itarth,iconth;
-        long iptn[4],ipcn[4];
-        long iptn1[4],ipcn1[4],m;
+//        long iptn[4],ipcn[4];
+//        long iptn1[4],ipcn1[4],m;
 
         NodePointerType ipt[4], ipc[4];
 
@@ -733,30 +733,30 @@ public:
         for(itars=0; itars<4; itars++)
         {
             ipt[0]  = Tgeom(itars);      //i2elto[itars][itarth];
-            iptn1[0]= itars;
+//            iptn1[0]= itars;
             ipt[1]  = Tgeom(1);          //i2elto[1][itarth];
-            iptn1[1]= 1;
+//            iptn1[1]= 1;
             ipt[2]  = Tgeom(2);          //i2elto[2][itarth];
-            iptn1[2]= 2;
+//            iptn1[2]= 2;
             if(itars>0)
             {
                 ipt[3]  = Tgeom(itars-1);   //i2elto[itars-1][itarth];
-                iptn1[3]= itars-1;
+//                iptn1[3]= itars-1;
             }
             else
             {
                 ipt[3]  = Tgeom(3);          //i2elto[3][itarth];
-                iptn1[3]= 3;
+//                iptn1[3]= 3;
             }
             if((itars==1)||(itars==2))
             {
                 ipt[1] = Tgeom(3);         //i2elto[3][itarth];
-                iptn1[1]=3;
+//                iptn1[1]=3;
             }
             if(itars>1)
             {
                 ipt[2] = Tgeom(0);         //i2elto[0][itarth];
-                iptn1[2]= 0;
+//                iptn1[2]= 0;
             }
 
             /*****************************************************/
@@ -766,37 +766,37 @@ public:
             for(icons=0; icons<4; icons++)
             {
                 ipc[0]   = Cgeom(icons);            //i2elto[icons][iconth];
-                ipcn1[0] = icons;
+//                ipcn1[0] = icons;
                 ipc[1]   = Cgeom(1);                //i2elto[1][iconth];
-                ipcn1[1] = 1;
+//                ipcn1[1] = 1;
                 ipc[2]   = Cgeom(2);                //i2elto[2][iconth];
-                ipcn1[2] = 2;
+//                ipcn1[2] = 2;
                 if(icons>0)
                 {
                     ipc[3]   = Cgeom(icons-1);        //i2elto[icons-1][iconth];
-                    ipcn1[3] = icons-1;
+//                    ipcn1[3] = icons-1;
                 }
                 else
                 {
                     ipc[3]   = Cgeom(3);              //i2elto[3][iconth];
-                    ipcn1[3] = 3;
+//                    ipcn1[3] = 3;
                 }
                 if((icons==1)||(icons==2))
                 {
                     ipc[1]  = Cgeom(3);               //i2elto[3][iconth];
-                    ipcn1[1]= 3;
+//                    ipcn1[1]= 3;
                 }
                 if(icons>1)
                 {
                     ipc[2]   = Cgeom(0);               //i2elto[0][iconth];
-                    ipcn1[2] = 0;
+//                    ipcn1[2] = 0;
                 }
 
-                for(m=0; m<4; m++)
-                {
-                    iptn[iptn1[m]]=m;
-                    ipcn[ipcn1[m]]=m;
-                }
+//                for(m=0; m<4; m++)
+//                {
+//                    iptn[iptn1[m]]=m;
+//                    ipcn[ipcn1[m]]=m;
+//                }
 
                 /* set nodal coordinates */
                 for(i=0; i<3; i++)
@@ -1163,7 +1163,7 @@ public:
 
                 /* add forces into global vector    */
                 factor1=R2/R5;
-                fnonzero=1;
+//                fnonzero=1;
 
                 for(i=0; i<4; i++)
                 {
@@ -1427,7 +1427,7 @@ public:
         //bool is_repited             =  false;
         //bool corner                 =  false;
         bool Change                 =  true;
-        Near_Node  Near             =  no_near;
+//        Near_Node  Near             =  no_near;
         Exist_Node Exist            =  no_nodes;
 
         NodePointerType             Id_Node_Case_5;
@@ -1464,7 +1464,8 @@ public:
         std::cout<<"     NUMBER OF INITIAL CONDITIONS            = " << initial_conditions_size <<  std::endl;
         std::cout<<"     NUMBER OF MASTER SURFACES CONDITIONS    = " << rConditions.size()-initial_conditions_size <<  std::endl;
 
-        #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, /*is_repited, corner,*/ Change, Near, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
+//        #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, /*is_repited, corner,*/ Change, Near, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
+        #pragma omp parallel for  firstprivate (Case, Id_Node_Case_5, master, slave, Change, Exist) private (Result, Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near)
         for(int k=0; k<number_of_threads; k++)
         {
             IteratorType it_begin = mBoundaryElements.begin() + partition[k];
@@ -1534,7 +1535,7 @@ public:
                                     for(unsigned int in = 0; in<InsideNodes.size(); in++)
                                     {
                                         {
-                                            Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
+//                                            Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
                                             if(CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k]))
                                             {
                                                 Id++;
@@ -1633,13 +1634,13 @@ public:
         //mr_model_part.AddProperties(tempProperties);
 
         int  Case                   =  0;
-        unsigned int Id_Node_Case_5 =  0;
+//        unsigned int Id_Node_Case_5 =  0;
         unsigned int  master        =  0;
         unsigned int  slave         =  1;
-        bool is_repited             =  false;
-        bool corner                 =  false;
-        bool Change                 =  true;
-        Near_Node  Near             =  no_near;
+//        bool is_repited             =  false;
+//        bool corner                 =  false;
+//        bool Change                 =  true;
+//        Near_Node  Near             =  no_near;
         Exist_Node Exist            =  no_nodes;
         ResultContainerType         Result;
 
@@ -1667,7 +1668,8 @@ public:
         double start = omp_get_wtime();
 #endif
 
-        #pragma omp parallel for  shared(LinkingConditions)  private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near,  Exist, Result)
+        #pragma omp parallel for  shared(LinkingConditions)  private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case,  master, slave,    Exist, Result)
+//        #pragma omp parallel for  shared(LinkingConditions)  private(Id, it_pair, Ids, InsideNodes, Ids_2, Is_Near, Case, Id_Node_Case_5, master, slave, is_repited, corner, Change, Near,  Exist, Result)
         for(int k=0; k<number_of_threads; k++)
         {
             IteratorType it_begin = mBoundaryElements.begin() + partition[k];
@@ -1742,7 +1744,7 @@ public:
                                         if(InsideNodes[in]->GetValue(IS_CONTACT_SLAVE)==0)
                                         {
                                             InsideNodes[in]->GetValue(IS_CONTACT_SLAVE) = 1;
-                                            Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
+//                                            Near              = CheckNearNodes(master, slave, InsideNodes[in], (it_pair)[master], Ids);
                                             CreateLinkingConditions(Id,  master, slave, Ids, it_pair, tempProperties, Exist, LinkingConditions[k] );
                                             Id++;
                                         }
@@ -1766,12 +1768,12 @@ public:
                             }
 
                             Exist            =  no_nodes;
-                            Near             =  no_near;
-                            corner           =  false;
-                            Change           =  true;
-                            is_repited       =  false;
+//                            Near             =  no_near;
+//                            corner           =  false;
+//                            Change           =  true;
+//                            is_repited       =  false;
                             Case             =  0;
-                            Id_Node_Case_5   =  0;
+//                            Id_Node_Case_5   =  0;
                             master           =  0;
                             slave            =  1;
                             Ids_2.clear();
@@ -4044,8 +4046,8 @@ private:
         //int    I                     = 0;
         //double g                     = 0.00;
         //double g_old                 = 0.00;
-        double gl                    = 0.00;
-        double gr                    = 0.00;
+//        double gl                    = 0.00;
+//        double gr                    = 0.00;
         //double compare_distance      = 0.00;
         double pr                    = 0.00;
         double pl                    = 0.00;
@@ -4147,8 +4149,8 @@ private:
                         noalias(CR)       =  CR * (1.00/cr);
 
 
-                        gr               =  inner_prod(GR,Normal_r);
-                        gl               =  inner_prod(GL,Normal_l);
+//                        gr               =  inner_prod(GR,Normal_r);
+//                        gl               =  inner_prod(GL,Normal_l);
                         pr               =  -inner_prod(GL,CR);
                         if(pr<=0.00)  pr =  0.00;
                         pl               =  inner_prod(GL,CL);
@@ -4386,7 +4388,7 @@ private:
         std::cout<< "     SEARCHING NEAR NODE 2D  " <<std::endl;
         //ProcessInfo& CurrentProcessInfo  = mr_model_part.GetProcessInfo();
 
-        unsigned int I                    = 0;
+//        unsigned int I                    = 0;
         double compare_distance           = 0.00;
         ResultContainerType               Result;
 
@@ -4406,7 +4408,7 @@ private:
                         double& distance             = geom(i)->GetValue(DISTANCE);
                         for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++)
                         {
-                            I = 0;
+//                            I = 0;
                             WeakPointerVector<Condition>& neighb_cond = (*rthis)->GetValue(NEIGHBOUR_CONDITIONS);
                             if(neighb_cond.size()!=0)
                             {

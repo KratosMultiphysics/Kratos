@@ -132,11 +132,11 @@ public:
         array_1d<double,TDim+1> dist, exact_dist;
         array_1d<double,TDim+1> visited;
         array_1d<double,TDim+1> N;
-        double lumping_factor = 1.0/double(TDim+1);
+//        double lumping_factor = 1.0/double(TDim+1);
         boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
         int elem_size = rmodel_part.Elements().size();
 
-#pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(lumping_factor,elem_size)
+#pragma omp parallel for private(DN_DX,dist,exact_dist) firstprivate(elem_size)
         for (int i = 0; i < elem_size; i++)
         {
             PointerVector< Element>::iterator it = rmodel_part.ElementsBegin() + i;

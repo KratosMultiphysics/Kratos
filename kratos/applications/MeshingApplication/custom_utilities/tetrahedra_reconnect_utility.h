@@ -449,9 +449,9 @@ public:
 					//if h is the height of a perfect tetrahedra, the edge size is edge = sqrt(3/2) h
 					//filling in the list of "IDEAL" tetrahedron volumes=1/12 * (edge)^3 * sqrt(2)~0.11785* h^3=
 					//0.2165063509*h^3
-					double prescribed_h = (t->vertexes[0]->expectedSize + t->vertexes[1]->expectedSize + 
-										  t->vertexes[2]->expectedSize  +t->vertexes[3]->expectedSize) * 0.25;
-					
+//					double prescribed_h = (t->vertexes[0]->expectedSize + t->vertexes[1]->expectedSize + 
+//										  t->vertexes[2]->expectedSize  +t->vertexes[3]->expectedSize) * 0.25;
+//					
 					//out.tetrahedronvolumelist[counter] = 0.217*prescribed_h*prescribed_h*prescribed_h;
 
 					

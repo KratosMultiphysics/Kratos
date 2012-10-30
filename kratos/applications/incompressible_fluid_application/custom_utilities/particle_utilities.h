@@ -1002,11 +1002,11 @@ public:
 
         //unsigned int min_number_of_particles = 4  ;
 
-        int id;
-        if (rLagrangianModelPart.Nodes().size() != 0)
-            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
-        else
-            id = 1;
+//        int id;
+//        if (rLagrangianModelPart.Nodes().size() != 0)
+//            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+//        else
+//            id = 1;
 
         for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();
                 el_it != rEulerianModelPart.ElementsEnd(); el_it++)
@@ -1111,12 +1111,12 @@ public:
 
         //unsigned int min_number_of_particles = 4  ;
 
-        int id;
+//        int id;
 
-        if (rLagrangianModelPart.Nodes().size() != 0)
-            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
-        else
-            id = 1;
+//        if (rLagrangianModelPart.Nodes().size() != 0)
+//            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+//        else
+//            id = 1;
 
         //int last_id=id;
         //count particles that fall within an element
@@ -1211,7 +1211,7 @@ public:
         // KRATOS_ERROR(std::logic_error,  "NEGATIVE VALUE OF Time step estimated" , "");
         //initializee dt with max dt
         //initialize dt with incredible value
-        double dt, glob_min_dt, dummy;
+        double /*dt, glob_min_dt,*/ dummy;
 // 	    double h, nu;
         array_1d<double,3> N = ZeroVector(3);
         array_1d<double,3> aux = ZeroVector(3); //dimension = number of nodes
@@ -1220,10 +1220,10 @@ public:
         array_1d<double,2> ms_vel_gauss = ZeroVector(2); //dimesion coincides with space dimension
 
         //initialize it with given value
-        glob_min_dt=max_dt;
+//        glob_min_dt=max_dt;
 
 
-        dt=0.0;
+//        dt=0.0;
         for(ModelPart::ElementsContainerType::iterator im = rEulerianModelPart.ElementsBegin() ; im !=rEulerianModelPart.ElementsEnd() ; ++im)
         {
             GeometryUtils::CalculateGeometryData(im->GetGeometry(),DN_DX,N,dummy);

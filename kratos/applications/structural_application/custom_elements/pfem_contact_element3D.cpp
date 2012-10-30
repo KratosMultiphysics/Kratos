@@ -154,7 +154,7 @@ KRATOS_CATCH("");
 		int reference_face = -1;
 		WeakPointerVector< Element >& neigb_el = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-	 	int ss3 = 0.0;
+//	 	int ss3 = 0.0;
 		
 		double accepted = 1.0;
 		FlagVariableCheckForNonSuitableElements(accepted);
@@ -288,7 +288,7 @@ KRATOS_WATCH(n);*/
 // 					    }
 
 					    is_contact = true;
-					    ss3 = 500;
+//					    ss3 = 500;
 				    }
 				    else{
 				    const double l0 = GetProperties()[THICKNESS] ;

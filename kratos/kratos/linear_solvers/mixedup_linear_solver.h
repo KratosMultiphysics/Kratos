@@ -632,7 +632,7 @@ private:
             return 0;
         }
         unsigned int j;
-        int err = 0;
+//        int err = 0;
         std::vector< VectorType > V (m+1);
         for (j = 0; j <= m; ++j)
             V[j].resize (dim,false);
@@ -687,7 +687,7 @@ private:
             }
             ++restart;
         }
-        err = 1;
+//        err = 1;
         return 1;
     }
 

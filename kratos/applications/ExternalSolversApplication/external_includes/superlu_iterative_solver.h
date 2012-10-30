@@ -220,7 +220,7 @@ public:
 
         char     equed[1] = {'B'};
         //yes_no_t equil;
-        trans_t  trans;
+//        trans_t  trans;
 
 //         SuperMatrix A, AA, L, U;
         SuperMatrix A, L, U;
@@ -233,7 +233,7 @@ public:
         int      *etree;
         int      *perm_c; /* column permutation vector */
         int      *perm_r; /* row permutations from partial pivoting */
-        int      nrhs, lwork, info, m, n;
+        int      /*nrhs,*/ lwork, info, m, n;
         double   *work = NULL;
         double   *R, *C;
         double   rpg, rcond;
@@ -258,8 +258,8 @@ public:
 
         /* Defaults */
         lwork = 0;
-        nrhs  = 1;
-        trans = NOTRANS;
+//        nrhs  = 1;
+//        trans = NOTRANS;
 
         /* Set the default input options:
         options.Fact = DOFACT;

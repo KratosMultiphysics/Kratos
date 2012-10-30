@@ -558,7 +558,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
 
     residual[1]   =  sigma_b - fact1;
 
-    int singular  = 0.00;
+//    int singular  = 0.00;
     double norma  = norm_2(residual);
     double phipsi = 0.00;
     Vector Imput_Parameters;
@@ -622,7 +622,7 @@ bool Morh_Coulomb_Yield_Function::TwoVectorReturnToEdges(const array_1d<double,3
         d(1,0) = C[9] * C[8]  + C[12] * C[13] - C[5]     +  (C[6] + C[4] -C[15]) * Partial_Ep_gama_a;
         d(1,1) = C[9] * C[10] - C[11] * C[13] - 4.00 * G +  (C[6] + C[4] -C[15]) * Partial_Ep_gama_b;
 
-        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
+//        singular       =  SD_MathUtils<double>::InvertMatrix(d, d_inv);
         ddgama         =  -Vector(prod(d_inv, residual));
 
 
@@ -840,7 +840,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
 
     double Partial_Cohesion  = 0.00;
     double Partial_Friction  = 0.00;
-    double Partial_Dilatancy = 0.00;
+//    double Partial_Dilatancy = 0.00;
     double Partial_Ep_gama_b = 0.00;
 
     double sinphi               =   std::sin(PI * (mcurrent_minternal_friction_angle)  / 180.00);
@@ -880,7 +880,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
     Imput_Parameters[2] =  mcurrent_minternal_friction_angle;
     Partial_Cohesion    =  mpSofteningBehavior_Cohesion->FirstDerivateFunctionBehavior(Imput_Parameters);
     Partial_Friction    =  mpSofteningBehavior_Friction->FirstDerivateFunctionBehavior(Imput_Parameters);
-    Partial_Dilatancy   =  mpSofteningBehavior_Dilatancy->FirstDerivateFunctionBehavior(Imput_Parameters);
+//    Partial_Dilatancy   =  mpSofteningBehavior_Dilatancy->FirstDerivateFunctionBehavior(Imput_Parameters);
     array_1d<double,3> Pps = ZeroVector(3);       /// principal plastic  strain
 
     Vector Imput(3);
@@ -946,7 +946,7 @@ void Morh_Coulomb_Yield_Function::ReturnMappingToApex(const array_1d<double,3>& 
         Partial_Ep_gama_b   = alpha; //(2.00/9.00) *  dgama_b / fact;
         Partial_Cohesion    = mpSofteningBehavior_Cohesion->FirstDerivateFunctionBehavior(Imput_Parameters);
         Partial_Friction    = mpSofteningBehavior_Friction->FirstDerivateFunctionBehavior(Imput_Parameters);
-        Partial_Dilatancy   = mpSofteningBehavior_Dilatancy->FirstDerivateFunctionBehavior(Imput_Parameters);
+//        Partial_Dilatancy   = mpSofteningBehavior_Dilatancy->FirstDerivateFunctionBehavior(Imput_Parameters);
 
         p = p_trial - K *  dgama_b;
         r = p - (mcurrent_cohesion) * cotphi;

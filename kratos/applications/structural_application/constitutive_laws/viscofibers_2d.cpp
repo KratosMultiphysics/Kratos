@@ -462,21 +462,21 @@ void Viscofibers2D::CalculateStressVector(const Vector& StrainVector, Vector& au
 
     double J2=MathUtils<double>::Det3( C ); // determinant of C is computed
     //KRATOS_WATCH(J2);
-    double J=0.0;
-    J=sqrt(J2); // J is computed
+//    double J=0.0;
+//    J=sqrt(J2); // J is computed
     //KRATOS_WATCH(J);
 
 
     // computing the derivative of strain energy: dW = S (the deviatoric part)
 
-    double W=0.0;
+//    double W=0.0;
     // Vector dW(3);
     Matrix dW(3,3);
     noalias(dW)=ZeroMatrix(3,3);
     double trC=0.0;
     trC=C(0,0)+C(1,1)+C(2,2); // computing Ckk (Trace of C = Sum of the diagonal terms) = I1 (First Invariant)
     //W=0.5*mMU*((pow(J2,0.3333333333333333333333333333))*trC-3.0);
-    W=0.5*mMU*((1.0/(pow(J2,0.3333333333333333333333333333)))*trC-3.0); // ENERGY
+//    W=0.5*mMU*((1.0/(pow(J2,0.3333333333333333333333333333)))*trC-3.0); // ENERGY
 
     Matrix mdwtemp(3,3);
     noalias(mdwtemp)=ZeroMatrix(3,3);
