@@ -98,6 +98,13 @@ OPTIONAL LIBRARIES
 
 		    Available options are (-DNoChange, -DAdd_, -DAdd__, or -DUpCase)
 		    if the var is not prescribed it will be autommatically added "Add_" which works for gfortran
+			
+			as an alternative the user may try to rely on cmake system for linking to blas.
+			for example one can use ATLAS instead of the normal blas by adding 
+			
+				export BLA_VENDOR="ATLAS"
+				
+			in the configure.sh
 
    MKL: 		-->Needed for MKL solver application
 		    Installation path is controlled by
