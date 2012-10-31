@@ -301,7 +301,7 @@ namespace Kratos
 
                     }
 
-                     RotaMoment[iterator] = 0.0;
+                     //RotaMoment[iterator] = 0.0;
 
 
                 }
