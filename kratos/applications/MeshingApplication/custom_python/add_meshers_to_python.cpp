@@ -179,6 +179,7 @@ void  AddMeshersToPython()
     class_<TetGenPfemModeler >("TetGenPfemModeler",
                                init< >())
     .def("ReGenerateMesh",TetRegenerateMesh)
+    .def("ReGenerateMesh",&TetGenPfemModeler::ReGenerateMesh)
     ;
 
     class_<TetGenPfemRefineFace >("TetGenPfemRefineFace",
@@ -200,6 +201,7 @@ void  AddMeshersToPython()
     class_<TriGenPFEMModeler >("TriGenPFEMModeler",
                                init< >())
     .def("ReGenerateMesh",TriRegenerateMesh)
+    .def("ReGenerateMesh",&TriGenPFEMModeler::ReGenerateMesh)
     ;
 
     /*
