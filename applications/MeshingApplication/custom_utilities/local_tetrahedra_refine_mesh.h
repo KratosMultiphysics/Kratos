@@ -132,10 +132,10 @@ public:
         // KRATOS_WATCH("line 110");
         Calculate_Coordinate_And_Insert_New_Nodes(this_model_part, new_nodes, Position_Node, List_New_Nodes);
         // KRATOS_WATCH("line 111");
-//       KRATOS_WATCH(List_New_Nodes);
+        // KRATOS_WATCH(List_New_Nodes);
         Erase_Old_Element_And_Create_New_Tetra_Element(this_model_part, Coord, New_Elements);
         Erase_Old_Conditions_And_Create_New(this_model_part, Coord);
-        Renumering_Elements_And_Nodes(this_model_part);
+        Renumbering_Elements_And_Nodes(this_model_part);
 
 
         if (refine_on_reference == true)
@@ -323,10 +323,7 @@ public:
             //      KRATOS_WATCH("line 294");
 
             /// inserting the news node in the model part
-//            Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
-	    Node < 3 >::Pointer pnode = Node < 3 >::Pointer(new Node < 3 >(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]));
-	    pnode->SetSolutionStepVariablesList( this_model_part.NodesBegin()->pGetVariablesList() );
-	    
+            Node < 3 > ::Pointer pnode = this_model_part.CreateNewNode(List_New_Nodes[i], Coordinate_New_Node[i][0], Coordinate_New_Node[i][1], Coordinate_New_Node[i][2]);
             pnode->SetBufferSize(this_model_part.NodesBegin()->GetBufferSize());
 
             it_node1 = this_model_part.NodesBegin() + pos1;
@@ -382,13 +379,10 @@ public:
                    }  */
 
             //     KRATOS_WATCH("line 346");
-	    this_model_part.Nodes().push_back(pnode);
             new_nodes.push_back(pnode);
         }
 
-        this_model_part.Nodes().Sort();
         unsigned int nlocal_nodes = this_model_part.Nodes().size();
-	//KRATOS_WATCH(nlocal_nodes)
         this_model_part.Nodes().Unique();
         if(nlocal_nodes != this_model_part.Nodes().size())
             KRATOS_ERROR(std::logic_error,"nodes were created twice!!","")
@@ -396,7 +390,7 @@ public:
 
         }
 
-    void Renumering_Elements_And_Nodes(ModelPart& this_model_part)
+    void Renumbering_Elements_And_Nodes(ModelPart& this_model_part)
     {
 
         unsigned int id_node = 1;
@@ -407,27 +401,17 @@ public:
         NodesArrayType::iterator i_end = pNodes.ptr_end();
         //ProcessInfo& rCurrentProcessInfo  = this_model_part.GetProcessInfo();
 
-        //KRATOS_WATCH(this_model_part.Nodes().size())
-	
+
         for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
         {
-	    //std::cout<< "Id = "<< i->Id() << "  Coordiantes = " << i->Coordinates()<< std::endl;
             if (i->Id() != id_node)
             {
-             //std::cout<< "Setting Id of Node  " << i->Id() << " by " <<  id_node << std::endl;
-             i->SetId(id_node);
+                //std::cout<< "Setting Id of Node  " << i->Id() << " by " <<  id_node << std::endl;
+                i->SetId(id_node);
             }
             id_node++;
         }
-        
-       /* 
-        for (ModelPart::NodeIterator i = i_begin; i != i_end; ++i)
-	{
-	   KRATOS_WATCH(i->Id())
-	   KRATOS_WATCH(&*i)
-	}
-         */
-       
+
         ElementsArrayType& rElements = this_model_part.Elements();
         ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         ElementsArrayType::iterator it_end = rElements.ptr_end();
@@ -603,21 +587,20 @@ public:
 
                 if (internal_node == 1)
                 {
-                    //std::cout << "creating internal node" << std::endl;
+                    // 	    std::cout << "creating internal node" << std::endl;
                     //generate new internal node
                     aux[10] = CreateCenterNode(geom, this_model_part);
-                    
-		    bool verified = false;
+
+                    bool verified = false;
                     for(int iii=0; iii<nel*4; iii++)
-                        if(t[iii] == 10){
+                        if(t[iii] == 10)
                             verified = true;
-			}
 
                     if(verified == false)
                     {
-                       //  KRATOS_WATCH(nel);
-                       //  for(int iii=0; iii<nel*4; iii++)
-                        // std::cout << t[iii] << std::endl;
+                        KRATOS_WATCH(nel);
+                        for(int iii=0; iii<nel*4; iii++)
+                            std::cout << t[iii] << std::endl;
 
                         KRATOS_ERROR(std::logic_error,"internal node is created but not used","");
                     }
@@ -682,8 +665,6 @@ public:
                     t[i] = -1;
                 }
             }
-            
-            this_model_part.Nodes().Sort();
 
             ///* all of the elements to be erased are at the end
             rElements.Sort();
@@ -715,14 +696,13 @@ public:
     unsigned int CreateCenterNode(Geometry<Node < 3 > >& geom, ModelPart& model_part)
     {
         //determine a new unique id
-	
-	unsigned int new_id = model_part.Nodes().size()+1; //(model_part.NodesEnd() - 1)->Id() + 1;
-        //KRATOS_WATCH(new_id)   
+        unsigned int new_id = (model_part.NodesEnd() - 1)->Id() + 1;
+
         if( model_part.Nodes().find(new_id) != model_part.NodesEnd() )
             KRATOS_ERROR(std::logic_error, "adding a center node with an already existing id","")
 
             //determine the coordinates of the new node
-        double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;
+            double X = (geom[0].X() + geom[1].X() + geom[2].X() + geom[3].X()) / 4.0;
         double Y = (geom[0].Y() + geom[1].Y() + geom[2].Y() + geom[3].Y()) / 4.0;
         double Z = (geom[0].Z() + geom[1].Z() + geom[2].Z() + geom[3].Z()) / 4.0;
 
@@ -731,10 +711,8 @@ public:
         double Z0 = (geom[0].Z0() + geom[1].Z0() + geom[2].Z0() + geom[3].Z0()) / 4.0;
 
         //generate the new node
-        //Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
-        Node < 3 >::Pointer pnode = Node < 3 >::Pointer(new Node < 3 >(new_id, X, Y, Z));
-	pnode->SetSolutionStepVariablesList( model_part.NodesBegin()->pGetVariablesList() );
-	 
+        Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
+
         unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
         pnode->SetBufferSize(buffer_size);
 
@@ -788,7 +766,7 @@ public:
                } */
 
 //             KRATOS_WATCH(*(model_part.NodesEnd()-1));
-        model_part.Nodes().push_back(pnode);
+//         model_part.Nodes().push_back(pnode);
 
         //      KRATOS_WATCH(*(model_part.NodesEnd()-1));
 
