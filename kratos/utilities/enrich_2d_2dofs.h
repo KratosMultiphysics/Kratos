@@ -103,6 +103,7 @@ public:
      * @param rDistances is an input  vector of 3 size which holds relative distance for each node.
      *        it is used internally to mark the position of the zero level
      * @param rVolumes Result vector with size 3 (maximumn number of partitions) holding the volume of each partition ? 
+     * 		  Note:volume 4 is not a partition itself, but is added to be used in the element. it would be the result of creating the 2 triangles of the cuadrilateral paritition with the opposite edge as the current configuration (joining node k_aux with node_4 instead of the current node_j-node5)
      * @param rShapeFunctionValues Result 3x3 matrix where each row represents a partition and holds the shape functions N1 to N3 ( the cut)
      *        of the original triangle evaluated in the gauss point (center) of the partition.
      *        so that it is  N(gauss_index, node_index)
@@ -229,7 +230,7 @@ public:
 		if (unsigned_distance2>longest_distance)
 			longest_distance=unsigned_distance2;
 		//Now we set a maximum relative distance
-		const double tolerable_distance =longest_distance*0.000001;	// (1/100,000 seems to have good results)
+		const double tolerable_distance =longest_distance*0.000001;	// (1/1,000,000 seems to have good results)
 			
 		//and now we check if a distance is too small:
 		if (unsigned_distance0<tolerable_distance)
@@ -327,9 +328,14 @@ public:
 		 coord_subdomain(0,1) = rPoints(j_aux,1);
 		 coord_subdomain(1,0) = rPoints(k_aux,0);
 		 coord_subdomain(1,1) = rPoints(k_aux,1);
-		 coord_subdomain(2,0) = rPoints(i_aux,0)*(node5_relative_position)+rPoints(j_aux,0)*(1.0-node5_relative_position);
-		 coord_subdomain(2,1) = rPoints(i_aux,1)*(node5_relative_position)+rPoints(j_aux,1)*(1.0-node5_relative_position);
+		 coord_subdomain(2,0) = rPoints(i_aux,0)*(node5_relative_position)+rPoints(k_aux,0)*(1.0-node5_relative_position);
+		 coord_subdomain(2,1) = rPoints(i_aux,1)*(node5_relative_position)+rPoints(k_aux,1)*(1.0-node5_relative_position);
 		 rVolumes(1)=CalculateVolume2D(coord_subdomain);
+		 //NOT A PARTITION, just the volume of a different conectivity:
+		 //just replacing the third node
+		 coord_subdomain(2,0) = rPoints(i_aux,0)*(node4_relative_position)+rPoints(k_aux,0)*(1.0-node5_relative_position);
+		 coord_subdomain(2,1) = rPoints(i_aux,1)*(node4_relative_position)+rPoints(k_aux,1)*(1.0-node5_relative_position);
+		 rVolumes(3)=CalculateVolume2D(coord_subdomain);
 
 
 		 //third partition and third GP
