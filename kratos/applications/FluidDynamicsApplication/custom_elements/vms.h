@@ -1410,7 +1410,7 @@ protected:
                 qF = 0.0;
                 for (unsigned int d = 0; d < TDim; ++d)
                 {
-                    rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * rShapeFunc[j] * rBodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                    rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * rShapeFunc[j] * Density * rBodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
                     qF += rShapeDeriv(i, d) * rShapeFunc[j] * rBodyForce[d];
                 }
                 rDampRHS[FirstRow + TDim] += Weight * Density * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
