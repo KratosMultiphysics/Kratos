@@ -333,7 +333,8 @@ void NoNewtonianASGS2D::CalculateViscousTerm(MatrixType& K, const boost::numeric
     // KRATOS_WATCH(B)
 
     //Bingham Fluid
-    CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+/*    KRATOS_WATCH(this->Info());*/
+    this->CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 	      CalculateNodalApparentViscosity(grad_sym_vel, gamma_dot, B, mu, m_coef);
     //Newtonian Fluid: leave decommented the CalculateApparentViscosity (we need grad_sym_vel) and decomment the following line
     // Remember to modify CalculateResidualand CalculateTau.
@@ -1151,7 +1152,7 @@ void NoNewtonianASGS2D::CalculateResidual(const MatrixType& K, VectorType& F, co
     //sigma dev intern
 
 // 	Bingham Fluid:
-    CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+    this->CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
 // 	Newtonian Fluid: Leave Decommented the CalculateApparentviscosity (we need grad_sym_vel) and decomment the following line
 //	Remember to modify CalculateViscousTerm and CalculateTau
 // 	app_mu = mu;
@@ -1545,7 +1546,7 @@ void NoNewtonianASGS2D::CalculateApparentViscosity(double & app_mu, double & app
 // 	  double solid_pressure = 0.0;
 // 	  double seepage_drag_x = 0.0;
 
-
+// KRATOS_WATCH("VARIABLE YIELD APPARENT VISCOSITY")
 
 
     for (unsigned int ii = 0; ii < nodes_number; ++ii)
@@ -1866,7 +1867,7 @@ void NoNewtonianASGS2D::GetValueOnIntegrationPoints(const Variable<double>& rVar
 
     calculatedensity(GetGeometry(), density, mu);
     CalculateB(B, DN_DX);
-    CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+    this->CalculateApparentViscosity(app_mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
     CalculateTau(DN_DX,N,tauone, tautwo, delta_t, Area, rCurrentProcessInfo);
 
 // 	KRATOS_WATCH("Entra qui????? ---------")
@@ -2008,7 +2009,7 @@ void NoNewtonianASGS2D::CalculateTau(const boost::numeric::ublas::bounded_matrix
 
     //Bingham
     const double m_coef = rCurrentProcessInfo[M];
-    CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
+    this->CalculateApparentViscosity(mu, app_mu_derivative, grad_sym_vel, gamma_dot, B, mu, m_coef);
     //Newtonian: comment the CalculateApparentViscosity funcion and nothing more (remember to modify CalculateResidual and CalculateViscousTerm
     //do nothing --> we don't need the calculation of grad_sym_vel in this case!!!
 
