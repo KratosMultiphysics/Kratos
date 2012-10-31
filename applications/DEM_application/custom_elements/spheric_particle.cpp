@@ -319,7 +319,7 @@ namespace Kratos
             total_forces = rhs;
             
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-
+            
             size_t iContactForce = 0;
             
             double total_equiv_area = 0.0;
@@ -847,8 +847,8 @@ namespace Kratos
 	     if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
 
              {
-
-                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
+                 
+                 ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
                 for (unsigned int index = 0; index < 2; index++)
                 {
@@ -857,7 +857,7 @@ namespace Kratos
 
                     {
                         ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  //same visco_coeff to all directions???
-
+                       
                     }
                 }
              }
@@ -1339,10 +1339,12 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
           array_1d<double,3>& rhs            = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
           array_1d<double,3>& total_forces   = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
           array_1d<double,3>& damp_forces   = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
-
+          array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
+          
           noalias(rhs)                       = ZeroVector(3);
           noalias(total_forces)              = ZeroVector(3);
-          noalias(damp_forces)              = ZeroVector(3);
+          noalias(damp_forces)               = ZeroVector(3);
+          noalias(mRota_Moment)              = ZeroVector(3);
 
         }
        void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
