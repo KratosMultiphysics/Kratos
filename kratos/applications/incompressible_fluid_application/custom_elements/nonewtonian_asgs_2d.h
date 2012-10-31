@@ -142,13 +142,13 @@ public:
     * @param pProperties: the properties assigned to the new element
     * @return a Pointer to the new element
     */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
+    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
 
     ///Calculate the local external force vector and resize local sistem matrices
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     ///Calulate the residual (RHS) of the solution system
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     /// Provides the global indices for each one of this element's local rows
@@ -158,14 +158,14 @@ public:
     * @param rResult: A vector containing the global Id of each row
     * @param rCurrentProcessInfo: the current process info object
     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     /// Returns a list of the element's Dofs
     /**
     * @param ElementalDofList: the list of DOFs
     * @param rCurrentProcessInfo: the current process info instance
     */
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    virtual void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
     /// Returns the values on the integration points
     /**
@@ -173,19 +173,19 @@ public:
     * @param Output: Values of variable on integration points
     * @param rCurrentProcessInfo: Process info instance
     */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 //	  void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void Calculate( const Variable<array_1d<double,3> >& rVariable,
+    virtual void Calculate( const Variable<array_1d<double,3> >& rVariable,
                     array_1d<double,3>& Output,
                     const ProcessInfo& rCurrentProcessInfo);
 
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
+    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0);
+    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
 //      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
     ///Calculate all the lhs contribution multiplied by velocity: i.e. the convective, pressure, viscous, darcy contributions
-    void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -280,7 +280,10 @@ protected:
     * @param B: Matrix 3x6 of the shape function derivatives
     * @param mu: fluid minimum viscosity possible
     */
-    virtual void CalculateApparentViscosity(double & ApparentViscosity, double & ApparentViscosityDerivative, array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu, const double & m_coef);
+    virtual void CalculateApparentViscosity(double & app_mu, double & app_mu_derivative,
+        array_1d<double, 3 >&  grad_sym_vel, double & gamma_dot,
+        const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B,
+        const double & mu, const double & m_coef);
     virtual void CalculateNodalApparentViscosity(array_1d<double, 3 >& nodal_app_mu, array_1d<double,3> & grad_sym_vel, double & gamma_dot, const boost::numeric::ublas::bounded_matrix<double, 3, 6 > & B, const double & mu, const double & m_coef);
 
     ///@name Protected Operators
