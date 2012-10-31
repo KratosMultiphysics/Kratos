@@ -73,7 +73,7 @@ class MonolithicSolver:
         self.move_mesh_strategy = 2
 	self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         #definition of the solvers
-##        self.linear_solver =  SkylineLUFactorizationSolver()
+##        self.linear_solver = SkylineLUFactorizationSolver()
 ##        self.linear_solver = SuperLUSolver()
 ##        self.linear_solver = SuperLUIterativeSolver()
 
@@ -155,8 +155,11 @@ class MonolithicSolver:
 
 #        (self.neigh_finder).Execute();
 
-	    
-                 
+        print "Remesh performed passing the element and the condition directly - not their name"
+	self.reference_element = self.model_part.Elements[1]
+##	print "refenence element:   ",self.reference_element
+	self.reference_condition = self.model_part.Conditions[1]
+##        print "refenence condition:   ",self.reference_condition         
     #######################################################################   
     def Solve(self,time,gid_io):
 
@@ -164,7 +167,7 @@ class MonolithicSolver:
         
         (self.solver).Solve()
         
-        self.RestoreOldPosition()
+##        self.RestoreOldPosition()
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
 
         (self.solver).Clear()
@@ -204,11 +207,13 @@ class MonolithicSolver:
         
         ##remesh
         if(self.domain_size == 2):
-            (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##       	  (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Monolithic2DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)				      
+##            (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##            (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)     
+            (self.Mesher).ReGenerateMesh(self.model_part, self.reference_element, self.reference_condition,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
         elif(self.domain_size == 3):
-            (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Monolithic3DNeumann",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##            (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+##            (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)            
+            (self.Mesher).ReGenerateMesh(self.model_part, self.reference_element, self.reference_condition, self.node_erase_process,True, True, self.alpha_shape, self.h_factor)            
 
         print "regenerated mesh"			      
 
@@ -308,7 +313,7 @@ class MonolithicSolver:
             delta_displ = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ) 
             delta_displ = math.sqrt(delta_displ)
                 
-            if(delta_displ < 0.01):       #1cm for the moment but this parameter should be passed by the user...         
+            if(delta_displ < 0.001):       #1cm for the moment but this parameter should be passed by the user...         
                 node.SetSolutionStepValue(DISPLACEMENT_X,0,old_displX)
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0,old_displZ)
