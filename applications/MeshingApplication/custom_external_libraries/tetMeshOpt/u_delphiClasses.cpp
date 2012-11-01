@@ -20,6 +20,7 @@ void TObject::free()
 
 TObject::~TObject()
 {
+	//-----------------
 }
 
 std::string intToString(int number)

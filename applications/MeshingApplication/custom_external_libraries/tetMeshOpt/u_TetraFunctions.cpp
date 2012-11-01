@@ -12,8 +12,8 @@ void splitTetrain4(TTetra *t , TList<TVertex*>* vs ,TList<TTetra*>* ts)
 	TVertex *v = new TVertex(fPos);
 	vs->Add(v);
 	int i;
-	double q;
-	q = 5000000;
+	
+	
 	for (i = 0 ; i<4 ; i++)
 	{
 		v0 = t->vertexes[ TTetraFaces[i*3] ];
