@@ -49,7 +49,7 @@ int id;
 	object* userData;
 
 	TValuedObject(void) ;
-	~TValuedObject(void);
+	virtual ~TValuedObject(void) ;
 	float4 getCenter() ;
 
 	void setID(int nid);
@@ -120,6 +120,7 @@ public:
 	TElement();
 	TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3);
 	virtual BoundBox CalcBound() ;	
+	virtual ~TElement();
 };
 
 

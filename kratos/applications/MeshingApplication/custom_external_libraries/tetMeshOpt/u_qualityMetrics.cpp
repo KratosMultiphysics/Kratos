@@ -264,7 +264,7 @@ float relaxQuality(TObject* o)
 double minDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 {
 	double d[6];
-	double x21,y21,z21, x31,y31,z31, x41,y41,z41, x32,y32,z32, x42,y42,z42, x43,y43,z43 ,
+	double x21,y21,z21, x31,y31,z31, x41,y41,z41, x32,y32,z32, x42,y42,z42,
 		x123,y123,z123,o123, x124,y124,z124,o124, x134,y134,z134,o134, x234,y234,z234,o234    ;
 
 	x21  = v1.x - v0.x;
@@ -286,10 +286,6 @@ double minDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 	x42  = v3.x - v1.x;
 	y42  = v3.y - v1.y;
 	z42  = v3.z - v1.z;
-
-	x43  = v3.x - v2.x;
-	y43  = v3.y - v2.y;
-	z43  = v3.z - v2.z;
 
 	x123 = y21*z31 - z21*y31;
 	y123 = z21*x31 - x21*z31;
@@ -343,7 +339,7 @@ double minDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 double maxDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 {
 	double d[6];
-	double x21,y21,z21, x31,y31,z31, x41,y41,z41, x32,y32,z32, x42,y42,z42, x43,y43,z43 ,
+	double x21,y21,z21, x31,y31,z31, x41,y41,z41, x32,y32,z32, x42,y42,z42, 
 		x123,y123,z123,o123, x124,y124,z124,o124, x134,y134,z134,o134, x234,y234,z234,o234    ;
 
 	x21  = v1.x - v0.x;
@@ -366,9 +362,6 @@ double maxDiedralAngle(float4 v0, float4 v1, float4 v2, float4 v3)
 	y42  = v3.y - v1.y;
 	z42  = v3.z - v1.z;
 
-	x43  = v3.x - v2.x;
-	y43  = v3.y - v2.y;
-	z43  = v3.z - v2.z;
 
 	x123 = y21*z31 - z21*y31;
 	y123 = z21*x31 - x21*z31;

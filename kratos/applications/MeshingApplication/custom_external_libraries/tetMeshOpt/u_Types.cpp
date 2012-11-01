@@ -170,6 +170,7 @@ bool TTriangle::verticesEncomun(TTriangle* otherT,TVertex* &v1,TVertex* &v2)
 
 //Class TElement
 TElement::TElement() {}
+TElement::~TElement() {}
 TElement::TElement(TVertex v0,TVertex v1,TVertex v2,TVertex v3){};
 BoundBox TElement::CalcBound() 
 { 

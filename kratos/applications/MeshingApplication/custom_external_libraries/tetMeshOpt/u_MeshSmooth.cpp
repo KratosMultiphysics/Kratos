@@ -11,8 +11,8 @@ void wightedlaplacianMeshSmooth(TMesh* aMesh)
   TList<TObject*> *eList;
   TTetra *t;
   float4 centerPos ;
-  bool hasNegative;
-  double minq, q;
+  
+  double q;
   int nchanges = 0;
 
    for (i = 0 ; i<aMesh->fFaces->Count() ; i++)
@@ -33,15 +33,14 @@ void wightedlaplacianMeshSmooth(TMesh* aMesh)
 	   v->getVertexNeighboursByElem(vList);	   
 	   if (vList->Count() == 0) continue;
 	   //calculo la calidad minima del set
-		minq = 1000000;
+		
 		double totQ = 0;
-		hasNegative = false;
+
 		centerPos = Float4(0.0);
 		// Calculo la calidad inicial del cluster
 		for (j=0 ; j<eList->Count() ; j++)
 		{
 			t = (TTetra*)(eList->elementAt(j)) ;
-			if (t->getVolume() < 0) hasNegative = true;
 			q = diedralAngle(t->vertexes);
 			totQ +=q;			
 		}
@@ -173,7 +172,7 @@ void localMeshSmooth(int i, int thId  ,TObject* destObject)
   TList<TObject*> *vList;
   TTetra *t;
   float4 initialPos ,proposed;
-  bool hasNegative;
+  
   double minq,avgq ,minq2, avgq2 ,q,minVol,radius;
 
 	   TVertex *v = (TVertex*)destObject;
@@ -185,11 +184,10 @@ void localMeshSmooth(int i, int thId  ,TObject* destObject)
 		minq = 1000000;
 		avgq = 0;
 		radius = 0;
-		hasNegative = false;
+		
 		for (j=0 ; j<vList->Count() ; j++)
 		{
-			t = (TTetra*)(vList->elementAt(j)) ;
-			if (t->getVolume() < 0) hasNegative = true;
+			t = (TTetra*)(vList->elementAt(j)) ;	
 
 			q = diedralAngle(t->vertexes);
 			minq =Min(minq,q );
