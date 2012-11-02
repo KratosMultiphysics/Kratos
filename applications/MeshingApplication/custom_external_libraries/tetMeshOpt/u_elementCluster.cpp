@@ -474,9 +474,9 @@ bool TElementsCluster::updateMesh(bool checkIfInvalid )
 				for (i = 0 ; i<newElements->Count();i++)
 				{
 					TTetra *_t = (TTetra *)(newElements->elementAt(i));					
-					if (t != NULL)
+					if (_t != NULL)
 					{
-					  t->removeVertexRef();
+					  _t->removeVertexRef();
 					  newElements->setElementAt(i,NULL);
 					  delete _t;
 					}

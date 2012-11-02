@@ -11,7 +11,7 @@ private :
 	char* fLastLoaded;
 public :
 	TMeshLoader(){ return; }
-	~TMeshLoader(){return; }
+	virtual ~TMeshLoader(){return; }
 
 	virtual bool save(const char* aMeshName, TMesh* aMesh, int flags = 0 )
 	{ 
