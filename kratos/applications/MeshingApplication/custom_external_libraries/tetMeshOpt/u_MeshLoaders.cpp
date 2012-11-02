@@ -111,7 +111,7 @@ TMesh* TVMWLoader::load(const char* aMeshName)
 	char *line = new char[200];		
 	char *line2 = new char[200];	
 	int nCoords;		
-	size_t ctrlFlag , lSize;
+	size_t ctrlFlag ;
 
 	fMesh = fopen( aMeshName,"rb"); //xx = rb, wb, read and write binary, more 		
 	if (fMesh==NULL) 
@@ -121,7 +121,7 @@ TMesh* TVMWLoader::load(const char* aMeshName)
 	}
 	// obtain file size:
 	fseek (fMesh , 0 , SEEK_END);
-	lSize = ftell (fMesh);
+	ftell (fMesh);
 	rewind (fMesh);
 
 

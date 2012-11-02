@@ -257,7 +257,7 @@ public:
 		memPool = new TElementsPool();
 
 	};
-	~TMesh(void)
+	virtual ~TMesh(void)
 	{
 		delete memPool;
 		delete selectedElements;
