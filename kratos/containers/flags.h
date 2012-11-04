@@ -367,7 +367,20 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
 
+    virtual void save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Flags",  mFlags);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+	rSerializer.load("Flags",  mFlags);
+    }
     ///@}
     ///@name Private  Access
     ///@{
