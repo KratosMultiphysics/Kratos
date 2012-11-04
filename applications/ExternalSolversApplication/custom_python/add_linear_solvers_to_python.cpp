@@ -30,6 +30,10 @@
   #include "external_includes/itsol_arms_solver.h"
 #endif
 
+#ifdef INCLUDE_PASTIX
+  #include "external_includes/pastix_iterative_solver.h"
+#endif
+
 namespace Kratos
 {
 
@@ -72,6 +76,14 @@ void  AddLinearSolversToPython()
     typedef ITSOL_ARMS_Solver<SpaceType,  LocalSpaceType> ITSOL_ARMS_SolverType;
     class_<ITSOL_ARMS_SolverType, bases<LinearSolverType>, boost::noncopyable >
     ( "ITSOL_ARMS_Solver",init<>() )
+    .def(init<double,int,int>())
+    ;
+#endif
+
+#ifdef INCLUDE_PASTIX
+    typedef Pastix_Iterative_Solver<SpaceType,  LocalSpaceType> Pastix_Iterative_SolverType;
+    class_<Pastix_Iterative_SolverType, bases<LinearSolverType>, boost::noncopyable >
+    ( "Pastix_Iterative_Solver",init<>() )
     .def(init<double,int,int>())
     ;
 #endif
