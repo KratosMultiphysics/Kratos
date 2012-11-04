@@ -19,6 +19,19 @@ else(${EXCLUDE_ITSOL} MATCHES ON)
     include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/ITSOL_2/INC  )
 endif(${EXCLUDE_ITSOL} MATCHES ON)
 
+if(${INCLUDE_PASTIX} MATCHES ON)
+    add_definitions(-DINCLUDE_PASTIX)
+    include_directories( ${PASTIX_INSTALL_DIR} )
+	FIND_LIBRARY(PASTIX_LINK_LIB pastix  ${PASTIX_INSTALL_DIR})
+	FIND_LIBRARY(SCOTCH_LIB scotch ${SCOTCH_INSTALL_DIR})
+	message("pastix library found =" ${PASTIX_LINK_LIB})
+	add_library(kratos_pastix STATIC custom_external_libraries/solvePASTIX.c  )
+	target_link_libraries(kratos_pastix ${BLAS_LIBRARIES} ${PASTIX_LINK_LIB} ${SCOTCH_LIB}  )
+else(${INCLUDE_PASTIX} MATCHES ON)
+    set(PASTIX_LINK_LIB "")
+endif(${INCLUDE_PASTIX} MATCHES ON)
+
+
 
 ## generate variables with the sources
 set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES    
@@ -32,11 +45,19 @@ set( KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES
 add_library(KratosExternalSolversApplication SHARED ${KRATOS_EXTERNAL_SOLVERS_APPLICATION_SOURCES})
 
 if(${EXCLUDE_ITSOL} MATCHES ON)
-    target_link_libraries(KratosExternalSolversApplication KratosCore superlu)
-    set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
+	if(${INCLUDE_PASTIX} MATCHES ON)
+		target_link_libraries(KratosExternalSolversApplication KratosCore superlu kratos_pastix)
+	else(${INCLUDE_PASTIX} MATCHES ON)
+		target_link_libraries(KratosExternalSolversApplication KratosCore superlu )
+	endif(${INCLUDE_PASTIX} MATCHES ON)
+
 else(${EXCLUDE_ITSOL} MATCHES ON)
-    target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers)
-    set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
+	if(${INCLUDE_PASTIX} MATCHES ON)
+		target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers kratos_pastix)
+	else(${INCLUDE_PASTIX} MATCHES ON)
+		target_link_libraries(KratosExternalSolversApplication KratosCore superlu itsol_solvers )
+	endif(${INCLUDE_PASTIX} MATCHES ON)
+set_target_properties(KratosExternalSolversApplication PROPERTIES PREFIX "")
     
 endif(${EXCLUDE_ITSOL} MATCHES ON)
 
