@@ -127,8 +127,6 @@ public:
         bool nodes_written = false;
         if ( mMeshElements.size() != 0 )
         {
-            KRATOS_WATCH("130");
-
             //compute number of layers
             int max_id = 0;
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
@@ -138,9 +136,10 @@ public:
                 if (max_id < prop_id) max_id = prop_id;
             }
             if (max_id > 10000)
-                std::cout<< "a propery Id > 10000 found. Are u sure you need so many properties?" << std::endl;
+                std::cout<< "a property Id > 10000 found. Are u sure you need so many properties?" << std::endl;
             std::vector<int> elements_per_layer (max_id+1,0);
-            KRATOS_WATCH(max_id);
+            //KRATOS_WATCH(max_id);
+
             //fill layer list
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
@@ -148,7 +147,7 @@ public:
                 int prop_id = (it)->GetProperties().Id();
                 elements_per_layer[prop_id] += 1;
             }
-            std::cout << "beginnging printing elements" <<std::endl;
+            std::cout << "start printing elements" <<std::endl;
             for (unsigned int current_layer = 0; current_layer < elements_per_layer.size(); current_layer++)
             {
                 if (elements_per_layer[current_layer] > 0)
@@ -158,12 +157,12 @@ public:
                     current_layer_name << mMeshTitle << "_" << current_layer ;
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
-                        std::cout << "writing a 2D mesh" << std::endl;
+                        std::cout << " -print element 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
-                        std::cout << "writing a 3D mesh" << std::endl;
+                        std::cout << " -print element 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
                     }
                     else
@@ -231,7 +230,7 @@ public:
                     GiD_EndMesh();
                 }
             }
-            std::cout << "finished printing elements" <<std::endl;
+            std::cout << "end printing elements" <<std::endl;
         }
         if ( mMeshConditions.size() != 0 )
         {
@@ -244,7 +243,7 @@ public:
                 if (max_id < prop_id) max_id = prop_id;
             }
             if (max_id > 10000)
-                std::cout<< "a propery Id > 10000 found. Are u sure you need so many properties?" << std::endl;
+                std::cout<< "a property Id > 10000 found. Are u sure you need so many properties?" << std::endl;
             std::vector<int> conditions_per_layer (max_id+1,0);
             //fill layer list
             for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
@@ -253,7 +252,7 @@ public:
                 int prop_id = (it)->GetProperties().Id();
                 conditions_per_layer[prop_id] += 1;
             }
-            std::cout << "beginning printing conditions" <<std::endl;
+            std::cout << "start printing conditions" <<std::endl;
             for (unsigned int current_layer = 0; current_layer < conditions_per_layer.size(); current_layer++)
             {
                 if (conditions_per_layer[current_layer] > 0)
@@ -263,13 +262,13 @@ public:
 
                     if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
-                        std::cout << "writing a 2D mesh" << std::endl;
+                        std::cout << " -print condition 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
-                        std::cout << "writing a 3D mesh" << std::endl;
+                        std::cout << " -print condition 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
                         GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
@@ -331,7 +330,7 @@ public:
                     GiD_EndMesh();
                 }
             }
-            std::cout << "finished printing elements" <<std::endl;
+            std::cout << "end printing conditions" <<std::endl;
         }
         KRATOS_CATCH ("")
     }
