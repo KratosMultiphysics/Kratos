@@ -875,7 +875,7 @@ private:
 //
 //	SizeType number_of_nodes_read = 0;
 //
-//	std::cout << "	Reading Nodes : ";
+//	std::cout << "Reading Nodes : ";
 //
 //        std::vector< unsigned int > id_vector;
 //        std::vector< array_1d<double,3> > coordinates_vector;
@@ -1035,7 +1035,7 @@ private:
         std::string element_name;
 
         ReadWord(element_name);
-        std::cout << "	Reading Elements : ";
+        std::cout << "Reading Elements : ";
 
         if(!KratosComponents<Element>::Has(element_name))
         {
