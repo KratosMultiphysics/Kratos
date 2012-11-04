@@ -133,6 +133,18 @@ OPTIONAL LIBRARIES
 		    do not use older versions. If this is a problem set to off the MeshingApplication and in this case any 
 		    version can be used
 
-
+	EXTERNAL SOLVERS APPLICATION
+			This application provides an interface to external linear solvers. By default the SuperLU solver
+			is compiled together with the Kratos. The ARMS solver from the ITSOL lib is also compiled unless the user
+			specifies
+				-DEXCLUDE_ITSOL=ON
+				
+			The kratos also provides the possibility of using the pastix solver which is a threaded solver
+			for the solution of linear systems of equations. The solver is NOT activated by default and should be 
+			explicitly required by the user by setting the appropriate paths, smthg like:
+				-DINCLUDE_PASTIX=ON \
+				-DPASTIX_INSTALL_DIR="/home/rrossi/scratch/pastix_release_3725/install/" \
+				-DSCOTCH_INSTALL_DIR="/usr/lib/" \
+			we shall observe that the pastix should be compild with FORCE_NOMPI and should use the same blas as the kratos
 
 
