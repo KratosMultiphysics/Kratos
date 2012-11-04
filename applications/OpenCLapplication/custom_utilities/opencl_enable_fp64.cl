@@ -61,17 +61,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //
-// Try enabling the AMD version first
+// Try enabling the Khronos version of FP64
 
-#pragma OPENCL EXTENSION cl_amd_fp64: enable
-
-#ifndef cl_amd_fp64
-
-	// Failed, probably we are not on AMD platform, so try Khronos version
+#ifdef cl_khr_fp64
 
 	#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
+//
+// Extension not available, try AMD specific FP64
+
+#else
+
+	#ifdef cl_amd_fp64
+
+		#pragma OPENCL EXTENSION cl_amd_fp64: enable
+	
+	#else
+
+//
+// None of the extensions were available
+	
+		#error "opencl_enable_fp64.cl: cannot enable cl_amd_fp64 or cl_khr_fp64. FP64 is not available on this hardware."
+		
+	#endif
+	
 #endif
-
-
+	
+	
 #endif  // KRATOS_OPENCL_ENABLE_FP64_CL_INCLUDED
