@@ -916,6 +916,20 @@ public:
         return GeometriesArrayType();
     }
 
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+        KRATOS_ERROR( std::logic_error,
+                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+    }
+
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+        KRATOS_ERROR( std::logic_error,
+                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+    }
+
+
     /** This method gives you an edge of this geometry related to
     given index. The numbering order of each geometries edges is
     depended to type of that geometry.

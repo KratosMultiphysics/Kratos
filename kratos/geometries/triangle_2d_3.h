@@ -619,7 +619,7 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 2, 2 );
+        rResult.resize( 2, 2, false);
         rResult( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
         rResult( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
         rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
@@ -883,6 +883,13 @@ public:
         return 3;
     }
 
+
+   virtual SizeType FacesNumber() const
+    {
+        return 3;
+    }
+   
+
     /** This method gives you all edges of this geometry. This
     method will gives you all the edges with one dimension less
     than this geometry. for example a triangle would return
@@ -903,6 +910,37 @@ public:
         edges.push_back( EdgeType( this->pGetPoint( 2 ), this->pGetPoint( 0 ) ) );
         return edges;
     }
+
+
+
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+      NumberNodesInFaces.resize(3);
+      // Linear Triangles have elements of 2 nodes as faces
+      NumberNodesInFaces[0]=2; 
+      NumberNodesInFaces[1]=2; 
+      NumberNodesInFaces[2]=2;
+
+    }
+    
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+      NodesInFaces.resize(3,3);
+      NodesInFaces(0,0)=0;
+      NodesInFaces(1,0)=1;
+      NodesInFaces(2,0)=2;//other node
+  
+      NodesInFaces(0,1)=1;
+      NodesInFaces(1,1)=2;
+      NodesInFaces(2,1)=0;//other node
+  
+      NodesInFaces(0,2)=2;
+      NodesInFaces(1,2)=0;
+      NodesInFaces(2,2)=1;//other node
+ 
+    }
+
 
 
     ///@}
@@ -2077,5 +2115,5 @@ GeometryData Triangle2D3<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGLE_2D_3_H_INCLUDED  defined 
 

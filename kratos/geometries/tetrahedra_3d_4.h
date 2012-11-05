@@ -906,6 +906,45 @@ public:
         return faces;
     }
 
+
+    //Connectivities of faces required
+    virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
+    {
+      NumberNodesInFaces.resize(4);    
+      // Linear Tetrahedra have elements of 3 nodes as faces
+      NumberNodesInFaces[0]=3; 
+      NumberNodesInFaces[1]=3; 
+      NumberNodesInFaces[2]=3;
+      NumberNodesInFaces[4]=3;
+      
+    }
+    
+    virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
+    {
+      NodesInFaces.resize(4,4);
+      NodesInFaces(0,0)=1;
+      NodesInFaces(1,0)=2;
+      NodesInFaces(2,0)=3;
+      NodesInFaces(3,0)=0;//other node
+   
+      NodesInFaces(0,1)=2;
+      NodesInFaces(1,1)=0;
+      NodesInFaces(2,1)=3;
+      NodesInFaces(3,1)=1;//other node    
+   
+      NodesInFaces(0,2)=0;
+      NodesInFaces(1,2)=1;
+      NodesInFaces(2,2)=3;
+      NodesInFaces(3,2)=2;//other node
+   
+      NodesInFaces(0,3)=0;
+      NodesInFaces(1,3)=2;
+      NodesInFaces(2,3)=1;
+      NodesInFaces(3,3)=3;//other node
+    }
+    
+
+
     /**
      * Shape Function
      */
