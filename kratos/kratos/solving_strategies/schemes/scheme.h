@@ -164,6 +164,7 @@ public:
     {
         mSchemeIsInitialized = false;
         mElementsAreInitialized = false;
+	mConditionsAreInitialized = false;
     }
 
     /** Destructor.
@@ -201,6 +202,12 @@ public:
         return mElementsAreInitialized;
     }
 
+    bool ConditionsAreInitialized()
+    {
+        return mConditionsAreInitialized;
+    }
+
+
     /**
     this is the place to initialize the elements.
     This is intended to be called just once when the strategy is initialized
@@ -228,6 +235,41 @@ public:
         }
 
         mElementsAreInitialized = true;
+
+        KRATOS_CATCH("")
+    }
+
+
+    /**
+    this is the place to initialize the conditions.
+    This is intended to be called just once when the strategy is initialized
+    */
+    virtual void InitializeConditions(
+        ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        if(mElementsAreInitialized==false)
+	    KRATOS_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+
+        int NumThreads = OpenMPUtils::GetNumThreads();
+        OpenMPUtils::PartitionVector ConditionPartition;
+        OpenMPUtils::DivideInPartitions(rModelPart.Conditions().size(), NumThreads, ConditionPartition);
+
+        #pragma omp parallel
+        {
+            int k = OpenMPUtils::ThisThread();
+            ConditionsArrayType::iterator CondBegin = rModelPart.Conditions().begin() + ConditionPartition[k];
+            ConditionsArrayType::iterator CondEnd = rModelPart.Conditions().begin() + ConditionPartition[k + 1];
+
+            for (ConditionsArrayType::iterator itCond = CondBegin; itCond != CondEnd; itCond++)
+            {
+                itCond->Initialize(); //function to initialize the condition
+            }
+
+        }
+
+        mConditionsAreInitialized = true;
         KRATOS_CATCH("")
     }
 
@@ -379,6 +421,21 @@ public:
         KRATOS_TRY
         KRATOS_CATCH("")
     }
+    
+    virtual void InitializeNonLinearIteration(Condition::Pointer rCurrentCondition,
+					      ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+        KRATOS_CATCH("")
+    }
+
+    virtual void InitializeNonLinearIteration(Element::Pointer rCurrentElement,
+					      ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+        KRATOS_CATCH("")
+    }
+
 
     /**
     function to be called when it is needed to initialize an iteration.
@@ -636,6 +693,9 @@ protected:
 
     /// flag taking in account if the elements were initialized correctly or not
     bool mElementsAreInitialized;
+
+    /// flag taking in account if the conditions were initialized correctly or not
+    bool mConditionsAreInitialized;
 
     /** Pointer to the Model.
      */
