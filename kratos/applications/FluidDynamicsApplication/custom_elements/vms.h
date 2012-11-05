@@ -390,6 +390,7 @@ public:
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
+//        rMassMatrix.resize(0,0,false);
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
 
         // Resize and set to zero
@@ -1177,49 +1178,29 @@ protected:
                                     const double Weight,
                                     const double DeltaTime = 1.0)
     {
-
-        // TO BE REMOVED ---------------------------------------------------------------------------------------------------
-        // Experimental: Dynamic tracking of subscales (see Codina 2002 Stabilized finite element ... using orthogonal subscales)
-        const array_1d<double,3>& OldSubscale = this->GetValue(SUBSCALE_VELOCITY);
-        //------------------------------------------------------------------------------------------------------------------
-
         const unsigned int BlockSize = TDim + 1;
 
         array_1d<double, TNumNodes> AGradN;
         this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
 
-        // Add to the ouptut vector
-        unsigned int FirstRow(0); // Position of the term we want to add to
-        double Const1, Const2; // Partial results that remain constant for a given j
+        array_1d<double,3> MomProj(3,0.0);
+        double DivProj = 0.0;
+        this->EvaluateInPoint(MomProj,ADVPROJ,rShapeFunc);
+        this->EvaluateInPoint(DivProj,DIVPROJ,rShapeFunc);
 
-        for (unsigned int j = 0; j < TNumNodes; ++j) // loop over nodes (for components of the residual)
+        MomProj *= TauOne;
+        DivProj *= TauTwo;
+
+        unsigned int FirstRow = 0;
+
+        for (unsigned int i = 0; i < TNumNodes; i++)
         {
-            // Compute the 'constant' part of the (nodal) projection terms
-            // See this->Calculate() for the computation of the projections
-            const array_1d< double, 3 > & rMomProj = this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ);
-
-            Const1 = Weight * TauOne * rShapeFunc[j];
-            Const2 = Weight * TauTwo * rShapeFunc[j] * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
-
-            // Reset row reference
-            FirstRow = 0;
-
-            for (unsigned int i = 0; i < TNumNodes; ++i) // loop over nodes (for components of L*(Vh) )
+            for (unsigned int d = 0; d < TDim; d++)
             {
-                for (unsigned int d = 0; d < TDim; ++d)
-                {
-                    RHS[FirstRow + d] -= Const1 * Density * AGradN[i] * rMomProj[d] + Const2 * rShapeDeriv(i, d); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
-                    RHS[FirstRow + TDim] -= Const1 * rShapeDeriv(i, d) * rMomProj[d]; // TauOne * Grad(q) * MomProjection
-                    if(this->GetValue(TRACK_SUBSCALES)==1)
-                    {
-                        KRATOS_ERROR(std::logic_error,"Subscale tracking currently broken","")
-                        RHS[FirstRow + d] += Const1 * AGradN[i] * TauOne * OldSubscale[d]/DeltaTime;
-                        RHS[FirstRow + TDim] += Const1 * rShapeDeriv(i, d) * TauOne * OldSubscale[d]/DeltaTime;
-                    }
-                }
-                // Update row reference
-                FirstRow += BlockSize;
+                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+                RHS[FirstRow+TDim] -= Weight * rShapeDeriv(i,d) * MomProj[d]; // TauOne * Grad(q) * MomProjection
             }
+            FirstRow += BlockSize;
         }
     }
 
@@ -1356,13 +1337,13 @@ protected:
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
         double K, G, PDivV, L, qF; // Temporary results
 
-        // Note that we iterate first over columns, then over rows to read the Body Force only once per node
-        for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
-        {
-            // Get Body Force
-            const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
+        array_1d<double,3> BodyForce(3,0.0);
+        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
+        BodyForce *= Density;
 
-            for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+        for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+        {
+            for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
             {
                 // Calculate the part of the contributions that is constant for each node combination
 
@@ -1406,22 +1387,23 @@ protected:
                 // Write q-p stabilization block
                 rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
 
-                // Operate on RHS
-                qF = 0.0;
-                for (unsigned int d = 0; d < TDim; ++d)
-                {
-                    rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * rShapeFunc[j] * Density * rBodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
-                    qF += rShapeDeriv(i, d) * rShapeFunc[j] * rBodyForce[d];
-                }
-                rDampRHS[FirstRow + TDim] += Weight * Density * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
 
-                // Update reference row index for next iteration
-                FirstRow += BlockSize;
+                // Update reference column index for next iteration
+                FirstCol += BlockSize;
             }
 
+            // Operate on RHS
+            qF = 0.0;
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                qF += rShapeDeriv(i, d) * BodyForce[d];
+            }
+            rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+
             // Update reference indices
-            FirstRow = 0;
-            FirstCol += BlockSize;
+            FirstRow += BlockSize;
+            FirstCol = 0;
         }
 
 //            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
