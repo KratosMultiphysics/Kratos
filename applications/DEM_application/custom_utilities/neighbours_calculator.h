@@ -159,10 +159,11 @@ namespace Kratos {
             
             //Radius vector fill
             for (IteratorType particle_pointer_it = pIteratorElements.begin(); particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it)
-                Radius[particle_pointer_it - pIteratorElements.begin()] = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-
+            {    
+                Radius[particle_pointer_it - pIteratorElements.begin()] = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+            }
             SearchNeighbours(r_model_part,particle_bin,pIteratorElements,NumberOfElements,MaximumNumberOfResults,NumberOfResults,Results,ResultsDistances,Radius);
-            
+                         
             //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
             #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads(); //////////
@@ -190,7 +191,7 @@ namespace Kratos {
                     // CLEARING AND INITIALITZING.
 
                     vector< int > TempIds;
-                    TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)); //afegir a getting
+                    TempIds.swap((*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)); 
 
                     (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).clear();
                     (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).clear();
@@ -200,34 +201,59 @@ namespace Kratos {
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
+                  /*  
                     (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(NumberOfResults[ResultIterator]);
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(NumberOfResults[ResultIterator]);
                     (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(NumberOfResults[ResultIterator]);
                     (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(NumberOfResults[ResultIterator]);
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(NumberOfResults[ResultIterator]);
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(NumberOfResults[ResultIterator]);
-
+*/
                     // STORING THE NEIGHBOURS AND PROPERTIES
-
+                        
                     unsigned int neighbour_counter = 0;
     
                     for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
                     {                  
-                        (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
-                        (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
                         
-                        Add_To_Modelpart(r_model_part,neighbour_it);
-                        
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
-                        (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
-                        (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+                      
+                        array_1d<double,3> other_to_me_vect      = (*particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
+                        double distance                          = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                                       other_to_me_vect[1] * other_to_me_vect[1] +
+                                                                       other_to_me_vect[2] * other_to_me_vect[2]);
 
+                        double neighbour_search_radius           = (1.0 + radius_extend) * (*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+
+                        if( distance <= neighbour_search_radius )
+                        {
+
+                             (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                             size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+
+                             (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+
+
+                             (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
+
+                             Add_To_Modelpart(r_model_part,neighbour_it);
+
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][2] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][0] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][1] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[size-1][2] = 0.0;
+                             (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[size-1] = 1;
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID)[size-1] = 1;
+                             (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = 0.0;
+
+                        }
+                          
                         ++neighbour_counter;
 
                     }// For each neighbour, neighbour_it.
