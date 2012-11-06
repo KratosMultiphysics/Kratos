@@ -92,6 +92,8 @@ class ExplicitStrategy:
         self.rotation_OPTION                = 0  #its 1/0 xapuza
         self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
         self.bounding_box_OPTION            = 0  #its 1/0 xapuza
+        
+        self.contact_mesh_OPTION            = 0 #its 1/0 xapuza
 
         #global parameters
         self.global_variables_OPTION        = 0 #its 1/0 xapuza
@@ -154,6 +156,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
+        self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_OPTION)
         
         #####
 
@@ -174,14 +177,14 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         
         #creating the solution strategy
-        self.solver = ExplicitSolverStrategy(self.model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
+        self.solver = ExplicitSolverStrategy(self.model_part, self.contact_model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
                                             self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)       
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
         
-        #copying the nodes to the new model part
-        self.contacts_model_part.Nodes() = self.model_part.Nodes();
-
+        #copying the nodes to the new model part, also the properties (void)
+        self.contact_model_part.Nodes = self.model_part.Nodes;
+     
 
     #######################################################################
     def Initial_Critical_Time(self):
