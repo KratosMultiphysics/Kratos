@@ -10,6 +10,7 @@ from KratosMultiphysics.DEMApplication import *
 
 #defining a model part for the solid part
 my_timer=Timer();
+solid_model_part = ModelPart("SolidPart");  
 #############################################
 
 #introducing input file name
@@ -104,6 +105,8 @@ global_variables_option = DEM_explicit_solver_var.GlobalVariablesOption
 virtual_mass_option 	= DEM_explicit_solver_var.VirtualMassOption
 virtual_mass_coeff 	= DEM_explicit_solver_var.VirtualMassCoefficient
 
+contact_mesh_option = DEM_explicit_solver_var.ContactMeshOption
+
 if(virtual_mass_option == "ON"):
     solver.virtual_mass_OPTION=1 #xapuza
     
@@ -133,7 +136,9 @@ if(trihedron_option =="ON"):
 if(rotation_spring_option =="ON"):
   solver.rotation_spring_OPTION=1  #xapuza
        
-
+if(contact_mesh_option =="ON"):
+  solver.contact_mesh_OPTION=1  #xapuza
+       
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
 
 # global variable settings
@@ -485,6 +490,10 @@ while(time < final_time):
         gid_io.WriteNodalResults(EXPORT_ID, solid_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
 	gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, solid_model_part.Nodes, time, 0)
+	print(contact_mesh_option)
+	if (contact_mesh_option == "ON"): ##xapuza
+	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,solid_model_part,time)
+	  print("HOLA")
              
         if (rotation_option == "ON"): ##xapuza
             gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
