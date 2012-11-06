@@ -166,7 +166,7 @@ namespace Kratos {
                          
             //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
             #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads(); //////////
+            int number_of_threads = omp_get_max_threads();
             #else
             int number_of_threads = 1;
             #endif
