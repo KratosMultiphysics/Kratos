@@ -165,7 +165,7 @@ namespace Kratos {
             
             //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
             #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
+            int number_of_threads = omp_get_max_threads(); //////////
             #else
             int number_of_threads = 1;
             #endif
@@ -180,7 +180,7 @@ namespace Kratos {
                 IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
                 IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
                 
-                ResultIterator = k;
+                ResultIterator = element_partition[k];
                 
                 for (IteratorType particle_pointer_it = it_begin;
                         particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
@@ -301,7 +301,7 @@ namespace Kratos {
                 IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
                 IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
                 
-                ResultIterator = k;
+                ResultIterator = element_partition[k];
                 
                 for (IteratorType particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
                 {                   
