@@ -33,6 +33,11 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
+        
+        KRATOS_CREATE_VARIABLE( int, CONTACT_MESH_OPTION)
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_LOW )                 
+        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_HIGH )
+                
         KRATOS_CREATE_VARIABLE( int, SKIN_SPHERE )
         KRATOS_CREATE_VARIABLE( double, EXPORT_SKIN_SPHERE )
                 
@@ -84,6 +89,10 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
 
+                KRATOS_REGISTER_VARIABLE( CONTACT_MESH_OPTION )
+                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_LOW )                 
+                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_HIGH )
+                
                 KRATOS_REGISTER_VARIABLE( SKIN_SPHERE )
                 KRATOS_REGISTER_VARIABLE( EXPORT_SKIN_SPHERE )
                         
