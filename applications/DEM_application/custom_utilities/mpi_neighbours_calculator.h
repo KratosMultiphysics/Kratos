@@ -207,7 +207,6 @@ namespace Kratos {
         }
         
         virtual void SearchNeighbours(ModelPart& r_model_part,
-                                      Bins& particle_bin,
                                       ContainerType& pIteratorElements,
                                       int NumberOfElements,
                                       int MaximumNumberOfResults,
@@ -217,6 +216,7 @@ namespace Kratos {
                                       std::vector<double> &Radius
         )
         {
+            Bins particle_bin(pIteratorElements.begin(), pIteratorElements.end());
             particle_bin.SearchObjectsMpi(r_model_part,pIteratorElements.begin(),NumberOfElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,r_model_part.pGetCommunicator());
         }
 
