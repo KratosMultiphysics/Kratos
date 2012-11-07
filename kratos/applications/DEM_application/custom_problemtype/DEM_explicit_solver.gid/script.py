@@ -20,7 +20,8 @@ SolverStrategy.AddVariables(solid_model_part)
 
 #reading the solid part
 gid_mode = GiDPostMode.GiD_PostBinary
-multifile = MultiFileFlag.MultipleFiles
+#multifile = MultiFileFlag.MultipleFiles
+multifile = MultiFileFlag.SingleFile
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
@@ -344,10 +345,23 @@ strainlist.append(0.0)
 stresslist=[]
 stresslist.append(0.0)
 
-strain=0.0	    
+strain=0.0	
+
+contact_model_part = solver.contact_model_part   
+
+gid_io.InitializeMesh(0.0)
+gid_io.WriteSphereMesh(solid_model_part.GetMesh())
+gid_io.FinalizeMesh()
+#gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
+
+gid_io.InitializeMesh(0.0)
+gid_io.WriteMesh(contact_model_part.GetMesh());
+gid_io.FinalizeMesh()
+gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
 
 
 while(time < final_time):
+  
   
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
     time = time + dt
@@ -474,31 +488,31 @@ while(time < final_time):
 	os.chdir(post_path)
 	
 	#print "TIME STEP = ", step
-	gid_io.InitializeMesh(time);
-        gid_io.WriteSphereMesh(solid_model_part.GetMesh());
-        gid_io.FinalizeMesh();
-	gid_io.InitializeResults(time, solid_model_part.GetMesh());   
-        gid_io.WriteNodalResults(VELOCITY, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(DISPLACEMENT, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(RHS, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(TOTAL_FORCES, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(DAMP_FORCES, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(RADIUS, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(PARTICLE_COHESION, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(PARTICLE_TENSION, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(GROUP_ID, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(EXPORT_ID, solid_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, solid_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, solid_model_part.Nodes, time, 0)
-	print(contact_mesh_option)
+	#gid_io.InitializeMesh(time);
+        #gid_io.WriteSphereMesh(solid_model_part.GetMesh());
+        #gid_io.FinalizeMesh();
+	#gid_io.InitializeResults(time, solid_model_part.GetMesh());   
+        gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
+	
 	if (contact_mesh_option == "ON"): ##xapuza
-	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,solid_model_part,time)
-	  print("HOLA")
+	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
+	  
              
         if (rotation_option == "ON"): ##xapuza
-            gid_io.WriteNodalResults(ANGULAR_VELOCITY, solid_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(PARTICLE_MOMENT, solid_model_part.Nodes, time, 0)
-            gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, solid_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
+            gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
+            gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
         
         
         os.chdir(data_and_results)
@@ -528,7 +542,7 @@ while(time < final_time):
 	os.chdir(main_path)
        
         sys.stdout.flush()      
-        gid_io.FinalizeResults()    
+        #gid_io.FinalizeResults()    
 	time_old_print = time
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -550,6 +564,9 @@ while(time < final_time):
 
    
     step += 1
+
+    
+gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
