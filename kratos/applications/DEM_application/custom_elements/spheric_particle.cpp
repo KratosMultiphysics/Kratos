@@ -135,9 +135,22 @@ namespace Kratos
       }
 
         void SphericParticle::SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
-        {           
+        {   
+            
+            /*
+             *
+             * 
+             * ELEMENT_NEIGHBOURS / NEIGHBOURS_IDS: the ones important for calculating forces.
+             * INI_NEIGHBOURS_IDS: the ones to be treated specially due to initial delta or continuum case.
+             * INI_CONTINUUM_NEIGHBOURS_IDS: only the ones that are continuum at 0 step and we should treat the possible detachment.
+             * 
+             * These 3 classes do NOT coincide at t=0!
+ 
+            */
+                                
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
+            int contact_mesh_OPTION = rCurrentProcessInfo[CONTACT_MESH_OPTION];
 
             switch (case_opt)
             {
@@ -164,9 +177,14 @@ namespace Kratos
 
             // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
-            ParticleWeakVectorType& r_neighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
-
+            ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
+            
+            ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+            
+            r_continuum_ini_neighbours.clear();
+            
             size_t ini_size = 0;
+            size_t continuum_ini_size =0;
 
             unsigned int i=0;
 
@@ -179,9 +197,7 @@ namespace Kratos
             for(ParticleWeakIteratorType_ptr ineighbour = r_neighbours.ptr_begin();  //loop over the neighbours and store into a initial_neighbours vector.
             ineighbour != r_neighbours.ptr_end(); ineighbour++)
             {
-              
-
-
+           
                 array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
                 double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                      other_to_me_vect[1] * other_to_me_vect[1] +
@@ -208,12 +224,13 @@ namespace Kratos
                     (this->GetValue(INI_NEIGHBOURS_IDS)).resize(ini_size);
                     (this->GetValue(PARTICLE_INITIAL_DELTA)).resize(ini_size);
                     (this->GetValue(PARTICLE_INITIAL_FAILURE_ID)).resize(ini_size);
-
+                                   
+                 
                     this->GetValue(PARTICLE_INITIAL_DELTA)[ini_size - 1]      =  0.0;
                     this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[ini_size - 1] = 1;
                     this->GetValue(INI_NEIGHBOURS_IDS)[ini_size - 1] = ((*ineighbour).lock())->Id();
-
                    
+                  
                     if (delta_OPTION == true)
                     {
             
@@ -225,11 +242,28 @@ namespace Kratos
 
                     if (continuum_simulation_OPTION == true)
                     {
+                        
                         if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
                         {
                             this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0;
                             this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[ini_size - 1]=0;
                             *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.
+                            
+                            if(contact_mesh_OPTION)
+                            {
+                                continuum_ini_size++;
+                                
+                                r_continuum_ini_neighbours.push_back(*ineighbour);
+                              
+                                (this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)).resize(continuum_ini_size);
+                                (this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)).resize(continuum_ini_size);
+                                
+                                this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                           
+                                this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)[continuum_ini_size - 1] = 0;
+                       
+                            }
+                            
 
                         }
 
@@ -238,11 +272,10 @@ namespace Kratos
                 } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
 
                 i++;
-
               
             } //end for: ParticleWeakIteratorType ineighbour
-
-
+            
+   
         }//SetInitialContacts
 
 
@@ -253,7 +286,8 @@ namespace Kratos
 
             KRATOS_TRY
 
-            ParticleWeakVectorType& r_neighbours             = this->GetValue(NEIGHBOUR_ELEMENTS);
+            ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
+            //ParticleWeakVectorType& r_continuum_ini_neighbours  = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
 
             vector<double>& r_VectorContactInitialDelta         = this->GetValue(PARTICLE_CONTACT_DELTA);
 
@@ -319,7 +353,7 @@ namespace Kratos
             total_forces = rhs;
             
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-            
+
             size_t iContactForce = 0;
             
             double total_equiv_area = 0.0;
@@ -470,20 +504,7 @@ namespace Kratos
                 
                 
                 double indentation                  = radius_sum - distance - initial_delta; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
-
-                  if (this->Id()== 491000)
-                {       
-                    
-                    KRATOS_WATCH(radius_sum)
-                    KRATOS_WATCH(distance)
-                    KRATOS_WATCH(initial_delta)
-                    KRATOS_WATCH(indentation)
             
-                      
-                }
-                
-                
-                
                 double equiv_radius     = 2* radius * other_radius / (radius + other_radius);
                 double equiv_area       = M_PI * equiv_radius * equiv_radius;
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
@@ -706,15 +727,7 @@ namespace Kratos
                 if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )  // for detached particles we enter only if the indentation is > 0.
                                                                                                               // for attached particles we enter only if the particle is still attached.
                 {
-             
-                    
-                                              if (this->Id()== 491000)
-                {       KRATOS_WATCH(neighbour_iterator->Id())
-                                                  KRATOS_WATCH(kn)
-                        KRATOS_WATCH(indentation)
-                      
-                }
-                                
+            
                 // NORMAL FORCE
 
                     switch (force_calculation_type_id) //  0---linear comp & tension ; 1 --- Hertzian (no linear comp, linear tension)
@@ -726,8 +739,7 @@ namespace Kratos
                             else {LocalContactForce[2]= kn * indentation; }
                             break;
 
-            
-                            
+                                        
                         case 1:
 
                             if(indentation >= 0.0) {LocalContactForce[2]= kn * pow(indentation, 1.5); }
@@ -759,10 +771,7 @@ namespace Kratos
                 }
 
                 // TENSION FAILURE
-                if (this->Id()== 491000)
-                {       KRATOS_WATCH(LocalContactForce[2])
-                        KRATOS_WATCH(RN)
-                }
+
                 if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
 
                 {
@@ -811,11 +820,6 @@ namespace Kratos
                    sliding = true;
 
                 }
-                
-                        if (this->Id()== 491000)
-                {       KRATOS_WATCH(ShearForceNow)
-                        KRATOS_WATCH(ShearForceMax)
-                }
 
                 //Saving failure to initial neighbour:
                 vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
@@ -847,8 +851,8 @@ namespace Kratos
 	     if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
 
              {
-                 
-                 ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
+
+                ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
 
                 for (unsigned int index = 0; index < 2; index++)
                 {
@@ -857,7 +861,7 @@ namespace Kratos
 
                     {
                         ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  //same visco_coeff to all directions???
-                       
+
                     }
                 }
              }
@@ -914,6 +918,75 @@ namespace Kratos
                     mRota_Moment[2] -= MA[2] * radius;
 
                     }
+                    
+                    
+                    //CONTACT ELEMENT
+                    // Transfer value to the contact element
+                    
+                    //obtenir el punter a la barra 
+                    
+                    if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+                        
+                    {
+                        
+
+                        
+                        
+                   
+                        int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
+/*
+                        if( int(r_continuum_ini_neighbours.size()) == size_ini_cont_neigh)
+                        {KRATOS_WATCH("TAMBE FUNCIONA BEBEVBE EN EL CPP FORCES")}
+                        else
+                        {KRATOS_WATCH("TAMBE ERROR EN EL CPP FORCES")}
+  */                      
+                        for (int iii=0; iii<size_ini_cont_neigh; iii++)
+                        {
+
+                            if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[iii] == int(neighbour_iterator->Id()) ) 
+
+                            {
+                                //obtaining pointer to contact element.
+                                
+                                Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(iii)).lock();
+
+                                if( this->Id() < neighbour_iterator->Id() )  // if id pequeña
+                                {
+                                    //COPY VARIABLES LOW
+                                                          
+                                    //storing values:
+                                 
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = LocalContactForce[0];
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = LocalContactForce[1];
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalContactForce[2];
+
+                                } // if Target Id < Neigh Id.
+
+                                else   
+                                {
+                                    //COPY VARIABLES HIGH 
+                                    
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = LocalContactForce[0];
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalContactForce[1];
+                                    lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalContactForce[2];
+                                    
+                                }
+
+
+                            } //copying the data only to the initial neighbours.
+                            
+                   /***************************************************************************/         
+                       //QUESTION!::: M.S.I.     
+                            //what happens with the initial continuum contacs that now are not found becouse they are broken....
+                            //should be assured that they become 0 when they break and this value keeps.
+                      /************************************************************************************/      
+
+                        } //for continuum initial neighbours
+                        
+                    } // if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+                    
+                      
+                    
                     
                     iContactForce++;
 
@@ -1336,15 +1409,15 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
                 
           }
 
-          array_1d<double,3>& rhs            = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
-          array_1d<double,3>& total_forces   = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
-          array_1d<double,3>& damp_forces   = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
-          array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
+          array_1d<double,3>& rhs               = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
+          array_1d<double,3>& total_forces      = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
+          array_1d<double,3>& damp_forces       = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
+          array_1d<double, 3 > & mRota_Moment   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
           
-          noalias(rhs)                       = ZeroVector(3);
-          noalias(total_forces)              = ZeroVector(3);
-          noalias(damp_forces)               = ZeroVector(3);
-          noalias(mRota_Moment)              = ZeroVector(3);
+          noalias(rhs)          = ZeroVector(3);
+          noalias(total_forces) = ZeroVector(3);
+          noalias(damp_forces)  = ZeroVector(3);
+          noalias(mRota_Moment) = ZeroVector(3);
 
         }
        void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
