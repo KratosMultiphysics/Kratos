@@ -905,7 +905,7 @@ public:
         KRATOS_TRY
 
         Timer::Start("Writing Mesh");
-
+        
         if ( mWriteConditions != WriteConditionsOnly )
         {
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
