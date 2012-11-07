@@ -19,7 +19,7 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_utilities/create_and_destroy.h"
 
-#include "custom_elements/spheric_particle.h" //M: le afegit jo.. no hi era. cal que hi sigui oi???
+#include "custom_elements/spheric_particle.h" 
 #include "includes/variables.h"
 #include "DEM_application.h"
 
@@ -42,7 +42,7 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
-
+#include "geometries/line_3d_2.h"
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
 
@@ -112,7 +112,8 @@ namespace Kratos
       /// Default constructor.
       ExplicitSolverStrategy(){}
       
-      ExplicitSolverStrategy(ModelPart& model_part,   
+      ExplicitSolverStrategy(ModelPart& model_part,
+                             ModelPart& contacts_model_part, 
                              const int dimension,
                              const double enlargement_factor,
                              const double damping_ratio,
@@ -124,7 +125,7 @@ namespace Kratos
                              const bool delta_option,
                              const bool continuum_simulating_option,
                              typename IntegrationScheme::Pointer pScheme
-      ) : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),mdimension(dimension) //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual.
+      ) : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),mcontacts_model_part(contacts_model_part),mdimension(dimension) //inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual. //les referencies tambe aqui
       {
           mdelta_option                = delta_option;
           mcontinuum_simulating_option = continuum_simulating_option;
@@ -184,13 +185,20 @@ namespace Kratos
           SearchIniNeighbours(r_model_part,extension_option);  
           mInitializeWasPerformed   = true;
 
-          // 3. Set Initial Contacts
+          // 4. Set Initial Contacts
           if(mdelta_option || mcontinuum_simulating_option)
           {
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
           }
-
-          //4.Final operations
+          
+          // 5. Create the contact elements.
+          if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
+          {
+              
+              CreateContactElements();
+          }
+          
+          //6.Final operations
           FinalizeSolutionStep();
 
           KRATOS_CATCH("")
@@ -262,6 +270,8 @@ namespace Kratos
           return 0.00;
           KRATOS_CATCH("")
       }
+      
+    
         
       void InitialCriticalTime()
       { 
@@ -476,6 +486,161 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }
+      
+      
+    void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
+    {                
+
+        KRATOS_TRY
+        typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+        typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+        
+        
+        typedef Node < 3 > NodeType;
+        typedef Geometry<NodeType> GeometryType;
+        
+        
+        ModelPart& r_sphere_model_part          = BaseType::GetModelPart();
+        //ProcessInfo& rCurrentProcessInfo        = r_sphere_model_part.GetProcessInfo();
+        ElementsArrayType& pSphereElements      = GetElements(r_sphere_model_part);
+        
+        //ModelPart& r_contacts_model_part        = BaseType::GetModelPart(); //NOOOOOOOOOOOOOOOO
+        //ElementsArrayType& pContactElements     = GetElements(r_contacts_model_part);
+
+        int index_new_ids = 1; //J.Cotela says it starts on 1. Is it 0?
+                    
+        std::string ElementName;
+        ElementName = std::string("ParticleContactElement");
+        const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
+
+        
+        /*
+         * 
+         * Here we are going to create contact elements when we are on a target particle and we see a neighbour which id is higher than us.
+         * We create also a pointer from the node to the element, after creating it.
+         * When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
+         * We proced in this way becouse we want to have the pointers to contact elements in a list in the same order than the initial elements order.
+         *
+        */
+        
+        for (ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
+        {
+
+            KRATOS_WATCH( (*it)->Id() )
+            //ParticleWeakVectorType& r_neighbours             = (*it)->GetValue(NEIGHBOUR_ELEMENTS); //initial continuum neighbours doesn't correspond to initial neighbours which neither correspond to the neighbours at time = 0.
+            ParticleWeakVectorType& r_continuum_ini_neighbours    = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+                      
+                        
+            for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
+                   continuum_ini_neighbour_iterator != r_continuum_ini_neighbours.ptr_end(); continuum_ini_neighbour_iterator++)
+
+            {
+                //KRATOS_WATCH( (*it)->Id() )
+                //KRATOS_WATCH( (*continuum_ini_neighbour_iterator).lock()->Id() )
+                
+                
+                        
+                int size_ini_cont_neigh = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size(); //this is the size of the initial continuum neighbours of the neighbour of the particle where we are focused on.
+                //KRATOS_WATCH( size_ini_cont_neigh )
+                
+                /*
+                                            if(int(r_continuum_ini_neighbours.size()) == size_ini_cont_neigh)
+                                            {KRATOS_WATCH("ESTA OK IMPLEMENTAT TREU-HO")}
+                                            else
+                                            {KRATOS_WATCH("MAL MAL MAL MAL MAL MAL CONTINUUM INI al explicit solver, unes linees mes abaix tambe s'usa!!!!!!!!!")}
+                
+           */
+
+                if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() ) //to avoid repetition
+                {
+                    
+                  KRATOS_WATCH("IM MINOR")
+                           KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())
+                    
+                           //generating the elements
+
+                   Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0); // It is arbitrary since there are non meaningful properties in this application.
+                   Geometry<Node<3> >::PointsArrayType  NodeArray(2);
+                   NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
+                   NodeArray.GetContainer()[1] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);
+                   Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
+                   mcontacts_model_part.Elements().push_back(p_contact_element);
+
+                   Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element);  //converting the pointers for the construction into weak pointers
+
+                   (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(p_weak);          //copiar el weak a la variable nodal punters a barres
+
+                   // we will have a pointer to a element for the two nodes connecting it.
+
+                   index_new_ids++;
+
+                   //KRATOS_WATCH(mcontacts_model_part.Elements().size())
+                   
+                } //if target id < neigh id
+
+                else  // we also create the pointers but we don't create the element. we need to recover the pointer to the element created previously.
+                {
+                    
+                      KRATOS_WATCH("IM MAJOR")
+                              KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())
+                    //Element::WeakPointer p_weak;
+                    
+                    int index = -1;
+                    bool found = false; //just to check                
+                    
+                    for (int iii=0; iii< size_ini_cont_neigh; iii++)
+                    {
+
+                        
+                        int neigh_neigh_ID = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[iii];
+
+                        KRATOS_WATCH(neigh_neigh_ID)
+                                               
+                        if( neigh_neigh_ID == int((*it)->Id()))
+                        {
+                            
+                                                             
+                               index = iii; //we keep the last iii of the iteration and this is the one to do pushback
+                                        
+                               //p_weak = ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(iii); 
+                               //we dont use p_weak becouse don't admid "=" sign. 
+                               found = true;
+                                 
+                                        break; 
+
+                              
+
+                        }
+
+                    } // for each ini continuum neighbour's ini continuum neigbour.
+
+                    if (found == false) 
+                    {
+                        KRATOS_WATCH("NOT FOUND!!!!")
+                        KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())        
+                    
+                    
+                    
+                    }
+                    
+                     if (index == -1) {KRATOS_WATCH("wrong index!!!!")}
+                   
+                    
+                    (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index));    
+
+                } //if target id > neigh id
+
+           
+            } // for every ini continuum neighbour     
+                                    
+        } //loop over particles
+       
+        KRATOS_CATCH("")
+               
+    } //CreateContactElements
+
+      
 
       void ApplyRotationalDampings()
       {
@@ -504,6 +669,7 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
+                  
                   it->Calculate(PARTICLE_ROTATION_DAMP_RATIO, dummy, rCurrentProcessInfo);
               } //loop over particles
           }// loop threads OpenMP
@@ -569,6 +735,7 @@ namespace Kratos
 
     private:
 
+    ModelPart& mcontacts_model_part;    
     const unsigned int    mdimension;
     Particle_Creator_Destructor mParticle_Creator_Destructor;
 
