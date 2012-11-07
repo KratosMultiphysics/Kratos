@@ -236,7 +236,7 @@ public:
 
                     AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
                 }
-            }
+            } 
 
             //mpi sync variables
             if(is_distributed == true)
