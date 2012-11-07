@@ -160,8 +160,9 @@ class EdgeBasedLevelSetSolver:
 #            dist = node.GetSolutionStepValue(DISTANCE)
 #            node.SetSolutionStepValue(DISTANCE,1,dist)
 #        self.Redistance()
-
+	self.measured_volume = 0.0
 	self.expected_volume = self.fluid_solver.ComputeWetVolume()
+	self.vol_variation = 0.0
 	print "initial wet volume = ", self.expected_volume
 	
 #        print "**********************************************"
@@ -236,18 +237,18 @@ class EdgeBasedLevelSetSolver:
 	if(self.use_mass_correction == True):
 	  self.timer.Start("MassCorrection")
 	  self.fluid_solver.ComputeWetVolume()
-	  measured_volume = self.fluid_solver.ComputeWetVolume()
-	  vol_variation =  self.fluid_solver.ComputeVolumeVariation()
-	  self.expected_volume = self.expected_volume + vol_variation
+	  self.measured_volume = self.fluid_solver.ComputeWetVolume()
+	  self.vol_variation =  self.fluid_solver.ComputeVolumeVariation()
+	  self.expected_volume = self.expected_volume + self.vol_variation
 	  #print "measured volume = ", measured_volume
 	  #print "vol_variation   = ",vol_variation
 	  #print "expected volume = ", self.expected_volume
 	  max_volume_error =  0.99
-	  if(measured_volume / self.expected_volume < max_volume_error):
+	  if(self.measured_volume / self.expected_volume < max_volume_error):
 	    #print "artificial mass correction"
-	    vol_variation =  self.fluid_solver.ContinuousVolumeCorrection(self.expected_volume, measured_volume)
+	    aaa =  self.fluid_solver.ContinuousVolumeCorrection(self.expected_volume, self.measured_volume)
  	  self.timer.Stop("MassCorrection")
-   
+ 	     
         if(self.step == self.redistance_frequency):
 	    self.timer.Start("Redistance")
             self.Redistance()
@@ -255,7 +256,7 @@ class EdgeBasedLevelSetSolver:
             self.step = 0
             #print "redistance was executed"
         self.step += 1
-
+        	
         ##solve fluid
 	self.timer.Start("Solve Step 1")
         (self.fluid_solver).SolveStep1();
