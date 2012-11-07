@@ -134,7 +134,8 @@ namespace Kratos
 		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
 		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
 		  (
-		  "ExplicitSolverStrategy", init< ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
+		  "ExplicitSolverStrategy", init< ModelPart&,ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>()
+                  )
                   .def("Initialize", &ExplicitSolverStrategyType::Initialized)
                   .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
 		  ;
