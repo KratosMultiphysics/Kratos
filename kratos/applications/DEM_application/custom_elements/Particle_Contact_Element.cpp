@@ -70,6 +70,8 @@ namespace Kratos
 Particle_Contact_Element::Particle_Contact_Element( IndexType NewId, GeometryType::Pointer pGeometry )
     : Element( NewId, pGeometry )
 {
+    
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod(); //fa falta???
     //DO NOT ADD DOFS HERE!!!
 }
 
@@ -78,10 +80,11 @@ Particle_Contact_Element::Particle_Contact_Element( IndexType NewId, GeometryTyp
 Particle_Contact_Element::Particle_Contact_Element( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
 {
-//         const unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();//fa falta???
 }
+
+
+//create contact elements instances.
 
 Element::Pointer Particle_Contact_Element::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
@@ -105,10 +108,24 @@ void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
 
-//    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-
-
+    
+    
     KRATOS_CATCH( "" )
+}
+
+
+void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+
+    if(rVariable == LOCAL_CONTACT_FORCE_LOW)   //3D VARIABLE WITH COMPONENTS
+    {
+        rOutput.resize(1);
+        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); // ESTA BE????????NO RECORDO EL PERQUE
+        rOutput[0][0] = const_this->GetValue(rVariable)[0];
+        rOutput[0][1] = const_this->GetValue(rVariable)[1];
+        rOutput[0][2] = const_this->GetValue(rVariable)[2];
+    }
+    
 }
 
 //************************************************************************************
@@ -135,9 +152,12 @@ void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& CurrentProcess
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 {
-
+  
+   
 
 }
+
+
 
 
 
