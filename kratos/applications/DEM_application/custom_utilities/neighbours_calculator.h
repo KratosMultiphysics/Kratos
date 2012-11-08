@@ -227,7 +227,7 @@ namespace Kratos {
 
                         double neighbour_search_radius           = (1.0 + radius_extend) * neigh_radius;
                                                                        
-                        if( (distance - particle_radius)  <= neighbour_search_radius )
+                        if( (distance - particle_radius)  <= neighbour_search_radius ) 
                         {
                             
                              (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
