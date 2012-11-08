@@ -1,9 +1,9 @@
 import sys
 # importing the Kratos Library
-from KratosMultiphsysics import *
-from KratosMultiphsysics.StructuralApplication import *
-from KratosMultiphsysics.TrilinosApplication import *
-from KratosMultiphsysics.mpi import *
+from KratosMultiphysics import *
+from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.mpi import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -54,6 +54,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LAGRANGE_WATER_PRESSURE);
     #model_part.AddNodalSolutionStepVariable(INTERNAL_VARIABLES);
     model_part.AddNodalSolutionStepVariable(MOMENTUM);
+    model_part.AddNodalSolutionStepVariable(ROTATION);
     model_part.AddNodalSolutionStepVariable(PRESSURE);        
     model_part.AddNodalSolutionStepVariable(ERROR_RATIO);
     model_part.AddNodalSolutionStepVariable(TEMPERATURE);
@@ -75,7 +76,7 @@ def AddDofs(model_part):
         
 #######################################################################
 class SolverAdvanced:
-    def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol, application_path ):
+    def __init__( self, model_part, domain_size, time_steps, analysis_parameters, abs_tol, rel_tol ):
         self.model_part = model_part
         self.time_steps = time_steps
         self.analysis_parameters = analysis_parameters
