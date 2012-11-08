@@ -387,7 +387,34 @@ public:
 
 	mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
 
-
+	//verify that neither h_min nor havg are 0	
+	for(unsigned int i_node=0; i_node<mHmin.size(); i_node++)
+	{
+	  if(mHmin[i_node] < 1e-20) KRATOS_ERROR( std::logic_error,"hmin too small on node ",i_node+1)
+	  if(mHavg[i_node] < 1e-20) KRATOS_ERROR( std::logic_error,"havg too small on node ",i_node+1)
+	  if(mHmin[i_node] > 1e20) KRATOS_ERROR( std::logic_error,"hmin too big on node ",i_node+1)
+	  if(mHavg[i_node] > 1e20) KRATOS_ERROR( std::logic_error,"havg too big on node ",i_node+1)
+	  
+	}
+	
+	for(ModelPart::ElementsContainerType::iterator it=mr_model_part.ElementsBegin(); it!=mr_model_part.ElementsEnd(); it++)
+	{
+	  if (it->Id() < 1)
+	  {
+	      KRATOS_ERROR(std::logic_error, "Element found with Id 0 or negative","")
+	  }
+	  double elem_vol = 0.0;
+	  if(TDim == 2)	 
+	    elem_vol = it->GetGeometry().Area();
+	  else 
+	    elem_vol = it->GetGeometry().Volume();
+	  
+	  if (elem_vol <= 0)
+	  {
+	      std::cout << "error on element -> " << it->Id() << std::endl;
+	      KRATOS_ERROR(std::logic_error, "Area can not be lesser than 0","")
+	  }
+	}
 
 
         KRATOS_CATCH("")
@@ -1560,17 +1587,17 @@ public:
 //                 int i_node = medge_nodes[i];
 //                 const array_1d<double, TDim>& direction = medge_nodes_direction[i];
 //                 double dist = mdistances[i_node];
-//
+// 
 //                 if(dist <= 0.0)
 //                 {
 //                      array_1d<double, TDim>& U_i = VelArray[i_node];
 // // 		     for (unsigned int comp = 0; comp < TDim; comp++)
 // //                         U_i[comp] = 0.0;
-//
+// 
 //                     double temp=0.0;
 //                     for (unsigned int comp = 0; comp < TDim; comp++)
 //                         temp += U_i[comp] * direction[comp];
-//
+// 
 //                     for (unsigned int comp = 0; comp < TDim; comp++)
 //                         U_i[comp] = direction[comp]*temp;
 //                 }
@@ -1581,7 +1608,7 @@ public:
 //             for (int i = 0; i < corner_size; i++)
 //             {
 //                 int i_node = mcorner_nodes[i];
-//
+// 
 //                 array_1d<double, TDim>& U_i = VelArray[i_node];
 //                 for (unsigned int comp = 0; comp < TDim; comp++)
 //                     U_i[comp] = 0.0;
@@ -2364,14 +2391,13 @@ public:
 // 	ComputeLimitor(mPiConvection,mphi_n1,mBeta,mvel_n1,mEdgeDimensions);
 
 
-
         //            mr_matrix_container.WriteScalarToDatabase(TEMPERATURE, active_nodes, rNodes);
 
         //read time step size from Kratos
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
-        double n_substeps = 1; //mnumsubsteps;
+        double n_substeps = mnumsubsteps;
 //            del
         double delta_t_substep = delta_t/n_substeps;
 
@@ -2386,9 +2412,10 @@ public:
             ComputeConvectiveProjection(mPiConvection,mphi_n1,mEps,mvel_n1);
             ComputeLimitor(mPiConvection,mphi_n1,mBeta,mvel_n1,mEdgeDimensions);
             CalculateRHS_convection(mphi_n1, mvel_n1, rhs, active_nodes);
-            mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
+
+	    mr_matrix_container.Add_Minv_value(WorkConvection, WorkConvection, delta_t_substep / 6.0, mr_matrix_container.GetInvertedMass(), rhs);
             mr_matrix_container.Add_Minv_value(mphi_n1, mphi_n, 0.5 * delta_t_substep, mr_matrix_container.GetInvertedMass(), rhs);
-             ApplyDistanceBC();
+            ApplyDistanceBC();
 
             //second step
             mr_matrix_container.SetToZero(rhs);
@@ -2418,8 +2445,6 @@ public:
 
             //compute right-hand side
             mr_matrix_container.AssignVectorToVector(WorkConvection, mphi_n1);
-
-
 
             mr_matrix_container.AssignVectorToVector(mphi_n1, mphi_n);
         }
@@ -2621,7 +2646,7 @@ public:
 
             if(max_angle > max_angle_overall) max_angle_overall = max_angle;
 
-            mWallReductionFactor[i_node] = sin(max_angle) ;
+            mWallReductionFactor[i_node] = sin(max_angle) * 10.0 ;
 
         }
         std::cout << "max angle between normals found in the model = " << max_angle_overall << std::endl;
@@ -2869,10 +2894,10 @@ public:
 	    
 
             double ratio = volume_error / layer_volume;
-// 	    if(ratio > 1.0) ratio = 1.0;
-            //KRATOS_WATCH(ratio);
-//             if (ratio < 0.1)  // NO correction for less than 10% error
-//                 return;
+	    if(ratio > 1.0) ratio = 1.0;
+            KRATOS_WATCH(ratio);
+            if (ratio < 0.1)  // NO correction for less than 10% error
+                return;
 	    
 	    double average_layer_h = 0.0;
 	    for(unsigned int i=0; i<first_outside.size(); i++)
@@ -3948,6 +3973,21 @@ private:
                 CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                 edge_ij.Add_grad_p(pi_i, phi_i, phi_j);
+		
+// 		if(i_node == 3255)
+// 		{
+// 		    KRATOS_WATCH(j_neighbour)
+// 		    KRATOS_WATCH(pi_i)
+// 		    KRATOS_WATCH(mEps[i_node])
+// 		    KRATOS_WATCH(mEps[j_neighbour])
+// 		    KRATOS_WATCH(phi_i)
+// 		    KRATOS_WATCH(phi_j)
+// 		    KRATOS_WATCH(a_i)
+// 		    KRATOS_WATCH(a_j)
+// 		    KRATOS_WATCH(mr_matrix_container.GetInvertedMass()[i_node])
+// 		    KRATOS_WATCH(edge_ij.Ni_DNj)
+// 		    
+// 		}
 
             }
 
@@ -3956,6 +3996,13 @@ private:
 
             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                 pi_i[l_comp] *= m_inv;
+	    
+// 	    std::cout << i_node << " " << pi_i << " " << mvel_n1[i_node] << " " << phi_i <<std::endl;
+	    
+//             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//                 if(std::isnan(pi_i[l_comp]))
+// 		  KRATOS_WATCH(m_inv);
+	    
             // 		    }
 
         }
