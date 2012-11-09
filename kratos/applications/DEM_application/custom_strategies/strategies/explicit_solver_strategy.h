@@ -527,7 +527,7 @@ namespace Kratos
         for (ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
         {
 
-            KRATOS_WATCH( (*it)->Id() )
+            
             //ParticleWeakVectorType& r_neighbours             = (*it)->GetValue(NEIGHBOUR_ELEMENTS); //initial continuum neighbours doesn't correspond to initial neighbours which neither correspond to the neighbours at time = 0.
             ParticleWeakVectorType& r_continuum_ini_neighbours    = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
                       
@@ -555,8 +555,7 @@ namespace Kratos
                 if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() ) //to avoid repetition
                 {
                     
-                  KRATOS_WATCH("IM MINOR")
-                           KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())
+                  
                     
                            //generating the elements
 
@@ -582,8 +581,7 @@ namespace Kratos
                 else  // we also create the pointers but we don't create the element. we need to recover the pointer to the element created previously.
                 {
                     
-                      KRATOS_WATCH("IM MAJOR")
-                              KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())
+                     
                     //Element::WeakPointer p_weak;
                     
                     int index = -1;
@@ -595,7 +593,7 @@ namespace Kratos
                         
                         int neigh_neigh_ID = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[iii];
 
-                        KRATOS_WATCH(neigh_neigh_ID)
+                    
                                                
                         if( neigh_neigh_ID == int((*it)->Id()))
                         {
@@ -617,9 +615,7 @@ namespace Kratos
 
                     if (found == false) 
                     {
-                        KRATOS_WATCH("NOT FOUND!!!!")
-                        KRATOS_WATCH((*continuum_ini_neighbour_iterator).lock()->Id())        
-                    
+                      
                     
                     
                     }

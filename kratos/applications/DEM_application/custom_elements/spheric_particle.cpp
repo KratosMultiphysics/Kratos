@@ -513,7 +513,7 @@ namespace Kratos
                 double external_polyhedron_area = 4*M_PI*radius*radius;                        
 		double alpha = 1.0;
                 
-                if((skin_sphere == 0))
+                if(skin_sphere == 0)
                 {
                     switch (n_neighbours)
                     {
@@ -582,11 +582,13 @@ namespace Kratos
                     alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
                 }
                 
-                Friction                = tan( (FriAngle + other_FriAngle) * 0.5  / 180.0 * M_PI);
-
+                double equiv_FriAngle   = (FriAngle + other_FriAngle) * 0.5; 
+                double Friction         = tan( equiv_FriAngle  / 180.0 * M_PI);
+                
                 //MACRO PARAMETERS
 
                 double kn               = alpha*equiv_young*equiv_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
                 double RN               = CTension * equiv_area; //tensile strenght
                 double RT_base          = CCohesion * equiv_area; //cohesion
@@ -769,7 +771,159 @@ namespace Kratos
                     LocalContactForce[1] = 0.0;  // 1: second tangential
                     LocalContactForce[2] = 0.0;  // 2: normal force
                 }
+                
+                
+                double DYN_FRI_ANG = 40;
+                
+                double compression_limit        = 33.2e06;//*10000;
+                double tension_limit            = 3.32e06;//*10000;
+                
+                
+                double sgn_x;
+                double sgn_y;
+                
+                if(LocalContactForce[0]>=0){ sgn_x=1.0;}
+                else{sgn_x = -1.0;}
+                
+                if(LocalContactForce[1]>=0){ sgn_y=1.0;}
+                else{sgn_y = -1.0;}
+                
+                
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]); 
+                
+                double Frictional_ShearForceMax = tan(DYN_FRI_ANG) * LocalContactForce[2];
+                
+                
+                
+                if ( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0 )
 
+                {
+                                                          
+                    if( ShearForceNow >  Frictional_ShearForceMax ) 
+                    {
+                        
+                        LocalContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalContactForce[0];
+                        LocalContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalContactForce[1];
+                        
+                                    
+                    }
+                    
+                 } 
+               
+
+                
+                if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+                    
+                {
+                
+                    ///MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
+
+                    if(alpha*equiv_area < 1e-08) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
+
+                  
+                    double tau = ShearForceNow/(alpha*equiv_area);
+                    double sigma = LocalContactForce[2]/(alpha*equiv_area);
+
+                    double sigma_max, sigma_min;
+
+                    if (LocalContactForce[2]>=0)
+                            {
+                                    sigma_max = sigma;
+                                    sigma_min = 0;
+
+                            }
+                    else 
+                            {
+                                    sigma_max = 0;
+                                    sigma_min = sigma;
+
+                            }
+
+
+                    //change into principal stresses
+
+                    double centre = 0.5*(sigma_max + sigma_min);
+                    double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + tau*tau   ) ;
+
+                    double sigma_I = centre + radius;
+                    double sigma_II = centre - radius;
+
+                                 
+                                     
+                    // Check:
+
+                    double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+                    
+                    double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+                    
+                     /*
+                    double ShearForceMax; 
+                    
+                    if ( LocalContactForce[2] > -CTension*(alpha*equiv_area) )  // only if we are in traction but not less than the minimum.
+                    {
+                        ShearForceMax = tau_zero*(alpha*equiv_area) + LocalContactForce[2] * Friction ;   
+                   
+                    }
+                    
+                    else
+                    {
+                    
+                        ShearForceMax = 0.0;
+                        KRATOS_WATCH("DO WE REALLY GET HERE????")
+                    
+                    }
+                    */
+                    
+                    if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
+                    {
+                        
+                        //breaks
+
+                        this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
+                                               
+                        //tangential mapping, divide 2 tangent
+                        
+                        /*
+                        if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
+                                    {
+                                    
+                                    KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+                                    //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
+                                    }
+                       */
+                        //LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
+                        //LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+                        
+                        //LocalContactForce[0] = tan(DYN_FRI_ANG) * LocalContactForce[2]*sgn_x;
+                        //LocalContactForce[1] = tan(DYN_FRI_ANG) * LocalContactForce[2]*sgn_y;
+                        
+                       sliding = true ;
+
+
+                    }
+
+                    else
+                    {
+                        // doesn't brake
+                        
+                        
+
+
+                    }
+                    
+                }// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+                
+                
+                
+                
+                
+                
+                
+                
+                
+ if( 1>2 )
+ {
                 // TENSION FAILURE
 
                 if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
@@ -820,7 +974,12 @@ namespace Kratos
                    sliding = true;
 
                 }
-
+                
+ } //DUMMY
+                
+                
+                
+///AIXO ESTA MALAMENT!!!!!!!!!!!!!!!!!!!!!!!!!! (ara farem ini_cont_neigh)
                 //Saving failure to initial neighbour:
                 vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
 
@@ -921,7 +1080,7 @@ namespace Kratos
                     
                     
                     //CONTACT ELEMENT
-                    // Transfer value to the contact element
+                    // Transfer values to the contact element
                     
                     //obtenir el punter a la barra 
                     
@@ -959,17 +1118,28 @@ namespace Kratos
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = LocalContactForce[0];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalContactForce[2];
-
+                                    
+                                    lock_p_weak->GetValue(CONTACT_FAILURE_LOW) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
+/*
+                                    if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
+                                    {
+                                    
+                                    KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+                                    KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
+                                    }
+                                    */
                                 } // if Target Id < Neigh Id.
 
                                 else   
                                 {
+                                   
                                     //COPY VARIABLES HIGH 
                                     
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = LocalContactForce[0];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalContactForce[2];
                                     
+                                    lock_p_weak->GetValue(CONTACT_FAILURE_HIGH) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
                                 }
 
 
