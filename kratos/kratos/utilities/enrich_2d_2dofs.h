@@ -202,20 +202,23 @@ public:
 				k_aux=1;					
 				break;
 		}
-		
-		
+		/*
+		KRATOS_WATCH(i_aux)
+		KRATOS_WATCH(j_aux)
+		KRATOS_WATCH(k_aux)
+		*/
 		 //const double dist12=abs(rDistances(0)-rDistances(1) );
 		 if (rDistances(i_aux) < 0.0) 
 		 {
-			 rPartitionsSign[i_aux] = -1;
-			 rPartitionsSign[j_aux] =  1;
-			 rPartitionsSign[k_aux] =  1;
+			 rPartitionsSign[0] = -1;
+			 rPartitionsSign[1] =  1;
+			 rPartitionsSign[2] =  1;
 		 }
 		 else
 		 {
-			 rPartitionsSign[i_aux] =  1;
-			 rPartitionsSign[j_aux] = -1;
-			 rPartitionsSign[k_aux] = -1;
+			 rPartitionsSign[0] =  1;
+			 rPartitionsSign[1] = -1;
+			 rPartitionsSign[2] = -1;
 		 }
 		 
 		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
@@ -277,11 +280,11 @@ public:
 		 rGPShapeFunctionValues(0,i_aux)=one_third*(1.0 + node4_relative_position + node5_relative_position);  //we create 3 gauss points, 
 		 rGPShapeFunctionValues(0,j_aux)=one_third*(1.0 - node4_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
 		 rGPShapeFunctionValues(0,k_aux)=one_third*(1.0 - node5_relative_position);  //the triangle from gauss point 1 is indepentent (has its own plane), the other two have the same shape function. 
-		 rGradientsValue[i_aux](0,0)=DN_DX(j_aux,0)*adim_Nenriched_node4+DN_DX(k_aux,0)*adim_Nenriched_node5;
-		 rGradientsValue[i_aux](0,1)=DN_DX(j_aux,1)*adim_Nenriched_node4+DN_DX(k_aux,1)*adim_Nenriched_node5;		  //	      i   j,k				 i    j,k
+		 rGradientsValue[0](0,0)=DN_DX(j_aux,0)*adim_Nenriched_node4+DN_DX(k_aux,0)*adim_Nenriched_node5;
+		 rGradientsValue[0](0,1)=DN_DX(j_aux,1)*adim_Nenriched_node4+DN_DX(k_aux,1)*adim_Nenriched_node5;		  //	      i   j,k				 i    j,k
 		 
-		 rGradientsValue[i_aux](1,0)=DN_DX(j_aux,0)*adim_Nenriched_node4_b+DN_DX(k_aux,0)*adim_Nenriched_node5_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
-		 rGradientsValue[i_aux](1,1)=DN_DX(j_aux,1)*adim_Nenriched_node4_b+DN_DX(k_aux,1)*adim_Nenriched_node5_b;				//															/
+		 rGradientsValue[0](1,0)=DN_DX(j_aux,0)*adim_Nenriched_node4_b+DN_DX(k_aux,0)*adim_Nenriched_node5_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
+		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_node4_b+DN_DX(k_aux,1)*adim_Nenriched_node5_b;				//															/
 		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_node4+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_node5;
 		 NEnriched(0,1)=NEnriched(0,0);  
 		 //now we must calculate the position of the new nodes to get the area.
@@ -307,18 +310,22 @@ public:
 		 KRATOS_WATCH(coord_subdomain(1,1));
 		 KRATOS_WATCH(coord_subdomain(2,0));
 		 KRATOS_WATCH(coord_subdomain(2,1));
+		 KRATOS_WATCH(rGPShapeFunctionValues(0,i_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(0,j_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(0,k_aux));
+		 KRATOS_WATCH( rGradientsValue[0](0,0))
+		 KRATOS_WATCH( rGradientsValue[0](0,1))
 		*/
-		
 		
 		//second partition and second GP
 		 rGPShapeFunctionValues(1,i_aux)=one_third*(node5_relative_position);  
 		 rGPShapeFunctionValues(1,j_aux)=one_third;  
 		 rGPShapeFunctionValues(1,k_aux)=one_third*(2.0 - node5_relative_position);
-		 rGradientsValue[j_aux](0,0)=DN_DX(i_aux,0)*adim_Nenriched_j_aux;
-		 rGradientsValue[j_aux](0,1)=DN_DX(i_aux,1)*adim_Nenriched_j_aux;
+		 rGradientsValue[1](0,0)=DN_DX(i_aux,0)*adim_Nenriched_j_aux;
+		 rGradientsValue[1](0,1)=DN_DX(i_aux,1)*adim_Nenriched_j_aux;
 		 
-		 rGradientsValue[j_aux](1,0)= -rGradientsValue[j_aux](0,0);
-		 rGradientsValue[j_aux](1,1)= -rGradientsValue[j_aux](0,1);
+		 rGradientsValue[1](1,0)= -rGradientsValue[j_aux](0,0);
+		 rGradientsValue[1](1,1)= -rGradientsValue[j_aux](0,1);
 		 
 		 NEnriched(1,0) = rGPShapeFunctionValues(1,0)*adim_Nenriched_j_aux;
 		 NEnriched(1,1) = -NEnriched(1,0);    
@@ -331,6 +338,21 @@ public:
 		 coord_subdomain(2,0) = rPoints(i_aux,0)*(node5_relative_position)+rPoints(k_aux,0)*(1.0-node5_relative_position);
 		 coord_subdomain(2,1) = rPoints(i_aux,1)*(node5_relative_position)+rPoints(k_aux,1)*(1.0-node5_relative_position);
 		 rVolumes(1)=CalculateVolume2D(coord_subdomain);
+		 /*
+		 KRATOS_WATCH(rVolumes(1)); 
+		 		 KRATOS_WATCH(coord_subdomain(0,0));
+		 KRATOS_WATCH(coord_subdomain(0,1));
+		 KRATOS_WATCH(coord_subdomain(1,0));
+		 KRATOS_WATCH(coord_subdomain(1,1));
+		 KRATOS_WATCH(coord_subdomain(2,0));
+		 KRATOS_WATCH(coord_subdomain(2,1));
+		 KRATOS_WATCH(rGPShapeFunctionValues(1,i_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(1,j_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(1,k_aux));
+		 KRATOS_WATCH( rGradientsValue[1](0,0))
+		 KRATOS_WATCH( rGradientsValue[1](0,1))
+		 */
+		  
 		 //NOT A PARTITION, just the volume of a different conectivity:
 		 //just replacing the third node
 		 coord_subdomain(2,0) = rPoints(i_aux,0)*(node4_relative_position)+rPoints(k_aux,0)*(1.0-node5_relative_position);
@@ -342,20 +364,31 @@ public:
 		 rGPShapeFunctionValues(2,i_aux)=one_third*(node4_relative_position + node5_relative_position);  
 		 rGPShapeFunctionValues(2,j_aux)=one_third*(2.0 - node4_relative_position);  
 		 rGPShapeFunctionValues(2,k_aux)=one_third*(1.0 - node5_relative_position);  
-		 rGradientsValue[k_aux](0,0)=DN_DX(i_aux,0)*adim_Nenriched_j_aux;
-		 rGradientsValue[k_aux](0,1)=DN_DX(i_aux,1)*adim_Nenriched_j_aux; 	
+		 rGradientsValue[2](0,0)=DN_DX(i_aux,0)*adim_Nenriched_j_aux;
+		 rGradientsValue[2](0,1)=DN_DX(i_aux,1)*adim_Nenriched_j_aux; 	
 		 
-		 rGradientsValue[k_aux](1,0)= -rGradientsValue[j_aux](0,0);
-		 rGradientsValue[k_aux](1,1)= -rGradientsValue[j_aux](0,1);
+		 rGradientsValue[2](1,0)= -rGradientsValue[j_aux](0,0);
+		 rGradientsValue[2](1,1)= -rGradientsValue[j_aux](0,1);
 		 
 		 NEnriched(2,0)= rGPShapeFunctionValues(1,0)*adim_Nenriched_j_aux;
 		 NEnriched(2,1)= -NEnriched(2,0);
 
 		 
 		 rVolumes(2)=Area-rVolumes(0)-rVolumes(1);
-		// KRATOS_WATCH(rVolumes(2)); 
-		 
-		 
+		 /*
+			KRATOS_WATCH(rVolumes(2)); 
+		 		 KRATOS_WATCH(coord_subdomain(0,0));
+		 KRATOS_WATCH(coord_subdomain(0,1));
+		 KRATOS_WATCH(coord_subdomain(1,0));
+		 KRATOS_WATCH(coord_subdomain(1,1));
+		 KRATOS_WATCH(coord_subdomain(2,0));
+		 KRATOS_WATCH(coord_subdomain(2,1));
+		 KRATOS_WATCH(rGPShapeFunctionValues(2,i_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(2,j_aux));
+		 KRATOS_WATCH(rGPShapeFunctionValues(2,k_aux));
+		 KRATOS_WATCH( rGradientsValue[2](0,0))
+		 KRATOS_WATCH( rGradientsValue[2](0,1))
+		 */ 
 		 /*
 		 std::cout <<"GAUSS POINTS" << '\n';
 		 for (unsigned int ji=0; ji<3; ji++)
