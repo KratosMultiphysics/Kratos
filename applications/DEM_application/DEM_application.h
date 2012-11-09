@@ -46,6 +46,10 @@ namespace Kratos
         KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE_LOW)                 
         KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE_HIGH)
                 
+        KRATOS_DEFINE_VARIABLE (double, CONTACT_FAILURE_LOW )        
+        KRATOS_DEFINE_VARIABLE (double, CONTACT_FAILURE_HIGH )          
+                
+                
         KRATOS_DEFINE_VARIABLE(int, SKIN_SPHERE)
         KRATOS_DEFINE_VARIABLE(double, EXPORT_SKIN_SPHERE)              
                 

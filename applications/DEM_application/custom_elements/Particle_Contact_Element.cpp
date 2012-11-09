@@ -120,13 +120,49 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
     if(rVariable == LOCAL_CONTACT_FORCE_LOW)   //3D VARIABLE WITH COMPONENTS
     {
         rOutput.resize(1);
-        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); // ESTA BE????????NO RECORDO EL PERQUE
+        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
         rOutput[0][2] = const_this->GetValue(rVariable)[2];
     }
     
-}
+     if(rVariable == LOCAL_CONTACT_FORCE_HIGH)   //3D VARIABLE WITH COMPONENTS
+    {
+        rOutput.resize(1);
+        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+        rOutput[0][0] = const_this->GetValue(rVariable)[0];
+        rOutput[0][1] = const_this->GetValue(rVariable)[1];
+        rOutput[0][2] = const_this->GetValue(rVariable)[2];
+    }
+    
+  }
+ 
+  void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
+    {
+
+   
+        if(rVariable == CONTACT_FAILURE_LOW)   //3D VARIABLE WITH COMPONENTS
+        {
+            Output.resize(1);
+            const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+            Output[0] = const_this->GetValue(rVariable);
+
+           
+
+        }
+
+
+          if(rVariable == CONTACT_FAILURE_HIGH)   //3D VARIABLE WITH COMPONENTS
+        {
+            Output.resize(1);
+            const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+            Output[0] = const_this->GetValue(rVariable);
+        }
+
+
+    } 
+    
+
 
 //************************************************************************************
 //************************************************************************************
@@ -152,9 +188,9 @@ void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& CurrentProcess
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 {
-  
-   
 
+    
+    
 }
 
 

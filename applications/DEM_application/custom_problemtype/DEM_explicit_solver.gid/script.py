@@ -323,11 +323,15 @@ multifile = open(input_file_name+'_all'+'.post.lst','w')
 multifile_5 = open(input_file_name+'_5'+'.post.lst','w')
 multifile_10 = open(input_file_name+'_10'+'.post.lst','w')
 multifile_50 = open(input_file_name+'_50'+'.post.lst','w')
+graph_export = open("strain_stress_data.csv",'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
 multifile_10.write('Multiple\n')
 multifile_50.write('Multiple\n')
+
+
+
 
 index_5 = 1
 index_10 = 1
@@ -507,6 +511,9 @@ while(time < final_time):
 	
 	if (contact_mesh_option == "ON"): ##xapuza
 	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
+	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
+	  gid_io.PrintOnGaussPoints(CONTACT_FAILURE_HIGH,contact_model_part,time)
+	  gid_io.PrintOnGaussPoints(CONTACT_FAILURE_LOW,contact_model_part,time)
 	  
              
         if (rotation_option == "ON"): ##xapuza
@@ -514,6 +521,7 @@ while(time < final_time):
             gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
             gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
         
+        gid_io.Flush()
         
         os.chdir(data_and_results)
         
@@ -563,13 +571,17 @@ while(time < final_time):
            element.SetValue(SKIN_SPHERE,1)
 
    
+    graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+    
     step += 1
 
+  
     
 gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
+graph_export.close() 
 results.close()
 summary_results.close()
 
