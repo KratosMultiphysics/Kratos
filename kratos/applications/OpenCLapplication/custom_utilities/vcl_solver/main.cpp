@@ -1,39 +1,10 @@
+#include "opencl_linear_solver.h"
+
 #include "includes/matrix_market_interface.h"
 #include "includes/ublas_interface.h"
 
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/cg.hpp"
-
-#if defined(_WIN64) || defined(_WIN32) || defined(WIN64)
-#include <windows.h>
-typedef  __int64 int64_t;
-#endif
-
-int64_t Timer()
-{
-#if defined(_WIN64) || defined(_WIN32)
-    LARGE_INTEGER frequency;
-    LARGE_INTEGER start;
-    LARGE_INTEGER end;
-
-    //  Get the frequency
-    QueryPerformanceFrequency(&frequency);
-
-    //  Start timer
-    QueryPerformanceCounter(&start);
-
-    return ( start.QuadPart)* (( 1000 *1000 *1000) / long double( frequency.QuadPart ));
-
-
-
-#else
-    struct timespec tp;
-
-    clock_gettime(CLOCK_MONOTONIC, &tp);
-
-    return (unsigned long long) tp.tv_sec * (1000ULL * 1000ULL * 1000ULL) + (unsigned long long) tp.tv_nsec;
-#endif
-}
 
 int main(int argc, char *argv[])
 {
@@ -45,8 +16,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    Kratos::CompressedMatrix A;
-    Kratos::Vector B;
+    boost::numeric::ublas::compressed_matrix <double, boost::numeric::ublas::row_major, 0, boost::numeric::ublas::unbounded_array <cl_uint>, boost::numeric::ublas::unbounded_array <double> > A;
+    boost::numeric::ublas::vector <double> B;
 
     std::cout << "Reading matrix and vector from file..." << std::endl;
 
@@ -71,13 +42,25 @@ int main(int argc, char *argv[])
 
     std::cout << "Solving..." << std::endl;
 
-    viennacl::linalg::cg_tag VCLSolver(1.00e-10, 1000);
+#ifndef MAXIT
 
-    T0 = Timer();
+    #define MAXIT 1000
+
+#endif
+
+#ifndef MAXERR
+
+    #define MAXERR 1e-10
+
+#endif
+
+    viennacl::linalg::cg_tag VCLSolver(MAXERR, MAXIT);
+
+    T0 = Kratos::OpenCL::Timer();
 
     viennacl::linalg::solve(VA, VB, VCLSolver);
 
-    T1 = Timer() - T0;
+    T1 = Kratos::OpenCL::Timer() - T0;
 
     std::cout << "Iterations: " << VCLSolver.iters() << ", error: " << VCLSolver.error() << std::endl;
 
