@@ -64,6 +64,148 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifdef KRATOS_OCL_NEED_INNER_PROD
 
 //
+// Norm2Squared
+//
+// Calculates the sum of squares of a given vector
+// Note: Final part must be done on host side
+
+__kernel void __attribute__((reqd_work_group_size(KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE, 1, 1))) Norm2Squared(__global ValueType const *X_Values, __global ValueType *Y_Values, IndexType N, __local ValueType *Buffer)
+{
+	IndexType gid = get_global_id(0);
+
+	// Serial part
+	ValueType Accumulator = 0.00;
+
+	while (gid < N)
+	{
+		Accumulator += X_Values[gid] * X_Values[gid];
+		gid += get_global_size(0);
+	}
+
+	// Parallel part
+	IndexType lid = get_local_id(0);
+	Buffer[lid] = Accumulator;
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 512
+
+	if (lid < 512)
+	{
+		Buffer[lid] += Buffer[lid + 512];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 256
+
+	if (lid < 256)
+	{
+		Buffer[lid] += Buffer[lid + 256];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 128
+
+	if (lid < 128)
+	{
+		Buffer[lid] += Buffer[lid + 128];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 64
+
+	if (lid < 64)
+	{
+		Buffer[lid] += Buffer[lid + 64];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 32
+
+	if (lid < 32)
+	{
+		Buffer[lid] += Buffer[lid + 32];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 16
+
+	if (lid < 16)
+	{
+		Buffer[lid] += Buffer[lid + 16];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 8
+
+	if (lid < 8)
+	{
+		Buffer[lid] += Buffer[lid + 8];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 4
+
+	if (lid < 4)
+	{
+		Buffer[lid] += Buffer[lid + 4];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 2
+
+	if (lid < 2)
+	{
+		Buffer[lid] += Buffer[lid + 2];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+#if KRATOS_OCL_INNER_PROD_WORKGROUP_SIZE > 1
+
+	if (lid < 1)
+	{
+		Buffer[lid] += Buffer[lid + 1];
+	}
+
+	barrier(CLK_LOCAL_MEM_FENCE);
+
+#endif
+
+	// Store final result
+	if (lid == 0)
+	{
+		Y_Values[get_group_id(0)] = Buffer[0];
+	}
+}
+
+//
 // InnerProd
 //
 // Calculates the inner product of two given vectors
@@ -646,6 +788,26 @@ __kernel void ZeroVector3Negate(__global ValueType *X_Values, __global ValueType
 }
 
 //
+// ZeroVectorCopy2
+//
+// Zeros a vector and updates the two others with another
+// Note: x = 0; y = u; z = u
+
+__kernel void ZeroVectorCopy2(__global ValueType *X_Values, __global ValueType *Y_Values, __global ValueType *Z_Values, __global const ValueType *U_Values, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		X_Values[gid] = 0.00;
+		Y_Values[gid] = U_Values[gid];
+		Z_Values[gid] = U_Values[gid];
+	}
+}
+
+//
 // ZeroVector2Copy2
 //
 // Zeros two vectors and updates the two others with another
@@ -663,6 +825,43 @@ __kernel void ZeroVector2Copy2(__global ValueType *X_Values, __global ValueType 
 		Y_Values[gid] = 0.00;
 		Z_Values[gid] = U_Values[gid];
 		T_Values[gid] = U_Values[gid];
+	}
+}
+
+//
+// UpdateVector
+//
+// Updates a vector
+// Note: p = r + Beta * p
+
+__kernel void UpdateVector(__global ValueType *P_Values, __global const ValueType *R_Values, ValueType Beta, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		P_Values[gid] = R_Values[gid] + Beta * P_Values[gid];
+	}
+}
+
+//
+// UpdateVector2
+//
+// Updates two vectors
+// Note: x = x + Alpha * p; r = r - Alpha * q
+
+__kernel void UpdateVector2(__global ValueType *X_Values, __global ValueType *R_Values, __global const ValueType *P_Values, __global const ValueType *Q_Values, ValueType Alpha, IndexType N)
+{
+	// Get work item index
+	const size_t gid = get_global_id(0);
+
+	// Check if we are in the range
+	if (gid < N)
+	{
+		X_Values[gid] += Alpha * P_Values[gid];
+		R_Values[gid] -= Alpha * Q_Values[gid];
 	}
 }
 

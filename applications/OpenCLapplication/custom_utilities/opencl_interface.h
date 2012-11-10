@@ -54,6 +54,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 
 //
+// We must define CL_USE_DEPRECATED_OPENCL_1_1_APIS in order to use OpenCL 1.2 headers
+
+#define CL_USE_DEPRECATED_OPENCL_1_1_APIS
+
+//
 // OpenCL include path is different on Apple
 
 #if defined(__APPLE__) || defined(__MACOSX)
