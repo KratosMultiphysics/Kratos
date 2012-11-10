@@ -15,11 +15,17 @@ OBJ = main.o mmio.o
 
 # Support for CGTYPE, MAXIT and MAXERR
 
-DEFS += -DCGTYPE=$(CGTYPE)
+ifdef CGTYPE
+	DEFS += -DCGTYPE=$(CGTYPE)
+endif
 
-DEFS += -DMAXIT=$(MAXIT)
+ifdef MAXIT
+	DEFS += -DMAXIT=$(MAXIT)
+endif
 
-DEFS += -DMAXERR=$(MAXERR)
+ifdef MAXERR
+	DEFS += -DMAXERR=$(MAXERR)
+endif
 
 # Only on NVIDIA systems
 MC = cuda-memcheck
