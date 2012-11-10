@@ -75,21 +75,32 @@ int main(int argc, char *argv[])
 
 #endif
 
+#ifndef MAXIT
+
+    #define MAXIT 1000
+
+#endif
+
+#ifndef MAXERR
+
+    #define MAXERR 1e-10
+
+#endif
 
 #if CGTYPE == 1
 
     std::cout << "Using original form of CG..." << std::endl;
-    Kratos::OpenCL::CGSolverOriginal LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+    Kratos::OpenCL::CGSolverOriginal LinearSolver(DeviceGroup, OptimizationParameters, Size, MAXIT, MAXERR);
 
 #elif CGTYPE == 2
 
     std::cout << "Using three term recurrence form of CG..." << std::endl;
-    Kratos::OpenCL::CGSolverThreeTermRecurrence LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+    Kratos::OpenCL::CGSolverThreeTermRecurrence LinearSolver(DeviceGroup, OptimizationParameters, Size, MAXIT, MAXERR);
 
 #elif CGTYPE == 3
 
     std::cout << "Using Chronopoulos form of CG..." << std::endl;
-    Kratos::OpenCL::CGSolverChronopoulos LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+    Kratos::OpenCL::CGSolverChronopoulos LinearSolver(DeviceGroup, OptimizationParameters, Size, MAXIT, MAXERR);
 
 #endif
 

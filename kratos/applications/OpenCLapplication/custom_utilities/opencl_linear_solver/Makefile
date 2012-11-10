@@ -13,7 +13,7 @@ LIB = -L /opt/AMDAPP/lib/x86_64 -lOpenCL -lrt -lgomp
 SRC = main.cpp mmio.c
 OBJ = main.o mmio.o
 
-# Check for CGTYPE
+# Check for CGTYPE, MAXIT and MAXERR
 
 ifeq ($(CGTYPE),1)
 	DEFS = -DCGTYPE=1
@@ -30,6 +30,10 @@ else
 	endif
 
 endif
+
+DEFS += -DMAXIT=$(MAXIT)
+
+DEFS += -DMAXERR=$(MAXERR)
 
 # Only on NVIDIA systems
 MC = cuda-memcheck
