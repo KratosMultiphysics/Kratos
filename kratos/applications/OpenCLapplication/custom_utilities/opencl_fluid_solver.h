@@ -409,7 +409,7 @@ public:
         mLinearSolverOptimizationParameters->OptimizeInnerProd(rhs_GPU, dp_GPU, temp_GPU);
         mLinearSolverOptimizationParameters->OptimizeSpMV(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
 
-        mCGSolver = new OpenCL::CGSolver(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
+        mCGSolver = new OpenCL::CGSolverThreeTermRecurrence(mrDeviceGroup, *mLinearSolverOptimizationParameters, n_nodes, 1000, 1e-3);
 
         // Compute minimum length of the surrounding edges
         CalculateEdgeLengths(mr_model_part.Nodes());
@@ -1250,7 +1250,7 @@ private:
     bool massume_constant_dp;
 
     OpenCL::LinearSolverOptimizationParameters *mLinearSolverOptimizationParameters;
-    OpenCL::CGSolver *mCGSolver;
+    OpenCL::CGSolverThreeTermRecurrence *mCGSolver;
 
     // Nodal values
 
