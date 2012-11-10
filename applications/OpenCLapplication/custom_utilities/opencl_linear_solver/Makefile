@@ -13,16 +13,34 @@ LIB = -L /opt/AMDAPP/lib/x86_64 -lOpenCL -lrt -lgomp
 SRC = main.cpp mmio.c
 OBJ = main.o mmio.o
 
+# Check for CGTYPE
+
+ifeq ($(CGTYPE),1)
+	DEFS = -DCGTYPE=1
+else
+	ifeq ($(CGTYPE),2)
+		DEFS = -DCGTYPE=2
+	else
+		ifeq ($(CGTYPE),3)
+			DEFS = -DCGTYPE=3
+		else
+			DEFS = -DCGTYPE=1
+		endif
+	
+	endif
+
+endif
+
 # Only on NVIDIA systems
 MC = cuda-memcheck
 
 all: $(EXE)
 
 .c.o:
-	$(CC) -c $(CCFLAGS) $(INC) $< -o $@
+	$(CC) -c $(CCFLAGS) $(INC) $(DEFS) $< -o $@
 
 .cpp.o:
-	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
+	$(CXX) -c $(CXXFLAGS) $(INC) $(DEFS) $< -o $@
 
 $(EXE): $(OBJ)
 	$(LD) -o $(EXE) $(OBJ) $(LIB)
