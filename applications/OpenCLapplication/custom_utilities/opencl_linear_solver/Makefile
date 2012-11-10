@@ -13,23 +13,9 @@ LIB = -L /opt/AMDAPP/lib/x86_64 -lOpenCL -lrt -lgomp
 SRC = main.cpp mmio.c
 OBJ = main.o mmio.o
 
-# Check for CGTYPE, MAXIT and MAXERR
+# Support for CGTYPE, MAXIT and MAXERR
 
-ifeq ($(CGTYPE),1)
-	DEFS = -DCGTYPE=1
-else
-	ifeq ($(CGTYPE),2)
-		DEFS = -DCGTYPE=2
-	else
-		ifeq ($(CGTYPE),3)
-			DEFS = -DCGTYPE=3
-		else
-			DEFS = -DCGTYPE=1
-		endif
-	
-	endif
-
-endif
+DEFS += -DCGTYPE=$(CGTYPE)
 
 DEFS += -DMAXIT=$(MAXIT)
 
