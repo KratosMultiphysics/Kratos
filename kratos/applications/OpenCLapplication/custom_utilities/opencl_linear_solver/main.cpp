@@ -69,9 +69,24 @@ int main(int argc, char *argv[])
     OptimizationParameters.OptimizeInnerProd(B_Values, X_Values, T_Values);
     OptimizationParameters.OptimizeSpMV(A_RowIndices, A_ColumnIndices, A_Values, B_Values, X_Values);
 
-    std::cout << "Solving..." << std::endl;
+#if CGTYPE == 1
 
-    Kratos::OpenCL::CGSolver LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+    std::cout << "Using original form of CG..." << std::endl;
+    Kratos::OpenCL::CGSolverOriginal LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+
+#elif CGTYPE == 2
+
+    std::cout << "Using three term recurrence form of CG..." << std::endl;
+    Kratos::OpenCL::CGSolverThreeTermRecurrence LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+
+#elif CGTYPE == 3
+
+    std::cout << "Using Chronopoulos form of CG..." << std::endl;
+    Kratos::OpenCL::CGSolverChronopoulos LinearSolver(DeviceGroup, OptimizationParameters, Size, 1000, 1.00e-10);
+
+#endif
+
+    std::cout << "Solving..." << std::endl;
 
     T0 = Kratos::OpenCL::Timer();
 
