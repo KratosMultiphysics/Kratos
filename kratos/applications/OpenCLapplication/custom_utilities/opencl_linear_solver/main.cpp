@@ -69,6 +69,13 @@ int main(int argc, char *argv[])
     OptimizationParameters.OptimizeInnerProd(B_Values, X_Values, T_Values);
     OptimizationParameters.OptimizeSpMV(A_RowIndices, A_ColumnIndices, A_Values, B_Values, X_Values);
 
+#ifndef CGTYPE
+
+    #define CGTYPE 1
+
+#endif
+
+
 #if CGTYPE == 1
 
     std::cout << "Using original form of CG..." << std::endl;
