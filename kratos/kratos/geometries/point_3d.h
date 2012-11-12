@@ -699,6 +699,10 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointsArrayType );
     }
+    
+    // Default constructor needed for serialization only
+        Point3D() : BaseType() {}
+
 
 
     ///@}
@@ -755,7 +759,6 @@ private:
     ///@name Un accessible methods
     ///@{
 
-    Point3D();
 
 
 
@@ -805,76 +808,3 @@ const GeometryData Point3D<TPointType>::msGeometryData( 2,
 }  // namespace Kratos.
 
 #endif // KRATOS_LINE_2D_H_INCLUDED  defined 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
