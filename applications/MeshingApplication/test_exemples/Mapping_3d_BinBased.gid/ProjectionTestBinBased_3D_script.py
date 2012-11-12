@@ -154,40 +154,40 @@ while (time < tmax):
     BenchmarkCheckPfem(time, pfem_model_part)  
 
 #  Commented to save time
-    output = time - output_Dt_old
-
-    if(output >= output_Dt):
-        ##a change in the output name is needed!!!!
-        res_name1 = str(name_fixed)
-        gid_io.ChangeOutputName(res_name1)
-        gid_io.InitializeMesh( time );
-        gid_io.WriteMesh(fixed_model_part.GetMesh() )
-        gid_io.FinalizeMesh();
-
-        gid_io.InitializeResults( time, fixed_model_part.GetMesh() )
-        gid_io.WriteNodalResults(DISTANCE,fixed_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TEMPERATURE,fixed_model_part.Nodes,time,0)
-
-        gid_io.Flush()
-        gid_io.FinalizeResults()
-
-        res_name2 = str(name_pfem)
-        gid_io.ChangeOutputName(res_name2)
-        gid_io.InitializeMesh( time );
-        gid_io.WriteMesh(pfem_model_part.GetMesh() )
-        gid_io.FinalizeMesh();
-
-        gid_io.InitializeResults( time, pfem_model_part.GetMesh() )
-        gid_io.WriteNodalResults(DISTANCE,pfem_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TEMPERATURE,pfem_model_part.Nodes,time,0)
-
-        gid_io.Flush()
-        gid_io.FinalizeResults()
-
-
-        output_Dt_old = time
-    
-        print "output step finished"
+##    output = time - output_Dt_old
+##
+##    if(output >= output_Dt):
+##        ##a change in the output name is needed!!!!
+##        res_name1 = str(name_fixed)
+##        gid_io.ChangeOutputName(res_name1)
+##        gid_io.InitializeMesh( time );
+##        gid_io.WriteMesh(fixed_model_part.GetMesh() )
+##        gid_io.FinalizeMesh();
+##
+##        gid_io.InitializeResults( time, fixed_model_part.GetMesh() )
+##        gid_io.WriteNodalResults(DISTANCE,fixed_model_part.Nodes,time,0)
+##        gid_io.WriteNodalResults(TEMPERATURE,fixed_model_part.Nodes,time,0)
+##
+##        gid_io.Flush()
+##        gid_io.FinalizeResults()
+##
+##        res_name2 = str(name_pfem)
+##        gid_io.ChangeOutputName(res_name2)
+##        gid_io.InitializeMesh( time );
+##        gid_io.WriteMesh(pfem_model_part.GetMesh() )
+##        gid_io.FinalizeMesh();
+##
+##        gid_io.InitializeResults( time, pfem_model_part.GetMesh() )
+##        gid_io.WriteNodalResults(DISTANCE,pfem_model_part.Nodes,time,0)
+##        gid_io.WriteNodalResults(TEMPERATURE,pfem_model_part.Nodes,time,0)
+##
+##        gid_io.Flush()
+##        gid_io.FinalizeResults()
+##
+##
+##        output_Dt_old = time
+##    
+##        print "output step finished"
     for node in pfem_model_part.Nodes:
         node.X = node.X + Dt;
         
