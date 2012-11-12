@@ -14,6 +14,6 @@ set( OPENCL_TEST_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_executable(test_opencl_solver ${OPENCL_TEST_SOURCES})
-target_link_libraries(test_opencl_solver KratosCore ${OPENCL_LIBRARIES} rt )
-install(TARGETS test_opencl_solver DESTINATION applications/OpenCLapplication/custom_utilities/opencl_linear_solver )
+add_executable(opencl_linear_solver ${OPENCL_TEST_SOURCES})
+target_link_libraries(opencl_linear_solver KratosCore ${OPENCL_LIBRARIES} rt )
+install(TARGETS opencl_linear_solver DESTINATION applications/OpenCLapplication/custom_utilities/opencl_linear_solver )
