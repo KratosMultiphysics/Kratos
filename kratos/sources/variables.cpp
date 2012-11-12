@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "geometries/triangle_3d_3.h"
@@ -1155,8 +1156,8 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_MOMENT)
 
-    
-
+    Point3D<Node<3> > Point3DPrototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
+    Serializer::Register( "Point3D", Point3DPrototype );
 
     Triangle2D6<Node<3> > Triangle2D6Prototype( Element::GeometryType::PointsArrayType( 6, Node<3>() ) );
     Serializer::Register( "Triangle2D6", Triangle2D6Prototype );
