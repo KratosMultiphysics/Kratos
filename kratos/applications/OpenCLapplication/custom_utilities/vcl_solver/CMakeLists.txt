@@ -9,6 +9,6 @@ set( VIENNACL_TEST_SOURCES
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-add_executable(test_viennacl_solver ${VIENNACL_TEST_SOURCES})
-target_link_libraries(test_viennacl_solver KratosCore ${OPENCL_LIBRARIES} rt )
-install(TARGETS test_viennacl_solver DESTINATION applications/OpenCLapplication/custom_utilities/vcl_solver )
+add_executable(vcl_solver ${VIENNACL_TEST_SOURCES})
+target_link_libraries(vcl_solver KratosCore ${OPENCL_LIBRARIES} rt )
+install(TARGETS vcl_solver DESTINATION applications/OpenCLapplication/custom_utilities/vcl_solver )
