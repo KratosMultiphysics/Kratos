@@ -59,9 +59,9 @@ def BenchmarkCheckPfem(time, model_part):
         if(node.Id == 61):
             dist3 = node.GetSolutionStepValue(TEMPERATURE)
     benchmarking.Output(time, "Time")
-    benchmarking.Output(dist1, "distance on node #122", 0.00001)
-    benchmarking.Output(dist2, "distance on node #199", 0.00001)
-    benchmarking.Output(dist3, "distance on node #61", 0.00001)
+    benchmarking.Output(dist1, "temperature on node #122", 0.00001)
+    benchmarking.Output(dist2, "temperature on node #199", 0.00001)
+    benchmarking.Output(dist3, "temperature on node #61", 0.00001)
     
 #defining a model part
 pfem_model_part = ModelPart("FluidPart");  
@@ -154,7 +154,7 @@ while (time < tmax):
 
     Projection.DirectScalarVarInterpolation(fixed_model_part,pfem_model_part, TEMPERATURE, TEMPERATURE, node_locator)
     BenchmarkCheckPfem(time, pfem_model_part)  
-### Commented out to save time
+# Commented out to save time
 ##    output = time - output_Dt_old
 ##
 ##    if(output >= output_Dt):
