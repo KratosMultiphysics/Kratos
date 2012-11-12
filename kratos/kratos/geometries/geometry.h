@@ -555,26 +555,19 @@ public:
 
 
 
-    /// Interseciones con geometrias igual a el mismo
     virtual bool HasIntersection( const GeometryType& ThisGeometry )
     {
-        std::cout << "Calling the base class " << std::endl;
+       KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of drived class one. Please check the definition of derived class." , *this ); 
         return false;
     }
 
     /// Interseciones con la geometrias y cajas en 3D
     virtual bool HasIntersection( const Point<3, double>& rLowPoint, const Point<3, double>& rHighPoint )
     {
-        std::cout << "Calling the base class " << std::endl;
+        KRATOS_ERROR( std::logic_error, "Calling base class HasIntersection method instead of drived class one. Please check the definition of derived class." , *this ); 
         return false;
     }
 
-    /// Interseciones con la geometrias y cajas en 2D
-    virtual bool HasIntersection( const Point<2, double>& rLowPoint, const Point<2, double>& rHighPoint )
-    {
-        std::cout << "Calling the base class " << std::endl;
-        return false;
-    }
 
 
 
