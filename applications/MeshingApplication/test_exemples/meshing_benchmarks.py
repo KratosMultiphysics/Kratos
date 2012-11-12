@@ -93,23 +93,23 @@ def Run():
 	
         ################################################################
 
-##	Text += "Mapping_2d_BinBased: "
-##	os.chdir("Mapping_2d_BinBased.gid")
-##	sys.path.append(os.getcwd())
-##
-##	print "Running Mapping_2d_BinBased benchmark..."
-##	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_script.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")	
-##	
-##	if (Msg == True):
-##		Text += "OK\n"
-##		print "Mapping_2d_BinBased benchmarking example succesful"
-##	else:
-##		Text += "FAILED\n"
-##		Text += Msg
-##		Text += "\n\n"
-##		print "Mapping_2d_BinBased benchmarking example FAILED"
-##
-##	os.chdir("..")
+	Text += "Mapping_2d_BinBased: "
+	os.chdir("Mapping_2d_BinBased.gid")
+	sys.path.append(os.getcwd())
+
+	print "Running Mapping_2d_BinBased benchmark..."
+	Msg = benchmarking.RunBenchmark("ProjectionTestBinBased_2D_script.py", "ProjectionTestBinBased_2D_benchmarking_ref.txt")	
+	
+	if (Msg == True):
+		Text += "OK\n"
+		print "Mapping_2d_BinBased benchmarking example succesful"
+	else:
+		Text += "FAILED\n"
+		Text += Msg
+		Text += "\n\n"
+		print "Mapping_2d_BinBased benchmarking example FAILED"
+
+	os.chdir("..")
 	
        ################################################################
 
