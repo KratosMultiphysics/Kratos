@@ -794,9 +794,7 @@ namespace Kratos
                 if(LocalContactForce[1]>=0){ sgn_y=1.0;}
                 else{sgn_y = -1.0;}
                 
-                
-                
-                
+            
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
                                      +      LocalContactForce[1] * LocalContactForce[1]); 
                 
