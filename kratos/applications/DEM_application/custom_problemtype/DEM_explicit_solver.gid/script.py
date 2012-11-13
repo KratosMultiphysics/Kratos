@@ -398,7 +398,8 @@ while(time < final_time):
 
 
     #For a test tube of height 30 cm
-    strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
+    #strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
+    strain = 0.0
     strainlist.append(strain)
 	   
 
@@ -495,31 +496,56 @@ while(time < final_time):
 	#gid_io.InitializeMesh(time);
         #gid_io.WriteSphereMesh(solid_model_part.GetMesh());
         #gid_io.FinalizeMesh();
-	#gid_io.InitializeResults(time, solid_model_part.GetMesh());   
-        gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
+	#gid_io.InitializeResults(time, solid_model_part.GetMesh());
+	
+	
+	if (DEM_explicit_solver_var.print_velocity=="1"):
+	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
+        if (DEM_explicit_solver_var.print_displacement=="1"):
+	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
+        if (DEM_explicit_solver_var.print_rhs=="1"):
+	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
+        if (DEM_explicit_solver_var.print_total_forces=="1"):
+	  gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)	  
+        if (DEM_explicit_solver_var.print_damp_forces=="1"):
+	  gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)        
+        if (DEM_explicit_solver_var.print_radius=="1"):
+	  gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)       
+        if (DEM_explicit_solver_var.print_particle_cohesion=="1"):
+	  gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)       
+        if (DEM_explicit_solver_var.print_particle_tension=="1"):
+	  gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
+        if (DEM_explicit_solver_var.print_group_id=="1"):
+	  gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
+        if (DEM_explicit_solver_var.print_export_id=="1"):
+	  gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
+        if (DEM_explicit_solver_var.print_export_particle_failure_id=="1"):
+	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
+	if (DEM_explicit_solver_var.print_export_skin_sphere=="1"):
+	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
 	
 	if (contact_mesh_option == "ON"): ##xapuza
-	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
-	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
-	  gid_io.PrintOnGaussPoints(CONTACT_FAILURE_HIGH,contact_model_part,time)
-	  gid_io.PrintOnGaussPoints(CONTACT_FAILURE_LOW,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_local_contact_force_low=="1"):
+	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_local_contact_force_high=="1"):
+	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_failure_high=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE_HIGH,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_failure_low=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE_LOW,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_tau_mean=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_TAU_MEAN,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_sigma_mean=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA_MEAN,contact_model_part,time)
 	  
              
         if (rotation_option == "ON"): ##xapuza
-            gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
-            gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
+            if (DEM_explicit_solver_var.print_angular_velocity=="1"):
+	      gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
+            if (DEM_explicit_solver_var.print_particle_moment=="1"):
+	      gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
+           # if (DEM_explicit_solver_var.print_euler_angles):
+	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
         
         gid_io.Flush()
         

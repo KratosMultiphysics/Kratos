@@ -114,7 +114,7 @@ namespace Kratos
             ComputeParticleRotationSpring(rCurrentProcessInfo);
         }
 
-        CharacteristicParticleFailureId(rCurrentProcessInfo);
+        //CharacteristicParticleFailureId(rCurrentProcessInfo);
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -513,73 +513,76 @@ namespace Kratos
                 double external_polyhedron_area = 4*M_PI*radius*radius;                        
 		double alpha = 1.0;
                 
-                if(skin_sphere == 0)
+                if(continuum_simulation_OPTION)
                 {
-                    switch (n_neighbours)
+                    if(skin_sphere == 0)
                     {
-                        case 4:
-                            external_polyhedron_area = 3.30797*external_polyhedron_area;
-                            break;
-                        case 5:
-                            external_polyhedron_area = 2.60892*external_polyhedron_area;
-                            break;
-                        case 6:
-                            external_polyhedron_area = 1.90986*external_polyhedron_area;
-                            break;
-                        case 7:
-                            external_polyhedron_area = 1.78192*external_polyhedron_area;
-                            break;
-                        case 8:
-                            external_polyhedron_area = 1.65399*external_polyhedron_area;
-                            break;
-                        case 9:
-                            external_polyhedron_area = 1.57175*external_polyhedron_area;
-                            break;
-                        case 10:
-                            external_polyhedron_area = 1.48951*external_polyhedron_area;
-                            break;
-                        case 11:
-                            external_polyhedron_area = 1.40727*external_polyhedron_area;
-                            break;
-                        case 12:
-                            external_polyhedron_area = 1.32503*external_polyhedron_area;
-                            break;
-                        case 13:
-                            external_polyhedron_area = 1.31023*external_polyhedron_area;
-                            break;
-                        case 14:
-                            external_polyhedron_area = 1.29542*external_polyhedron_area;
-                            break;
-                        case 15:
-                            external_polyhedron_area = 1.28061*external_polyhedron_area;
-                            break;
-                        case 16:
-                            external_polyhedron_area = 1.26580*external_polyhedron_area;
-                            break;
-                        case 17:
-                            external_polyhedron_area = 1.25099*external_polyhedron_area;
-                            break;
-                        case 18:
-                            external_polyhedron_area = 1.23618*external_polyhedron_area;
-                            break;
-                        case 19:
-                            external_polyhedron_area = 1.22138*external_polyhedron_area;
-                            break;
-                        case 20:
-                            external_polyhedron_area = 1.20657*external_polyhedron_area;
-                            break;
-                        default:
-                            external_polyhedron_area = 1.15*external_polyhedron_area;
-                            break;
+                        switch (n_neighbours)
+                        {
+                            case 4:
+                                external_polyhedron_area = 3.30797*external_polyhedron_area;
+                                break;
+                            case 5:
+                                external_polyhedron_area = 2.60892*external_polyhedron_area;
+                                break;
+                            case 6:
+                                external_polyhedron_area = 1.90986*external_polyhedron_area;
+                                break;
+                            case 7:
+                                external_polyhedron_area = 1.78192*external_polyhedron_area;
+                                break;
+                            case 8:
+                                external_polyhedron_area = 1.65399*external_polyhedron_area;
+                                break;
+                            case 9:
+                                external_polyhedron_area = 1.57175*external_polyhedron_area;
+                                break;
+                            case 10:
+                                external_polyhedron_area = 1.48951*external_polyhedron_area;
+                                break;
+                            case 11:
+                                external_polyhedron_area = 1.40727*external_polyhedron_area;
+                                break;
+                            case 12:
+                                external_polyhedron_area = 1.32503*external_polyhedron_area;
+                                break;
+                            case 13:
+                                external_polyhedron_area = 1.31023*external_polyhedron_area;
+                                break;
+                            case 14:
+                                external_polyhedron_area = 1.29542*external_polyhedron_area;
+                                break;
+                            case 15:
+                                external_polyhedron_area = 1.28061*external_polyhedron_area;
+                                break;
+                            case 16:
+                                external_polyhedron_area = 1.26580*external_polyhedron_area;
+                                break;
+                            case 17:
+                                external_polyhedron_area = 1.25099*external_polyhedron_area;
+                                break;
+                            case 18:
+                                external_polyhedron_area = 1.23618*external_polyhedron_area;
+                                break;
+                            case 19:
+                                external_polyhedron_area = 1.22138*external_polyhedron_area;
+                                break;
+                            case 20:
+                                external_polyhedron_area = 1.20657*external_polyhedron_area;
+                                break;
+                            default:
+                                external_polyhedron_area = 1.15*external_polyhedron_area;
+                                break;
 
+                        }
+
+                        alpha            = external_polyhedron_area/total_equiv_area;
                     }
 
-                    alpha            = external_polyhedron_area/total_equiv_area;
-                }
-                
-                else //skin sphere
-                {
-                    alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
+                    else //skin sphere
+                    {
+                        alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
+                    }
                 }
                 
                 double equiv_FriAngle   = (FriAngle + other_FriAngle) * 0.5; 
@@ -772,8 +775,8 @@ namespace Kratos
                     LocalContactForce[2] = 0.0;  // 2: normal force
                 }
                 
-                
-                double DYN_FRI_ANG = 40;
+  if(1<2)   {           
+                double DYN_FRI_ANG = 40*M_PI/180;
                 
                 double compression_limit        = 33.2e06;//*10000;
                 double tension_limit            = 3.32e06;//*10000;
@@ -787,6 +790,9 @@ namespace Kratos
                 
                 if(LocalContactForce[1]>=0){ sgn_y=1.0;}
                 else{sgn_y = -1.0;}
+                
+                double contact_tau = 0.0;
+                double contact_sigma = 0.0;
                 
                 
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
@@ -822,21 +828,21 @@ namespace Kratos
                     if(alpha*equiv_area < 1e-08) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
 
                   
-                    double tau = ShearForceNow/(alpha*equiv_area);
-                    double sigma = LocalContactForce[2]/(alpha*equiv_area);
+                    contact_tau = ShearForceNow/(alpha*equiv_area);
+                    contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
 
                     double sigma_max, sigma_min;
 
                     if (LocalContactForce[2]>=0)
                             {
-                                    sigma_max = sigma;
+                                    sigma_max = contact_sigma;
                                     sigma_min = 0;
 
                             }
                     else 
                             {
                                     sigma_max = 0;
-                                    sigma_min = sigma;
+                                    sigma_min = contact_sigma;
 
                             }
 
@@ -844,7 +850,7 @@ namespace Kratos
                     //change into principal stresses
 
                     double centre = 0.5*(sigma_max + sigma_min);
-                    double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + tau*tau   ) ;
+                    double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
 
                     double sigma_I = centre + radius;
                     double sigma_II = centre - radius;
@@ -856,7 +862,7 @@ namespace Kratos
                     double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
                     
                     double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-                    
+                
                      /*
                     double ShearForceMax; 
                     
@@ -884,14 +890,14 @@ namespace Kratos
                                                
                         //tangential mapping, divide 2 tangent
                         
-                        /*
+                        
                         if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
                                     {
                                     
                                     KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
                                     //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
                                     }
-                       */
+                       
                         //LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
                         //LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
                         
@@ -915,15 +921,42 @@ namespace Kratos
                 }// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                 
                 
+  }  
                 
                 
                 
                 
                 
                 
-                
- if( 1>2 )
+ if( 3>2 )
  {
+     
+                double DYN_FRI_ANG = 40;
+                
+                double compression_limit        = 33.2e06;//*10000;
+                double tension_limit            = 3.32e06;//*10000;
+                
+                
+                double sgn_x;
+                double sgn_y;
+                
+                if(LocalContactForce[0]>=0){ sgn_x=1.0;}
+                else{sgn_x = -1.0;}
+                
+                if(LocalContactForce[1]>=0){ sgn_y=1.0;}
+                else{sgn_y = -1.0;}
+                
+                double contact_tau = 0.0;
+                double contact_sigma = 0.0;
+                
+                
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]); 
+                
+                double Frictional_ShearForceMax = tan(DYN_FRI_ANG) * LocalContactForce[2];
+                
+                        
+     
                 // TENSION FAILURE
 
                 if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
@@ -950,8 +983,8 @@ namespace Kratos
 
                 }
 
-                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
-                                     +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
+               // double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+               //                      +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
 
                 //No cohesion or friction, no shear resistance
 
@@ -1083,8 +1116,13 @@ namespace Kratos
                     // Transfer values to the contact element
                     
                     //obtenir el punter a la barra 
-                    
-                    if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+                   
+                    if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==44444444444444444) ///wariniasdñsioajdsiISJAÑIODJÑAJSDÑASDJIS
+                        //ASAJDNASÑSADÑSAJMSṔOSIASA
+                        //AJKÑSANDJA
+                        //SAJKSAÑNDIOSDA
+                        //SDAJKÑSDANOÑSDJA
+                        //SDAJÑSDANÑOSDAHJNI
                         
                     {
                         
@@ -1120,6 +1158,13 @@ namespace Kratos
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalContactForce[2];
                                     
                                     lock_p_weak->GetValue(CONTACT_FAILURE_LOW) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
+                                    
+                                    
+                                    
+                                    
+                                    //lock_p_weak->GetValue(CONTACT_SIGMA_LOW) = contact_sigma;
+                                    //lock_p_weak->GetValue(CONTACT_TAU_LOW) = contact_tau;
+                                    
 /*
                                     if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
                                     {
@@ -1140,6 +1185,9 @@ namespace Kratos
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalContactForce[2];
                                     
                                     lock_p_weak->GetValue(CONTACT_FAILURE_HIGH) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
+                                    
+                                   // lock_p_weak->GetValue(CONTACT_SIGMA_HIGH) = contact_sigma;
+                                   // lock_p_weak->GetValue(CONTACT_TAU_HIGH) = contact_tau;
                                 }
 
 

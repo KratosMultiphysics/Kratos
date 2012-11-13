@@ -52,6 +52,32 @@ gravity_y = *GenData(Gravity_y)
 *format "%10.5e"
 gravity_z = *GenData(Gravity_z)
 
+#POSTPROCES
+
+print_velocity 				= "*GenData(VELOCITY)"
+print_displacement 			= "*GenData(DISPLACEMENT)"
+print_rhs 				= "*GenData(RHS)"
+print_total_forces 			= "*GenData(TOTAL_FORCES)"
+print_damp_forces 			= "*GenData(DAMP_FORCES)"
+print_radius 				= "*GenData(RADIUS)"
+print_particle_cohesion 		= "*GenData(PARTICLE_COHESION)"
+print_particle_tension 			= "*GenData(PARTICLE_TENSION)"
+print_group_id 				= "*GenData(GROUP_ID)"
+print_export_id 			= "*GenData(EXPORT_ID)"
+print_export_particle_failure_id 	= "*GenData(EXPORT_PARTICLE_FAILURE_ID)"
+print_export_skin_sphere 		= "*GenData(EXPORT_SKIN_SPHERE)"
+print_local_contact_force_low 		= "*GenData(LOCAL_CONTACT_FORCE_LOW)"
+print_local_contact_force_high 	= "*GenData(LOCAL_CONTACT_FORCE_HIGH)"
+print_contact_failure_high 		= "*GenData(CONTACT_FAILURE_HIGH)"
+print_contact_failure_low 		= "*GenData(CONTACT_FAILURE_LOW)"
+print_contact_tau_mean 			= "*GenData(CONTACT_TAU_MEAN)"
+print_contact_sigma_mean 		= "*GenData(CONTACT_SIGMA_MEAN)"
+print_angular_velocity 			= "*GenData(ANGULAR_VELOCITY)"
+print_particle_moment 			= "*GenData(PARTICLE_MOMENT)"
+print_euler_angles 			= "*GenData(EULER_ANGLES)"
+
+
+
 mass_elements=*tcl(DEM::Get_Mass_Elements)
 
 # Declare Python Variables
