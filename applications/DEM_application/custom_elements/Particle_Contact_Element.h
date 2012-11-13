@@ -188,7 +188,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
+    
+    //double mshearstress;
+    //double mnormalstress;
+    
+    //std::array_1d<double,3> mlocalcontactforcehigh;
+    //std::array_1d<double,3> mlocalcontactforcelow;
+    //std::array_1d<double,3> mlocalcontactforcemean;
+    
     ///@}
     ///@name Protected Operators
     ///@{

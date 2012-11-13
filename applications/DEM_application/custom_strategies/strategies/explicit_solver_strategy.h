@@ -19,7 +19,9 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_utilities/create_and_destroy.h"
 
-#include "custom_elements/spheric_particle.h" 
+#include "custom_elements/spheric_particle.h"
+#include "custom_elements/Particle_Contact_Element.h"
+
 #include "includes/variables.h"
 #include "DEM_application.h"
 
@@ -231,6 +233,9 @@ namespace Kratos
 
           //1. Get and Calculate the forces
           GetForce();
+          
+                //C.1
+                //TransferDataContactElements();
   
           //1.1. Calculate Local Dampings
           int rota_damp_id            = rCurrentProcessInfo[ROTA_DAMP_TYPE];
@@ -857,6 +862,59 @@ namespace Kratos
   
         KRATOS_CATCH("")
     }  //Set_Initial_Contacts
+    
+    //CONTACT_ELEMENTS
+    
+     void TransferDataContactElements()
+      {
+       
+         /*
+          KRATOS_TRY
+
+          //dummy variable
+          //const Variable<double>& rDUMMY_FORCES = DUMMY_FORCES;
+          Vector rhs_cond;
+          //M: aixo es una xapuza
+
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();  //M: ho necesitu aki per algoo?? per treure la tolerancia porser    
+          ElementsArrayType& pElements      = GetElements(r_model_part);
+          
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+          #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+  //         unsigned int index = 0;
+
+          #pragma omp parallel for //private(index)
+          for(int k=0; k<number_of_threads; k++)
+          {
+              typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+              typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+              
+              for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+                  (it)->CalculateRightHandSide(rhs_cond, rCurrentProcessInfo);
+                  //we use this function to call the calculate forces in general funct.
+              } //loop over particles
+          }// loop threads OpenMP
+
+          KRATOS_CATCH("")
+      
+       */ 
+       }
+    
+    
+    
+    
+    
+    
+    
     
     virtual void Synchronize(ModelPart& r_model_part)
     {

@@ -124,6 +124,11 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
         rOutput[0][2] = const_this->GetValue(rVariable)[2];
+        
+        //mlocalcontactforcehigh[0] = const_this->GetValue(rVariable)[0];
+        //mlocalcontactforcehigh[1] = const_this->GetValue(rVariable)[1];
+        //mlocalcontactforcehigh[2] = const_this->GetValue(rVariable)[2];
+        
     }
     
      if(rVariable == LOCAL_CONTACT_FORCE_HIGH)   //3D VARIABLE WITH COMPONENTS
@@ -133,31 +138,62 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
         rOutput[0][2] = const_this->GetValue(rVariable)[2];
+        
+        //mlocalcontactforcelow[0] = const_this->GetValue(rVariable)[0];
+        //mlocalcontactforcelow[1] = const_this->GetValue(rVariable)[1];
+        //mlocalcontactforcelow[2] = const_this->GetValue(rVariable)[2];
+        
     }
     
   }
  
   void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
     {
-
-   
-        if(rVariable == CONTACT_FAILURE_LOW)   //3D VARIABLE WITH COMPONENTS
+        
+        Output.resize(1);
+        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
+        
+      
+        if(rVariable == CONTACT_TAU_MEAN )
         {
-            Output.resize(1);
-            const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
-            Output[0] = const_this->GetValue(rVariable);
 
-           
+        
+        this->GetValue(CONTACT_TAU_MEAN) = 0.5*(this->GetValue(CONTACT_TAU_HIGH)+(this->GetValue(CONTACT_TAU_LOW)));
+       
+        Output[0] = const_this->GetValue(CONTACT_TAU_MEAN);
 
         }
 
-
-          if(rVariable == CONTACT_FAILURE_HIGH)   //3D VARIABLE WITH COMPONENTS
+         if(rVariable == CONTACT_SIGMA_MEAN )
         {
-            Output.resize(1);
-            const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
-            Output[0] = const_this->GetValue(rVariable);
+
+        this->GetValue(CONTACT_SIGMA_MEAN) = 0.5*(this->GetValue(CONTACT_SIGMA_HIGH)+(this->GetValue(CONTACT_SIGMA_LOW)));
+       
+        Output[0] = const_this->GetValue(CONTACT_SIGMA_MEAN);
+
         }
+      
+      
+     
+      
+         else   //all the rest of variables: CONTACT_FAILURE_LOW CONTACT_FAILURE_HIGH 
+         {
+         
+                    if(const_this->GetValue(rVariable) == 1)
+                  {
+                      KRATOS_WATCH("HEEEEEY")
+                   } 
+
+        Output[0] = double(const_this->GetValue(rVariable));
+        
+                    if(Output[0]== 1.0)
+                    {
+                        KRATOS_WATCH("HEEEEEY")
+                     }
+        
+         }
+      
+     
 
 
     } 
@@ -184,13 +220,43 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
 void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
 
+    
+   //  mshearstress;
+    // mnormalstress;
+    /*
+    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[0]+localcontactforcehigh[0]);
+    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[1]+localcontactforcehigh[1]);
+    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[2]+localcontactforcehigh[2]);
+            
+        
+    
+    KRATOS_WATCH("fer kratos watch que aqui el calcul que facis quadri amb el que calcules fora...")
+    */
+    
 }
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 {
-
+/*
+    if(rVariable == CONTACT_TAU_MEAN )
+    {
     
+    Output = 0.5*(this->GetValue(CONTACT_TAU_HIGH)+(this->GetValue(CONTACT_TAU_HIGH));
+    this->GetValue(CONTACT_TAU_MEAN)= Output; 
+      
     
+    }
+    
+     if(rVariable == CONTACT_SIGMA_MEAN )
+    {
+    
+    Output = 0.5*(this->GetValue(CONTACT_SIGMA_HIGH)+(this->GetValue(CONTACT_SIGMA_HIGH));
+    this->GetValue(CONTACT_SIGMA_MEAN)= Output; 
+       
+    
+    }
+    
+   */ 
 }
 
 
