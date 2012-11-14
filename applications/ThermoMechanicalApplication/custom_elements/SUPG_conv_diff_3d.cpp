@@ -174,7 +174,6 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     //we divide conductivity by (ro*C) and heat_source by C
 // 	conductivity /= (density*specific_heat);
 // 	heat_source /= (specific_heat);
-
     double tau;
     double conductivity_scaled = conductivity/(density*specific_heat);    
     CalculateTau(ms_vel_gauss,tau,conductivity_scaled,delta_t, Volume, rCurrentProcessInfo);
@@ -234,6 +233,7 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     //add shock capturing 
     double art_visc = 0.0;
     CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
+
     noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
 
 
@@ -368,7 +368,11 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	  double ele_length = pow(12.0*volume,0.333333333333333333333);
 	  ele_length = 0.666666667 * ele_length * 1.732;	  
 	  
-	  double Peclet_parallel = a_parallel*ele_length / (2.0*scaled_K);
+	  double Effective_K = scaled_K;
+	  if(scaled_K < 0.00000000001)
+	    Effective_K = 0.00000000001;
+	    
+	  double Peclet_parallel = a_parallel*ele_length / (2.0*Effective_K);
 	  
 	  double alpha = 3.0 - 1.0/Peclet_parallel;
 	  
@@ -384,6 +388,30 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	KRATOS_CATCH("")  
   
 }
+//************************************************************************************
+//************************************************************************************
+void SUPGConvDiff3D::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo)
+{
+
+    /*        double delta_t = rCurrentProcessInfo[DELTA_TIME];*/
+    boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DX;
+    array_1d<double, 4 > N;
+    //getting data for the given geometry
+    double volume;
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, volume);
+
+    if (rVariable == PR_ART_VISC)
+    {
+	for (unsigned int PointNumber = 0;
+		PointNumber < 1; PointNumber++)
+	{
+	    //	KRATOS_WATCH(this->GetValue(IS_WATER));
+	    //	KRATOS_WATCH(this->Info());
+	    rValues[PointNumber] = this->GetValue(PR_ART_VISC);
+	}
+    }
+
+}   
 
 } // Namespace Kratos
 
