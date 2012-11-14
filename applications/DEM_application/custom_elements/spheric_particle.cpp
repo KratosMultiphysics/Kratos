@@ -896,7 +896,7 @@ namespace Kratos
                         if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
                                     {
                                     
-                                    KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+                                    //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
                                     //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
                                     }
                        
