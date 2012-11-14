@@ -8,6 +8,10 @@ import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+import matplotlib
+from numpy import *
+from pylab import *  
+
 #defining a model part for the solid part
 my_timer=Timer();
 solid_model_part = ModelPart("SolidPart");  
@@ -357,12 +361,12 @@ os.chdir(post_path)
 gid_io.InitializeMesh(0.0)
 gid_io.WriteSphereMesh(solid_model_part.GetMesh())
 gid_io.FinalizeMesh()
-#gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
+gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
 
 gid_io.InitializeMesh(0.0)
 gid_io.WriteMesh(contact_model_part.GetMesh());
 gid_io.FinalizeMesh()
-#gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
+gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
 
 os.chdir(main_path)
 
@@ -401,6 +405,7 @@ while(time < final_time):
 
     #For a test tube of height 30 cm
     strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
+    #strain=0.0
     strainlist.append(strain)
 	   
 
@@ -497,7 +502,7 @@ while(time < final_time):
 	#gid_io.InitializeMesh(time);
         #gid_io.WriteSphereMesh(solid_model_part.GetMesh());
         #gid_io.FinalizeMesh();
-	gid_io.InitializeResults(time, solid_model_part.GetMesh());
+	#gid_io.InitializeResults(time, solid_model_part.GetMesh());
 	
 	
 	if (DEM_explicit_solver_var.print_velocity=="1"):
@@ -548,10 +553,21 @@ while(time < final_time):
            # if (DEM_explicit_solver_var.print_euler_angles):
 	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
         
-        gid_io.FinalizeResults() 
+        #gid_io.FinalizeResults() 
         gid_io.Flush()
         sys.stdout.flush()
         
+        clf()
+        plot(strainlist,stresslist,'b-')
+        grid(True)
+        title('Stress - Strain')
+        xlabel('Strain')
+        ylabel('Stress (MPa)')
+        #xlim(0.0,70000)
+        #ylim(-5.0,103870403.214)
+        #legend(('force'))
+        savefig('stress_strain')
+
         os.chdir(data_and_results)
         
         if (index_5==5):
@@ -607,7 +623,7 @@ while(time < final_time):
 
   
     
-#gid_io.FinalizeResults()
+gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
@@ -626,9 +642,6 @@ os.chdir(graphs_path)
 
 ###PLOTS
 
-import matplotlib
-from numpy import *
-from pylab import *  
 
 if (1<2):
   clf()
