@@ -323,15 +323,12 @@ multifile = open(input_file_name+'_all'+'.post.lst','w')
 multifile_5 = open(input_file_name+'_5'+'.post.lst','w')
 multifile_10 = open(input_file_name+'_10'+'.post.lst','w')
 multifile_50 = open(input_file_name+'_50'+'.post.lst','w')
-graph_export = open("strain_stress_data.csv",'w')
+
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
 multifile_10.write('Multiple\n')
 multifile_50.write('Multiple\n')
-
-
-
 
 index_5 = 1
 index_10 = 1
@@ -343,6 +340,8 @@ cond = 0
 
 os.chdir(main_path)
 
+graph_export = open("strain_stress_data.csv",'w')
+
 #Adding stress and strain lists
 strainlist=[]
 strainlist.append(0.0)
@@ -353,6 +352,8 @@ strain=0.0
 
 contact_model_part = solver.contact_model_part   
 
+os.chdir(post_path)
+
 gid_io.InitializeMesh(0.0)
 gid_io.WriteSphereMesh(solid_model_part.GetMesh())
 gid_io.FinalizeMesh()
@@ -361,8 +362,9 @@ gid_io.FinalizeMesh()
 gid_io.InitializeMesh(0.0)
 gid_io.WriteMesh(contact_model_part.GetMesh());
 gid_io.FinalizeMesh()
-gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
+#gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
 
+os.chdir(main_path)
 
 while(time < final_time):
   
@@ -398,8 +400,7 @@ while(time < final_time):
 
 
     #For a test tube of height 30 cm
-    #strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
-    strain = 0.0
+    strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
     strainlist.append(strain)
 	   
 
@@ -496,7 +497,7 @@ while(time < final_time):
 	#gid_io.InitializeMesh(time);
         #gid_io.WriteSphereMesh(solid_model_part.GetMesh());
         #gid_io.FinalizeMesh();
-	#gid_io.InitializeResults(time, solid_model_part.GetMesh());
+	gid_io.InitializeResults(time, solid_model_part.GetMesh());
 	
 	
 	if (DEM_explicit_solver_var.print_velocity=="1"):
@@ -547,7 +548,9 @@ while(time < final_time):
            # if (DEM_explicit_solver_var.print_euler_angles):
 	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
         
+        gid_io.FinalizeResults() 
         gid_io.Flush()
+        sys.stdout.flush()
         
         os.chdir(data_and_results)
         
@@ -575,8 +578,8 @@ while(time < final_time):
 	
 	os.chdir(main_path)
        
-        sys.stdout.flush()      
-        #gid_io.FinalizeResults()    
+              
+           
 	time_old_print = time
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -596,14 +599,15 @@ while(time < final_time):
 	if ( (((d/2-eps*r)*(d/2-eps*r))<=(x*x+z*z)<=(eps*d/2*eps*d/2)) or (-0.1<=y<=eps*r) or (h-eps*r<=y<=h*eps) ): #For a tube test with the center of the base at (0,0,0)
            element.SetValue(SKIN_SPHERE,1)
 
-   
+    os.chdir(main_path)
+    
     graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
     
     step += 1
 
   
     
-gid_io.FinalizeResults()
+#gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
