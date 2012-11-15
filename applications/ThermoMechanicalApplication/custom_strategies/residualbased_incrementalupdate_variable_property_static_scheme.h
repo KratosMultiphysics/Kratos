@@ -177,6 +177,8 @@ public:
 	      const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 	      const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
 	      const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();	
+	      const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
+		  const double amb_temp = CurrentProcessInfo[AMBIENT_TEMPERATURE];
 	      
 
 	    ModelPart::TableType rDensityVar_table = r_model_part.GetTable(1);
@@ -184,11 +186,19 @@ public:
 	    ModelPart::TableType F_table = r_model_part.GetTable(3);	
 	    ModelPart::TableType DF_DT_table = r_model_part.GetTable(4);
 	    ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);
+	    ModelPart::TableType HTC_table = r_model_part.GetTable(7);
 	    
 	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	      {
 		      const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
 		      const double dist = ind->FastGetSolutionStepValue(DISTANCE);
+
+			  /*double htc_var = ind->FastGetSolutionStepValue(rTransferCoef);
+			  double rho = rDensityVar_table.GetValue(unknown_val);
+			  double cc =C_table.GetValue(unknown_val);
+		      ind->FastGetSolutionStepValue(rTransferCoef) = htc_var/(rho*cc);	*/
+			  double htc_var = HTC_table.GetValue(unknown_val);
+			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 		      
 		    if(dist < 0){			      
 		      double density_var = rDensityVar_table.GetValue(unknown_val);
@@ -196,6 +206,8 @@ public:
 		      double solid_fraction_var = F_table.GetValue(unknown_val);
 		      double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
 		      double conductvity_var = rDiffusionVar_table.GetValue(unknown_val);
+			  //double htc_var = HTC_table.GetValue(unknown_val);
+
 		      
 		      ind->FastGetSolutionStepValue(rDensityVar) = density_var;
 		      ind->FastGetSolutionStepValue(rDensityVar,1) = density_var;
@@ -211,14 +223,20 @@ public:
 		      
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = conductvity_var;
 		      ind->FastGetSolutionStepValue(rDiffusionVar,1) = conductvity_var;	
+
+			 // ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+
 		    }
 		    else
 		    {
 		      ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
-		      ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
+		      ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1000.0;
 		      ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
 		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
-		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;			      
+		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;	
+
+			  ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+			 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		    }
 			
 	      }	      
@@ -254,19 +272,24 @@ public:
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
         const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();	
-	
+	    const Variable<double>& rTransferCoef = my_settings->GetTransferCoefficientVariable();
+		const double amb_temp = CurrentProcessInfo[AMBIENT_TEMPERATURE];	
 
        ModelPart::TableType rDensityVar_table = r_model_part.GetTable(1);
        ModelPart::TableType C_table = r_model_part.GetTable(2);	
        ModelPart::TableType F_table = r_model_part.GetTable(3);	
        ModelPart::TableType DF_DT_table = r_model_part.GetTable(4);
        ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);	
-	
+	   ModelPart::TableType HTC_table = r_model_part.GetTable(7);	
+
 	for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	{
 		const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
 		const double dist = ind->FastGetSolutionStepValue(DISTANCE);
-		
+
+		double htc_var = HTC_table.GetValue(unknown_val);
+		ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
+
 		if(dist < 0){		
 		double density_var = rDensityVar_table.GetValue(unknown_val);
 		double specific_heat_var =C_table.GetValue(unknown_val);
@@ -283,10 +306,12 @@ public:
 		else
 		{
 		ind->FastGetSolutionStepValue(rDensityVar) = 1.0;
-		ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1.0;
+		ind->FastGetSolutionStepValue(SPECIFIC_HEAT) = 1000.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
-		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;		  
+		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
+	    ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+	    //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		}
 			
 	}	
