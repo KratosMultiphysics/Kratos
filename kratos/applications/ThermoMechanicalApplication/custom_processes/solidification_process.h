@@ -107,13 +107,14 @@ namespace Kratos
 			    ind!=mr_model_part.NodesEnd(); ind++)
 		    {		   
 		      const double TT = ind->FastGetSolutionStepValue(TEMPERATURE); 
-		      if( TT <= mr_solid_temp ){
+		      const double dist = ind->FastGetSolutionStepValue(DISTANCE); 
+		      if( TT <= mr_solid_temp && dist<0.0 ){
 			ind->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
 			ind->Fix(VELOCITY_X);
 			ind->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
 			ind->Fix(VELOCITY_Y);
 			ind->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
-			ind->Fix(VELOCITY_Z);			
+			ind->Fix(VELOCITY_Z);		
 		      }
 		    }
 
