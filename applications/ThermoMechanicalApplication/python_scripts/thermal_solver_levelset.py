@@ -27,7 +27,6 @@ def AddVariables(model_part,settings):
     print "variables for the THERMAL_SOLVER added correctly"
         
 def AddDofs(model_part,settings):
-    print "KKKKKKKKKKKKKKKKKKK............................................................nnnnnnnnnnnnnnnnnnnnnnn"
     for node in model_part.Nodes:
 	    node.AddDof(settings.GetUnknownVariable());
         
@@ -74,7 +73,7 @@ class Solver:
         self.normal_tools = BodyNormalCalculationUtils()
 
         self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
-        self.max_iter = 5
+        self.max_iter = 8
 
         #material settings
         self.rho_mat = 100.0
@@ -97,8 +96,7 @@ class Solver:
         #(self.neigh_finder).Execute();
         
         #(self.elem_neighbor_finder).ClearNeighbours()
-        #(self.elem_neighbor_finder).Execute() 
-        print "INSIDE INITIALIZE"           
+        #(self.elem_neighbor_finder).Execute()           
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
  	
         #self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
@@ -132,9 +130,8 @@ class Solver:
 
     #######################################################################   
     def Solve(self):        
-        print "*****************entering solve?????????????"
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
-        #self.ApplyFluidProperties()
+##        self.ApplyFluidProperties()
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
        
