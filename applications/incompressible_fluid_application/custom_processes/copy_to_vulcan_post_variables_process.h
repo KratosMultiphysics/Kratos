@@ -125,6 +125,27 @@ namespace Kratos
 			 }
 
 			 double distance_norm_inverse = 1.00 / (max_distance - min_distance);
+			 //find mean interface temperature
+			 //double mean_interface_T = 0.0;
+			 //double cnt=0.0;
+			 //for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+			 //{
+				// double distance = i_node->GetSolutionStepValue(DISTANCE);
+				// if(distance <= 0.0 && distance > 2.0*min_distance )
+				// {
+				//	 cnt += 1.0;
+				//	 mean_interface_T += i_node->FastGetSolutionStepValue(TEMPERATURE);
+				// }
+			 //}
+
+			 //if(cnt != 0.0)
+				// mean_interface_T/=cnt;
+			 //else{
+				// KRATOS_WATCH("INSIDE COPY TO VULCAN >>>> NO interface node is found");
+				// mean_interface_T = mrModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
+			 //    }
+
+
 
 			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 			 {
@@ -139,10 +160,10 @@ namespace Kratos
 					 i_node->FastGetSolutionStepValue(PRESSURES) = i_node->FastGetSolutionStepValue(PRESSURE);
 
 					 double temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
-					 if(temp > max_temp)
+					/* if(temp > max_temp)
 							temp = max_temp;
 					 if (temp < min_temp)
-							temp = min_temp;
+							temp = min_temp;*/
 					 i_node->FastGetSolutionStepValue(TEMPERATURES) = temp;
 
 				 }
@@ -150,7 +171,7 @@ namespace Kratos
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = min_temp;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
 				 }
 
 			 }
