@@ -70,16 +70,16 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 	printf("000\n");
 	pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
 	pastix_int_t    ncol = mat_size;               /* Size of the matrix                                        */
-	pastix_int_t   *rows      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*nnz);  /* Indexes of first element of each column in row and values */
+	pastix_int_t   *rows      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(nnz));  /* Indexes of first element of each column in row and values */
 	pastix_int_t   *colptr        = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(mat_size+1));   /* Row of each element of the matrix                         */
-	pastix_float_t *values      = (pastix_float_t *)malloc(sizeof(pastix_float_t)*nnz);   /* Value of each element of the matrix                       */
+	pastix_float_t *values      = (pastix_float_t *)malloc(sizeof(pastix_float_t)*(nnz));   /* Value of each element of the matrix                       */
 	pastix_float_t *rhs         = (pastix_float_t *)malloc(sizeof(pastix_float_t)*mat_size);  /* right hand side                                           */
 //	pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
 //	pastix_float_t *ax          = NULL; /* A times X product                                         */
 	pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
 	double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
-	pastix_int_t   *perm        = (pastix_int_t *)malloc(ncol*sizeof(pastix_int_t));; /* Permutation tabular                                       */
-	pastix_int_t   *invp        = (pastix_int_t *)malloc(ncol*sizeof(pastix_int_t));; /* Reverse permutation tabular                               */
+	pastix_int_t   *perm        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t));; /* Permutation tabular                                       */
+	pastix_int_t   *invp        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t));; /* Reverse permutation tabular                               */
 //		char           *type        = NULL; /* type of the matrix                                        */
 //		char           *rhstype     = NULL; /* type of the right hand side                               */
 //	pastix_int_t             mpid = 0;
@@ -87,26 +87,60 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 //	pastix_int_t             nbmatrices = 1;         /* Number of matrices given by user                          */
 	pastix_int_t             nbthread = omp_get_max_threads();           /* Number of thread wanted by user                           */
 	pastix_int_t             verbosemode = 2;        /* Level of verbose mode (0, 1, 2)                           */
-	int             ordering = API_ORDER_SCOTCH;           /* Ordering to use                                           */
+ 	int             ordering = API_ORDER_SCOTCH;           /* Ordering to use                                           */
 	pastix_int_t             nbrhs = 1;
-	int             incomplete = 0;         /* Indicate if we want to use incomplete factorisation       */
-	int             level_of_fill = 4;      /* Level of fill for incomplete factorisation                */
-	int             amalgamation = 5;       /* Level of amalgamation for Kass                            */
-	int             ooc = 2000;                /* OOC limit (Mo/percent depending on compilation options)   */
+	int             incomplete = 1;         /* Indicate if we want to use incomplete factorisation       */
+	int             level_of_fill = 3;      /* Level of fill for incomplete factorisation                */
+	int             amalgamation = 25;       /* Level of amalgamation for Kass                            */
+	//int             ooc = 2000;                /* OOC limit (Mo/percent depending on compilation options)   */
 	pastix_int_t    mat_type = API_SYM_NO;
+//	int j;
 //		long            i;
 //		double norme1, norme2;
 	int i;
 	printf("aaa\n");
+	
+/*	memset(colptr,0,(mat_size+1)*sizeof(pastix_int_t));
+	memset(rows,0,(nnz)*sizeof(pastix_int_t));*/
+	
 	//compute the transpose
-	CompRow_to_CompCol(mat_size, mat_size, nnz,AA, JA, IA,&values, &rows, &colptr);
+   	CompRow_to_CompCol(mat_size, mat_size, nnz,AA, JA, IA,&values, &rows, &colptr);
 
+/*	FILE *fp_columns;
+	fp_columns=fopen("columns.txt", "w");
+	fprintf(fp_columns,"%d \n",(mat_size+1));
+	for(i=0; i<mat_size+1; i++)
+		fprintf(fp_columns,"%d \n",colptr[i]);
+	fclose(fp_columns);
+
+	FILE *fp_rows;
+	fp_rows=fopen("rows.txt", "w");
+	fprintf(fp_rows,"%d \n",(nnz));
+	for(i=0; i<nnz; i++)
+		fprintf(fp_rows,"%d \n",rows[i]);
+	fclose(fp_rows);
+
+	FILE *fp_values;
+	fp_values=fopen("values.txt", "w");
+	fprintf(fp_values,"%d \n",(nnz));
+	for(i=0; i<nnz; i++)
+		fprintf(fp_values,"%e \n",values[i]);
+	fclose(fp_values);*/
+	
+	//exit(1);
+
+// 	for(i=0; i<nnz; i++)
+// 	  rows[i] = rows[i]+1;
+// 	
+// 	for(i=0; i<mat_size; i++)
+// 	  colptr[i] = colptr[i]+1;
 //	/*
 //	 * Matrix needs :
 //	 *    - to be in fortran numbering
 //	 *    - to have only the lower triangular part in symmetric case
 //	 *    - to have a graph with a symmetric structure in unsymmetric case
 //	 */
+	iparm[IPARM_MATRIX_VERIFICATION] = API_YES;
 	if(NO_ERR != pastix_checkMatrix(0, verbosemode,
 	                                mat_type,
 	                                API_YES,
@@ -144,12 +178,16 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 	}
 	iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
 	iparm[IPARM_VERBOSE]             = verbosemode;
-	iparm[IPARM_ORDERING]            = ordering;
+ 	iparm[IPARM_ORDERING]            = ordering;
 	iparm[IPARM_INCOMPLETE]          = incomplete;
-	iparm[IPARM_OOC_LIMIT]           = ooc;
+	//iparm[IPARM_OOC_LIMIT]           = ooc;
+
+  //  iparm[IPARM_FREE_CSCUSER] = API_CSC_PRESERVE;
 
 	if(incomplete == 1)
 	{
+		iparm[IPARM_REFINEMENT] = API_RAF_GMRES;
+		//IPARM GMRES IM :
 		dparm[DPARM_EPSILON_REFINEMENT] = 1e-7;
 	}
 	iparm[IPARM_LEVEL_OF_FILL]       = level_of_fill;

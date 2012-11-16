@@ -25,6 +25,7 @@ if(${INCLUDE_PASTIX} MATCHES ON)
 	FIND_LIBRARY(PASTIX_LINK_LIB pastix  ${PASTIX_INSTALL_DIR})
 	FIND_LIBRARY(SCOTCH_LIB scotch ${SCOTCH_INSTALL_DIR})
 	message("pastix library found =" ${PASTIX_LINK_LIB})
+	add_definitions( -DFORCE_NOMPI )
 	add_library(kratos_pastix STATIC custom_external_libraries/solvePASTIX.c  )
 	target_link_libraries(kratos_pastix ${BLAS_LIBRARIES} ${PASTIX_LINK_LIB} ${SCOTCH_LIB}  )
 else(${INCLUDE_PASTIX} MATCHES ON)
@@ -75,3 +76,7 @@ install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTINATION KratosMultiphysics )
+
+if(${INCLUDE_PASTIX} MATCHES ON)
+	install( TARGETS kratos_pastix DESTINATION libs)
+endif(${INCLUDE_PASTIX} MATCHES ON)
