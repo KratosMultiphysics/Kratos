@@ -194,10 +194,12 @@ namespace Kratos
           }
           
           // 5. Create the contact elements.
+          KRATOS_WATCH(rCurrentProcessInfo[CONTACT_MESH_OPTION])
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           {
-              
+             
               CreateContactElements();
+	     
           }
           
           //6.Final operations
@@ -210,6 +212,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
+         
           std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
           
           ModelPart& r_model_part          = BaseType::GetModelPart();
@@ -226,14 +229,17 @@ namespace Kratos
           
           //STRATEGY:
           //0.0
+	  	  
           Synchronize(r_model_part);
           
           //1.0
+	  
           InitializeSolutionStep();
-
+	  
+	  
           //1. Get and Calculate the forces
           GetForce();
-          
+         
                 //C.1
                 //TransferDataContactElements();
   
@@ -245,7 +251,7 @@ namespace Kratos
           {
               ApplyRotationalDampings();
           }
-          
+
           //2. Motion Integration
           ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           
@@ -254,7 +260,7 @@ namespace Kratos
           {
               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox(r_model_part, mEnlargementFactor);
           }
-          
+
           if ( (time_step + 1)%mnstepsearch == 0 )
           {
               if ( (time_step + 1)%(mnstepsearch*10) == 0 )
@@ -265,13 +271,13 @@ namespace Kratos
               {
                   BoundingBoxUtility(mEnlargementFactor);
               }
-              
+    
               SearchNeighbours(r_model_part,extension_option); //extension option false;
           }
           
           //4.Final operations
           FinalizeSolutionStep();
-          
+
           return 0.00;
           KRATOS_CATCH("")
       }
@@ -448,6 +454,8 @@ namespace Kratos
       {
           KRATOS_TRY
 
+          //SPHERE MODEL PART
+                  
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements      = GetElements(r_model_part);
@@ -477,7 +485,35 @@ namespace Kratos
 
           }// loop threads OpenMP
 
-        //modifying a switch
+       
+	if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+	{
+	    //CONTACT MODEL PART
+			    
+	    //ProcessInfo& rCurrentProcessInfo  = contacts_model_part.GetProcessInfo();
+	    ElementsArrayType& pContactElements      = GetElements(mcontacts_model_part);
+
+	
+	    vector<unsigned int> contact_element_partition;
+	    OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+
+	    #pragma omp parallel for //private(index)
+	    for(int k=0; k<number_of_threads; k++)
+
+	    {
+
+	      typename ElementsArrayType::iterator it_begin=pContactElements.ptr_begin()+element_partition[k];
+	      typename ElementsArrayType::iterator it_end=pContactElements.ptr_begin()+element_partition[k+1];
+	      for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+		{
+
+		  (it)->InitializeSolutionStep(rCurrentProcessInfo); 
+
+		} //loop over CONTACT ELEMENTS
+
+	    }// loop threads OpenMP
+	    
+	}
 
         KRATOS_CATCH("")
       }
@@ -518,7 +554,7 @@ namespace Kratos
         std::string ElementName;
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
-
+	KRATOS_WATCH("holaSS")
         
         /*
          * 
@@ -572,7 +608,7 @@ namespace Kratos
                    mcontacts_model_part.Elements().push_back(p_contact_element);
 
                    Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element);  //converting the pointers for the construction into weak pointers
-
+                                    
                    (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(p_weak);          //copiar el weak a la variable nodal punters a barres
 
                    // we will have a pointer to a element for the two nodes connecting it.
@@ -724,8 +760,10 @@ namespace Kratos
               } //loop over particles
 
           }// loop threads OpenMP
-
+          
+     
           KRATOS_CATCH("")
+          
       }
         
       void CalculateEnergies()
