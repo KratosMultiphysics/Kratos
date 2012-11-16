@@ -136,9 +136,8 @@ namespace Kratos
 
         void SphericParticle::SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
         {   
-            
             /*
-             *
+             * 
              * 
              * ELEMENT_NEIGHBOURS / NEIGHBOURS_IDS: the ones important for calculating forces.
              * INI_NEIGHBOURS_IDS: the ones to be treated specially due to initial delta or continuum case.
@@ -286,6 +285,7 @@ namespace Kratos
 
             KRATOS_TRY
 
+            
             ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
             //ParticleWeakVectorType& r_continuum_ini_neighbours  = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
 
@@ -329,10 +329,10 @@ namespace Kratos
 
             // GETTING PARTICLE PROPERTIES
 
-            double Tension          = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-            double Cohesion         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+            //double Tension          = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
+            //double Cohesion         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
             double FriAngle         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION); 
-            double Friction         = tan( FriAngle / 180.0 * M_PI);
+            //double Friction         = tan( FriAngle / 180.0 * M_PI);
 
             double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
             
@@ -443,15 +443,15 @@ namespace Kratos
               
                 double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
                 double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-                double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-                double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+                //double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
+                //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
                 double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
 
                 // CONTINUUM SIMULATING PARAMETERS:
 
                 double initial_delta = 0.0;
-                double CTension = 0.0;
-                double CCohesion = 0.0;
+                //double CTension = 0.0;
+                //double CCohesion = 0.0;
 
                 //SLIDING
 
@@ -461,8 +461,8 @@ namespace Kratos
                 if ( continuum_simulation_OPTION && (*mpFailureId==0) && (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]==0) )
                 {
                     // Test for Average, 120531, should be discussed
-                    CTension  = (Tension + other_tension)   * 0.5;
-                    CCohesion = (Cohesion + other_cohesion) * 0.5;
+                    //CTension  = (Tension + other_tension)   * 0.5;
+                    //CCohesion = (Cohesion + other_cohesion) * 0.5;
 
                     //KRATOS_WATCH(CTension)
                     //KRATOS_WATCH(CCohesion)
@@ -586,26 +586,26 @@ namespace Kratos
                 }
                 
                 double equiv_FriAngle   = (FriAngle + other_FriAngle) * 0.5; 
-                double Friction         = tan( equiv_FriAngle  / 180.0 * M_PI);
+                //double Friction         = tan( equiv_FriAngle  / 180.0 * M_PI);
                 
                 //MACRO PARAMETERS
 
                 double kn               = alpha*equiv_young*equiv_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                 
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
-                double RN               = CTension * equiv_area; //tensile strenght
-                double RT_base          = CCohesion * equiv_area; //cohesion
+                //double RN               = CTension * equiv_area; //tensile strenght
+                //double RT_base          = CCohesion * equiv_area; //cohesion
 
-                if (global_variables_OPTION == 1) //globally defined parameters
+                if (global_variables_OPTION == 1) //globally defined parameters       // ha de ser canviat aixo pk ara rn i rt no entren al calcul
                 {
 
                   // KRATOS_WATCH("-------GLOBAL VARIABLES----------")
 
                    kn       = rCurrentProcessInfo[GLOBAL_KN];
                    ks       = rCurrentProcessInfo[GLOBAL_KT];
-                   RN       = rCurrentProcessInfo[GLOBAL_RN];
-                   RT_base  = rCurrentProcessInfo[GLOBAL_RT];
-                   Friction = tan( (rCurrentProcessInfo[GLOBAL_FRI_ANG])*(M_PI/180) );
+                   //RN       = rCurrentProcessInfo[GLOBAL_RN];
+                   //RT_base  = rCurrentProcessInfo[GLOBAL_RT];
+                   //Friction = tan( (rCurrentProcessInfo[GLOBAL_FRI_ANG])*(M_PI/180) );
 
                 }
 
@@ -778,23 +778,15 @@ namespace Kratos
                 double contact_tau = 0.0;
                 double contact_sigma = 0.0;
                 
-  if(1<2)   {           
-                double DYN_FRI_ANG = 40*M_PI/180;
+                double failure_criterion_state = 0.0;
+                
+         
+                double DYN_FRI_ANG = equiv_FriAngle*M_PI/180; //entrar el valor des de el material de gid
                 
                 double compression_limit        = 33.2e06;//*10000;
                 double tension_limit            = 3.32e06;//*10000;
                 
-                
-                double sgn_x;
-                double sgn_y;
-                
-                if(LocalContactForce[0]>=0){ sgn_x=1.0;}
-                else{sgn_x = -1.0;}
-                
-                if(LocalContactForce[1]>=0){ sgn_y=1.0;}
-                else{sgn_y = -1.0;}
-                
-            
+                       
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
                                      +      LocalContactForce[1] * LocalContactForce[1]); 
                 
@@ -865,26 +857,21 @@ namespace Kratos
                     
                     double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
                 
-                     /*
-                    double ShearForceMax; 
+              
+                    double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
+                         
+                    failure_criterion_state = radius/distance_to_failure;
                     
-                    if ( LocalContactForce[2] > -CTension*(alpha*equiv_area) )  // only if we are in traction but not less than the minimum.
-                    {
-                        ShearForceMax = tau_zero*(alpha*equiv_area) + LocalContactForce[2] * Friction ;   
-                   
-                    }
                     
-                    else
-                    {
                     
-                        ShearForceMax = 0.0;
-                        KRATOS_WATCH("DO WE REALLY GET HERE????")
+                    if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
                     
-                    }
-                    */
+                    
                     
                     if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
                     {
+                        
+                        KRATOS_WATCH (failure_criterion_state)
                         
                         //breaks
 
@@ -900,12 +887,7 @@ namespace Kratos
                                     //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
                                     }
                        
-                        //LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
-                        //LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
-                        
-                        //LocalContactForce[0] = tan(DYN_FRI_ANG) * LocalContactForce[2]*sgn_x;
-                        //LocalContactForce[1] = tan(DYN_FRI_ANG) * LocalContactForce[2]*sgn_y;
-                        
+                                             
                        sliding = true ;
 
 
@@ -923,69 +905,9 @@ namespace Kratos
                 }// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                 
                 
-  }  
+  
                 
-                
-                
-                
-                
-                
- if( 3>2 )
- {              
-                // TENSION FAILURE
 
-                if ( (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) && (-LocalContactForce[2] > RN) )   //M:si la tensio supera el limit es seteja tot a zero.
-
-                {
-                    LocalContactForce[0]  = 0.0;
-                    LocalContactForce[1]  = 0.0;
-                    LocalContactForce[2]  = 0.0;
-
-                    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;  //tensile failure case.
-                }
-
-
-                // SHEAR FAILURE
-
-                if(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0) {RT_base = 0.0;} //We consider discrete or fractured contacts have no cohesion.
-
-                double ShearForceMax = RT_base + LocalContactForce[2] * Friction ;  // MOHR COULOMB MODEL.
-
-                if(LocalContactForce[2] < 0.0)
-                {
-
-                    ShearForceMax = RT_base;
-
-                }
-
-                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
-                                    +      LocalContactForce[1] * LocalContactForce[1]);  //M: combinació de les dues direccions tangencials.
-
-                //No cohesion or friction, no shear resistance
-
-                if(ShearForceMax == 0.0)
-                {
-                    LocalContactForce[0] = 0.0;
-                    LocalContactForce[1] = 0.0;
-                }
-
-                else if(ShearForceNow > ShearForceMax)     // the actual shear force is actualized to the maximum one, never over; also decomposed in the same directions.
-                {
-                    LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
-                    LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
-
-                    //mContactFailureId = 4; // Shear failure case.
-                    
-              
-                   this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4;
-
-                   sliding = true;
-
-                }
-                
- } //DUMMY
-                
-                
                 
 ///AIXO ESTA MALAMENT!!!!!!!!!!!!!!!!!!!!!!!!!! (ara farem ini_cont_neigh)
                 //Saving failure to initial neighbour:
@@ -1125,21 +1047,12 @@ namespace Kratos
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalContactForce[2];
                                     
-                                    lock_p_weak->GetValue(CONTACT_FAILURE_LOW) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
+                                    lock_p_weak->GetValue(CONTACT_FAILURE)              += 0.5*(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]);                                   
+                                    lock_p_weak->GetValue(CONTACT_SIGMA)                += 0.5*contact_sigma;
+                                    lock_p_weak->GetValue(CONTACT_TAU)                  += 0.5*contact_tau;                                 
+                                    //lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      += 0.5*failure_criterion_state; 
                                     
-                                    
-                                    
-                                    
-                                    lock_p_weak->GetValue(CONTACT_SIGMA_LOW) = contact_sigma;
-                                    lock_p_weak->GetValue(CONTACT_TAU_LOW) = contact_tau;
-                                    
-
-                                    if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])==1)
-                                    {
-                                    
-                                    KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
-                                    KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
-                                    }
+                                   lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      = failure_criterion_state; 
                                     
                                 } // if Target Id < Neigh Id.
 
@@ -1152,10 +1065,12 @@ namespace Kratos
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalContactForce[2];
                                     
-                                    lock_p_weak->GetValue(CONTACT_FAILURE_HIGH) = this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
+                                 
                                     
-                                   lock_p_weak->GetValue(CONTACT_SIGMA_HIGH) = contact_sigma;
-                                   lock_p_weak->GetValue(CONTACT_TAU_HIGH) = contact_tau;
+                                    lock_p_weak->GetValue(CONTACT_FAILURE)              += 0.5*(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]);                                   
+                                    lock_p_weak->GetValue(CONTACT_SIGMA)                += 0.5*contact_sigma;
+                                    lock_p_weak->GetValue(CONTACT_TAU)                  += 0.5*contact_tau;                                 
+                                    //lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      += 0.5*failure_criterion_state;
                                 }
 
 
@@ -1314,7 +1229,7 @@ namespace Kratos
     } //CharacteristicParticleFailureId
 
 
-       void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo)
+       void SphericParticle::ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo) // shan de corregir areees etc etc etc...
        {
         //double dt                           = rCurrentProcessInfo[DELTA_TIME]; //C.F.: neew
         /*

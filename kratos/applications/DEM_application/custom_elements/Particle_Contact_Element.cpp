@@ -108,23 +108,26 @@ void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
 
-    
-    
+   
     KRATOS_CATCH( "" )
 }
 
 
 void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable, std::vector<array_1d<double,3> >& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
-
+    
+    
     if(rVariable == LOCAL_CONTACT_FORCE_LOW)   //3D VARIABLE WITH COMPONENTS
     {
+       
+        
         rOutput.resize(1);
         const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
         rOutput[0][0] = const_this->GetValue(rVariable)[0];
         rOutput[0][1] = const_this->GetValue(rVariable)[1];
         rOutput[0][2] = const_this->GetValue(rVariable)[2];
         
+  
         //mlocalcontactforcehigh[0] = const_this->GetValue(rVariable)[0];
         //mlocalcontactforcehigh[1] = const_this->GetValue(rVariable)[1];
         //mlocalcontactforcehigh[2] = const_this->GetValue(rVariable)[2];
@@ -153,48 +156,32 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         Output.resize(1);
         const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
         
-      
-        if(rVariable == CONTACT_TAU_MEAN )
-        {
-
-        
-        this->GetValue(CONTACT_TAU_MEAN) = 0.5*(this->GetValue(CONTACT_TAU_HIGH)+(this->GetValue(CONTACT_TAU_LOW)));
-       
-        Output[0] = const_this->GetValue(CONTACT_TAU_MEAN);
-
-        }
-
-         if(rVariable == CONTACT_SIGMA_MEAN )
-        {
-
-        this->GetValue(CONTACT_SIGMA_MEAN) = 0.5*(this->GetValue(CONTACT_SIGMA_HIGH)+(this->GetValue(CONTACT_SIGMA_LOW)));
-       
-        Output[0] = const_this->GetValue(CONTACT_SIGMA_MEAN);
-
-        }
-      
-      
-     
-      
-         else   //all the rest of variables: CONTACT_FAILURE_LOW CONTACT_FAILURE_HIGH 
-         {
-         
-                    if(const_this->GetValue(rVariable) == 1)
+ 
+              
+        /*
+        if (rVariable == CONTACT_FAILURE)
+        {      
+            
+            if(const_this->GetValue(CONTACT_FAILURE) == 1)
                   {
                       KRATOS_WATCH("HEEEEEY")
                    } 
-
-        Output[0] = double(const_this->GetValue(rVariable));
+        }
+           */     
         
+        
+        Output[0] = double(const_this->GetValue(rVariable));
+      
+      /*
+          if (rVariable == CONTACT_FAILURE)
+        {      
+            
                     if(Output[0]== 1.0)
                     {
                         KRATOS_WATCH("HEEEEEY")
                      }
-        
-         }
-      
-     
-
+          }
+  */
 
     } 
     
@@ -212,6 +199,21 @@ void Particle_Contact_Element::CalculateRightHandSide( VectorType& rRightHandSid
 
 void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
+      
+    this->GetValue(CONTACT_TAU) = 0.0;  
+    this->GetValue(CONTACT_SIGMA) = 0.0;
+    this->GetValue(CONTACT_FAILURE) = 0.0;
+    
+    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    
+    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = 0.0; //i keep low and high here becouse somehow we need to correct the error someday with a correction maybe
+    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = 0.0;
+    
+    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = 0.0;
+
    
 }
 
@@ -220,43 +222,11 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
 void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
 
-    
-   //  mshearstress;
-    // mnormalstress;
-    /*
-    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[0]+localcontactforcehigh[0]);
-    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[1]+localcontactforcehigh[1]);
-    mlocalcontactforcemean[0] = 0.5*(localcontactforcelow[2]+localcontactforcehigh[2]);
-            
-        
-    
-    KRATOS_WATCH("fer kratos watch que aqui el calcul que facis quadri amb el que calcules fora...")
-    */
-    
 }
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 {
-/*
-    if(rVariable == CONTACT_TAU_MEAN )
-    {
-    
-    Output = 0.5*(this->GetValue(CONTACT_TAU_HIGH)+(this->GetValue(CONTACT_TAU_HIGH));
-    this->GetValue(CONTACT_TAU_MEAN)= Output; 
-      
-    
-    }
-    
-     if(rVariable == CONTACT_SIGMA_MEAN )
-    {
-    
-    Output = 0.5*(this->GetValue(CONTACT_SIGMA_HIGH)+(this->GetValue(CONTACT_SIGMA_HIGH));
-    this->GetValue(CONTACT_SIGMA_MEAN)= Output; 
-       
-    
-    }
-    
-   */ 
+
 }
 
 
