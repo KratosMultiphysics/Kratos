@@ -171,7 +171,7 @@ END CONDITION
 
 
 
-BOOK: Test Particles
+BOOK: Test Particles & Plots
 
 CONDITION: test_PARTICLES
 CONDTYPE: over volumes
@@ -202,6 +202,12 @@ QUESTION: Z_fixed#CB#(1,0)
 VALUE: 0
 QUESTION: GROUP_ID
 VALUE: 1
+
+QUESTION: PlotOption#CB#(AT_THE_END,REAL_TIME,NO_PLOTTING)
+VALUE: REAL_TIME
+DEPENDENCIES: (AT_THE_END,HIDE,Time_Steps_Between_Plots,#CURRENT#)(REAL_TIME,RESTORE,Time_Steps_Between_Plots,#CURRENT#)(AT_THE_END,HIDE,Time_Steps_Between_Plots,#CURRENT#)
+QUESTION: Time_Steps_Between_Plots
+VALUE: "hola amigos, aún no esta implementado"
 
 
 END CONDITION
