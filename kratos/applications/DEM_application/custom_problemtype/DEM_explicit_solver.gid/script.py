@@ -4,13 +4,13 @@ import time as timer
 import os
 import sys
 import math
+import matplotlib
+from numpy import *
+from pylab import *  
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import matplotlib
-from numpy import *
-from pylab import *  
 
 #defining a model part for the solid part
 my_timer=Timer();
@@ -404,8 +404,8 @@ while(time < final_time):
 
 
     #For a test tube of height 30 cm
-    strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
-    #strain=0.0
+    #strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
+    strain = 0.0
     strainlist.append(strain)
 	   
 
@@ -535,14 +535,14 @@ while(time < final_time):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
 	  if (DEM_explicit_solver_var.print_local_contact_force_high=="1"):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_failure_high=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE_HIGH,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_failure_low=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE_LOW,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_tau_mean=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_TAU_MEAN,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_sigma_mean=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA_MEAN,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_failure=="1"): 
+	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
+	  if (DEM_explicit_solver_var.print_failure_criterion_state=="1"):
+	    gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,contact_model_part,time)  	    
+	  if (DEM_explicit_solver_var.print_contact_tau=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_TAU,contact_model_part,time)
+	  if (DEM_explicit_solver_var.print_contact_sigma=="1"):
+	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
 	  
              
         if (rotation_option == "ON"): ##xapuza
@@ -557,17 +557,6 @@ while(time < final_time):
         gid_io.Flush()
         sys.stdout.flush()
         
-        clf()
-        plot(strainlist,stresslist,'b-')
-        grid(True)
-        title('Stress - Strain')
-        xlabel('Strain')
-        ylabel('Stress (MPa)')
-        #xlim(0.0,70000)
-        #ylim(-5.0,103870403.214)
-        #legend(('force'))
-        savefig('stress_strain')
-
         os.chdir(data_and_results)
         
         if (index_5==5):
