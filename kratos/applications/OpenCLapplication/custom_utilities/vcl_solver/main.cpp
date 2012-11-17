@@ -3,6 +3,14 @@
 #include "includes/matrix_market_interface.h"
 #include "includes/ublas_interface.h"
 
+#ifdef USE_CPU
+
+    #define VIENNACL_HAVE_UBLAS
+
+#endif
+
+#include <boost/numeric/ublas/operation.hpp>
+
 #include "viennacl/compressed_matrix.hpp"
 #include "viennacl/linalg/cg.hpp"
 
@@ -16,7 +24,17 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    boost::numeric::ublas::compressed_matrix <double, boost::numeric::ublas::row_major, 0, boost::numeric::ublas::unbounded_array <cl_uint>, boost::numeric::ublas::unbounded_array <double> > A;
+#ifdef USE_CPU
+
+    std::cout << "Using UBlas..." << std::endl;
+
+#else
+
+    std::cout << "Using ViennaCL..." << std::endl;
+
+#endif
+
+    boost::numeric::ublas::compressed_matrix <double> A;
     boost::numeric::ublas::vector <double> B;
 
     std::cout << "Reading matrix and vector from file..." << std::endl;
@@ -32,6 +50,8 @@ int main(int argc, char *argv[])
 
     cl_uint Size = A.size1();
 
+#ifndef USE_CPU
+
     std::cout << "Copying data..." << std::endl;
 
     viennacl::compressed_matrix <double> VA;
@@ -39,6 +59,8 @@ int main(int argc, char *argv[])
 
     viennacl::copy(A, VA);
     viennacl::copy(B, VB);
+
+#endif
 
     std::cout << "Solving..." << std::endl;
 
@@ -58,7 +80,15 @@ int main(int argc, char *argv[])
 
     T0 = Kratos::OpenCL::Timer();
 
+#ifdef USE_CPU
+
+    viennacl::linalg::solve(A, B, VCLSolver);
+
+#else
+
     viennacl::linalg::solve(VA, VB, VCLSolver);
+
+#endif
 
     T1 = Kratos::OpenCL::Timer() - T0;
 

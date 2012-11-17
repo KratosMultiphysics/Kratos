@@ -13,7 +13,11 @@ LIB = -L /opt/AMDAPP/lib/x86_64 -lOpenCL -lrt -lgomp
 SRC = main.cpp mmio.c
 OBJ = main.o mmio.o
 
-# Support for MAXIT and MAXERR
+# Support for USE_CPU, MAXIT and MAXERR
+
+ifeq ($(USE_CPU),1)
+    DEFS += -DUSE_CPU
+endif
 
 ifdef MAXIT
 	DEFS += -DMAXIT=$(MAXIT)
