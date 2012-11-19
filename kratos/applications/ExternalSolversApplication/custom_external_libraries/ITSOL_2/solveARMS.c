@@ -97,6 +97,8 @@ int solveARMS(io_t* io , int echo_level, double* AA, int * IA, int* JA, double *
     /*-------------------- set parameters for arms */
     set_arms_pars(io, diagscal, ipar, dropcoef, lfil_arr);
     
+    ipar[0] = 5; //setting the maximum number of levels.
+    
     if(echo_level < 1) ipar[3] = 0;
 
 
