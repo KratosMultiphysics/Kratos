@@ -584,6 +584,13 @@ public:
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(FileName,M,Symmetric);
     }
+    
+        template< class VectorType >
+    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    {
+        // Use full namespace in call to make sure we are not calling this function recursively
+        return Kratos::WriteMatrixMarketVector(FileName,V);
+    }
 
     ///@}
     ///@name Friends
