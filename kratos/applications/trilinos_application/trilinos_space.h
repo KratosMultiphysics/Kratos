@@ -585,6 +585,13 @@ public:
         KRATOS_CATCH("");
     }
 
+            template< class VectorType >
+    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    {
+        KRATOS_TRY;
+        KRATOS_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        KRATOS_CATCH("");
+    }
 
 
     ///@}
