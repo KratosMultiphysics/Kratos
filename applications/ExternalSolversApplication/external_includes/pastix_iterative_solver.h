@@ -1,5 +1,5 @@
-#if !defined(KRATOS_Pastix_Iterative_Solver )
-#define  KRATOS_Pastix_Iterative_Solver
+#if !defined(KRATOS_Pastix_Solver )
+#define  KRATOS_Pastix_Solver
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -52,18 +52,19 @@ public:
 	 */
 	Pastix_Iterative_Solver(double NewMaxTolerance,
 	                        int NewMaxIterationsNumber,
-	                        int restart)
+	                        int level_of_fill)
 	{
 		mTol = NewMaxTolerance;
 		mmax_it = NewMaxIterationsNumber;
-		mrestart = restart;
+		mlevel_of_fill = level_of_fill
+		mincomplete = 1;
 	}
 
-	Pastix_Iterative_Solver()
+	Pastix_Direct_Solver()
 	{
 		mTol = 1e-6;
 		mrestart = 150;
-		mmax_it = mrestart*3;
+		mincomplete = 0;
 
 
 	}
@@ -95,7 +96,11 @@ public:
 
 		int echo_level = 1; //does not work if we set it to 0 ... should investigate further!
 
-		int state = solvePASTIX(echo_level, rA.size1(), rA.value_data().size(), rA.value_data().begin(), &(rA.index1_data()[0]), &(rA.index2_data()[0]), &rX[0], &rB[0]);
+				
+		int state = solvePASTIX(echo_level, rA.size1(), rA.value_data().size(), rA.value_data().begin(), &(rA.index1_data()[0]), &(rA.index2_data()[0]), &rX[0], &rB[0]
+		,mmax_it,mTol,mincomplete,ilu_level_of_fill)
+			
+		);
 //		int state = solvePASTIX(echo_level, rA.size1(), rA.value_data().size(), rA.value_data().begin(), index1_vector, index2_vector, &rX[0], &rB[0]);
 
 //		delete [] index1_vector;
@@ -140,7 +145,8 @@ private:
 
 	double mTol;
 	int mmax_it;
-	int mrestart;
+	int mincomplete;
+	int mlevel_of_fill;
 //     double mDropTol;
 //     double mFillTol;
 //     double mFillFactor;
@@ -155,7 +161,7 @@ private:
 	 */
 	Pastix_Iterative_Solver(const Pastix_Iterative_Solver& Other);
 
-}; // Class SkylineLUFactorizationSolver
+}; // Class PastixSolver
 
 
 /**
@@ -188,4 +194,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 
-#endif // KRATOS_Pastix_Iterative_Solver  defined
+#endif // KRATOS_Pastix_Solver  defined

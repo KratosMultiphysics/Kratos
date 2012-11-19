@@ -64,10 +64,12 @@ void CompRow_to_CompCol(int m, int n, int nnz,
 }
 
 
-int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double *x, double* b)
+//int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double *x, double* b)
+int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double *x, double* b, int m_gmres, 
+				double tol, int incomplete, int ilu_level_of_fill )
 {
 
-	printf("000\n");
+//	printf("000\n");
 	pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
 	pastix_int_t    ncol = mat_size;               /* Size of the matrix                                        */
 	pastix_int_t   *rows      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(nnz));  /* Indexes of first element of each column in row and values */
@@ -78,19 +80,19 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 //	pastix_float_t *ax          = NULL; /* A times X product                                         */
 	pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
 	double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
-	pastix_int_t   *perm        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t));; /* Permutation tabular                                       */
-	pastix_int_t   *invp        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t));; /* Reverse permutation tabular                               */
+	pastix_int_t   *perm        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Permutation tabular                                       */
+	pastix_int_t   *invp        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Reverse permutation tabular                               */
 //		char           *type        = NULL; /* type of the matrix                                        */
 //		char           *rhstype     = NULL; /* type of the right hand side                               */
 //	pastix_int_t             mpid = 0;
 //		driver_type_t  *driver_type;        /* Matrix driver(s) requested by user                        */
 //	pastix_int_t             nbmatrices = 1;         /* Number of matrices given by user                          */
 	pastix_int_t             nbthread = omp_get_max_threads();           /* Number of thread wanted by user                           */
-	pastix_int_t             verbosemode = 2;        /* Level of verbose mode (0, 1, 2)                           */
+	pastix_int_t             verbosemode = verbosity;        /* Level of verbose mode (0, 1, 2)                           */
  	int             ordering = API_ORDER_SCOTCH;           /* Ordering to use                                           */
 	pastix_int_t             nbrhs = 1;
-	int             incomplete = 1;         /* Indicate if we want to use incomplete factorisation       */
-	int             level_of_fill = 3;      /* Level of fill for incomplete factorisation                */
+	//int             incomplete = 1;         /* Indicate if we want to use incomplete factorisation       */
+	int             level_of_fill = ilu_level_of_fill; //6;      /* Level of fill for incomplete factorisation                */
 	int             amalgamation = 25;       /* Level of amalgamation for Kass                            */
 	//int             ooc = 2000;                /* OOC limit (Mo/percent depending on compilation options)   */
 	pastix_int_t    mat_type = API_SYM_NO;
@@ -98,7 +100,7 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 //		long            i;
 //		double norme1, norme2;
 	int i;
-	printf("aaa\n");
+//	printf("aaa\n");
 	
 /*	memset(colptr,0,(mat_size+1)*sizeof(pastix_int_t));
 	memset(rows,0,(nnz)*sizeof(pastix_int_t));*/
@@ -150,7 +152,7 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 	//copy b to the solution. It will be overwritten
 	for(i = 0; i < mat_size; i++)
 		x[i] = b[i];
-	printf("bbb\n")	;
+//	printf("bbb\n")	;
 	/*******************************************/
 	/* Initialize parameters to default values */
 	/*******************************************/
@@ -158,7 +160,7 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 	pastix(&pastix_data, MPI_COMM_WORLD,
 	       ncol, colptr, rows, values,
 	       perm, invp, x, 1, iparm, dparm);
-	printf("ccc\n")	;
+//	printf("ccc\n")	;
 
 	/*******************************************/
 	/*       Customize some parameters         */
@@ -179,19 +181,27 @@ int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, si
 	iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
 	iparm[IPARM_VERBOSE]             = verbosemode;
  	iparm[IPARM_ORDERING]            = ordering;
-	iparm[IPARM_INCOMPLETE]          = incomplete;
+	
+	if(incomplete == 1)
+		iparm[IPARM_INCOMPLETE]          = API_YES; 
+	else if(incomplete == 0)
+		iparm[IPARM_INCOMPLETE]          = API_NO;
+	else
+		printf("incomplete flag should either be 0 (direct solve) or 1 for ILU solve");
+		
 	//iparm[IPARM_OOC_LIMIT]           = ooc;
 
   //  iparm[IPARM_FREE_CSCUSER] = API_CSC_PRESERVE;
 
-	if(incomplete == 1)
+	if(iparm[IPARM_INCOMPLETE]  == API_YES)
 	{
 		iparm[IPARM_REFINEMENT] = API_RAF_GMRES;
-		//IPARM GMRES IM :
-		dparm[DPARM_EPSILON_REFINEMENT] = 1e-7;
+		iparm[IPARM_GMRES_IM] = m_gmres;
+		dparm[DPARM_EPSILON_REFINEMENT] = tol;
+		iparm[IPARM_LEVEL_OF_FILL]       = level_of_fill;
+		iparm[IPARM_AMALGAMATION_LEVEL]  = amalgamation;
 	}
-	iparm[IPARM_LEVEL_OF_FILL]       = level_of_fill;
-	iparm[IPARM_AMALGAMATION_LEVEL]  = amalgamation;
+
 	iparm[IPARM_RHS_MAKING]          = API_RHS_B;
 	iparm[IPARM_START_TASK]          = API_TASK_ORDERING;
 	iparm[IPARM_END_TASK]            = API_TASK_CLEAN;
