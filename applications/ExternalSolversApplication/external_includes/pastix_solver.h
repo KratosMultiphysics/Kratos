@@ -1,5 +1,5 @@
-#if !defined(KRATOS_Pastix_Solver )
-#define  KRATOS_Pastix_Solver
+#if !defined(KRATOS_PastixSolver )
+#define  KRATOS_PastixSolver
 
 // External includes
 #include "boost/smart_ptr.hpp"
@@ -24,20 +24,21 @@ namespace Kratos
 
 extern "C"
 {
-	int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double* x, double* b);
+	int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double* x, double* b, int m_gmres, 
+				double tol, int incomplete, int ilu_level_of_fill);
 }
 
 
 template< class TSparseSpaceType, class TDenseSpaceType,
 class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class Pastix_Iterative_Solver : public DirectSolver< TSparseSpaceType,
+class PastixSolver : public DirectSolver< TSparseSpaceType,
 	TDenseSpaceType, TReordererType>
 {
 public:
 	/**
-	 * Counted pointer of Pastix_Iterative_Solver
+	 * Counted pointer of PastixSolver
 	 */
-	typedef boost::shared_ptr<Pastix_Iterative_Solver> Pointer;
+	typedef boost::shared_ptr<PastixSolver> Pointer;
 
 	typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
@@ -48,23 +49,37 @@ public:
 	typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
 	/**
-	 * Default constructor
+	 * Default constructor - uses ILU+GMRES
+	 * @param NewMaxTolerance tolerance that will be achieved by the iterative solver
+	 * @param NewMaxIterationsNumber this number represents both the number of iterations AND the size of the krylov space
+	 * @param level of fill that will be used in the ILU
+	 * @param verbosity, a number from 0 (no output) to 2 (maximal output)
 	 */
-	Pastix_Iterative_Solver(double NewMaxTolerance,
+	PastixSolver(double NewMaxTolerance,
 	                        int NewMaxIterationsNumber,
-	                        int level_of_fill)
+	                        int level_of_fill,
+							int verbosity)
 	{
+		std::cout << "setting up pastix for iterative solve " << std::endl;
 		mTol = NewMaxTolerance;
 		mmax_it = NewMaxIterationsNumber;
-		mlevel_of_fill = level_of_fill
+		mlevel_of_fill = level_of_fill;
 		mincomplete = 1;
+		mverbosity=verbosity;
 	}
 
-	Pastix_Direct_Solver()
+	/**
+	 * Direct Solver
+	 * @param verbosity, a number from 0 (no output) to 2 (maximal output)
+	 */
+	PastixSolver(int verbosity)
 	{
-		mTol = 1e-6;
-		mrestart = 150;
+		std::cout << "setting up pastix for direct solve " <<std::endl;
+		mTol = -1;
+		mmax_it = -1;
+		mlevel_of_fill = -1;
 		mincomplete = 0;
+		mverbosity=verbosity;
 
 
 	}
@@ -72,7 +87,7 @@ public:
 	/**
 	 * Destructor
 	 */
-	virtual ~Pastix_Iterative_Solver() {};
+	virtual ~PastixSolver() {};
 
 	/**
 	 * Normal solve method.
@@ -85,27 +100,10 @@ public:
 	bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
 	{
 		KRATOS_WATCH(__LINE__);
-//		int *index1_vector = new(std::nothrow) int[rA.index1_data().size()];
-//		int *index2_vector = new(std::nothrow) int[rA.index2_data().size()];
-////
-//		for(int unsigned i = 0; i < rA.index1_data().size(); i++)
-//			index1_vector[i] = (int)rA.index1_data()[i];
-//
-//		for(unsigned int i = 0; i < rA.index2_data().size(); i++)
-//			index2_vector[i] = (int)rA.index2_data()[i];
-
-		int echo_level = 1; //does not work if we set it to 0 ... should investigate further!
-
 				
-		int state = solvePASTIX(echo_level, rA.size1(), rA.value_data().size(), rA.value_data().begin(), &(rA.index1_data()[0]), &(rA.index2_data()[0]), &rX[0], &rB[0]
-		,mmax_it,mTol,mincomplete,ilu_level_of_fill)
-			
-		);
-//		int state = solvePASTIX(echo_level, rA.size1(), rA.value_data().size(), rA.value_data().begin(), index1_vector, index2_vector, &rX[0], &rB[0]);
+		int state = solvePASTIX(mverbosity, rA.size1(), rA.value_data().size(), rA.value_data().begin(), &(rA.index1_data()[0]), &(rA.index2_data()[0]), &rX[0], &rB[0]
+		,mmax_it,mTol,mincomplete,mlevel_of_fill);
 
-//		delete [] index1_vector;
-//		delete [] index2_vector;
-		
 		return state;
 	}
 
@@ -131,7 +129,7 @@ public:
 	 */
 	void  PrintInfo(std::ostream& rOStream) const
 	{
-		rOStream << "SuperLU solver finished.";
+		rOStream << "Pastix solver finished.";
 	}
 
 	/**
@@ -147,6 +145,7 @@ private:
 	int mmax_it;
 	int mincomplete;
 	int mlevel_of_fill;
+	int mverbosity;
 //     double mDropTol;
 //     double mFillTol;
 //     double mFillFactor;
@@ -154,12 +153,12 @@ private:
 	/**
 	 * Assignment operator.
 	 */
-	Pastix_Iterative_Solver& operator=(const Pastix_Iterative_Solver& Other);
+	PastixSolver& operator=(const PastixSolver& Other);
 
 	/**
 	 * Copy constructor.
 	 */
-	Pastix_Iterative_Solver(const Pastix_Iterative_Solver& Other);
+	PastixSolver(const PastixSolver& Other);
 
 }; // Class PastixSolver
 
@@ -168,7 +167,7 @@ private:
  * input stream function
  */
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
-inline std::istream& operator >> (std::istream& rIStream, Pastix_Iterative_Solver< TSparseSpaceType,
+inline std::istream& operator >> (std::istream& rIStream, PastixSolver< TSparseSpaceType,
                                   TDenseSpaceType, TReordererType>& rThis)
 {
 	return rIStream;
@@ -179,7 +178,7 @@ inline std::istream& operator >> (std::istream& rIStream, Pastix_Iterative_Solve
  */
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Pastix_Iterative_Solver<TSparseSpaceType,
+                                  const PastixSolver<TSparseSpaceType,
                                   TDenseSpaceType, TReordererType>& rThis)
 {
 	rThis.PrintInfo(rOStream);
@@ -194,4 +193,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 
-#endif // KRATOS_Pastix_Solver  defined
+#endif // KRATOS_PastixSolver  defined
