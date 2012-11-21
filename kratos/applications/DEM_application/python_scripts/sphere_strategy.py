@@ -93,6 +93,7 @@ class ExplicitStrategy:
         self.bounding_box_OPTION            = 0  #its 1/0 xapuza
         
         self.contact_mesh_OPTION            = 0 #its 1/0 xapuza
+        #self.failure_criterion_OPTION       = 1 #its 1/0 xapuza
 
         #global parameters
         self.global_variables_OPTION        = 0 #its 1/0 xapuza
@@ -163,6 +164,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_OPTION)
+        #self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_OPTION)
        
         #####
 
