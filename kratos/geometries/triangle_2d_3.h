@@ -445,21 +445,18 @@ public:
      */
     virtual double Area() const
     {
+        const PointType& p0 = this->operator [](0);
+        const PointType& p1 = this->operator [](1);
+        const PointType& p2 = this->operator [](2);
 
-        Vector temp;
-        DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        double x10 = p1.X() - p0.X();
+        double y10 = p1.Y() - p0.Y();
 
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Area = 0.00;
+        double x20 = p2.X() - p0.X();
+        double y20 = p2.Y() - p0.Y();
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Area += temp[i] * integration_points[i].Weight();
-        }
-
-        return Area;
-
-
+        double detJ = x10 * y20-y10 * x20;
+        return 0.5*detJ;
     }
 
 
@@ -521,7 +518,7 @@ public:
      */
     virtual double DomainSize() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return this->Area();
     }
 
     /**
