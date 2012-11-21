@@ -115,7 +115,8 @@ public:
 
     virtual void Execute()
     {
-        mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
+        VariablesList * mVariables_List = &mrModelPart.GetNodalSolutionStepVariablesList();
+        mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator(mVariables_List)));
     }
 
     ///@}

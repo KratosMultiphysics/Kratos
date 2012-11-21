@@ -48,8 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 
-#if !defined(KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
-#define  KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
+#if !defined(KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED )
+#define  KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
 
 
 
@@ -59,10 +59,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 #include <fstream>
 
-// External includes
-#include <parmetis.h>
-
-
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -70,9 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "custom_processes/metis_graph_partitioning_process.h"
-
-
+#include "custom_processes/morton_partitioning_process.h"
 
 namespace Kratos
 {
@@ -101,15 +95,15 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MetisDivideInputToPartitionsProcess
+class MortonDivideInputToPartitionsProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of MetisDivideInputToPartitionsProcess
-    KRATOS_CLASS_POINTER_DEFINITION(MetisDivideInputToPartitionsProcess);
+    /// Pointer definition of MortonDivideInputToPartitionsProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MortonDivideInputToPartitionsProcess);
 
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
@@ -120,19 +114,19 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideInputToPartitionsProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
+    MortonDivideInputToPartitionsProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3)
         :  mrIO(rIO), mNumberOfPartitions(NumberOfPartitions), mDimension(Dimension)
     {
     }
 
     /// Copy constructor.
-    MetisDivideInputToPartitionsProcess(MetisDivideInputToPartitionsProcess const& rOther)
+    MortonDivideInputToPartitionsProcess(MortonDivideInputToPartitionsProcess const& rOther)
         : mrIO(rOther.mrIO), mNumberOfPartitions(rOther.mNumberOfPartitions), mDimension(rOther.mDimension)
     {
     }
 
     /// Destructor.
-    virtual ~MetisDivideInputToPartitionsProcess()
+    virtual ~MortonDivideInputToPartitionsProcess()
     {
     }
 
@@ -163,26 +157,29 @@ public:
         // Reading connectivities
         IO::ConnectivitiesContainerType elements_connectivities;
         IO::ConnectivitiesContainerType conditions_connectivities;
-        int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
+        IO::NodesContainerType nodes_container;
+        
+        int number_of_elements = mrIO.ReadElementsConnectivities(elements_connectivities);
 
         mrIO.ReadConditionsConnectivities(conditions_connectivities);
+        mrIO.ReadNodes(nodes_container);
 
-        MetisGraphPartitioningProcess::PartitionIndicesType nodes_partitions;
-        MetisGraphPartitioningProcess::PartitionIndicesType elements_partitions;
-        MetisGraphPartitioningProcess::PartitionIndicesType conditions_partitions;
-        MetisGraphPartitioningProcess metis_graph_partitioning_process(elements_connectivities, nodes_partitions, elements_partitions, mNumberOfPartitions, mDimension);
-        metis_graph_partitioning_process.Execute();
+        MortonPartitioningProcess::PartitionIndicesType nodes_partitions;
+        MortonPartitioningProcess::PartitionIndicesType elements_partitions;
+        MortonPartitioningProcess::PartitionIndicesType conditions_partitions;
 
-        GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
+        MortonPartitioningProcess morton_partitioning_process(elements_connectivities, nodes_container, nodes_partitions, elements_partitions, mNumberOfPartitions, mDimension);
+        morton_partitioning_process.Execute();
+
+//         GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
+        GraphType domains_graph = ScalarMatrix(mNumberOfPartitions, mNumberOfPartitions, 1);
         GraphType domains_colored_graph;
 
         int colors_number;
 
         CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, nodes_partitions, elements_partitions);
-        GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
-        // 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
-        KRATOS_WATCH(colors_number);
-        KRATOS_WATCH(domains_colored_graph);
+
+        GraphColoringProcess(mNumberOfPartitions, domains_graph, domains_colored_graph, colors_number).Execute();
 
 // 			std::vector<DomainEntitiesIdContainer> domains_nodes;
         IO::PartitionIndicesContainerType nodes_all_partitions;
@@ -201,14 +198,6 @@ public:
         DividingConditions(conditions_all_partitions, conditions_partitions);
         KRATOS_WATCH("DividingConditions finished")
 
-        /*			for(SizeType i = 0 ; i < number_of_nodes ; i++)
-        			{
-        			  std::cout << "Node #" << i << "->";
-        			  for(std::vector<std::size_t>::iterator j = nodes_all_partitions[i].begin() ; j != nodes_all_partitions[i].end() ; j++)
-        			    std::cout << *j << ",";
-        			  std::cout << std::endl;
-        			}*/
-
         IO::PartitionIndicesType io_nodes_partitions(nodes_partitions.begin(), nodes_partitions.end());
         IO::PartitionIndicesType io_elements_partitions(elements_partitions.begin(), elements_partitions.end());
         IO::PartitionIndicesType io_conditions_partitions(conditions_partitions.begin(), conditions_partitions.end());
@@ -219,19 +208,14 @@ public:
                                      nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
         KRATOS_WATCH("DivideInputToPartitions finished")
         return;
-
-
-
-
-
-
-
+        
         KRATOS_CATCH("")
     }
 
-    void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, MetisGraphPartitioningProcess::PartitionIndicesType const& NPart, MetisGraphPartitioningProcess::PartitionIndicesType const&  EPart )
+    void CalculateDomainsGraph(GraphType& rDomainsGraph, SizeType NumberOfElements, IO::ConnectivitiesContainerType& ElementsConnectivities, MortonPartitioningProcess::PartitionIndicesType const& NPart, MortonPartitioningProcess::PartitionIndicesType const&  EPart )
     {
         for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++)
+        {
             for(std::vector<std::size_t>::iterator i_node = ElementsConnectivities[i_element].begin() ;
                     i_node != ElementsConnectivities[i_element].end() ; i_node++)
             {
@@ -239,10 +223,12 @@ public:
                 SizeType element_rank = EPart[i_element];
                 if(node_rank != element_rank)
                 {
+                    //matrix!
                     rDomainsGraph(node_rank, element_rank) = 1;
                     rDomainsGraph(element_rank, node_rank) = 1;
                 }
             }
+        }
     }
 
 
@@ -263,13 +249,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "MetisDivideInputToPartitionsProcess";
+        return "MortonDivideInputToPartitionsProcess";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "MetisDivideInputToPartitionsProcess";
+        rOStream << "MortonDivideInputToPartitionsProcess";
     }
 
     /// Print object's data.
@@ -352,8 +338,8 @@ protected:
 
 
     void ConditionsPartitioning(IO::ConnectivitiesContainerType& ConditionsConnectivities,
-                                MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions,
-                                MetisGraphPartitioningProcess::PartitionIndicesType& ConditionsPartitions)
+                                MortonPartitioningProcess::PartitionIndicesType const& NodesPartitions,
+                                MortonPartitioningProcess::PartitionIndicesType& ConditionsPartitions)
     {
         SizeType number_of_conditions = ConditionsConnectivities.size();
 
@@ -401,9 +387,9 @@ protected:
     void DividingNodes(IO::PartitionIndicesContainerType& rNodesAllPartitions,
                        IO::ConnectivitiesContainerType& ElementsConnectivities,
                        IO::ConnectivitiesContainerType& ConditionsConnectivities,
-                       MetisGraphPartitioningProcess::PartitionIndicesType const& NodesPartitions,
-                       MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions,
-                       MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
+                       MortonPartitioningProcess::PartitionIndicesType const& NodesPartitions,
+                       MortonPartitioningProcess::PartitionIndicesType const& ElementsPartitions,
+                       MortonPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
     {
         SizeType number_of_nodes = NodesPartitions.size();
         SizeType number_of_elements = ElementsPartitions.size();
@@ -427,7 +413,10 @@ protected:
 
                 // adding the partition of the element to its nodes
                 if(element_partition != node_partition) // we will add the node_partition once afterward
+                {
+                    std::cout << "Partiton element differnet form partition node" << std::endl;
                     rNodesAllPartitions[my_gid].push_back(element_partition);
+                }
             }
         }
 
@@ -463,7 +452,7 @@ protected:
         }
     }
 
-    void DividingElements(IO::PartitionIndicesContainerType& rElementsAllPartitions, MetisGraphPartitioningProcess::PartitionIndicesType const& ElementsPartitions)
+    void DividingElements(IO::PartitionIndicesContainerType& rElementsAllPartitions, MortonPartitioningProcess::PartitionIndicesType const& ElementsPartitions)
     {
         SizeType number_of_elements = ElementsPartitions.size();
 
@@ -476,7 +465,7 @@ protected:
         }
     }
 
-    void DividingConditions(IO::PartitionIndicesContainerType& rConditionsAllPartitions, MetisGraphPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
+    void DividingConditions(IO::PartitionIndicesContainerType& rConditionsAllPartitions, MortonPartitioningProcess::PartitionIndicesType const& ConditionsPartitions)
     {
         SizeType number_of_conditions = ConditionsPartitions.size();
 
@@ -541,15 +530,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    MetisDivideInputToPartitionsProcess& operator=(MetisDivideInputToPartitionsProcess const& rOther);
+    MortonDivideInputToPartitionsProcess& operator=(MortonDivideInputToPartitionsProcess const& rOther);
 
     /// Copy constructor.
-    //MetisDivideInputToPartitionsProcess(MetisDivideInputToPartitionsProcess const& rOther);
+    //MortonDivideInputToPartitionsProcess(MortonDivideInputToPartitionsProcess const& rOther);
 
 
     ///@}
 
-}; // Class MetisDivideInputToPartitionsProcess
+}; // Class MortonDivideInputToPartitionsProcess
 
 ///@}
 
@@ -564,11 +553,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  MetisDivideInputToPartitionsProcess& rThis);
+                                  MortonDivideInputToPartitionsProcess& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const MetisDivideInputToPartitionsProcess& rThis)
+                                  const MortonDivideInputToPartitionsProcess& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -581,6 +570,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined 
+#endif // KRATOS_MORTON_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED defined 
 
 

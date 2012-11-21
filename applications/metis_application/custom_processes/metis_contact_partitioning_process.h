@@ -184,7 +184,8 @@ public:
         }
 
         // Set MPICommunicator as modelpart's communicator
-        mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator));
+        VariablesList * mVariables_List = &mrModelPart.GetNodalSolutionStepVariablesList();
+        mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator(mVariables_List)));
 
         // if mNumberOfPartitions is not defined we set it to the number_of_processes
         if (mNumberOfPartitions == 0)
