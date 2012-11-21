@@ -199,12 +199,13 @@ void Particle_Contact_Element::CalculateRightHandSide( VectorType& rRightHandSid
 
 void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
 {
-      
+     
     this->GetValue(CONTACT_TAU) = 0.0;  
     this->GetValue(CONTACT_SIGMA) = 0.0;
-    this->GetValue(CONTACT_FAILURE) = 0.0;
     
-    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    if (this->GetValue(FAILURE_CRITERION_STATE)<1.0)
+    {this->GetValue(FAILURE_CRITERION_STATE) = 0.0;}
+        
     
     this->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = 0.0; //i keep low and high here becouse somehow we need to correct the error someday with a correction maybe
     this->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = 0.0;
