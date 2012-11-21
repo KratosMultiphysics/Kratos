@@ -202,7 +202,7 @@ public:
 
     /// Default constructor.
 
-    MPICommunicator() : BaseType()
+    MPICommunicator(VariablesList* Variables_list) : BaseType(), mVariables_list(Variables_list)
     {
     }
 
@@ -223,7 +223,7 @@ public:
     {
         KRATOS_TRY
 
-        return Communicator::Pointer(new MPICommunicator);
+        return Communicator::Pointer(new MPICommunicator(mVariables_list));
 
         KRATOS_CATCH("");
     }
@@ -313,19 +313,22 @@ public:
     }
 
     virtual bool SynchronizeNodalSolutionStepsData()
-    {
+    {   
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-
+      
         for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
             if ((destination = neighbours_indices[i_color]) >= 0)
             {
                 NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                 NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+                
+                LocalMesh(i_color).Nodes().Unique();
+                GhostMesh(i_color).Nodes().Unique();
 
                 // Calculating send and received buffer size
                 // NOTE: This part works ONLY when all nodes have the same variables list size!
@@ -356,8 +359,7 @@ public:
                 unsigned int position = 0;
                 double* send_buffer = new double[send_buffer_size];
                 double* receive_buffer = new double[receive_buffer_size];
-
-
+                
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
                 {
@@ -382,7 +384,7 @@ public:
                 position = 0;
                 for (ModelPart::NodeIterator i_node = GhostMesh(i_color).NodesBegin();
                         i_node != GhostMesh(i_color).NodesEnd(); i_node++)
-                {
+                { 
                     std::memcpy(i_node->SolutionStepData().Data(), receive_buffer + position, nodal_data_size * sizeof (double));
                     position += nodal_data_size;
                 }
@@ -443,8 +445,6 @@ public:
 
                 int send_tag = i_color;
                 int receive_tag = i_color;
-
-
 
                 MPI_Sendrecv(send_buffer, send_buffer_size, MPI_INT, destination, send_tag, receive_buffer, receive_buffer_size, MPI_INT, destination, receive_tag,
                              MPI_COMM_WORLD, &status);
@@ -521,6 +521,12 @@ public:
         AssembleThisNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
         return true;
     }
+    
+    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    {
+        AssembleThisNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
+        return true;
+    }
 
     virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
     {
@@ -531,6 +537,60 @@ public:
     virtual bool AssembleNonHistoricalData(Variable<Matrix> const& ThisVariable)
     {
         AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<NodeType> >& SendObjects, std::vector<std::vector<NodeType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        AsyncSendAndReceiveObjects<std::vector<NodeType> >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        
+        for(unsigned int i = 0; i < RecvObjects.size(); i++)
+        {
+            for(unsigned int j = 0; j < RecvObjects[i].size(); i++)
+            {
+                RecvObjects[i][j].SetSolutionStepVariablesList(mVariables_list);
+            }
+        }
+        
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ElementType> >& SendObjects, std::vector<std::vector<ElementType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        AsyncSendAndReceiveObjects<std::vector<ElementType> >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ConditionType> >& SendObjects, std::vector<std::vector<ConditionType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        AsyncSendAndReceiveObjects<std::vector<ConditionType> >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<NodeType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<NodeType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {   
+        AsyncSendAndReceiveObjects<std::vector<boost::shared_ptr<NodeType> > >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        
+        for(unsigned int i = 0; i < RecvObjects.size(); i++)
+        {
+            for(unsigned int j = 0; j < RecvObjects[i].size(); i++)
+            {
+                RecvObjects[i][j]->SetSolutionStepVariablesList(mVariables_list);
+            }
+        }
+        
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ElementType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ElementType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        AsyncSendAndReceiveObjects<std::vector<boost::shared_ptr<ElementType> > >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ConditionType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ConditionType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        AsyncSendAndReceiveObjects<std::vector<boost::shared_ptr<ConditionType> > >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
         return true;
     }
 
@@ -631,7 +691,6 @@ private:
     ///@name Member Variables
     ///@{
 
-
     //      SizeType mNumberOfColors;
 
     //      NeighbourIndicesContainerType mNeighbourIndices;
@@ -653,6 +712,8 @@ private:
     //
     //      // To store interfaces ghost+local entities
     //      MeshesContainerType mInterfaceMeshes;
+    
+    VariablesList* mVariables_list;
 
     ///@}
     ///@name Private Operators
@@ -752,7 +813,7 @@ private:
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
-                {
+                { 
                     *(TDataType*) (send_buffer + position) = i_node->FastGetSolutionStepValue(ThisVariable);
                     position += nodal_data_size;
                 }
@@ -781,7 +842,7 @@ private:
                 NodesContainerType& r_ghost_nodes = InterfaceMesh(i_color).Nodes();
 
                 for (ModelPart::NodeIterator i_node = r_ghost_nodes.begin(); i_node != r_ghost_nodes.end(); ++i_node)
-                {
+                {   
                     i_node->FastGetSolutionStepValue(ThisVariable) += *reinterpret_cast<TDataType*> (receive_buffer[i_color] + position);
                     position += nodal_data_size;
                 }
@@ -1117,6 +1178,103 @@ private:
                 delete [] receive_buffer;
             }
 
+        return true;
+    }
+    
+    template<class TObjectType>
+    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+        std::string buffer[mpi_size];
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i)
+            {
+                Kratos::Serializer particleSerializer;
+                std::stringstream * serializer_buffer;
+                particleSerializer.save("VariableList",mVariables_list);
+                particleSerializer.save("Object",SendObjects[i]);
+                
+                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                buffer[i] = std::string(serializer_buffer->str());
+                msgSendSize[i] = buffer[i].size();
+            }
+        }
+  
+        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+  
+        int NumberOfCommunicationEvents = 0;
+        int NumberOfCommunicationEventsIndex = 0;
+        
+        char * message[mpi_size];
+        char * mpi_send_buffer[mpi_size];
+        
+        for(int j = 0; j < mpi_size; j++)
+        {
+            if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
+            if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
+        }
+        
+        MPI_Request reqs[NumberOfCommunicationEvents];
+        MPI_Status stats[NumberOfCommunicationEvents];
+
+        //Set up all receive and send events
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && msgRecvSize[i])
+            {
+                message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
+
+                MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+
+            if(i != mpi_rank && msgSendSize[i])
+            {
+                mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
+                memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
+                MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+        }
+        
+        //wait untill all communications finish
+        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        for(int i = 0; i < mpi_size; i++)
+        { 
+            if (i != mpi_rank && msgRecvSize[i])
+            {
+                Kratos::Serializer particleSerializer;
+                std::stringstream * serializer_buffer;
+                
+                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                serializer_buffer->write(message[i], msgRecvSize[i]);
+                
+                particleSerializer.load("VariableList",mVariables_list);
+                particleSerializer.load("Object",RecvObjects[i]);
+                
+                serializer_buffer->flush();
+            }
+
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
+
+        // Free buffers
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && msgRecvSize[i])
+                free(message[i]);
+            
+            if(i != mpi_rank && msgSendSize[i])
+                free(mpi_send_buffer[i]);
+        }
+        
         return true;
     }
 
