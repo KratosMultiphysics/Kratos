@@ -261,7 +261,7 @@ namespace Kratos
               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox(r_model_part, mEnlargementFactor);
           }
 
-          if ( (time_step + 1)%mnstepsearch == 0 )
+          if ( (time_step + 1)%mnstepsearch == 0 && time_step >0 )
           {
               if ( (time_step + 1)%(mnstepsearch*10) == 0 )
               {
