@@ -173,15 +173,21 @@ public:
     //************************************************************************
     
     /// Calcutes bounding box of particles in bins
-    void CalculateBoundingBox() {
-      for(SizeType i = 0 ; i < Dimension ; i++){
-        mMinPoint[i] = (**mPointBegin)[i];
-        mMaxPoint[i] = (**mPointBegin)[i];
-      }
-      for(IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
-        for(SizeType i = 0 ; i < Dimension ; i++){
-          if( (**Point)[i] < mMinPoint[i] ) mMinPoint[i] = (**Point)[i];
-          if( (**Point)[i] > mMaxPoint[i] ) mMaxPoint[i] = (**Point)[i];
+    void CalculateBoundingBox() 
+    {
+        for(SizeType i = 0 ; i < Dimension ; i++)
+        {
+            mMinPoint[i] = (**mPointBegin)[i];
+            mMaxPoint[i] = (**mPointBegin)[i];
+        }
+        
+        for(IteratorType Point = mPointBegin ; Point != mPointEnd ; Point++)
+        {
+            for(SizeType i = 0 ; i < Dimension ; i++)
+            {
+                if( (**Point)[i] < mMinPoint[i] ) mMinPoint[i] = (**Point)[i];
+                if( (**Point)[i] > mMaxPoint[i] ) mMaxPoint[i] = (**Point)[i];
+            }
         }
     }
     
@@ -216,9 +222,9 @@ public:
         }
       }
       
-      for(SizeType i = 0 ; i < Dimension ; i++){
-        mN[i] *= mpi_size;
-      }
+//       for(SizeType i = 0 ; i < Dimension ; i++){
+//         mN[i] *= mpi_size;
+//       }
 
       for(SizeType i = 0 ; i < Dimension ; i++){
         mCellSize[i] = delta[i] / mN[i];
@@ -618,7 +624,7 @@ public:
         int rest = 0;
         for(size_t i = 0; i < times; i++)
         {
-            std::vector<SizeType>             NumberOfResults(NumberOfPoints);
+            std::vector<SizeType>                  NumberOfResults(NumberOfPoints);
             std::vector<std::vector<PointerType> > Results(NumberOfPoints, std::vector<PointerType>(MaxNumberOfResults));
             std::vector<std::vector<double> >      ResultsDistances(NumberOfPoints, std::vector<double>(MaxNumberOfResults,0));
 
