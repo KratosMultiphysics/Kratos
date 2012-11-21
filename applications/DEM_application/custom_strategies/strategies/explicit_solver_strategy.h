@@ -194,7 +194,7 @@ namespace Kratos
           }
           
           // 5. Create the contact elements.
-          KRATOS_WATCH(rCurrentProcessInfo[CONTACT_MESH_OPTION])
+          //KRATOS_WATCH(rCurrentProcessInfo[CONTACT_MESH_OPTION])
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           {
              
@@ -226,7 +226,7 @@ namespace Kratos
           }
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-          
+         
           //STRATEGY:
           //0.0
 	  	  
@@ -495,6 +495,7 @@ namespace Kratos
 
 	
 	    vector<unsigned int> contact_element_partition;
+	    //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
 	    OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
 
 	    #pragma omp parallel for //private(index)
@@ -502,18 +503,21 @@ namespace Kratos
 
 	    {
 
-	      typename ElementsArrayType::iterator it_begin=pContactElements.ptr_begin()+element_partition[k];
-	      typename ElementsArrayType::iterator it_end=pContactElements.ptr_begin()+element_partition[k+1];
-	      for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+	      typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+	      typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+	      
+	      for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+	      //for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
 		{
-
-		  (it)->InitializeSolutionStep(rCurrentProcessInfo); 
+		
+		  (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
 
 		} //loop over CONTACT ELEMENTS
 
 	    }// loop threads OpenMP
-	    
+
 	}
+	
 
         KRATOS_CATCH("")
       }
@@ -554,7 +558,7 @@ namespace Kratos
         std::string ElementName;
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
-	KRATOS_WATCH("holaSS")
+	
         
         /*
          * 
