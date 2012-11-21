@@ -805,7 +805,7 @@ namespace Kratos
                         
                         LocalContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalContactForce[0];
                         LocalContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalContactForce[1];
-                        
+                        sliding = true ;
                                     
                     }
                     
@@ -1043,16 +1043,30 @@ namespace Kratos
                                                           
                                     //storing values:
                                  
+                                    //HIGH-LOW variables
+                                    
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = LocalContactForce[0];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalContactForce[2];
                                     
-                                    lock_p_weak->GetValue(CONTACT_FAILURE)              += 0.5*(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]);                                   
+                                    //COMBINED MEAN          
+				    
                                     lock_p_weak->GetValue(CONTACT_SIGMA)                += 0.5*contact_sigma;
                                     lock_p_weak->GetValue(CONTACT_TAU)                  += 0.5*contact_tau;                                 
-                                    //lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      += 0.5*failure_criterion_state; 
                                     
-                                   lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      = failure_criterion_state; 
+				     //UNIQUE VALUES
+				    
+				     lock_p_weak->GetValue(CONTACT_FAILURE)              = (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]);                                        
+                                    
+				     if(failure_criterion_state<=1.0)
+				     {
+					lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      = failure_criterion_state; 
+				     }
+				     else
+				     {
+				       KRATOS_WATCH (failure_criterion_state )
+				       
+				     }
                                     
                                 } // if Target Id < Neigh Id.
 
@@ -1061,16 +1075,18 @@ namespace Kratos
                                    
                                     //COPY VARIABLES HIGH 
                                     
+                                    //HIGH-LOW variables
+                                    
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = LocalContactForce[0];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalContactForce[1];
                                     lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalContactForce[2];
-                                    
-                                 
-                                    
-                                    lock_p_weak->GetValue(CONTACT_FAILURE)              += 0.5*(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce]);                                   
+                                                                    
+				    
+				     //COMBINED MEAN       
+				    
                                     lock_p_weak->GetValue(CONTACT_SIGMA)                += 0.5*contact_sigma;
                                     lock_p_weak->GetValue(CONTACT_TAU)                  += 0.5*contact_tau;                                 
-                                    //lock_p_weak->GetValue(FAILURE_CRITERION_STATE)      += 0.5*failure_criterion_state;
+                                    
                                 }
 
 
