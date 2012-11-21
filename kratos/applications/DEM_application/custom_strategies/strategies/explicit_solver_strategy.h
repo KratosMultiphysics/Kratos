@@ -46,10 +46,6 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
 
-//TODO: remove this as it belongs to the virtual class
-/* Mpi includes */
-#include "custom_utilities/mpi_neighbours_calculator.h"
-
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication
