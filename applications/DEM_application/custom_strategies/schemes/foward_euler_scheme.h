@@ -57,167 +57,162 @@ namespace Kratos
       
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
+//           return model_part.Nodes(); 
           return model_part.Nodes(); 
       }
+      
+      virtual NodesArrayType& GetGhostNodes(ModelPart& model_part)
+      {
+          return model_part.GetCommunicator().GhostMesh().Nodes(); 
+      }
+      
+      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
+      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
+      void Calculate(ModelPart& model_part)
+      {
+          CalculateTranslationalMotion(model_part);
+          CalculateRotationalMotion(model_part);
+      }
 
-     /// Its the same to do a loop`in nodes or element??? Need to be compared.  
-     /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
-     void Calculate(ModelPart& model_part)
-     {
-        CalculateTranslationalMotion(model_part);
-        CalculateRotationalMotion(model_part);
-     }
+      void CalculateTranslationalMotion(ModelPart& model_part)
+      {
+          KRATOS_TRY
 
-     void CalculateTranslationalMotion(ModelPart& model_part)
-     {
-        KRATOS_TRY
-
-	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-	NodesArrayType& pNodes            = GetNodes(model_part);
+          ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
+          NodesArrayType& pNodes            = GetNodes(model_part);
         
-	double aux                  = 0;
-	double delta_t              = rCurrentProcessInfo[DELTA_TIME];
-        double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
+          double aux                  = 0;
+          double delta_t              = rCurrentProcessInfo[DELTA_TIME];
+          double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
+          vector<unsigned int> node_partition;
+          //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+          //NodesArrayType::iterator it_end   = pNodes.ptr_end();
+          int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+          OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+          
+          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
+          for(int k=0; k<number_of_threads; k++)
+          {
+              NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+              NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+             
+              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+              {      
+                  array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
+                  array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+                  array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                  array_1d<double, 3 > & delta_vel       = i->FastGetSolutionStepValue(DELTA_VELOCITY);
+                  array_1d<double, 3 > & coor            = i->Coordinates();
+                  array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
+                  array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
 
-        vector<unsigned int> node_partition;
-	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();
-	//NodesArrayType::iterator it_end   = pNodes.ptr_end();
-	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
-	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-	
-	
-	#pragma omp parallel for firstprivate(aux) shared(delta_t) 
-	for(int k=0; k<number_of_threads; k++)
-	{
-	  NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
-	  NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
-	  for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-	  {
-               
-	     array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
-	     array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
-             array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-             array_1d<double, 3 > & delta_vel       = i->FastGetSolutionStepValue(DELTA_VELOCITY);
-	     array_1d<double, 3 > & coor            = i->Coordinates();
-  	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
-  	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
-        
+                  double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
+                  double vel_old[3] = {0.0};
 
+                  aux = delta_t / mass;
 
-	     double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
+                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                  {
+                      aux = (1 - virtual_mass_coeff)* (delta_t / mass);
 
-             double vel_old[3] = {0.0};
-
-	     aux = delta_t / mass;
-
-             if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-             {
-
-                 aux = (1 - virtual_mass_coeff)* (delta_t / mass);
-
-                 if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
-
-             }
+                      if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
+                  }
 	   
-	     if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
-             {  
-                 vel_old[0] = vel[0];
+                  if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  {    
+                      vel_old[0] = vel[0];
+                      vel[0] += aux * force[0];
                  
-	         vel[0]    += aux * force[0];
+                      delta_displ[0] = delta_t * vel[0];	         
+                      displ[0] +=  delta_displ[0];
+
+                      coor[0] = initial_coor[0] + displ[0];
                  
-                 delta_displ[0] = delta_t * vel[0];
-	         
-                 displ[0]  +=  delta_displ[0];
+                      delta_vel[0] = vel[0] - vel_old[0];
+                  }
+                  else
+                  {
+                      delta_displ[0] = delta_t * vel[0];
+                      displ[0] += delta_displ[0];
 
-	         coor[0]   = initial_coor[0] + displ[0];
+                      coor[0] = initial_coor[0] + displ[0];
                  
-                 delta_vel[0] = vel[0] - vel_old[0];
+                      delta_vel[0] = 0.0;
+                  }
+                  
+                  if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
+                  {
+                      vel_old[1] = vel[1];
+                      vel[1] += aux * force[1];
 
-                 
-             }
-             else
-             {
-                 delta_displ[0] = delta_t * vel[0];
+                      delta_displ[1] = delta_t * vel[1];
+                      displ[1] +=  delta_displ[1];
 
-                 displ[0]  += delta_displ[0];
+                      coor[1] = initial_coor[1] + displ[1];
+                      
+                      delta_vel[1] = vel[1] - vel_old[1];
+                  }
+                  else
+                  {
+                      delta_displ[1] = delta_t * vel[1];
+                      displ[1] += delta_displ[1];
 
-	         coor[0]   = initial_coor[0] + displ[0];
-                 
-                 delta_vel[0] = 0.0;
+                      coor[1] = initial_coor[1] + displ[1];
+                      
+                      delta_vel[1] = 0.0;
+                  }
+                  
+                  if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
+                  {
+                      vel_old[2] = vel[2];
+                      vel[2] += aux * force[2];
 
-             }
-	     
-	     if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
-             {
-                 vel_old[1] = vel[1];
-                 
-	         vel[1]    += aux * force[1];
+                      delta_displ[2] = delta_t * vel[2];
+                      displ[2] +=  delta_displ[2];
 
-                 delta_displ[1] = delta_t * vel[1];
+                      coor[2] = initial_coor[2] + displ[2];
+                      
+                      delta_vel[2] = vel[2] - vel_old[2];
+                  }
+                  else
+                  {
+                      delta_displ[2] = delta_t * vel[2];
+                      displ[2] += delta_displ[2];
 
-                 displ[1]  +=  delta_displ[1];
+                      coor[2] = initial_coor[2] + displ[2];
+                      
+                      delta_vel[2] = 0.0;
+                  }
+              }
+          }
+    
+          NodesArrayType& pGNodes = GetGhostNodes(model_part);
+       
+          for(ModelPart::NodeIterator i=pGNodes.begin(); i!= pGNodes.end(); ++i)      
+          {
+                array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+                array_1d<double, 3 > & coor            = i->Coordinates();
+                array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
+        
+                coor[0]   = initial_coor[0] + displ[0];
+                coor[1]   = initial_coor[1] + displ[1];
+                coor[2]   = initial_coor[2] + displ[2];
+          }
 
-	         coor[1]   = initial_coor[1] + displ[1];
-                 
-                 delta_vel[1] = vel[1] - vel_old[1];
-
-             }
-             else
-             {
-                 delta_displ[1] = delta_t * vel[1];
-
-                 displ[1]  += delta_displ[1];
-
-	         coor[1]   = initial_coor[1] + displ[1];
-                 
-                 delta_vel[1] = 0.0;
-
-             }
-	     
-             if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
-	     {
-                 vel_old[2] = vel[2];
-                 
-	         vel[2]    += aux * force[2];
-
-                 delta_displ[2] = delta_t * vel[2];
-
-                 displ[2]  +=  delta_displ[2];
-
-	         coor[2]   = initial_coor[2] + displ[2];
-                 
-                 delta_vel[2] = vel[2] - vel_old[2];
-               
-             }
-             else
-             {
-                 delta_displ[2] = delta_t * vel[2];
-
-                 displ[2]  += delta_displ[2];
-
-	         coor[2]   = initial_coor[2] + displ[2];
-                 
-                 delta_vel[2] = 0.0;
-
-             }
-	   }
-	}
-	KRATOS_CATCH(" ")
-     }
+          KRATOS_CATCH(" ")
+      }
 
 
-     void CalculateRotationalMotion(ModelPart& model_part)
-     {
-        KRATOS_TRY   
+      void CalculateRotationalMotion(ModelPart& model_part)
+      {
+          KRATOS_TRY   
      
-	ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-    NodesArrayType& pNodes            = GetNodes(model_part);
+          ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
+          NodesArrayType& pNodes            = GetNodes(model_part);
 
 	
 	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
-
-        //KRATOS_WATCH(delta_t)
 
         vector<unsigned int> node_partition;
 	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -245,8 +240,6 @@ namespace Kratos
                 array_1d<double, 3 > & delta_rotation_displ = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
                 array_1d<double, 3 > & Rota_Displace        = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
 
-                //KRATOS_WATCH(delta_rotation_displ)
-
                 bool If_Fix_Rotation[3] = {false, false, false};
                 If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
                 If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
@@ -272,9 +265,7 @@ namespace Kratos
                          AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
                         
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
-
-                         //KRATOS_WATCH( i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT)[iterator])
-
+                         
                                  //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
 
                       
@@ -287,8 +278,6 @@ namespace Kratos
                     {
 
                         delta_rotation_displ[iterator]= 0.0;
-                       // KRATOS_WATCH(delta_rotation_displ[iterator])
-                        //KRATOS_WATCH("hOLA")
                         
                        
                         /*
@@ -310,6 +299,7 @@ namespace Kratos
 
         }
         KRATOS_CATCH(" ")
+        
      }
 	
  

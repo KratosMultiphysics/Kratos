@@ -256,6 +256,7 @@ namespace Kratos
                               
                                 (this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)).resize(continuum_ini_size);
                                 (this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)).resize(continuum_ini_size);
+                                (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
                                 
                                 this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
                            

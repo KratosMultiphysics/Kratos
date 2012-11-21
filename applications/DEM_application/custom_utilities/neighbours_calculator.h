@@ -141,7 +141,7 @@ namespace Kratos {
 
             boost::timer kdtree_construction;
 
-            unsigned int MaximumNumberOfResults = 100;
+            unsigned int MaximumNumberOfResults = 1000;
             unsigned int ResultIterator = 0;
 
             boost::timer search_time;
@@ -215,7 +215,8 @@ namespace Kratos {
     
                     for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
                     {                  
-                        
+                        //Aqui!!!!!!
+                        Add_To_Modelpart(r_model_part,neighbour_it);
                       
                         double particle_radius  = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                         double neigh_radius     = (*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
@@ -242,8 +243,6 @@ namespace Kratos {
 
 
                              (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS)[size-1] = (*neighbour_it)->Id();
-
-                             Add_To_Modelpart(r_model_part,neighbour_it);
 
                              (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][0] = 0.0;
                              (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES)[size-1][1] = 0.0;
@@ -280,7 +279,7 @@ namespace Kratos {
 
             boost::timer kdtree_construction;
 
-            unsigned int MaximumNumberOfResults = 100;
+            unsigned int MaximumNumberOfResults = 1000;
             unsigned int ResultIterator = 0;
 
             boost::timer search_time;
