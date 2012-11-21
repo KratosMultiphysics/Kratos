@@ -826,7 +826,9 @@ namespace Kratos
 		    ///(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
 		  
 		    
-		  if (failure_criterion_OPTION=1){ //MOHR-COULOMB
+		 // if (failure_criterion_OPTION=1)  //MOHR-COULOMB
+		  
+		  {
 		  
                     
 			contact_tau = ShearForceNow/(alpha*equiv_area);
@@ -906,7 +908,7 @@ namespace Kratos
 		    
 		    ///(2) UNCOUPLED FRACTURE
 		    
-		    if (failure_criterion_OPTION=2)//UNCOUPLED FRACTURE
+		   // if (failure_criterion_OPTION=2)//UNCOUPLED FRACTURE
 		    
 		    {
 		      
