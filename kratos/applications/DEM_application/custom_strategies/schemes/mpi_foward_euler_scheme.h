@@ -29,6 +29,8 @@
 
 #include "DEM_application.h"
 
+#include "custom_strategies/schemes/foward_euler_scheme.h"
+
 namespace Kratos
 {
   
@@ -43,17 +45,17 @@ namespace Kratos
     
     
       /// Pointer definition of FowardEulerScheme
-      KRATOS_CLASS_POINTER_DEFINITION(FowardEulerScheme);
+      KRATOS_CLASS_POINTER_DEFINITION(MpiFowardEulerScheme);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      FowardEulerScheme(){}
+      MpiFowardEulerScheme(){}
 
       /// Destructor.
-      virtual ~FowardEulerScheme(){}
+      virtual ~MpiFowardEulerScheme(){}
       
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
@@ -154,16 +156,16 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-     FowardEulerScheme& operator=(FowardEulerScheme const& rOther)
+     MpiFowardEulerScheme& operator=(MpiFowardEulerScheme const& rOther)
      {
        return *this;
      }
 
       /// Copy constructor.
-      FowardEulerScheme(FowardEulerScheme const& rOther)
-      {
-    *this = rOther;
-      }
+     MpiFowardEulerScheme(MpiFowardEulerScheme const& rOther)
+     {
+       *this = rOther;
+     }
 
         
       ///@}    
@@ -183,11 +185,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-                    FowardEulerScheme& rThis){return rIStream;}
+                    MpiFowardEulerScheme& rThis){return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-                    const FowardEulerScheme& rThis)
+                    const MpiFowardEulerScheme& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -201,5 +203,5 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_FOWARD_EULER_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_MPI_FOWARD_EULER_SCHEME_H_INCLUDED  defined 
 

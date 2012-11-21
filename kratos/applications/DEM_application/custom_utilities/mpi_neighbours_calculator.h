@@ -20,7 +20,7 @@
 #include "containers/pointer_vector.h"
 #include "containers/pointer_vector_set.h"
 
-#include "custom_utilities/discrete_particle_configure.h"
+#include "custom_utilities/mpi_discrete_particle_configure.h"
 #include "custom_utilities/neighbours_calculator.h"
 
 #include "../applications/mpi_search_application/custom_utilities/bins_dynamic_objects_mpi.h"
@@ -34,7 +34,7 @@ namespace Kratos {
 
     class Mpi_Neighbours_Calculator: public Neighbours_Calculator<TParticle> {
     public:
-        typedef DiscreteParticleConfigure < 3 > ConfigureType;
+        typedef MpiDiscreteParticleConfigure < 3 > ConfigureType;
 
         typedef TParticle Particle; // es el objecte
         typedef typename Particle::Pointer ParticlePointer; // es punter al objecte
@@ -107,7 +107,7 @@ namespace Kratos {
         {
             Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
             
-            ContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
+//             ContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
             ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
             
             int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
@@ -140,7 +140,7 @@ namespace Kratos {
                 IsInLocalMesh = false;
               
                 ContainerType& pMyGhostElements = r_model_part.GetCommunicator().GhostMesh(destination).ElementsArray();
-                ContainerType& pMyLocalElements = r_model_part.GetCommunicator().LocalMesh(destination).ElementsArray();
+//                 ContainerType& pMyLocalElements = r_model_part.GetCommunicator().LocalMesh(destination).ElementsArray();
           
                 for(IteratorType element_it = pMyGhostElements.begin(); !IsInGhostMesh && element_it != pMyGhostElements.end(); ++element_it)
                     if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())

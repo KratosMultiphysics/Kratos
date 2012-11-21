@@ -71,7 +71,6 @@ class ExplicitStrategy:
         self.max_delta_time                 = 0.05;
         self.fraction_delta_time            = 0.90;
         self.MoveMeshFlag                   = True;
-        self.time_scheme                    = FowardEulerScheme();
         self.gravity                        = Vector(3)#(0.0,-9.81,0.0)
         self.gravity[0] = 0.0
         self.gravity[1] = -9.81
@@ -110,7 +109,7 @@ class ExplicitStrategy:
         self.force_calculation_type_id      =1
         self.damp_id                        =1
         self.rota_damp_id                   =1
-        self.search_radius_extension        = 0.0
+        self.search_radius_extension        =0.0
 
         self.dummy_switch                   =0
 
@@ -120,6 +119,13 @@ class ExplicitStrategy:
         self.safety_factor                  = 1.0; #for critical time step
 
         self.create_and_destroy             = particle_destructor_and_constructor();
+        
+        self.use_mpi                        = 0;
+        
+        if(self.use_mpi):
+            self.time_scheme                    = MpiFowardEulerScheme();
+        else:
+            self.time_scheme                    = FowardEulerScheme();
 
     ######################################################################
 
@@ -177,8 +183,12 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         
         #creating the solution strategy
-        self.solver = ExplicitSolverStrategy(self.model_part, self.contact_model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
-                                            self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)       
+        if(self.use_mpi):
+            self.solver = MpiExplicitSolverStrategy(self.model_part, self.contact_model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
+                                            self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
+        else:
+            self.solver = ExplicitSolverStrategy(self.model_part, self.contact_model_part, self.domain_size, self.enlargement_factor, self.damping_ratio, self.fraction_delta_time, self.delta_time, self.n_step_search, self.safety_factor,
+                                            self.MoveMeshFlag, self.delta_OPTION, self.continuum_simulating_OPTION, self.time_scheme)
         #self.solver.Check() #es sa fer sempre un check despres de montar una estrategia.
         self.solver.Initialize() #aqui definirem el initialize dels elements pero tamb funcions que vulguem fer en el primer pras.
         
