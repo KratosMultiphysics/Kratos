@@ -211,10 +211,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    const SphericParticle mSphericParticle2D;
+    //const SphericParticle mSphericParticle2D;
     const SphericParticle mSphericParticle3D;
 
-    const DEM_FEM_Particle mDEM_FEM_Particle2D;
+    //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const DEM_FEM_Particle mDEM_FEM_Particle3D;
     
     const Particle_Contact_Element mParticleContactElement;
