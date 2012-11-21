@@ -5,8 +5,8 @@
 //
 
 
-#if !defined(KRATOS_DISCRETE_PARTICLE__CONFIGURE_INCLUDED)
-#define  KRATOS_DISCRETE_PARTICLE__CONFIGURE_INCLUDED
+#if !defined(KRATOS_MPI_DISCRETE_PARTICLE__CONFIGURE_INCLUDED)
+#define  KRATOS_MPI_DISCRETE_PARTICLE__CONFIGURE_INCLUDED
 
 
 
@@ -15,6 +15,8 @@
 #include <iostream> 
 #include <cmath>
 #include "utilities/spatial_containers_configure.h"
+#include "includes/mpi_communicator.h"
+#include "mpi.h"
 
 namespace Kratos
 {
@@ -40,7 +42,7 @@ namespace Kratos
 
     
 template <std::size_t TDimension>
-class DiscreteParticleConfigure{
+class MpiDiscreteParticleConfigure{
 public:
 
  enum { Dimension = TDimension,
@@ -71,14 +73,14 @@ public:
 
       
       /// Pointer definition of SpatialContainersConfigure
-      KRATOS_CLASS_POINTER_DEFINITION(DiscreteParticleConfigure);
+      KRATOS_CLASS_POINTER_DEFINITION(MpiDiscreteParticleConfigure);
 
       ///@}
       ///@name Life Cycle
       ///@{
 
-    DiscreteParticleConfigure(){};
-    virtual ~DiscreteParticleConfigure(){}
+    MpiDiscreteParticleConfigure(){};
+    virtual ~MpiDiscreteParticleConfigure(){}
 
           ///@}
           ///@name Operators
@@ -187,6 +189,113 @@ public:
 						(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
 						(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
 	}
+	 
+    template<class TObjectType>                            
+    static inline void AsyncSendAndReceive(Communicator::Pointer Communicator,
+                                           std::vector<TObjectType>& SendObjects,
+                                           std::vector<TObjectType>& RecvObjects,
+                                           int * msgSendSize,
+                                           int * msgRecvSize)
+    {
+        Timer::Start("ASYNC2");
+        Communicator->AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        Timer::Stop("ASYNC2");
+    }
+    
+    template<class TObjectType>
+    static inline void AsyncSendAndReceive(std::vector<TObjectType>& SendObjects,
+                                           std::vector<TObjectType>& RecvObjects,
+                                           int * msgSendSize,
+                                           int * msgRecvSize)                                       
+    {
+        Timer::Start("ASYNC1");
+        
+        int mpi_rank;
+        int mpi_size;
+      
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+  
+        std::stringstream * serializer_buffer;
+        std::string buffer[mpi_size];
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i)
+            {
+                Kratos::Serializer particleSerializer;
+                particleSerializer.save("nodes",SendObjects[i]);
+                
+                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                buffer[i] = std::string(serializer_buffer->str());
+                msgSendSize[i] = buffer[i].size();
+            }
+        }
+  
+        MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+  
+        int NumberOfCommunicationEvents = 0;
+        int NumberOfCommunicationEventsIndex = 0;
+        
+        char * message[mpi_size];
+        char * mpi_send_buffer[mpi_size];
+        
+        for(int j = 0; j < mpi_size; j++)
+        {
+            if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents++;
+            if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents++;
+        }
+        
+        MPI_Request reqs[NumberOfCommunicationEvents];
+        MPI_Status stats[NumberOfCommunicationEvents];
+
+        //Set up all receive and send events
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(i != mpi_rank && msgRecvSize[i])
+            {
+                message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
+
+                MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+
+            if(i != mpi_rank && msgSendSize[i])
+            {
+                mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
+                memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
+                MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+            }
+        }
+        //wait untill all communications finish
+        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        for(int i = 0; i < mpi_size; i++)
+        { 
+            if (i != mpi_rank && msgRecvSize[i])
+            {
+                Kratos::Serializer particleSerializer;
+                std::stringstream * serializer_buffer;
+                serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
+                serializer_buffer->write(message[i], msgRecvSize[i]);
+                particleSerializer.load("nodes",RecvObjects[i]);
+            }
+
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
+        
+        // Free buffers
+        for(int i = 0; i < mpi_size; i++)
+        {
+            if(mpi_rank != i && msgRecvSize[i])
+                free(message[i]);
+            
+            if(i != mpi_rank && msgSendSize[i])
+                free(mpi_send_buffer[i]);
+        }
+        Timer::Stop("ASYNC1");
+    }
      
     //******************************************************************************************************************
 
@@ -279,10 +388,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    DiscreteParticleConfigure& operator=(DiscreteParticleConfigure const& rOther);
+    MpiDiscreteParticleConfigure& operator=(MpiDiscreteParticleConfigure const& rOther);
 
     /// Copy constructor.
-    DiscreteParticleConfigure(DiscreteParticleConfigure const& rOther);
+    MpiDiscreteParticleConfigure(MpiDiscreteParticleConfigure const& rOther);
 
     ///@}
 
@@ -299,13 +408,13 @@ private:
 
     /// input stream function
     template <std::size_t TDimension>
-    inline std::istream& operator >> (std::istream& rIStream, DiscreteParticleConfigure<TDimension> & rThis){
+    inline std::istream& operator >> (std::istream& rIStream, MpiDiscreteParticleConfigure<TDimension> & rThis){
         return rIStream;
         }
 
     /// output stream function
     template <std::size_t TDimension>
-    inline std::ostream& operator << (std::ostream& rOStream, const DiscreteParticleConfigure<TDimension>& rThis){
+    inline std::ostream& operator << (std::ostream& rOStream, const MpiDiscreteParticleConfigure<TDimension>& rThis){
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
         rThis.PrintData(rOStream);
@@ -316,4 +425,4 @@ private:
     ///@}
 
 }   // namespace Kratos.
-#endif	/* DISCRETE_PARTICLE_CONFIGURE_H */
+#endif	/* MPI_DISCRETE_PARTICLE_CONFIGURE_H */
