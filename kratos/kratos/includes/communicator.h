@@ -653,7 +653,17 @@ public:
         return true;
 
     }
+    
+    
+    virtual bool AssembleNonHistoricalData(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    {
+        // #if defined(KRATOS_USING_MPI )
+        //  std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        // #endif
+        return true;
 
+    }
+    
     virtual bool AssembleNonHistoricalData(Variable<Vector> const& ThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
@@ -670,6 +680,36 @@ public:
         #endif*/
         return true;
 
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<NodeType> >& SendObjects, std::vector<std::vector<NodeType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ElementType> >& SendObjects, std::vector<std::vector<ElementType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ConditionType> >& SendObjects, std::vector<std::vector<ConditionType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<NodeType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<NodeType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ElementType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ElementType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
+    }
+    
+    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ConditionType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ConditionType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    {
+        return true;
     }
 
     ///@}
