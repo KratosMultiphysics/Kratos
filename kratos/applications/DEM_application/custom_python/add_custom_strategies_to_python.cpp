@@ -70,11 +70,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
-
-
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -84,6 +81,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/foward_euler_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
+
+//parallel strategies
+#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h"
+
+//parallel schemes
+#include "custom_strategies/schemes/mpi_foward_euler_scheme.h"
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -108,7 +111,7 @@ namespace Kratos
 
 
 
-                  class_<IntegrationScheme, boost::noncopyable >
+          class_<IntegrationScheme, boost::noncopyable >
                     ("IntegrationScheme", init< >())
                   ;
                   
@@ -124,9 +127,16 @@ namespace Kratos
                   )
                   ;
 
-                  class_< ConstAverageAccelerationScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          class_< ConstAverageAccelerationScheme, bases<IntegrationScheme>,  boost::noncopyable>
 		  (
                    "ConstAverageAccelerationScheme", init<>()
+                  )
+                  ;
+              
+          //Mpi schemes
+          class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
+          (
+                   "MpiFowardEulerScheme", init<>()
                   )
                   ;
 
@@ -134,11 +144,18 @@ namespace Kratos
 		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
 		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
 		  (
-		  "ExplicitSolverStrategy", init< ModelPart&,ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>()
-                  )
+		  "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialized)
                   .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
 		  ;
+          
+          typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
+          class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+          (
+          "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
+                  .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
+                  .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
+          ;
 		  
 		}
 

@@ -37,12 +37,19 @@ namespace Kratos
         KRATOS_CREATE_VARIABLE( int, CONTACT_MESH_OPTION)
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_LOW )                 
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_HIGH )
-                
-                
+        
         KRATOS_CREATE_VARIABLE( double,  CONTACT_FAILURE)
         KRATOS_CREATE_VARIABLE( double,  CONTACT_SIGMA)
         KRATOS_CREATE_VARIABLE( double,  CONTACT_TAU)
         KRATOS_CREATE_VARIABLE( double,  FAILURE_CRITERION_STATE)
+
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_SIGMA_HIGH)
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_SIGMA_LOW)
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_SIGMA_MEAN)
+
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_TAU_HIGH)
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_TAU_LOW)
+        KRATOS_CREATE_VARIABLE( double,  CONTACT_TAU_MEAN)
                 
         KRATOS_CREATE_VARIABLE( int, SKIN_SPHERE )
         KRATOS_CREATE_VARIABLE( double, EXPORT_SKIN_SPHERE )
@@ -98,12 +105,11 @@ namespace Kratos
                 KRATOS_REGISTER_VARIABLE( CONTACT_MESH_OPTION )
                 KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_LOW )                 
                 KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( LOCAL_CONTACT_FORCE_HIGH )
-                
-                KRATOS_REGISTER_VARIABLE( CONTACT_FAILURE )
-                KRATOS_REGISTER_VARIABLE( CONTACT_SIGMA )
-                KRATOS_REGISTER_VARIABLE( CONTACT_TAU )
-                KRATOS_REGISTER_VARIABLE( FAILURE_CRITERION_STATE )
-                
+
+                KRATOS_REGISTER_VARIABLE( CONTACT_SIGMA_HIGH)
+                KRATOS_REGISTER_VARIABLE( CONTACT_SIGMA_LOW)
+                KRATOS_REGISTER_VARIABLE( CONTACT_SIGMA_MEAN)
+
                 KRATOS_REGISTER_VARIABLE( SKIN_SPHERE )
                 KRATOS_REGISTER_VARIABLE( EXPORT_SKIN_SPHERE )
                         
@@ -156,8 +162,7 @@ namespace Kratos
                         
                 KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
                 
-
-	
+                Serializer::Register( "VariablesList", mVariablesList );
         }
 
 }  // namespace Kratos.

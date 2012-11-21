@@ -45,6 +45,14 @@ namespace Kratos
         KRATOS_DEFINE_VARIABLE (int, CONTACT_MESH_OPTION )
         KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE_LOW)                 
         KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(LOCAL_CONTACT_FORCE_HIGH)
+
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_SIGMA_HIGH) 
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_SIGMA_LOW)
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_SIGMA_MEAN)
+
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_TAU_HIGH)
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_TAU_LOW)
+        KRATOS_DEFINE_VARIABLE( double,  CONTACT_TAU_MEAN)
                 
         KRATOS_DEFINE_VARIABLE( double,  CONTACT_FAILURE)
         KRATOS_DEFINE_VARIABLE( double,  CONTACT_SIGMA)
@@ -218,7 +226,7 @@ private:
     const DEM_FEM_Particle mDEM_FEM_Particle3D;
     
     const Particle_Contact_Element mParticleContactElement;
-
+    const VariablesList mVariablesList;
 
     //       static const ApplicationCondition  msApplicationCondition;
 
