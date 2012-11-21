@@ -812,96 +812,109 @@ namespace Kratos
                     
                  } 
                
-
+		if(alpha*equiv_area < 1e-08) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
+                
+                
+                //EVALUATING THE POSSIBLE FAILURE FOR THE CONTINUUM CONTACTS
                 
                 if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
-                    
-                {
+                    	
+		{
                 
-                    ///MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
-
-                    if(alpha*equiv_area < 1e-08) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
-
-                  
-                    contact_tau = ShearForceNow/(alpha*equiv_area);
-                    contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
-
-                    double sigma_max, sigma_min;
-
-                    if (LocalContactForce[2]>=0)
-                            {
-                                    sigma_max = contact_sigma;
-                                    sigma_min = 0;
-
-                            }
-                    else 
-                            {
-                                    sigma_max = 0;
-                                    sigma_min = contact_sigma;
-
-                            }
-
-
-                    //change into principal stresses
-
-                    double centre = 0.5*(sigma_max + sigma_min);
-                    double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
-
-                    double sigma_I = centre + radius;
-                    double sigma_II = centre - radius;
-
-                                 
-                                     
-                    // Check:
-
-                    double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+		  int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+		    
+		    ///(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
+		  
+		    
+		  if (failure_criterion_OPTION=1){ //MOHR-COULOMB
+		  
                     
-                    double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-                
-              
-                    double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
-                         
-                    failure_criterion_state = radius/distance_to_failure;
-                    
-                    
-                    
-                    //if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
-                    
-                    
-                    
-                    if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
-                    {
-                        
-                        //KRATOS_WATCH (failure_criterion_state)
-                        
-                        //breaks
+			contact_tau = ShearForceNow/(alpha*equiv_area);
+			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
 
-                        this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
-                                               
-                        //tangential mapping, divide 2 tangent
-                        
-                        
-                        if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
-                                    {
-                                    
-                                    //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
-                                    //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
-                                    }
-                       
-                                             
-                       sliding = true ;
+			double sigma_max, sigma_min;
+
+			if (LocalContactForce[2]>=0)
+				{
+					sigma_max = contact_sigma;
+					sigma_min = 0;
+
+				}
+			else 
+				{
+					sigma_max = 0;
+					sigma_min = contact_sigma;
+
+				}
 
 
-                    }
+			//change into principal stresses
 
-                    else
-                    {
-                        // doesn't brake
-                        
-                        
+			double centre = 0.5*(sigma_max + sigma_min);
+			double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
+
+			double sigma_I = centre + radius;
+			double sigma_II = centre - radius;
+
+				      
+					  
+			// Check:
+
+			double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			
+			double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+		    
+		  
+			double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
+			      
+			failure_criterion_state = radius/distance_to_failure;
+			
+			//if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
+			
+			if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
+			{
+			    
+			    //KRATOS_WATCH (failure_criterion_state)
+			    
+			    //breaks
+
+			    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
+						    
+			    //tangential mapping, divide 2 tangent
+			    
+			    
+			    if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
+					{
+					
+					//KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+					//KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
+					}
+			    
+						  
+			    sliding = true ;
 
 
-                    }
+			}
+
+			else
+			{
+			    // doesn't brake
+
+			}
+                    
+		    } //MOHR-COULOMB
+		    
+		    ///(2) UNCOUPLED FRACTURE
+		    
+		    if (failure_criterion_OPTION=2)//UNCOUPLED FRACTURE
+		    
+		    {
+		      
+		      
+		      
+		      
+		      
+		    } //UNCOUPLED FRACTURE
                     
                 }// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                 
