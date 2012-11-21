@@ -864,14 +864,14 @@ namespace Kratos
                     
                     
                     
-                    if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
+                    //if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
                     
                     
                     
                     if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
                     {
                         
-                        KRATOS_WATCH (failure_criterion_state)
+                        //KRATOS_WATCH (failure_criterion_state)
                         
                         //breaks
 
@@ -1064,7 +1064,7 @@ namespace Kratos
 				     }
 				     else
 				     {
-				       KRATOS_WATCH (failure_criterion_state )
+				       //KRATOS_WATCH (failure_criterion_state )
 				       
 				     }
                                     
