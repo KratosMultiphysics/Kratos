@@ -821,7 +821,7 @@ namespace Kratos
                     	
 		{
                 
-		  int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+		  //int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
 		    
 		    ///(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
 		  
