@@ -134,11 +134,11 @@ namespace Kratos
                   ;
               
           //Mpi schemes
-          class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
-          (
-                   "MpiFowardEulerScheme", init<>()
-                  )
-                  ;
+//           class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
+//           (
+//                    "MpiFowardEulerScheme", init<>()
+//                   )
+//                   ;
 
                   
 		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
@@ -149,13 +149,13 @@ namespace Kratos
                   .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
 		  ;
           
-          typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
-          class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
-          (
-          "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
-                  .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
-                  .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
-          ;
+//           typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
+//           class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+//           (
+//           "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
+//                   .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
+//                   .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
+//           ;
 		  
 		}
 
