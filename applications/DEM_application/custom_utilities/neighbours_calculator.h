@@ -124,7 +124,7 @@ namespace Kratos {
                                       std::vector<double> &Radius
         )
         {
-        Bins particle_bin(pIteratorElements.begin(), pIteratorElements.end());
+            Bins particle_bin(pIteratorElements.begin(), pIteratorElements.end());
 
             particle_bin.SearchObjectsInRadiusInner(pIteratorElements.begin(),NumberOfElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults);
         }
@@ -215,7 +215,6 @@ namespace Kratos {
     
                     for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
                     {                  
-                        //Aqui!!!!!!
                         Add_To_Modelpart(r_model_part,neighbour_it);
                       
                         double particle_radius  = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);

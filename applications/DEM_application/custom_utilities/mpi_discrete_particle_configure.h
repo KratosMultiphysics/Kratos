@@ -217,7 +217,8 @@ public:
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
   
         std::stringstream * serializer_buffer;
-        std::string buffer[mpi_size];
+        std::vector<std::string> buffer(mpi_size);
+//         std::string buffer[mpi_size];
         
         for(int i = 0; i < mpi_size; i++)
         {
