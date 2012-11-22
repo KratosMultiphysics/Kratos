@@ -66,8 +66,7 @@ using namespace boost::python;
 void  AddTrilinosCommunicatorToPython()
 {
     class_<MPICommunicator, bases<Communicator> >
-    ("MPICommunicator",
-     init<>() )
+    ("MPICommunicator",boost::python::no_init)
     ;
 }
 }  // namespace Python.
