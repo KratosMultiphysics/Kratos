@@ -7,6 +7,7 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(ROTATION);
 ##    model_part.AddNodalSolutionStepVariable(DISPLACEMENT_OLD);
 ##    model_part.AddNodalSolutionStepVariable(DISPLACEMENT_NULL);
 ##    model_part.AddNodalSolutionStepVariable(DISPLACEMENT_EINS);
