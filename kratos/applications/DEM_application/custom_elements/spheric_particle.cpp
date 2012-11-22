@@ -776,6 +776,9 @@ namespace Kratos
                     LocalContactForce[2] = 0.0;  // 2: normal force
                 }
                 
+                
+                //EVALUATING THE POSSIBLE FAILURE FOR THE CONTINUUM CONTACTS
+                
                 double contact_tau = 0.0;
                 double contact_sigma = 0.0;
                 
@@ -815,18 +818,17 @@ namespace Kratos
 		if(alpha*equiv_area < 1e-08) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
                 
                 
-                //EVALUATING THE POSSIBLE FAILURE FOR THE CONTINUUM CONTACTS
                 
                 if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                     	
 		{
                 
-		  //int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+		  int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
 		    
 		    ///(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
 		  
 		    
-		 // if (failure_criterion_OPTION=1)  //MOHR-COULOMB
+		  if (failure_criterion_OPTION==1)  //MOHR-COULOMB
 		  
 		  {
 		  
@@ -908,13 +910,48 @@ namespace Kratos
 		    
 		    ///(2) UNCOUPLED FRACTURE
 		    
-		   // if (failure_criterion_OPTION=2)//UNCOUPLED FRACTURE
+		    ///vam decidir amb miguel angel de no fer el mapping de les shear fins al pas seguent.. esta correcte? afecta quan trenca?
+		    
+		    if (failure_criterion_OPTION==2)//UNCOUPLED FRACTURE
 		    
 		    {
-		      
-		      
-		      
-		      
+			contact_tau = ShearForceNow/(alpha*equiv_area);
+			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
+
+			double tau_zero = 0.5*sqrt(compression_limit*tension_limit);
+			double Failure_FriAngle = 30*M_PI/180; //atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+									
+			if (LocalContactForce[2]>=0)
+			{
+				double tau_strength = tau_zero+tan(Failure_FriAngle)*contact_sigma;
+
+				if(contact_tau>tau_strength)
+				{
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 2;
+				  sliding = true;
+				}
+
+			} //positive sigmas
+			else 
+			{
+				if(contact_tau>tau_zero)
+				{
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;
+				  sliding = true;
+				  
+				    if(contact_sigma<-tension_limit)
+				    {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 12;}
+				  
+				}
+				else if(contact_sigma<-tension_limit)
+				{
+				  
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4;
+				  sliding = true;
+				  
+				}
+
+			} //negative values of sigma		      
 		      
 		    } //UNCOUPLED FRACTURE
                     
