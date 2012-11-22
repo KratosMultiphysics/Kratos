@@ -18,6 +18,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
      )
 
 set( KRATOS_PYTHON_SOURCES     
