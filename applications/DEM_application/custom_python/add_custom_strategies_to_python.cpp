@@ -83,10 +83,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
 //parallel strategies
-// #include "custom_strategies/strategies/mpi_explicit_solver_strategy.h"
+//#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
 
 //parallel schemes
-// #include "custom_strategies/schemes/mpi_foward_euler_scheme.h"
+//#include "custom_strategies/schemes/mpi_foward_euler_scheme.h" //MPI CARLOS descomentar aixo
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -132,13 +132,18 @@ namespace Kratos
                    "ConstAverageAccelerationScheme", init<>()
                   )
                   ;
-              
+       
+		  
+		  //MPI CARLOS decomentar de aqui....
+		/*  
           //Mpi schemes
-//           class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
-//           (
-//                    "MpiFowardEulerScheme", init<>()
-//                   )
-//                   ;
+           class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
+           (
+                    "MpiFowardEulerScheme", init<>()
+                   )
+                   ;
+		   // MPI CARLOS.... a aqui
+		   */
 
                   
 		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
@@ -148,15 +153,18 @@ namespace Kratos
                   .def("Initialize", &ExplicitSolverStrategyType::Initialized)
                   .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
 		  ;
-          
-//           typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
-//           class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
-//           (
-//           "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
-//                   .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
-//                   .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
-//           ;
+		  /*
+           //MPI CARLOS decomentar de aqui....
+           typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
+           class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+           (
+           "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
+                   .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
+                   .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
+           ;
 		  
+		  // MPI CARLOS.... a aqui
+	   */
 		}
 
 	}  // namespace Python.
