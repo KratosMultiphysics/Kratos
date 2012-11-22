@@ -111,6 +111,7 @@ virtual_mass_option 	= DEM_explicit_solver_var.VirtualMassOption
 virtual_mass_coeff 	= DEM_explicit_solver_var.VirtualMassCoefficient
 
 contact_mesh_option = DEM_explicit_solver_var.ContactMeshOption
+failure_criterion_option = DEM_explicit_solver_var.FailureCriterionOption
 
 if(virtual_mass_option == "ON"):
     solver.virtual_mass_OPTION=1 #xapuza
@@ -143,6 +144,11 @@ if(rotation_spring_option =="ON"):
        
 if(contact_mesh_option =="ON"):
   solver.contact_mesh_OPTION=1  #xapuza
+  
+if(failure_criterion_option =="Mohr-Coulomb"):
+  solver.failure_criterion_OPTION=1 
+elif(failure_criterion_option =="Uncoupled"):
+  solver.failure_criterion_OPTION=2 
        
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
 
