@@ -123,6 +123,7 @@ public:
 
         //************************************************************************************************
         //construct a new auxiliary model part
+        mspalart_model_part.GetNodalSolutionStepVariablesList() = mr_model_part.GetNodalSolutionStepVariablesList();
         mspalart_model_part.SetBufferSize(3);
         mspalart_model_part.Nodes() = mr_model_part.Nodes();
         mspalart_model_part.SetProcessInfo(mr_model_part.pGetProcessInfo());

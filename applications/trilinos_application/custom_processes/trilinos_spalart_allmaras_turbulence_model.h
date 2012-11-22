@@ -132,12 +132,13 @@ public:
         //************************************************************************************************
         //construct a new auxiliary model part
         BaseSpAlType::mspalart_model_part.SetBufferSize(3);
+        BaseSpAlType::mspalart_model_part.GetNodalSolutionStepVariablesList() = BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList();
         BaseSpAlType::mspalart_model_part.SetBufferSize(BaseSpAlType::mr_model_part.GetBufferSize());
         BaseSpAlType::mspalart_model_part.SetNodes(BaseSpAlType::mr_model_part.pNodes());
         BaseSpAlType::mspalart_model_part.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
         BaseSpAlType::mspalart_model_part.SetProperties(BaseSpAlType::mr_model_part.pProperties());
 
-        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator() );
+        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator(&BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()) );
         BaseSpAlType::mspalart_model_part.SetCommunicator( pSpalartMPIComm );
 
         std::string ElementName;
