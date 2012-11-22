@@ -111,7 +111,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "custom_strategies/strategies/fractionalstep_configuration_slip.h"
 // #include "custom_strategies/strategies/fractional_step_strategy_slip.h"
 
-
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 
 namespace Kratos
 {
@@ -156,7 +156,7 @@ void AddCustomStrategiesToPython()
     typedef MidPointPredictorCorrector< SparseSpaceType, LocalSpaceType > MidPointPredictorCorrectorType;
 
     typedef HydroMidPointPredictorCorrector< SparseSpaceType, LocalSpaceType > HydroMidPointPredictorCorrectorType;
-
+    typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< SparseSpaceType, LocalSpaceType > ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnrichedType;
 
     //********************************************************************
     //********************************************************************
@@ -523,8 +523,16 @@ void AddCustomStrategiesToPython()
     //	(
     //		"ResidualBasedLinearSchemeParticleMoveBack", init< >()
     //	);
-
-
+//     class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnrichedType,
+//             bases< ResidualBasedPredictorCorrectorVelocityBossakScheme<SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
+//             (
+//                 "ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched", init< double, double >()
+//             );
+    class_< ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnrichedType,
+            bases< ResidualBasedPredictorCorrectorVelocityBossakScheme<SparseSpaceType, LocalSpaceType> >, boost::noncopyable >
+            (
+                "ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched", init< double, double ,unsigned int >()
+            );
 }
 
 } // namespace Python.
