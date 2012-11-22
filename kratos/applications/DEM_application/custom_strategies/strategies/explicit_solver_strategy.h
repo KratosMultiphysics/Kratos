@@ -101,7 +101,6 @@ namespace Kratos
 	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
       
       typedef DiscreteElement                     ParticleType;
-      typedef Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
 	  
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -902,8 +901,8 @@ namespace Kratos
 
     virtual void SearchIniNeighbours(ModelPart& r_model_part,bool extension_option)
     { 
-        //WATCH: Aixo si que es pot fer static si vols, en plan:
-        // Static NeighbourCalculatorType neighbourCalc;
+        typedef Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
+              
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Ini_Neighbours(r_model_part, extension_option);
     }//SearchIniNeighbours
@@ -911,6 +910,8 @@ namespace Kratos
 
     virtual void SearchNeighbours(ModelPart& r_model_part,bool extension_option)
     {
+        typedef Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
+              
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Neighbours(r_model_part, extension_option);
     }//SearchNeighbours

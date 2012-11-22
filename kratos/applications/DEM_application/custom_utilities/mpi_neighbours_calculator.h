@@ -82,7 +82,7 @@ namespace Kratos {
             KRATOS_TRY
                       
             ContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
-            ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
+//             ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
 
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -90,7 +90,7 @@ namespace Kratos {
             if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
             
             static double MaxNodeRadius = 0.0f;
-            if(MaxNodeRadius = 0.0f)
+            if(MaxNodeRadius == 0.0f) //TODO
                 for (IteratorType particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
                 {
                     double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
@@ -114,7 +114,7 @@ namespace Kratos {
             int destination = -1;
             
             bool IsInGhostMesh = false;
-            bool IsInLocalMesh = false;
+//             bool IsInLocalMesh = false;
           
             for(int i = 0; i < NumberOfRanks; i++)
                 if((*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
@@ -137,7 +137,7 @@ namespace Kratos {
                 }
                 
                 IsInGhostMesh = false;
-                IsInLocalMesh = false;
+//                 IsInLocalMesh = false;
               
                 ContainerType& pMyGhostElements = r_model_part.GetCommunicator().GhostMesh(destination).ElementsArray();
 //                 ContainerType& pMyLocalElements = r_model_part.GetCommunicator().LocalMesh(destination).ElementsArray();

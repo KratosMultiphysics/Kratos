@@ -364,7 +364,7 @@ public:
                     SendPoint[j*NumberOfObjects+i] = 0;
                     if(j != mpi_rank)
                     {
-                        int intersect = TConfigure::IntersectionBox(ThisObjects[i],mMinBoundingBox[j],mMaxBoundingBox[j],Radius[i]);
+//                         int intersect = TConfigure::IntersectionBox(ThisObjects[i],mMinBoundingBox[j],mMaxBoundingBox[j],Radius[i]);
                         
                         if(/*intersect &&*/ ((ThisObjects[i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH)) & (1<<j))) 
                         {

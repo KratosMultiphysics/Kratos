@@ -101,7 +101,6 @@ namespace Kratos
       typedef ModelPart::ConditionsContainerType::ContainerType         ConditionsContainerType;
       
       typedef DiscreteElement                                           ParticleType;
-      typedef Mpi_Neighbours_Calculator<ParticleType>                   NeighboursCalculatorType;
       
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(MpiExplicitSolverStrategy);
@@ -161,8 +160,9 @@ namespace Kratos
     
     virtual void Repart(ModelPart& r_model_part)
     {
+        typedef Mpi_Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
+        
         NeighboursCalculatorType::Parallel_partitioning(r_model_part,true);
-//         InitializeElements(); //TODO: REMOVE
     }
     
     virtual ElementsArrayType& GetElements(ModelPart& r_model_part)
@@ -170,19 +170,22 @@ namespace Kratos
         return r_model_part.GetCommunicator().LocalMesh().Elements();
     }
 
-    //Reminder meu: Deixa aixo aixi que si no es lia amb la redefinicio del Mpi_Neighbours_Calculator
-    virtual void SearchIniNeighbours(ModelPart r_model_part,bool extension_option)
-    {        
+    virtual void SearchIniNeighbours(ModelPart& r_model_part,bool extension_option)
+    { 
+        typedef Mpi_Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
+              
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Ini_Neighbours(r_model_part, extension_option);
-    }
+    }//SearchIniNeighbours
 
 
-    virtual void SearchNeighbours(ModelPart r_model_part,bool extension_option)
+    virtual void SearchNeighbours(ModelPart& r_model_part,bool extension_option)
     {
+        typedef Mpi_Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
+              
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Neighbours(r_model_part, extension_option);
-    }
+    }//SearchNeighbours
 
   
   }; // Class MpiExplicitSolverStrategy  
