@@ -13,6 +13,7 @@ RotaDampId = "*GenData(Rota_Damp_Id)"
 ContactMeshOption = "*GenData(Contact_Mesh_Option)"
 GlobalVariablesOption= "*GenData(Global_Variables_Option)"
 VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
+FailureCriterionOption = "*GenData(Failure_Criterion_Option)"
 *format "%10.5e"
 VirtualMassCoefficient = *GenData(Virtual_Mass_Coefficient)
 *format "%10.5e"
