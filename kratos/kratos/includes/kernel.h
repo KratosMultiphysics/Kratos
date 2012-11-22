@@ -110,16 +110,7 @@ public:
         @see KratosApplication
 
     */
-    Kernel()
-    {
-	std::cout << " |  /           |             " << std::endl;
-	std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
-	std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
-	std::cout << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-	std::cout << "           Multi-Physics 3.1.0" << std::endl;
-
-        mKratosApplication.RegisterVariables();
-    }
+    Kernel();
 
     /// Copy constructor.
     /** This constructor is empty
@@ -152,12 +143,12 @@ public:
         //NewApplication.SetComponents(KratosComponents<VariableData>::pGetComponents(),
         //	KratosComponents<Element>::pGetComponents(),
         //	KratosComponents<Condition>::pGetComponents());
-        KRATOS_WATCH("kernel synchronization in AddApplication");
+        //KRATOS_WATCH("kerneal entered in AddApplication");
         NewApplication.Register();
-        KRATOS_WATCH("Application Registered");
+        //KRATOS_WATCH("Application Registered");
         KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),
                 NewApplication.GetVariables().end());
-        KRATOS_WATCH("Variables   Registered");
+        //KRATOS_WATCH("Variables Registered");
 
         KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<double>("NONE")).end());
@@ -173,10 +164,10 @@ public:
 
         KratosComponents<Element>::GetComponents().insert(NewApplication.GetElements().begin(),
                 NewApplication.GetElements().end());
-        KRATOS_WATCH("Elements    Registered");
+        //KRATOS_WATCH("Elements Registered");
         KratosComponents<Condition>::GetComponents().insert(NewApplication.GetConditions().begin(),
                 NewApplication.GetConditions().end());
-        KRATOS_WATCH("Conditions  Registered");
+        //KRATOS_WATCH("Conditions Registered");
 
         KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<double>("NONE")).end());
@@ -217,6 +208,9 @@ public:
         NewApplication.SetComponents(KratosComponents<VariableData>::GetComponents());
         NewApplication.SetComponents(KratosComponents<Element>::GetComponents());
         NewApplication.SetComponents(KratosComponents<Condition>::GetComponents());
+
+        NewApplication.GetRegisteredObjects().insert(Serializer::GetRegisteredObjects().begin(), Serializer::GetRegisteredObjects().end());
+        NewApplication.GetRegisteredObjectsName().insert(Serializer::GetRegisteredObjectsName().begin(), Serializer::GetRegisteredObjectsName().end());
     }
 
 
@@ -225,30 +219,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "kernel";
-    }
+    virtual std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "kernel";
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-        rOStream << "Variables:" << std::endl;
-        KratosComponents<VariableData>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Elements:" << std::endl;
-        KratosComponents<Element>().PrintData(rOStream);
-        rOStream << std::endl;
-        rOStream << "Conditions:" << std::endl;
-        KratosComponents<Condition>().PrintData(rOStream);
-        rOStream << "Echo Finished" << std::endl;
-    }
+    virtual void PrintData(std::ostream& rOStream) const;
 
     ///@}
 
