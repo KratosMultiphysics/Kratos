@@ -83,7 +83,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/periodic_condition.h"
-
+#include "custom_elements/dpg_vms.h"
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication
@@ -281,6 +281,10 @@ private:
     /// Periodic Condition (implemented using penalization)
     const PeriodicCondition mPeriodicCondition;
 
+    /// 2D instance of the DPGVMS element
+    const DPGVMS<2> mDPGVMS2D;
+    /// 3D instance of the DPGVMS element
+    const DPGVMS<3> mDPGVMS3D;
     ///@}
     ///@name Private Operators
     ///@{
