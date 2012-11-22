@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -93,19 +94,19 @@ class SolverAdvanced:
 
         #self.buildertype="ML3D"
         #self.buildertype="superludist"
-        #self.buildertype="MLdeactivation"
-        self.buildertype="superludist_deactivation"
+        self.buildertype="MLdeactivation"
+        #self.buildertype="superludist_deactivation"
 
         #definition of the solvers
-        #self.structure_linear_solver =  TrilinosLinearSolver()
-        self.solver_parameters = ParameterList()
-        self.preconditioner_parameters = ParameterList()
-        #self.structure_linear_solver =  AmesosSolver("Superludist",self.solver_parameters);
-        self.solver_parameters.set("AZ_solver","AZ_gmres")
-        self.solver_parameters.set("AZ_kspace",100)
-        self.solver_parameters.set("AZ_output",32)
-        self.solver_parameters.set("AZ_precond","AZ_none")
-        self.structure_linear_solver = AztecSolver(self.solver_parameters,"Amesos",self.preconditioner_parameters,1.0e-9,300,1);
+        self.structure_linear_solver =  TrilinosLinearSolver()
+        #self.solver_parameters = ParameterList()
+        #self.preconditioner_parameters = ParameterList()
+        ##self.structure_linear_solver =  AmesosSolver("Superludist",self.solver_parameters);
+        #self.solver_parameters.set("AZ_solver","AZ_gmres")
+        #self.solver_parameters.set("AZ_kspace",100)
+        #self.solver_parameters.set("AZ_output",32)
+        #self.solver_parameters.set("AZ_precond","AZ_none")
+        #self.structure_linear_solver = AztecSolver(self.solver_parameters,"Amesos",self.preconditioner_parameters,1.0e-9,300,1);
 
 
         
@@ -134,9 +135,9 @@ class SolverAdvanced:
             self.time_scheme = TrilinosResidualBasedIncrementalUpdateStaticScheme()
             self.MoveMeshFlag = False
         else:
-            print "ATTENTION!!! not using newmark scheme"
-            self.time_scheme = TrilinosResidualBasedIncrementalUpdateStaticScheme()
-            #self.time_scheme = TrilinosResidualBasedNewmarkScheme(self.damp_factor)
+            #print "ATTENTION!!! not using newmark scheme"
+            #self.time_scheme = TrilinosResidualBasedIncrementalUpdateStaticScheme()
+            self.time_scheme = TrilinosResidualBasedNewmarkScheme(self.damp_factor)
             self.MoveMeshFlag = True
         #definition of the convergence criteria
         self.conv_criteria = TrilinosDisplacementCriteria(1e-6,1e-9,self.Comm)
