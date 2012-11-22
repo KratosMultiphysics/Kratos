@@ -56,7 +56,10 @@ class SolvingStrategyPython:
         elif(builder_and_solver_type == "superludist"):
             self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
         elif(builder_and_solver_type == "MLdeactivation"):
-            self.builder_and_solver = TrilinosBuilderAndSolverMLDeactivation2D(Comm,guess_row_size,3,self.linear_solver)
+            print("constructing builder_and_solver")
+            #self.builder_and_solver = TrilinosBuilderAndSolverMLDeactivation2D(Comm,guess_row_size,3,self.linear_solver)
+            self.builder_and_solver = TrilinosBuilderAndSolverMLDeactivation(Comm,guess_row_size,self.linear_solver)
+            print("builder_and_solver initialized")
         elif(builder_and_solver_type == "superludist_deactivation"):
             self.builder_and_solver = TrilinosResidualBasedBuilderAndSolverDeactivation(Comm,guess_row_size,self.linear_solver)
 
@@ -110,8 +113,8 @@ class SolvingStrategyPython:
         ## CHECK FOR CONTACT CONVERGENCE AMONG ALL PROCESSES
         contact_converged = self.cu.IsConverged( self.model_part, 0, originalPosition, self.Parameters[3] )
         #print("rank "+str(mpi.rank)+": contact converged = "+str(contact_converged) )
-        all_contact_converged = mpi.all_gather( mpi.world, contact_converged )
-        print("in rank "+str(mpi.rank)+": "+str(all_contact_converged) )
+        all_contact_converged = mpi.allgather( mpi.world, contact_converged )
+        print("in rank "+str(mpi.rank)+": all_contact_converged: "+str(all_contact_converged) )
         for flag in all_contact_converged:
             if( flag == False ):
                 contact_converged = False
