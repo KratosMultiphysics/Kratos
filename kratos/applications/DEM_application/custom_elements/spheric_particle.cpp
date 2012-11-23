@@ -785,8 +785,8 @@ namespace Kratos
                          
                 double DYN_FRI_ANG = equiv_FriAngle*M_PI/180; //entrar el valor des de el material de gid
                 
-                double compression_limit        = rCurrentProcessInfo[CONTACT_SIGMA_MAX];
-                double tension_limit            = rCurrentProcessInfo[CONTACT_SIGMA_MIN];
+                double compression_limit        = rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
+                double tension_limit            = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6;
                                        
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
                                      +      LocalContactForce[1] * LocalContactForce[1]); 
@@ -863,7 +863,7 @@ namespace Kratos
 			// Check:
 
 			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
-			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO];
+			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
 			
 			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
 		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
@@ -917,7 +917,7 @@ namespace Kratos
 			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
 
 			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
-			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO];
+			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
 			
 			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
 		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
@@ -938,10 +938,11 @@ namespace Kratos
 			} //positive sigmas
 			else //negative sigmas
 			{
-			    
+				double tau_strength = tau_zero;
+				
 				failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/tension_limit) ;
 				
-				if(contact_tau>tau_zero)
+				if(contact_tau > tau_strength)
 				{
 				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;
 				  sliding = true;
@@ -968,7 +969,7 @@ namespace Kratos
   
                 
 
-            /*    
+   /*             
 ///AIXO ESTA MALAMENT!!!!!!!!!!!!!!!!!!!!!!!!!! (ara farem ini_cont_neigh)
                 //Saving failure to initial neighbour:
                 vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
