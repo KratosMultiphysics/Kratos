@@ -968,7 +968,7 @@ namespace Kratos
   
                 
 
-                
+            /*    
 ///AIXO ESTA MALAMENT!!!!!!!!!!!!!!!!!!!!!!!!!! (ara farem ini_cont_neigh)
                 //Saving failure to initial neighbour:
                 vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
@@ -986,7 +986,7 @@ namespace Kratos
                     }
 
                 }
-
+*/
 
           // VISCODAMPING (applyied locally)
 
