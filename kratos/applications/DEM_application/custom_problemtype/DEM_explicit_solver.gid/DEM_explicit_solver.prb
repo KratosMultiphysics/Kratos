@@ -47,7 +47,7 @@ TITLE: Special Features
 
 QUESTION: Continuum_Option#CB#(ON,OFF)
 VALUE: ON
-DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,Tau_Zero,#CURRENT#,Sigma_Max,#CURRENT#,Sigma_Min,#CURRENT#,Internal_Fricc,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,Tau_Zero,#CURRENT#,Sigma_Max,#CURRENT#,Sigma_Min,#CURRENT#,Internal_Fricc,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#)
 QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Failure_Criterion_Option#CB#(Mohr-Coulomb,Uncoupled)
