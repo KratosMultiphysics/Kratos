@@ -5,7 +5,7 @@ domain_size = 2
 from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-
+from KratosMultiphysics.MeshingApplication import *
 #importing system libraries as needed
 import math
 
@@ -38,13 +38,13 @@ def MoveNodes(moving_nodes,time):
 model_part = ModelPart("FluidPart");  
 
 #importing the solver files
-import incompressible_fluid_solver
+import fractional_step_solver
 print "qui"
 import mesh_solver
 print "li"
 
 #adding of Variables to Model Part should be here when the "very fix container will be ready"
-incompressible_fluid_solver.AddVariables(model_part)
+fractional_step_solver.AddVariables(model_part)
 mesh_solver.AddVariables(model_part)
 
 #reading a model
@@ -67,12 +67,12 @@ print model_part
 model_part.SetBufferSize(3)
 
 #adding Dofs
-incompressible_fluid_solver.AddDofs(model_part)
+fractional_step_solver.AddDofs(model_part)
 mesh_solver.AddDofs(model_part)
 
 
-#creating a fluid solver object
-fluid_solver = incompressible_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
+#creating a fluid solver object 
+fluid_solver = fractional_step_solver.IncompressibleFluidSolver(model_part,domain_size)
 fluid_solver.laplacian_form =1;
 fluid_solver.vel_toll = 1e-3
 fluid_solver.time_order = 2
@@ -127,6 +127,7 @@ for step in range(0,nsteps):
     
     #solving the fluid problem
     if(step > 3):
+        
         MoveNodes(moving_nodes,time)
         mesh_sol.Solve();
         
