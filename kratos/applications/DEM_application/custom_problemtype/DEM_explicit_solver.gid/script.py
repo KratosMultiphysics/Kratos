@@ -141,10 +141,10 @@ if(continuum_option =="ON"):
   elif(failure_criterion_option =="Uncoupled"):
     solver.failure_criterion_OPTION=2
     
-  solver.tau_zero 		= TauZero
-  solver.sigma_max 		= SigmaMax
-  solver.sigma_min 		= SigmaMin
-  solver.internal_fricc 	= InternalFricc
+  solver.tau_zero 		= DEM_explicit_solver_var.TauZero
+  solver.sigma_max 		= DEM_explicit_solver_var.SigmaMax
+  solver.sigma_min 		= DEM_explicit_solver_var.SigmaMin
+  solver.internal_fricc 	= DEM_explicit_solver_var.InternalFricc
   
 solver.search_radius_extension=search_radius_extension
 
