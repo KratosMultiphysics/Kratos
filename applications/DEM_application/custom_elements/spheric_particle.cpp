@@ -138,7 +138,6 @@ namespace Kratos
         {   
             /*
              * 
-             * 
              * ELEMENT_NEIGHBOURS / NEIGHBOURS_IDS: the ones important for calculating forces.
              * INI_NEIGHBOURS_IDS: the ones to be treated specially due to initial delta or continuum case.
              * INI_CONTINUUM_NEIGHBOURS_IDS: only the ones that are continuum at 0 step and we should treat the possible detachment.
@@ -783,14 +782,12 @@ namespace Kratos
                 double contact_sigma = 0.0;
                 
                 double failure_criterion_state = 0.0;
-                
-         
+                         
                 double DYN_FRI_ANG = equiv_FriAngle*M_PI/180; //entrar el valor des de el material de gid
                 
-                double compression_limit        = 33.2e06;//*10000;
-                double tension_limit            = 3.32e06;//*10000;
-                
-                       
+                double compression_limit        = rCurrentProcessInfo[CONTACT_SIGMA_MAX];
+                double tension_limit            = rCurrentProcessInfo[CONTACT_SIGMA_MIN];
+                                       
                 double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
                                      +      LocalContactForce[1] * LocalContactForce[1]); 
                 
@@ -803,6 +800,7 @@ namespace Kratos
                 if ( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0 )
 
                 {
+		    failure_criterion_state = 1.0;
                                                           
                     if( ShearForceNow >  Frictional_ShearForceMax ) 
                     {
@@ -864,10 +862,11 @@ namespace Kratos
 					  
 			// Check:
 
-			double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO];
 			
-			double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-		    
+			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
 		  
 			double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
 			      
@@ -885,8 +884,7 @@ namespace Kratos
 			    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
 						    
 			    //tangential mapping, divide 2 tangent
-			    
-			    
+		    
 			    if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
 					{
 					
@@ -918,13 +916,19 @@ namespace Kratos
 			contact_tau = ShearForceNow/(alpha*equiv_area);
 			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
 
-			double tau_zero = 0.5*sqrt(compression_limit*tension_limit);
-			double Failure_FriAngle = 30*M_PI/180; //atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-									
+			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO];
+			
+			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
+			
 			if (LocalContactForce[2]>=0)
 			{
 				double tau_strength = tau_zero+tan(Failure_FriAngle)*contact_sigma;
 
+				failure_criterion_state = contact_tau/tau_strength;
+												
+				
 				if(contact_tau>tau_strength)
 				{
 				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 2;
@@ -932,8 +936,11 @@ namespace Kratos
 				}
 
 			} //positive sigmas
-			else 
+			else //negative sigmas
 			{
+			    
+				failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/tension_limit) ;
+				
 				if(contact_tau>tau_zero)
 				{
 				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;
