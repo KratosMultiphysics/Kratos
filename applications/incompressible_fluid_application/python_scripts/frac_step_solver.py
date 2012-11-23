@@ -23,7 +23,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS);
 
-    print "variables for the incompressible fluid solver added correctly"
+    print "variables for the frac step fluid solver added correctly"
 
 def AddDofs(model_part):
   
@@ -36,7 +36,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y);
         node.AddDof(VELOCITY_Z);
 
-    print "dofs for the incompressible fluid solver added correctly"
+    print "dofs for the frac step fluid solver added correctly"
     
 
 def ReadRestartFile(FileName,nodes):
@@ -109,7 +109,16 @@ class FracStepSolver:
         self.time_order = int(self.time_order)
         self.domain_size = int(self.domain_size)
         self.predictor_corrector = bool(self.predictor_corrector)
-        self.solver = FracStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
+        self.solver = FracStepStrategy( self.model_part,
+                                        solver_configuration,
+                                        self.ReformDofAtEachIteration,
+                                        self.vel_toll,
+                                        self.press_toll,
+                                        self.max_vel_its,
+                                        self.max_press_its,
+                                        self.time_order,
+                                        self.domain_size,
+                                        self.predictor_corrector)
 
 
         (self.solver).SetEchoLevel(self.echo_level)
