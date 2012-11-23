@@ -15,6 +15,14 @@ GlobalVariablesOption= "*GenData(Global_Variables_Option)"
 VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
 FailureCriterionOption = "*GenData(Failure_Criterion_Option)"
 *format "%10.5e"
+TauZero = *GenData(Tau_Zero)
+*format "%10.5e"
+SigmaMax = *GenData(Sigma_Max)
+*format "%10.5e"
+SigmaMin = *GenData(Sigma_Min)
+*format "%10.5e"
+InternalFricc = *GenData(Internal_Fricc)
+*format "%10.5e"
 VirtualMassCoefficient = *GenData(Virtual_Mass_Coefficient)
 *format "%10.5e"
 bounding_box_enlargement_factor = *GenData(Bounding_Box_Enlargement_Factor)
