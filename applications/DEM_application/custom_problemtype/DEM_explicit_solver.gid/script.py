@@ -127,11 +127,24 @@ solver.force_calculation_type_id=force_calculation_type_id
 if (compute_critical_time =="ON"):
   solver.critical_time_OPTION=1; #xapuza
 
-if(continuum_option =="ON"):
-  solver.continuum_simulating_OPTION=True
-
 if(delta_option =="ON"):
   solver.delta_OPTION=True
+
+if(continuum_option =="ON"):
+  solver.continuum_simulating_OPTION=True
+  
+  if(contact_mesh_option =="ON"):
+    solver.contact_mesh_OPTION=1  #xapuza
+  
+  if(failure_criterion_option =="Mohr-Coulomb"):
+    solver.failure_criterion_OPTION=1 
+  elif(failure_criterion_option =="Uncoupled"):
+    solver.failure_criterion_OPTION=2
+    
+  solver.tau_zero 		= TauZero
+  solver.sigma_max 		= SigmaMax
+  solver.sigma_min 		= SigmaMin
+  solver.internal_fricc 	= InternalFricc
   
 solver.search_radius_extension=search_radius_extension
 
@@ -142,13 +155,7 @@ if(trihedron_option =="ON"):
 if(rotation_spring_option =="ON"):
   solver.rotation_spring_OPTION=1  #xapuza
        
-if(contact_mesh_option =="ON"):
-  solver.contact_mesh_OPTION=1  #xapuza
-  
-if(failure_criterion_option =="Mohr-Coulomb"):
-  solver.failure_criterion_OPTION=1 
-elif(failure_criterion_option =="Uncoupled"):
-  solver.failure_criterion_OPTION=2 
+
        
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
 
