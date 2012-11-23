@@ -285,8 +285,8 @@ public:
 		  const double adim_Nenriched_k_aux =  adim_Nenriched_i_aux * Ni_aux_node5 / Nk_aux_node5 ; //to have a constant value in the interfase at node 5: = N_k_aux_node4 / N_k_aux when adimensionalized
 		  
 		  //for the jump, we will create a shape function that holds a constant difference of 2 along the interfase: 
-		  const double adim_Nenriched_j_aux_b = (1.0 + Nj_aux_node4 * adim_Nenriched_i_aux) / Nj_aux_node4;
-		  const double adim_Nenriched_k_aux_b = (1.0 + Nk_aux_node5 * adim_Nenriched_i_aux) / Nk_aux_node5;
+		  const double adim_Nenriched_j_aux_b = (2.0 - node4_relative_position * adim_Nenriched_i_aux) / Nj_aux_node4;
+		  const double adim_Nenriched_k_aux_b = (2.0 - node5_relative_position * adim_Nenriched_i_aux) / Nk_aux_node5;
 		  
 		 
 		  //value of the shape functions in the interfase
