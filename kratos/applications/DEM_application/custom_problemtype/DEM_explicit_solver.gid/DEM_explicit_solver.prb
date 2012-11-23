@@ -53,12 +53,16 @@ VALUE: OFF
 QUESTION: Failure_Criterion_Option#CB#(Mohr-Coulomb,Uncoupled)
 VALUE: Uncoupled
 QUESTION: Tau_Zero
+HELP:MPa
 VALUE: 5.26
 QUESTION: Sigma_Max
+HELP:MPa
 VALUE: 33.2
 QUESTION: Sigma_Min
+HELP:MPa
 VALUE: 3.32
 QUESTION: Internal_Fricc
+HELP:Degrees
 VALUE: 35
 QUESTION: Delta_Option#CB#(ON,OFF)
 VALUE: OFF
