@@ -63,70 +63,74 @@ class ExplicitStrategy:
     
     def __init__(self,model_part,domain_size):
 
-        self.model_part                     = model_part    
-        self.contact_model_part             = ModelPart("ContactModelPart")
-        self.domain_size                    = domain_size
-        self.damping_ratio                  = 0.00;
-        self.penalty_factor                 = 10.00
-        self.max_delta_time                 = 0.05;
-        self.fraction_delta_time            = 0.90;
-        self.MoveMeshFlag                   = True;
-        self.gravity                        = Vector(3)#(0.0,-9.81,0.0)
+        self.model_part                     	= model_part    
+        self.contact_model_part             	= ModelPart("ContactModelPart")
+        self.domain_size                    	= domain_size
+        self.damping_ratio                  	= 0.00;
+        self.penalty_factor                 	= 10.00
+        self.max_delta_time                 	= 0.05;
+        self.fraction_delta_time            	= 0.90;
+        self.MoveMeshFlag                   	= True;
+        self.gravity                        	= Vector(3)#(0.0,-9.81,0.0)
         self.gravity[0] = 0.0
         self.gravity[1] = -9.81
         self.gravity[2] = 0.0
-        self.delta_time                     = 0.00001;
-        self.virtual_mass_OPTION            = 0; #its 1/0 xapuza
-        self.nodal_mass_coeff               = 0.0;
+        self.delta_time                     	= 0.00001;
+        self.virtual_mass_OPTION            	= 0; #its 1/0 xapuza
+        self.nodal_mass_coeff               	= 0.0;
       
         #type of problem:
 
-        self.critical_time_OPTION           = 0 #its 1/0 xapuza
+        self.critical_time_OPTION           	= 0 #its 1/0 xapuza
 
-        self.delta_OPTION                   = False
-        self.continuum_simulating_OPTION    = False
-        self.case_OPTION                    = 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
-        self.trihedron_OPTION               = 0
+        self.delta_OPTION                   	= False
+        self.continuum_simulating_OPTION    	= False
+        self.case_OPTION                    	= 0  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
+        self.trihedron_OPTION               	= 0
 
-        self.rotation_OPTION                = 0  #its 1/0 xapuza
-        self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
-        self.bounding_box_OPTION            = 0  #its 1/0 xapuza
+        self.rotation_OPTION                	= 0  #its 1/0 xapuza
+        self.rotation_spring_OPTION         	= 0  #its 1/0 xapuza
+        self.bounding_box_OPTION            	= 0  #its 1/0 xapuza
         
-        self.contact_mesh_OPTION            = 0 #its 1/0 xapuza
-        self.failure_criterion_OPTION       = 1 #its 1/0 xapuza
+        self.contact_mesh_OPTION            	= 0 #its 1/0 xapuza
+        self.failure_criterion_OPTION       	= 1 #its 1/0 xapuza
+        self.tau_zero			    	= 0.0
+        self.sigma_max				= 0.0
+        self.sigma_min			    	= 0.0
+        self.internal_fricc			= 0.0
 
         #global parameters
-        self.global_variables_OPTION        = 0 #its 1/0 xapuza
-        self.global_kn                      = 1000.0
-        self.global_kt                      = 1000.0
-        self.global_kr                      = 1000.0
-        self.global_rn                      = 1000.0
-        self.global_rt                      = 1000.0
-        self.global_rr                      = 1000.0
-        self.global_fri_ang                 = 40
+        self.global_variables_OPTION        	= 0 #its 1/0 xapuza
+        self.global_kn                      	= 1000.0
+        self.global_kt                      	= 1000.0
+        self.global_kr                      	= 1000.0
+        self.global_rn                      	= 1000.0
+        self.global_rt                      	= 1000.0
+        self.global_rr                      	= 1000.0
+        self.global_fri_ang                 	= 40
 
         #problem specific parameters
 
-        self.force_calculation_type_id      =1
-        self.damp_id                        =1
-        self.rota_damp_id                   =1
-        self.search_radius_extension        =0.0
+        self.force_calculation_type_id      	= 1
+        self.damp_id                        	= 1
+        self.rota_damp_id                   	= 1
+        self.search_radius_extension        	= 0.0
 
-        self.dummy_switch                   =0
+        self.dummy_switch                   	=0
 
         #problem utilities
-        self.enlargement_factor             = 1;
-        self.n_step_search                  = 1;
-        self.safety_factor                  = 1.0; #for critical time step
+        self.enlargement_factor             	= 1;
+        self.n_step_search                  	= 1;
+        self.safety_factor                  	= 1.0; #for critical time step
 
-        self.create_and_destroy             = particle_destructor_and_constructor();
+        self.create_and_destroy             	= particle_destructor_and_constructor();
         
-        self.use_mpi                        = 0; #MPI Carlos change to 1
+        self.use_mpi                        	= 0; #MPI Carlos change to 1
         
         if(self.use_mpi):
-            self.time_scheme                    = MpiFowardEulerScheme();
+            self.time_scheme                 	= MpiFowardEulerScheme();
         else:
-            self.time_scheme                    = FowardEulerScheme();
+            self.time_scheme                  	= FowardEulerScheme();
 
     ######################################################################
 
@@ -164,7 +168,13 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_OPTION)
+        
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_OPTION)
+	self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
+        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
+        self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
+        self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
+       
        
         #####
 
