@@ -267,8 +267,8 @@ public:
 
         //adding the dynamic contributions (statics is already included)
 
-        AddDynamicsToLHS(LHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
-        AddDynamicsToRHS(rCurrentElement, RHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
+        this->AddDynamicsToLHS(LHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
+        this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
 	
 	//In case of enriched element save the last row of LHS and the last column of RHS and condense the matrices
 	const unsigned int Dim = (rCurrentElement)->GetGeometry().WorkingSpaceDimension();
@@ -360,7 +360,7 @@ public:
 
         //adding the dynamic contributions (static is already included)
 
-        AddDynamicsToRHS(rCurrentElement, RHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
+        this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, BaseType::mDamp[k], BaseType::mMass[k], CurrentProcessInfo);
 
 	//In case of enriched element save the last row of LHS and the last column of RHS and condense the matrices
 	const unsigned int Dim = (rCurrentElement)->GetGeometry().WorkingSpaceDimension();
