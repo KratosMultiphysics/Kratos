@@ -113,8 +113,8 @@ public:
         mWallLawIsActive = false;
         mnumsubsteps=5;
         mmax_dt = 0.0;
-        mcorner_coefficient = 50.0;
-        medge_coefficient = 10.0;
+        mcorner_coefficient = 30.0; //50.0;
+        medge_coefficient = 30.0; //10.0;
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
 //
@@ -714,12 +714,13 @@ public:
                 //                                                std::cout << i_node << "rhs =" << rhs_i << std::endl;
             }
         }
-        /*		for (int i = 0; i < mSlipBoundaryList.size(); i++)
+/*        		for (int i = 0; i < mSlipBoundaryList.size(); i++)
                 {
         			int i_node = mSlipBoundaryList[i];
         			double dist = mdistances[i_node];
                     if (dist <= 0.0) //node is inside domain ---- if outside do nothing
                     {
+						const double& p_i = pressure[i_node];
         				const array_1d<double,3>& Ani = mSlipNormal[i_node];
                         array_1d<double, TDim>& rhs_i = rhs[i_node];
         				array_1d<double, TDim> temp;
@@ -730,10 +731,11 @@ public:
                             unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
         					if(mdistances[j_neighbour] <= 0.0 && mis_slip[j_neighbour] == true)
         					{
-        						const double& p_j = pressure[j_neighbour];
-        						const array_1d<double,3> Anj = mSlipNormal[j_neighbour];
+        						//const double& p_j = pressure[j_neighbour];
+        						array_1d<double,3> Anj = mSlipNormal[j_neighbour];
+								Anj /= norm_2(Anj);
         						for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-        							temp[l_comp] += p_j*Anj[l_comp];
+        							temp[l_comp] += p_i*Anj[l_comp];
         					}
         				}
         				//take out part in the direction of Ani
@@ -743,13 +745,11 @@ public:
         					aux += temp[l_comp]*Ani[l_comp];
         				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
         					temp[l_comp] -= aux *Ani[l_comp] / (Ai*Ai);
-        KRATOS_WATCH(temp);
-        KRATOS_WATCH(rhs_i);
         				for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-        					rhs_i[l_comp] += 0.temp[l_comp];
+        					rhs_i[l_comp] -= 0.25*Ai*temp[l_comp];
         			}
-        		}
-        KRATOS_WATCH("finished**************************************************")		*/
+        		}*/
+ //       KRATOS_WATCH("finished**************************************************")		*/
         //apply wall resistance
         if (mWallLawIsActive == true)
             ComputeWallResistance (vel,diag_stiffness);
@@ -3072,7 +3072,36 @@ private:
                         tau *= mWallReductionFactor[i_node];
                         if (mod_vel > 1e-12)
                             diag_stiffness[i_node] = tau * area / mod_vel;*/
-        //slip condition
+							
+/*		        int slip_size = mSlipBoundaryList.size();
+        #pragma omp parallel for firstprivate(slip_size,B,toll,ym,y_plus_incercept,itmax)
+        for (int i_slip = 0; i_slip < slip_size; i_slip++)
+        {
+            unsigned int i_node = mSlipBoundaryList[i_slip];
+            double dist = mdistances[i_node];
+            if (dist <= 0.0)
+            {
+                double nu = mViscosity[i_node];
+                //array_1d<double, TDim>& rhs_i = rhs[i_node];
+                const array_1d<double, TDim>& U_i = vel[i_node];
+                const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+                //compute the modulus of the velocity
+                double mod_vel = 0.0;
+                double area = 0.0;
+                for (unsigned int comp = 0; comp < TDim; comp++)
+                {
+                    mod_vel += U_i[comp] * U_i[comp];
+                    area += an_i[comp] * an_i[comp];
+                }
+                mod_vel = sqrt (mod_vel);
+                area = sqrt (area);
+                diag_stiffness[i_node] = area * mod_vel /pow(1.0/k*log(100) + B,2) * mWallReductionFactor[ i_node ];
+            }
+            else
+                diag_stiffness[i_node] = 0.0;
+        }*/
+        
+		//slip condition
         int slip_size = mSlipBoundaryList.size();
         #pragma omp parallel for firstprivate(slip_size,B,toll,ym,y_plus_incercept,itmax)
         for (int i_slip = 0; i_slip < slip_size; i_slip++)
@@ -3095,7 +3124,8 @@ private:
                 }
                 mod_vel = sqrt (mod_vel);
                 area = sqrt (area);
-                diag_stiffness[i_node] = area * nu / (ym ) * mWallReductionFactor[ i_node ] ;
+				//the 0.1 is such that the dissipation is as for the linear case for a velocity of 10m/s
+                diag_stiffness[i_node] = 0.1 * area * nu * mod_vel/ (ym ) * mWallReductionFactor[ i_node ] ;
             }
             else
                 diag_stiffness[i_node] = 0.0;
