@@ -142,7 +142,7 @@ class MonolithicSolver:
         self.rho1 = 2300.0 #applied on the negative part of the domain 1000.0
         self.conductivity1 = 1.0
         
-        self.rho2 = 1.0 #applied to the positive part of the domain#1.0
+        self.rho2 = 10.0 #applied to the positive part of the domain#1.0
         self.conductivity2 = 1.0 
         
 	self.mu   = 1.0e-3
@@ -172,8 +172,10 @@ class MonolithicSolver:
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
-        mu1 = self.mu/self.rho1
-        mu2 = self.mu/self.rho2
+##        mu1 = self.mu/self.rho1
+        mu1 = 0.001
+##        mu2 = self.mu/self.rho2
+        mu2 = 0.001
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
             if(dist < 0):
