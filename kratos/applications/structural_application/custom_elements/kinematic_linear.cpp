@@ -687,7 +687,7 @@ void KinematicLinear::GetSecondDerivativesVector( Vector& values, int Step )
 /**
 * returns the used integration method
 */
-KinematicLinear::IntegrationMethod KinematicLinear::GetIntegrationMethod()
+KinematicLinear::IntegrationMethod KinematicLinear::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

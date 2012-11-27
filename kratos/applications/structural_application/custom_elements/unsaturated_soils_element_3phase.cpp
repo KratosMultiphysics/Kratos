@@ -3706,7 +3706,7 @@ void UnsaturatedSoilsElement_3phase::SetValueOnIntegrationPoints(const Variable<
     }
 }
 
-UnsaturatedSoilsElement_3phase::IntegrationMethod UnsaturatedSoilsElement_3phase::GetIntegrationMethod()
+UnsaturatedSoilsElement_3phase::IntegrationMethod UnsaturatedSoilsElement_3phase::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

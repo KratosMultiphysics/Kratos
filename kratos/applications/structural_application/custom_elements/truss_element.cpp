@@ -264,7 +264,7 @@ void TrussElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 // returns the used integration method
 //************************************************************************************
 //************************************************************************************
-TrussElement::IntegrationMethod TrussElement::GetIntegrationMethod()
+TrussElement::IntegrationMethod TrussElement::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_1;
 }

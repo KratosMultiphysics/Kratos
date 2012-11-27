@@ -620,7 +620,7 @@ void MixedLagrangian::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrent
     KRATOS_CATCH( "" )
 }
 
-MixedLagrangian::IntegrationMethod MixedLagrangian::GetIntegrationMethod()
+MixedLagrangian::IntegrationMethod MixedLagrangian::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

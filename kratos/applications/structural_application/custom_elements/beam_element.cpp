@@ -970,7 +970,7 @@ void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3>
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
 }
-IntegrationMethod  BeamElement::GetIntegrationMethod()
+IntegrationMethod  BeamElement::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_3;
 }

@@ -530,7 +530,7 @@ void DynamicVMS<TDim>::SetValueOnIntegrationPoints(const Variable<double> &rVari
 }
 
 template< unsigned int TDim >
-GeometryData::IntegrationMethod DynamicVMS<TDim>::GetIntegrationMethod()
+GeometryData::IntegrationMethod DynamicVMS<TDim>::GetIntegrationMethod() const
 {
     return this->mIntegrationMethod;
 }

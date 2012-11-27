@@ -604,7 +604,7 @@ public:
      * method is used the method has to be overwritten within the element
      * @return default integration method of the used Geometry
      */
-    virtual IntegrationMethod GetIntegrationMethod()
+    virtual IntegrationMethod GetIntegrationMethod() const
     {
         return mpGeometry->GetDefaultIntegrationMethod();
     }

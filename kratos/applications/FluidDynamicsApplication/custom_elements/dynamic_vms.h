@@ -219,8 +219,8 @@ public:
      * @param pProperties: the properties assigned to the new element.
      * @return a Pointer to the new element.
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-                            PropertiesType::Pointer pProperties) const;
+    virtual Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
+                                    PropertiesType::Pointer pProperties) const;
 
     /// Initialize containters for subscales on integration points.
     virtual void Initialize();
@@ -341,7 +341,7 @@ public:
     /// Accessor to the integration method.
     /** GiDIO uses it to determine the number of Gauss Points on each element.
      */
-    virtual GeometryData::IntegrationMethod GetIntegrationMethod();
+    virtual GeometryData::IntegrationMethod GetIntegrationMethod() const;
 
     ///@}
     ///@name Inquiry

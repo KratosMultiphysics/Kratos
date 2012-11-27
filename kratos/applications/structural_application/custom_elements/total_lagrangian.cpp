@@ -645,7 +645,7 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    TotalLagrangian::IntegrationMethod TotalLagrangian::GetIntegrationMethod()
+    TotalLagrangian::IntegrationMethod TotalLagrangian::GetIntegrationMethod() const
     {
         return mThisIntegrationMethod;
     }
