@@ -391,7 +391,67 @@ public:
     }    
     //*************************************************************************************
     //*************************************************************************************
+        /** functions totally analogous to the precedent but applied to
+        the "condition" objects
+         */
+        virtual void Condition_CalculateSystemContributions(Condition::Pointer rCurrentCondition,
+                                                            LocalSystemMatrixType& LHS_Contribution,
+                                                            LocalSystemVectorType& RHS_Contribution,
+                                                            Element::EquationIdVectorType& EquationId,
+                                                            ProcessInfo& CurrentProcessInfo)
+        {
+            KRATOS_TRY
+            int k = OpenMPUtils::ThisThread();
 
+            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
+            (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
+            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
+
+
+            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+
+            // Rotate contributions (to match coordinates for slip conditions)
+            mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+            mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+
+            KRATOS_CATCH("")
+        }
+
+        virtual void Condition_Calculate_RHS_Contribution(Condition::Pointer rCurrentCondition,
+                                                          LocalSystemVectorType& RHS_Contribution,
+                                                          Element::EquationIdVectorType& EquationId,
+                                                          ProcessInfo& rCurrentProcessInfo)
+        {
+            KRATOS_TRY;
+
+            int k = OpenMPUtils::ThisThread();
+
+            //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
+            //Initializing the non linear iteration for the current condition
+            (rCurrentCondition) -> InitializeNonLinearIteration(rCurrentProcessInfo);
+
+            //basic operations for the element considered
+            (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(mMass[k],rCurrentProcessInfo);
+            //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
+            (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
+
+            //adding the dynamic contributions (static is already included)
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
+
+            // Rotate contributions (to match coordinates for slip conditions)
+            mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
+            mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+
+            KRATOS_CATCH("");
+        }
 
     /*@} */
     /**@name Operations */
