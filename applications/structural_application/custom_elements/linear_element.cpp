@@ -638,7 +638,7 @@ void LinearElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentPr
     KRATOS_CATCH( "" )
 }
 
-LinearElement::IntegrationMethod LinearElement::GetIntegrationMethod()
+LinearElement::IntegrationMethod LinearElement::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

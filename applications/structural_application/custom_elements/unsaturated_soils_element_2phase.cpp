@@ -2515,7 +2515,7 @@ void UnsaturatedSoilsElement_2phase::SetValueOnIntegrationPoints(const Variable<
     }
 }
 
-UnsaturatedSoilsElement_2phase::IntegrationMethod UnsaturatedSoilsElement_2phase::GetIntegrationMethod()
+UnsaturatedSoilsElement_2phase::IntegrationMethod UnsaturatedSoilsElement_2phase::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

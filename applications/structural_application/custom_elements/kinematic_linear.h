@@ -134,7 +134,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    IntegrationMethod GetIntegrationMethod();
+    IntegrationMethod GetIntegrationMethod() const;
 
     Element::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 

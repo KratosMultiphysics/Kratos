@@ -3436,7 +3436,7 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( co
     }
 }
 
-UnsaturatedSoilsElement_3phase_SmallStrain::IntegrationMethod UnsaturatedSoilsElement_3phase_SmallStrain::GetIntegrationMethod()
+UnsaturatedSoilsElement_3phase_SmallStrain::IntegrationMethod UnsaturatedSoilsElement_3phase_SmallStrain::GetIntegrationMethod() const
 {
     return mThisIntegrationMethod;
 }

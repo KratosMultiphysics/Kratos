@@ -124,7 +124,7 @@ public:
                                       std::vector<array_1d<double,3> >& rValues,
                                       const ProcessInfo& rCurrentProcessInfo);
 
-    IntegrationMethod GetIntegrationMethod();
+    IntegrationMethod GetIntegrationMethod() const;
 
     //************************************************************************************
     //************************************************************************************
