@@ -11,7 +11,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(GROUP_ID)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(RHS)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
