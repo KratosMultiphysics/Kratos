@@ -659,12 +659,8 @@ namespace Kratos
                 array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
                 array_1d<double, 3 > other_delta_displ      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
 
-                array_1d<double, 3 > delta_vel            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_VELOCITY);
-                array_1d<double, 3 > other_delta_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_VELOCITY);
-
                 double DeltDisp[3] = {0.0};
                 double RelVel [3] = {0.0};
-                double DeltRelVel[3] = {0.0};//Ignasi
 
                 RelVel[0] = (vel[0] - other_vel[0]);
                 RelVel[1] = (vel[1] - other_vel[1]);
@@ -675,12 +671,6 @@ namespace Kratos
                 DeltDisp[0] = (delta_displ[0] - other_delta_displ[0]);
                 DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
                 DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
-
-                //DeltRelVel in global cordinates
-
-                DeltRelVel[0] = delta_vel[0] - other_delta_vel[0];
-                DeltRelVel[1] = delta_vel[1] - other_delta_vel[1];
-                DeltRelVel[2] = delta_vel[2] - other_delta_vel[2];
  
                 if ( rotation_OPTION == 1 )
                 {
@@ -708,7 +698,6 @@ namespace Kratos
                 }//if rotation_OPTION
 
                 double LocalDeltDisp[3] = {0.0};
-                double LocalDeltRelVel[3] = {0.0};//Ignasi
                 double LocalContactForce[3]  = {0.0};
                 double GlobalContactForce[3] = {0.0};
                 double LocalRelVel[3] = {0.0};
@@ -720,7 +709,6 @@ namespace Kratos
                 GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2];
 
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
-                GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltRelVel, LocalDeltRelVel);//Ignasi
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
                 GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
