@@ -298,9 +298,7 @@ public:
 		 rGradientsValue[0](0,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux+DN_DX(k_aux,1)*adim_Nenriched_k_aux;		  //	      i   j,k				 i    j,k
 		 
 		 rGradientsValue[0](1,0)=DN_DX(j_aux,0)*adim_Nenriched_j_aux_b+DN_DX(k_aux,0)*adim_Nenriched_k_aux_b;                 //the shape function are: 1:   ___/\____       2:	    ___/ ___ 
-		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux_b+DN_DX(k_aux,1)*adim_Nenriched_k_aux_b;				//															/
-		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_j_aux+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_k_aux;
-		 NEnriched(0,1)=NEnriched(0,0);  
+		 rGradientsValue[0](1,1)=DN_DX(j_aux,1)*adim_Nenriched_j_aux_b+DN_DX(k_aux,1)*adim_Nenriched_k_aux_b;				//															/  
 		 //now we must calculate the position of the new nodes to get the area.
 		 coord_subdomain(0,0)=rPoints(i_aux,0);
 		 coord_subdomain(0,1)=rPoints(i_aux,1);
@@ -320,6 +318,8 @@ public:
 		 rGPShapeFunctionValues(0,0)=N(0);
 		 rGPShapeFunctionValues(0,1)=N(1);
 		 rGPShapeFunctionValues(0,2)=N(2);
+		 NEnriched(0,0)=rGPShapeFunctionValues(0,j_aux)*adim_Nenriched_j_aux+rGPShapeFunctionValues(0,k_aux)*adim_Nenriched_k_aux;
+		 NEnriched(0,1)=NEnriched(0,0);
 		 //KRATOS_WATCH(rVolumes(0));
 		 
 		 //now the face area(actually it's just the distance from point 4 to 5.
@@ -350,8 +350,7 @@ public:
 		 rGradientsValue[1](1,0)= -rGradientsValue[1](0,0);
 		 rGradientsValue[1](1,1)= -rGradientsValue[1](0,1);
 		 
-		 NEnriched(1,0) = rGPShapeFunctionValues(1,0)*adim_Nenriched_i_aux;
-		 NEnriched(1,1) = -NEnriched(1,0);    
+ 
 		 //now we must calculate the position of the new nodes to get the area.
 		 //coord_subdomain = rPoints; //easier to start this way. node 2 is already ok.
 		 coord_subdomain(0,0) = rPoints(j_aux,0);
@@ -372,6 +371,8 @@ public:
 		 rGPShapeFunctionValues(1,0)=N(0);
 		 rGPShapeFunctionValues(1,1)=N(1);
 		 rGPShapeFunctionValues(1,2)=N(2);
+		 NEnriched(1,0) = rGPShapeFunctionValues(1,i_aux)*adim_Nenriched_i_aux;
+		 NEnriched(1,1) = -NEnriched(1,0);   
 		 /*
 		 KRATOS_WATCH(rVolumes(1)); 
 		 		 KRATOS_WATCH(coord_subdomain(0,0));
@@ -400,8 +401,7 @@ public:
 		 rGradientsValue[2](1,0)= -rGradientsValue[2](0,0);
 		 rGradientsValue[2](1,1)= -rGradientsValue[2](0,1);
 		 
-		 NEnriched(2,0)= rGPShapeFunctionValues(1,0)*adim_Nenriched_i_aux;
-		 NEnriched(2,1)= -NEnriched(2,0);
+
 
 		 coord_subdomain(0,0) = rPoints(j_aux,0);
 		 coord_subdomain(0,1) = rPoints(j_aux,1);
@@ -418,6 +418,8 @@ public:
 		 rGPShapeFunctionValues(2,0)=N(0);
 		 rGPShapeFunctionValues(2,1)=N(1);
 		 rGPShapeFunctionValues(2,2)=N(2);
+		 NEnriched(2,0)= rGPShapeFunctionValues(2,i_aux)*adim_Nenriched_i_aux;
+		 NEnriched(2,1)= -NEnriched(2,0);
 		 
 		 /*
 			KRATOS_WATCH(rVolumes(2)); 
