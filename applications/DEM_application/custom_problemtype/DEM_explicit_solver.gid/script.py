@@ -317,8 +317,9 @@ list_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Lists'
 neigh_list_path  = str(main_path)+'/'+str(input_file_name)+'_Neigh_Lists'
 data_and_results = str(main_path)+'/'+str(input_file_name)+'_Results_and_Data'
 graphs_path	 = str(main_path)+'/'+str(input_file_name)+'_Graphs'	
+MPI_results    = str(main_path)+'/'+str(input_file_name)+'_MPI_results'	
 
-for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path]:
+for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
   if not os.path.isdir(directory):
     
@@ -397,11 +398,13 @@ for element in solid_model_part.Elements:
     d=0.15
     eps=2
 	
-    if ( (x*x+y*y)>=((d/2-eps*r)*(d/2-eps*r)) or z<=eps*r or z>=(h-eps*r) ): #For a tube test with the center of the base at (0,0,0) and with the axis z normal to the base
+    if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) or y<=eps*r or y>=(h-eps*r) ): #For a cylinder test with the center of the base at (0,0,0) and with the axis y normal to the base
 	element.SetValue(SKIN_SPHERE,1)
-
+    
+    velocity_node_y = 0.0
+    
 for node in force_measurement:
-    velocity_node_z = node.GetSolutionStepValue(VELOCITY_Z,0) #Applied velocity during the uniaxial compression test
+    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
 while(time < final_time):
   
@@ -428,14 +431,18 @@ while(time < final_time):
 	
 	
 	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
-	total_force += force_node_z
+	total_force += force_node_y
 
 
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
     total_stress = total_force/(math.pi*75*75) #Stress in MPa
     stresslist.append(total_stress)
-    strain += -velocity_node_z*dt/0.3
-    strainlist.append(strain)
+
+    #For a test tube of height 30 cm
+    if(continuum_option =="ON"):
+      strain += -velocity_node_y*dt/0.3
+      strainlist.append(strain)
+
 	   
     #writing lists to be printed
     forcelist.append(total_force)
@@ -451,7 +458,7 @@ while(time < final_time):
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 
-	total_force += force_node_z
+	total_force += force_node_y
     
     
     #writing lists to be printed
