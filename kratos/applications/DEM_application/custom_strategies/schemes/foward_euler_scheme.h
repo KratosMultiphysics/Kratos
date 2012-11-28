@@ -102,13 +102,11 @@ namespace Kratos
                   array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
                   array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
                   array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-                  array_1d<double, 3 > & delta_vel       = i->FastGetSolutionStepValue(DELTA_VELOCITY);
                   array_1d<double, 3 > & coor            = i->Coordinates();
                   array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
 
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  double vel_old[3] = {0.0};
 
                   aux = delta_t / mass;
 
@@ -121,7 +119,6 @@ namespace Kratos
 	   
                   if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
                   {    
-                      vel_old[0] = vel[0];
                       vel[0] += aux * force[0];
                  
                       delta_displ[0] = delta_t * vel[0];	         
@@ -129,7 +126,6 @@ namespace Kratos
 
                       coor[0] = initial_coor[0] + displ[0];
                  
-                      delta_vel[0] = vel[0] - vel_old[0];
                   }
                   else
                   {
@@ -138,12 +134,10 @@ namespace Kratos
 
                       coor[0] = initial_coor[0] + displ[0];
                  
-                      delta_vel[0] = 0.0;
                   }
                   
                   if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
                   {
-                      vel_old[1] = vel[1];
                       vel[1] += aux * force[1];
 
                       delta_displ[1] = delta_t * vel[1];
@@ -151,7 +145,6 @@ namespace Kratos
 
                       coor[1] = initial_coor[1] + displ[1];
                       
-                      delta_vel[1] = vel[1] - vel_old[1];
                   }
                   else
                   {
@@ -160,12 +153,10 @@ namespace Kratos
 
                       coor[1] = initial_coor[1] + displ[1];
                       
-                      delta_vel[1] = 0.0;
                   }
                   
                   if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
                   {
-                      vel_old[2] = vel[2];
                       vel[2] += aux * force[2];
 
                       delta_displ[2] = delta_t * vel[2];
@@ -173,7 +164,6 @@ namespace Kratos
 
                       coor[2] = initial_coor[2] + displ[2];
                       
-                      delta_vel[2] = vel[2] - vel_old[2];
                   }
                   else
                   {
@@ -182,7 +172,6 @@ namespace Kratos
 
                       coor[2] = initial_coor[2] + displ[2];
                       
-                      delta_vel[2] = 0.0;
                   }
               }
           }
