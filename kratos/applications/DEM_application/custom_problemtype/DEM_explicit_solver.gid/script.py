@@ -383,6 +383,26 @@ gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
 
 os.chdir(main_path)
 
+#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+    
+for element in solid_model_part.Elements:
+	
+    element.SetValue(SKIN_SPHERE,0)
+    node = element.GetNode(0)
+    x = node.X
+    y = node.Y
+    z = node.Z
+    r = node.GetSolutionStepValue(RADIUS,0)
+    h=0.3
+    d=0.15
+    eps=2
+	
+    if ( (x*x+y*y)>=((d/2-eps*r)*(d/2-eps*r)) or z<=eps*r or z>=(h-eps*r) ): #For a tube test with the center of the base at (0,0,0) and with the axis z normal to the base
+	element.SetValue(SKIN_SPHERE,1)
+
+for node in force_measurement:
+    velocity_node_z = node.GetSolutionStepValue(VELOCITY_Z,0) #Applied velocity during the uniaxial compression test
+
 while(time < final_time):
   
   
@@ -408,20 +428,15 @@ while(time < final_time):
 	
 	
 	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
-	total_force += force_node_y
+	total_force += force_node_z
 
 
-    #For a test tube with a 15 cm diameter
+    #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
     total_stress = total_force/(math.pi*75*75) #Stress in MPa
     stresslist.append(total_stress)
-
-
-    #For a test tube of height 30 cm
-    #strain += -solid_model_part.Nodes[1].GetSolutionStepValue(VELOCITY_Y,0)*dt/0.3 #For this project the particle number 1 has fixed velocity
-    strain = 0.0
+    strain += -velocity_node_z*dt/0.3
     strainlist.append(strain)
 	   
-
     #writing lists to be printed
     forcelist.append(total_force)
     timelist.append(time)
@@ -436,7 +451,7 @@ while(time < final_time):
 	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
 	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 
-	total_force += force_node_y
+	total_force += force_node_z
     
     
     #writing lists to be printed
@@ -489,6 +504,20 @@ while(time < final_time):
     
     if(time_to_print >= DEM_explicit_solver_var.output_dt):
     
+	os.chdir(graphs_path)
+
+	#Drawing graph stress_strain:
+
+	clf()
+	plot(strainlist,stresslist,'b-')
+	grid(True)
+	title('Stress - Strain')
+	xlabel('Strain')
+	ylabel('Stress (MPa)')
+	savefig('Stress_strain') 
+
+	os.chdir(main_path)	   	   
+
 	if(2<3): #printing neighbours id's
 	  
    
@@ -600,22 +629,6 @@ while(time < final_time):
            
 	time_old_print = time
     
-    #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
-    for element in solid_model_part.Elements:
-	
-	element.SetValue(SKIN_SPHERE,0)
-	node = element.GetNode(0)
-	x = node.X
-	y = node.Y
-	z = node.Z
-	r = node.GetSolutionStepValue(RADIUS,0)
-	h=0.3
-	d=0.15
-	eps=2
-	
-	if ( (((d/2-eps*r)*(d/2-eps*r))<=(x*x+z*z)<=(eps*d/2*eps*d/2)) or (-0.1<=y<=eps*r) or (h-eps*r<=y<=h*eps) ): #For a tube test with the center of the base at (0,0,0)
-           element.SetValue(SKIN_SPHERE,1)
 
     os.chdir(main_path)
     
@@ -657,17 +670,13 @@ if (1<2):
   #legend(('force'))
   savefig('Grafic_1')
 
-if (1<2):
-  clf()
-  plot(strainlist,stresslist,'b-')
-  grid(True)
-  title('Stress - Strain')
-  xlabel('Strain')
-  ylabel('Stress (MPa)')
-  #xlim(0.0,70000)
-  #ylim(-5.0,103870403.214)
-  #legend(('force'))
-  savefig('stress_strain')
+clf()
+plot(strainlist,stresslist,'b-')
+grid(True)
+title('Stress - Strain')
+xlabel('Strain')
+ylabel('Stress (MPa)')
+savefig('Stress_strain')
   
 if (1<2):
   clf()
