@@ -1,9 +1,15 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosExternalSolversApplication ****")
-# add_definitions( -DTETGEN143 )
-# add_definitions( -DTETLIBRARY )
-# 
+
+if(${INCLUDE_PASTIX} MATCHES ON)
+	set(${EXCLUDE_ITSOL} ON)
+	message("************************** ITSOL NOT COMPILED AS IT IS INCOMPATIBLE WITH PASTIX **************** ")
+endif(${INCLUDE_PASTIX} MATCHES ON)
+
+
+
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/SuperLU_4.3 )
 

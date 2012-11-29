@@ -83,8 +83,8 @@ void  AddLinearSolversToPython()
 #ifdef INCLUDE_PASTIX
     typedef PastixSolver<SpaceType,  LocalSpaceType> PastixSolverType;
     class_<PastixSolverType, bases<LinearSolverType>, boost::noncopyable >
-    ( "PastixSolver",init<int>() )
-    .def(init<double,int,int,int>())
+    ( "PastixSolver",init<int,bool>() )
+    .def(init<double,int,int,int,bool>())
     ;
 #endif
 

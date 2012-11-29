@@ -63,30 +63,79 @@ void CompRow_to_CompCol(int m, int n, int nnz,
 	free(marker);
 }
 
+int CompressCSCinFortranNumbering(int n, int ndof,
+				 pastix_float_t **at, pastix_int_t **rowind, pastix_int_t **colptr
+				)
+{
+	int nblocks = n/ndof;
+	int nnz = (*colptr)[n]-1;
+	int nnz_blocks = nnz/(ndof*ndof);
+	int i,j,k;
+	int v,r,c,ai,aj,nzb,offset,aii,l;
+	
+	pastix_float_t *bv      = (pastix_float_t *)malloc(sizeof(pastix_float_t)*(nnz));
+	pastix_int_t *br      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(nnz_blocks));
+	pastix_int_t *bc      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(nblocks+1));
+	
+	v = 0;
+	r = 0;
+	c = 1;
+	
+	for(j=0; j<nblocks; j++)
+	{
+		aj = j*ndof;
+		nzb = ((*colptr)[(aj+1)] - (*colptr)[aj])/ndof;
+		
+		for(i=0; i<nzb;i++)
+		{
+			ai = (*colptr)[aj]  - 1 + i*ndof ;
+			offset = nzb * ndof;
+			for(k = 0; k<ndof; k++)
+			{
+				aii = ai+k*offset;
+				for(l = 0; l<ndof; l++)
+				{	
+					bv[v] = (*at)[aii+l];
+					v += 1;
+				}
+			}
+			br[r] = (*rowind)[ai]/ndof + 1;
+			r += 1;
+		}
+		bc[j] = c;
+		c += nzb;
+	}
+	bc[nblocks] = c;
+	
+	//free data that is not needed anymore
+	free(*at);
+	free(*rowind);
+	free(*colptr);
+	
+	//do pointer swap
+	*at = bv;
+	*rowind = br;
+	*colptr = bc;
+	
+	return nblocks;
+	
+}
+
 
 //int solvePASTIX(int echo_level,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double *x, double* b)
 int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, size_t* JA, double *x, double* b, int m_gmres, 
-				double tol, int incomplete, int ilu_level_of_fill )
+				double tol, int incomplete, int ilu_level_of_fill, int ndof, int symmetric )
 {
-
-//	printf("000\n");
 	pastix_data_t  *pastix_data = NULL; /* Pointer to a storage structure needed by pastix           */
 	pastix_int_t    ncol = mat_size;               /* Size of the matrix                                        */
 	pastix_int_t   *rows      = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(nnz));  /* Indexes of first element of each column in row and values */
 	pastix_int_t   *colptr        = (pastix_int_t *)malloc(sizeof(pastix_int_t)*(mat_size+1));   /* Row of each element of the matrix                         */
 	pastix_float_t *values      = (pastix_float_t *)malloc(sizeof(pastix_float_t)*(nnz));   /* Value of each element of the matrix                       */
 	pastix_float_t *rhs         = (pastix_float_t *)malloc(sizeof(pastix_float_t)*mat_size);  /* right hand side                                           */
-//	pastix_float_t *rhssaved    = NULL; /* right hand side (save)                                    */
-//	pastix_float_t *ax          = NULL; /* A times X product                                         */
 	pastix_int_t    iparm[IPARM_SIZE];  /* integer parameters for pastix                             */
 	double          dparm[DPARM_SIZE];  /* floating parameters for pastix                            */
 	pastix_int_t   *perm        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Permutation tabular                                       */
 	pastix_int_t   *invp        = (pastix_int_t *)malloc((ncol+1)*sizeof(pastix_int_t)); /* Reverse permutation tabular                               */
-//		char           *type        = NULL; /* type of the matrix                                        */
-//		char           *rhstype     = NULL; /* type of the right hand side                               */
-//	pastix_int_t             mpid = 0;
-//		driver_type_t  *driver_type;        /* Matrix driver(s) requested by user                        */
-//	pastix_int_t             nbmatrices = 1;         /* Number of matrices given by user                          */
 	pastix_int_t             nbthread = omp_get_max_threads();           /* Number of thread wanted by user                           */
 	pastix_int_t             verbosemode = verbosity;        /* Level of verbose mode (0, 1, 2)                           */
  	int             ordering = API_ORDER_SCOTCH;           /* Ordering to use                                           */
@@ -95,18 +144,24 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	int             level_of_fill = ilu_level_of_fill; //6;      /* Level of fill for incomplete factorisation                */
 	int             amalgamation = 25;       /* Level of amalgamation for Kass                            */
 	//int             ooc = 2000;                /* OOC limit (Mo/percent depending on compilation options)   */
-	pastix_int_t    mat_type = API_SYM_NO;
+	pastix_int_t    mat_type;
 //	int j;
 //		long            i;
 //		double norme1, norme2;
 	int i;
 //	printf("aaa\n");
+
+	if(symmetric == 0)
+		 mat_type = API_SYM_NO;
+	else
+		 mat_type = API_SYM_YES;
 	
 /*	memset(colptr,0,(mat_size+1)*sizeof(pastix_int_t));
 	memset(rows,0,(nnz)*sizeof(pastix_int_t));*/
 	
 	//compute the transpose
    	CompRow_to_CompCol(mat_size, mat_size, nnz,AA, JA, IA,&values, &rows, &colptr);
+	
 
 /*	FILE *fp_columns;
 	fp_columns=fopen("columns.txt", "w");
@@ -148,7 +203,11 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	                                API_YES,
 	                                ncol, &colptr, &rows, &values, NULL, 1))
 		return 1;
-
+		
+	//copy to block format if needed
+	if(ndof > 1)
+		CompressCSCinFortranNumbering(mat_size,ndof,&values, &rows, &colptr);
+	
 	//copy b to the solution. It will be overwritten
 	for(i = 0; i < mat_size; i++)
 		x[i] = b[i];
@@ -181,7 +240,7 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	iparm[IPARM_MATRIX_VERIFICATION] = API_NO;
 	iparm[IPARM_VERBOSE]             = verbosemode;
  	iparm[IPARM_ORDERING]            = ordering;
-	
+	iparm[IPARM_DOF_NBR] = ndof;
 	if(incomplete == 1)
 		iparm[IPARM_INCOMPLETE]          = API_YES; 
 	else if(incomplete == 0)
@@ -214,7 +273,7 @@ int solvePASTIX(int verbosity,int mat_size, int nnz, double* AA, size_t* IA, siz
 	/*******************************************/
 	//note that we pass "x" instead of the rhs
 	pastix(&pastix_data, 0,
-	       ncol, colptr, rows, values,
+	       ncol/ndof, colptr, rows, values,
 	       perm, invp, x, nbrhs, iparm, dparm);
 
 //		PRINT_RHS("SOL", rhs, ncol, mpid, iparm[IPARM_VERBOSE]);
