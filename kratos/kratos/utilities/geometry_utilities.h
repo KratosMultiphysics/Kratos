@@ -257,6 +257,7 @@ public:
 		if(number_of_intersection_points == 0)
 		{
 			std::cout << "Warning: The intersection with interface hasn't found!" << std::endl;
+			std::cout << "Warning: The distances are: " << Distances << std::endl;
 		}
 		else if(number_of_intersection_points == 1)
 		{ // There is one point with zero distance. The distance of the nodes are their distance to this point
