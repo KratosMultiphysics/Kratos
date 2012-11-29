@@ -512,7 +512,7 @@ public:
 
             this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 
-            double Dt =  rCurrentProcessInfo[DELTA_TIME];
+           // double Dt =  rCurrentProcessInfo[DELTA_TIME];
     
             this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss,Nenriched(igauss, 0),gauss_gradients[igauss]);
 //             if (ndivisions > 1)
