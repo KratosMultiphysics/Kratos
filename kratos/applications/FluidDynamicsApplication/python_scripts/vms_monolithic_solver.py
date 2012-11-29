@@ -122,8 +122,10 @@ class MonolithicSolver:
                                 self.move_mesh_strategy,\
                                 self.domain_size,\
                                 self.turbulence_model)
+								
+	builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 	
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.compute_reactions, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.compute_reactions, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         self.solver.Check()
 
