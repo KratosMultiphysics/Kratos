@@ -183,24 +183,27 @@ public:
 		int node_id;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
 		{
-			unsigned int id = it->Id();
-			if(id != old_node_id)
-			{
-				old_node_id = id;
-				if(old_ndof == -1) old_ndof = ndof;
-				else if(old_ndof != ndof) //if it is different than the block size is 1
-				{
-					old_ndof = -1;
-					break;
-				}
-				
-				ndof=1;
-			}
-			else
-			{
-				ndof++;
-			}
 			
+			if(it->EquationId() < rA.size1() )
+			{
+				unsigned int id = it->Id();
+				if(id != old_node_id)
+				{
+					old_node_id = id;
+					if(old_ndof == -1) old_ndof = ndof;
+					else if(old_ndof != ndof) //if it is different than the block size is 1
+					{
+						old_ndof = -1;
+						break;
+					}
+					
+					ndof=1;
+				}
+				else
+				{
+					ndof++;
+				}
+			}
 		}
 		
 		if(old_ndof == -1) 
