@@ -71,6 +71,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/constitutive_law.h"
 
 #include "custom_elements/total_lagrangian.h"
+#include "custom_elements/total_lagrangian_vel.h"
 //#include "custom_elements/linear_incompresible_element.h"
 #include "custom_elements/mixed_lagrangian.h"
 #include "custom_elements/beam_element.h"
@@ -449,7 +450,11 @@ private:
     const TotalLagrangian mTotalLagrangian3D8N;
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
-
+	
+    const TotalLagrangian mTotalLagrangianVelocityBased2D3N;
+    const TotalLagrangian mTotalLagrangianVelocityBased3D4N;
+	
+	
     const MixedLagrangian mMixedLagrangian2D3N;
     const MixedLagrangian mMixedLagrangian2D4N;
     const MixedLagrangian mMixedLagrangian2D6N;

@@ -321,6 +321,9 @@ KratosStructuralApplication::KratosStructuralApplication():
     mTotalLagrangian3D8N( 0, Element::GeometryType::Pointer( new Hexahedra3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mTotalLagrangian3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mTotalLagrangian3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
+	
+    mTotalLagrangianVelocityBased2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mTotalLagrangianVelocityBased3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
 
     // mLinearIncompresibleElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     //mLinearIncompresibleElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -656,7 +659,10 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D8N", mTotalLagrangian3D8N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D20N", mTotalLagrangian3D20N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangian3D27N", mTotalLagrangian3D27N )
-
+	
+   KRATOS_REGISTER_ELEMENT( "TotalLagrangianVelocityBased2D3N", mTotalLagrangianVelocityBased2D3N )
+   KRATOS_REGISTER_ELEMENT( "TotalLagrangianVelocityBased3D4N", mTotalLagrangianVelocityBased3D4N )
+  
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D4N", mMixedLagrangian3D4N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D10N", mMixedLagrangian3D10N )
     KRATOS_REGISTER_ELEMENT( "MixedLagrangian3D6N", mMixedLagrangian3D6N )
