@@ -406,15 +406,15 @@ public:
             //KRATOS_WATCH("CONDITION LOCALVELOCITYCONTRIBUTION IS NOT DEFINED");
             (rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
             (rCurrentCondition)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k], CurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(this->mMass[k], CurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution, CurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(this->mDamp[k], RHS_Contribution, CurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
 
-            AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            AddDynamicsToLHS(LHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
 
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -438,13 +438,13 @@ public:
 
             //basic operations for the element considered
             (rCurrentCondition)->CalculateRightHandSide(RHS_Contribution,rCurrentProcessInfo);
-            (rCurrentCondition)->MassMatrix(mMass[k],rCurrentProcessInfo);
+            (rCurrentCondition)->MassMatrix(this->mMass[k],rCurrentProcessInfo);
             //(rCurrentCondition)->DampMatrix(VelocityBossakAuxiliaries::mDamp,CurrentProcessInfo);
-            (rCurrentCondition)->CalculateLocalVelocityContribution(mDamp[k], RHS_Contribution,rCurrentProcessInfo);
+            (rCurrentCondition)->CalculateLocalVelocityContribution(this->mDamp[k], RHS_Contribution,rCurrentProcessInfo);
             (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k],rCurrentProcessInfo);
+            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
