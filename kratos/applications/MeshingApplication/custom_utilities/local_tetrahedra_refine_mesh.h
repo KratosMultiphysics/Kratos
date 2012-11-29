@@ -832,8 +832,10 @@ public:
 
                             Condition::Pointer pcond = it->Create(current_id, newgeom, it->pGetProperties());
 
-                            const int is_slip = it->GetValue(IS_STRUCTURE);
-                            pcond->GetValue(IS_STRUCTURE) = is_slip;
+							pcond->Data() = it->Data();
+							pcond->GetValue(SPLIT_ELEMENT) = false;
+/*                            const int is_slip = it->GetValue(IS_STRUCTURE);
+                            pcond->GetValue(IS_STRUCTURE) = is_slip;*/
 
                             New_Conditions.push_back(pcond);
                             current_id++;
