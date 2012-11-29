@@ -27,6 +27,9 @@
 #include "includes/variables.h"
 
 #include "custom_elements/artery_element.h"
+#include "custom_conditions/artery_condition.h"
+#include "custom_conditions/artery_inlet_condition.h"
+#include "custom_conditions/artery_outlet_condition.h"
 
 
 namespace Kratos
@@ -37,6 +40,7 @@ namespace Kratos
 
 	// Variables definition 
 	KRATOS_DEFINE_VARIABLE(double, FLOW )
+    KRATOS_DEFINE_VARIABLE(double, TERMINAL_RESISTANCE)
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WORK)
 //	KRATOS_DEFINE_VARIABLE(double, IS_INTERFACE)
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
@@ -189,8 +193,11 @@ namespace Kratos
 		///@} 
 		///@name Member Variables 
 		///@{ 
-		const ArteryElement mArteryElement;
-// 		const Elem2D   mElem2D; 
+        const ArteryElement mArteryElement;
+        const Artery11Condition mArtery11Condition;
+        const ArteryInletCondition mArteryInletCondition;
+        const ArteryOutletCondition mArteryOutletCondition;
+// 		const Elem2D   mElem2D;
 // 		const Elem3D   mElem3D; 
 
 

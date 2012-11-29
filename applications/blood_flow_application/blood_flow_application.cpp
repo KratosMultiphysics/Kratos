@@ -20,6 +20,7 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/line_3d_2.h"
+#include "geometries/point_3d.h"
 #include "blood_flow_application.h"
 #include "includes/variables.h"
 #include "custom_elements/artery_element.h"
@@ -27,14 +28,18 @@
 namespace Kratos
 {
 	//Example
- 	KRATOS_CREATE_VARIABLE(double, FLOW)
-	KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WORK );
+KRATOS_CREATE_VARIABLE(double, FLOW)
+KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
+    KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WORK );
 //	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
 //
 
  	KratosBloodFlowApplication::KratosBloodFlowApplication(): 
-	   mArteryElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
- 	{}
+        mArteryElement(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+        mArtery11Condition(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
+        mArteryInletCondition(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+        mArteryOutletCondition(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+    {}
  	
  	void KratosBloodFlowApplication::Register()
  	{
@@ -42,13 +47,17 @@ namespace Kratos
  		KratosApplication::Register();
  		std::cout << "Initializing KratosBloodFlowApplication... " << std::endl;
  
- 		KRATOS_REGISTER_VARIABLE( FLOW )
-		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WORK )
+        KRATOS_REGISTER_VARIABLE( FLOW )
+        KRATOS_REGISTER_VARIABLE( TERMINAL_RESISTANCE )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WORK )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 
-		KRATOS_REGISTER_ELEMENT("ArteryElement", mArteryElement);
- 
+        KRATOS_REGISTER_ELEMENT("ArteryElement", mArteryElement);
+        KRATOS_REGISTER_CONDITION("Artery11Condition", mArtery11Condition);
+        KRATOS_REGISTER_CONDITION("ArteryInletCondition", mArteryInletCondition);
+        KRATOS_REGISTER_CONDITION("ArteryOutletCondition", mArteryOutletCondition);
+
  	}
 
 }  // namespace Kratos.
