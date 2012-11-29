@@ -242,6 +242,9 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+	TotalLagrangian() : Element()
+    {
+    }
 
     /**
      * Calculates the elemental contributions
@@ -361,9 +364,7 @@ private:
 
     // A private default constructor necessary for serialization
 
-    TotalLagrangian() : Element()
-    {
-    }
+
 
     virtual void save(Serializer& rSerializer) const;
 //        {
