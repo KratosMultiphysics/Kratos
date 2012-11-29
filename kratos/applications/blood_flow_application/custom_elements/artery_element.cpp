@@ -113,17 +113,21 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         rRightHandSideVector.resize(4,false);
     
     double h_int = rCurrentProcessInfo[DELTA_TIME];
+    
+    // To be removed!!!!!!!!!!!!! Pooyan.
+    //h_int = 0.001;
+    //mL = 0.001;
 
     //get data as needed
     const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];
-    const double pi = 3.14159265;
-    const double coriolis_coefficient = 1.001;
+    //const double pi = 3.14159265;
+    const double coriolis_coefficient = 1.0001;
     const double kr_coefficient = 1.0;
 
-    const double kinematic_viscosity = dynamic_viscosity/density;
+    //const double kinematic_viscosity = dynamic_viscosity/density;
     const double beta = E*mH0*1.77245385/(1.0-nu*nu);
 
 
@@ -134,109 +138,145 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 
     boost::numeric::ublas::bounded_matrix<double, 2,2 > M1, M2;
     
-    M1(0,0) = -0.5; M1(0,1) = 0.5; 
-    M1(1,0) = -0.5; M1(1,1) = 0.5;
+    M1(0,0) = -0.5; M1(0,1) = -0.5; 
+    M1(1,0) = 0.5; M1(1,1) = 0.5;
     
     M2(0,0) = 0.333333333333333333333333; M2(0,1) = 0.166666666666666666666667; 
-    M2(1,0) = 0.333333333333333333333333; M2(1,1) = 0.166666666666666666666667; 
-    
+    M2(1,0) = 0.166666666666666666666667; M2(1,1) = 0.333333333333333333333333; 
+    M2 *= mL;
+  //std::cout << "this element is" << this->Id() <<std::endl;
     //loop on nodes
     for (unsigned int i=0; i<2; i++)
     {
-        const double& A =  GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
+        const double& A = GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
         const double C = beta*sqrt(A*A*A)/(3.0*density*mA0[i]);
-
+        //KRATOS_WATCH(C);
+        //KRATOS_WATCH(beta);
+        //KRATOS_WATCH(mL);
         const double flow = GetGeometry()[i].FastGetSolutionStepValue(FLOW);
+        if(Id() == 1)
+        {
+            KRATOS_WATCH(A);
+            KRATOS_WATCH(flow);
+        }
+
         Fj[i][0] = flow;
-        Sj[i][0] = 0.0;
         Fj[i][1] = C + coriolis_coefficient*flow*flow/(A);
+
+        Sj[i][0] = 0.0;
         Sj[i][1] = -kr_coefficient*flow/(A);
 
-        Hj[i](0,1)   = 0.0;
-        Hj[i](0,2) = 1.0;
-        Hj[i](1,1)   = -coriolis_coefficient*pow(flow/(A),2) + (beta* sqrt(A))/(2.0*density*mA0[i]);
+//KRATOS_WATCH(Fj[i]);
+//KRATOS_WATCH(Sj[i]);
+        Hj[i](0,0)   = 0.0;
+        Hj[i](0,1) = 1.0;
+        Hj[i](1,0)   = -coriolis_coefficient*pow(flow/A,2) + (beta* sqrt(A))/(2.0*density*mA0[i]);
         Hj[i](1,1) = 2.0*coriolis_coefficient*(flow/A);
-
-        Suj[i](0,1)   = 0.0;
-        Suj[i](0,2) = 0.0;
-        Suj[i](1,1)   = kr_coefficient*pow(flow/(A),2);
-        Suj[i](1,2) = -kr_coefficient/A;
+//KRATOS_WATCH(Hj[i]);
+        Suj[i](0,0)   = 0.0;
+        Suj[i](0,1) = 0.0;
+        Suj[i](1,0)   = kr_coefficient*flow/(A*A);;
+        Suj[i](1,1) = -kr_coefficient/A;
+//KRATOS_WATCH(Suj[i]);
     }
 
     array_1d<double,2> Fder;
     Fder[0] = (Fj[1][0] - Fj[0][0]) / mL;
     Fder[1] = (Fj[1][1] - Fj[0][1]) / mL;
 
-    std::vector< array_1d<double,2> > Fw(2);
-    std::vector< array_1d<double,2> > Sw(2);
+    boost::numeric::ublas::bounded_matrix<double, 2,2 > Fw;
+    boost::numeric::ublas::bounded_matrix<double, 2,2 > Sw;
 
-    noalias(Fw[0]) = prod(Hj[0] ,Sj[0]);
-    noalias(Fw[1]) = prod(Hj[1] ,Sj[1]);
+    array_1d<double,2> aaa;
+    noalias(aaa) = prod(Hj[0] ,Sj[0]);
+    Fw(0,0) = aaa[0]; Fw(1,0) = aaa[1];
+ 
+    noalias(aaa) = prod(Hj[1] ,Sj[1]);
+    Fw(0,1) = aaa[0]; Fw(1,1) = aaa[1];
 
-    noalias(Sw[0]) = prod(Suj[0] ,Sj[0]);
-    noalias(Sw[1]) = prod(Suj[1] ,Sj[1]);
+    noalias(aaa) = prod(Suj[0] ,Sj[0]);
+    Sw(0,0) = aaa[0]; Sw(1,0) = aaa[1];
+ 
+    noalias(aaa) = prod(Suj[1] ,Sj[1]);
+    Sw(0,1) = aaa[0]; Sw(1,1) = aaa[1];
 
-    for (unsigned int i=0; i<2; i++)
+  // KRATOS_WATCH(Fw);
+  // KRATOS_WATCH(Sw);
+    for (unsigned int j=0; j<2; j++)
     {
-        array_1d<double,2>& Fwi  = Fw[i];
-        array_1d<double,2>& Swi  = Sw[i];
-        for (unsigned int j=0; j<2; j++)
-        {
-            Fwi[j] = h_int*0.5*Fwi[j] + Fj[i][j];
-            Swi[j] = h_int*0.5*Swi[j] + Sj[i][j];
-        }
-    }
+	for (unsigned int i=0; i<2; i++)
+	{
+	  Fw(i,j) = h_int*0.5*Fw(i,j) + Fj[j][i];
+	  Sw(i,j) = h_int*0.5*Sw(i,j) + Sj[j][i];
+	}
+   }
+   
+//KRATOS_WATCH(Fw);
+//KRATOS_WATCH(Sw);
+    boost::numeric::ublas::bounded_matrix<double, 2,2 > F2ord;
+    boost::numeric::ublas::bounded_matrix<double, 2,2 > S2ord;
     
-    std::vector< array_1d<double,2> > F2ord(2);
-    noalias(F2ord[0]) = prod( Hj[0],Fder);
-    noalias(F2ord[1]) = prod( Hj[1],Fder);
+    noalias(aaa) = prod( Hj[0],Fder);
+    F2ord(0,0) = aaa[0]; F2ord(1,0) = aaa[1]; 
+    noalias(aaa) = prod( Hj[1],Fder);
+    F2ord(0,1) = aaa[0]; F2ord(1,1) = aaa[1]; 
     
-    std::vector< array_1d<double,2> > S2ord(2);
-    noalias(S2ord[0]) = prod( Suj[0],Fder);
-    noalias(S2ord[1]) = prod( Suj[1],Fder);    
-    
+    noalias(aaa) = prod( Suj[0],Fder);
+    S2ord(0,0) = aaa[0]; S2ord(1,0) = aaa[1]; 
+    noalias(aaa) = prod( Suj[1],Fder);
+    S2ord(0,1) = aaa[0]; S2ord(1,1) = aaa[1]; 
+ //KRATOS_WATCH(M1);
+ //KRATOS_WATCH(M2);
     array_1d<double,2> tmp;
     array_1d<double,2> aux;
     for (unsigned int i=0; i<2; i++)
     {
-      noalias(tmp) = prod(M1,Fw[i]);
-      noalias(Fw[i]) = tmp;
+      aaa[0] = Fw(i,0); aaa[1] = Fw(i,1);
+      noalias(tmp) = prod(M1,aaa);
+      Fw(i,0) = tmp[0]; Fw(i,1) = tmp[1];
+ 
+      aaa[0] = Sw(i,0); aaa[1] = Sw(i,1);
+      noalias(tmp) = prod(M2,aaa);
+      Sw(i,0) = tmp[0]; Sw(i,1) = tmp[1];
       
-      noalias(tmp) = prod(M2,Sw[i]);
-      noalias(Sw[i]) = tmp;
+      aaa[0] = F2ord(i,0); aaa[1] = F2ord(i,1);
+      noalias(tmp) = prod(M1,aaa);
+      F2ord(i,0) = tmp[0]; F2ord(i,1) = tmp[1];
       
-      noalias(tmp) = prod(M1,F2ord[i]);
-      noalias(F2ord[i]) = tmp;
+      aaa[0] = S2ord(i,0); aaa[1] = S2ord(i,1);
+      noalias(tmp) = prod(M2,aaa);
+      S2ord(i,0) = tmp[0]; S2ord(i,1) = tmp[1];
       
-      noalias(tmp) = prod(M1,S2ord[i]);
-      noalias(S2ord[i]) = tmp;
     }
-    
+//     Fw = prod(M1,Fw);
+//     Sw = prod(M2,Sw);
+//     F2ord = prod(M1,F2ord);
+//     S2ord = prod(M2,S2ord);
+
+    if(Id() == 1)
+    {
+    KRATOS_WATCH(Fw);
+KRATOS_WATCH(Sw);
+ KRATOS_WATCH(F2ord);
+KRATOS_WATCH(S2ord);
+    }
     //now let's compute the rhs
     array_1d<double,2> rhs;
     
     for (unsigned int i=0; i<2; i++)
     {
-       noalias(tmp) = Fw[i];
-       noalias(tmp) += Sw[i];
-       
-       noalias(aux) =  F2ord[i];
-       noalias(aux) += S2ord[i];
-       
-       noalias(rhs) = tmp;
-       noalias(rhs) -= (h_int*0.5)*aux;
-       
-        rhs *= 2.0/mL; //TODO: try it out of the code
-//        rhs *= 1.0/GetGeometry()[i].FastGetSolutionStepValue(NODAL_MASS); //TODO: try it out of the code
-
-       unsigned int base = i*2;
-       rRightHandSideVector[base] = rhs[0];
-       rRightHandSideVector[base+1] = rhs[1];
-       
-
+       rhs[0] = Fw(i,0) + Sw(i,0) - (h_int*0.5)*(F2ord(i,0) + S2ord(i,0));
+       rhs[1] = Fw(i,1) + Sw(i,1) - (h_int*0.5)*(F2ord(i,1) + S2ord(i,1));
+// KRATOS_WATCH(rhs);
+       rRightHandSideVector[i] = rhs[0];
+       rRightHandSideVector[i+2] = rhs[1];
+      
     }
-    
-    
+    if(Id() == 1)
+    {
+ KRATOS_WATCH(rRightHandSideVector);
+    }
+// KRATOS_ERROR(std::logic_error,"i want it to go out here","");
 
 
 
