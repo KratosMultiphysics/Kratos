@@ -439,8 +439,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 
     if (rVariable == SUBSCALE_PRESSURE)
     {
-        rValues.reserve(NumGauss);
-        rValues.resize(0);
+        rValues.resize(NumGauss);
 
         double Density = 0.0;
         double Viscosity = 0.0;
@@ -473,8 +472,7 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
     }
     else if(rVariable == FLAG_VARIABLE) /// @todo Use suitable variable as iteration counter
     {
-        rValues.reserve(NumGauss);
-        rValues.resize(0);
+        rValues.resize(NumGauss);
 
         for (unsigned int g = 0; g < NumGauss; g++)
         {
@@ -487,13 +485,20 @@ void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<double> &rVari
 template< unsigned int TDim >
 void DynamicVMS<TDim>::GetValueOnIntegrationPoints(const Variable<array_1d<double,3> > &rVariable, std::vector<array_1d<double, 3 > > &rValues, const ProcessInfo &rCurrentProcessInfo)
 {
+    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(this->mIntegrationMethod);
+    const unsigned int NumGauss = IntegrationPoints.size();
+
     if (rVariable == SUBSCALE_VELOCITY)
     {
         rValues = mSubscaleVel;
     }
     else if (rVariable == VORTICITY)
     {
-        /// @todo Implement vorticity calculation. Note to self: it is different for 2D and 3D, use templates.
+        rValues.resize(NumGauss);
+
+        for (unsigned int g = 0; g < NumGauss; g++)
+            this->EvaluateVorticity(rValues[g],mDN_DX);
     }
 }
 
@@ -1212,7 +1217,7 @@ double DynamicVMS<TDim>::TauOne(const double Density,const double Viscosity,cons
 template< unsigned int TDim >
 double DynamicVMS<TDim>::TauTwo(const double Density, const double Viscosity, const double ConvVel)
 {
-    return Density * (Viscosity + 2.0 * ConvVel * mElemSize);
+    return Density * (Viscosity + 0.5 * ConvVel * mElemSize);
 }
 
 template< unsigned int TDim >
@@ -1391,6 +1396,43 @@ void DynamicVMS<3>::DenseSystemSolve(const Matrix &rA, const Vector &rB, Vector 
     double Det = 0.0;
     MathUtils<double>::InvertMatrix3(rA,Inv,Det);
     noalias(rX) = prod(Inv,rB);
+}
+
+template<>
+void DynamicVMS<2>::EvaluateVorticity(array_1d<double,3>& rVorticity,
+                                      const ShapeDerivativesType& rDN_DX)
+{
+    rVorticity[0] = 0.0;
+    rVorticity[1] = 0.0;
+    rVorticity[2] = 0.0;
+
+    const unsigned int NumNodes = this->GetGeometry().PointsNumber();
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        rVorticity[2] += (rDN_DX(i,0)*rVelocity[1] - rDN_DX(i,1)*rVelocity[0]);
+    }
+
+}
+
+template<>
+void DynamicVMS<3>::EvaluateVorticity(array_1d<double,3>& rVorticity,
+                                      const ShapeDerivativesType& rDN_DX)
+{
+    rVorticity[0] = 0.0;
+    rVorticity[1] = 0.0;
+    rVorticity[2] = 0.0;
+
+    const unsigned int NumNodes = this->GetGeometry().PointsNumber();
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        const array_1d<double,3>& rVelocity = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        rVorticity[0] += (rDN_DX(i,1)*rVelocity[2] - rDN_DX(i,2)*rVelocity[1]);
+        rVorticity[1] += (rDN_DX(i,2)*rVelocity[0] - rDN_DX(i,0)*rVelocity[2]);
+        rVorticity[2] += (rDN_DX(i,0)*rVelocity[1] - rDN_DX(i,1)*rVelocity[0]);
+    }
 }
 
 // private DynamicVMS methods *************************************************

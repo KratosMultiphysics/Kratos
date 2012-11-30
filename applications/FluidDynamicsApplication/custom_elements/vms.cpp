@@ -203,7 +203,7 @@ void VMS<2>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
         {
             const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
+            rVorticity[2] += DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0];
         }
     }
     else if (rVariable == SUBSCALE_VELOCITY)
@@ -290,9 +290,9 @@ void VMS<3>::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& r
         for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
         {
             const array_1d<double, 3 > & rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-            rVorticity[0] += N[iNode] * ( DN_DX(iNode,1)*rVelocity[2] - DN_DX(iNode,2)*rVelocity[1] );
-            rVorticity[1] += N[iNode] * ( DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2] );
-            rVorticity[2] += N[iNode] * ( DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0] );
+            rVorticity[0] += DN_DX(iNode,1)*rVelocity[2] - DN_DX(iNode,2)*rVelocity[1];
+            rVorticity[1] += DN_DX(iNode,2)*rVelocity[0] - DN_DX(iNode,0)*rVelocity[2];
+            rVorticity[2] += DN_DX(iNode,0)*rVelocity[1] - DN_DX(iNode,1)*rVelocity[0];
         }
     }
     else if(rVariable == SUBSCALE_VELOCITY)
