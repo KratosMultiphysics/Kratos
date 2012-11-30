@@ -19,6 +19,7 @@
 #include "includes/define.h"
 #include "spheric_particle.h"
 #include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application.h"
 
 
@@ -274,10 +275,78 @@ namespace Kratos
               
             } //end for: ParticleWeakIteratorType ineighbour
             
-   
+	    if (continuum_simulation_OPTION == true)
+	    {
+	      
+	      ContactAreaWeighting(rCurrentProcessInfo);
+		      
+	    }
+	   
+	   
         }//SetInitialContacts
 
+       void SphericParticle::ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo ) //only for the continuum_case
 
+       { 
+	 
+	  int skin_sphere 	= this->GetValue(SKIN_SPHERE);
+	  
+	  double alpha = 1.0;
+	  double radius = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+	  double external_sphere_area = 4*M_PI*radius*radius;  
+	  
+	  mtotal_equiv_area = 0.0;
+	      
+	  int cont_ini_neighbours_size = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS).size();
+		  
+	  ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+
+	  mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
+	  
+	  //computing the total equivalent area
+	  
+	  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+	  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+
+	  {   
+		  double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+		  double equiv_area    	= M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius)); //we now take 1/2 of the efective radius.
+		  mtotal_equiv_area 	+= equiv_area;
+	  
+	  } //for every neighbour
+	  
+	 if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id())}
+	  
+	  AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
+	
+	  if(skin_sphere == 1) //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
+	  {
+	      //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
+		  alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+			
+		  }
+	  }
+	      
+	  size_t index = 0;
+	  
+	  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+	  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+
+	  {   
+	      double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+	      double equiv_radius    = 2*radius * other_radius / (radius + other_radius);        
+	      double equiv_area      = (0.25)*M_PI * equiv_radius * equiv_radius;
+	      double corrected_area  = alpha*equiv_area;
+	      
+	      mcont_ini_neigh_area[index] = corrected_area;
+	      
+	      index++;    
+	  } //for every neighbour
+		   	  
+	 
+       } //Contact Area Weighting
+        
+        
        void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
 
        {
@@ -305,7 +374,7 @@ namespace Kratos
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
 
-                switch (case_OPTION) {
+            switch (case_OPTION) {
                     case 0:
                         delta_OPTION = false;
                         continuum_simulation_OPTION = false;
@@ -329,18 +398,16 @@ namespace Kratos
 
             // GETTING PARTICLE PROPERTIES
 
-            //double Tension          = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-            //double Cohesion         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
-            double FriAngle         = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION); 
+            
             
             double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-            
-            double restitution_coeff = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
             double mass                 = mRealMass;
 
             double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
             double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-
+			double FriAngle         	= this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION); 
+			double restitution_coeff 	= this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
+	    
             array_1d<double,3>& rhs             = this->GetGeometry()[0].GetSolutionStepValue(RHS);
             array_1d<double,3>& total_forces    = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
             array_1d<double,3>& damp_forces     = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
@@ -353,27 +420,7 @@ namespace Kratos
             
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
-            size_t iContactForce = 0;
-            
-            double total_equiv_area = 0.0;
-            
-            int n_neighbours = r_neighbours.size();
-            
-                      
-            //DETERMINING SKIN OR NOT
-            
-            for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
-            neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
-
-            {   
-                double other_radius     = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                //double equiv_area       = 4*M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius));
-		double equiv_area       = M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius)); //we now take 1/2 of the efective radius.
-                total_equiv_area += equiv_area;
-                 
-            } //for every neighbour
-                      
-            int skin_sphere = this->GetValue(SKIN_SPHERE);
+            size_t iContactForce = 0;            
                                    
             for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
             neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
@@ -396,7 +443,7 @@ namespace Kratos
                 //double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
                 //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
                 double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
-	      double equiv_FriAngle   			= (FriAngle + other_FriAngle) * 0.5; 
+				double equiv_FriAngle   			= (FriAngle + other_FriAngle) * 0.5; 
 
                 
                 // CONTINUUM SIMULATING PARAMETERS:
@@ -426,94 +473,31 @@ namespace Kratos
             
                 double equiv_radius     = 2*radius * other_radius / (radius + other_radius);
                 //we now take 1/2 of the efective radius.
-		double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
+				double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
                 double equiv_young      = 2 * young * other_young / (young + other_young);
                 
-                double external_sphere_area = 4*M_PI*radius*radius;       
-		double external_polyhedron_area = 0.0;
-		double alpha = 1.0;
-                
-                if(continuum_simulation_OPTION)
-                {
-                    if(skin_sphere == 0)
-                    {
-                        switch (n_neighbours)
-                        {
-                            case 4:
-                                external_polyhedron_area = 3.30797*external_sphere_area;
-                                break;
-                            case 5:
-                                external_polyhedron_area = 2.60892*external_sphere_area;
-                                break;
-                            case 6:
-                                external_polyhedron_area = 1.90986*external_sphere_area;
-                                break;
-                            case 7:
-                                external_polyhedron_area = 1.78192*external_sphere_area;
-                                break;
-                            case 8:
-                                external_polyhedron_area = 1.65399*external_sphere_area;
-                                break;
-                            case 9:
-                                external_polyhedron_area = 1.57175*external_sphere_area;
-                                break;
-                            case 10:
-                                external_polyhedron_area = 1.48951*external_sphere_area;
-                                break;
-                            case 11:
-                                external_polyhedron_area = 1.40727*external_sphere_area;
-                                break;
-                            case 12:
-                                external_polyhedron_area = 1.32503*external_sphere_area;
-                                break;
-                            case 13:
-                                external_polyhedron_area = 1.31023*external_sphere_area;
-                                break;
-                            case 14:
-                                external_polyhedron_area = 1.29542*external_sphere_area;
-                                break;
-                            case 15:
-                                external_polyhedron_area = 1.28061*external_sphere_area;
-                                break;
-                            case 16:
-                                external_polyhedron_area = 1.26580*external_sphere_area;
-                                break;
-                            case 17:
-                                external_polyhedron_area = 1.25099*external_sphere_area;
-                                break;
-                            case 18:
-                                external_polyhedron_area = 1.23618*external_sphere_area;
-                                break;
-                            case 19:
-                                external_polyhedron_area = 1.22138*external_sphere_area;
-                                break;
-                            case 20:
-                                external_polyhedron_area = 1.20657*external_sphere_area;
-                                break;
-                            default:
-                                external_polyhedron_area = 1.15*external_sphere_area;
-                                break;
+			   double corrected_area = equiv_area;
 
-                        }
+			  
+			  int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
 
-                        alpha            = external_polyhedron_area/total_equiv_area;
-			
-                    }
+			  if(continuum_simulation_OPTION)
+			  {
+				  for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
+				  {
 
-                    else //skin sphere
-                    {
-                        //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
-			 alpha            = 1.40727*external_sphere_area*n_neighbours/(11*total_equiv_area);
+					if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+					
+					  corrected_area = mcont_ini_neigh_area[index_area];
 
-			 
-                    }
-                }
-                
-                
+					index_area++;   
+				  
+				  } //for every neighbour		  
+			  }
                 //MACRO PARAMETERS
 
-                double kn               = alpha*equiv_young*equiv_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
+                double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
                 double ks               = kn / (2.0 * (1.0 + equiv_poisson));
                 //double RN               = CTension * equiv_area; //tensile strenght
                 //double RT_base          = CCohesion * equiv_area; //cohesion
@@ -543,15 +527,17 @@ namespace Kratos
 
                 }
 
-                if(equiv_restitution_coeff>0){
+                if(equiv_restitution_coeff>0)
+		{
 
                     equiv_visco_damp_coeff_normal  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*kn)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
-		     equiv_visco_damp_coeff_tangential  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*ks)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
+		    equiv_visco_damp_coeff_tangential  = -( (2*log(equiv_restitution_coeff)*sqrt(equiv_mass*ks)) / (sqrt( (log(equiv_restitution_coeff)*log(equiv_restitution_coeff)) + (M_PI*M_PI) )) );
                 }
 
-                else {
+                else 
+		{
 
-                    equiv_visco_damp_coeff_normal  = ( 2*sqrt(equiv_mass*kn) );
+                   equiv_visco_damp_coeff_normal  = ( 2*sqrt(equiv_mass*kn) );
 		    equiv_visco_damp_coeff_tangential  = ( 2*sqrt(equiv_mass*ks) );
                 }
                 
@@ -715,10 +701,8 @@ namespace Kratos
                     
                  } 
   
-		if(alpha*equiv_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
-                
-                
-                
+		if(corrected_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
+              
                 if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                     	
 		{
@@ -733,8 +717,8 @@ namespace Kratos
 		  {
 		  
                     
-			contact_tau = ShearForceNow/(alpha*equiv_area);
-			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
+			contact_tau = ShearForceNow/(corrected_area);
+			contact_sigma = LocalContactForce[2]/(corrected_area);
 
 			double sigma_max, sigma_min;
 
@@ -815,8 +799,8 @@ namespace Kratos
 		    if (failure_criterion_OPTION==2)//UNCOUPLED FRACTURE
 		    
 		    {
-			contact_tau = ShearForceNow/(alpha*equiv_area);
-			contact_sigma = LocalContactForce[2]/(alpha*equiv_area);
+			contact_tau = ShearForceNow/(corrected_area);
+			contact_sigma = LocalContactForce[2]/(corrected_area);
 
 			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
 			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
