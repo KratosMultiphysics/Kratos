@@ -215,6 +215,26 @@ bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargeme
 
 solver.enlargement_factor = bounding_box_enlargement_factor
 
+#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+
+if(continuum_option =="ON"):
+  
+  for element in solid_model_part.Elements:
+	  
+      element.SetValue(SKIN_SPHERE,0)
+      node = element.GetNode(0)
+      x = node.X
+      y = node.Y
+      z = node.Z
+      r = node.GetSolutionStepValue(RADIUS,0)
+      h=0.3
+      d=0.15
+      eps=2
+	  
+      if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) or y<=eps*r or y>=(h-eps*r) ): #For a cylinder test with the center of the base at (0,0,0) and with the axis y normal to the base
+	  element.SetValue(SKIN_SPHERE,1)
+
+
 #Initialize the problem.
 
 solver.Initialize()
@@ -384,28 +404,14 @@ gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
 
 os.chdir(main_path)
 
-#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
-for element in solid_model_part.Elements:
-	
-    element.SetValue(SKIN_SPHERE,0)
-    node = element.GetNode(0)
-    x = node.X
-    y = node.Y
-    z = node.Z
-    r = node.GetSolutionStepValue(RADIUS,0)
-    h=0.3
-    d=0.15
-    eps=2
-	
-    if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) or y<=eps*r or y>=(h-eps*r) ): #For a cylinder test with the center of the base at (0,0,0) and with the axis y normal to the base
-	element.SetValue(SKIN_SPHERE,1)
-    
-    velocity_node_y = 0.0
+# for the graph plotting    
+velocity_node_y = 0.0
     
 for node in force_measurement:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
+    
+    
 while(time < final_time):
   
   
