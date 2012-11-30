@@ -317,15 +317,19 @@ namespace Kratos
 	  
 	 if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id())}
 	  
-	  AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
-	
-	  if(skin_sphere == 1) //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
+	   if(skin_sphere != 1)
+	  {
+	  
+		 AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
+	   
+	  }
+	  else //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
 	  {
 	      //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
 		  alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
 			
-		  }
-	  }
+	   }
+	  
 	      
 	  size_t index = 0;
 	  
