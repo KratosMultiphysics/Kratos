@@ -621,7 +621,7 @@ namespace Kratos
                 if (!( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || (*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX))        )                   //to avoid repetition
                 {   
                     int index = -1;
-                    bool found = false; //just to check                
+                   // bool found = false; //just to check                
                     
                     for (int iii=0; iii< neigh_size_ini_cont_neigh; iii++)
                     {
@@ -631,7 +631,7 @@ namespace Kratos
                         { 
                             index = iii; //we keep the last iii of the iteration and this is the one to do pushback     
 
-                            found = true;
+                            //found = true; //just to check        
                                  
                             break; 
                         }
