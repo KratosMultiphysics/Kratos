@@ -393,7 +393,7 @@ MPICommSetup.Execute()
 #gid_io_b.FinalizeMesh()
 
 
-gid_io.ChangeOutputName("results2/" + input_file_name + "_" + str(mpi.rank))
+gid_io.ChangeOutputName("str(main_path)+'/'+str(input_file_name)+'_MPI_results'/" + input_file_name + "_" + str(mpi.rank))
 
 gid_io.InitializeMesh(0.0)
 gid_io.WriteMesh(contact_model_part.GetMesh());
