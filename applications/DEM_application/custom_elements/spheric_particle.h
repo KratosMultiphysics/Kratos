@@ -109,10 +109,6 @@ namespace Kratos
 
 
 
-
-
-
-
       ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
 
       //l'he de definir aqui aquest???
@@ -142,11 +138,6 @@ namespace Kratos
        double mDisplacement_Y;
        double mDisplacement_Z;
 */
-
-    
-
-     
-
       // std::vector<double>   mInitialDelta = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_INITIAL_DELTA);
       // std::vector<int>  mContactFailureId = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_FAILURE_ID);
        ///@}
@@ -191,7 +182,8 @@ namespace Kratos
        SphericParticle();
 
         void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo );
-
+	void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
+	
         void ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -214,6 +206,9 @@ namespace Kratos
         //double mTimeStep;
       
         double mRealMass;
+	
+	double mtotal_equiv_area;
+	vector<double> mcont_ini_neigh_area;
 
         //std::vector<double> mForce;
 
@@ -266,7 +261,6 @@ namespace Kratos
       ///@{ 
      
 
-        
        
         
       ///@} 
