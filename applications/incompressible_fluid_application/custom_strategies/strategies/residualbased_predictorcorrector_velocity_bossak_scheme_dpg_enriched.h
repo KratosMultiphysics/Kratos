@@ -412,9 +412,9 @@ public:
             (rCurrentCondition)->EquationIdVector(EquationId, CurrentProcessInfo);
 
 
-            AddDynamicsToLHS(LHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
+            this->AddDynamicsToLHS(LHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
 
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
+            this->AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k], CurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
@@ -444,7 +444,7 @@ public:
             (rCurrentCondition)->EquationIdVector(EquationId,rCurrentProcessInfo);
 
             //adding the dynamic contributions (static is already included)
-            AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k],rCurrentProcessInfo);
+            this->AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, this->mDamp[k], this->mMass[k],rCurrentProcessInfo);
 
             // Rotate contributions (to match coordinates for slip conditions)
             mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
