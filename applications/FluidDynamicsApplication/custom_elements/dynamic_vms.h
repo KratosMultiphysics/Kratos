@@ -518,6 +518,9 @@ protected:
                                   const Vector& rB,
                                   Vector& rX);
 
+    void EvaluateVorticity(array_1d<double,3>& rVorticity,
+                           const ShapeDerivativesType& rDN_DX);
+
 
     ///@}
     ///@name Protected  Access
