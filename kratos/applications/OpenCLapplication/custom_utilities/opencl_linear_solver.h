@@ -247,7 +247,7 @@ namespace OpenCL
 							"-DKRATOS_OCL_SPMV_CSR_WORKGROUP_SIZE_BITS=" << j;
 
 						// Check if a local mem barrier is needed
-						if (1U << (j - i) > mWavefrontSize)
+						//if (1U << (j - i) > mWavefrontSize)
 						{
 							OptionsBuilder <<
 								" " <<
