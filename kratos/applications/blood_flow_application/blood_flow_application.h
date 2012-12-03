@@ -196,6 +196,7 @@ namespace Kratos
 		///@{ 
         const ArteryElement mArteryElement;
         const Artery11Condition mArtery11Condition;
+        const Artery12Condition mArtery12Condition;
         const ArteryInletCondition mArteryInletCondition;
         const ArteryOutletCondition mArteryOutletCondition;
 // 		const Elem2D   mElem2D;

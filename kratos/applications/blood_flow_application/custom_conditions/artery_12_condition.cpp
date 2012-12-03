@@ -123,24 +123,24 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
 
             //resize the vector to the correct size
-            if (rRightHandSideVector.size() != 4)
-                rRightHandSideVector.resize(4,false);
+            if (rRightHandSideVector.size() != 6)
+                rRightHandSideVector.resize(6,false);
 
             using namespace boost::numeric::ublas;
 
-            array_1d<double,4> f_out;
-            Matrix jacobian = ZeroMatrix(4,4);
+            array_1d<double,6> f_out;
+            Matrix jacobian = ZeroMatrix(6,6);
 
-            array_1d<double,2> area;
-            array_1d<double,2> flow;
-            array_1d<double,2> wave_velocity;
-            array_1d<double,2> artery_property;
-            array_1d<double,2> coef;
+            array_1d<double,3> area;
+            array_1d<double,3> flow;
+            array_1d<double,3> wave_velocity;
+            array_1d<double,3> artery_property;
+            array_1d<double,3> coef;
 
 
 
             //loop on nodes
-            for (unsigned int i=0; i<2; i++)
+            for (unsigned int i=0; i<3; i++)
             {
                 Node<3>& r_node = GetGeometry()[i];
                 area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
@@ -151,8 +151,7 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
-
-            KRATOS_WATCH(wave_velocity);
+            wave_velocity[2] = (flow[2] / area[2]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[2])) * pow(area[2],0.25);
 
 
             double convergence;
@@ -161,13 +160,13 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
             for(unsigned int i = 0 ; i < max_iterations ; i++)
             {
-                CalculateFunctional4(f_out, area, flow, artery_property, coef, wave_velocity, density);
-                CalculateJacobian4(jacobian, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateFunctional6(f_out, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateJacobian6(jacobian, area, flow, artery_property, coef, wave_velocity, density);
                 KRATOS_WATCH(f_out);
                 KRATOS_WATCH(jacobian);
 
-                permutation_matrix<double> permutation(4);
-                array_1d<double,4> delta_x = -f_out;
+                permutation_matrix<double> permutation(6);
+                array_1d<double,6> delta_x = -f_out;
 
                 lu_factorize(jacobian, permutation);
                 lu_substitute(jacobian,permutation, delta_x);
@@ -180,26 +179,34 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
                 area[0] += delta_x[0];
                 area[1] += delta_x[1];
-                flow[0] += delta_x[2];
-                flow[1] = flow[0];
+                area[2] += delta_x[2];
+                flow[0] += delta_x[3];
+                flow[1] += delta_x[4];
+                flow[2] += delta_x[5];
 
             }
             double A1 = area[0];
-            const double& A = A1;//UpdateArea(beta, density);
 
             double A0 = mInitialArea[0];
-            double C = beta*sqrt(A*A*A)/(3.0*density*A0);
+            double C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
 
             rRightHandSideVector[0] = -flow[0];
             double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
             rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
 
             A1 = area[1];
-            C = beta*sqrt(A*A*A)/(3.0*density*A0);
+            C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
 
             rRightHandSideVector[2] = flow[1];
             temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
             rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
+
+            A1 = area[2];
+            C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
+
+            rRightHandSideVector[4] = flow[2];
+            temp = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
+            rRightHandSideVector[5] = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
 
 
 
@@ -222,6 +229,9 @@ void Artery12Condition::Initialize()
     const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
     mInitialArea[1] = pi*r1*r1;
 
+    const double r2 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+    mInitialArea[2] = pi*r2*r2;
+
 
     mH0 = GetProperties()[THICKNESS];
 
@@ -236,12 +246,16 @@ void Artery12Condition::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
     GetGeometry()[0].UnSetLock();
+
     GetGeometry()[1].SetLock();
     GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[1];
     GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
     GetGeometry()[1].UnSetLock();
 
-
+    GetGeometry()[2].SetLock();
+    GetGeometry()[2].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[2];
+    GetGeometry()[2].FastGetSolutionStepValue(RADIUS) = radius;
+    GetGeometry()[2].UnSetLock();
 
 
     KRATOS_CATCH("");
@@ -314,167 +328,96 @@ void Artery12Condition::InitializeNonLinearIteration(ProcessInfo& CurrentProcess
 {
     KRATOS_TRY
 
-    using namespace boost::numeric::ublas;
-
-    array_1d<double,3> f_out;
-    Matrix jacobian = ZeroMatrix(3,3);
-
-    array_1d<double,2> area;
-    array_1d<double,2> flow;
-    array_1d<double,2> wave_velocity;
-    array_1d<double,2> artery_property;
-    array_1d<double,2> coef;
-
-    const double density = GetProperties()[DENSITY];
-
-
-    //loop on nodes
-    for (unsigned int i=0; i<2; i++)
-    {
-        Node<3>& r_node = GetGeometry()[i];
-        area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
-        flow[i] = r_node.FastGetSolutionStepValue(FLOW);
-        artery_property[i]=mBeta/mInitialArea[i];
-        coef[i] = sqrt(mBeta/(2*density * mInitialArea[i]));
-    }
-
-    wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
-    wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
-
-
-
-    double convergence;
-    unsigned int max_iterations = 100;
-    double tolerance = 1e-6;
-
-    for(unsigned int i = 0 ; i < max_iterations ; i++)
-    {
-        CalculateFunctional(f_out, area, flow, artery_property, coef, wave_velocity, density);
-        CalculateJacobian(jacobian, area, flow, artery_property, coef, wave_velocity, density);
-
-        permutation_matrix<double> permutation(3);
-        array_1d<double,3> delta_x = -f_out;
-
-        lu_factorize(jacobian, permutation);
-        lu_substitute(jacobian,permutation, delta_x);
-
-        convergence = norm_2(delta_x);
-
-        // we have to add the relative convergence check
-        if(convergence < tolerance)
-            break;
-
-        area[0] += delta_x[0];
-        area[1] += delta_x[1];
-        flow[0] += delta_x[2];
-
-    }
-
 
     KRATOS_CATCH("");
 }
 
-void Artery12Condition::CalculateFunctional(array_1d<double,3>& rFunctional,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
+
+
+void Artery12Condition::CalculateFunctional6(array_1d<double,6>& rFunctional,
+                         array_1d<double, 3> const& Area,
+                         array_1d<double, 3> const& Flow, array_1d<double,3> const& ArteryProperty, array_1d<double,3> const& Coef,
+                         array_1d<double, 3> const& WaveVelocity,
                          double BloodDensity)
 {
 
 
     const double qa0 = Flow[0]/Area[0];
     const double qa1 = Flow[1]/Area[1];
+    const double qa2 = Flow[2]/Area[2];
 
     rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
 
     rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
-		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
-		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
-    rFunctional[2]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
-}
+             ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
+             0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
 
+    rFunctional[2]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
+             ArteryProperty[2]*(sqrt(Area[2])-sqrt(mInitialArea[2]))+
+             0.50*BloodDensity*(qa0*qa0 - qa2*qa2);
 
-void Artery12Condition::CalculateJacobian(Matrix& rJacobian,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity)
-{
-
-
-    const double qa0 = Flow[0]/Area[0];
-    const double qa1 = Flow[0]/Area[1];
-
-
-    rJacobian(0,0)= 5.00 * Coef[0] * pow(Area[0],0.25) - WaveVelocity[0];
-    rJacobian(0,1)= 0.00;
-    rJacobian(0,2)= 1.00;
-
-    rJacobian(1,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
-    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[1]);
-    rJacobian(1,2)= -BloodDensity * Flow[0] / (Area[1] * Area[1]);
-
-    rJacobian(2,0)= 0.00;
-    rJacobian(2,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
-    rJacobian(2,2)= 1.00;
+    rFunctional[3]=Flow[0]-Flow[1]-Flow[2];
+    rFunctional[4]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
+    rFunctional[5]=Flow[2]-4.00*Coef[2] * pow(Area[2],1.25)-WaveVelocity[2]*Area[2];
 
 
 }
 
-
-void Artery12Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
+void Artery12Condition::CalculateJacobian6(Matrix& rJacobian,
+                         array_1d<double, 3> const& Area,
+                         array_1d<double, 3> const& Flow, array_1d<double,3> const& ArteryProperty, array_1d<double,3> const& Coef,
+                         array_1d<double, 3> const& WaveVelocity,
                          double BloodDensity)
 {
 
 
     const double qa0 = Flow[0]/Area[0];
     const double qa1 = Flow[1]/Area[1];
-
-    rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
-
-    rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
-		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
-		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
-    rFunctional[2]=Flow[0]-Flow[1];
-    rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
-
-
-}
-
-void Artery12Condition::CalculateJacobian4(Matrix& rJacobian,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity)
-{
-
-
-    const double qa0 = Flow[0]/Area[0];
-    const double qa1 = Flow[1]/Area[1];
+    const double qa2 = Flow[2]/Area[2];
 
 
     rJacobian(0,0)= 5.00 * Coef[0] * pow(Area[0],0.25) - WaveVelocity[0];
     rJacobian(0,1)= 0.00;
-    rJacobian(0,2)= 1.00;
-    rJacobian(0,3)= 0.00;
+    rJacobian(0,2)= 0.00;
+    rJacobian(0,3)= 1.00;
+    rJacobian(0,4)= 0.00;
+    rJacobian(0,5)= 0.00;
 
     rJacobian(1,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
     rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[1]);
-    rJacobian(1,2)= BloodDensity * Flow[0] / (Area[0] * Area[0]);
-    rJacobian(1,3)= -BloodDensity * Flow[1] / (Area[1] * Area[1]);
+    rJacobian(1,2) = 0.00;
+    rJacobian(1,3)= BloodDensity * Flow[0] / (Area[0] * Area[0]);
+    rJacobian(1,4)= -BloodDensity * Flow[1] / (Area[1] * Area[1]);
+    rJacobian(1,5) = 0.00;
 
-    rJacobian(2,0)= 0.00;
-    rJacobian(2,1)= 0.00;
-    rJacobian(2,2)= 1.00;
-    rJacobian(2,3)= -1.00;
+    rJacobian(2,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
+    rJacobian(2,1) = 0.00;
+    rJacobian(2,2)= -0.50 * ArteryProperty[2] / sqrt(Area[2]) + BloodDensity* (qa2 * qa2 / Area[2]);
+    rJacobian(2,3)= BloodDensity * Flow[0] / (Area[0] * Area[0]);
+    rJacobian(2,4) = 0.00;
+    rJacobian(2,5)= -BloodDensity * Flow[2] / (Area[2] * Area[2]);
 
     rJacobian(3,0)= 0.00;
-    rJacobian(3,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
+    rJacobian(3,1)= 0.00;
     rJacobian(3,2)= 0.00;
     rJacobian(3,3)= 1.00;
+    rJacobian(3,4)= -1.00;
+    rJacobian(3,5)= -1.00;
+
+    rJacobian(4,0)= 0.00;
+    rJacobian(4,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
+    rJacobian(4,2)= 0.00;
+    rJacobian(4,3)= 0.00;
+    rJacobian(4,4)= 1.00;
+    rJacobian(4,5)= 0.00;
+
+    rJacobian(5,0)= 0.00;
+    rJacobian(5,1)= 0.00;
+    rJacobian(5,2)= -5.00 * Coef[2] * pow(Area[2],0.25) - WaveVelocity[2];
+    rJacobian(5,3)= 0.00;
+    rJacobian(5,4)= 0.00;
+    rJacobian(5,5)= 1.00;
+
 
 
 }
