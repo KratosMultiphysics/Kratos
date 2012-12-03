@@ -48,8 +48,8 @@ for node in fluid_model_part.Nodes:
 Dt = 4e-4
 full_Dt = Dt 
 initial_Dt = Dt#0.001 * full_Dt #0.05 #0.01
-final_time = 0.8
-output_step = 1
+final_time = 20
+output_step = 20
 
 out = 1
 
@@ -78,9 +78,10 @@ while(time < final_time):
 #    if(time > final_time / 3.0):
     for node in fluid_model_part.Nodes:
       puls= math.sin(2.00*math.pi*time/(1.))
-      if(time > 0.25 and time < 0.5):
-        puls = 1.00
-      else:
+#      if(time > 0.25 and time < 0.5):
+#        puls = 1.00
+#      else:
+      if puls < 0.00 :
         puls = 0.0
       if(node.IsFixed(FLOW) == True):
           #velocity = 0.0008*puls
