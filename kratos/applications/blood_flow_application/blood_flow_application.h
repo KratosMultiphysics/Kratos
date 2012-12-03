@@ -27,7 +27,8 @@
 #include "includes/variables.h"
 
 #include "custom_elements/artery_element.h"
-#include "custom_conditions/artery_condition.h"
+#include "custom_conditions/artery_11_condition.h"
+#include "custom_conditions/artery_12_condition.h"
 #include "custom_conditions/artery_inlet_condition.h"
 #include "custom_conditions/artery_outlet_condition.h"
 
