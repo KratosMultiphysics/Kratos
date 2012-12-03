@@ -18,7 +18,7 @@ fluid_model_part.AddNodalSolutionStepVariable(VELOCITY)
 
 
 #introducing input file name
-input_file_name = "first_kratos"
+input_file_name = "tube"
 
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
