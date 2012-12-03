@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/artery_condition.h"
+#include "custom_conditions/artery_inlet_condition.h"
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
 #include "boost/numeric/ublas/lu.hpp"

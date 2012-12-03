@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/artery_condition.h"
+#include "custom_conditions/artery_12_condition.h"
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
 #include "boost/numeric/ublas/lu.hpp"
@@ -66,7 +66,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-Artery11Condition::Artery11Condition(IndexType NewId, GeometryType::Pointer pGeometry)
+Artery12Condition::Artery12Condition(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -75,27 +75,27 @@ Artery11Condition::Artery11Condition(IndexType NewId, GeometryType::Pointer pGeo
 //************************************************************************************
 //************************************************************************************
 
-Artery11Condition::Artery11Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+Artery12Condition::Artery12Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
 {
 }
 
-Condition::Pointer Artery11Condition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Condition::Pointer Artery12Condition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
 
-    return Condition::Pointer(new Artery11Condition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new Artery12Condition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
 
-Artery11Condition::~Artery11Condition()
+Artery12Condition::~Artery12Condition()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void Artery11Condition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Artery12Condition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense to computer the system matrix for an explicit condition", "");
@@ -105,7 +105,7 @@ void Artery11Condition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Ve
 //************************************************************************************
 //************************************************************************************
 
-void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -128,8 +128,8 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
             using namespace boost::numeric::ublas;
 
-            array_1d<double,3> f_out;
-            Matrix jacobian = ZeroMatrix(3,3);
+            array_1d<double,4> f_out;
+            Matrix jacobian = ZeroMatrix(4,4);
 
             array_1d<double,2> area;
             array_1d<double,2> flow;
@@ -152,6 +152,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
 
+            KRATOS_WATCH(wave_velocity);
 
 
             double convergence;
@@ -160,11 +161,13 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
             for(unsigned int i = 0 ; i < max_iterations ; i++)
             {
-                CalculateFunctional(f_out, area, flow, artery_property, coef, wave_velocity, density);
-                CalculateJacobian(jacobian, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateFunctional4(f_out, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateJacobian4(jacobian, area, flow, artery_property, coef, wave_velocity, density);
+                KRATOS_WATCH(f_out);
+                KRATOS_WATCH(jacobian);
 
-                permutation_matrix<double> permutation(3);
-                array_1d<double,3> delta_x = -f_out;
+                permutation_matrix<double> permutation(4);
+                array_1d<double,4> delta_x = -f_out;
 
                 lu_factorize(jacobian, permutation);
                 lu_substitute(jacobian,permutation, delta_x);
@@ -178,6 +181,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 area[0] += delta_x[0];
                 area[1] += delta_x[1];
                 flow[0] += delta_x[2];
+                flow[1] = flow[0];
 
             }
             double A1 = area[0];
@@ -186,16 +190,16 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             double A0 = mInitialArea[0];
             double C = beta*sqrt(A*A*A)/(3.0*density*A0);
 
-            rRightHandSideVector[0] = flow[0];
+            rRightHandSideVector[0] = -flow[0];
             double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
             rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
 
             A1 = area[1];
             C = beta*sqrt(A*A*A)/(3.0*density*A0);
 
-            rRightHandSideVector[2] = flow[0];
-            temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
-            rRightHandSideVector[3] = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
+            rRightHandSideVector[2] = flow[1];
+            temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
+            rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
 
 
 
@@ -204,7 +208,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
 //************************************************************************************
 //************************************************************************************
-void Artery11Condition::Initialize()
+void Artery12Condition::Initialize()
 {
     KRATOS_TRY
 
@@ -248,7 +252,7 @@ void Artery11Condition::Initialize()
 // this subroutine calculates the nodal contributions for the explicit steps of the
 // fractional step procedure
 
-void Artery11Condition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void Artery12Condition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -258,7 +262,7 @@ void Artery11Condition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 //************************************************************************************
 //************************************************************************************
 
-void Artery11Condition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void Artery12Condition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -266,7 +270,7 @@ void Artery11Condition::EquationIdVector(EquationIdVectorType& rResult, ProcessI
 //************************************************************************************
 //************************************************************************************
 
-void Artery11Condition::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+void Artery12Condition::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -274,7 +278,7 @@ void Artery11Condition::GetDofList(DofsVectorType& ConditionalDofList, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void Artery11Condition::Calculate(const Variable<double >& rVariable,
+void Artery12Condition::Calculate(const Variable<double >& rVariable,
                               double& Output,
                               const ProcessInfo& rCurrentProcessInfo)
 {
@@ -289,7 +293,7 @@ void Artery11Condition::Calculate(const Variable<double >& rVariable,
 
 }
 
-int Artery11Condition::Check(const ProcessInfo& rCurrentProcessInfo)
+int Artery12Condition::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -306,7 +310,7 @@ int Artery11Condition::Check(const ProcessInfo& rCurrentProcessInfo)
     KRATOS_CATCH("");
 }
 
-void Artery11Condition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+void Artery12Condition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -370,7 +374,7 @@ void Artery11Condition::InitializeNonLinearIteration(ProcessInfo& CurrentProcess
     KRATOS_CATCH("");
 }
 
-void Artery11Condition::CalculateFunctional(array_1d<double,3>& rFunctional,
+void Artery12Condition::CalculateFunctional(array_1d<double,3>& rFunctional,
                          array_1d<double, 2> const& Area,
                          array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
                          array_1d<double, 2> const& WaveVelocity,
@@ -379,18 +383,18 @@ void Artery11Condition::CalculateFunctional(array_1d<double,3>& rFunctional,
 
 
     const double qa0 = Flow[0]/Area[0];
-    const double qa1 = Flow[0]/Area[1];
+    const double qa1 = Flow[1]/Area[1];
 
     rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
 
     rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
 		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
 		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
-    rFunctional[2]=Flow[0]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
+    rFunctional[2]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
 }
 
 
-void Artery11Condition::CalculateJacobian(Matrix& rJacobian,
+void Artery12Condition::CalculateJacobian(Matrix& rJacobian,
                          array_1d<double, 2> const& Area,
                          array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
                          array_1d<double, 2> const& WaveVelocity,
@@ -404,23 +408,23 @@ void Artery11Condition::CalculateJacobian(Matrix& rJacobian,
 
     rJacobian(0,0)= 5.00 * Coef[0] * pow(Area[0],0.25) - WaveVelocity[0];
     rJacobian(0,1)= 0.00;
-    rJacobian(0,2)= 0.00;
+    rJacobian(0,2)= 1.00;
 
     rJacobian(1,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
-    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[0]);
+    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[1]);
     rJacobian(1,2)= -BloodDensity * Flow[0] / (Area[1] * Area[1]);
 
     rJacobian(2,0)= 0.00;
-    rJacobian(2,1)= 5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
+    rJacobian(2,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
     rJacobian(2,2)= 1.00;
 
 
 }
 
 
-void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
+void Artery12Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
                          array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
                          array_1d<double, 2> const& WaveVelocity,
                          double BloodDensity)
 {
@@ -429,20 +433,20 @@ void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
     const double qa0 = Flow[0]/Area[0];
     const double qa1 = Flow[1]/Area[1];
 
-    rFunctional[0]=Flow[0] + 4.00 * ArteryProperty[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
+    rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
 
     rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
 		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
 		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
     rFunctional[2]=Flow[0]-Flow[1];
-    rFunctional[3]=Flow[1]-4.00*ArteryProperty[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
+    rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
 
 
 }
 
-void Artery11Condition::CalculateJacobian4(Matrix& rJacobian,
+void Artery12Condition::CalculateJacobian4(Matrix& rJacobian,
                          array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
                          array_1d<double, 2> const& WaveVelocity,
                          double BloodDensity)
 {
@@ -452,13 +456,13 @@ void Artery11Condition::CalculateJacobian4(Matrix& rJacobian,
     const double qa1 = Flow[1]/Area[1];
 
 
-    rJacobian(0,0)= 5.00 * ArteryProperty[0] * pow(Area[0],0.25) - WaveVelocity[0];
+    rJacobian(0,0)= 5.00 * Coef[0] * pow(Area[0],0.25) - WaveVelocity[0];
     rJacobian(0,1)= 0.00;
     rJacobian(0,2)= 1.00;
     rJacobian(0,3)= 0.00;
 
     rJacobian(1,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
-    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[0]);
+    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[1]);
     rJacobian(1,2)= BloodDensity * Flow[0] / (Area[0] * Area[0]);
     rJacobian(1,3)= -BloodDensity * Flow[1] / (Area[1] * Area[1]);
 
@@ -468,7 +472,7 @@ void Artery11Condition::CalculateJacobian4(Matrix& rJacobian,
     rJacobian(2,3)= -1.00;
 
     rJacobian(3,0)= 0.00;
-    rJacobian(3,1)= 5.00 * ArteryProperty[1] * pow(Area[1],0.25) - WaveVelocity[1];
+    rJacobian(3,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
     rJacobian(3,2)= 0.00;
     rJacobian(3,3)= 1.00;
 
