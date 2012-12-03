@@ -135,11 +135,11 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     const double flow1 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW); // NOTE: HERE we have to put the corrected value
     const double flow2 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     const double flow = 2* flow1 - flow2;
-    std::cout << "outlet: " << std::endl;
-    KRATOS_WATCH(flow1);
-    KRATOS_WATCH(flow2);
-    KRATOS_WATCH(flow);
-    KRATOS_WATCH(A);
+//    std::cout << "outlet: " << std::endl;
+//    KRATOS_WATCH(flow1);
+//    KRATOS_WATCH(flow2);
+//    KRATOS_WATCH(flow);
+//    KRATOS_WATCH(A);
     double A0 = mInitialArea[0];
     const double C = beta*sqrt(A*A*A)/(3.0*density*A0);
 

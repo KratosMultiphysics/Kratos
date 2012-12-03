@@ -132,9 +132,9 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
     const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     const double C = beta*sqrt(A*A*A)/(3.0*density*mInitialArea[0]);
-    std::cout << "inlet: " << std::endl;
-    KRATOS_WATCH(flow);
-    KRATOS_WATCH(A);
+//    std::cout << "inlet: " << std::endl;
+//    KRATOS_WATCH(flow);
+//    KRATOS_WATCH(A);
 
     rRightHandSideVector[0] = flow;
     double temp = C + coriolis_coefficient*flow*flow/(A);

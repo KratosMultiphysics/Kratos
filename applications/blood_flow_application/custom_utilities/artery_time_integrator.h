@@ -139,20 +139,20 @@ public:
          in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
 
         }
-        std::cout << "area : ";
-        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
-        {
-            std::cout << i->FastGetSolutionStepValue(NODAL_AREA) << " , ";
-        }
+//        std::cout << "area : ";
+//        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
+//        {
+//            std::cout << i->FastGetSolutionStepValue(NODAL_AREA) << " , ";
+//        }
 
-        std::cout << std::endl;
-        std::cout << "FLOW : ";
-        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
-        {
-            std::cout << i->FastGetSolutionStepValue(FLOW) << " , ";
-        }
+//        std::cout << std::endl;
+//        std::cout << "FLOW : ";
+//        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
+//        {
+//            std::cout << i->FastGetSolutionStepValue(FLOW) << " , ";
+//        }
 
-        std::cout << std::endl;
+//        std::cout << std::endl;
 
 //        ActualizeWorkArray( ThisModelPart, dt/6.0 );
 //	ActualizeSolution( ThisModelPart, dt*0.5 );
@@ -253,13 +253,13 @@ private:
     }
 }
 
-    std::cout << "RHS : ";
-    for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
-    {
-        std::cout << i->FastGetSolutionStepValue(RHS)[0] / i->FastGetSolutionStepValue(NODAL_MASS) << " , " << i->FastGetSolutionStepValue(RHS)[1] / i->FastGetSolutionStepValue(NODAL_MASS) << ", ";
-    }
+//    std::cout << "RHS : ";
+//    for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
+//    {
+//        std::cout << i->FastGetSolutionStepValue(RHS)[0] / i->FastGetSolutionStepValue(NODAL_MASS) << " , " << i->FastGetSolutionStepValue(RHS)[1] / i->FastGetSolutionStepValue(NODAL_MASS) << ", ";
+//    }
 
-    std::cout << std::endl;
+//    std::cout << std::endl;
 
         KRATOS_CATCH("")
     }

@@ -162,8 +162,8 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             {
                 CalculateFunctional6(f_out, area, flow, artery_property, coef, wave_velocity, density);
                 CalculateJacobian6(jacobian, area, flow, artery_property, coef, wave_velocity, density);
-                KRATOS_WATCH(f_out);
-                KRATOS_WATCH(jacobian);
+//                KRATOS_WATCH(f_out);
+//                KRATOS_WATCH(jacobian);
 
                 permutation_matrix<double> permutation(6);
                 array_1d<double,6> delta_x = -f_out;

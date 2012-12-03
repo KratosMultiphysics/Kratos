@@ -154,11 +154,11 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         //KRATOS_WATCH(beta);
         //KRATOS_WATCH(mL);
         const double flow = GetGeometry()[i].FastGetSolutionStepValue(FLOW);
-        if(Id() == 1)
-        {
-            KRATOS_WATCH(A);
-            KRATOS_WATCH(flow);
-        }
+//        if(Id() == 1)
+//        {
+//            KRATOS_WATCH(A);
+//            KRATOS_WATCH(flow);
+//        }
 
         Fj[i][0] = flow;
         Fj[i][1] = C + coriolis_coefficient*flow*flow/(A);
@@ -253,13 +253,13 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 //     F2ord = prod(M1,F2ord);
 //     S2ord = prod(M2,S2ord);
 
-    if(Id() == 1)
-    {
-    KRATOS_WATCH(Fw);
-KRATOS_WATCH(Sw);
- KRATOS_WATCH(F2ord);
-KRATOS_WATCH(S2ord);
-    }
+//    if(Id() == 1)
+//    {
+//    KRATOS_WATCH(Fw);
+//KRATOS_WATCH(Sw);
+// KRATOS_WATCH(F2ord);
+//KRATOS_WATCH(S2ord);
+//    }
     //now let's compute the rhs
     array_1d<double,2> rhs;
     
