@@ -217,23 +217,87 @@ solver.enlargement_factor = bounding_box_enlargement_factor
 
 #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
-if(continuum_option =="ON"):
+Pressure = 28*1e6; #28 MPa son uns 4000 Psi
+skin_list = list()
+
+if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL test CASE.
   
   for element in solid_model_part.Elements:
+	
+	element.SetValue(SKIN_SPHERE,0)
+	
+	for node in element.GetNodes():
+	  r = node.GetSolutionStepValue(RADIUS,0)
+	  x = node.X
+	  y = node.Y
+	  z = node.Z
 	  
-      element.SetValue(SKIN_SPHERE,0)
-      node = element.GetNode(0)
-      x = node.X
-      y = node.Y
-      z = node.Z
-      r = node.GetSolutionStepValue(RADIUS,0)
-      h=0.3
-      d=0.15
-      eps=2
+	Cross_section = 3.141592*r*r
+	h=0.3
+	d=0.15
+	eps=2
+	vect = zeros(3, double) 
+	values = Array3()
+	
+	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
 	  
-      if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) or y<=eps*r or y>=(h-eps*r) ): #For a cylinder test with the center of the base at (0,0,0) and with the axis y normal to the base
+	  element.SetValue(SKIN_SPHERE,1)
+	  skin_list.append(element)
+      
+	  #vector normal al centre:
+	  vect_moduli = sqrt(x*x+z*z)
+	  print(vect_moduli)
+	  if(vect_moduli>0.1):
+		vect[0]=-x/vect_moduli
+		vect[1]=-z/vect_moduli
+	  
+	  vect[2]=0;
+
+	  #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
+ 
+	  values[0]=-Cross_section*Pressure*vect[0]
+	  values[1]=-Cross_section*Pressure*vect[1]
+	  values[2]=0
+	 
+	  element.SetValue(APPLIED_FORCE,values)
+	  
+	if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
+	  
+	  element.SetValue(SKIN_SPHERE,1)
+	  skin_list.append(element)
+	  
+	  #vector normal al centre:
+	  
+	  values[0]=0
+	  values[1]=0
+	  values[2]=-Cross_section*Pressure
+	
+	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
 	  element.SetValue(SKIN_SPHERE,1)
 
+	  #vector normal al centre:
+	  vect_moduli = sqrt(x*x+z*z)
+	  if(vect_moduli!=0.0):
+		vect[0]=-x/vect_moduli
+		vect[1]=-z/vect_moduli
+	  
+	  
+	  values[0]=-Cross_section*Pressure*vect[0]*0.70710678
+	  values[1]=-Cross_section*Pressure*vect[1]*0.70710678
+	  values[2]=-Cross_section*Pressure*0.70710678
+	
+	for node in element.GetNodes():
+	  node.SetSolutionStepValue(APPLIED_FORCE,values)
+
+	
+	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
+	  #check:
+	  if(element.GetValue(APPLIED_FORCE)[0]*element.GetValue(APPLIED_FORCE)[0] + element.GetValue(APPLIED_FORCE)[1]*element.GetValue(APPLIED_FORCE)[1] + 
+		  element.GetValue(APPLIED_FORCE)[2]*element.GetValue(APPLIED_FORCE)[2] > 1.05*Cross_section*Pressure*Cross_section*Pressure ):
+		  print("malcalculat")
+
+  print("End Applying Imposed Forces")
+	  
 
 #Initialize the problem.
 
@@ -410,7 +474,7 @@ velocity_node_y = 0.0
 for node in force_measurement:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
-    
+done=False    
     
 while(time < final_time):
   
@@ -474,6 +538,17 @@ while(time < final_time):
     summary_results.write(str(step)+"  "+str(total_force)+'\n')
 
     os.chdir(main_path)
+    
+    #Dissable the confinement
+    
+    if( (time > final_time*0.1) and (done==False)):
+	  done=True;
+	  for element in skin_list:
+		element.SetValue(APPLIED_FORCE,(0,0,0))
+	  
+	  print("Confinement finished at time "+str(time))
+    
+ 
     
     solver.Solve()
 
