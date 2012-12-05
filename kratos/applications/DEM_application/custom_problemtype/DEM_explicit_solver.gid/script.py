@@ -217,7 +217,8 @@ solver.enlargement_factor = bounding_box_enlargement_factor
 
 #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
-Pressure = 28*1e6; #28 MPa son uns 4000 Psi
+#Pressure = 28*1e6; #28 MPa son uns 4000 Psi
+Pressure = 0.0
 skin_list = list()
 
 if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL test CASE.
@@ -227,10 +228,10 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
 	element.SetValue(SKIN_SPHERE,0)
 	
 	for node in element.GetNodes():
-	  r = node.GetSolutionStepValue(RADIUS,0)
-	  x = node.X
-	  y = node.Y
-	  z = node.Z
+		r = node.GetSolutionStepValue(RADIUS,0)
+		x = node.X
+		y = node.Y
+		z = node.Z
 	  
 	Cross_section = 3.141592*r*r
 	h=0.3
@@ -246,57 +247,57 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
       
 	  #vector normal al centre:
 	  vect_moduli = sqrt(x*x+z*z)
-	  print(vect_moduli)
-	  if(vect_moduli>0.1):
+	  #print(vect_moduli)
+	  if(vect_moduli>0.0):
 		vect[0]=-x/vect_moduli
-		vect[1]=-z/vect_moduli
-	  
-	  vect[2]=0;
-
+		vect[2]=-z/vect_moduli
+		vect[1]=0;
+		
 	  #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
- 
+	  
 	  values[0]=-Cross_section*Pressure*vect[0]
-	  values[1]=-Cross_section*Pressure*vect[1]
-	  values[2]=0
-	 
-	  element.SetValue(APPLIED_FORCE,values)
+	  values[1]=0.0
+	  values[2]=-Cross_section*Pressure*vect[2]
+	   
 	  
 	if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
-	  
-	  element.SetValue(SKIN_SPHERE,1)
-	  skin_list.append(element)
-	  
-	  #vector normal al centre:
-	  
-	  values[0]=0
-	  values[1]=0
-	  values[2]=-Cross_section*Pressure
-	
-	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
-	  element.SetValue(SKIN_SPHERE,1)
 
-	  #vector normal al centre:
-	  vect_moduli = sqrt(x*x+z*z)
-	  if(vect_moduli!=0.0):
-		vect[0]=-x/vect_moduli
-		vect[1]=-z/vect_moduli
-	  
-	  
-	  values[0]=-Cross_section*Pressure*vect[0]*0.70710678
-	  values[1]=-Cross_section*Pressure*vect[1]*0.70710678
-	  values[2]=-Cross_section*Pressure*0.70710678
-	
+		element.SetValue(SKIN_SPHERE,1)
+		#vector normal al centre:	  
+		values[0]=0.0
+		values[2]=0.0
+		if ( y>h/2 ):
+			values[1]=-Cross_section*Pressure
+		else:
+			values[1]=Cross_section*Pressure
+
+		if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+			#vector normal al centre:
+			vect_moduli = sqrt(x*x+z*z)
+			
+			if ( vect_moduli>0.0 ) :
+				vect[0]=-x/vect_moduli
+				vect[1]=0.0
+				vect[2]=-z/vect_moduli
+
+			values[0]=-Cross_section*Pressure*vect[0]*0.70710678
+			values[2]=-Cross_section*Pressure*vect[2]*0.70710678
+			if ( y>h/2 ):
+				values[1]=-Cross_section*Pressure*0.70710678
+			else:
+				values[1]=Cross_section*Pressure*0.70710678 
+		else:
+			skin_list.append(element)  
+
 	for node in element.GetNodes():
-	  node.SetSolutionStepValue(APPLIED_FORCE,values)
-
+		node.SetSolutionStepValue(APPLIED_FORCE,values)
 	
 	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
 	  #check:
-	  if(element.GetValue(APPLIED_FORCE)[0]*element.GetValue(APPLIED_FORCE)[0] + element.GetValue(APPLIED_FORCE)[1]*element.GetValue(APPLIED_FORCE)[1] + 
-		  element.GetValue(APPLIED_FORCE)[2]*element.GetValue(APPLIED_FORCE)[2] > 1.05*Cross_section*Pressure*Cross_section*Pressure ):
-		  print("malcalculat")
+		if(element.GetValue(APPLIED_FORCE)[0]*element.GetValue(APPLIED_FORCE)[0] + element.GetValue(APPLIED_FORCE)[1]*element.GetValue(APPLIED_FORCE)[1] +  element.GetValue(APPLIED_FORCE)[2]*element.GetValue(APPLIED_FORCE)[2] > 1.05*Cross_section*Pressure*Cross_section*Pressure ):
+			print("malcalculat")
 
-  print("End Applying Imposed Forces")
+print("End Applying Imposed Forces")
 	  
 
 #Initialize the problem.
