@@ -417,8 +417,6 @@ namespace Kratos
 
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
 			
-			KRATOS_WATCH(applied_force)
-			
             rhs  = mass*gravity + applied_force;
 
             total_forces = rhs;
