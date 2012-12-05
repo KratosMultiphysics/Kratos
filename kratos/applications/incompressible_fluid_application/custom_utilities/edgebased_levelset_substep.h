@@ -103,6 +103,8 @@ public:
     {
         for (ModelPart::NodesContainerType::iterator it=mr_model_part.NodesBegin(); it!=mr_model_part.NodesEnd(); it++)
             it->FastGetSolutionStepValue (VISCOSITY) = viscosity;
+	
+	mMolecularViscosity = viscosity;
 // 	    mViscosity = viscosity;
         noalias (mBodyForce) = body_force;
         mRho = density;
@@ -356,8 +358,8 @@ public:
 //            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase (POROSITY, mEps, mr_model_part.Nodes() );
 //         mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
-        mr_matrix_container.FillScalarFromDatabase (LIN_DARCY_COEF, mA, mr_model_part.Nodes() );
-        mr_matrix_container.FillScalarFromDatabase (NONLIN_DARCY_COEF, mB, mr_model_part.Nodes() );
+//         mr_matrix_container.FillScalarFromDatabase (LIN_DARCY_COEF, mA, mr_model_part.Nodes() );
+//         mr_matrix_container.FillScalarFromDatabase (NONLIN_DARCY_COEF, mB, mr_model_part.Nodes() );
 //            double delta_t_i = delta_t;
         //*******************
         //loop over all nodes
@@ -377,8 +379,8 @@ public:
 //            double porosity_coefficient = ComputePorosityCoefficient( vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
             vel_norm /= eps_i;
             //use CFL condition to compute time step size
-            double delta_t_i = 1.0 / (2.0 * vel_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) /*+ porosity_coefficient*/);
-            double delta_t_i_avg = 1.0 / (2.0 * vel_norm /havg_i + 4.0 * nu / (havg_i * havg_i) /*+ porosity_coefficient*/);
+            double delta_t_i = 1.0 / (vel_norm /hmin_i + nu / (hmin_i * hmin_i) /*+ porosity_coefficient*/);
+            double delta_t_i_avg = 1.0 / (vel_norm /havg_i + nu / (havg_i * havg_i) /*+ porosity_coefficient*/);
             double delta_t_i_avg_novisc = 1.0 / (2.0 * vel_norm /havg_i );
             //considering the most restrictive case of neighbor's velocities with similar direction but opposite sense.
             //loop over all neighbours
@@ -395,7 +397,8 @@ public:
                 }
                 v_diff_norm = sqrt (v_diff_norm);
                 v_diff_norm /= eps_i;
-                double delta_t_j = 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) );
+                double delta_t_j = 1.0 / (v_diff_norm /havg_i + 4.0 * nu / (havg_i * havg_i) );
+//                 double delta_t_j = 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i) );
                 double delta_t_j_avg_novisc =  1.0 / (2.0 * v_diff_norm /havg_i );
                 if (delta_t_j < delta_t_i)
                     delta_t_i = delta_t_j;
@@ -591,10 +594,60 @@ public:
                 edge_ij.Add_ConvectiveContribution (pi_i, a_i, U_i, a_j, U_j);
 //                    edge_ij.Add_grad_p(pi_i, p_i, p_j);
             }
-            const double m_inv = mr_matrix_container.GetInvertedMass() [i_node];
-            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                pi_i[l_comp] *= m_inv;
+             const double m_inv = mr_matrix_container.GetInvertedMass() [i_node];
+             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+                 pi_i[l_comp] *= m_inv;
         }
+        
+//        //completing with boundary integrals
+//	//loop over all faces
+//	for (ModelPart::ConditionsContainerType::iterator cond_it = mr_model_part.ConditionsBegin(); cond_it != mr_model_part.ConditionsEnd(); cond_it++)
+//	{
+//		//get geometry data of the face
+//		Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
+//
+//		//reference for area normal of the face
+//		array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
+//		double A = norm_2(face_normal);
+//		
+//		unsigned int i_node0 = static_cast<unsigned int> (face_geometry[0].FastGetSolutionStepValue(AUX_INDEX));
+//		unsigned int i_node1 = static_cast<unsigned int> (face_geometry[1].FastGetSolutionStepValue(AUX_INDEX));
+//		unsigned int i_node2 = static_cast<unsigned int> (face_geometry[2].FastGetSolutionStepValue(AUX_INDEX));
+//
+//		if(face_geometry[0].IsFixed(VELOCITY_X) && face_geometry[1].IsFixed(VELOCITY_X) && face_geometry[2].IsFixed(VELOCITY_X))
+//		{
+//			
+//		//KRATOS_WATCH(cond_it->Id());
+//		//	    if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == false)
+//		//{
+// 		const array_1d<double,TDim>& v_0 = mvel_n1[i_node0];
+//		const array_1d<double,TDim>& v_1 = mvel_n1[i_node1];
+//		const array_1d<double,TDim>& v_2 = mvel_n1[i_node2];  
+//		double An0 = inner_prod(v_0,face_normal) / (A*mEps[i_node0]);
+//		double An1 = inner_prod(v_1,face_normal) / (A*mEps[i_node1]);
+//		double An2 = inner_prod(v_2,face_normal) / (A*mEps[i_node2]);
+//		//KRATOS_WATCH(face_normal);
+//		mPi[i_node0] -= ((2.0*An0+An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+//		mPi[i_node1] -= ((An0+2.0*An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+//		mPi[i_node2] -= ((An0+An1+2.0*An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+//		}
+//		//}
+//	}        
+//        
+//        
+//        //calculating the convective projection
+//        #pragma omp parallel for
+//        for (int i_node = 0; i_node < n_nodes; i_node++)
+//        {
+//            array_1d<double, TDim>& pi_i = mPi[i_node]; //******************
+//            const double m_inv = mr_matrix_container.GetInvertedMass() [i_node];
+//            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//                pi_i[l_comp] *= m_inv;
+//        }        
+//        
+//        
+        
+        
         double n_substeps = mnumsubsteps;
 //            del
         double delta_t_substep = delta_t/n_substeps;
@@ -674,7 +727,8 @@ public:
                     rhs_i[comp] = m_i * eps_i * f_i[comp] ;
                 //applying the effect of the porosity
                 double porosity_coefficient = ComputePorosityCoefficient ( norm_2 (U_i), eps_i, lindarcy_i, nonlindarcy_i);
-                diag_stiffness[i_node] = m_i * porosity_coefficient;
+                diag_stiffness[i_node]= m_i * porosity_coefficient;
+		
                 //std::cout << i_node << "rhs =" << rhs_i << "after adding body force" << std::endl;
                 //convective term
                 for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex() [i_node]; csr_index != mr_matrix_container.GetRowStartIndex() [i_node + 1]; csr_index++)
@@ -691,8 +745,8 @@ public:
                     edge_ij.Sub_ConvectiveContribution (rhs_i, a_i, U_i, a_j, U_j);
                     //std::cout << i_node << "rhs =" << rhs_i << "after convective contrib" << std::endl;
                     //take care! we miss including a B.C.  for the external pressure
-                    edge_ij.Add_Gp (rhs_i,p_i*inverse_rho,p_j*inverse_rho);
-                    //edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho*eps_i, p_j * inverse_rho*eps_i);
+                    //edge_ij.Add_Gp (rhs_i,p_i*inverse_rho,p_j*inverse_rho);
+                    edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho*eps_i, p_j * inverse_rho*eps_i);
                     //                        edge_ij.Add_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
                     //std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
                     edge_ij.Sub_ViscousContribution (rhs_i, U_i, nu_i, U_j, nu_j);
@@ -750,6 +804,85 @@ public:
         			}
         		}*/
  //       KRATOS_WATCH("finished**************************************************")		*/
+
+/*
+	//correction to the pressure graient
+	                //loop over all faces
+        CalcVectorType press_correction(vel.size());
+	  mr_matrix_container.SetToZero(press_correction);
+//        mr_matrix_container.SetToZero(slip_area);
+	for (ModelPart::ConditionsContainerType::iterator cond_it = mr_model_part.ConditionsBegin(); cond_it != mr_model_part.ConditionsEnd(); cond_it++)
+	{
+		//get geometry data of the face
+		Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
+
+		//reference for area normal of the face
+		array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
+		double A = norm_2(face_normal);
+		
+		unsigned int i_node0 = static_cast<unsigned int> (face_geometry[0].FastGetSolutionStepValue(AUX_INDEX));
+		unsigned int i_node1 = static_cast<unsigned int> (face_geometry[1].FastGetSolutionStepValue(AUX_INDEX));
+		unsigned int i_node2 = static_cast<unsigned int> (face_geometry[2].FastGetSolutionStepValue(AUX_INDEX));
+
+	    if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
+	    {
+    
+		const double& p_0 = pressure[i_node0];
+		const double& p_1 = pressure[i_node1];
+		const double& p_2 = pressure[i_node2];       
+		
+		//TODO: we should only keep the part orthogonal to the external normal on each node!!!!
+		press_correction[i_node0] -= ((2.0*p_0+p_1+p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
+		press_correction[i_node1] -= ((p_0+2.0*p_1+p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
+		press_correction[i_node2] -= ((p_0+p_1+2.0*p_2)*0.5*0.333333333333333333333333333333*0.5*inverse_rho)*face_normal;
+		
+	    }
+	    else
+	    {
+	      
+		const array_1d<double,TDim>& v_0 = vel[i_node0];
+		const array_1d<double,TDim>& v_1 = vel[i_node1];
+		const array_1d<double,TDim>& v_2 = vel[i_node2];  
+		double An0 = inner_prod(v_0,face_normal) / (A*A);
+		double An1 = inner_prod(v_1,face_normal) / (A*A);
+		double An2 = inner_prod(v_2,face_normal) / (A*A);
+		
+		rhs[i_node0] -= ((2.0*An0+An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+		rhs[i_node1] -= ((An0+2.0*An1+An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+		rhs[i_node2] -= ((An0+An1+2.0*An2)*0.5*0.333333333333333333333333333333*0.5)*face_normal;
+
+	    }
+	}
+
+	//slip condition
+	int slip_size = mSlipBoundaryList.size();
+	#pragma omp parallel for firstprivate(slip_size)
+	for (int i_slip = 0; i_slip < slip_size; i_slip++)
+	{
+	    unsigned int i_node = mSlipBoundaryList[i_slip];
+	    double dist = mdistances[i_node];
+	    if (dist <= 0.0 && mis_slip[i_node] == true)
+	    {
+		array_1d<double, TDim>& rhs_i = rhs[i_node];
+// 		array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+// 		double normalization = 0.0;
+// 		for (unsigned int comp = 0; comp < TDim; comp++)
+// 		{
+// 		    normalization += an_i[comp] * an_i[comp];
+// 		}
+// 		normalization = sqrt(normalization);
+		array_1d<double,TDim>& press_corr_i = press_correction[i_node];
+		for (unsigned int comp = 0; comp < TDim; comp++)
+ 		    rhs_i[comp] +=  press_corr_i[comp];
+		
+		//we should remove here the normal component!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	    }
+	}
+        
+
+*/
+
+
         //apply wall resistance
         if (mWallLawIsActive == true)
             ComputeWallResistance (vel,diag_stiffness);
@@ -1170,19 +1303,21 @@ public:
                     double delta_p_j = (mPn1[j_neighbour] - mPn[j_neighbour]) * rho_inv*factor;
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues() [csr_index];
                     // 							edge_ij.Sub_grad_p(correction,delta_p_i,delta_p_j);
-                    //edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
+                    edge_ij.Sub_grad_p(correction, delta_p_i, delta_p_j);
                     //                        edge_ij.Add_grad_p(correction, delta_p_i, delta_p_j);
-                    edge_ij.Add_Gp (correction,delta_p_i,delta_p_j);
+                    //edge_ij.Add_Gp (correction,delta_p_i,delta_p_j);
                     // 							edge_ij.Sub_Gp(correction,delta_p_i,delta_p_j);
                 }
                 //compute prefactor
 //                 double coefficient = delta_t * m_inv;
                 const double m = mr_matrix_container.GetLumpedMass() [i_node];
-                const double d = mdiag_stiffness[i_node];
-                double coefficient = delta_t / (m + delta_t*d);
-                //correct fractional momentum
+                const double&  d = mdiag_stiffness[i_node];
+
+		//correct fractional momentum
                 for (unsigned int comp = 0; comp < TDim; comp++)
-                    U_i_curr[comp] += coefficient * correction[comp];
+		{
+                    U_i_curr[comp] += delta_t / (m + delta_t*d) * correction[comp];
+		}
             }
         }
         ApplyVelocityBC (mvel_n1);
@@ -1279,16 +1414,16 @@ public:
 //                 }
 //             }
 // // //
-// //             //apply conditions on corners
-//             int corner_size = mcorner_nodes.size();
-//             for (int i = 0; i < corner_size; i++)
-//             {
-//                 int i_node = mcorner_nodes[i];
-//
-//                 array_1d<double, TDim>& U_i = VelArray[i_node];
-//                 for (unsigned int comp = 0; comp < TDim; comp++)
-//                     U_i[comp] = 0.0;
-//             }
+//             //apply conditions on corners
+             int corner_size = mcorner_nodes.size();
+             for (int i = 0; i < corner_size; i++)
+             {
+                 int i_node = mcorner_nodes[i];
+
+                 array_1d<double, TDim>& U_i = VelArray[i_node];
+                 for (unsigned int comp = 0; comp < TDim; comp++)
+                     U_i[comp] = 0.0;
+             }
 //         }
         //slip condition
         int slip_size = mSlipBoundaryList.size();
@@ -1314,6 +1449,81 @@ public:
                     U_i[comp] -= projection_length * an_i[comp];
             }
         }
+        
+//                 //loop over all faces
+//         ValuesVectorType vel_correction(VelArray.size());
+// //        CalcVectorType slip_area(VelArray.size());
+//         int iterations = 10;
+//         for(unsigned int i=0;i<iterations; i++)
+//         {
+//             mr_matrix_container.SetToZero(vel_correction);
+//     //        mr_matrix_container.SetToZero(slip_area);
+//             for (ModelPart::ConditionsContainerType::iterator cond_it = mr_model_part.ConditionsBegin(); cond_it != mr_model_part.ConditionsEnd(); cond_it++)
+//             {
+//                 if (static_cast<bool>(cond_it->GetValue(IS_STRUCTURE)) == true)
+//                 {
+//                     //get geometry data of the face
+//                     Geometry<Node < 3 > >& face_geometry = cond_it->GetGeometry();
+// 
+//                     //reference for area normal of the face
+//                     array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
+//                     double n_area = norm_2(face_normal) / static_cast<double>(TDim);
+// 
+//                     unsigned int i_node0 = static_cast<unsigned int> (face_geometry[0].FastGetSolutionStepValue(AUX_INDEX));
+//                     unsigned int i_node1 = static_cast<unsigned int> (face_geometry[1].FastGetSolutionStepValue(AUX_INDEX));
+//                     unsigned int i_node2 = static_cast<unsigned int> (face_geometry[2].FastGetSolutionStepValue(AUX_INDEX));
+//                
+//                     const array_1d<double, TDim>& U_0 = VelArray[i_node0];
+//                     const array_1d<double, TDim>& U_1 = VelArray[i_node1];
+//                     const array_1d<double, TDim>& U_2 = VelArray[i_node2];       
+// 
+// 		    double vn0=0.0;
+// 		    double vn1=0.0;
+// 		    double vn2=0.0;
+//                     if(mdistances[i_node0] <= 0 && face_geometry[0].IsFixed(VELOCITY_X) == false) vn0 = inner_prod(U_0,face_normal);
+//                     if(mdistances[i_node1] <= 0 && face_geometry[1].IsFixed(VELOCITY_X) == false) vn1 = inner_prod(U_1,face_normal);
+//                     if(mdistances[i_node2] <= 0 && face_geometry[2].IsFixed(VELOCITY_X) == false) vn2 = inner_prod(U_2,face_normal);
+//                    
+//                     double edge01 = 0.5*(vn0+vn1)*0.333333333333333333333333333333*0.5;
+//                     double edge02 = 0.5*(vn0+vn2)*0.333333333333333333333333333333*0.5;
+//                     double edge12 = 0.5*(vn2+vn2)*0.333333333333333333333333333333*0.5;
+//                    
+//                     vel_correction[i_node0] += edge01 + edge02;
+//                     vel_correction[i_node1] += edge01  + edge12;
+//                     vel_correction[i_node2] += edge02 + edge12;
+// 		    
+// /*		     double tmp = 0.333333333333333333333333333333333*0.333333333333333333333333333333333*(vn0+vn1+vn2);
+//                      vel_correction[i_node0] += tmp;
+//                     vel_correction[i_node1] += tmp;
+//                     vel_correction[i_node2] += tmp;       */            
+//                 }
+//             }
+// 
+//            //slip condition
+//             int slip_size = mSlipBoundaryList.size();
+//             #pragma omp parallel for firstprivate(slip_size)
+//             for (int i_slip = 0; i_slip < slip_size; i_slip++)
+//             {
+//                 unsigned int i_node = mSlipBoundaryList[i_slip];
+//                 double dist = mdistances[i_node];
+//                 if (dist <= 0.0)
+//                 {
+//                     array_1d<double, TDim>& U_i = VelArray[i_node];
+//                     array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+//                     double normalization = 0.0;
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                     {
+//                         normalization += an_i[comp] * an_i[comp];
+//                     }
+//                      //tangential momentum as difference between original and normal momentum
+//                     double coeff = vel_correction[i_node] / normalization;
+//                     for (unsigned int comp = 0; comp < TDim; comp++)
+//                         U_i[comp] +=  coeff * an_i[comp];
+//                 }
+//             }
+//         }
+        
+        
         //fixed condition
         int fixed_size = mFixedVelocities.size();
         #pragma omp parallel for firstprivate(fixed_size)
@@ -2517,6 +2727,7 @@ public:
         mr_matrix_container.FillScalarFromDatabase (NONLIN_DARCY_COEF, mB, mr_model_part.Nodes() ); /*filling edgebased database reading from kratos database*/
     }
 private:
+    double mMolecularViscosity;
     double mcorner_coefficient;
     double medge_coefficient;
     double mmax_dt;
@@ -3007,6 +3218,7 @@ private:
         for (int i_node = 0; i_node < n_nodes; i_node++)
             to_be_smoothed[i_node] = aux[i_node];
     }
+    
     void ComputeWallResistance (
         const CalcVectorType& vel,
         ValuesVectorType& diag_stiffness
@@ -3125,11 +3337,53 @@ private:
                 mod_vel = sqrt (mod_vel);
                 area = sqrt (area);
 				//the 0.1 is such that the dissipation is as for the linear case for a velocity of 10m/s
-                diag_stiffness[i_node] = 0.1 * area * nu * mod_vel/ (ym ) * mWallReductionFactor[ i_node ] ;
+                diag_stiffness[i_node] = 0.05 * area * nu * mod_vel/ (ym ) * mWallReductionFactor[ i_node ] ;
             }
             else
-                diag_stiffness[i_node] = 0.0;
+	      {
+                diag_stiffness[i_node] = 0.0 ;
+	      }
         }
+        
+        
+//         //apply higher resistance normally to the edges
+//         int edge_size = medge_nodes_direction.size();
+// 	#pragma omp parallel for firstprivate(edge_size)
+// 	for (int i = 0; i < edge_size; i++)
+// 	{
+// 	    int i_node = medge_nodes[i];
+// 	    double dist = mdistances[i_node];
+// 
+// 	    if(dist <= 0.0)
+// 	    {
+// 		  double nu = mViscosity[i_node];
+// 		  const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
+// 		  
+// 		  //compute the modulus of the velocity
+// 		  double area = 0.0;
+// 		  for (unsigned int comp = 0; comp < TDim; comp++)
+// 		  {
+// 		      area += an_i[comp] * an_i[comp];
+// 		  }
+// 		  area = sqrt (area);
+// 		  
+// 		  diag_stiffness[i_node] += area * nu  / (ym ) ;
+// 
+// 	    }
+// 	}
+// 	
+// 	int corner_size = mcorner_nodes.size();
+//         for (int i = 0; i < corner_size; i++)
+//         {
+//             int i_node = mcorner_nodes[i];
+// 	    double nu = mViscosity[i_node];
+//             mWallReductionFactor[i_node] = mcorner_coefficient; //50.0;
+// 	    const double m = mr_matrix_container.GetLumpedMass()[i_node];
+// 	    diag_stiffness[i_node] += 100.0*m * nu / (ym ) ;
+//         }
+        
+        
+        
     }
 	
     void ApplySmagorinsky3D (double MolecularViscosity, double Cs)
@@ -3175,12 +3429,17 @@ private:
                 grad_vz[comp] *= m_inv ;
             }
             //symmetrize and multiply by 2
+            grad_vx[0] *= 2.0;
+	    grad_vy[1] *= 2.0;
+	    grad_vz[2] *= 2.0;	    
             grad_vx[1] += grad_vy[0];
             grad_vx[2] += grad_vz[0];
             grad_vy[2] += grad_vz[1];
-            grad_vy[0] = grad_vx[1];
-            grad_vz[0] = grad_vx[2];
-            grad_vz[1] = grad_vy[2];
+            grad_vy[0] += grad_vx[1];
+            grad_vz[0] += grad_vx[2];
+            grad_vz[1] += grad_vy[2];
+	    
+	    
             //compute smagorinsky term
             double aux = 0.0;
             for (unsigned int comp = 0; comp < TDim; comp++)
@@ -3219,9 +3478,9 @@ private:
             const double d = diag_stiffness[i_node];
             const array_1d<double, TDim>& origin_vec1 = origin1[i_node];
             const array_1d<double, TDim>& origin_value = origin[i_node];
-            double temp = value / (m + value*d);
+	    
             for (unsigned int comp = 0; comp < TDim; comp++)
-                dest[comp] = temp * ( m/value * origin_vec1[comp] +  origin_value[comp] );
+                dest[comp] = value / (m + value*d) * ( m/value * origin_vec1[comp] +  origin_value[comp] );
         }
         KRATOS_CATCH ("")
     }
