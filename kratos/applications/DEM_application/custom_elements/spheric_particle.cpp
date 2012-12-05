@@ -248,23 +248,21 @@ namespace Kratos
                             this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[ini_size - 1]=0;
                             *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.
                             
-                            if(contact_mesh_OPTION)
-                            {
-                                continuum_ini_size++;
+                            continuum_ini_size++;
                                 
-                                r_continuum_ini_neighbours.push_back(*ineighbour);
-                              
-                                (this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)).resize(continuum_ini_size);
-                                (this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)).resize(continuum_ini_size);
-                                (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
-                                
-                                this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
-                           
-                                this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)[continuum_ini_size - 1] = 0;
-                       
-                            }
+                            r_continuum_ini_neighbours.push_back(*ineighbour);
+                            (this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)).resize(continuum_ini_size);
+                            (this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)).resize(continuum_ini_size);
                             
+							  this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                             this->GetValue(CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)[continuum_ini_size - 1] = 0;
+							 
+							if(contact_mesh_OPTION)
+                            {
 
+                                (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
+                   
+                            }                          
                         }
 
                     }//for continuum_simulation_OPTION                                                                                                 //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
@@ -275,13 +273,13 @@ namespace Kratos
               
             } //end for: ParticleWeakIteratorType ineighbour
             
-	    if (continuum_simulation_OPTION == true)
-	    {
-	      
-	      ContactAreaWeighting(rCurrentProcessInfo);
-		      
-	    }
-	   
+			if (continuum_simulation_OPTION == true)
+			{
+			  
+			  ContactAreaWeighting(rCurrentProcessInfo);
+				  
+			}
+			
 	   
         }//SetInitialContacts
 
@@ -289,66 +287,67 @@ namespace Kratos
 
        { 
 	 
-	  int skin_sphere 	= this->GetValue(SKIN_SPHERE);
-	  
-	  double alpha = 1.0;
-	  double radius = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-	  double external_sphere_area = 4*M_PI*radius*radius;  
-	  
-	  mtotal_equiv_area = 0.0;
-	      
-	  int cont_ini_neighbours_size = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS).size();
-		  
-	  ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-
-	  mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
-	  
-	  //computing the total equivalent area
-	  
-	  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-	  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-
-	  {   
-		  double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-		  double equiv_area    	= M_PI*radius*radius*other_radius*other_radius/((radius + other_radius)*(radius + other_radius)); //we now take 1/2 of the efective radius.
-		  mtotal_equiv_area 	+= equiv_area;
-	  
-	  } //for every neighbour
-	  
-	 if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id())}
-	  
-	   if(skin_sphere != 1)
-	  {
-	  
-		 AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
-	   
-	  }
-	  else //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
-	  {
-	      //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
-		  alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+		int skin_sphere 	= this->GetValue(SKIN_SPHERE);
+		
+		double alpha = 1.0;
+		double radius = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+		double external_sphere_area = 4*M_PI*radius*radius;  
+		
+		mtotal_equiv_area = 0.0;
 			
-	   }
-	  
-	      
-	  size_t index = 0;
-	  
-	  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-	  ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+		int cont_ini_neighbours_size = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS).size();
+			
+		ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
 
-	  {   
-	      double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-	      double equiv_radius    = 2*radius * other_radius / (radius + other_radius);        
-	      double equiv_area      = (0.25)*M_PI * equiv_radius * equiv_radius;
-	      double corrected_area  = alpha*equiv_area;
-	      
-	      mcont_ini_neigh_area[index] = corrected_area;
-	      
-	      index++;    
-	  } //for every neighbour
+		mcont_ini_neigh_area.resize(cont_ini_neighbours_size);
+		
+		//computing the total equivalent area
+		
+		for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+		ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+
+		{   
+			double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+			double equiv_radius    = 2*radius * other_radius / (radius + other_radius);        
+			double equiv_area      = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective radius.
+			mtotal_equiv_area 	+= equiv_area;
+		
+		} //for every neighbour
+	  
+	  if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id()) KRATOS_WATCH("SS")}
+	  
+		if(skin_sphere != 1)
+		{
+		
+		  AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
+		
+		}
+		else //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
+		{
+			//alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
+			alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+			  
+		}
+		
+			
+		size_t index = 0;
+	  
+		for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+		ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+
+		{   
+			double other_radius   	= ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+			double equiv_radius    = 2*radius * other_radius / (radius + other_radius);        
+			double equiv_area      = (0.25)*M_PI * equiv_radius * equiv_radius;
+			double corrected_area  = alpha*equiv_area;
+			
+			mcont_ini_neigh_area[index] = corrected_area;
+			
+			index++;    
+		} //for every neighbour
 		   	  
 	 
-       } //Contact Area Weighting
+      } //Contact Area Weighting
         
         
        void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
@@ -417,11 +416,13 @@ namespace Kratos
             array_1d<double,3>& damp_forces     = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
 
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
-
+			
+			KRATOS_WATCH(applied_force)
+			
             rhs  = mass*gravity + applied_force;
 
             total_forces = rhs;
-            
+            //KRATOS_WATCH(total_forces)
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
             size_t iContactForce = 0;            
@@ -481,24 +482,26 @@ namespace Kratos
                 double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
                 double equiv_young      = 2 * young * other_young / (young + other_young);
                 
-			   double corrected_area = equiv_area;
-
+			    double corrected_area = equiv_area;
 			  
-			  int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
+			   int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
 
-			  if(continuum_simulation_OPTION)
-			  {
+				if(continuum_simulation_OPTION)
+				{
+
 				  for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
-				  {
-
-					if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+					{
+					  
+					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+					    
+						corrected_area = mcont_ini_neigh_area[index_area];
+						break;
+					  index_area++;   
 					
-					  corrected_area = mcont_ini_neigh_area[index_area];
+					} //for every neighbour		  
+					
+				}
 
-					index_area++;   
-				  
-				  } //for every neighbour		  
-			  }
                 //MACRO PARAMETERS
 
                 double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
@@ -692,7 +695,8 @@ namespace Kratos
                 if ( this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0 )
 
                 {
-		    failure_criterion_state = 1.0;
+				  
+					failure_criterion_state = 1.0;
                                                           
                     if( ShearForceNow >  Frictional_ShearForceMax ) 
                     {
