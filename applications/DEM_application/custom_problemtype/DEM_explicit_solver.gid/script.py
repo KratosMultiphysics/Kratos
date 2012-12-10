@@ -227,19 +227,23 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
 	
 	element.SetValue(SKIN_SPHERE,0)
 	
-	for node in element.GetNodes():
-		r = node.GetSolutionStepValue(RADIUS,0)
-		x = node.X
-		y = node.Y
-		z = node.Z
+	node = element.GetNode(0)
+	r = node.GetSolutionStepValue(RADIUS,0)
+	x = node.X
+	y = node.Y
+	z = node.Z
+	
+	values = Array3()
+	values[0] = 0.0
+	values[1] = 0.0
+	values[2] = 0.0
 	  
 	Cross_section = 3.141592*r*r
 	h=0.3
 	d=0.15
 	eps=2
 	vect = zeros(3, double) 
-	values = Array3()
-	
+
 	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
 	  
 	  element.SetValue(SKIN_SPHERE,1)
@@ -250,13 +254,13 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
 	  #print(vect_moduli)
 	  if(vect_moduli>0.0):
 		vect[0]=-x/vect_moduli
+		vect[1]=0
 		vect[2]=-z/vect_moduli
-		vect[1]=0;
 		
 	  #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
 	  
 	  values[0]=-Cross_section*Pressure*vect[0]
-	  values[1]=0.0
+	  values[1]= 0.0
 	  values[2]=-Cross_section*Pressure*vect[2]
 	   
 	  
@@ -269,7 +273,7 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
 		if ( y>h/2 ):
 			values[1]=-Cross_section*Pressure
 		else:
-			values[1]=Cross_section*Pressure
+			values[1]= Cross_section*Pressure
 
 		if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
 			#vector normal al centre:
@@ -289,8 +293,7 @@ if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL tes
 		else:
 			skin_list.append(element)  
 
-	for node in element.GetNodes():
-		node.SetSolutionStepValue(APPLIED_FORCE,values)
+	node.SetSolutionStepValue(APPLIED_FORCE,values)
 	
 	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
 	  #check:
