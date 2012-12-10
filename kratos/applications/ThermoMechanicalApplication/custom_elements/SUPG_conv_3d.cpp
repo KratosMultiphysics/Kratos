@@ -146,7 +146,6 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
-
     for (unsigned int j = 0; j < dim; j++)
         ms_vel_gauss[j] = v[j] - w[j];
 
@@ -275,7 +274,7 @@ void SUPGConv3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proces
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "method not implemented", "");
+//     KRATOS_ERROR(std::logic_error, "method not implemented", "");
 
     KRATOS_CATCH("")
 }
@@ -298,7 +297,6 @@ void SUPGConv3D::CalculateConvTau(array_1d<double, 3 > & ms_adv_vel, double& tau
 
     const double dyn_st_beta = rCurrentProcessInfo[DYNAMIC_TAU];
     tau = 1.0 / (dyn_st_beta / time + 2.0 * advvel_norm / ele_length);
-
 
 
     KRATOS_CATCH("")
