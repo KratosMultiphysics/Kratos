@@ -4,6 +4,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -89,9 +90,16 @@ class MonolithicSolver:
 ##        self.linear_solver =SuperLUSolver()
 ##        self.linear_solver = MKLPardisoSolver()
 
-        pPrecond = DiagonalPreconditioner()
+        #pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        
+	gmres_size = 50
+	ilu_level_of_fill = 10
+	tol = 1e-7
+	verbosity = 0
+        self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
+        #self.linear_solver = PastixSolver(verbosity,False)         
 
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -145,7 +153,7 @@ class MonolithicSolver:
         self.rho2 = 10.0 #applied to the positive part of the domain#1.0
         self.conductivity2 = 1.0 
         
-	self.mu   = 1.0e-3
+	self.mu   = 1.0e-5
 	self.divergence_clearance_performed = False
         ################################################ 
         
@@ -176,6 +184,7 @@ class MonolithicSolver:
         mu1 = 0.001
 ##        mu2 = self.mu/self.rho2
         mu2 = 0.001
+
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
             if(dist < 0):
@@ -191,6 +200,9 @@ class MonolithicSolver:
                                            self.rel_pres_tol,self.abs_pres_tol)
 ##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
+	#builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         print ">>>>>>>>>>>>>>>", self.oss_switch
