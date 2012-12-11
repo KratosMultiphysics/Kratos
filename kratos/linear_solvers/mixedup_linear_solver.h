@@ -292,12 +292,15 @@ public:
         unsigned int n_pressure_dofs = 0;
         unsigned int tot_active_dofs = 0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-            if (it->IsFixed() != true)
-            {
-                tot_active_dofs += 1;
-                if (it->GetVariable().Key() == PRESSURE)
-                    n_pressure_dofs += 1;
-            }
+		{
+		  if (it->EquationId() < rA.size1())
+		  {
+		      tot_active_dofs += 1;
+		      if (it->GetVariable().Key() == PRESSURE)
+			  n_pressure_dofs += 1;
+		  }
+		}
+
         if (tot_active_dofs != rA.size1() )
             KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
 
@@ -318,7 +321,7 @@ public:
         unsigned int global_pos = 0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
-            if (it->IsFixed() != true)
+            if (it->EquationId() < rA.size1())
             {
                 if (it->GetVariable().Key() == PRESSURE)
                 {
