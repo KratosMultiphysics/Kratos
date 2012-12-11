@@ -445,7 +445,7 @@ public:
         delta_t_avg_novisc *= CFLNumber;
         //
         mnumsubsteps = ceil (delta_t_avg_novisc/delta_t);
-        mnumsubsteps += 1; //this is for security
+//         mnumsubsteps += 1; //this is for security
 //            delta_t *= CFLNumber;
         if (mnumsubsteps <= 1)
         {
@@ -1415,15 +1415,57 @@ public:
 //             }
 // // //
 //             //apply conditions on corners
+//              int corner_size = mcorner_nodes.size();
+//              for (int i = 0; i < corner_size; i++)
+//              {
+//                  int i_node = mcorner_nodes[i];
+// 
+//                  array_1d<double, TDim>& U_i = VelArray[i_node];
+//                  for (unsigned int comp = 0; comp < TDim; comp++)
+//                      U_i[comp] = 0.0;
+//              }
+             
+             
+             
+//             //apply conditions on corners
              int corner_size = mcorner_nodes.size();
              for (int i = 0; i < corner_size; i++)
              {
                  int i_node = mcorner_nodes[i];
 
                  array_1d<double, TDim>& U_i = VelArray[i_node];
-                 for (unsigned int comp = 0; comp < TDim; comp++)
-                     U_i[comp] = 0.0;
+		 
+		 
+// 		 if(mdistances[i_node] <= 0.0)
+// 		  {
+			array_1d<double, TDim> aux;
+			for (unsigned int comp = 0; comp < TDim; comp++)
+			    aux[comp] = 0.0;
+			
+			double counter = 0.0;
+		      for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
+		      {
+			  //get global index of neighbouring node j
+			  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
+			  const double& dist_j  = mdistances[j_neighbour];
+			  array_1d<double, TDim>& vj = VelArray[j_neighbour];
+
+			  if(dist_j <=  0)
+			  {
+			    counter += 1.0;
+			    for (unsigned int comp = 0; comp < TDim; comp++)
+				aux[comp] += vj[comp];
+			    }
+
+		      }
+		      
+		      if(counter != 0.0) 
+			  for (unsigned int comp = 0; comp < TDim; comp++)
+				U_i[comp] = aux[comp]/counter;
+// 		  }   
              }
+             
+             
 //         }
         //slip condition
         int slip_size = mSlipBoundaryList.size();
@@ -3322,7 +3364,7 @@ private:
             double dist = mdistances[i_node];
             if (dist <= 0.0)
             {
-                double nu = mViscosity[i_node];
+                double nu = mMolecularViscosity; //mViscosity[i_node];
                 //array_1d<double, TDim>& rhs_i = rhs[i_node];
                 const array_1d<double, TDim>& U_i = vel[i_node];
                 const array_1d<double, TDim>& an_i = mSlipNormal[i_node];
@@ -3337,7 +3379,7 @@ private:
                 mod_vel = sqrt (mod_vel);
                 area = sqrt (area);
 				//the 0.1 is such that the dissipation is as for the linear case for a velocity of 10m/s
-                diag_stiffness[i_node] = 0.05 * area * nu * mod_vel/ (ym ) * mWallReductionFactor[ i_node ] ;
+                diag_stiffness[i_node] = area * nu * mod_vel/ (ym ) * mWallReductionFactor[ i_node ] ;
             }
             else
 	      {
