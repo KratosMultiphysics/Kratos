@@ -62,7 +62,6 @@ namespace Kratos
         double & Inertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
         double & MomentOfInertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
 
         //TO BE IMPROVED: i would like to work with *mpFailureId as integer. the problem is that it has to be exported to GID to be plotted.
@@ -150,30 +149,9 @@ namespace Kratos
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
             int contact_mesh_OPTION = rCurrentProcessInfo[CONTACT_MESH_OPTION];
-
-            switch (case_opt)
-            {
-                case 0:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = false;
-                    break;
-                case 1:
-                    delta_OPTION = true;
-                    continuum_simulation_OPTION = false;
-                    break;
-                case 2:
-                    delta_OPTION = true;
-                    continuum_simulation_OPTION = true;
-                    break;
-                case 3:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = true;
-                    break;
-                default:
-                    delta_OPTION = false;
-                    continuum_simulation_OPTION = false;
-            }
-
+			
+			AuxiliaryFunctions::SwitchCase(case_opt, delta_OPTION, continuum_simulation_OPTION);
+			
             // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
             ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -246,8 +224,7 @@ namespace Kratos
                         {
                             this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0;
                             this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[ini_size - 1]=0;
-                            *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.
-                            
+                            *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.          
                             continuum_ini_size++;
                                 
                             r_continuum_ini_neighbours.push_back(*ineighbour);
@@ -377,32 +354,10 @@ namespace Kratos
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
 
-            switch (case_OPTION) {
-                    case 0:
-                        delta_OPTION = false;
-                        continuum_simulation_OPTION = false;
-                        break;
-                    case 1:
-                        delta_OPTION = true;
-                        continuum_simulation_OPTION = false;
-                        break;
-                    case 2:
-                        delta_OPTION = true;
-                        continuum_simulation_OPTION = true;
-                        break;
-                    case 3:
-                        delta_OPTION = false;
-                        continuum_simulation_OPTION = true;
-                        break;
-                    default:
-                        delta_OPTION = false;
-                        continuum_simulation_OPTION = false;
-                }
+            AuxiliaryFunctions::SwitchCase(case_opt, delta_OPTION, continuum_simulation_OPTION);
 
             // GETTING PARTICLE PROPERTIES
-
-            
-            
+        
             double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
             double mass                 = mRealMass;
 
@@ -417,10 +372,15 @@ namespace Kratos
 
             array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
 			
+			if((applied_force[0]>0.0)||(applied_force[1]>0.0)||(applied_force[2]>0.0)){
+			  KRATOS_WATCH(applied_force) KRATOS_WATCH(this->Id())
+			}
+			
             rhs  = mass*gravity + applied_force;
 
             total_forces = rhs;
-            //KRATOS_WATCH(total_forces)
+            
+			
             array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
             size_t iContactForce = 0;            
@@ -836,17 +796,17 @@ namespace Kratos
 				
 				if(contact_tau > tau_strength)
 				{
-				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;  //shear failure
 				  sliding = true;
 				  
 				    if(contact_sigma<-tension_limit)
-				    {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 12;}
+				    {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 12;} //both shear and tension
 				  
 				}
 				else if(contact_sigma<-tension_limit)
 				{
 				  
-				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4;
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4; //tension failure
 				  sliding = true;
 				  
 				}
@@ -1473,10 +1433,7 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
 
           if( (case_opt!=0) && (neighbours_initialized == 0) )
           {
-              
-              
                 SetInitialContacts(case_opt, rCurrentProcessInfo);
-                
           }
 
           array_1d<double,3>& rhs               = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
@@ -1490,6 +1447,7 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
           noalias(mRota_Moment) = ZeroVector(3);
 
         }
+        
        void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
        
        {
@@ -1498,7 +1456,6 @@ void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProce
            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
            
-
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
        }
