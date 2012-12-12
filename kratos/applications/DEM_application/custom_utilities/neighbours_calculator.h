@@ -201,15 +201,7 @@ namespace Kratos {
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
-                  /*  
-                    (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(NumberOfResults[ResultIterator]);
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(NumberOfResults[ResultIterator]);
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(NumberOfResults[ResultIterator]);
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(NumberOfResults[ResultIterator]);
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(NumberOfResults[ResultIterator]);
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(NumberOfResults[ResultIterator]);
-*/
-                    // STORING THE NEIGHBOURS AND PROPERTIES
+					// STORING THE NEIGHBOURS AND PROPERTIES
                         
                     unsigned int neighbour_counter = 0;
     
