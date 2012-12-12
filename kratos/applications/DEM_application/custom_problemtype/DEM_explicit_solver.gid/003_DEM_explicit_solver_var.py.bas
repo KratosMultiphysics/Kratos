@@ -1,4 +1,6 @@
 domain_size = *GenData(Dimensions)
+Multifile="*GenData(Multifile)"
+OutputFileType="*GenData(Output_file_type)"
 CriticalTimeOption = "*GenData(Critical_Time_Option)"
 Integration_Scheme = "*GenData(Integration_Scheme)"
 NormalForceCalculation = "*GenData(Normal_Force_Calculation)"
