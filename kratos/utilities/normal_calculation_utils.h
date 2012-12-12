@@ -284,6 +284,124 @@ public:
         CalculateOnSimplex(rModelPart,Dimension,rVariable,TValueType());
     }
 
+    /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable and 
+    /** detecting corners. Corners are defined as nodes that recieves more than 2 normals from their neighbor conditions with a difference in angle greater than Alpha . 
+      *  This function is equivalent to other implementations of CalculateOnSimplex, but instead of using all conditions in the array, it only uses
+      * those that contain a value of rVariable != Zero. This is useful in problems where a part of the boundary is a slip condition, as it provides
+      * more reasonable values for the normals on the border between this area and other parts of the boundary. This function is safe to use in MPI.
+      * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain.
+      * @param Dimension Spatial dimension (2 or 3).
+      * @param rVariable The Kratos::Variable used to indicate which parts of the boundary will be used to calculate the normals. Conditions where rVariable == Zero will be skipped.
+      * @param rAlpha the maximum angle to distinguish normals.
+      */
+
+    template< class TValueType >
+    void CalculateOnSimplex(ModelPart& rModelPart,
+                            int Dimension,
+                            Variable<TValueType>& rVariable,
+                            const TValueType Zero,const double rAlpha)
+    {
+        KRATOS_TRY;
+
+        // Reset normals
+        const array_1d<double,3> ZeroNormal(3,0.0);
+
+	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
+                it !=rModelPart.NodesEnd(); it++)
+        {
+            noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+        }
+
+        // Calculate new condition normals, using only conditions with rVariable == rValue
+        array_1d<double,3> An(3,0.0);
+
+        if ( Dimension == 2 )
+        {
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal2D(itCond,An);
+            }
+        }
+        else if ( Dimension == 3 )
+        {
+            array_1d<double,3> v1(3,0.0);
+            array_1d<double,3> v2(3,0.0);
+
+            for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond )
+            {
+                if ( itCond->GetValue(rVariable) != Zero )
+                    CalculateNormal3D(itCond,An,v1,v2);
+            }
+        }
+        
+        
+      //loop over nodes to set normals
+	for(ModelPart::NodesContainerType::iterator it =  rModelPart.NodesBegin();
+                it !=rModelPart.NodesEnd(); it++)
+        {
+	  std::vector< array_1d<double,3> > N_Mat; 
+	  N_Mat.reserve(10);
+	 
+	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
+	  
+	  if(ng_cond.size() != 0){	  
+	    for(WeakPointerVector<Condition >::iterator ic = ng_cond.begin(); ic!=ng_cond.end(); ic++)
+	    {
+		Condition::GeometryType& pGeom = ic->GetGeometry();
+		const array_1d<double,3>&  rNormal = ic->GetValue(NORMAL);
+		const double Coef = 1.0 / pGeom.PointsNumber();
+		double norm_normal = norm_2( rNormal );
+		
+		if(norm_normal != 0.0)
+		{
+		  if(N_Mat.size() == 0.0)
+		      N_Mat.push_back( rNormal * Coef );
+		  else{
+			
+			int added = 0;
+			for(int ii=0; ii<N_Mat.size();++ii)
+			  {
+			  const array_1d<double,3>& temp_normal = N_Mat[ii];
+			  double norm_temp = norm_2( temp_normal );
+			  
+			  double cos_alpha=temp_normal[0]*rNormal[0] + temp_normal[1]*rNormal[1] +temp_normal[2]*rNormal[2];
+			  cos_alpha /= (norm_temp*norm_normal);
+			  
+			  if( cos_alpha > cos(0.017453293*rAlpha) ){
+			    N_Mat[ii] += rNormal * Coef;
+			    added = 1;}		      
+			  }
+			  
+			if(!added)
+			    N_Mat.push_back( rNormal*Coef );
+			  
+		    }
+		  }
+	      }
+	  }
+	  //compute NORMAL and mark 
+	  array_1d<double,3> sum_Normal(3,0.0);	  
+	  
+	  for(int ii=0; ii<N_Mat.size(); ++ii){
+	    sum_Normal += N_Mat[ii];
+	  }
+	  
+	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
+	  //assign IS_SLIP = 0 for vertices
+	  if(N_Mat.size() > 2){
+	    it->SetValue(IS_SLIP,0);	  
+	    it->FastGetSolutionStepValue(IS_SLIP)=25;	 
+	  }
+	  
+	}
+               
+        // For MPI: correct values on partition boundaries
+        rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
+
+        KRATOS_CATCH("");
+    }
+
 
 
     /*@} */
