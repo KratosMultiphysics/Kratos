@@ -26,8 +26,17 @@ solid_model_part.AddNodalSolutionStepVariable(INTERNAL_ENERGY)
 solid_model_part.AddNodalSolutionStepVariable(OSS_SWITCH)
 
 #reading the solid part
-gid_mode = GiDPostMode.GiD_PostBinary
-multifile = MultiFileFlag.SingleFile
+
+if(DEM_explicit_solver_var.OutputFileType == "Binary"):
+  gid_mode = GiDPostMode.GiD_PostBinary
+else:
+  gid_mode = GiDPostMode.GiD_PostAscii
+  
+if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+  multifile = MultiFileFlag.MultipleFiles
+else:
+  multifile = MultiFileFlag.SingleFile
+
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
@@ -137,6 +146,7 @@ virtual_mass_option 	= DEM_explicit_solver_var.VirtualMassOption
 virtual_mass_coeff 	= DEM_explicit_solver_var.VirtualMassCoefficient
 
 contact_mesh_option = DEM_explicit_solver_var.ContactMeshOption
+failure_criterion_option = DEM_explicit_solver_var.FailureCriterionOption
 
 if(virtual_mass_option == "ON"):
     solver.virtual_mass_OPTION=1 #xapuza
@@ -152,11 +162,24 @@ solver.force_calculation_type_id=force_calculation_type_id
 if (compute_critical_time =="ON"):
   solver.critical_time_OPTION=1; #xapuza
 
-if(continuum_option =="ON"):
-  solver.continuum_simulating_OPTION=True
-
 if(delta_option =="ON"):
   solver.delta_OPTION=True
+
+if(continuum_option =="ON"):
+  solver.continuum_simulating_OPTION=True
+  
+  if(contact_mesh_option =="ON"):
+    solver.contact_mesh_OPTION=1  #xapuza
+  
+  if(failure_criterion_option =="Mohr-Coulomb"):
+    solver.failure_criterion_OPTION=1 
+  elif(failure_criterion_option =="Uncoupled"):
+    solver.failure_criterion_OPTION=2
+    
+  solver.tau_zero 		= DEM_explicit_solver_var.TauZero
+  solver.sigma_max 		= DEM_explicit_solver_var.SigmaMax
+  solver.sigma_min 		= DEM_explicit_solver_var.SigmaMin
+  solver.internal_fricc 	= DEM_explicit_solver_var.InternalFricc
   
 solver.search_radius_extension=search_radius_extension
 
@@ -166,11 +189,9 @@ if(trihedron_option =="ON"):
   solver.trihedron_OPTION=1  #xapuza 
 if(rotation_spring_option =="ON"):
   solver.rotation_spring_OPTION=1  #xapuza
-  
-if(contact_mesh_option =="ON"):
-  solver.contact_mesh_OPTION=1  #xapuza
        
 
+       
 solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
 
 # global variable settings
@@ -229,6 +250,93 @@ bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargeme
 
 solver.enlargement_factor = bounding_box_enlargement_factor
 
+#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+
+#Pressure = 28*1e6; #28 MPa son uns 4000 Psi
+Pressure = 0.0
+skin_list = list()
+
+if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL test CASE.
+  
+  for element in solid_model_part.Elements:
+	
+	element.SetValue(SKIN_SPHERE,0)
+	
+	node = element.GetNode(0)
+	r = node.GetSolutionStepValue(RADIUS,0)
+	x = node.X
+	y = node.Y
+	z = node.Z
+	
+	values = Array3()
+	values[0] = 0.0
+	values[1] = 0.0
+	values[2] = 0.0
+	  
+	Cross_section = 3.141592*r*r
+	h=0.3
+	d=0.15
+	eps=2
+	vect = zeros(3, double) 
+
+	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
+	  
+	  element.SetValue(SKIN_SPHERE,1)
+	  skin_list.append(element)
+      
+	  #vector normal al centre:
+	  vect_moduli = sqrt(x*x+z*z)
+	  #print(vect_moduli)
+	  if(vect_moduli>0.0):
+		vect[0]=-x/vect_moduli
+		vect[1]=0
+		vect[2]=-z/vect_moduli
+		
+	  #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
+	  
+	  values[0]=-Cross_section*Pressure*vect[0]
+	  values[1]= 0.0
+	  values[2]=-Cross_section*Pressure*vect[2]
+	   
+	  
+	if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
+
+		element.SetValue(SKIN_SPHERE,1)
+		#vector normal al centre:	  
+		values[0]=0.0
+		values[2]=0.0
+		if ( y>h/2 ):
+			values[1]=-Cross_section*Pressure
+		else:
+			values[1]= Cross_section*Pressure
+
+		if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+			#vector normal al centre:
+			vect_moduli = sqrt(x*x+z*z)
+			
+			if ( vect_moduli>0.0 ) :
+				vect[0]=-x/vect_moduli
+				vect[1]=0.0
+				vect[2]=-z/vect_moduli
+
+			values[0]=-Cross_section*Pressure*vect[0]*0.70710678
+			values[2]=-Cross_section*Pressure*vect[2]*0.70710678
+			if ( y>h/2 ):
+				values[1]=-Cross_section*Pressure*0.70710678
+			else:
+				values[1]=Cross_section*Pressure*0.70710678 
+		else:
+			skin_list.append(element)  
+
+	node.SetSolutionStepValue(APPLIED_FORCE,values)
+	
+	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
+	  #check:
+		if(element.GetValue(APPLIED_FORCE)[0]*element.GetValue(APPLIED_FORCE)[0] + element.GetValue(APPLIED_FORCE)[1]*element.GetValue(APPLIED_FORCE)[1] +  element.GetValue(APPLIED_FORCE)[2]*element.GetValue(APPLIED_FORCE)[2] > 1.05*Cross_section*Pressure*Cross_section*Pressure ):
+			print("malcalculat")
+
+print("End Applying Imposed Forces")
+	  
 
 #Initialize the problem.
 
@@ -331,6 +439,7 @@ list_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Lists'
 neigh_list_path  = str(main_path)+'/'+str(input_file_name)+'_Neigh_Lists'
 data_and_results = str(main_path)+'/'+str(input_file_name)+'_Results_and_Data'
 graphs_path	 = str(main_path)+'/'+str(input_file_name)+'_Graphs'	
+MPI_results    = str(main_path)+'/'+str(input_file_name)+'_MPI_results'	
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path]:
 
@@ -369,6 +478,8 @@ control = 0.0
 cond = 0
 
 os.chdir(main_path)
+
+graph_export = open("strain_stress_data.csv",'w')
 
 #Adding stress and strain lists
 strainlist=[]
@@ -660,6 +771,7 @@ gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
+graph_export.close() 
 results.close()
 summary_results.close()
 
