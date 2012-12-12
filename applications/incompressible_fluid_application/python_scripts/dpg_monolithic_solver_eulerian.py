@@ -90,15 +90,15 @@ class MonolithicSolver:
 ##        self.linear_solver =SuperLUSolver()
 ##        self.linear_solver = MKLPardisoSolver()
 
-        #pPrecond = DiagonalPreconditioner()
+        pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
-	gmres_size = 50
-	ilu_level_of_fill = 10
-	tol = 1e-7
-	verbosity = 0
-        self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
+	#gmres_size = 50
+	#ilu_level_of_fill = 10
+	#tol = 1e-5
+	#verbosity = 0
+        ##self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
         #self.linear_solver = PastixSolver(verbosity,False)         
 
         #definition of the convergence criteria
@@ -181,9 +181,9 @@ class MonolithicSolver:
     def ApplyFluidProperties(self):
         #apply density
 ##        mu1 = self.mu/self.rho1
-        mu1 = 0.001
+        mu1 = 0.0001
 ##        mu2 = self.mu/self.rho2
-        mu2 = 0.001
+        mu2 = 0.0001
 
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
@@ -223,6 +223,12 @@ class MonolithicSolver:
             #node.SetSolutionStepValue(AUX_INDEX,0,1.0) 
             #node.SetSolutionStepValue(ARRHENIUSAUX,0,0.0)            
             #node.SetSolutionStepValue(SPECIFIC_HEAT,0,1.0)
+            
+        ############### saving inlet nodes
+        #self.inlet_nodes = []
+	#for node in self.model_part.Nodes:
+	  #if(node.IsFixed(DISTANCE)):
+	    #self.inlet_nodes.append(node);
 
         self.next_redistance = self.redistance_frequency
         ###         ###         ###        
@@ -233,17 +239,37 @@ class MonolithicSolver:
             cond.SetValue(IS_STRUCTURE,1.0)
         # if we use slip conditions, calculate normals on the boundary
         if (self.use_slip_conditions == True):
+	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).ClearNeighbours()          
+	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()	  
             self.normal_util = NormalCalculationUtils()
             self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
             
             for node in self.model_part.Nodes:
 		if (node.GetSolutionStepValue(IS_SLIP) == 1.0):
 		   node.SetValue(IS_STRUCTURE,1.0)
+		else:
+		   node.SetValue(IS_STRUCTURE,0.0)		  
 		   #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
 		   #node.Fix(IS_STRUCTURE)
-    
+
+	############## saving inlet nodes
+	self.inlet_nodes = []
+        for cond in self.model_part.Conditions:
+	  if(cond.GetValue(IS_INLET) > 0):
+	    for node in cond.GetNodes():
+	      self.inlet_nodes.append(node);	      
+		   
+    ################################################################
+    ################################################################
+    def WettenNodes(self):
+      for node in self.inlet_nodes:
+	if(node.GetSolutionStepValue(DISTANCE) > 0):
+	  node.SetSolutionStepValue(DISTANCE,0,-1.0e-3); 
+	  
     #######################################################################   
     def DoRedistance(self):
+	#self.WettenNodes()
+	
 	#redistance if required
         print "beginning recalculation of distances"
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
@@ -256,7 +282,7 @@ class MonolithicSolver:
         self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
         (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,1.0)#self.dynamic_tau
-	
+	self.WettenNodes()
 	(self.level_set_solver).Solve()
         print "finished convection step for the distance function"     
      #######################################################################                 
