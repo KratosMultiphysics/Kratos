@@ -488,7 +488,7 @@ protected:
       @param rLocalMatrix Local system matrix
       @param rLocalVector Local right hand side
       */
-    void ApplyWallLaw(MatrixType& rLocalMatrix,
+    virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
                       VectorType& rLocalVector)
     {
         GeometryType& rGeometry = this->GetGeometry();
@@ -507,7 +507,6 @@ protected:
                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
                 const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                 Vel -= VelMesh;
-
                 const double Ikappa = 1.0/0.41; // inverse of Von Karman's kappa
                 const double B = 5.2;
                 const double limit_yplus = 10.9931899; // limit between linear and log regions
@@ -561,7 +560,6 @@ protected:
                             std::cout << "Warning: wall condition Newton-Raphson did not converge. Residual is " << dx << std::endl;
                         }
                     }
-
                     const double Tmp = area * utau * utau * rho / wall_vel;
                     for (size_t d = 0; d < TDim; d++)
                     {
