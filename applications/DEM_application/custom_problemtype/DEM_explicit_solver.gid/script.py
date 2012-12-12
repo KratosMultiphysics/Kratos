@@ -23,9 +23,17 @@ import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
 #reading the solid part
-gid_mode = GiDPostMode.GiD_PostBinary
-#multifile = MultiFileFlag.MultipleFiles
-multifile = MultiFileFlag.SingleFile
+
+if(DEM_explicit_solver_var.OutputFileType == "Binary"):
+  gid_mode = GiDPostMode.GiD_PostBinary
+else:
+  gid_mode = GiDPostMode.GiD_PostAscii
+  
+if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+  multifile = MultiFileFlag.MultipleFiles
+else:
+  multifile = MultiFileFlag.SingleFile
+
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
@@ -460,15 +468,17 @@ contact_model_part = solver.contact_model_part
 
 os.chdir(post_path)
 
-gid_io.InitializeMesh(0.0)
-gid_io.WriteSphereMesh(solid_model_part.GetMesh())
-gid_io.FinalizeMesh()
-gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
+if(DEM_explicit_solver_var.Multifile == "single_file"):
 
-gid_io.InitializeMesh(0.0)
-gid_io.WriteMesh(contact_model_part.GetMesh());
-gid_io.FinalizeMesh()
-gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
+  gid_io.InitializeMesh(0.0)
+  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
+  gid_io.FinalizeMesh()
+  gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
+
+  gid_io.InitializeMesh(0.0)
+  gid_io.WriteMesh(contact_model_part.GetMesh());
+  gid_io.FinalizeMesh()
+  gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
 
 os.chdir(main_path)
 
@@ -514,7 +524,7 @@ while(time < final_time):
 
     #For a test tube of height 30 cm
     if(continuum_option =="ON"):
-      strain += -velocity_node_y*dt/0.3
+      strain += -2*velocity_node_y*dt/0.3
       strainlist.append(strain)
 
 	   
@@ -600,13 +610,14 @@ while(time < final_time):
 
 	#Drawing graph stress_strain:
 
-	clf()
-	plot(strainlist,stresslist,'b-')
-	grid(True)
-	title('Stress - Strain')
-	xlabel('Strain')
-	ylabel('Stress (MPa)')
-	savefig('Stress_strain') 
+	if(continuum_option =="ON"):
+	  clf()
+	  plot(strainlist,stresslist,'b-')
+	  grid(True)
+	  title('Stress - Strain')
+	  xlabel('Strain')
+	  ylabel('Stress (MPa)')
+	  savefig('Stress_strain') 
 
 	os.chdir(main_path)	   	   
 
@@ -632,12 +643,18 @@ while(time < final_time):
 	
 	os.chdir(post_path)
 	
-	#print "TIME STEP = ", step
-	#gid_io.InitializeMesh(time);
-        #gid_io.WriteSphereMesh(solid_model_part.GetMesh());
-        #gid_io.FinalizeMesh();
-	#gid_io.InitializeResults(time, solid_model_part.GetMesh());
 	
+	if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+
+	  gid_io.InitializeMesh(time)
+	  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
+	  gid_io.FinalizeMesh()
+	  gid_io.InitializeResults(time, solid_model_part.GetMesh()); 
+
+	  gid_io.InitializeMesh(time)
+	  gid_io.WriteMesh(contact_model_part.GetMesh());
+	  gid_io.FinalizeMesh()
+	  gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
 	
 	if (DEM_explicit_solver_var.print_velocity=="1"):
 	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
@@ -686,8 +703,7 @@ while(time < final_time):
 	      gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
            # if (DEM_explicit_solver_var.print_euler_angles):
 	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
-        
-        #gid_io.FinalizeResults() 
+
         gid_io.Flush()
         sys.stdout.flush()
         
@@ -715,6 +731,9 @@ while(time < final_time):
 	index_10 += 1
 	index_50 += 1
 	
+	if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+	  gid_io.FinalizeResults()
+	
 	os.chdir(main_path)
        
               
@@ -728,9 +747,8 @@ while(time < final_time):
     
     step += 1
 
-  
-    
-gid_io.FinalizeResults()
+if(DEM_explicit_solver_var.Multifile == "single_file"):
+  gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
 
@@ -762,13 +780,14 @@ if (1<2):
   #legend(('force'))
   savefig('Grafic_1')
 
-clf()
-plot(strainlist,stresslist,'b-')
-grid(True)
-title('Stress - Strain')
-xlabel('Strain')
-ylabel('Stress (MPa)')
-savefig('Stress_strain')
+if(continuum_option =="ON"):
+  clf()
+  plot(strainlist,stresslist,'b-')
+  grid(True)
+  title('Stress - Strain')
+  xlabel('Strain')
+  ylabel('Stress (MPa)')
+  savefig('Stress_strain')
   
 if (1<2):
   clf()
