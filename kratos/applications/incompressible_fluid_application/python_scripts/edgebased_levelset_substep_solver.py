@@ -184,8 +184,8 @@ class EdgeBasedLevelSetSolver:
         if(self.use_parallel_distance_calculation == False):
             self.distance_utils.CalculateDistances(self.model_part,DISTANCE,self.distance_size)
         else:
-            print "max distance", self.distance_size
-            print "max extrapolation layers",self.extrapolation_layers
+            #print "max distance", self.distance_size
+            #print "max extrapolation layers",self.extrapolation_layers
             self.distance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.extrapolation_layers,self.distance_size)
             
         
