@@ -55,7 +55,7 @@ class Solver:
 
         self.echo_level = 0
         self.CalculateReactionFlag = False
-        self.ReformDofSetAtEachStep = True
+        self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
     
@@ -79,21 +79,21 @@ class Solver:
         else:
              print "duplicate_and_create_conditions is not implemented for 3D"        
 	     
-        #(self.neigh_finder).ClearNeighbours();
-        #(self.neigh_finder).Execute();
+        (self.neigh_finder).ClearNeighbours();
+        (self.neigh_finder).Execute();
         
-        #(self.elem_neighbor_finder).ClearNeighbours()
-        #(self.elem_neighbor_finder).Execute() 
+        (self.elem_neighbor_finder).ClearNeighbours()
+        (self.elem_neighbor_finder).Execute() 
         print "INSIDE INITIALIZE"           
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
  	
         self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
-        #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
+        (self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
-        #(self.duplicate_and_create_conditions).Execute()
+        (self.duplicate_and_create_conditions).Execute()
 	#a = Matrix(2,3)
 
 	#a[0,0] = 3
@@ -112,7 +112,7 @@ class Solver:
 	                     
     #######################################################################   
     def Solve(self):        
-        print "*****************entering solve?????????????"
+        #print "*****************entering solve?????????????"
         (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)        
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
