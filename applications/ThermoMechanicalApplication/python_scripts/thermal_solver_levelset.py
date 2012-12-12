@@ -7,9 +7,9 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 CheckForPreviousImport()
 
 def AddVariables(model_part,settings):
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(VELOCITY);    
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA);    
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(settings.GetMeshVelocityVariable());   
     model_part.AddNodalSolutionStepVariable(settings.GetUnknownVariable());    
     model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
@@ -23,7 +23,8 @@ def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(settings.GetTransferCoefficientVariable());        
     #model_part.AddNodalSolutionStepVariable(HTC);    
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);    
-    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);    
+    model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);  
+    model_part.AddNodalSolutionStepVariable(DISTANCE);     
     print "variables for the THERMAL_SOLVER added correctly"
         
 def AddDofs(model_part,settings):
@@ -34,7 +35,7 @@ def AddDofs(model_part,settings):
 
 class Solver:
     #######################################################################
-    def __init__(self,model_part,domain_size,my_settings,):
+    def __init__(self,model_part,domain_size,my_settings):
 
         self.model_part = model_part
 
@@ -73,7 +74,7 @@ class Solver:
         self.normal_tools = BodyNormalCalculationUtils()
 
         self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
-        self.max_iter = 8
+        self.max_iter = 10
 
         #material settings
         self.rho_mat = 100.0
@@ -111,7 +112,7 @@ class Solver:
         else:
             self.normal_tools.CalculateBodyNormals(self.model_part,3); 
         
-        self.ApplyFluidProperties()
+        #self.ApplyFluidProperties()
 ##        print "Initialization monolithic solver finished"
     #######################################################################   
     def ApplyFluidProperties(self):
@@ -130,7 +131,8 @@ class Solver:
 
     #######################################################################   
     def Solve(self):        
-        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
+        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings) 
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);        
 ##        self.ApplyFluidProperties()
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
