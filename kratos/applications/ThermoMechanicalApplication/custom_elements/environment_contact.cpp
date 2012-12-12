@@ -128,7 +128,7 @@ void EnvironmentContact::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, V
 
     if(length == 0.0)
         KRATOS_WATCH("NORMAL is ZERO")
-        rLeftHandSideMatrix(0,0) = HTC_Alpha;
+    rLeftHandSideMatrix(0,0) = HTC_Alpha;
 
     //Residual
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
