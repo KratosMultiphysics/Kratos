@@ -354,7 +354,7 @@ namespace Kratos
             bool delta_OPTION;
             bool continuum_simulation_OPTION;
 
-            AuxiliaryFunctions::SwitchCase(case_opt, delta_OPTION, continuum_simulation_OPTION);
+           AuxiliaryFunctions::SwitchCase(case_OPTION, delta_OPTION, continuum_simulation_OPTION);
 
             // GETTING PARTICLE PROPERTIES
         
