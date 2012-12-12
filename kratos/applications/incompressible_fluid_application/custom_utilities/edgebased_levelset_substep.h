@@ -116,7 +116,7 @@ public:
         mnumsubsteps=5;
         mmax_dt = 0.0;
         mcorner_coefficient = 30.0; //50.0;
-        medge_coefficient = 30.0; //10.0;
+        medge_coefficient = 2.0; //30.0; //10.0;
 //            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
 //            mBodyForce[1] = -9.81;
 //
@@ -1450,7 +1450,7 @@ public:
 			  const double& dist_j  = mdistances[j_neighbour];
 			  array_1d<double, TDim>& vj = VelArray[j_neighbour];
 
-			  if(dist_j <=  0)
+			  if(dist_j <=  0 && mis_slip[j_neighbour] == false)
 			  {
 			    counter += 1.0;
 			    for (unsigned int comp = 0; comp < TDim; comp++)
