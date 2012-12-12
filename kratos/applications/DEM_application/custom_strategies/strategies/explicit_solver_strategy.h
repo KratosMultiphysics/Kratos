@@ -905,6 +905,7 @@ namespace Kratos
               
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Ini_Neighbours(r_model_part, extension_option);
+		
     }//SearchIniNeighbours
 
 
