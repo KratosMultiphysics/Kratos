@@ -542,34 +542,30 @@ public:
             double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_convection_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
             mTauPressure[i_node] = tau;
             mTauConvection[i_node] = tau_conv;
-            mTau2[i_node] = (nu_i + h_avg_i*vel_norm*0.5) *tau2_factor;
+//             mTau2[i_node] = (nu_i + h_avg_i*vel_norm*0.5) *tau2_factor;
         }
-//         int slip_size = mSlipBoundaryList.size();
-//         #pragma omp parallel for firstprivate(slip_size)
-//         for (int i_slip = 0; i_slip < slip_size; i_slip++)
-//         {
-// 	    unsigned int i_node = mSlipBoundaryList[i_slip];
-// 	    double& h_avg_i = mHavg[i_node];
-//
-//             array_1d<double, TDim>& a_i = mvel_n1[i_node];
-//             const double nu_i = mViscosity[i_node];
-//             const double eps_i = mEps[i_node];
-//             //const double d_i = mD[i_node];
-//             const double lindarcy_i = mA[i_node];
-//             const double nonlindarcy_i = mB[i_node];
-//
-//             double vel_norm = norm_2(a_i);
-//
-//             //double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
-//             double porosity_coefficient = ComputePorosityCoefficient(vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
-//             vel_norm /= eps_i;
-//
-//             double tau = 1.0 / (2.0 * vel_norm / h_avg_i  + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-//             double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i  + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-//             mTauPressure[i_node] = tau;
-//             mTauConvection[i_node] = tau_conv;
-//
-// 	}
+
+        //smoothen the tau press - mTau2 used as temp var
+        #pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; i_node++)
+        {
+            double& tau = mTau2[i_node]; //******************
+            tau = mTauPressure[i_node];
+	    double counter = 1.0;
+             //const double& p_i = pressure[i_node];
+            for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex() [i_node]; csr_index != mr_matrix_container.GetRowStartIndex() [i_node + 1]; csr_index++)
+            {
+                unsigned int j_neighbour = mr_matrix_container.GetColumnIndex() [csr_index];
+		tau += mTauPressure[j_neighbour];
+		counter+=1.0;
+            }
+            tau/=counter;
+        }
+        
+        mTauPressure = mTau2;
+        
+        
+        
         //calculating the convective projection
         #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -594,10 +590,46 @@ public:
                 edge_ij.Add_ConvectiveContribution (pi_i, a_i, U_i, a_j, U_j);
 //                    edge_ij.Add_grad_p(pi_i, p_i, p_j);
             }
+//              const double m_inv = mr_matrix_container.GetInvertedMass() [i_node];
+//              for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+//                  pi_i[l_comp] *= m_inv;
+        }
+        
+                int inout_size = mInOutBoundaryList.size();
+        //#pragma omp parallel for firstprivate(slip_size)
+        for (int i = 0; i < inout_size; i++)
+        {
+            unsigned int i_node = mInOutBoundaryList[i];
+            double dist = mdistances[i_node];
+            if (dist <= 0.0)
+            {
+                const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+                const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
+                double projection_length = 0.0;
+		double Ain = 0.0;
+                for (unsigned int comp = 0; comp < TDim; comp++)
+                {
+                    projection_length += U_i[comp] * an_i[comp];
+                }
+		
+		array_1d<double, TDim>& pi_i = mPi[i_node];
+		
+		for (unsigned int comp = 0; comp < TDim; comp++)
+                    pi_i[comp] += projection_length * U_i[comp] ;
+            }
+        }
+        
+                #pragma omp parallel for
+        for (int i_node = 0; i_node < n_nodes; i_node++)
+        {
+            array_1d<double, TDim>& pi_i = mPi[i_node];
+	
              const double m_inv = mr_matrix_container.GetInvertedMass() [i_node];
              for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-                 pi_i[l_comp] *= m_inv;
-        }
+                 pi_i[l_comp] *= m_inv;	  
+	    
+	}
+	
         
 //        //completing with boundary integrals
 //	//loop over all faces
@@ -768,6 +800,32 @@ public:
                 //                                                std::cout << i_node << "rhs =" << rhs_i << std::endl;
             }
         }
+        
+        int inout_size = mInOutBoundaryList.size();
+        //#pragma omp parallel for firstprivate(slip_size)
+        for (int i = 0; i < inout_size; i++)
+        {
+            unsigned int i_node = mInOutBoundaryList[i];
+            double dist = mdistances[i_node];
+            if (dist <= 0.0)
+            {
+                const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+                const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
+                double projection_length = 0.0;
+		double Ain = 0.0;
+                for (unsigned int comp = 0; comp < TDim; comp++)
+                {
+                    projection_length += U_i[comp] * an_i[comp];
+		    Ain += an_i[comp]*an_i[comp];
+                }
+
+		array_1d<double, TDim>& rhs_i = rhs[i_node];
+		
+		for (unsigned int comp = 0; comp < TDim; comp++)
+                    rhs_i[comp] += projection_length * U_i[comp] ;
+            }
+        }
+        
 /*        		for (int i = 0; i < mSlipBoundaryList.size(); i++)
                 {
         			int i_node = mSlipBoundaryList[i];
@@ -982,7 +1040,7 @@ public:
             for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
                 grad_d[l_comp] *= m_inv;
             double norm_grad = norm_2 (grad_d);
-            if (norm_grad < 100.0)
+            if (norm_grad < 5.0)
             {
                 grad_d /= norm_grad; //this is the direction of the gradient of the distances
                 grad_d *= dist_i; //this is the vector with the distance of node_i from the closest point on the free surface
@@ -998,7 +1056,7 @@ public:
             else
             {
                 std::cout << "attention gradient of distance much greater than 1 on node:" << i_node  <<std::endl;
-                return -1;
+//                 return -1;
                 double avg_number = 0.0;
                 double pavg = 0.0;
                 WeakPointerVector< Node < 3 > >& neighb_nodes = iii->GetValue (NEIGHBOUR_NODES);
