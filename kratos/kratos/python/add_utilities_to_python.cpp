@@ -110,17 +110,20 @@ namespace Kratos
             typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarType)(ModelPart&,int,Variable<double>&);
             typedef  void (NormalCalculationUtils::*CalcOnSimplexWithIntVarType)(ModelPart&,int,Variable<int>&);
 //            typedef  void (NormalCalculationUtils::*CalcOnSimplexWithArrayVarType)(ModelPart&,int,Variable< array_1d<double,3> >&,const array_1d<double,3>&);
+             typedef  void (NormalCalculationUtils::*CalcOnSimplexWithDoubleVarAlphaType)(ModelPart&,int,Variable<double>&,const double,const double);
 
             CalcOnSimplexCondType CalcOnSimplex_Cond = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexMPType CalcOnSimplex_ModelPart = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexWithDoubleVarType CalcOnSimplexWithDoubleVar = &NormalCalculationUtils::CalculateOnSimplex;
             CalcOnSimplexWithIntVarType CalcOnSimplexWithIntVar = &NormalCalculationUtils::CalculateOnSimplex;
+             CalcOnSimplexWithDoubleVarAlphaType CalcOnSimplexWithDoubleVarAlpha = &NormalCalculationUtils::CalculateOnSimplex;	    
 
             class_<NormalCalculationUtils > ("NormalCalculationUtils", init<>())
                     .def("CalculateOnSimplex", CalcOnSimplex_Cond)
                     .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
                     .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
                     .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
+                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)                    
 //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
                     ;
 
