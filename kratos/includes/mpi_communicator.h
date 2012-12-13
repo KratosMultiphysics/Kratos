@@ -311,6 +311,66 @@ public:
         MPI_Allreduce(&local_value, &rValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         return true;
     }
+    
+    virtual bool SynchronizeElementalIds()
+    {
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
+                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
+
+                unsigned int elemental_data_size = sizeof (std::size_t) / sizeof (int);
+                unsigned int local_elements_size = r_local_elements.size();
+                unsigned int ghost_elements_size = r_ghost_elements.size();
+                unsigned int send_buffer_size = local_elements_size * elemental_data_size;
+                unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
+
+                if ((local_elements_size == 0) && (ghost_elements_size == 0))
+                    continue; // nothing to transfer!
+
+                unsigned int position = 0;
+                double* send_buffer = new double[send_buffer_size];
+                double* receive_buffer = new double[receive_buffer_size];
+
+                // Filling the send buffer
+                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
+                {
+                    *(std::size_t*) (send_buffer + position) = i_element->Id();
+                    position += elemental_data_size;
+                }
+
+                MPI_Status status;
+
+                int send_tag = i_color;
+                int receive_tag = i_color;
+
+                MPI_Sendrecv(send_buffer, send_buffer_size, MPI_INT, destination, send_tag, receive_buffer, receive_buffer_size, MPI_INT, destination, receive_tag,
+                             MPI_COMM_WORLD, &status);
+
+                position = 0;
+                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
+                {
+                    i_element->SetId(*reinterpret_cast<std::size_t*> (receive_buffer + position));
+                    position += elemental_data_size;
+                }
+
+                if (position > receive_buffer_size)
+                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                delete [] send_buffer;
+                delete [] receive_buffer;
+            }
+
+        return true;
+    }
 
     virtual bool SynchronizeNodalSolutionStepsData()
     {   
@@ -326,9 +386,6 @@ public:
             {
                 NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                 NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
-                
-                LocalMesh(i_color).Nodes().Unique();
-                GhostMesh(i_color).Nodes().Unique();
 
                 // Calculating send and received buffer size
                 // NOTE: This part works ONLY when all nodes have the same variables list size!
@@ -539,6 +596,46 @@ public:
         AssembleThisNonHistoricalVariable<Matrix,double>(ThisVariable);
         return true;
     }
+    
+    /////////////////////////////////////////////////////////////////////////////
+    
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<int> const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<int,int>(ThisVariable);
+        return true;
+    }
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<double> const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<double,double>(ThisVariable);
+        return true;
+    }
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<array_1d<double,3>,double>(ThisVariable);
+        return true;
+    }
+    
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<vector<array_1d<double,3> > > const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<vector<array_1d<double,3> >,double>(ThisVariable);
+        return true;
+    }
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Vector> const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<Vector,double>(ThisVariable);
+        return true;
+    }
+
+    virtual bool SynchronizeElementalNonHistoricalVariable(Variable<Matrix> const& ThisVariable)
+    {
+        SynchronizeElementalNonHistoricalVariable<Matrix,double>(ThisVariable);
+        return true;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
     
     virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<NodeType> >& SendObjects, std::vector<std::vector<NodeType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
@@ -1181,6 +1278,71 @@ private:
         return true;
     }
     
+    template< class TDataType, class TSendType >
+    bool SynchronizeElementalNonHistoricalVariable(Variable<TDataType> const& ThisVariable)
+    {
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+        int destination = 0;
+
+        NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
+
+        TSendType Value = TSendType();
+        MPI_Datatype ThisMPI_Datatype = GetMPIDatatype(Value);
+
+        for (unsigned int i_color = 0; i_color < neighbours_indices.size(); i_color++)
+            if ((destination = neighbours_indices[i_color]) >= 0)
+            {
+              
+                ElementsContainerType& r_local_elements = LocalMesh(i_color).Elements();
+                ElementsContainerType& r_ghost_elements = GhostMesh(i_color).Elements();
+
+                unsigned int elemental_data_size = sizeof (TDataType) / sizeof (TSendType);
+                unsigned int local_elements_size = r_local_elements.size();
+                unsigned int ghost_elements_size = r_ghost_elements.size();
+                unsigned int send_buffer_size = local_elements_size * elemental_data_size;
+                unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
+
+                if ((local_elements_size == 0) && (ghost_elements_size == 0))
+                    continue; // nothing to transfer!
+
+                unsigned int position = 0;
+                double* send_buffer = new double[send_buffer_size];
+                double* receive_buffer = new double[receive_buffer_size];
+
+                // Filling the send buffer
+                for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
+                {
+                    *(TDataType*) (send_buffer + position) = i_element->GetValue(ThisVariable);
+                    position += elemental_data_size;
+                }
+
+                MPI_Status status;
+
+                int send_tag = i_color;
+                int receive_tag = i_color;
+
+                MPI_Sendrecv(send_buffer, send_buffer_size, ThisMPI_Datatype, destination, send_tag, receive_buffer, receive_buffer_size, ThisMPI_Datatype, destination, receive_tag,
+                             MPI_COMM_WORLD, &status);
+
+                position = 0;
+                for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
+                {
+                    i_element->GetValue(ThisVariable) = *reinterpret_cast<TDataType*> (receive_buffer + position);
+                    position += elemental_data_size;
+                }
+
+                if (position > receive_buffer_size)
+                    std::cout << rank << " Error in estimating receive buffer size...." << std::endl;
+
+                delete [] send_buffer;
+                delete [] receive_buffer;
+            }
+
+        return true;
+    }
+    
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
@@ -1190,8 +1352,8 @@ private:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
-        std::vector<std::string> buffer(mpi_size);
-//         std::string buffer[mpi_size];
+//         std::vector<std::string> buffer(mpi_size);
+        std::string buffer[mpi_size];
         
         for(int i = 0; i < mpi_size; i++)
         {
