@@ -1280,8 +1280,8 @@ public:
         for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin();
                 node_it != rLagrangianModelPart.NodesEnd(); node_it++)
         {
+			node_it->SetId(id++);
             rCompleteModelPart.AddNode(*(node_it.base()));
-            node_it->SetId(id++);
         }
 
         KRATOS_CATCH("");
