@@ -528,6 +528,8 @@ public:
         {
             // 					double& h_i = mHavg[i_node];
             double& h_avg_i = mHavg[i_node];
+	    double& h_min_i = mHmin[i_node];
+
             array_1d<double, TDim>& a_i = mvel_n1[i_node];
             const double nu_i = mViscosity[i_node];
             const double eps_i = mEps[i_node];
@@ -538,31 +540,31 @@ public:
             //double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
             double porosity_coefficient = ComputePorosityCoefficient (vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
             vel_norm /= eps_i;
-            double tau = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_pressure_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
-            double tau_conv = 1.0 / (2.0 * vel_norm / h_avg_i + stabdt_convection_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+            double tau = 1.0 / (2.0 * vel_norm / h_min_i + stabdt_pressure_factor*time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
+            double tau_conv = 1.0 / (2.0 * vel_norm / h_min_i + stabdt_convection_factor*time_inv_avg );
             mTauPressure[i_node] = tau;
             mTauConvection[i_node] = tau_conv;
 //             mTau2[i_node] = (nu_i + h_avg_i*vel_norm*0.5) *tau2_factor;
         }
 
-        //smoothen the tau press - mTau2 used as temp var
-        #pragma omp parallel for
-        for (int i_node = 0; i_node < n_nodes; i_node++)
-        {
-            double& tau = mTau2[i_node]; //******************
-            tau = mTauPressure[i_node];
-	    double counter = 1.0;
-             //const double& p_i = pressure[i_node];
-            for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex() [i_node]; csr_index != mr_matrix_container.GetRowStartIndex() [i_node + 1]; csr_index++)
-            {
-                unsigned int j_neighbour = mr_matrix_container.GetColumnIndex() [csr_index];
-		tau += mTauPressure[j_neighbour];
-		counter+=1.0;
-            }
-            tau/=counter;
-        }
-        
-        mTauPressure = mTau2;
+//         //smoothen the tau press - mTau2 used as temp var
+//         #pragma omp parallel for
+//         for (int i_node = 0; i_node < n_nodes; i_node++)
+//         {
+//             double& tau = mTau2[i_node]; //******************
+//             tau = mTauPressure[i_node];
+// 	    double counter = 1.0;
+//              //const double& p_i = pressure[i_node];
+//             for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex() [i_node]; csr_index != mr_matrix_container.GetRowStartIndex() [i_node + 1]; csr_index++)
+//             {
+//                 unsigned int j_neighbour = mr_matrix_container.GetColumnIndex() [csr_index];
+// 		tau += mTauPressure[j_neighbour];
+// 		counter+=1.0;
+//             }
+//             tau/=counter;
+//         }
+//         
+//         mTauPressure = mTau2;
         
         
         
@@ -2548,6 +2550,22 @@ public:
         return wet_volume;
         KRATOS_CATCH ("");
     }
+    double ComputeTotalVolume()
+    {
+        KRATOS_TRY
+        mr_matrix_container.FillScalarFromDatabase (DISTANCE, mdistances, mr_model_part.Nodes() );
+        //slip condition
+        double volume = 0.0;
+        //#pragma omp parallel for firstprivate(slip_size)
+        for (int i = 0; i < static_cast<int> (mdistances.size() ); i++)
+        {
+            const double m = mr_matrix_container.GetLumpedMass() [i];
+            double porosity = mEps[i];
+            volume += m/porosity;
+        }
+        return volume;
+        KRATOS_CATCH ("");
+    }
     void DiscreteVolumeCorrection (double expected_volume, double measured_volume)
     {
         double volume_error = expected_volume - measured_volume;
@@ -3113,6 +3131,30 @@ private:
             }
             // KRATOS_WATCH(rhs_i);
         }
+        
+//                 int inout_size = mInOutBoundaryList.size();
+//         //#pragma omp parallel for firstprivate(slip_size)
+//         for (int i = 0; i < inout_size; i++)
+//         {
+//             unsigned int i_node = mInOutBoundaryList[i];
+//             double dist = mdistances[i_node];
+//             if (dist <= 0.0)
+//             {
+//                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
+//                 const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
+//                 double projection_length = 0.0;
+// 		double Ain = 0.0;
+//                 for (unsigned int comp = 0; comp < TDim; comp++)
+//                 {
+//                     projection_length += U_i[comp] * an_i[comp];
+// 		    Ain += an_i[comp]*an_i[comp];
+//                 }
+// 
+// 		double& rhs_i = rhs[i_node];
+// 		
+//                rhs_i += projection_length * mphi[i_node];
+//             }
+//         }
 //         int inout_size = mInOutBoundaryList.size();
 //         double vol_var = 0.0;
 //         //#pragma omp parallel for firstprivate(slip_size)
