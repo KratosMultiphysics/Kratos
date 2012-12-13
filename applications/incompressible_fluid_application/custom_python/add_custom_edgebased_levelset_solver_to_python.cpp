@@ -165,6 +165,7 @@ void  AddCustomEdgeBasedLevelSetToPython()
     .def("ApplySmagorinsky"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ApplySmagorinsky)
 	.def("ContinuousVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ContinuousVolumeCorrection)
 	.def("SetWallReductionCoefficients"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetWallReductionCoefficients)
+	.def("ComputeTotalVolume"   ,&EdgeBasedLevelSetSubstep< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTotalVolume)
 //                           .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 2, MatrixContainer< 2, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
     ;
 
@@ -196,6 +197,7 @@ void  AddCustomEdgeBasedLevelSetToPython()
     .def("ContinuousVolumeCorrection"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ContinuousVolumeCorrection)
     .def("FindBubbles"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::FindBubbles)
 	.def("SetWallReductionCoefficients"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::SetWallReductionCoefficients)
+	.def("ComputeTotalVolume"   ,&EdgeBasedLevelSetSubstep< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::ComputeTotalVolume)
 //                           .def("CalculatePorousResistanceLaw"   ,&EdgeBasedLevelSet< 3, MatrixContainer< 3, SparseSpaceType>, SparseSpaceType, LinearSolverType >::CalculatePorousResistanceLaw)
     ;
 
