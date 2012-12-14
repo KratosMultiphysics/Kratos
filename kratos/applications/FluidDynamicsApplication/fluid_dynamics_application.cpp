@@ -39,6 +39,8 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mDynamicVMS2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))),GeometryData::GI_GAUSS_2),
     mDynamicVMS3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8, Node<3>()))),GeometryData::GI_GAUSS_2),
     mTwoFluidVMS3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mStationaryStokes2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mStationaryStokes3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mFractionalStep2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mFractionalStep3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSpalartAllmaras2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))),GeometryData::GI_GAUSS_2),
@@ -81,6 +83,9 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("DynamicVMS2D4N",mDynamicVMS2D4N);
     KRATOS_REGISTER_ELEMENT("DynamicVMS3D8N",mDynamicVMS3D8N);
     KRATOS_REGISTER_ELEMENT("TwoFluidVMS3D",mTwoFluidVMS3D);
+
+    KRATOS_REGISTER_ELEMENT("StationaryStokes2D",mStationaryStokes2D);
+    KRATOS_REGISTER_ELEMENT("StationaryStokes3D",mStationaryStokes3D);
 
     KRATOS_REGISTER_ELEMENT("FractionalStep2D",mFractionalStep2D);
     KRATOS_REGISTER_ELEMENT("FractionalStep3D",mFractionalStep3D);

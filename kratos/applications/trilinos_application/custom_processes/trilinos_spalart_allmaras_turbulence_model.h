@@ -138,7 +138,20 @@ public:
         BaseSpAlType::mspalart_model_part.SetProcessInfo(BaseSpAlType::mr_model_part.pGetProcessInfo());
         BaseSpAlType::mspalart_model_part.SetProperties(BaseSpAlType::mr_model_part.pProperties());
 
-        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator(&BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()) );
+        // Create a communicator for the new model part and copy the partition information about nodes.
+        Communicator& rReferenceComm = BaseSpAlType::mr_model_part.GetCommunicator();
+        typename Communicator::Pointer pSpalartMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseSpAlType::mr_model_part.GetNodalSolutionStepVariablesList()) ) );
+        pSpalartMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
+        pSpalartMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
+        pSpalartMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
+        pSpalartMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
+        pSpalartMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
+        {
+            pSpalartMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
+            pSpalartMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
+            pSpalartMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
+        }
         BaseSpAlType::mspalart_model_part.SetCommunicator( pSpalartMPIComm );
 
         std::string ElementName;

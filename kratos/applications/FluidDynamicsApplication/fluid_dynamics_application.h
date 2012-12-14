@@ -78,6 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/bingham_vms.h"
 #include "custom_elements/dynamic_vms.h"
 #include "custom_elements/two_fluid_vms.h"
+#include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"
 #include "custom_elements/spalart_allmaras.h"
 #include "custom_conditions/wall_condition.h"
@@ -258,6 +259,9 @@ private:
     const DynamicVMS<3> mDynamicVMS3D8N;
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
+
+    const StationaryStokes<2> mStationaryStokes2D;
+    const StationaryStokes<3> mStationaryStokes3D;
 
     /// 2D instance of the fractional step element
     const FractionalStep<2> mFractionalStep2D;
