@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_processes_to_python.h"
 
 #include "custom_processes/spalart_allmaras_turbulence_model.h"
+#include "custom_processes/stokes_initialization_process.h"
 #include "spaces/ublas_space.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -89,6 +90,9 @@ void AddCustomProcessesToPython()
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
     .def("SetPeriodicBoundaryCondition",&SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetPeriodicBoundaryCondition)
     ;
+
+    class_< StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>, bases<Process>, boost::noncopyable >
+            ("StokesInitializationProcess", init< ModelPart::Pointer, LinearSolverType::Pointer, unsigned int>() );
 }
 
 

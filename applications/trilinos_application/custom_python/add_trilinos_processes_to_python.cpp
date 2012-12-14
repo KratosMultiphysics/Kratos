@@ -27,7 +27,9 @@
 
 
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
+#include "custom_processes/trilinos_stokes_initialization_process.h"
 #include "../FluidDynamicsApplication/custom_processes/spalart_allmaras_turbulence_model.h"
+#include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
 #include "linear_solvers/linear_solver.h"
 
 namespace Kratos
@@ -47,7 +49,7 @@ void AddProcesses()
     typedef SpalartAllmarasTurbulenceModel<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSpAlModelType;
 
     class_ < BaseSpAlModelType,bases< Process >, boost::noncopyable >
-    ( "BaseSpAlModelType",no_init );
+    ( "TrilinosBaseSpAlModel",no_init );
 
     // Turbulence models
     class_< TrilinosSpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseSpAlModelType>, boost::noncopyable >
@@ -55,6 +57,15 @@ void AddProcesses()
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::AdaptForFractionalStep)
     ;
+
+    typedef StokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseStokesInitializationType;
+
+    class_ < BaseStokesInitializationType,bases< Process >, boost::noncopyable >
+    ( "TrilinosBaseStokesInitialization",no_init );
+
+    class_< TrilinosStokesInitializationProcess< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseStokesInitializationType>, boost::noncopyable >
+            ("TrilinosStokesInitializationProcess",init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int >())
+            ;
 }
 
 }
