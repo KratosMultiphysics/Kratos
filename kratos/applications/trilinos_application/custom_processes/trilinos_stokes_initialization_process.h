@@ -78,8 +78,6 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_WATCH(pModelPart->Elements().size())
-
         const ModelPart::Pointer& pReferenceModelPart = BaseType::mpReferenceModelPart;
         typename TLinearSolver::Pointer& pLinearSolver = BaseType::mpLinearSolver;
         unsigned int DomainSize = BaseType::mDomainSize;
@@ -110,23 +108,6 @@ public:
         }
         pStokesModelPart->SetCommunicator( pStokesMPIComm );
 
-        /*int rank;
-        int size;
-        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-        MPI_Comm_size(MPI_COMM_WORLD,&size);
-        for (int r = 0; r < size; r++)
-        {
-            if (rank == r)
-            {
-                std::cout << std::endl << "Original Comm, rank" << rank << std::endl;
-                rReferenceComm.PrintData(std::cout);
-                std::cout << std::endl << "Stokes Comm, rank" << rank << std::endl;
-                pStokesMPIComm->PrintData(std::cout);
-                std::cout.flush();
-            }
-            MPI_Barrier(MPI_COMM_WORLD);
-        }*/
-
         // Retrieve Stokes element model
         std::string ElementName;
         if (DomainSize == 2)
@@ -143,6 +124,23 @@ public:
             pStokesModelPart->Elements().push_back(pElem);
             pStokesModelPart->GetCommunicator().LocalMesh().Elements().push_back(pElem);
         }
+
+        /*int rank;
+        int size;
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+        MPI_Comm_size(MPI_COMM_WORLD,&size);
+        for (int r = 0; r < size; r++)
+        {
+            if (rank == r)
+            {
+                std::cout << std::endl << "Original Comm, rank" << rank << std::endl;
+                rReferenceComm.PrintData(std::cout);
+                std::cout << std::endl << "Stokes Comm, rank" << rank << std::endl;
+                pStokesMPIComm->PrintData(std::cout);
+                std::cout.flush();
+            }
+            MPI_Barrier(MPI_COMM_WORLD);
+        }*/
 
         // pointer types for the solution strategy construcion
         typedef typename Scheme< TSparseSpace, TDenseSpace >::Pointer SchemePointerType;
