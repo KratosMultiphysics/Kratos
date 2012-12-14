@@ -144,7 +144,7 @@ public:
     virtual void Execute()
     {
         KRATOS_TRY
-        for(ModelPart::ElementsContainerType::const_iterator im = mr_model_part.ElementsBegin(); in!=mr_model_part.ElementsEnd(); in++)
+        for(ModelPart::ElementsContainerType::const_iterator im = mr_model_part.ElementsBegin(); im!=mr_model_part.ElementsEnd(); im++)
         {
             double x0 = im.X();
             double x1 = im.X();
