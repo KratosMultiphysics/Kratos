@@ -298,7 +298,7 @@ while(time < max_time):
     
     #Dissable the confinement
     
-    if( (time > final_time*0.1) and (done==False)):
+    if( (time > max_time*0.1) and (done==False)):
 	  done=True;
 	  for element in skin_list:
 		element.SetValue(APPLIED_FORCE,(0,0,0))
@@ -424,7 +424,7 @@ while(time < max_time):
 	if (print_export_skin_sphere=="1"):
 	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
 	
-	if (contact_mesh_option == "ON"): ##xapuza
+	if (ContactMeshOption == "ON"): ##xapuza
 	  if (print_local_contact_force_low=="1"):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
 	  if (print_local_contact_force_high=="1"):
@@ -439,7 +439,7 @@ while(time < max_time):
 	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
 	  
              
-        if (rotation_option == "ON"): ##xapuza
+        if (RotationOption == "ON"): ##xapuza
             if (print_angular_velocity=="1"):
 	      gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
             if (print_particle_moment=="1"):
