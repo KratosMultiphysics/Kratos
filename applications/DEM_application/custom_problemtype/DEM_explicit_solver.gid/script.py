@@ -1,35 +1,37 @@
 # -*- coding: utf-8 -*-
-import DEM_explicit_solver_var
 import time as timer
 import os
 import sys
 import math
 import matplotlib
+
 from numpy import *
 from pylab import *  
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.MetisApplication import *
 
+from DEM_explicit_solver_var import *
+from DEM_procedures import *
 
 #defining a model part for the solid part
 my_timer=Timer();
 solid_model_part = ModelPart("SolidPart");  
 #############################################
 
-#introducing input file name
-input_file_name = DEM_explicit_solver_var.problem_name
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
-#reading the solid part
 
-if(DEM_explicit_solver_var.OutputFileType == "Binary"):
+## reading the solid part: binary or ascii, multifile or single
+
+if(OutputFileType == "Binary"):
   gid_mode = GiDPostMode.GiD_PostBinary
 else:
   gid_mode = GiDPostMode.GiD_PostAscii
   
-if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+if(Multifile == "multiple_files"):
   multifile = MultiFileFlag.MultipleFiles
 else:
   multifile = MultiFileFlag.SingleFile
@@ -37,8 +39,9 @@ else:
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions = WriteConditionsFlag.WriteConditions
 
-gid_io = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-model_part_io_solid = ModelPartIO(input_file_name)
+gid_io = GidIO(problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+model_part_io_solid = ModelPartIO(problem_name)
+
 model_part_io_solid.ReadModelPart(solid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -49,271 +52,10 @@ SolverStrategy.AddDofs(solid_model_part)
 
 #creating a solver object
 
-dimension=DEM_explicit_solver_var.domain_size
-
-solver = SolverStrategy.ExplicitStrategy(solid_model_part, dimension) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, solver variables initialize as default
 
 ##Obtaning options and values
-
-integration_scheme = DEM_explicit_solver_var.Integration_Scheme
-if (integration_scheme == 'forward_euler'):
-    time_scheme = FowardEulerScheme()
-elif (integration_scheme == 'mid_point_rule'):
-    time_scheme = MidPointScheme()
-elif (integration_scheme == 'const_average_acc'):
-    time_scheme = ConstAverageAccelerationScheme()
-else:
-    print('scheme not defined')
-
-normal_force_calculation = DEM_explicit_solver_var.NormalForceCalculation
-
-if (normal_force_calculation == "Linear"):
-    force_calculation_type_id = 0
-elif (normal_force_calculation == "Hertz"):
-    force_calculation_type_id = 1
-
-damp_ID = DEM_explicit_solver_var.DampId
-
-if(damp_ID == "ViscDamp"):
-    damp_id = 1
-else:
-    damp_id = 0
-    
-solver.damp_id=damp_id
-
-rota_damp_ID = DEM_explicit_solver_var.RotaDampId
-
-if(rota_damp_ID == "LocalDamp"):
-    rota_damp_id = 1
-else:
-    rota_damp_id = 0
-    
-solver.rota_damp_id=rota_damp_id
-
-
-gravity = Vector(3)
-gravity[0] = DEM_explicit_solver_var.gravity_x
-gravity[1] = DEM_explicit_solver_var.gravity_y
-gravity[2] = DEM_explicit_solver_var.gravity_z
-
-solver.gravity=gravity
-
-#options for the solver
-
-compute_critical_time	= DEM_explicit_solver_var.CriticalTimeOption
-
-continuum_option 	= DEM_explicit_solver_var.ContinuumOption
-delta_option 		= DEM_explicit_solver_var.DeltaOption
-search_radius_extension	= DEM_explicit_solver_var.search_radius_extension
-
-rotation_option 	= DEM_explicit_solver_var.RotationOption
-trihedron_option	= DEM_explicit_solver_var.TrihedronOption
-
-rotation_spring_option	= DEM_explicit_solver_var.RotationalSpringOption
-
-bounding_box_option 	= DEM_explicit_solver_var.BoundingBoxOption
-
-global_variables_option = DEM_explicit_solver_var.GlobalVariablesOption
-
-virtual_mass_option 	= DEM_explicit_solver_var.VirtualMassOption
-virtual_mass_coeff 	= DEM_explicit_solver_var.VirtualMassCoefficient
-
-contact_mesh_option = DEM_explicit_solver_var.ContactMeshOption
-failure_criterion_option = DEM_explicit_solver_var.FailureCriterionOption
-
-if(virtual_mass_option == "ON"):
-    solver.virtual_mass_OPTION=1 #xapuza
-    
-solver.nodal_mass_coeff=virtual_mass_coeff    
-
-if(delta_option=="OFF"):
-  search_radius_extension=0.0;
-
-solver.time_scheme=time_scheme
-solver.force_calculation_type_id=force_calculation_type_id
-
-if (compute_critical_time =="ON"):
-  solver.critical_time_OPTION=1; #xapuza
-
-if(delta_option =="ON"):
-  solver.delta_OPTION=True
-
-if(continuum_option =="ON"):
-  solver.continuum_simulating_OPTION=True
-  
-  if(contact_mesh_option =="ON"):
-    solver.contact_mesh_OPTION=1  #xapuza
-  
-  if(failure_criterion_option =="Mohr-Coulomb"):
-    solver.failure_criterion_OPTION=1 
-  elif(failure_criterion_option =="Uncoupled"):
-    solver.failure_criterion_OPTION=2
-    
-  solver.tau_zero 		= DEM_explicit_solver_var.TauZero
-  solver.sigma_max 		= DEM_explicit_solver_var.SigmaMax
-  solver.sigma_min 		= DEM_explicit_solver_var.SigmaMin
-  solver.internal_fricc 	= DEM_explicit_solver_var.InternalFricc
-  
-solver.search_radius_extension=search_radius_extension
-
-if(rotation_option =="ON"):
-  solver.rotation_OPTION=1  #xapuza
-if(trihedron_option =="ON"):
-  solver.trihedron_OPTION=1  #xapuza 
-if(rotation_spring_option =="ON"):
-  solver.rotation_spring_OPTION=1  #xapuza
-       
-
-       
-solver.safety_factor = DEM_explicit_solver_var.dt_safety_factor #for critical time step calculation 
-
-# global variable settings
-
-if(global_variables_option =="ON"):
-  solver.global_variables_OPTION = 1  #xapuza
-
-solver.global_kn 	= DEM_explicit_solver_var.global_kn
-solver.global_kt  	= DEM_explicit_solver_var.global_kt
-solver.global_kr  	= DEM_explicit_solver_var.global_kr
-solver.global_rn  	= DEM_explicit_solver_var.global_rn
-solver.global_rt  	= DEM_explicit_solver_var.global_rt
-solver.global_rr  	= DEM_explicit_solver_var.global_rr
-solver.global_fri_ang 	= DEM_explicit_solver_var.global_fri_ang
-
-# time settings
-
-final_time 	= DEM_explicit_solver_var.max_time
-output_dt  	= DEM_explicit_solver_var.output_dt
-control_time	= DEM_explicit_solver_var.control_time
-dt 		= DEM_explicit_solver_var.max_time_step
-
-solver.delta_time=dt
-
-# bounding box
-
-n_step_destroy_distant = DEM_explicit_solver_var.search_step      # how many steps between elimination of distant particles?
-n_step_search = DEM_explicit_solver_var.search_step
-solver.n_step_search = n_step_search
-
-bounding_box_enlargement_factor = DEM_explicit_solver_var.bounding_box_enlargement_factor    # by what factor do we want to enlarge the strict bounding box
-
-extra_radius = 0.0
-max_radius = 0.0
-min_radius = 0.0
-first_it = True
-
-#calculation of search radius
-for node in solid_model_part.Nodes:
-      
-  rad = node.GetSolutionStepValue(RADIUS)
-  if rad > max_radius:  
-      max_radius = rad
-  if first_it == True:
-      min_radius = rad
-      first_it = False
-  if rad < min_radius:  
-      min_radius = rad
-      
-if(bounding_box_option =="ON"):
-  solver.bounding_box_OPTION=1  #xapuza
-
-extra_radius = 2.5 * max_radius
-prox_tol = 0.000001 * min_radius  #currently not in use.
-bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargement_factor)
-
-solver.enlargement_factor = bounding_box_enlargement_factor
-
-#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-
-#Pressure = 28*1e6; #28 MPa son uns 4000 Psi
-Pressure = 0.0
-skin_list = list()
-
-if(continuum_option =="ON"): #ATTENTION: THIS IS ONLY VALID FOR THE UNIAXIAL test CASE.
-  
-  for element in solid_model_part.Elements:
-	
-	element.SetValue(SKIN_SPHERE,0)
-	
-	node = element.GetNode(0)
-	r = node.GetSolutionStepValue(RADIUS,0)
-	x = node.X
-	y = node.Y
-	z = node.Z
-	
-	values = Array3()
-	values[0] = 0.0
-	values[1] = 0.0
-	values[2] = 0.0
-	  
-	Cross_section = 3.141592*r*r
-	h=0.3
-	d=0.15
-	eps=2
-	vect = zeros(3, double) 
-
-	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
-	  
-	  element.SetValue(SKIN_SPHERE,1)
-	  skin_list.append(element)
-      
-	  #vector normal al centre:
-	  vect_moduli = sqrt(x*x+z*z)
-	  #print(vect_moduli)
-	  if(vect_moduli>0.0):
-		vect[0]=-x/vect_moduli
-		vect[1]=0
-		vect[2]=-z/vect_moduli
-		
-	  #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
-	  
-	  values[0]=-Cross_section*Pressure*vect[0]
-	  values[1]= 0.0
-	  values[2]=-Cross_section*Pressure*vect[2]
-	   
-	  
-	if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
-
-		element.SetValue(SKIN_SPHERE,1)
-		#vector normal al centre:	  
-		values[0]=0.0
-		values[2]=0.0
-		if ( y>h/2 ):
-			values[1]=-Cross_section*Pressure
-		else:
-			values[1]= Cross_section*Pressure
-
-		if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
-			#vector normal al centre:
-			vect_moduli = sqrt(x*x+z*z)
-			
-			if ( vect_moduli>0.0 ) :
-				vect[0]=-x/vect_moduli
-				vect[1]=0.0
-				vect[2]=-z/vect_moduli
-
-			values[0]=-Cross_section*Pressure*vect[0]*0.70710678
-			values[2]=-Cross_section*Pressure*vect[2]*0.70710678
-			if ( y>h/2 ):
-				values[1]=-Cross_section*Pressure*0.70710678
-			else:
-				values[1]=Cross_section*Pressure*0.70710678 
-		else:
-			skin_list.append(element)  
-
-	node.SetSolutionStepValue(APPLIED_FORCE,values)
-	
-	if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) and ( y<=eps*r or y>=(h-eps*r) ) ): 
-	  #check:
-		if(element.GetValue(APPLIED_FORCE)[0]*element.GetValue(APPLIED_FORCE)[0] + element.GetValue(APPLIED_FORCE)[1]*element.GetValue(APPLIED_FORCE)[1] +  element.GetValue(APPLIED_FORCE)[2]*element.GetValue(APPLIED_FORCE)[2] > 1.05*Cross_section*Pressure*Cross_section*Pressure ):
-			print("malcalculat")
-
-print("End Applying Imposed Forces")
-	  
-
-#Initialize the problem.
-
-solver.Initialize()
+InitializeSolver(solid_model_part,solver)
 
 if(1<2):
 
@@ -353,7 +95,7 @@ if(1<2):
   Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
   Model_Data.write('\n')
   
-  Model_Data.write("Volume Elements: "+str(DEM_explicit_solver_var.mass_elements)+'\n')
+  Model_Data.write("Volume Elements: "+str(mass_elements)+'\n')
   
   Model_Data.close()
 
@@ -383,7 +125,7 @@ if(1<2):
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-if (compute_critical_time =="ON"):
+if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
 
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
@@ -401,19 +143,19 @@ initial_real_time = timer.time()
 print('\n')
 print ('Calculation starts at instant: ' + str(initial_pr_time)+'\n')
 
-total_steps_expected = int(final_time/dt)
+total_steps_expected = int(max_time/dt)
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
 
 
 #paths:
 
 main_path 	 = os.getcwd()
-post_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Files'
-list_path 	 = str(main_path)+'/'+str(input_file_name)+'_Post_Lists'
-neigh_list_path  = str(main_path)+'/'+str(input_file_name)+'_Neigh_Lists'
-data_and_results = str(main_path)+'/'+str(input_file_name)+'_Results_and_Data'
-graphs_path	 = str(main_path)+'/'+str(input_file_name)+'_Graphs'	
-MPI_results    = str(main_path)+'/'+str(input_file_name)+'_MPI_results'	
+post_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Files'
+list_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Lists'
+neigh_list_path  = str(main_path)+'/'+str(problem_name)+'_Neigh_Lists'
+data_and_results = str(main_path)+'/'+str(problem_name)+'_Results_and_Data'
+graphs_path	 = str(main_path)+'/'+str(problem_name)+'_Graphs'	
+MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'	
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
@@ -433,10 +175,10 @@ displacementlist = []
 
 os.chdir(list_path)
 
-multifile = open(input_file_name+'_all'+'.post.lst','w')
-multifile_5 = open(input_file_name+'_5'+'.post.lst','w')
-multifile_10 = open(input_file_name+'_10'+'.post.lst','w')
-multifile_50 = open(input_file_name+'_50'+'.post.lst','w')
+multifile = open(problem_name+'_all'+'.post.lst','w')
+multifile_5 = open(problem_name+'_5'+'.post.lst','w')
+multifile_10 = open(problem_name+'_10'+'.post.lst','w')
+multifile_50 = open(problem_name+'_50'+'.post.lst','w')
 
 
 multifile.write('Multiple\n')
@@ -468,7 +210,7 @@ contact_model_part = solver.contact_model_part
 
 os.chdir(post_path)
 
-if(DEM_explicit_solver_var.Multifile == "single_file"):
+if(Multifile == "single_file"):
 
   gid_io.InitializeMesh(0.0)
   gid_io.WriteSphereMesh(solid_model_part.GetMesh())
@@ -488,9 +230,10 @@ velocity_node_y = 0.0
 for node in force_measurement:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
-done=False    
+done=False  #flag for the end of the confinement  
     
-while(time < final_time):
+    
+while(time < max_time):
   
   
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -508,14 +251,14 @@ while(time < final_time):
     
     for node in force_measurement:
 	
-	force_node = node.GetSolutionStepValue(RHS,0)
-	force_node_x = node.GetSolutionStepValue(RHS,0)[0]
-	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
-	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
+		force_node = node.GetSolutionStepValue(RHS,0)
+		force_node_x = node.GetSolutionStepValue(RHS,0)[0]
+		force_node_y = node.GetSolutionStepValue(RHS,0)[1]
+		force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 	
 	
-	results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
-	total_force += force_node_y
+		results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
+		total_force += force_node_y
 
 
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
@@ -523,7 +266,7 @@ while(time < final_time):
     stresslist.append(total_stress)
 
     #For a test tube of height 30 cm
-    if(continuum_option =="ON"):
+    if(ContinuumOption =="ON"):
       strain += -2*velocity_node_y*dt/0.3
       strainlist.append(strain)
 
@@ -596,7 +339,7 @@ while(time < final_time):
     
     os.chdir(list_path)
     
-    multifile.write(input_file_name+'_'+str(time)+'.post.bin\n')
+    multifile.write(problem_name+'_'+str(time)+'.post.bin\n')
     
     os.chdir(main_path)
     
@@ -604,13 +347,13 @@ while(time < final_time):
     time_to_print = time - time_old_print
     #print str(time)
     
-    if(time_to_print >= DEM_explicit_solver_var.output_dt):
+    if(time_to_print >= output_dt):
     
 	os.chdir(graphs_path)
 
 	#Drawing graph stress_strain:
 
-	if(continuum_option =="ON"):
+	if(ConcreteTestOption =="ON"):
 	  clf()
 	  plot(strainlist,stresslist,'b-')
 	  grid(True)
@@ -644,7 +387,7 @@ while(time < final_time):
 	os.chdir(post_path)
 	
 	
-	if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+	if(Multifile == "multiple_files"):
 
 	  gid_io.InitializeMesh(time)
 	  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
@@ -656,52 +399,52 @@ while(time < final_time):
 	  gid_io.FinalizeMesh()
 	  gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
 	
-	if (DEM_explicit_solver_var.print_velocity=="1"):
+	if (print_velocity=="1"):
 	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
-        if (DEM_explicit_solver_var.print_displacement=="1"):
+        if (print_displacement=="1"):
 	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
-        if (DEM_explicit_solver_var.print_rhs=="1"):
+        if (print_rhs=="1"):
 	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
-        if (DEM_explicit_solver_var.print_total_forces=="1"):
+        if (print_total_forces=="1"):
 	  gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)	  
-        if (DEM_explicit_solver_var.print_damp_forces=="1"):
+        if (print_damp_forces=="1"):
 	  gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)        
-        if (DEM_explicit_solver_var.print_radius=="1"):
+        if (print_radius=="1"):
 	  gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)       
-        if (DEM_explicit_solver_var.print_particle_cohesion=="1"):
+        if (print_particle_cohesion=="1"):
 	  gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)       
-        if (DEM_explicit_solver_var.print_particle_tension=="1"):
+        if (print_particle_tension=="1"):
 	  gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
-        if (DEM_explicit_solver_var.print_group_id=="1"):
+        if (print_group_id=="1"):
 	  gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
-        if (DEM_explicit_solver_var.print_export_id=="1"):
+        if (print_export_id=="1"):
 	  gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
-        if (DEM_explicit_solver_var.print_export_particle_failure_id=="1"):
+        if (print_export_particle_failure_id=="1"):
 	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
-	if (DEM_explicit_solver_var.print_export_skin_sphere=="1"):
+	if (print_export_skin_sphere=="1"):
 	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
 	
 	if (contact_mesh_option == "ON"): ##xapuza
-	  if (DEM_explicit_solver_var.print_local_contact_force_low=="1"):
+	  if (print_local_contact_force_low=="1"):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_local_contact_force_high=="1"):
+	  if (print_local_contact_force_high=="1"):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_failure=="1"): 
+	  if (print_contact_failure=="1"): 
 	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
-	  if (DEM_explicit_solver_var.print_failure_criterion_state=="1"):
+	  if (print_failure_criterion_state=="1"):
 	    gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,contact_model_part,time)  	    
-	  if (DEM_explicit_solver_var.print_contact_tau=="1"):
+	  if (print_contact_tau=="1"):
 	    gid_io.PrintOnGaussPoints(CONTACT_TAU,contact_model_part,time)
-	  if (DEM_explicit_solver_var.print_contact_sigma=="1"):
+	  if (print_contact_sigma=="1"):
 	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
 	  
              
         if (rotation_option == "ON"): ##xapuza
-            if (DEM_explicit_solver_var.print_angular_velocity=="1"):
+            if (print_angular_velocity=="1"):
 	      gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
-            if (DEM_explicit_solver_var.print_particle_moment=="1"):
+            if (print_particle_moment=="1"):
 	      gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
-           # if (DEM_explicit_solver_var.print_euler_angles):
+           # if (print_euler_angles=="1"):
 	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
 
         gid_io.Flush()
@@ -711,19 +454,19 @@ while(time < final_time):
         
         if (index_5==5):
 	  
-	  multifile_5.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  multifile_5.write(problem_name+'_'+str(time)+'.post.bin\n')
 	  
 	  index_5=0
 	  
 	if (index_10==10):
 	  
-	  multifile_10.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  multifile_10.write(problem_name+'_'+str(time)+'.post.bin\n')
 	  
 	  index_10=0
 	  
 	if (index_50==50):
 	  
-	  multifile_50.write(input_file_name+'_'+str(time)+'.post.bin\n')
+	  multifile_50.write(problem_name+'_'+str(time)+'.post.bin\n')
 	  
 	  index_50=0
 	 
@@ -731,7 +474,7 @@ while(time < final_time):
 	index_10 += 1
 	index_50 += 1
 	
-	if(DEM_explicit_solver_var.Multifile == "multiple_files"):
+	if(Multifile == "multiple_files"):
 	  gid_io.FinalizeResults()
 	
 	os.chdir(main_path)
@@ -747,7 +490,7 @@ while(time < final_time):
     
     step += 1
 
-if(DEM_explicit_solver_var.Multifile == "single_file"):
+if(Multifile == "single_file"):
   gid_io.FinalizeResults()
 
 os.chdir(data_and_results)
@@ -780,7 +523,7 @@ if (1<2):
   #legend(('force'))
   savefig('Grafic_1')
 
-if(continuum_option =="ON"):
+if(ConcreteTestOption =="ON"):
   clf()
   plot(strainlist,stresslist,'b-')
   grid(True)
@@ -817,11 +560,6 @@ if (3<2):
 
 
 os.chdir(main_path)
-
-
-
-
-
 
 
 
