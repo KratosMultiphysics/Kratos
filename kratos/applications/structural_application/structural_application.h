@@ -451,8 +451,8 @@ private:
     const TotalLagrangian mTotalLagrangian3D20N;
     const TotalLagrangian mTotalLagrangian3D27N;
 	
-    const TotalLagrangian mTotalLagrangianVelocityBased2D3N;
-    const TotalLagrangian mTotalLagrangianVelocityBased3D4N;
+    const TotalLagrangianVelocityBased mTotalLagrangianVelocityBased2D3N;
+    const TotalLagrangianVelocityBased mTotalLagrangianVelocityBased3D4N;
 	
 	
     const MixedLagrangian mMixedLagrangian2D3N;
