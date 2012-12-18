@@ -135,14 +135,15 @@ namespace Kratos
        
 		  
 		  //MPI CARLOS decomentar de aqui....
-		  
+		/*  
           //Mpi schemes
            class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
            (
                     "MpiFowardEulerScheme", init<>()
                    )
                    ;
-		   // MPI CARLOS.... a aqui
+		  */
+				   // MPI CARLOS.... a aqui
 		   
 
                   
@@ -155,6 +156,7 @@ namespace Kratos
 		  ;
 		  
            //MPI CARLOS decomentar de aqui....
+		  /*
            typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
            class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
            (
@@ -162,7 +164,7 @@ namespace Kratos
                    .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
                    .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
            ;
-		  
+		  */
 		  // MPI CARLOS.... a aqui
 	   
 		}
