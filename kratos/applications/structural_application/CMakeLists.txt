@@ -15,6 +15,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/linear_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/Hypoelastic_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_vel.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/mixed_lagrangian.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/kinematic_linear.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/unsaturated_soils_element_2phase.cpp
