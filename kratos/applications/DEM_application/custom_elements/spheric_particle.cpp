@@ -291,7 +291,7 @@ namespace Kratos
 		
 		} //for every neighbour
 	  
-	  if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id()) KRATOS_WATCH("SS")}
+		  //if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id()) KRATOS_WATCH("SS")}
 	  
 		if(skin_sphere != 1)
 		{
@@ -327,7 +327,7 @@ namespace Kratos
       } //Contact Area Weighting
         
         
-       void SphericParticle::ComputeParticleContactForce(const ProcessInfo& rCurrentProcessInfo )
+       void SphericParticle::ComputeParticleContactForce(ProcessInfo& rCurrentProcessInfo )
 
        {
            
@@ -421,6 +421,7 @@ namespace Kratos
 
                 if( delta_OPTION && (iContactForce < r_VectorContactInitialDelta.size()) )
                 {
+
                     initial_delta = r_VectorContactInitialDelta[iContactForce];
                 }
 
@@ -450,10 +451,12 @@ namespace Kratos
 				  for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
 					{
 					  
-					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
-					    
-						corrected_area = mcont_ini_neigh_area[index_area];
-						break;
+						if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+						{  
+						  corrected_area = mcont_ini_neigh_area[index_area];
+						  break;
+						}
+						
 					  index_area++;   
 					
 					} //for every neighbour		  
@@ -669,92 +672,92 @@ namespace Kratos
   
 		if(corrected_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
               
-                if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+		if  (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                     	
 		{
                 
-		  int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+			int failure_criterion_OPTION = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
 		    
 		    ///(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
 		  
 		    
-		  if (failure_criterion_OPTION==1)  //MOHR-COULOMB
-		  
-		  {
-		  
-                    
-			contact_tau = ShearForceNow/(corrected_area);
-			contact_sigma = LocalContactForce[2]/(corrected_area);
-
-			double sigma_max, sigma_min;
-
-			if (LocalContactForce[2]>=0)
-				{
-					sigma_max = contact_sigma;
-					sigma_min = 0;
-
-				}
-			else 
-				{
-					sigma_max = 0;
-					sigma_min = contact_sigma;
-
-				}
-
-
-			//change into principal stresses
-
-			double centre = 0.5*(sigma_max + sigma_min);
-			double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
-
-			double sigma_I = centre + radius;
-			double sigma_II = centre - radius;
-
-				      
+			if (failure_criterion_OPTION==1)  //MOHR-COULOMB
+			
+			{
+			
 					  
-			// Check:
+			  contact_tau = ShearForceNow/(corrected_area);
+			  contact_sigma = LocalContactForce[2]/(corrected_area);
 
-			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
-			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
-			
-			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
-		  
-			double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
-			      
-			failure_criterion_state = radius/distance_to_failure;
-			
-			//if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
-			
-			if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
-			{
-			    
-			    //KRATOS_WATCH (failure_criterion_state)
-			    
-			    //breaks
+			  double sigma_max, sigma_min;
 
-			    this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
-						    
-			    //tangential mapping, divide 2 tangent
-		    
-			    if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
-					{
+			  if (LocalContactForce[2]>=0)
+				  {
+					  sigma_max = contact_sigma;
+					  sigma_min = 0;
+
+				  }
+			  else 
+				  {
+					  sigma_max = 0;
+					  sigma_min = contact_sigma;
+
+				  }
+
+
+			  //change into principal stresses
+
+			  double centre = 0.5*(sigma_max + sigma_min);
+			  double radius = sqrt( (sigma_max - centre)*(sigma_max - centre) + contact_tau*contact_tau   ) ;
+
+			  double sigma_I = centre + radius;
+			  double sigma_II = centre - radius;
+
+						
+						
+			  // Check:
+
+			  //double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			  double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
+			  
+			  //double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+				  double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
+			
+			  double distance_to_failure = ( tau_zero/(tan(Failure_FriAngle)) + centre )*sin(Failure_FriAngle);
 					
-					//KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
-					//KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
-					}
-			    
-						  
-			    sliding = true ;
+			  failure_criterion_state = radius/distance_to_failure;
+			  
+			  //if(failure_criterion_state>1.0001) {KRATOS_WATCH(( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )) KRATOS_WATCH("OJU")}
+			  
+			  if ( sigma_I - sigma_II >= 2*tau_zero*cos(Failure_FriAngle) + (sigma_I + sigma_II)*sin(Failure_FriAngle) )
+			  {
+				  
+				  //KRATOS_WATCH (failure_criterion_state)
+				  
+				  //breaks
+
+				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 5; //mohr coulomb
+							  
+				  //tangential mapping, divide 2 tangent
+			  
+				  if((this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])!=0)
+					  {
+					  
+					  //KRATOS_WATCH(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce])
+					  //KRATOS_WATCH(lock_p_weak->GetValue(CONTACT_FAILURE_LOW))
+					  }
+				  
+							
+				  sliding = true ;
 
 
-			}
+			  }
 
-			else
-			{
-			    // doesn't brake
+			  else
+			  {
+				  // doesn't brake
 
-			}
+			  }
                     
 		    } //MOHR-COULOMB
 		    
@@ -765,59 +768,78 @@ namespace Kratos
 		    if (failure_criterion_OPTION==2)//UNCOUPLED FRACTURE
 		    
 		    {
-			contact_tau = ShearForceNow/(corrected_area);
-			contact_sigma = LocalContactForce[2]/(corrected_area);
+			  contact_tau = ShearForceNow/(corrected_area);
+			  contact_sigma = LocalContactForce[2]/(corrected_area);
 
-			//double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
-			double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
-			
-			//double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
-		        double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
-			
-			if (LocalContactForce[2]>=0)
-			{
-				double tau_strength = tau_zero+tan(Failure_FriAngle)*contact_sigma;
+			  //double tau_zero = 0.5*sqrt(compression_limit*tension_limit); 
+			  double tau_zero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
+			  
+			  //double Failure_FriAngle =  atan((compression_limit-tension_limit)/(2*sqrt(compression_limit*tension_limit)));
+				  double Failure_FriAngle =  rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
+			  
+			  if (LocalContactForce[2]>=0)
+			  {
+				  double tau_strength = tau_zero+tan(Failure_FriAngle)*contact_sigma;
 
-				failure_criterion_state = contact_tau/tau_strength;
-												
-				
-				if(contact_tau>tau_strength)
-				{
-				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 2;
-				  sliding = true;
-				}
+				  failure_criterion_state = contact_tau/tau_strength;
+												  
+				  
+				  if(contact_tau>tau_strength)
+				  {
+					this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 2;
+					sliding = true;
+				  }
 
-			} //positive sigmas
-			else //negative sigmas
-			{
-				double tau_strength = tau_zero;
-				
-				failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/tension_limit) ;
-				
-				if(contact_tau > tau_strength)
-				{
-				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;  //shear failure
-				  sliding = true;
+			  } //positive sigmas
+			  else //negative sigmas
+			  {
+				  double tau_strength = tau_zero;
 				  
-				    if(contact_sigma<-tension_limit)
-				    {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 12;} //both shear and tension
+				  failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/tension_limit) ;
 				  
-				}
-				else if(contact_sigma<-tension_limit)
-				{
-				  
-				  this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4; //tension failure
-				  sliding = true;
-				  
-				}
+				  if(contact_tau > tau_strength)
+				  {
+					this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 3;  //shear failure
+					sliding = true;
+					
+					  if(contact_sigma<-tension_limit)
+					  {this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 12;} //both shear and tension
+					
+				  }
+				  else if(contact_sigma<-tension_limit)
+				  {
+					
+					this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] = 4; //tension failure
+					sliding = true;
+					
+				  }
 
-			} //negative values of sigma		      
+			  } //negative values of sigma		      
 		      
 		    } //UNCOUPLED FRACTURE
                     
-                }// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
+		}// if (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)
                 
+        if(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] != 0 && rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
+		{
+		  
+		  rCurrentProcessInfo.SetValue(ACTIVATE_SEARCH, 1);
+		
+		  
+		  KRATOS_WATCH("")
+		  KRATOS_WATCH("-------->From now on, searching neighbours, some contacs have failed<-------")
+		  KRATOS_WATCH("Time step:")
+		  KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+		  KRATOS_WATCH("Particle_1")
+		  KRATOS_WATCH(this->Id())
+		  KRATOS_WATCH("Particle_2")
+		  KRATOS_WATCH(neighbour_iterator->Id())	  
+		  KRATOS_WATCH("")
+		  
+		  
+		}
                 
+   
   
                 
 

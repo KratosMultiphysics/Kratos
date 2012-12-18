@@ -90,6 +90,8 @@ class ExplicitStrategy:
         self.rotation_OPTION                	= 0  #its 1/0 xapuza
         self.rotation_spring_OPTION         	= 0  #its 1/0 xapuza
         self.bounding_box_OPTION            	= 0  #its 1/0 xapuza
+        self.activate_search					= 1  #its 1/0 xapuza
+        self.concrete_test_OPTION				= 0  #its 1/0 xapuza
         
         self.contact_mesh_OPTION            	= 0 #its 1/0 xapuza
         self.failure_criterion_OPTION       	= 1 #its 1/0 xapuza
@@ -162,11 +164,13 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_OPTION)
+        self.model_part.ProcessInfo.SetValue(CONCRETE_TEST_OPTION, self.concrete_test_OPTION)
         
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_OPTION)
 	self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)

@@ -169,6 +169,7 @@ namespace Kratos
           {
               extension_option = true;
           }
+                  
 
           //2. Initializing elements and perform the 1st repartition
           if(mElementsAreInitialized == false)
@@ -196,6 +197,12 @@ namespace Kratos
              
               CreateContactElements();
 	     
+          }
+          
+          
+          if(rCurrentProcessInfo[CONCRETE_TEST_OPTION] == 1)
+          {
+              rCurrentProcessInfo[ACTIVATE_SEARCH] = 0;
           }
           
           //6.Final operations
@@ -251,26 +258,28 @@ namespace Kratos
           //2. Motion Integration
           ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           
-          //3. Neighbouring search. Every N times. +bounding box destruction
+          
           if( time_step == 1)
           {
               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox(r_model_part, mEnlargementFactor);
           }
 
-          if ( (time_step + 1)%mnstepsearch == 0 && time_step >0 )
-          {
-//               if ( (time_step + 1)%(mnstepsearch*10) == 0 )
-//               {
-                  //Repart(r_model_part);
-                  //InitializeElements();
-//               }
-              if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
-              {
-                  BoundingBoxUtility(mEnlargementFactor);
-              }
-    
-              SearchNeighbours(r_model_part,extension_option); //extension option false;
-          }
+          //3. Neighbouring search. Every N times. +bounding box destruction
+          
+          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
+		  {
+
+			  if ( (time_step + 1)%mnstepsearch == 0 && time_step >0 )
+			  {
+
+				  if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
+				  {
+					  BoundingBoxUtility(mEnlargementFactor);
+				  }
+		
+				  SearchNeighbours(r_model_part,extension_option); //extension option false;
+			  }
+		  }
           
           //4.Final operations
           FinalizeSolutionStep();
@@ -621,7 +630,7 @@ namespace Kratos
                 if (!( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || (*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX))        )                   //to avoid repetition
                 {   
                     int index = -1;
-                   // bool found = false; //just to check                
+       
                     
                     for (int iii=0; iii< neigh_size_ini_cont_neigh; iii++)
                     {
@@ -631,7 +640,7 @@ namespace Kratos
                         { 
                             index = iii; //we keep the last iii of the iteration and this is the one to do pushback     
 
-                            //found = true; //just to check        
+
                                  
                             break; 
                         }
