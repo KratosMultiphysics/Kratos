@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.MetisApplication import *
-from KratosMultiphysics.mpi import *
+#from KratosMultiphysics.MetisApplication import *
+#from KratosMultiphysics.mpi import *
 
 from DEM_explicit_solver_var import *
 
@@ -37,12 +37,12 @@ def PerformInitialPartition(model_part,model_part_io_solid,input_file_name):
     
     return model_part_io_solid
     
-def InitiaizeContactModelPart(solver):
+def InitializeContactModelPart(solver):
         
     contact_model_part = solver.contact_model_part
     
-    MPICommSetup = SetMPICommunicatorProcess(contact_model_part)
-    MPICommSetup.Execute()
+    #MPICommSetup = SetMPICommunicatorProcess(contact_model_part)
+    #MPICommSetup.Execute()
     
 def InitializeSolver(model_part,solver):
     
@@ -201,7 +201,7 @@ def InitializeSolver(model_part,solver):
           
     #Initialize ContactModelPart
     
-    InitiaizeContactModelPart(solver)   
+    InitializeContactModelPart(solver)   
           
     #Initialize the problem.
 
