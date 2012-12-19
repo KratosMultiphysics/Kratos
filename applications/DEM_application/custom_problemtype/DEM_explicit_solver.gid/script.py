@@ -10,7 +10,7 @@ from pylab import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.MetisApplication import *
+#from KratosMultiphysics.MetisApplication import *
 
 from DEM_explicit_solver_var import *
 from DEM_procedures import *
