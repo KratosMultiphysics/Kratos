@@ -17,6 +17,8 @@ then
  cp $file_location $2/script.py
 fi
 
+cp $3/DEM_procedures.py $2/
+
 echo "Running on: " >& $2/$1.info
 echo $OMP_NUM_THREADS >& $2/$1.info
 echo "processors" >& $2/$1.info
