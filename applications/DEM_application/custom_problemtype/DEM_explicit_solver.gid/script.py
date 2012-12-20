@@ -55,6 +55,7 @@ SolverStrategy.AddDofs(solid_model_part)
 solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, solver variables initialize as default
 
 ##Obtaning options and values
+
 InitializeSolver(solid_model_part,solver)
 
 if(1<2):
@@ -231,7 +232,7 @@ for node in force_measurement:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
 done=False  #flag for the end of the confinement  
-    
+ 
     
 while(time < max_time):
   
@@ -298,12 +299,14 @@ while(time < max_time):
     
     #Dissable the confinement
     
-    if( (time > max_time*0.1) and (done==False)):
-	  done=True;
-	  for element in skin_list:
-		element.SetValue(APPLIED_FORCE,(0,0,0))
-	  
-	  print("Confinement finished at time "+str(time))
+    #if(ConcreteTestOption==True):
+    
+	  #if( (time > max_time*0.1) and (done==False)):
+		#done=True;
+		#for element in skin_list:
+		  #element.SetValue(APPLIED_FORCE,(0,0,0))
+		
+		#print("Confinement finished at time "+str(time))
     
  
     
