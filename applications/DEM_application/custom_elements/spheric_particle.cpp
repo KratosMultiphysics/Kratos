@@ -289,9 +289,7 @@ namespace Kratos
               mtotal_equiv_area   += equiv_area;
           
           } //for every neighbour
-        
-          if(cont_ini_neighbours_size<4 && skin_sphere==0){KRATOS_WATCH(this->Id()) KRATOS_WATCH("SS")}
-        
+       
           if(skin_sphere != 1)
           {
           
