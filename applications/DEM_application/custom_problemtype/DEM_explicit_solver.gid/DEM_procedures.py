@@ -3,6 +3,8 @@ from KratosMultiphysics.DEMApplication import *
 #from KratosMultiphysics.MetisApplication import *
 #from KratosMultiphysics.mpi import *
 
+from numpy import *
+
 from DEM_explicit_solver_var import *
 
 def AddMpiVariables(model_part):
@@ -183,22 +185,88 @@ def InitializeSolver(model_part,solver):
     solver.enlargement_factor = m_bounding_box_enlargement_factor
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
-    for element in model_part.Elements:
+
+    #Pressure = 28*1e6; #28 MPa son uns 4000 Psi
+    Pressure = 0.0
+    skin_list = list()
+
+    if(ConcreteTestOption =="ON"): 
+      
+      for element in model_part.Elements:
         
         element.SetValue(SKIN_SPHERE,0)
+        
         node = element.GetNode(0)
+        r = node.GetSolutionStepValue(RADIUS,0)
         x = node.X
         y = node.Y
         z = node.Z
-        r = node.GetSolutionStepValue(RADIUS,0)
+        
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
+          
+        Cross_section = 3.141592*r*r
         h=0.3
         d=0.15
         eps=2
-        
-        if ( (((d/2-eps*r)*(d/2-eps*r))<=(x*x+z*z)<=(eps*d/2*eps*d/2)) or (-0.1<=y<=eps*r) or (h-eps*r<=y<=h*eps) ): #For a tube test with the center of the base at (0,0,0)
-          element.SetValue(SKIN_SPHERE,1)
+        vect = zeros(3, double) 
+
+        if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
           
+          element.SetValue(SKIN_SPHERE,1)
+          skin_list.append(element)
+          
+          #vector normal al centre:
+          vect_moduli = sqrt(x*x+z*z)
+          #print(vect_moduli)
+          if(vect_moduli>0.0):
+            vect[0]=-x/vect_moduli
+            vect[1]=0
+            vect[2]=-z/vect_moduli
+            
+          #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
+          
+          values[0]=-Cross_section*Pressure*vect[0]
+          values[1]= 0.0
+          values[2]=-Cross_section*Pressure*vect[2]
+          
+          
+        if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
+
+            element.SetValue(SKIN_SPHERE,1)
+            #vector normal al centre:      
+            values[0]=0.0
+            values[2]=0.0
+            if ( y>h/2 ):
+                values[1]=-Cross_section*Pressure
+            else:
+                values[1]= Cross_section*Pressure
+
+            if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+                #vector normal al centre:
+                vect_moduli = sqrt(x*x+z*z)
+                
+                if ( vect_moduli>0.0 ) :
+                    vect[0]=-x/vect_moduli
+                    vect[1]=0.0
+                    vect[2]=-z/vect_moduli
+
+                values[0]=-Cross_section*Pressure*vect[0]*0.70710678
+                values[2]=-Cross_section*Pressure*vect[2]*0.70710678
+                if ( y>h/2 ):
+                    values[1]=-Cross_section*Pressure*0.70710678
+                else:
+                    values[1]=Cross_section*Pressure*0.70710678 
+            else:
+                skin_list.append(element)  
+
+        node.SetSolutionStepValue(APPLIED_FORCE,values)
+        
+    print("End Applying Imposed Forces")
+      
+         
     #Initialize ContactModelPart
     
     InitializeContactModelPart(solver)   
