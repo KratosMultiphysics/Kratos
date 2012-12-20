@@ -49,7 +49,7 @@
 #include "custom_strategies/schemes/integration_scheme.h"
 
 /* REMOVE THIS */
-#include "custom_utilities/mpi_discrete_particle_configure.h"
+//#include "custom_utilities/mpi_discrete_particle_configure.h" //CARLOS REVISA-HO
 
 namespace Kratos
 {
@@ -675,7 +675,7 @@ namespace Kratos
         } //loop over particles
         
         Sort_Contact_Modelpart(mcontacts_model_part);
-        Reassign_Ids(mcontacts_model_part);
+        //Reassign_Ids(mcontacts_model_part); //CARLOS REVISA-HO
         
         KRATOS_CATCH("")
                
