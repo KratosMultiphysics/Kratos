@@ -189,7 +189,27 @@ public:
 						(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
 						(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
 	}
-	 
+
+
+    static inline void ReduceIds(int& total_elements, int& first_element)
+    {
+        int mpi_rank;
+        int mpi_size;
+        
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        std::vector<int> reduceArray(mpi_size+1);
+        
+        MPI_Allgather(&total_elements,1,MPI_INT,&reduceArray[1],1,MPI_INT,MPI_COMM_WORLD);
+        
+        reduceArray[0] = 1;
+        for(int i = 1; i <= mpi_size; i++)
+            reduceArray[i] += reduceArray[i-1];
+        
+        first_element = reduceArray[mpi_rank];
+    }
+
     template<class TObjectType>                            
     static inline void AsyncSendAndReceive(Communicator::Pointer Communicator,
                                            std::vector<TObjectType>& SendObjects,

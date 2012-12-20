@@ -71,6 +71,25 @@ namespace Kratos
   ///@}
   ///@name Kratos Classes
   ///@{
+    
+  bool gcontanct(boost::shared_ptr<Element> it1, boost::shared_ptr<Element> it2) 
+  { 
+      int idp11 = it1->GetGeometry()(0)->Id();
+      int idp12 = it1->GetGeometry()(1)->Id();
+      int idp21 = it2->GetGeometry()(0)->Id();
+      int idp22 = it2->GetGeometry()(1)->Id();
+      
+      int it1min = idp11 < idp12 ? idp11 : idp12;
+      int it2min = idp21 < idp22 ? idp21 : idp22;
+      
+      if      ( idp11 <  idp21 ) return true;
+      else if ( idp11 == idp21 )
+      {
+          if(idp12 <  idp22 ) return true;
+          else return false;
+      }
+      else return false;
+  }
   
   /// Short class definition.
   /** Detail class definition.
@@ -101,6 +120,10 @@ namespace Kratos
       typedef ModelPart::ConditionsContainerType::ContainerType         ConditionsContainerType;
       
       typedef DiscreteElement                                           ParticleType;
+      
+      typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(MpiExplicitSolverStrategy);
@@ -152,10 +175,25 @@ namespace Kratos
  
     typename IntegrationScheme::Pointer mpScheme;
     
-    virtual void Synchronize(ModelPart& r_model_part)
-    {
+    virtual void Synchronize(ModelPart& r_model_part, ModelPart& r_contact_model_part)
+    {   
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
         r_model_part.GetCommunicator().SynchronizeDofs();
+        
+        //ContactModelpart Element Synchronize       
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_FAILURE);    
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_SIGMA);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_TAU);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(FAILURE_CRITERION_STATE);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(FAILURE_CRITERION_OPTION);
+ 
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_SIGMA_MAX);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_SIGMA_MIN);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_TAU_ZERO);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_INTERNAL_FRICC);
+
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_FORCE_LOW);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_FORCE_HIGH);
     }
     
     virtual void Repart(ModelPart& r_model_part)
@@ -186,6 +224,111 @@ namespace Kratos
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Neighbours(r_model_part, extension_option);
     }//SearchNeighbours
+    
+    virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
+    {  
+        mcontacts_model_part.GetCommunicator().SetNumberOfColors(r_model_part.GetCommunicator().GetNumberOfColors());
+        mcontacts_model_part.GetCommunicator().NeighbourIndices() = r_model_part.GetCommunicator().NeighbourIndices();
+    }
+    
+    virtual bool ContactElementsParallelCondition(ElementsArrayType::ptr_iterator it, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator)
+    {
+        return ((*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX));
+    }
+        
+    //En aquest cas m'afegeixo jo a mi mateix
+    virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        KRATOS_TRY
+        
+        mcontacts_model_part.Elements().push_back(p_contact_element);
+        mcontacts_model_part.GetCommunicator().LocalMesh().Elements().push_back(p_contact_element);
+        
+        KRATOS_CATCH("")
+    }
+    
+    //En aquest cas m'afegeixo jo al local i a la interface local corresponent amb la particio del vei ghost
+    virtual void Add_As_Local(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        KRATOS_TRY
+        
+        mcontacts_model_part.Elements().push_back(p_contact_element);
+        
+        Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
+        
+        int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
+        int destination = -1;
+      
+        for(int i = 0; i < NumberOfRanks; i++)
+            if((*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
+                destination = i;
+            
+        mcontacts_model_part.GetCommunicator().LocalMesh().Elements().push_back(p_contact_element);
+                        
+        if(destination > -1)
+        {   
+            mcontacts_model_part.GetCommunicator().LocalMesh(destination).Elements().push_back(p_contact_element);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    //I aqui m'afegeixio yo com a ghost de la particio del vei local
+    virtual void Add_As_Ghost(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        KRATOS_TRY
+        
+//         mcontacts_model_part.Elements().push_back(p_contact_element);
+        
+        Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
+        
+        int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
+        int destination = -1;
+      
+        for(int i = 0; i < NumberOfRanks; i++)
+            if((*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
+                destination = i;
+                        
+        if(destination > -1)
+        {   
+            mcontacts_model_part.GetCommunicator().GhostMesh().Elements().push_back(p_contact_element);
+            mcontacts_model_part.GetCommunicator().GhostMesh(destination).Elements().push_back(p_contact_element);
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    virtual void Sort_Contact_Modelpart(ModelPart& mcontacts_model_part)
+    {   
+//         std::sort(mcontacts_model_part.Elements().begin(),mcontacts_model_part.Elements().end(),gcontanct);
+//         
+//         std::sort(mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_begin(),mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_end(),gcontanct);
+//         std::sort(mcontacts_model_part.GetCommunicator().GhostMesh().Elements().ptr_begin(),mcontacts_model_part.GetCommunicator().GhostMesh().Elements().ptr_end(),gcontanct);
+      
+        for(int i = 0; i < mcontacts_model_part.GetCommunicator().GetNumberOfColors(); i++)
+        {
+            std::sort(mcontacts_model_part.GetCommunicator().LocalMesh(i).Elements().ptr_begin(),mcontacts_model_part.GetCommunicator().LocalMesh(i).Elements().ptr_end(),gcontanct);
+            std::sort(mcontacts_model_part.GetCommunicator().GhostMesh(i).Elements().ptr_begin(),mcontacts_model_part.GetCommunicator().GhostMesh(i).Elements().ptr_end(),gcontanct);
+        }
+    }
+    
+    virtual void Reassign_Ids(ModelPart& mcontacts_model_part)
+    {
+        int contacts_model_part_size = mcontacts_model_part.GetCommunicator().LocalMesh().Elements().size();
+        int iteratorId = -1;
+       
+        MpiDiscreteParticleConfigure<3>::ReduceIds(contacts_model_part_size,iteratorId);
+        
+        if(iteratorId == -1)
+            std::cout << "Something went wrong :(" << std::endl;
+        
+        for (ElementsArrayType::ptr_iterator it = mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
+        {
+            (*it)->SetId(iteratorId++);
+        }
+        
+        mcontacts_model_part.GetCommunicator().SynchronizeElementalIds();
+    }
 
   
   }; // Class MpiExplicitSolverStrategy  
