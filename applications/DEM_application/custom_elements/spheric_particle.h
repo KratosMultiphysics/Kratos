@@ -157,7 +157,7 @@ namespace Kratos
       /// Turn back information as a string.
       virtual std::string Info() const
       {
-	std::stringstream buffer;
+    std::stringstream buffer;
         buffer << "SphericParticle" ;
         return buffer.str();
       }
@@ -182,8 +182,8 @@ namespace Kratos
        SphericParticle();
 
         void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo );
-		void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
-	
+        void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
+    
         void ComputeParticleContactForce(ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -206,9 +206,9 @@ namespace Kratos
         //double mTimeStep;
       
         double mRealMass;
-	
-	double mtotal_equiv_area;
-	vector<double> mcont_ini_neigh_area;
+    
+    double mtotal_equiv_area;
+    vector<double> mcont_ini_neigh_area;
 
         //std::vector<double> mForce;
 
@@ -310,13 +310,13 @@ namespace Kratos
       /// Assignment operator.
       SphericParticle& operator=(SphericParticle const& rOther)
       {
-	return *this;
+    return *this;
       }
 
       /// Copy constructor.
       SphericParticle(SphericParticle const& rOther)
       {
-	*this = rOther;
+    *this = rOther;
       }
       */
         
@@ -337,11 +337,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    SphericParticle& rThis){ return rIStream;}
+                    SphericParticle& rThis){ return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const SphericParticle& rThis)
+                    const SphericParticle& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

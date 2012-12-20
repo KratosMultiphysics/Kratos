@@ -48,6 +48,9 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
 
+/* REMOVE THIS */
+#include "custom_utilities/mpi_discrete_particle_configure.h"
+
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication
@@ -85,23 +88,27 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
  
-	  typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-	  typedef typename BaseType::TDataType TDataType;
-	  typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
-	  typedef typename BaseType::TSchemeType TSchemeType;
-	  typedef typename BaseType::DofsArrayType DofsArrayType;
-	  typedef typename Element::DofsVectorType DofsVectorType;
-	  
-	  typedef ModelPart::NodesContainerType NodesArrayType;
-	  typedef ModelPart::ElementsContainerType ElementsArrayType;
-	  typedef ModelPart::ConditionsContainerType ConditionsArrayType;	  
-	  
-	  typedef ModelPart::NodesContainerType::ContainerType      NodesContainerType;
-	  typedef ModelPart::ElementsContainerType::ContainerType   ElementsContainerType;
-	  typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
+      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
+      typedef typename BaseType::TDataType TDataType;
+      typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
+      typedef typename BaseType::TSchemeType TSchemeType;
+      typedef typename BaseType::DofsArrayType DofsArrayType;
+      typedef typename Element::DofsVectorType DofsVectorType;
+
+      typedef ModelPart::NodesContainerType NodesArrayType;
+      typedef ModelPart::ElementsContainerType ElementsArrayType;
+      typedef ModelPart::ConditionsContainerType ConditionsArrayType;     
+
+      typedef ModelPart::NodesContainerType::ContainerType      NodesContainerType;
+      typedef ModelPart::ElementsContainerType::ContainerType   ElementsContainerType;
+      typedef ModelPart::ConditionsContainerType::ContainerType ConditionsContainerType;
       
       typedef DiscreteElement                     ParticleType;
-	  
+      
+      typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+      typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+      typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
  
@@ -157,7 +164,7 @@ namespace Kratos
       void Initialized()
       {
           KRATOS_TRY
-
+          
           //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -169,12 +176,11 @@ namespace Kratos
           {
               extension_option = true;
           }
-                  
 
           //2. Initializing elements and perform the 1st repartition
           if(mElementsAreInitialized == false)
           {
-              for(int i = 0; i < 25; i++)
+              for(int i = 0; i < 50; i++)
                   Repart(r_model_part);
 
               InitializeElements();
@@ -193,12 +199,9 @@ namespace Kratos
           // 5. Create the contact elements.
           //KRATOS_WATCH(rCurrentProcessInfo[CONTACT_MESH_OPTION])
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
-          {
-             
+          {   
               CreateContactElements();
-	     
           }
-          
           
           if(rCurrentProcessInfo[CONCRETE_TEST_OPTION] == 1)
           {
@@ -231,15 +234,13 @@ namespace Kratos
           int time_step = rCurrentProcessInfo[TIME_STEPS];
          
           //STRATEGY:
-          //0.0
-	  	  
-          Synchronize(r_model_part);
           
           //1.0
-	  
           InitializeSolutionStep();
-	  
-	  
+          
+          //1.1
+          Synchronize(r_model_part,mcontacts_model_part);
+          
           //1. Get and Calculate the forces
           GetForce();
          
@@ -492,38 +493,39 @@ namespace Kratos
           }// loop threads OpenMP
 
        
-	if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
-	{
-	    //CONTACT MODEL PART
-			    
-	    //ProcessInfo& rCurrentProcessInfo  = contacts_model_part.GetProcessInfo();
-	    ElementsArrayType& pContactElements      = GetElements(mcontacts_model_part);
+    if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+    {
+        //CONTACT MODEL PART
+                
+        //ProcessInfo& rCurrentProcessInfo  = contacts_model_part.GetProcessInfo();
+//      ElementsArrayType& pContactElements = GetElements(mcontacts_model_part);
+        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
 
-	
-	    vector<unsigned int> contact_element_partition;
-	    //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
-	    OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+    
+        vector<unsigned int> contact_element_partition;
+        //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
 
-	    #pragma omp parallel for //private(index)
-	    for(int k=0; k<number_of_threads; k++)
+        #pragma omp parallel for //private(index)
+        for(int k=0; k<number_of_threads; k++)
 
-	    {
+        {
 
-	      typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
-	      typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
-	      
-	      for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
-	      
-		{
-		
-		  (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
+          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+          
+          for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+          
+        {
+        
+          (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
 
-		} //loop over CONTACT ELEMENTS
+        } //loop over CONTACT ELEMENTS
 
-	    }// loop threads OpenMP
+        }// loop threads OpenMP
 
-	}
-	
+    }
+    
 
         KRATOS_CATCH("")
       }
@@ -538,15 +540,9 @@ namespace Kratos
           KRATOS_CATCH("")
       }
       
-      
     void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
     {                
-
         KRATOS_TRY
-        typedef WeakPointerVector<Element> ParticleWeakVectorType; 
-        typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
-        typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
-        
         
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -554,17 +550,19 @@ namespace Kratos
         
         ModelPart& r_sphere_model_part          = BaseType::GetModelPart();
         //ProcessInfo& rCurrentProcessInfo        = r_sphere_model_part.GetProcessInfo();
-        ElementsArrayType& pSphereElements      = GetElements(r_sphere_model_part);
+        ElementsArrayType& pSphereElements      = GetAllElements(r_sphere_model_part);
         
         //ModelPart& r_contacts_model_part        = BaseType::GetModelPart(); //NOOOOOOOOOOOOOOOO
         //ElementsArrayType& pContactElements     = GetElements(r_contacts_model_part);
 
-        int index_new_ids = 1; //J.Cotela says it starts on 1. Is it 0?
+        //int index_new_ids = 1; //J.Cotela says it starts on 1. Is it 0?
+        int index_new_ids = 1; //Using mpi we can't simply set this to 1
                     
         std::string ElementName;
         ElementName = std::string("ParticleContactElement");
         const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
-	
+        
+        PrepareContactModelPart(r_sphere_model_part,mcontacts_model_part);
         
          /*
          * 
@@ -583,30 +581,45 @@ namespace Kratos
             for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
                    continuum_ini_neighbour_iterator != r_continuum_ini_neighbours.ptr_end(); continuum_ini_neighbour_iterator++)
             {
-                if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || (*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX))                           //to avoid repetition
+                if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))                           //to avoid repetition
                 {
                     Properties::Pointer properties =  mcontacts_model_part.pGetProperties(0);                   // It is arbitrary since there are non meaningful properties in this application.
                     Geometry<Node<3> >::PointsArrayType  NodeArray(2);
                     
-                    NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
-                    NodeArray.GetContainer()[1] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);
+                    if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
+                    {
+                        NodeArray.GetContainer()[0] = (*it)->GetGeometry()(0);
+                        NodeArray.GetContainer()[1] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);
+                    }    
+                    else
+                    {
+                        NodeArray.GetContainer()[1] = (*it)->GetGeometry()(0);
+                        NodeArray.GetContainer()[0] = (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0);          
+                    }
                     
                     Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
-                     
-                    //TODO: mirar aixo
-                    mcontacts_model_part.Elements().push_back(p_contact_element); //Abaix
-//                     KeepContactMeshCoherence(p_contact_element);
-                    
                     Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element); 
                     //generating the elements
 
-                    if((*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX))
+                    //Notice that "(*it)->GetValue(PARTITION_INDEX) != currentPartition" it's an impossible situation
+                    if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))
                     {
                         ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(p_weak);
                         (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
+                        
+                        //If ghost element is in a different partition and out local element has lower id add it as local, otherwise as ghost.
+                        if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
+                        {
+                            Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                        }
+                        else
+                        {
+                            Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                        }
                     }
                     else 
                     {
+                        Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
                     }
                     //copiar el weak a la variable nodal punters a barres
@@ -627,7 +640,7 @@ namespace Kratos
             {
                 int neigh_size_ini_cont_neigh = (*continuum_ini_neighbour_iterator).lock()->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size(); //this is the size of the initial continuum neighbours of the neighbour of the particle where we are focused on.
 
-                if (!( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || (*it)->GetValue(PARTITION_INDEX) != (*continuum_ini_neighbour_iterator).lock()->GetValue(PARTITION_INDEX))        )                   //to avoid repetition
+                if (!((*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator)))                   //to avoid repetition
                 {   
                     int index = -1;
        
@@ -638,10 +651,7 @@ namespace Kratos
                                                
                         if( neigh_neigh_ID == int((*it)->Id()))
                         { 
-                            index = iii; //we keep the last iii of the iteration and this is the one to do pushback     
-
-
-                                 
+                            index = iii; //we keep the last iii of the iteration and this is the one to do pushback         
                             break; 
                         }
                     } // for each ini continuum neighbour's ini continuum neigbour.
@@ -663,12 +673,13 @@ namespace Kratos
                 neighbour_index++;
             } // for every ini continuum neighbour         
         } //loop over particles
-       
+        
+        Sort_Contact_Modelpart(mcontacts_model_part);
+        Reassign_Ids(mcontacts_model_part);
+        
         KRATOS_CATCH("")
                
     } //CreateContactElements
-
-      
 
       void ApplyRotationalDampings()
       {
@@ -893,7 +904,7 @@ namespace Kratos
     }  //Set_Initial_Contacts
     
     /* All functions below need to be redefined in the mpi specialization */
-    virtual void Synchronize(ModelPart& r_model_part)
+    virtual void Synchronize(ModelPart& r_model_part,ModelPart& r_contact_model_part)
     {
         /* */
     }
@@ -901,6 +912,11 @@ namespace Kratos
     virtual void Repart(ModelPart& r_model_part)
     {
         /* */
+    }
+    
+    virtual ElementsArrayType& GetAllElements(ModelPart& r_model_part)
+    {
+        return r_model_part.Elements();
     }
     
     virtual ElementsArrayType& GetElements(ModelPart& r_model_part)
@@ -925,6 +941,47 @@ namespace Kratos
         NeighboursCalculatorType neighbourCalc;
         neighbourCalc.Search_Neighbours(r_model_part, extension_option);
     }//SearchNeighbours
+    
+    virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
+    {  
+        /* */
+    }
+    
+    virtual bool ContactElementsParallelCondition(ElementsArrayType::ptr_iterator it, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator)
+    {
+        return false;
+    }
+        
+    virtual void Add_As_Own(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        KRATOS_TRY
+        
+        mcontacts_model_part.Elements().push_back(p_contact_element);
+        
+        KRATOS_CATCH("")
+    }
+    
+    //En aquest cas m'afegeixo jo al local i a la interface local corresponent amb la particio del vei ghost
+    virtual void Add_As_Local(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        /* */
+    }
+    
+    //I aqui m'afegeixio yo com a ghost de la particio del vei local
+    virtual void Add_As_Ghost(ModelPart& r_model_part, ModelPart& mcontacts_model_part, ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator, Element::Pointer p_contact_element)
+    {
+        /* */
+    }
+    
+    virtual void Sort_Contact_Modelpart(ModelPart& mcontacts_model_part)
+    {
+        /* */
+    }
+    
+    virtual void Reassign_Ids(ModelPart& mcontacts_model_part)
+    {
+        /* */
+    }
 
   
   }; // Class ExplicitSolverStrategy  
@@ -934,11 +991,11 @@ namespace Kratos
  /*
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    ExplicitSolverStrategy& rThis){return rIStream;}
+                    ExplicitSolverStrategy& rThis){return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const ExplicitSolverStrategy& rThis)
+                    const ExplicitSolverStrategy& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

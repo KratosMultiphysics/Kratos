@@ -123,7 +123,7 @@ namespace Kratos {
                                       std::vector<std::vector<double> > &ResultsDistances,
                                       std::vector<double> &Radius
         )
-        {
+        {     
             Bins particle_bin(pIteratorElements.begin(), pIteratorElements.end());
 
             particle_bin.SearchObjectsInRadiusInner(pIteratorElements.begin(),NumberOfElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults);
@@ -162,8 +162,9 @@ namespace Kratos {
             {    
                 Radius[particle_pointer_it - pIteratorElements.begin()] = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
             }
+            
             SearchNeighbours(r_model_part,pIteratorElements,NumberOfElements,MaximumNumberOfResults,NumberOfResults,Results,ResultsDistances,Radius);
-                         
+            
             //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
             #ifdef _OPENMP
             int number_of_threads = omp_get_max_threads();
@@ -177,7 +178,6 @@ namespace Kratos {
             #pragma omp parallel for private(ResultIterator)
             for(int k=0; k<number_of_threads; k++)
             {
-
                 IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
                 IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
                 
@@ -246,7 +246,6 @@ namespace Kratos {
                              (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA)[size-1] = 0.0;
 
                         }
-                          
                         ++neighbour_counter;
 
                     }// For each neighbour, neighbour_it.
@@ -375,7 +374,7 @@ namespace Kratos {
                     unsigned int neighbour_counter = 0;
 
                     for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
-                    {
+                    { 
                         double initial_delta = 0.0;
                         int failure_id       = 1;
                         //int ini_failure      = 0;
