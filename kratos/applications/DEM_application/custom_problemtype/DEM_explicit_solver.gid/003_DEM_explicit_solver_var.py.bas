@@ -18,6 +18,8 @@ GlobalVariablesOption= "*GenData(Global_Variables_Option)"
 VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
 FailureCriterionOption = "*GenData(Failure_Criterion_Option)"
 *format "%10.5e"
+ConfinementPressure = *GenData(Confinement_Pressure)
+*format "%10.5e"
 TauZero = *GenData(Tau_Zero)
 *format "%10.5e"
 SigmaMax = *GenData(Sigma_Max)
