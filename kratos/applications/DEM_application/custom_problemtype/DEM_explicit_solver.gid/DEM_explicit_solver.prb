@@ -52,11 +52,14 @@ TITLE: Special Features
 
 QUESTION: Continuum_Option#CB#(ON,OFF)
 VALUE: ON
-DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#,HIDE,Concrete_Test_Option,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#,RESTORE,Concrete_Test_Option,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#,HIDE,Concrete_Test_Option,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#,RESTORE,Concrete_Test_Option,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#)
 QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Concrete_Test_Option#CB#(ON,OFF)
 VALUE: OFF
+QUESTION: Confinement_Pressure
+HELP:MPa
+VALUE: 0.0
 QUESTION: Failure_Criterion_Option#CB#(Mohr-Coulomb,Uncoupled)
 VALUE: Uncoupled
 QUESTION: Tau_Zero
@@ -158,9 +161,9 @@ VALUE: 0
 QUESTION: EXPORT_SKIN_SPHERE#CB#(1,0)
 VALUE: 1
 QUESTION: LOCAL_CONTACT_FORCE_LOW#CB#(1,0)
-VALUE: 1
+VALUE: 0
 QUESTION: LOCAL_CONTACT_FORCE_HIGH#CB#(1,0)
-VALUE: 1
+VALUE: 0
 QUESTION: CONTACT_FAILURE#CB#(1,0)
 VALUE: 1
 QUESTION: FAILURE_CRITERION_STATE#CB#(1,0)
