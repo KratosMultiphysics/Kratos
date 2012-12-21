@@ -224,12 +224,10 @@ def InitializeSolver(model_part,solver):
             vect[0]=-x/vect_moduli
             vect[1]=0
             vect[2]=-z/vect_moduli
-            
-          #radius_elem = element.Node[0].GetSolutionStepValue(RADIUS)
           
-          values[0]=-Cross_section*Pressure*vect[0]
+          values[0]=Cross_section*Pressure*vect[0]
           values[1]= 0.0
-          values[2]=-Cross_section*Pressure*vect[2]
+          values[2]=Cross_section*Pressure*vect[2]
           
           
         if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
@@ -252,8 +250,8 @@ def InitializeSolver(model_part,solver):
                     vect[1]=0.0
                     vect[2]=-z/vect_moduli
 
-                values[0]=-Cross_section*Pressure*vect[0]*0.70710678
-                values[2]=-Cross_section*Pressure*vect[2]*0.70710678
+                values[0]= Cross_section*Pressure*vect[0]*0.70710678
+                values[2]= Cross_section*Pressure*vect[2]*0.70710678
                 if ( y>h/2 ):
                     values[1]=-Cross_section*Pressure*0.70710678
                 else:
