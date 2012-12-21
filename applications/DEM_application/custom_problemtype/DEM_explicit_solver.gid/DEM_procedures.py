@@ -186,8 +186,7 @@ def InitializeSolver(model_part,solver):
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
-    #Pressure = 28*1e6; #28 MPa son uns 4000 Psi
-    Pressure = 0.0
+    Pressure = ConfinementPressure*1e6 #Mpa
     skin_list = list()
 
     if(ConcreteTestOption =="ON"): 
