@@ -892,6 +892,27 @@ public:
 		  //	KRATOS_WATCH(this->Info());
 		  rValues[PointNumber] = this->GetValue(PRESSUREAUX);;
 	      }
+	  }	  
+	  else if(rVariable == AUX_INDEX)
+	  {
+            double Area;
+            array_1d<double, TNumNodes> N;
+            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+
+            array_1d<double, 3 > AdvVel;
+            this->GetAdvectiveVel(AdvVel, N);
+
+            double Density,KinViscosity;
+            this->EvaluateInPoint(Density, DENSITY, N);
+            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+
+            double Viscosity;
+            this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+
+            rValues.resize(1, false);
+
+            rValues[0] = Viscosity;	    
 	  }
 
       }    
