@@ -153,6 +153,11 @@ public:
         KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
     }
 
+    virtual std::size_t ReadNodesNumber()
+    {
+        KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class.", "");
+    }
+
     virtual void WriteNodes(NodesContainerType const& rThisNodes)
     {
         KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
@@ -213,6 +218,11 @@ public:
     virtual void ReadModelPart(ModelPart & rThisModelPart)
     {
         KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "")
+    }
+
+    virtual std::size_t ReadNodalGraph(int** NodeIndices,int** NodeConnectivities)
+    {
+        KRATOS_ERROR(std::logic_error, "Calling base class member. Please check the definition of derived class", "");
     }
 
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,

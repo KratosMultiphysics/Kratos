@@ -165,13 +165,15 @@ public:
         IO::ConnectivitiesContainerType conditions_connectivities;
         int number_of_elements =  mrIO.ReadElementsConnectivities(elements_connectivities);
 
-        mrIO.ReadConditionsConnectivities(conditions_connectivities);
-
         MetisGraphPartitioningProcess::PartitionIndicesType nodes_partitions;
         MetisGraphPartitioningProcess::PartitionIndicesType elements_partitions;
         MetisGraphPartitioningProcess::PartitionIndicesType conditions_partitions;
         MetisGraphPartitioningProcess metis_graph_partitioning_process(elements_connectivities, nodes_partitions, elements_partitions, mNumberOfPartitions, mDimension);
         metis_graph_partitioning_process.Execute();
+
+        int number_of_conditions = mrIO.ReadConditionsConnectivities(conditions_connectivities);
+        ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
+        KRATOS_WATCH("ConditionsPartitioning finished")
 
         GraphType domains_graph = zero_matrix<int>(mNumberOfPartitions, mNumberOfPartitions);
         GraphType domains_colored_graph;
@@ -179,6 +181,7 @@ public:
         int colors_number;
 
         CalculateDomainsGraph(domains_graph, number_of_elements, elements_connectivities, nodes_partitions, elements_partitions);
+        CalculateDomainsGraph(domains_graph, number_of_conditions, conditions_connectivities, nodes_partitions, conditions_partitions);
         GraphColoringProcess(mNumberOfPartitions, domains_graph,domains_colored_graph, colors_number).Execute();
         // 		      colors_number = GraphColoring(domains_graph, domains_colored_graph);
         KRATOS_WATCH(colors_number);
@@ -189,8 +192,6 @@ public:
         IO::PartitionIndicesContainerType elements_all_partitions;
         IO::PartitionIndicesContainerType conditions_all_partitions;
 
-        ConditionsPartitioning(conditions_connectivities, nodes_partitions, conditions_partitions);
-        KRATOS_WATCH("ConditionsPartitioning finished")
         // Dividing nodes
         DividingNodes(nodes_all_partitions, elements_connectivities, conditions_connectivities, nodes_partitions, elements_partitions, conditions_partitions);
         KRATOS_WATCH("DividingNodes finished")

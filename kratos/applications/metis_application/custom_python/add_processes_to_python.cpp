@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_processes/metis_partitioning_process.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
+#include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
 #include "custom_processes/metis_contact_partitioning_process.h"
 #include "custom_processes/metis_partitioning_process_quadratic.h"
@@ -122,6 +123,12 @@ void AddProcessesToPython()
             init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
+
+    class_<MetisDivideHeterogeneousInputProcess, bases<Process> >("MetisDivideHeterogeneousInputProcess",
+                                                                   init<IO&, unsigned int>())
+            .def(init<IO&, unsigned int, int>())
+            .def(init<IO&, unsigned int, int, int>())
+            ;
 
     def("GetRank", GetRank);
 

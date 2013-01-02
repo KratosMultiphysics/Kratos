@@ -201,6 +201,28 @@ public:
         KRATOS_CATCH("")
     }
 
+    virtual std::size_t ReadNodesNumber()
+    {
+        KRATOS_TRY;
+        ResetInput();
+        std::string word;
+        std::size_t num_nodes = 0;
+        while(true)
+        {
+            ReadWord(word);
+            if (mInput.eof())
+                break;
+            ReadBlockName(word);
+            if(word == "Nodes")
+                num_nodes += CountNodesInBlock();
+            else
+                SkipBlock(word);
+        }
+
+        return num_nodes;
+        KRATOS_CATCH("");
+    }
+
     virtual void WriteNodes(NodesContainerType const& rThisNodes)
     {
         mOutput << "Begin Nodes" << std::endl;
@@ -431,12 +453,78 @@ public:
 
 
 
-
     virtual void WriteModelPart(ModelPart & rThisModelPart)
     {
         mOutput << "Begin ModelPartData" << std::endl;
         mOutput << "End ModelPartData" << std::endl;
         WriteMesh(rThisModelPart.GetMesh());
+    }
+
+
+    /// Read the input file and create the nodal connectivities graph, stored in CSR format.
+    /**
+     * This function produces input for Metis' nodal graph partitioning algorithms.
+     * The nodal graph is stored as a (compressed) matrix where index (i,j) is non-zero if
+     * there is an edge in the mesh joining nodes i and j (note that nodes are numbered from zero here,
+     * to make integration with Metis simpler).
+     * @param NodeIndices After call, will point to C array of size NumNodes+1 containing the
+     * first CSR array: entries related to node k are stored between positions (*NodeIndices)[k]
+     * and (*NodeIndices)[k+1] of *NodeConnectivities.
+     * @param NodeConnectivities After call, will point to a C array of size (*NodeIndices)[NumNodes].
+     * entries between (*NodeIndices)[k] and (*NodeIndices)[k+1] are a list of all nodes connected
+     * to node k (counting from 0).
+     * @return Number of nodes.
+     */
+    virtual std::size_t ReadNodalGraph(int **NodeIndices, int **NodeConnectivities)
+    {
+        SizeType num_nodes = ReadNodesNumber();
+
+        // 1. Allocate an auxiliary vector of vectors
+        ConnectivitiesContainerType aux_connectivities(num_nodes);
+
+        // 2. Fill the auxiliary vector by reading elemental and conditional connectivities
+        ResetInput();
+        std::string word;
+        while(true)
+        {
+            ReadWord(word);
+            if(mInput.eof())
+                break;
+            ReadBlockName(word);
+            if (word == "Elements")
+                FillNodalConnectivitiesFromElementBlock(aux_connectivities);
+            else if (word == "Conditions")
+                FillNodalConnectivitiesFromConditionBlock(aux_connectivities);
+            else
+                SkipBlock(word);
+        }
+
+        // 3. Sort each entry in the auxiliary connectivities vector, remove duplicates
+        SizeType num_entries = 0;
+        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); ++it)
+        {
+            std::sort(it->begin(),it->end());
+            std::vector<SizeType>::iterator unique_end = std::unique(it->begin(),it->end());
+            it->resize(unique_end - it->begin());
+            num_entries += it->size();
+        }
+
+        // 4. Write connectivity data in CSR format
+        *NodeIndices = new int[num_nodes+1];
+        (*NodeIndices)[0] = 0;
+        *NodeConnectivities = new int[num_entries];
+
+        SizeType i = 0;
+        SizeType aux_index = 0;
+
+        for (ConnectivitiesContainerType::iterator it = aux_connectivities.begin(); it != aux_connectivities.end(); ++it)
+        {
+            for (std::vector<SizeType>::iterator entry_it = it->begin(); entry_it != it->end(); entry_it++)
+                (*NodeConnectivities)[aux_index++] = (*entry_it - 1); // substract 1 to make Ids start from 0
+            (*NodeIndices)[++i] = aux_index;
+        }
+
+        return num_nodes;
     }
 
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
@@ -933,6 +1021,50 @@ private:
 //        std::cout << number_of_nodes_read << " nodes read" << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    std::size_t CountNodesInBlock()
+    {
+        KRATOS_TRY;
+
+        std::vector<SizeType> found_ids;
+
+        SizeType temp_id;
+
+        std::string word;
+
+        SizeType number_of_nodes_read = 0;
+
+        //std::cout << "Reading Nodes : ";
+
+        while(!mInput.eof())
+        {
+            ReadWord(word);
+            if(CheckEndBlock("Nodes", word))
+                break;
+
+            ExtractValue(word, temp_id);
+            found_ids.push_back(temp_id);
+
+            ReadWord(word); // skip X coordinate
+            ReadWord(word); // skip Y
+            ReadWord(word); // skip Z
+
+            number_of_nodes_read++;
+        }
+        //std::cout << number_of_nodes_read << " nodes read" << std::endl;
+
+        // Error check: look for duplicate nodes
+        std::sort(found_ids.begin(),found_ids.end());
+        std::vector<std::size_t>::iterator unique_end = std::unique(found_ids.begin(),found_ids.end());
+        std::size_t number_of_unique_nodes = std::distance(found_ids.begin(),unique_end);
+
+        if(number_of_unique_nodes != number_of_nodes_read)
+            std::cout << "attention! we read " << number_of_nodes_read << " but there are only " << number_of_unique_nodes << " non repeated nodes" << std::endl;
+
+        return number_of_nodes_read;
+
+        KRATOS_CATCH("");
     }
 
     void ReadPropertiesBlock(PropertiesContainerType& rThisProperties)
@@ -1646,6 +1778,118 @@ private:
         KRATOS_CATCH("")
     }
 
+    void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities)
+    {
+        KRATOS_TRY;
+
+        SizeType id;
+        SizeType node_id;
+        SizeType number_of_nodes = rNodalConnectivities.size();
+
+        std::string word;
+        std::string element_name;
+
+        ReadWord(element_name);
+        if(!KratosComponents<Element>::Has(element_name))
+        {
+            std::stringstream buffer;
+            buffer << "Element " << element_name << " is not registered in Kratos.";
+            buffer << " Please check the spelling of the element name and see if the application containing it is registered corectly.";
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        }
+
+        Element const& r_clone_element = KratosComponents<Element>::Get(element_name);
+        SizeType n_nodes_in_elem = r_clone_element.GetGeometry().size();
+        ConnectivitiesContainerType::value_type temp_element_nodes;
+
+        while(!mInput.eof())
+        {
+            ReadWord(word); // Reading the element id or End
+            if(CheckEndBlock("Elements", word))
+                break;
+
+            ExtractValue(word,id);
+            ReadWord(word); // Reading the properties id;
+            temp_element_nodes.clear();
+            for(SizeType i = 0 ; i < n_nodes_in_elem ; i++)
+            {
+                ReadWord(word); // Reading the node id;
+                ExtractValue(word, node_id);
+                temp_element_nodes.push_back(node_id);
+            }
+
+            for (SizeType i = 0; i < n_nodes_in_elem; i++)
+            {
+                node_id = temp_element_nodes[i];
+                if (node_id > number_of_nodes) // Ids begin on 1
+                    KRATOS_ERROR(std::runtime_error,"Element connectivities contain undefined node with id ",node_id);
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[node_id-1].push_back(temp_element_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_elem; j++)
+                    rNodalConnectivities[node_id-1].push_back(temp_element_nodes[j]);
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities)
+    {
+        KRATOS_TRY;
+
+        SizeType id;
+        SizeType node_id;
+        SizeType number_of_nodes = rNodalConnectivities.size();
+
+        std::string word;
+        std::string condition_name;
+
+        ReadWord(condition_name);
+        if(!KratosComponents<Condition>::Has(condition_name))
+        {
+            std::stringstream buffer;
+            buffer << "Condition " << condition_name << " is not registered in Kratos.";
+            buffer << " Please check the spelling of the condition name and see if the application containing it is registered corectly.";
+            buffer << " [Line " << mNumberOfLines << " ]";
+            KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+        }
+
+        Condition const& r_clone_condition = KratosComponents<Condition>::Get(condition_name);
+        SizeType n_nodes_in_cond = r_clone_condition.GetGeometry().size();
+        ConnectivitiesContainerType::value_type temp_condition_nodes;
+
+        while(!mInput.eof())
+        {
+            ReadWord(word); // Reading the condition id or End
+            if(CheckEndBlock("Conditions", word))
+                break;
+
+            ExtractValue(word,id);
+            ReadWord(word); // Reading the properties id;
+            temp_condition_nodes.clear();
+            for(SizeType i = 0 ; i < n_nodes_in_cond ; i++)
+            {
+                ReadWord(word); // Reading the node id;
+                ExtractValue(word, node_id);
+                temp_condition_nodes.push_back(node_id);
+            }
+
+            for (SizeType i = 0; i < n_nodes_in_cond; i++)
+            {
+                node_id = temp_condition_nodes[i];
+                if (node_id > number_of_nodes) // Ids begin on 1
+                    KRATOS_ERROR(std::runtime_error,"Condition connectivities contain undefined node with id ",node_id);
+                for (SizeType j = 0; j < i; j++)
+                    rNodalConnectivities[node_id-1].push_back(temp_condition_nodes[j]);
+                for (SizeType j = i+1; j < n_nodes_in_cond; j++)
+                    rNodalConnectivities[node_id-1].push_back(temp_condition_nodes[j]);
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes)
     {
@@ -2134,7 +2378,6 @@ private:
         WriteInAllFiles(OutputFiles, "Begin Conditions " +  condition_name);
 
         SizeType id;
-        SizeType index=0; // a consequtive index
 
         while(!mInput.eof())
         {
@@ -2142,10 +2385,7 @@ private:
             if(CheckEndBlock("Conditions", word))
                 break;
 
-            index++;
-
             ExtractValue(word,id);
-            id=index; // Here I'm ignoring the real condition id and assuming the ordered and no repetive conditions. Pooyan.
             if(id > ConditionsAllPartitions.size())
             {
                 std::stringstream buffer;
