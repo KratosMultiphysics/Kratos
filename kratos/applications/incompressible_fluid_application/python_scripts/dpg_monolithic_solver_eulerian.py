@@ -110,7 +110,8 @@ class MonolithicSolver:
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
         #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
-        self.dynamic_tau = 0.0
+        self.dynamic_tau_levelset = 0.01
+        self.dynamic_tau_fluid = 1.0        
         self.oss_switch  = 0
 
         #non newtonian setting
@@ -150,10 +151,10 @@ class MonolithicSolver:
         self.rho1 = 2300.0 #applied on the negative part of the domain 1000.0
         self.conductivity1 = 1.0
         
-        self.rho2 = 10.0 #applied to the positive part of the domain#1.0
+        self.rho2 = 1.0 #applied to the positive part of the domain#1.0
         self.conductivity2 = 1.0 
         
-	self.mu   = 1.0e-5
+	self.mu   = 1.0e-3
 	self.divergence_clearance_performed = False
         ################################################ 
         
@@ -168,11 +169,10 @@ class MonolithicSolver:
         self.max_levels = 50
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 3.0;
+        self.max_distance = self.max_edge_size * 10.0;
 
 
         self.max_ns_iterations = 8
-        self.dynamic_tau = 1.00
 	self.internal_step_counter = 1  
 	
 	###Slip condition
@@ -180,10 +180,10 @@ class MonolithicSolver:
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
-##        mu1 = self.mu/self.rho1
-        mu1 = 0.0001
-##        mu2 = self.mu/self.rho2
-        mu2 = 0.0001
+        #mu1 = self.mu/self.rho1
+        mu1 = self.mu
+        #mu2 = self.mu/self.rho2
+        mu2 = self.mu
 
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
@@ -206,13 +206,13 @@ class MonolithicSolver:
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         print ">>>>>>>>>>>>>>>", self.oss_switch
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
+        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau_fluid);
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch );
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef );
 
 ##        print "Initialization monolithic solver finished"
         # LEvel_set solver initialization
-        self.level_set_solver.dynamic_tau = 0
+        self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.Initialize()
 
@@ -242,13 +242,13 @@ class MonolithicSolver:
 	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).ClearNeighbours()          
 	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()	  
             self.normal_util = NormalCalculationUtils()
-            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,55.0)#,0.0,35.0
             
-            for node in self.model_part.Nodes:
-		if (node.GetSolutionStepValue(IS_SLIP) == 1.0):
-		   node.SetValue(IS_STRUCTURE,1.0)
-		else:
-		   node.SetValue(IS_STRUCTURE,0.0)		  
+            #for node in self.model_part.Nodes:
+		#if (node.GetSolutionStepValue(IS_SLIP) > 0.0):
+		   #node.SetValue(IS_STRUCTURE,1.0)
+		#else:
+		   #node.SetValue(IS_STRUCTURE,0.0)		  
 		   #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
 		   #node.Fix(IS_STRUCTURE)
 
@@ -281,7 +281,7 @@ class MonolithicSolver:
         print "beginning convection step for the distance function"
         self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
-        (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,1.0)#self.dynamic_tau
+        (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau_levelset)#self.dynamic_tau
 	self.WettenNodes()
 	(self.level_set_solver).Solve()
         print "finished convection step for the distance function"     
@@ -305,7 +305,7 @@ class MonolithicSolver:
         #Recompute normals if necessary
 	if(self.ReformDofSetAtEachStep == True):
            if self.use_slip_conditions == True:
-	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,55.0)#,0.0,35.0
         
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
