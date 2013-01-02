@@ -111,6 +111,11 @@ void  AddPropertiesToPython()
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< Matrix > >)
     .def("GetValue", GetValueHelperFunction1< Properties, Variable< Matrix > >)
 
+    .def("__setitem__", SetValueHelperFunction1< Properties, Variable< std::string > >)
+    .def("__getitem__", GetValueHelperFunction1< Properties, Variable< std::string > >)
+    .def("SetValue", SetValueHelperFunction1< Properties, Variable< std::string > >)
+    .def("GetValue", GetValueHelperFunction1< Properties, Variable< std::string > >)
+
     .def("__setitem__", SetValueHelperFunction1< Properties, Variable< int > >)
     .def("__getitem__", GetValueHelperFunction1< Properties, Variable< int > >)
     .def("SetValue", SetValueHelperFunction1< Properties, Variable< int > >)
