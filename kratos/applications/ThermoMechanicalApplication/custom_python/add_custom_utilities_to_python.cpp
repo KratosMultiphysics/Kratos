@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/assign_environment_condition.h"
-
+#include "custom_utilities/estimate_time_step.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -85,6 +85,9 @@ void  AddCustomUtilitiesToPython()
     
     class_<AssignEnvironmentCondition > ("AssignEnvironmentCondition", init<>())
     .def("AssignCondition", &AssignEnvironmentCondition::AssignCondition)
+    ;    
+    class_<EstimateTimeStep > ("EstimateTimeStep", init<>())
+    .def("ComputeDt", &EstimateTimeStep::ComputeDt)
     ;    
 
 }
