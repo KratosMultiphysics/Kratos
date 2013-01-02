@@ -117,6 +117,10 @@ void  AddContainersToPython()
     .def( self_ns::str( self ) )
     ;
 
+    class_<Variable<std::string>, bases<VariableData>, boost::noncopyable >( "StringVariable", no_init )
+    .def( self_ns::str( self ) )
+    ;
+
     class_<Variable<bool>, bases<VariableData>, boost::noncopyable >( "BoolVariable", no_init )
     .def( self_ns::str( self ) )
     ;
@@ -171,6 +175,7 @@ void  AddContainersToPython()
 
     class_<DataValueContainer, DataValueContainer::Pointer>( "DataValueContainer" )
     .def( "__len__", &DataValueContainer::Size )
+    .def( VariableIndexingPython<DataValueContainer, Variable<std::string> >() )
     .def( VariableIndexingPython<DataValueContainer, Variable<int> >() )
     .def( VariableIndexingPython<DataValueContainer, Variable<double> >() )
     .def( VariableIndexingPython<DataValueContainer, Variable<array_1d<double, 3> > >() )
@@ -184,12 +189,13 @@ void  AddContainersToPython()
 
     class_<VariablesListDataValueContainer, VariablesListDataValueContainer::Pointer>( "VariablesListDataValueContainer" )
     .def( "__len__", &VariablesListDataValueContainer::Size )
+    .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<std::string> >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<int> >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<double> >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<array_1d<double, 3> > >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<vector<double> > >() )
     .def( VariableIndexingPython<VariablesListDataValueContainer, Variable<matrix<double> > >() )
-    .def( VariableIndexingPython<VariablesListDataValueContainer,    VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
+    .def( VariableIndexingPython<VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
     .def( self_ns::str( self ) )
     ;
 
