@@ -389,10 +389,15 @@ public:
 	  
 	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
 	  //assign IS_SLIP = 0 for vertices
-	  if(N_Mat.size() > 2){
-	    it->SetValue(IS_SLIP,0);	  
-	    it->FastGetSolutionStepValue(IS_SLIP)=25;	 
-	  }
+	  if(N_Mat.size() == 2){
+// 	    it->SetValue(IS_SLIP,0);	  
+	    it->FastGetSolutionStepValue(IS_SLIP)=20.0;}	
+	  else if(N_Mat.size() == 3)
+	    it->FastGetSolutionStepValue(IS_SLIP)=30.0;	
+	  else if(N_Mat.size() == 1)
+	    it->FastGetSolutionStepValue(IS_SLIP)=10.0;	
+	  
+	   
 	  
 	}
                
