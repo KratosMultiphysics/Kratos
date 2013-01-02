@@ -1088,7 +1088,16 @@ private:
             if(CheckEndBlock("Properties", variable_name))
                 break;
 
-            if(KratosComponents<Variable<double> >::Has(variable_name))
+	    if(KratosComponents<Variable<std::string> >::Has(variable_name))
+            {
+                std::string value;
+		        std::string  temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                temp_properties[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
+            }
+	    else if(KratosComponents<Variable<double> >::Has(variable_name))
             {
                 std::string value;
                 double temp;
