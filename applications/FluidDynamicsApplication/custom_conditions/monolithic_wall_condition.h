@@ -296,7 +296,7 @@ public:
         noalias(rDampMatrix) = ZeroMatrix(LocalSize,LocalSize);
         noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-        this->ApplyWallLaw(rDampMatrix,rRightHandSideVector);
+	this->ApplyWallLaw(rDampMatrix,rRightHandSideVector,rCurrentProcessInfo);
     }
 
 
@@ -489,7 +489,8 @@ protected:
       @param rLocalVector Local right hand side
       */
     virtual void ApplyWallLaw(MatrixType& rLocalMatrix,
-                      VectorType& rLocalVector)
+                      VectorType& rLocalVector,
+		      ProcessInfo& rCurrentProcessInfo)
     {
         GeometryType& rGeometry = this->GetGeometry();
         const size_t BlockSize = TDim + 1;
