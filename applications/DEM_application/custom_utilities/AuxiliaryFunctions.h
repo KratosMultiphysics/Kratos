@@ -116,6 +116,37 @@ namespace Kratos
 			  
 	  } //SwitchCase
 	  
+	  static inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, double current_time, double final_time)
+	  {
+		
+		array_1d<double,3> applied_force;
+		
+		if ( final_time <= 1e-10 )
+		
+		{
+		  KRATOS_WATCH("WARNING: SIMULATION TIME TO CLOSE TO ZERO")
+		}
+		
+		
+		if ( final_time > 1e-10 && current_time < final_time )
+		
+		{
+		  applied_force = external_total_applied_force*current_time/final_time - initial_time*external_total_applied_force/(final_time - initial_time);
+		}
+		
+		if ( current_time >= final_time )
+		
+		{
+		  applied_force = external_total_applied_force;
+		}
+		
+		
+		return applied_force;
+		
+	  }
+ 
+	  
+	  
     }
 }
 #endif	/* _KRATOSAUXILIARYFUNCTIONS_H */
