@@ -16,6 +16,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
@@ -142,11 +143,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
 
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-
-        #POOOYAAAAN NO EM VAN AKESTS NO ELS CONEIX PYTON DE BOOL A BOOL
-
-        ##################XAPUZA##XAPUZA##XAPUZA#############################
-
+        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
 
         #LA CONTINUUM OPTION SHA DE LLEGIR MIRANT SI TOTS ELS CONTINUUM GROUPS SON 0 LLAVORS LA OPTION ES FALSE
         #SI HI HA ALGUN KE ES DIFERENT DE 0 LLAVORS LA OPTION ES TRUE.
@@ -171,6 +168,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_OPTION)
         self.model_part.ProcessInfo.SetValue(CONCRETE_TEST_OPTION, self.concrete_test_OPTION)
+        
         
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_OPTION)
 	self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
