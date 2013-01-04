@@ -364,8 +364,18 @@ namespace Kratos
           array_1d<double,3>& total_forces    = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
           array_1d<double,3>& damp_forces     = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
 
-          array_1d<double,3> applied_force    = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
-            
+		  //Aplied Force for pressure:
+		  
+          array_1d<double,3> external_total_applied_force  = this->GetGeometry()[0].GetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+          array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
+			  
+          //temporaly modulation of the applied force:
+          double initial_time = 0.0;
+          double final_time = 0.15*rCurrentProcessInfo[FINAL_SIMULATION_TIME]; //15% final_time
+		  double current_time = rCurrentProcessInfo[TIME];
+		  
+		  applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(external_total_applied_force,initial_time,current_time,final_time);
+
           rhs  = mass*gravity + applied_force;
 
           total_forces = rhs;
