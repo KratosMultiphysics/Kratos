@@ -6,6 +6,7 @@ from KratosMultiphysics.DEMApplication import *
 from numpy import *
 
 from DEM_explicit_solver_var import *
+from pressure_script import *
 
 def AddMpiVariables(model_part):
     
@@ -93,6 +94,8 @@ def InitializeSolver(model_part,solver):
         
     solver.nodal_mass_coeff=VirtualMassCoefficient    
 
+    solver.final_time = final_time
+    
     if(DeltaOption=="OFF"):
         m_search_radius_extension = 0.0;
 
@@ -185,11 +188,44 @@ def InitializeSolver(model_part,solver):
     solver.enlargement_factor = m_bounding_box_enlargement_factor
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-
+    
+    print(ConfinementPressure)
     Pressure = ConfinementPressure*1e6 #Mpa
-    skin_list = list()
-
-    if(ConcreteTestOption =="ON"): 
+    
+    SKIN = list()
+    top_nodes_list = list()
+    bot_nodes_list = list()
+    
+        
+    LAT = list()
+    BOT = list()
+    TOP = list()
+    
+    XLAT = list()  #only lat, not the corner ones
+    XTOP = list()  #only top, not corner ones...
+    XBOT = list()
+    XTOPCORNER = list()
+    XBOTCORNER = list()
+    
+    
+    
+    total_cross_section = 0.0
+    
+    #Cylinder dimensions
+    
+    h   = 0.3
+    d   = 0.15
+    eps = 2
+    
+    surface = 2*(3.141592*d*d*0.25)+(3.141592*d*h)
+    
+    top_pressure = 0.0
+    bot_pressure = 0.0
+        
+    if(ConcreteTestOption =="ON"):
+	  
+	
+	#SKIN DETERMINATION
       
       for element in model_part.Elements:
         
@@ -201,66 +237,134 @@ def InitializeSolver(model_part,solver):
         y = node.Y
         z = node.Z
         
-        values = Array3()
-        values[0] = 0.0
-        values[1] = 0.0
-        values[2] = 0.0
+        #values = Array3()
+        #values[0] = 0.0
+        #values[1] = 0.0
+        #values[2] = 0.0
           
-        Cross_section = 3.141592*r*r
-        h=0.3
-        d=0.15
-        eps=2
-        vect = zeros(3, double) 
+        cross_section = 3.141592*r*r
+        
+        #vect = zeros(3, double) 
 
         if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
           
           element.SetValue(SKIN_SPHERE,1)
-          skin_list.append(element)
           
-          #vector normal al centre:
-          vect_moduli = sqrt(x*x+z*z)
-          #print(vect_moduli)
-          if(vect_moduli>0.0):
-            vect[0]=-x/vect_moduli
-            vect[1]=0
-            vect[2]=-z/vect_moduli
+          total_cross_section = total_cross_section + cross_section
           
-          values[0]=Cross_section*Pressure*vect[0]
-          values[1]= 0.0
-          values[2]=Cross_section*Pressure*vect[2]
+          LAT.append(node)
+                
+          if ( (y>eps*r ) and (y<(h-eps*r)) ) :
+            
+            SKIN.append(element)
+            
+            XLAT.append(node)
+          ##vector normal al centre:
+          #vect_moduli = sqrt(x*x+z*z)
+          ##print(vect_moduli)
+          #if(vect_moduli>0.0):
+            #vect[0]=-x/vect_moduli
+            #vect[1]=0
+            #vect[2]=-z/vect_moduli
+          
+          #values[0]=cross_section*Pressure*vect[0]
+          #values[1]= 0.0
+          #values[2]=cross_section*Pressure*vect[2]
           
           
         if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
 
             element.SetValue(SKIN_SPHERE,1)
-            #vector normal al centre:      
-            values[0]=0.0
-            values[2]=0.0
-            if ( y>h/2 ):
-                values[1]=-Cross_section*Pressure
-            else:
-                values[1]= Cross_section*Pressure
+            
+            SKIN.append(element)
+            
+            if ( y<=eps*r ):
+
+                BOT.append(node)
+
+            elif ( y>=(h-eps*r) ):
+
+                TOP.append(node)
+            
+            ##vector normal al centre:      
+            #values[0]=0.0
+            #values[2]=0.0
+            #if ( y>h/2 ):
+                #values[1]=-cross_section*Pressure
+            #else:
+                #values[1]= cross_section*Pressure
 
             if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
-                #vector normal al centre:
-                vect_moduli = sqrt(x*x+z*z)
                 
-                if ( vect_moduli>0.0 ) :
-                    vect[0]=-x/vect_moduli
-                    vect[1]=0.0
-                    vect[2]=-z/vect_moduli
+                ##vector normal al centre:
+                #vect_moduli = sqrt(x*x+z*z)
+                
+                #if ( vect_moduli>0.0 ) :
+                    #vect[0]=-x/vect_moduli
+                    #vect[1]=0.0
+                    #vect[2]=-z/vect_moduli
 
-                values[0]= Cross_section*Pressure*vect[0]*0.70710678
-                values[2]= Cross_section*Pressure*vect[2]*0.70710678
+                #values[0]= cross_section*Pressure*vect[0]*0.70710678
+                #values[2]= cross_section*Pressure*vect[2]*0.70710678
+                
                 if ( y>h/2 ):
-                    values[1]=-Cross_section*Pressure*0.70710678
+                    #values[1]=-cross_section*Pressure*0.70710678
+                    #top_pressure = top_pressure + values[1]
+                    XTOPCORNER.append(node)
+                    
                 else:
-                    values[1]=Cross_section*Pressure*0.70710678 
+                    #values[1]=cross_section*Pressure*0.70710678 
+                    #bot_pressure = bot_pressure + values[1]
+                    XBOTCORNER.append(node)
             else:
-                skin_list.append(element)  
-
-        node.SetSolutionStepValue(APPLIED_FORCE,values)
+                #SKIN.append(element)
+                #total_cross_section = total_cross_section + cross_section
+                
+                if ( y<=eps*r ):
+                   
+                    XBOT.append(node)
+                   
+                elif ( y>=(h-eps*r) ):
+                       
+                    XTOP.append(node)
+                                      
+      if ( Pressure != 0.0 ):
         
+        ApplyPressure(model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER) 
+                                       
+                                       
+                                       
+                                       
+        #node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+
+	  #print("Correction Factor: ")
+	  #print( correction_factor )
+	
+      #correction_factor = surface/total_cross_section
+      
+      #top_bot_mean = 0.5*(top_pressure + bot_pressure)
+      
+      #top_corrected = top_pressure + top_bot_mean
+      #bot_corrected = bo_pressure + top_bot_mean
+      
+      #residual = top_corrected+bot_corrected
+      
+      #print(top_pressure)
+      #print(bot_pressure)
+      #print(residual)
+      
+      #rebalancing the total pressure before applying:
+       
+      #for element in skin_list:
+		
+		#node = element.GetNode(0)
+
+		#values[0] = correction_factor*node.GetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[0]
+		#values[1] = correction_factor*node.GetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[1]
+		#values[2] = correction_factor*node.GetSolutionStepValue(EXTERNAL_APPLIED_FORCE)[2]
+		
+		#node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+
     print("End Applying Imposed Forces")
       
          

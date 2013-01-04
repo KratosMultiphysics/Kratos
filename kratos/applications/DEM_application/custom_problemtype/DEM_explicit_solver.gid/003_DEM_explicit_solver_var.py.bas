@@ -50,7 +50,7 @@ global_rr = *GenData(Global_RR)
 *format "%10.5e"
 global_fri_ang = *GenData(Global_FRI_ANG)
 *format "%10.5e"
-max_time = *GenData(Calculation_Time)
+final_time = *GenData(Calculation_Time)
 *format "%10.5e"
 dt_safety_factor = *GenData(Dt_Safety_Factor)
 *format "%10.5e"
@@ -73,6 +73,7 @@ print_displacement 			= "*GenData(DISPLACEMENT)"
 print_rhs 				= "*GenData(RHS)"
 print_total_forces 			= "*GenData(TOTAL_FORCES)"
 print_damp_forces 			= "*GenData(DAMP_FORCES)"
+print_applied_forces		= "*GenData(APPLIED_FORCES)"
 print_radius 				= "*GenData(RADIUS)"
 print_particle_cohesion 		= "*GenData(PARTICLE_COHESION)"
 print_particle_tension 			= "*GenData(PARTICLE_TENSION)"

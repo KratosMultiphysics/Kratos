@@ -18,6 +18,7 @@ then
 fi
 
 cp $3/DEM_procedures.py $2/
+cp $3/pressure_script.py $2/
 
 echo "Running on: " >& $2/$1.info
 echo $OMP_NUM_THREADS >& $2/$1.info

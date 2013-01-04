@@ -144,7 +144,7 @@ initial_real_time = timer.time()
 print('\n')
 print ('Calculation starts at instant: ' + str(initial_pr_time)+'\n')
 
-total_steps_expected = int(max_time/dt)
+total_steps_expected = int(final_time/dt)
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
 
 
@@ -234,7 +234,7 @@ for node in force_measurement:
 done=False  #flag for the end of the confinement  
  
     
-while(time < max_time):
+while(time < final_time):
   
   
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -301,7 +301,7 @@ while(time < max_time):
     
     #if(ConcreteTestOption==True):
     
-	  #if( (time > max_time*0.1) and (done==False)):
+	  #if( (time > final_time*0.1) and (done==False)):
 		#done=True;
 		#for element in skin_list:
 		  #element.SetValue(APPLIED_FORCE,(0,0,0))
@@ -408,7 +408,9 @@ while(time < max_time):
 	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
         if (print_rhs=="1"):
 	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
-        if (print_total_forces=="1"):
+        if (print_applied_forces=="1"):
+	  gid_io.WriteNodalResults(APPLIED_FORCE, contact_model_part.Nodes, time, 0)       
+        if (print_total_forces=="1"):	  
 	  gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)	  
         if (print_damp_forces=="1"):
 	  gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)        
