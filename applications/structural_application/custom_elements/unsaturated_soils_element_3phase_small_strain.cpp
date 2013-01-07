@@ -3326,6 +3326,33 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( co
 void UnsaturatedSoilsElement_3phase_SmallStrain::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
+    
+    if( rVariable == PLASTICITY_INDICATOR )
+    {
+        if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
+            rValues.resize( GetGeometry().IntegrationPoints().size() );
+
+        //reading integration points and local gradients
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        {
+            rValues[Point] = mConstitutiveLawVector[Point]->GetValue( rVariable, rValues[Point] );
+        }
+        return;
+    }
+    
+    if( rVariable == K0 )
+    {
+        if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
+            rValues.resize( GetGeometry().IntegrationPoints().size() );
+        
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        {
+            rValues[Point] = GetValue( K0 );
+        }
+        
+        return;
+    }
+
 
     unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
 
@@ -3419,6 +3446,12 @@ void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( co
 
 void UnsaturatedSoilsElement_3phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
+    if( rVariable == K0 )
+    {
+        SetValue( K0, rValues[0] );
+    }
+    
+    
     if ( rVariable == PRESTRESS_FACTOR )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
