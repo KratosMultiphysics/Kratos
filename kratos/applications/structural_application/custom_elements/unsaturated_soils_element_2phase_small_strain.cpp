@@ -1849,7 +1849,7 @@ Vector UnsaturatedSoilsElement_2phase_SmallStrain::GetFlowWater( const Matrix& D
     Vector grad_water( dim );
 
     noalias( grad_water ) = GetGradientWater( DN_DX_PRESS );
-
+    
     for ( unsigned int i = 0; i < dim; i++ )
     {
         result( i ) = -relPerm * GetValue(PERMEABILITY_WATER) /
@@ -2263,6 +2263,19 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::GetValueOnIntegrationPoints( co
         }
         return;
     }
+    
+    if( rVariable == K0 )
+    {
+        if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
+            rValues.resize( GetGeometry().IntegrationPoints().size() );
+        
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        {
+            rValues[Point] = GetValue( K0 );
+        }
+        
+        return;
+    }
 
     unsigned int number_of_nodes_press = ( mNodesPressMax - mNodesPressMin + 1 );
 
@@ -2373,7 +2386,12 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( co
 
 void UnsaturatedSoilsElement_2phase_SmallStrain::SetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    if( rVariable == REFERENCE_WATER_PRESSURE )
+    if( rVariable == K0 )
+    {
+        SetValue( K0, rValues[0] );
+    }
+    
+    else if( rVariable == REFERENCE_WATER_PRESSURE )
     {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
         {

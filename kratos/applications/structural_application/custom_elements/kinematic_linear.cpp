@@ -1032,6 +1032,15 @@ void KinematicLinear::GetValueOnIntegrationPoints( const Variable<double>& rVari
 {
     if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
         rValues.resize( GetGeometry().IntegrationPoints().size() );
+    
+    if( rVariable == K0 )
+    {
+        for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
+        {
+            rValues[Point] = GetValue( K0 );
+        }
+        return;
+    }
 
     //reading integration points and local gradients
     for ( unsigned int Point = 0; Point < mConstitutiveLawVector.size(); Point++ )
@@ -1117,6 +1126,11 @@ void KinematicLinear::SetValueOnIntegrationPoints( const Variable<double>& rVari
             mConstitutiveLawVector[PointNumber]->SetValue( SUCTION, rValues[PointNumber],
                     rCurrentProcessInfo );
         }
+    }
+    
+    else if ( rVariable == K0 )
+    {
+        SetValue( K0, rValues[0] );
     }
 
     else if ( rVariable == PRESTRESS_FACTOR )
