@@ -308,6 +308,10 @@ public:
         //case Triangle with 4 gauss points
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tri4_element_gp",
                                             GeometryData::Kratos_Triangle, GiD_Triangle, 4, gp_indices ) );
+        gp_indices[0] = 1;
+        gp_indices[1] = 2;
+        gp_indices[2] = 3;
+        gp_indices[3] = 4;
         //case Tetrahedra with 5 gauss points (4 gauss points will be created for GiD)
         mGidGaussPointContainers.push_back( TGaussPointContainer( "tet5_element_gp",
                                             GeometryData::Kratos_Tetrahedra, GiD_Tetrahedra, 5, gp_indices ) );
