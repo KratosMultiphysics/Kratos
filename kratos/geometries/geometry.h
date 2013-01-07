@@ -834,7 +834,7 @@ public:
     virtual SizeType EdgesNumber() const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class EdgesNumber method instead of drived class one. Please check the definition of derived class." , *this );
 
         return SizeType();
     }
@@ -854,7 +854,7 @@ public:
     virtual GeometriesArrayType Edges( void )
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Edges method instead of drived class one. Please check the definition of derived class." , *this );
 
         return GeometriesArrayType();
     }
@@ -888,7 +888,7 @@ public:
     virtual SizeType FacesNumber() const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class FacesNumber method instead of drived class one. Please check the definition of derived class." , *this );
 
         return SizeType();
     }
@@ -904,7 +904,7 @@ public:
     virtual GeometriesArrayType Faces( void )
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Face method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class Faces method instead of drived class one. Please check the definition of derived class." , *this );
 
         return GeometriesArrayType();
     }
@@ -913,13 +913,13 @@ public:
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class NumberNodesInFaces method instead of drived class one. Please check the definition of derived class." , *this );
     }
 
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
         KRATOS_ERROR( std::logic_error,
-                      "Calling base class Edge method instead of drived class one. Please check the definition of derived class." , *this );
+                      "Calling base class NodesInFaces method instead of drived class one. Please check the definition of derived class." , *this );
     }
 
 
