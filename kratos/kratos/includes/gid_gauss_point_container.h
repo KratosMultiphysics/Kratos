@@ -458,10 +458,17 @@ protected:
         else if( mGidElementFamily == GiD_Tetrahedra && mSize == 11 )
         {
             GiD_BeginGaussPoint( mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/6.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/2.0, 1.0/6.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/2.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/6.0, 1.0/2.0 );
+            //GiD_WriteGaussPoint3D( 1.0/4.0, 1.0/4.0, 1.0/4.0 );
+            GiD_WriteGaussPoint3D( 1.0/14.0, 1.0/14.0, 1.0/14.0 );
+            GiD_WriteGaussPoint3D( 11.0/14.0, 1.0/14.0, 1.0/14.0 );
+            GiD_WriteGaussPoint3D( 1.0/14.0, 11.0/14.0, 1.0/14.0 );
+            GiD_WriteGaussPoint3D( 1.0/14.0, 1.0/14.0, 11.0/14.0 );
+            //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
+            //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
+            //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0-std::sqrt(5.0/14.0))/4.0 );
+            //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
+            //GiD_WriteGaussPoint3D( (1.0+std::sqrt(5.0/14.0))/4.0,(1.0-std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
+            //GiD_WriteGaussPoint3D( (1.0-std::sqrt(5.0/14.0))/4.0,(1.0+std::sqrt(5.0/14.0))/4.0, (1.0+std::sqrt(5.0/14.0))/4.0 );
             GiD_EndGaussPoint();
         }
         else if ( mGidElementFamily == GiD_Triangle && mSize == 3 )
