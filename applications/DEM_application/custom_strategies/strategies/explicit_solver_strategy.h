@@ -180,8 +180,10 @@ namespace Kratos
           //2. Initializing elements and perform the 1st repartition
           if(mElementsAreInitialized == false)
           {
-              for(int i = 0; i < 50; i++)
-                  Repart(r_model_part);
+              for(int i = 0; i < 25; i++)
+                  Repart(r_model_part,0);
+              
+              Repart(r_model_part,1);
 
               InitializeElements();
           }
@@ -195,7 +197,7 @@ namespace Kratos
           {
               Set_Initial_Contacts(mdelta_option, mcontinuum_simulating_option);  //delta option no fa falta i fer el continuu
           }
-          
+
           // 5. Create the contact elements.
           //KRATOS_WATCH(rCurrentProcessInfo[CONTACT_MESH_OPTION])
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
@@ -207,7 +209,7 @@ namespace Kratos
           {
               rCurrentProcessInfo[ACTIVATE_SEARCH] = 0;
           }
-          
+
           //6.Final operations
           FinalizeSolutionStep();
 
@@ -218,7 +220,6 @@ namespace Kratos
       {
           KRATOS_TRY
 
-         
           std::cout<<std::fixed<<std::setw(15)<<std::scientific<<std::setprecision(5);
           
           ModelPart& r_model_part          = BaseType::GetModelPart();
@@ -237,13 +238,12 @@ namespace Kratos
           
           //1.0
           InitializeSolutionStep();
-          
+
           //1.1
           Synchronize(r_model_part,mcontacts_model_part);
-          
+
           //1. Get and Calculate the forces
           GetForce();
-         
                 //C.1
                 //TransferDataContactElements();
   
@@ -258,7 +258,6 @@ namespace Kratos
 
           //2. Motion Integration
           ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
-          
           
           if( time_step == 1)
           {
@@ -598,8 +597,14 @@ namespace Kratos
                     }
                     
                     Element::Pointer p_contact_element = rReferenceElement.Create(index_new_ids, NodeArray, properties);
-                    Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element); 
+                    Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element);
                     //generating the elements
+                    
+                    if( (*continuum_ini_neighbour_iterator).lock()->Id() == 3569 || (*continuum_ini_neighbour_iterator).lock()->Id() == 3404 ) 
+                        std::cout << "Tracking neighbour " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " -- " << (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Not yet added with id " << (*it)->Id() << " - "  << (*continuum_ini_neighbour_iterator).lock()->Id() << std::endl;
+                    
+                    if( (*it)->Id() == 3569 || (*it)->Id() == 3404) 
+                        std::cout << "Tracking parent " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " -- " << (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)  << " Not yet added with id " << (*it)->Id() << " - "  << (*continuum_ini_neighbour_iterator).lock()->Id() << " Mask: " << (*it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) << std::endl;
 
                     //Notice that "(*it)->GetValue(PARTITION_INDEX) != currentPartition" it's an impossible situation
                     if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))
@@ -610,15 +615,24 @@ namespace Kratos
                         //If ghost element is in a different partition and out local element has lower id add it as local, otherwise as ghost.
                         if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
                         {
+                            if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+                                ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
+                                std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as local with id " << (*it)->Id() << std::endl;
                             Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         }
                         else
-                        {
+                        {   
+                            if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+                                ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
+                                std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as ghost with id " << (*it)->Id() << std::endl;
                             Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         }
                     }
                     else 
                     {
+                        if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+                            ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
+                            std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as own with id " << (*it)->Id() << std::endl;
                         Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
                     }
@@ -675,7 +689,8 @@ namespace Kratos
         } //loop over particles
         
         Sort_Contact_Modelpart(mcontacts_model_part);
-        //Reassign_Ids(mcontacts_model_part); //CARLOS REVISA-HO
+
+        Reassign_Ids(mcontacts_model_part);
         
         KRATOS_CATCH("")
                
@@ -909,7 +924,7 @@ namespace Kratos
         /* */
     }
     
-    virtual void Repart(ModelPart& r_model_part)
+    virtual void Repart(ModelPart& r_model_part, int CalculateBoundry)
     {
         /* */
     }

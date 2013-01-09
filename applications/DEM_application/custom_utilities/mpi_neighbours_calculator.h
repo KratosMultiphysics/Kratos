@@ -77,7 +77,7 @@ namespace Kratos {
         virtual ~Mpi_Neighbours_Calculator() {
         };
           
-        static void Parallel_partitioning(ModelPart& r_model_part, bool extension_option)
+        static void Parallel_partitioning(ModelPart& r_model_part, bool extension_option, int CalculateBoundry)
         {
             KRATOS_TRY
                       
@@ -98,7 +98,7 @@ namespace Kratos {
                 }
             
             static Part partitioner;
-            partitioner.LloydsBasedParitioner(r_model_part,MaxNodeRadius);
+            partitioner.LloydsBasedParitioner(r_model_part,MaxNodeRadius,CalculateBoundry);
             
             KRATOS_CATCH("")
         }

@@ -183,7 +183,6 @@ public:
         }
       
         mModelPart.GetCommunicator().AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-        
 //         TConfigure::AsyncSendAndRecive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
     }
     
@@ -268,6 +267,8 @@ public:
             }
         }
         
+        mModelPart.GetCommunicator().LocalMesh().Nodes().Unique();
+        
         for (unsigned int i = 0; i < mModelPart.GetCommunicator().LocalMeshes().size(); i++)
             mModelPart.GetCommunicator().LocalMesh(i).Nodes().Unique();
             
@@ -278,12 +279,12 @@ public:
     //Paritcionament basat en l'algortime LLoyds per fer algo similar a una tesselacio de voronoi
     //el que vui consegir es el clustering de elements que no es fa amb morton pero amb la propietat que sigin
     //dominis no fixes.
-    void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius)
+    void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
     {
         std::vector<std::vector<PointerType> > SendObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
         std::vector<std::vector<PointerType> > RecvObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
     
-        DefineKSets(mModelPart,SendObjects,RecvObjects,MaxNodeRadius); //A l'algortime clasic definiriam N sets al azar. Aprofitem i ho fem amb els punts de cada domini
+        DefineKSets(mModelPart,SendObjects,RecvObjects,MaxNodeRadius,CalculateBoundry); //A l'algortime clasic definiriam N sets al azar. Aprofitem i ho fem amb els punts de cada domini
 //         CommunicationPhase(mModelPart,SendObjects,RecvObjects); //Comuniquem els resultats
 //         Repartitionate(mModelPart,RecvObjects); // I per ultim reparticionem
     }
@@ -292,7 +293,8 @@ public:
     void DefineKSets(ModelPart& mModelPart, 
                      std::vector<std::vector<PointerType> > &SendObjects, 
                      std::vector<std::vector<PointerType> > &RecvObjects,
-                     double MaxNodeRadius)
+                     double MaxNodeRadius,
+                     int CalculateBoundry)
     {
         std::cout << "Entra al reparticionat" << std::endl;
 
@@ -351,29 +353,29 @@ public:
         }
 
         //Set the centroids
-    if(LocalParticles == 0)
-    {
-        for(int j = 0; j < Dimension; j++)
-            {
-                SendSetCentroid[mpi_rank*Dimension+j] = 0;
-                SetCentroid[mpi_rank*Dimension+j] = SendSetCentroid[mpi_rank*Dimension+j];
-            }
-    } 
-    else
-    {                   
-        for(int i = 0; i < Dimension; i++)
+        if(LocalParticles == 0)
         {
-            SendSetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-        SetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+            for(int j = 0; j < Dimension; j++)
+                {
+                    SendSetCentroid[mpi_rank*Dimension+j] = 0;
+                    SetCentroid[mpi_rank*Dimension+j] = SendSetCentroid[mpi_rank*Dimension+j];
+                }
+        } 
+        else
+        {                   
+            for(int i = 0; i < Dimension; i++)
+            {
+                SendSetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+                SetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+            }
         }
-    }
         
         std::cout << "Center of partition at: " << SetCentroid[mpi_rank*Dimension+0] << " " << SetCentroid[mpi_rank*Dimension+1] << " " << SetCentroid[mpi_rank*Dimension+2] << std::endl;
         
         MPI_Allgather(&SendPartitionNumberOfElements[mpi_rank],1,MPI_INT,PartitionNumberOfElements,1,MPI_INT,MPI_COMM_WORLD);
         MPI_Allgather(&SendSetCentroid[mpi_rank*Dimension],Dimension,MPI_DOUBLE,SetCentroid,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
         
-        std::cout << "Weights\t ";
+//         std::cout << "Weights\t ";
         
         for(int i = 0; i < mpi_size; i++)
         {    
@@ -407,7 +409,7 @@ public:
                 double thisDistance = LastDistance[i] * factor;   
                 double newDistance  = fabs(LastDistance[i] - thisDistance);
                 
-                std::cout << "LD: " << LastDistance[i] << " TD: " << thisDistance << " ND: " <<  newDistance << " MD: " << MidDistance[i] << std::endl;
+//                 std::cout << "LD: " << LastDistance[i] << " TD: " << thisDistance << " ND: " <<  newDistance << " MD: " << MidDistance[i] << std::endl;
 
                 // No se si aixo es calcula aixi
                 if (PartitionNumberOfElements[i] > LocalParticles)
@@ -427,7 +429,7 @@ public:
             }
         }
         
-        std::cout << std::endl;
+//         std::cout << std::endl;
 
         //Calculate the perpendicular plane who cuts the new partition
         //TODO: Just for fun. This isn't working anymore with the new algorithm. ha. ha. ha.
@@ -524,7 +526,13 @@ public:
         CommunicationPhase(mModelPart,SendObjects,RecvObjects);
         Repartitionate(mModelPart,RecvObjects);
         
-        //Finish the repartitionate
+        pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
+         
+        ContainerType pElementsMarked;
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        
+        //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {         
             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = 9999;
@@ -544,18 +552,85 @@ public:
                 NodeToCutPlaneDist /= Dot[plane];
 
                 double Radius = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                int myRank = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX);
+                if (plane == myRank)
+                    NodeToCutPlaneDist += 1;
                 
-                //Times the radious just to be sure.
-                if(fabs(NodeToCutPlaneDist) <= Radius*2)
+                if(fabs(NodeToCutPlaneDist) <= Radius)
                 {
-                    (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= ((1 << plane) | (1 << mpi_rank));
-                    (*particle_pointer_it)->GetValue(OSS_SWITCH) |= ((1 << plane) | (1 << mpi_rank));        
+                    //Fill the marked element vector
+                    pElementsMarked.push_back((*particle_pointer_it));
+                    
+                    (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));
+                    (*particle_pointer_it)->GetValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));        
                 }
             }
                
             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
             (*particle_pointer_it)->GetValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetValue(OSS_SWITCH);
         }
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        
+        if(CalculateBoundry)
+        {
+            //This matrix are used to perform the level-2 marking reduction
+            std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
+            std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
+          
+            //Mark neighbours (Level-2)
+            std::cout << pElements.end()-pElements.begin() << std::endl;
+            BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
+            
+            int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
+            int MaximumNumberOfResults = 1000;
+            
+            std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
+            std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
+            std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
+            std::vector<double>                    Radius(NumberOfMarkedElements);
+            
+            double new_extension = 2.0;
+            for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+            {    
+                  Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
+            }
+            
+            particle_bin.SearchObjectsMpi(mModelPart,pElementsMarked.begin(),NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.pGetCommunicator());
+            
+            for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+            {    
+                int p_index = particle_pointer_it-pElementsMarked.begin();
+                
+                for(int i = 0; i < NumberOfResults[p_index]; i++)
+                {
+                    Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                    SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
+                }
+            }
+
+            CommunicationPhase(mModelPart,SendMarkObjects,RecvMarkObjects);
+            
+            for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+            {
+                for(int j = 0; j < mpi_size; j++)
+                {
+                    if(j != mpi_rank)
+                    {
+                        for(int k = 0; k < RecvMarkObjects[j].size(); k++)
+                        {
+                            if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
+                            {
+                                (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                                (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        
     }
 
     /// Destructor.
