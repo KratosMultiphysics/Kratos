@@ -367,7 +367,7 @@ while(time < final_time):
 
 	os.chdir(main_path)	   	   
 
-	if(2<3): #printing neighbours id's
+	if(PrintNeighbourLists == "ON"): #printing neighbours id's
 	  
    
 	  os.chdir(neigh_list_path)
@@ -528,14 +528,14 @@ if (1<2):
   #legend(('force'))
   savefig('Grafic_1')
 
-if(ConcreteTestOption =="ON"):
-  clf()
-  plot(strainlist,stresslist,'b-')
-  grid(True)
-  title('Stress - Strain')
-  xlabel('Strain')
-  ylabel('Stress (MPa)')
-  savefig('Stress_strain')
+#if(ConcreteTestOption =="ON"):   #Akest grafic ja simprimeix pas a pas, no cal sobrescriurel oi???
+  #clf()
+  #plot(strainlist,stresslist,'b-')
+  #grid(True)
+  #title('Stress - Strain')
+  #xlabel('Strain')
+  #ylabel('Stress (MPa)')
+  #savefig('Stress_strain')
   
 if (1<2):
   clf()
