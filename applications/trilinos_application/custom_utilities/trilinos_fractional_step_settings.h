@@ -125,15 +125,15 @@ public:
 
         // Trilinos defaults
         int RowSizeGuess;
-        if(BaseType::GetDomainSize() == 2)
+        if(this->GetDomainSize() == 2)
             RowSizeGuess = 15;
         else
             RowSizeGuess = 40;
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        bool ReformDofSet = BaseType::GetReformDofSet();
-        bool UseSlip = BaseType::UseSlipConditions();
-        unsigned int EchoLevel = BaseType::GetEchoLevel();
+        ModelPart& rModelPart = this->GetModelPart();
+        bool ReformDofSet = this->GetReformDofSet();
+        bool UseSlip = this->UseSlipConditions();
+        unsigned int EchoLevel = this->GetEchoLevel();
 
         if ( rStrategyLabel == BaseType::Velocity )
         {
@@ -144,7 +144,7 @@ public:
             //initializing fractional velocity solution step
             if (UseSlip)
             {
-                double DomainSize = BaseType::GetDomainSize();
+                double DomainSize = this->GetDomainSize();
                 SchemePointerType Temp = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticSchemeSlip< TSparseSpace, TDenseSpace > (DomainSize,DomainSize));
                 pScheme.swap(Temp);
             }
@@ -155,7 +155,7 @@ public:
             }
 
             // Strategy
-            BaseType::mStrategies[BaseType::Velocity] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            this->mStrategies[BaseType::Velocity] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
 
         }
         else if ( rStrategyLabel == BaseType::Pressure )
@@ -165,18 +165,18 @@ public:
             SchemePointerType pScheme = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
-            BaseType::mStrategies[BaseType::Pressure] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
+            this->mStrategies[BaseType::Pressure] = StrategyPointerType(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (rModelPart, pScheme, pLinearSolver, pBuildAndSolver, CalculateReactions, ReformDofSet, CalculateNormDxFlag));
         }
         else
         {
             KRATOS_ERROR(std::runtime_error,"Error in TrilinosFractionalStepSettings: Unknown strategy label.","");
         }
 
-        BaseType::mTolerances[rStrategyLabel] = Tolerance;
+        this->mTolerances[rStrategyLabel] = Tolerance;
 
-        BaseType::mMaxIter[rStrategyLabel] = MaxIter;
+        this->mMaxIter[rStrategyLabel] = MaxIter;
 
-        BaseType::mStrategies[rStrategyLabel]->SetEchoLevel(EchoLevel);
+        this->mStrategies[rStrategyLabel]->SetEchoLevel(EchoLevel);
 
         KRATOS_CATCH("");
     }
@@ -188,16 +188,16 @@ public:
     {
         KRATOS_TRY;
 
-        BaseType::mHaveTurbulenceModel = true;
+        this->mHaveTurbulenceModel = true;
 
-        ModelPart& rModelPart = BaseType::GetModelPart();
-        double DomainSize = BaseType::GetDomainSize();
-        bool ReformDofSet = BaseType::GetReformDofSet();
-        unsigned int TimeOrder = BaseType::GetTimeOrder();
+        ModelPart& rModelPart = this->GetModelPart();
+        double DomainSize = this->GetDomainSize();
+        bool ReformDofSet = this->GetReformDofSet();
+        unsigned int TimeOrder = this->GetTimeOrder();
 
         if (rTurbulenceModel == BaseType::SpalartAllmaras)
         {
-            BaseType::mpTurbulenceModel = ProcessPointerType( new TrilinosSpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver>(mrComm,rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
+            this->mpTurbulenceModel = ProcessPointerType( new TrilinosSpalartAllmarasTurbulenceModel<TSparseSpace,TDenseSpace,TLinearSolver>(mrComm,rModelPart,pLinearSolver,DomainSize,Tolerance,MaxIter,ReformDofSet,TimeOrder));
         }
         else
         {
