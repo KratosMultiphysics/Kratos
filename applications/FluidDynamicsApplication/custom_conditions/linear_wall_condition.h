@@ -175,7 +175,7 @@ public:
 
     /// Copy constructor.
     LinearWallCondition(LinearWallCondition const& rOther):
-        LinearWallCondition(rOther)
+        MonolithicWallCondition<TDim,TNumNodes>(rOther)
     {
     }
 
@@ -282,7 +282,7 @@ protected:
         const size_t BlockSize = TDim + 1;
         const double NodalFactor = 1.0 / double(TDim);
 	
-	double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        //double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
         double area = NodalFactor * rGeometry.DomainSize();
         // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
@@ -298,7 +298,7 @@ protected:
                 Vel -= VelMesh;
 
                 const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
-                const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
+                //const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
 
                 double wall_vel = 0.0;
                 for (size_t d = 0; d < TDim; d++)
