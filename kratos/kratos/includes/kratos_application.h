@@ -90,6 +90,8 @@ public:
     /// Copy constructor.
     KratosApplication(KratosApplication const& rOther) :
         mpVariableData(rOther.mpVariableData),
+        mpIntVariables(rOther.mpIntVariables),
+        mpUnsignedIntVariables(rOther.mpUnsignedIntVariables),
         mpDoubleVariables(rOther.mpDoubleVariables),
         mpArray1DVariables(rOther.mpArray1DVariables),
         mpVectorVariables(rOther.mpVectorVariables),
@@ -140,6 +142,16 @@ public:
 
     // I have to see why the above version is not working for multi thread ...
     // Anyway its working with these functions.Pooyan.
+    KratosComponents<Variable<int> >::ComponentsContainerType& GetComponents(Variable<int> const& rComponentType)
+    {
+        return *mpIntVariables;
+    }
+
+    KratosComponents<Variable<unsigned int> >::ComponentsContainerType& GetComponents(Variable<unsigned int> const& rComponentType)
+    {
+        return *mpUnsignedIntVariables;
+    }
+
     KratosComponents<Variable<double> >::ComponentsContainerType& GetComponents(Variable<double> const& rComponentType)
     {
         return *mpDoubleVariables;
@@ -356,6 +368,10 @@ protected:
 
 
     KratosComponents<VariableData>::ComponentsContainerType* mpVariableData;
+
+    KratosComponents<Variable<int> >::ComponentsContainerType* mpIntVariables;
+
+    KratosComponents<Variable<unsigned int> >::ComponentsContainerType* mpUnsignedIntVariables;
 
     KratosComponents<Variable<double> >::ComponentsContainerType* mpDoubleVariables;
 

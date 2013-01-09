@@ -150,6 +150,10 @@ public:
                 NewApplication.GetVariables().end());
         //KRATOS_WATCH("Variables Registered");
 
+        KratosComponents<Variable<int> >::GetComponents().insert(NewApplication.GetComponents(Variable<int>("NONE")).begin(),
+                NewApplication.GetComponents(Variable<int>("NONE")).end());
+        KratosComponents<Variable<unsigned int> >::GetComponents().insert(NewApplication.GetComponents(Variable<unsigned int>("NONE")).begin(),
+                NewApplication.GetComponents(Variable<unsigned int>("NONE")).end());
         KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<double>("NONE")).end());
         KratosComponents<Variable<array_1d<double, 3> > >::GetComponents().insert(NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).begin(),
@@ -169,8 +173,8 @@ public:
                 NewApplication.GetConditions().end());
         //KRATOS_WATCH("Conditions Registered");
 
-        KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<double>("NONE")).end());
+//        KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
+//                NewApplication.GetComponents(Variable<double>("NONE")).end());
 
 
         Serializer::GetRegisteredObjects().insert(NewApplication.GetRegisteredObjects().begin(), NewApplication.GetRegisteredObjects().end());
