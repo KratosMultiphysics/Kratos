@@ -110,6 +110,8 @@ QUESTION: Global_RR
 VALUE: 1000.0
 QUESTION: Global_FRI_ANG
 VALUE: 40.0
+QUESTION: Print_Neighbour_Lists#CB#(ON,OFF)
+VALUE: OFF
 
 
 TITLE: Time Settings
