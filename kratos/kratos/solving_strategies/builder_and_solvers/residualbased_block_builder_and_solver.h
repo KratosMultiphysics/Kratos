@@ -280,7 +280,7 @@ public:
         }
 
 
-        double start_prod = omp_get_wtime();
+        double start_build = OpenMPUtils::GetCurrentTime();
 
         #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
@@ -358,9 +358,9 @@ public:
 
 
 
-        double stop_prod = omp_get_wtime();
-        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-            std::cout << "time: " << stop_prod - start_prod << std::endl;
+        double stop_build = OpenMPUtils::GetCurrentTime();
+        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+            std::cout << "build time: " << stop_build - start_build << std::endl;
 
         for (int i = 0; i < A_size; i++)
             omp_destroy_lock(&lock_array[i]);
@@ -603,17 +603,16 @@ public:
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-        // 			boost::timer solve_time;
+       double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
         Timer::Stop("Solve");
+	double stop_solve = OpenMPUtils::GetCurrentTime();
+        if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
+            std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
 
-        // 			if(this->GetEchoLevel()>0)
-        // 			{
-        // 				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
-        // 			}
         if (this->GetEchoLevel() == 3)
         {
             std::cout << "after the solution of the system" << std::endl;
