@@ -882,7 +882,7 @@ private:
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-        std::vector<double*> receive_buffer(neighbours_indices.size());
+        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
@@ -907,8 +907,8 @@ private:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -978,7 +978,7 @@ private:
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-        std::vector<double*> receive_buffer(neighbours_indices.size());
+        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
@@ -1003,8 +1003,8 @@ private:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -1090,8 +1090,8 @@ private:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                double* receive_buffer = new double[receive_buffer_size];
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                TSendType* receive_buffer = new TSendType[receive_buffer_size];
 
                 // Filling the send buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -1138,7 +1138,7 @@ private:
         int destination = 0;
 
         NeighbourIndicesContainerType& neighbours_indices = NeighbourIndices();
-        std::vector<double*> receive_buffer(neighbours_indices.size());
+        std::vector<TSendType*> receive_buffer(neighbours_indices.size());
         std::vector<int> receive_buffer_size(neighbours_indices.size());
 
         TSendType Value = TSendType();
@@ -1163,8 +1163,8 @@ private:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                receive_buffer[i_color] = new double[receive_buffer_size[i_color]];
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                receive_buffer[i_color] = new TSendType[receive_buffer_size[i_color]];
 
                 // Filling the buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
@@ -1245,8 +1245,8 @@ private:
                     continue; // nothing to transfer!
 
                 unsigned int position = 0;
-                double* send_buffer = new double[send_buffer_size];
-                double* receive_buffer = new double[receive_buffer_size];
+                TSendType* send_buffer = new TSendType[send_buffer_size];
+                TSendType* receive_buffer = new TSendType[receive_buffer_size];
 
                 // Filling the send buffer
                 for (ModelPart::NodeIterator i_node = r_local_nodes.begin(); i_node != r_local_nodes.end(); ++i_node)
