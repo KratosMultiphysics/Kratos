@@ -34,6 +34,11 @@
   #include "external_includes/pastix_solver.h"
 #endif
 
+#ifndef EXCLUDE_AMGCL
+  #include "external_includes/amgcl_solver.h"
+#endif
+  
+
 namespace Kratos
 {
 
@@ -88,6 +93,26 @@ void  AddLinearSolversToPython()
     ;
 #endif
 
+#ifndef EXCLUDE_AMGCL
+     enum_<AMGCLSmoother>("AMGCLSmoother")
+    .value("SPAI0", SPAI0)
+    .value("ILU0", ILU0)
+    .value("DAMPED_JACOBI",DAMPED_JACOBI)
+    .value("GAUSS_SEIDEL",GAUSS_SEIDEL)
+    ;
+    
+    enum_<AMGCLIterativeSolverType>("AMGCLIterativeSolverType")
+    .value("GMRES", GMRES)
+    .value("BICGSTAB", BICGSTAB)
+    .value("CG",CG)
+    ;
+    
+    typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
+    class_<AMGCLSolverType, bases<LinearSolverType>, boost::noncopyable >
+    ( "AMGCLSolver",init<AMGCLSmoother,AMGCLIterativeSolverType,double,int,int,int>() )
+    ;
+#endif
+    
     class_<GMRESSolverType, bases<IterativeSolverType>, boost::noncopyable >
     ( "GMRESSolver")
     .def(init<double>())
