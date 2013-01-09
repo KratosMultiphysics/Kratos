@@ -386,6 +386,8 @@ public:
             {
                 NodesContainerType& r_local_nodes = LocalMesh(i_color).Nodes();
                 NodesContainerType& r_ghost_nodes = GhostMesh(i_color).Nodes();
+                
+//                 std::cout << i_color << " -- " << r_local_nodes.size() << " " << r_ghost_nodes.size() << std::endl;
 
                 // Calculating send and received buffer size
                 // NOTE: This part works ONLY when all nodes have the same variables list size!
@@ -1303,6 +1305,25 @@ private:
                 unsigned int ghost_elements_size = r_ghost_elements.size();
                 unsigned int send_buffer_size = local_elements_size * elemental_data_size;
                 unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
+                
+//                 if(local_elements_size == 161)
+//                 {
+//                     for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
+//                     {
+//                          //3404-3569
+//                         std::cout << "L: " << i_element->GetGeometry()(0)->Id() << "-" << i_element->GetGeometry()(1)->Id() << std::endl;
+//                     }
+//                 }
+//                 
+//                 if(ghost_elements_size == 160)
+//                 {
+//                     for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
+//                     {
+//                         std::cout << "G: " << i_element->GetGeometry()(0)->Id() << "-" << i_element->GetGeometry()(1)->Id() << std::endl;
+//                     }
+//                 }
+                
+//                 std::cout << i_color << " - " << local_elements_size << " - " << ghost_elements_size << std::endl;
 
                 if ((local_elements_size == 0) && (ghost_elements_size == 0))
                     continue; // nothing to transfer!
@@ -1329,6 +1350,9 @@ private:
                 position = 0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
                 {
+                    if(i_element->Id() == 37222)
+                        std::cout << "YL:\t" << i_color << " " << i_element->Id() << " - " << i_element->GetValue(ThisVariable) << " - " << *reinterpret_cast<TDataType*> (receive_buffer + position) << std::endl;
+                  
                     i_element->GetValue(ThisVariable) = *reinterpret_cast<TDataType*> (receive_buffer + position);
                     position += elemental_data_size;
                 }
@@ -1346,6 +1370,8 @@ private:
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
+//         std::cout << "Sendrecv" << std::endl;
+      
         int mpi_rank;
         int mpi_size;
       
@@ -1391,6 +1417,7 @@ private:
         {
             if(i != mpi_rank && msgRecvSize[i])
             {
+//                 std::cout << "Expects recieve data from process " << i << std::endl;
                 message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
 
                 MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
@@ -1398,6 +1425,7 @@ private:
 
             if(i != mpi_rank && msgSendSize[i])
             {
+//                 std::cout << "Its gonna send data to process " << i << std::endl;
                 mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
                 memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
@@ -1405,7 +1433,12 @@ private:
         }
         
         //wait untill all communications finish
-        MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+        int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+
+	if(err != MPI_SUCCESS)
+std::cout << "ERROR ____________________________ " << std::endl;
+		//KRATOS_ERROR(std::runtime_error,"Error in mpi_communicator","")
+
         MPI_Barrier(MPI_COMM_WORLD);
 
         for(int i = 0; i < mpi_size; i++)

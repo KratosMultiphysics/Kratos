@@ -196,11 +196,11 @@ namespace Kratos
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_FORCE_HIGH);
     }
     
-    virtual void Repart(ModelPart& r_model_part)
+    virtual void Repart(ModelPart& r_model_part, int CalculateBoundry)
     {
         typedef Mpi_Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
         
-        NeighboursCalculatorType::Parallel_partitioning(r_model_part,true);
+        NeighboursCalculatorType::Parallel_partitioning(r_model_part,true,CalculateBoundry);
     }
     
     virtual ElementsArrayType& GetElements(ModelPart& r_model_part)
@@ -327,7 +327,7 @@ namespace Kratos
             (*it)->SetId(iteratorId++);
         }
         
-        mcontacts_model_part.GetCommunicator().SynchronizeElementalIds();
+//         mcontacts_model_part.GetCommunicator().SynchronizeElementalIds();
     }
 
   

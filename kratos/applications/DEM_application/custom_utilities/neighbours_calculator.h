@@ -130,7 +130,7 @@ namespace Kratos {
         }
         
         void Search_Ini_Neighbours(ModelPart& r_model_part, bool extension_option) 
-        {
+        {   
             KRATOS_TRY
             
             ContainerType& pIteratorElements = Get_Elements(r_model_part);
@@ -201,7 +201,7 @@ namespace Kratos {
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).clear();
                     (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).clear();
 
-					// STORING THE NEIGHBOURS AND PROPERTIES
+                    // STORING THE NEIGHBOURS AND PROPERTIES
                         
                     unsigned int neighbour_counter = 0;
     
@@ -258,7 +258,7 @@ namespace Kratos {
         }// Search_Ini_Neighbours
 
         void Search_Neighbours(ModelPart& r_model_part, bool extension_option) 
-        {
+        {   
             KRATOS_TRY
             
             ContainerType& pIteratorElements = Get_Elements(r_model_part);
