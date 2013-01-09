@@ -200,7 +200,7 @@ public:
         int dim,
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : TrilinosBuilderAndSolverML< TSparseSpace, TDenseSpace, TLinearSolver >(Comm, guess_row_size, pNewLinearSystemSolver)
-        , mrComm(Comm), mguess_row_size(guess_row_size), mdim(dim)
+        , mdim(dim)
     {
 
 
@@ -506,24 +506,21 @@ protected:
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
-    Epetra_MpiComm& mrComm;
-    int mguess_row_size;
-    int mFirstMyId;
-    int mLastMyId;
+
     int mdim;
 
-    void GenerateNullSpace(TSystemMatrixType& A,
-                           ModelPart& r_model_part,
-                           double* nullsp,
-                           boost::shared_ptr<vector<double> >& ns,
-                           int& numdf,
-                           int& dimns)
+    virtual void GenerateNullSpace(TSystemMatrixType& A,
+                                   ModelPart& r_model_part,
+                                   double* nullsp,
+                                   boost::shared_ptr<vector<double> >& ns,
+                                   int& numdf,
+                                   int& dimns)
     {
 
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-        typename DofsArrayType::iterator dof_it2 = BaseType::mDofSet.begin();
+        typename DofsArrayType::iterator dof_it2 = this->mDofSet.begin();
 
         if (dof_it2->GetVariable().Key() == PRESSURE)
         {
@@ -545,7 +542,7 @@ protected:
 
                 int k = 0;
 
-                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it += 3)
+                for (typename DofsArrayType::iterator dof_it = this->mDofSet.begin(); dof_it != this->mDofSet.end(); dof_it += 3)
                 {
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
@@ -592,7 +589,7 @@ protected:
 
                 int k = 0;
 
-                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it += 4)
+                for (typename DofsArrayType::iterator dof_it = this->mDofSet.begin(); dof_it != this->mDofSet.end(); dof_it += 4)
                 {
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
@@ -649,7 +646,7 @@ protected:
 
                 int k = 0;
 
-                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it += 3)
+                for (typename DofsArrayType::iterator dof_it = this->mDofSet.begin(); dof_it != this->mDofSet.end(); dof_it += 3)
                 {
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
@@ -696,7 +693,7 @@ protected:
 
                 int k = 0;
 
-                for (typename DofsArrayType::iterator dof_it = BaseType::mDofSet.begin(); dof_it != BaseType::mDofSet.end(); dof_it += 4)
+                for (typename DofsArrayType::iterator dof_it = this->mDofSet.begin(); dof_it != this->mDofSet.end(); dof_it += 4)
                 {
                     if (dof_it->GetSolutionStepValue(PARTITION_INDEX) == rank)
                     {
@@ -738,8 +735,6 @@ protected:
     }
 
 private:
-
-    unsigned int mLocalSystemSize;
 
     /*@} */
     /**@name Private  Access */

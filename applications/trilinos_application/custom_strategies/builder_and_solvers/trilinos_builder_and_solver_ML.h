@@ -445,7 +445,7 @@ public:
 
     //**************************************************************************
     //**************************************************************************
-    void SystemSolveML(
+    virtual void SystemSolveML(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,
@@ -1197,6 +1197,7 @@ protected:
     /*@{ */
     Epetra_MpiComm& mrComm;
     int mguess_row_size;
+    unsigned int mLocalSystemSize;
     int mFirstMyId;
     int mLastMyId;
 
@@ -1232,7 +1233,8 @@ protected:
     //virtual void GenerateNullSpace(TSystemMatrixType& A,ModelPart& r_model_part , double* nullsp , Teuchos::RCP<vector<double> >&  ns )
     virtual void GenerateNullSpace(TSystemMatrixType& A,ModelPart& r_model_part , double* nullsp , boost::shared_ptr<vector<double> >&  ns,
                                    int& numdf, int& dimns )
-    {};
+    {
+    };
 
 
 private:
@@ -1244,7 +1246,6 @@ private:
     /**@name Member Variables */
     /*@{ */
 
-    unsigned int mLocalSystemSize;
 
     /*@} */
     /**@name Private Operators*/
