@@ -951,7 +951,7 @@ public:
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();
         std::size_t* Acol_indices = A.index2_data().begin();
-		
+
         #pragma omp parallel for
         for (int k = 0; k < static_cast<int> (A.size1() ); k++)
         {
@@ -962,7 +962,7 @@ public:
 			{
 				for (std::size_t j=col_begin; j<col_end; j++)
 				{
-					if(Acol_indices[j] != k ) Avalues[j] = 0.0; 
+                    if( static_cast<int>(Acol_indices[j]) != k ) Avalues[j] = 0.0;
 				}
 				b[k] = 0.0; 
 			}
