@@ -600,12 +600,12 @@ namespace Kratos
                     Element::WeakPointer p_weak = Element::WeakPointer(p_contact_element);
                     //generating the elements
                     
-                    if( (*continuum_ini_neighbour_iterator).lock()->Id() == 3569 || (*continuum_ini_neighbour_iterator).lock()->Id() == 3404 ) 
+  /*                  if( (*continuum_ini_neighbour_iterator).lock()->Id() == 3569 || (*continuum_ini_neighbour_iterator).lock()->Id() == 3404 ) 
                         std::cout << "Tracking neighbour " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " -- " << (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Not yet added with id " << (*it)->Id() << " - "  << (*continuum_ini_neighbour_iterator).lock()->Id() << std::endl;
                     
                     if( (*it)->Id() == 3569 || (*it)->Id() == 3404) 
                         std::cout << "Tracking parent " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " -- " << (*continuum_ini_neighbour_iterator).lock()->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)  << " Not yet added with id " << (*it)->Id() << " - "  << (*continuum_ini_neighbour_iterator).lock()->Id() << " Mask: " << (*it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) << std::endl;
-
+*/
                     //Notice that "(*it)->GetValue(PARTITION_INDEX) != currentPartition" it's an impossible situation
                     if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))
                     {
@@ -615,25 +615,29 @@ namespace Kratos
                         //If ghost element is in a different partition and out local element has lower id add it as local, otherwise as ghost.
                         if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
                         {
-                            if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+       /*                     if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
                                 ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
                                 std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as local with id " << (*it)->Id() << std::endl;
-                            Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+             */
+             Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         }
                         else
                         {   
-                            if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+           /*                 if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
                                 ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
                                 std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as ghost with id " << (*it)->Id() << std::endl;
-                            Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+               */
+               Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         }
                     }
                     else 
                     {
-                        if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
+          /*    
+						if( ((*it)->Id() == 3404 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3569) || 
                             ((*it)->Id() == 3569 && (*continuum_ini_neighbour_iterator).lock()->Id() == 3404)    )
                             std::cout << "Partition " << (*it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) << " Added as own with id " << (*it)->Id() << std::endl;
-                        Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+              */
+              Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
                     }
                     //copiar el weak a la variable nodal punters a barres
