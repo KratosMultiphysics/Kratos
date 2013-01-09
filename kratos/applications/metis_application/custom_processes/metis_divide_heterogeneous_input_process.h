@@ -27,7 +27,7 @@ extern void METIS_PartGraphKway(int*,  //int* n
 
 namespace Kratos
 {
-///@addtogroup FluidDynamicsApplication
+///@addtogroup MetisApplication
 ///@{
 
 ///@name Kratos Globals
@@ -145,6 +145,12 @@ public:
         int NumColors;
         GraphType ColoredDomainGraph;
         GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+
+        if (mVerbosity > 0)
+        {
+            KRATOS_WATCH(NumColors);
+            KRATOS_WATCH(ColoredDomainGraph);
+        }
 
         // Write partition info into separate input files
         IO::PartitionIndicesContainerType nodes_all_partitions;
@@ -274,6 +280,14 @@ private:
     ///@{
 
     /// Call Metis to create a partition of nodes based on the nodal graph.
+    /**
+     * Metis_PartGraphKway is used to generate a partition for nodes in the model.
+     * @param NumNodes Number of nodes in the mesh.
+     * @param NodeIndices pointer to C array of size NumNodes+1, xadj array for calls to Metis_PartGraphKway.
+     * @param NodeConnectivities pointer to C array of size NodeIndices[NumNodes+1], adjcncy array for calls to Metis_PartGraphKway.
+     * @param rNodePartition Metis output as an std::vector, position k is the partition that will contain the k-th node (Node with Id k+1).
+     * @return Number of graph edges cut by Metis.
+     */
     int PartitionNodes(SizeType NumNodes,
                        int* NodeIndices,
                        int* NodeConnectivities,
