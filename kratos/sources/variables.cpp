@@ -620,6 +620,8 @@ KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
+    mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
+    mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
     mpDoubleVariables( KratosComponents<Variable<double> >::pGetComponents() ),
     mpArray1DVariables( KratosComponents<Variable<array_1d<double, 3> > >::pGetComponents() ),
     mpVectorVariables( KratosComponents<Variable<Vector> >::pGetComponents() ),
