@@ -330,7 +330,7 @@ def InitializeSolver(model_part,solver):
                                       
       if ( Pressure != 0.0 ):
         
-        ApplyPressure(model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER) 
+        ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER) 
                                        
                                        
                                        
