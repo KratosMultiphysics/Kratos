@@ -94,11 +94,11 @@ class MonolithicSolver:
 ##        pPrecond = ILU0Preconditioner()
         self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
-	#gmres_size = 50
-	#ilu_level_of_fill = 10
-	#tol = 1e-5
-	#verbosity = 0
-        ##self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
+	gmres_size = 30
+	ilu_level_of_fill = 2
+	tol = 1e-5
+	verbosity = 0
+        self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
         #self.linear_solver = PastixSolver(verbosity,False)         
 
         #definition of the convergence criteria
@@ -148,7 +148,7 @@ class MonolithicSolver:
         
         ################################################
         #properties of the two fluids
-        self.rho1 = 2300.0 #applied on the negative part of the domain 1000.0
+        self.rho1 = 2400.0 #applied on the negative part of the domain 1000.0
         self.conductivity1 = 1.0
         
         self.rho2 = 1.0 #applied to the positive part of the domain#1.0
@@ -169,7 +169,7 @@ class MonolithicSolver:
         self.max_levels = 50
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 10.0;
+        self.max_distance = self.max_edge_size * 20.0;
 
 
         self.max_ns_iterations = 8
@@ -180,10 +180,10 @@ class MonolithicSolver:
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
-        #mu1 = self.mu/self.rho1
-        mu1 = self.mu
-        #mu2 = self.mu/self.rho2
-        mu2 = self.mu
+        mu1 = self.mu/self.rho1
+        #mu1 = self.mu
+        #mu2 = 0.01*self.mu/self.rho2
+        mu2 = mu1
 
         for node in self.model_part.Nodes:
             dist = node.GetSolutionStepValue(DISTANCE)
@@ -242,7 +242,7 @@ class MonolithicSolver:
 	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).ClearNeighbours()          
 	    (FindConditionsNeighboursProcess(self.model_part, 3, 20)).Execute()	  
             self.normal_util = NormalCalculationUtils()
-            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,55.0)#,0.0,35.0
+            self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0
             
             #for node in self.model_part.Nodes:
 		#if (node.GetSolutionStepValue(IS_SLIP) > 0.0):
@@ -293,19 +293,22 @@ class MonolithicSolver:
 	  for node in self.model_part.Nodes:	    
 	    node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
 	  self.divergence_clearance_performed = True    
-        #convect distance function
-        self.ConvectDistance()
 
         #recompute distance function as needed
         if(self.internal_step_counter >= self.next_redistance):
 	  self.DoRedistance()
+	  #for node in self.model_part.Nodes:	    
+	    #node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
 	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
+
+	#convect distance function
+        self.ConvectDistance()
 
         self.ApplyFluidProperties()
         #Recompute normals if necessary
 	if(self.ReformDofSetAtEachStep == True):
            if self.use_slip_conditions == True:
-	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,55.0)#,0.0,35.0
+	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0
         
         (self.solver).Solve()
 ##        print "solving step monolithic solver finished"
