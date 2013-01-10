@@ -388,7 +388,8 @@ namespace Kratos
           size_t iContactForce = 0;
 
           array_1d<double, 3 > AngularVel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-          double inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);                        
+          double momentofinertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          
                         
           double RotaAcc[3] = {0.0};
           double Initial_Rota_Moment[3] = {0.0};
@@ -400,9 +401,9 @@ namespace Kratos
               RotaAcc[1] = AngularVel[1] / dt;
               RotaAcc[2] = AngularVel[2] / dt;
       
-              Initial_Rota_Moment[0] = RotaAcc[0] * inertia;
-              Initial_Rota_Moment[1] = RotaAcc[1] * inertia;
-              Initial_Rota_Moment[2] = RotaAcc[2] * inertia;
+              Initial_Rota_Moment[0] = RotaAcc[0] * momentofinertia;
+              Initial_Rota_Moment[1] = RotaAcc[1] * momentofinertia;
+              Initial_Rota_Moment[2] = RotaAcc[2] * momentofinertia;
                 
               Max_Rota_Moment[0] = Initial_Rota_Moment[0];
               Max_Rota_Moment[1] = Initial_Rota_Moment[1];
@@ -919,25 +920,25 @@ namespace Kratos
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalContactForce[1];
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalContactForce[2];
 	      
-                    if ( rotation_OPTION == 1 )
-                    {
-                        double Rota_Moment[3] = {0.0};
+              if ( rotation_OPTION == 1 )
+              {
+                    double Rota_Moment[3] = {0.0};
                         
-                        Rota_Moment[0] = mRota_Moment[0];
-                        Rota_Moment[1] = mRota_Moment[1];
-                        Rota_Moment[2] = mRota_Moment[2];
+                    Rota_Moment[0] = mRota_Moment[0];
+                    Rota_Moment[1] = mRota_Moment[1];
+                    Rota_Moment[2] = mRota_Moment[2];
                        
-                        double MA[3] = {0.0};
+                    double MA[3] = {0.0};
                         
-                        //GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalResultantContactForce, MA);
-                        GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+                    //GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalResultantContactForce, MA);
+                    GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
                                           
-                        Rota_Moment[0] -= MA[0] * radius;
-                        Rota_Moment[1] -= MA[1] * radius;
-                        Rota_Moment[2] -= MA[2] * radius;
+                    Rota_Moment[0] -= MA[0] * radius;
+                    Rota_Moment[1] -= MA[1] * radius;
+                    Rota_Moment[2] -= MA[2] * radius;
                         
-                        if (equiv_RollingFrictionCoeff != 0.0)
-                        {
+                    if (equiv_RollingFrictionCoeff != 0.0)
+                    {
                         Max_Rota_Moment[0] += Rota_Moment[0];
                         Max_Rota_Moment[1] += Rota_Moment[1];
                         Max_Rota_Moment[2] += Rota_Moment[2];                     
@@ -977,6 +978,10 @@ namespace Kratos
                             Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
                             Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
                             Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;
+                            
+                            Max_Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
+                            Max_Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
+                            Max_Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;                            
                         }
                        
                         else
@@ -985,12 +990,13 @@ namespace Kratos
                             Rota_Moment[1] = -Initial_Rota_Moment[1];
                             Rota_Moment[2] = -Initial_Rota_Moment[2];
                         }                        
-                        }
-                        mRota_Moment[0] = Rota_Moment[0];
-                        mRota_Moment[1] = Rota_Moment[1];
-                        mRota_Moment[2] = Rota_Moment[2];               
+                    }
+                    
+                    mRota_Moment[0] = Rota_Moment[0];
+                    mRota_Moment[1] = Rota_Moment[1];
+                    mRota_Moment[2] = Rota_Moment[2];               
                         
-                    }      
+              }      
               
 
 /*              if ( rotation_OPTION == 1 )
