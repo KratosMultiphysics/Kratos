@@ -169,6 +169,14 @@ Begin NodalData PARTICLE_FRICTION
 *end elems 
 End NodalData
 
+Begin NodalData ROLLING_FRICTION
+*loop elems *all
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*elemsconec(1) 0 *elemsmatprop(Rolling_Friction)
+*endif
+*end elems 
+End NodalData
+
 Begin NodalData PARTICLE_TENSION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
