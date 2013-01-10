@@ -357,7 +357,9 @@ namespace Kratos
 
           double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
           double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-          double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION); 
+          double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
+          double RollingFriction      = this->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
+          double RollingFrictionCoeff = RollingFriction * radius;  
           double restitution_coeff    = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
       
           array_1d<double,3>& rhs             = this->GetGeometry()[0].GetSolutionStepValue(RHS);
@@ -383,8 +385,32 @@ namespace Kratos
             
           array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
 
-          size_t iContactForce = 0;            
-                                   
+          size_t iContactForce = 0;
+
+          if(equiv_RollingFrictionCoeff != 0.0)
+          {
+          array_1d<double, 3 > AngularVel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          double inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);                        
+                        
+          double RotaAcc[3] = {0.0};
+          double Initial_Rota_Moment[3] = {0.0};
+          double Max_Rota_Moment[3] = {0.0};
+                
+          if ( rotation_OPTION == 1 )
+          {
+              RotaAcc[0] = AngularVel[0] / dt;
+              RotaAcc[1] = AngularVel[1] / dt;
+              RotaAcc[2] = AngularVel[2] / dt;
+      
+              Initial_Rota_Moment[0] = RotaAcc[0] * inertia;
+              Initial_Rota_Moment[1] = RotaAcc[1] * inertia;
+              Initial_Rota_Moment[2] = RotaAcc[2] * inertia;
+                
+              Max_Rota_Moment[0] = Initial_Rota_Moment[0];
+              Max_Rota_Moment[1] = Initial_Rota_Moment[1];
+              Max_Rota_Moment[2] = Initial_Rota_Moment[2];
+            }  
+          }                       
           for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
               neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
           {
@@ -408,7 +434,9 @@ namespace Kratos
               //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
               double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
               double equiv_FriAngle               = (FriAngle + other_FriAngle) * 0.5; 
- 
+              double other_RollingFriction        = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
+              double other_RollingFrictionCoeff   = other_RollingFriction * other_radius;
+              double equiv_RollingFrictionCoeff   = 2*RollingFrictionCoeff * other_RollingFrictionCoeff / (RollingFrictionCoeff + other_RollingFrictionCoeff); 
               
               // CONTINUUM SIMULATING PARAMETERS:
 
@@ -892,9 +920,82 @@ namespace Kratos
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1] = GlobalContactForce[1];
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2] = GlobalContactForce[2];
+	      
+                    if ( rotation_OPTION == 1 )
+                    {
+                        double Rota_Moment[3] = {0.0};
+                        
+                        Rota_Moment[0] = mRota_Moment[0];
+                        Rota_Moment[1] = mRota_Moment[1];
+                        Rota_Moment[2] = mRota_Moment[2];
+                       
+                        double MA[3] = {0.0};
+                        
+                        //GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalResultantContactForce, MA);
+                        GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+                                          
+                        Rota_Moment[0] -= MA[0] * radius;
+                        Rota_Moment[1] -= MA[1] * radius;
+                        Rota_Moment[2] -= MA[2] * radius;
+                        
+                        if (equiv_RollingFrictionCoeff != 0.0)
+                        {
+                        Max_Rota_Moment[0] += Rota_Moment[0];
+                        Max_Rota_Moment[1] += Rota_Moment[1];
+                        Max_Rota_Moment[2] += Rota_Moment[2];                     
+                                
+                        double CoordSystemMoment[3] = {0.0};
+                        double MR[3] = {0.0};
+                        
+                        double NormalForce[3] = {0.0};      
+                        
+                        //NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalResultantContactForce[2]);
+                        //NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalResultantContactForce[2]);
+                        //NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalResultantContactForce[2]);
+                        
+                        NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalContactForce[2]);
+                        NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalContactForce[2]);
+                        NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalContactForce[2]);
+                        
+                        GeometryFunctions::CrossProduct(LocalCoordSystem[2], Max_Rota_Moment, CoordSystemMoment);
+                        
+                        double DetCoordSystemMoment = sqrt(CoordSystemMoment[0] * CoordSystemMoment[0] + CoordSystemMoment[1] * CoordSystemMoment[1] + CoordSystemMoment[2] * CoordSystemMoment[2]);
+
+                        if(equiv_RollingFrictionCoeff != 0.0)
+                        {
+                            CoordSystemMoment[0] = CoordSystemMoment[0] / DetCoordSystemMoment;
+                            CoordSystemMoment[1] = CoordSystemMoment[1] / DetCoordSystemMoment;
+                            CoordSystemMoment[2] = CoordSystemMoment[2] / DetCoordSystemMoment;                            
+                        }
+                        
+                        GeometryFunctions::CrossProduct(NormalForce, CoordSystemMoment, MR);
+
+                        double DetMR = sqrt( MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2] );
+                        double MR_now = DetMR * equiv_RollingFrictionCoeff;
+                        double MR_max = sqrt( Max_Rota_Moment[0] * Max_Rota_Moment[0] + Max_Rota_Moment[1] * Max_Rota_Moment[1] + Max_Rota_Moment[2] * Max_Rota_Moment[2] );
+                        
+                        if ( MR_max > MR_now )
+                        {
+                            Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
+                            Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
+                            Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;
+                        }
+                       
+                        else
+                        {
+                            Rota_Moment[0] = -Initial_Rota_Moment[0];
+                            Rota_Moment[1] = -Initial_Rota_Moment[1];
+                            Rota_Moment[2] = -Initial_Rota_Moment[2];
+                        }                        
+                        }
+                        mRota_Moment[0] = Rota_Moment[0];
+                        mRota_Moment[1] = Rota_Moment[1];
+                        mRota_Moment[2] = Rota_Moment[2];               
+                        
+                    }      
               
 
-              if ( rotation_OPTION == 1 )
+/*              if ( rotation_OPTION == 1 )
               {
                   ////global moment return back,for the ball self
 
@@ -903,7 +1004,7 @@ namespace Kratos
                   mRota_Moment[0] -= MA[0] * radius;
                   mRota_Moment[1] -= MA[1] * radius;
                   mRota_Moment[2] -= MA[2] * radius;
-              }
+              }*/
                     
                     
               //CONTACT ELEMENT
