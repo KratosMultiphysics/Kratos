@@ -20,6 +20,9 @@ VALUE: 4.16e6
 QUESTION: Friction(Deg)
 VALUE: 45
 
+QUESTION: Rolling_Friction
+VALUE: 0
+
 QUESTION: Tension
 VALUE: 2.01e6
 
@@ -60,6 +63,9 @@ VALUE: 4.16e6
 QUESTION: Friction(Deg)
 VALUE: 45
 
+QUESTION: Rolling_Friction
+VALUE: 0.1
+
 QUESTION: Tension
 VALUE: 2.01e6
 
@@ -99,6 +105,9 @@ VALUE: 4.16e6
 
 QUESTION: Friction(Deg)
 VALUE: 45
+
+QUESTION: Rolling_Friction
+VALUE: 0.1
 
 QUESTION: Tension
 VALUE: 2.01e6
