@@ -251,8 +251,8 @@ namespace Kratos
                          double RotaVelOld = AngularVel[iterator];
                          double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
 
-                         //AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
-                         AngularVel[iterator]  = RotaVelNew;                         
+                         AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
+                         //AngularVel[iterator]  = RotaVelNew;                         
                         
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
                          
@@ -260,7 +260,7 @@ namespace Kratos
 
                       
                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator]; // it is not used...
-                     
+                         
                     }
                    
 
