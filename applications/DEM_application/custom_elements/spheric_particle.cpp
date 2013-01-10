@@ -387,8 +387,6 @@ namespace Kratos
 
           size_t iContactForce = 0;
 
-          if(equiv_RollingFrictionCoeff != 0.0)
-          {
           array_1d<double, 3 > AngularVel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
           double inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);                        
                         
@@ -410,7 +408,7 @@ namespace Kratos
               Max_Rota_Moment[1] = Initial_Rota_Moment[1];
               Max_Rota_Moment[2] = Initial_Rota_Moment[2];
             }  
-          }                       
+                      
           for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
               neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
           {
