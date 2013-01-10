@@ -54,9 +54,9 @@ public:
 
     typedef Geometry< Node<3> > GeometryType;
 
-    typedef boost::numeric::ublas::matrix_row<TLocalMatrixType>  LocalRowType;
-
-    typedef boost::numeric::ublas::matrix_range<TLocalMatrixType> MatrixBlockType;
+//     typedef boost::numeric::ublas::matrix_row<TLocalMatrixType>  LocalRowType;
+//
+//     typedef boost::numeric::ublas::matrix_range<TLocalMatrixType> MatrixBlockType;
 
     ///@}
     ///@name Life Cycle
@@ -93,7 +93,7 @@ public:
     {}
 
     /// Destructor.
-    virtual ~CoordinateTransformationUtils(){}
+    virtual ~CoordinateTransformationUtils() {}
 
 
     ///@}
@@ -115,35 +115,17 @@ public:
                 TLocalVectorType& rLocalVector,
                 GeometryType& rGeometry) const
     {
-        const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
-
-        TLocalMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
-        bool NeedRotation = false;
-
-        unsigned int Index = 0;
-
-        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        if(mBlockSize != mDomainSize) //Monolithic case
         {
-            const NodeType& rNode = rGeometry[j];
-            // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
-            if( rNode.GetValue(mrFlagVariable) != mZero )
-            {
-                NeedRotation = true;
-                MatrixBlockType Block(Rotation,range(Index,Index+mDomainSize),range(Index,Index+mDomainSize));
-                this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
-            }
-
-            Index += mBlockSize;
-        }
-        if(NeedRotation)
+	    if(mDomainSize == 2) RotateAux<2>(rLocalMatrix,rLocalVector,rGeometry);
+	    if(mDomainSize == 3) RotateAux<3>(rLocalMatrix,rLocalVector,rGeometry);
+	}
+	else //fractional step case
         {
-            //                TLocalMatrixType tmp = boost::numeric::ublas::prod(rLocalMatrix,boost::numeric::ublas::trans(Rotation));
-            //                rLocalMatrix = boost::numeric::ublas::prod(Rotation,tmp);
-            this->ApplyRotation(rLocalMatrix,Rotation);
-
-            TLocalVectorType aaa = boost::numeric::ublas::prod(Rotation,rLocalVector);
-            noalias(rLocalVector) = aaa;
-        }
+	    if(mDomainSize == 2) RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
+	    if(mDomainSize == 3) RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
+	}
+      
     }
 
     /// RHS only version of Rotate
@@ -152,29 +134,90 @@ public:
     {
         const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
-        TLocalMatrixType Rotation = IdentityMatrix(LocalSize,LocalSize);
-        bool NeedRotation = false;
-
         unsigned int Index = 0;
 
-        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        if(mBlockSize != mDomainSize) //Monolithic case
         {
-            const NodeType& rNode = rGeometry[j];
-            // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
-            if( rNode.GetValue(mrFlagVariable) != mZero )
+            for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
             {
-                NeedRotation = true;
-                MatrixBlockType Block(Rotation,range(Index,Index+mDomainSize),range(Index,Index+mDomainSize));
-                this->RotationOperator<MatrixBlockType>(Block,rGeometry[j]);
+                const NodeType& rNode = rGeometry[j];
+                // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
+                if( rNode.GetValue(mrFlagVariable) != mZero )
+                {
+                    if(mDomainSize == 3)
+                    {
+                        array_1d<double,4> aux,aux1;
+                        boost::numeric::ublas::bounded_matrix<double,4,4> rRot;
+                        LocalRotationOperator(rRot,rGeometry[j]);
+
+                        for(unsigned int k=0; k<4; k++)
+                            aux[k] = rLocalVector[j*mBlockSize+k];
+
+                        noalias(aux1) = prod(rRot,aux);
+
+                        for(unsigned int k=0; k<4; k++)
+                            rLocalVector[j*mBlockSize+k] = aux1[k];
+                    }
+                    else
+                    {
+                        array_1d<double,3> aux,aux1;
+                        boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+                        LocalRotationOperator(rRot,rGeometry[j]);
+
+                        for(unsigned int k=0; k<3; k++)
+                            aux[k] = rLocalVector[j*mBlockSize+k];
+
+                        noalias(aux1) = prod(rRot,aux);
+
+                        for(unsigned int k=0; k<3; k++)
+                            rLocalVector[j*mBlockSize+k] = aux1[k];
+                    }
+                }
+                Index += mBlockSize;
             }
-            Index += mBlockSize;
+        }
+        else //fractional step case
+        {
+            for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+            {
+                const NodeType& rNode = rGeometry[j];
+                // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
+                if( rNode.GetValue(mrFlagVariable) != mZero )
+                {
+                    if(mDomainSize == 3)
+                    {
+                        array_1d<double,3> aux,aux1;
+                        boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+                        LocalRotationOperatorPure(rRot,rGeometry[j]);
+
+                        for(unsigned int k=0; k<3; k++)
+                            aux[k] = rLocalVector[j*mBlockSize+k];
+
+                        noalias(aux1) = prod(rRot,aux);
+
+                        for(unsigned int k=0; k<3; k++)
+                            rLocalVector[j*mBlockSize+k] = aux1[k];
+                    }
+                    else
+                    {
+                        array_1d<double,2> aux,aux1;
+                        boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+                        LocalRotationOperatorPure(rRot,rGeometry[j]);
+
+                        for(unsigned int k=0; k<2; k++)
+                            aux[k] = rLocalVector[j*mBlockSize+k];
+
+                        noalias(aux1) = prod(rRot,aux);
+
+                        for(unsigned int k=0; k<2; k++)
+                            rLocalVector[j*mBlockSize+k] = aux1[k];
+                    }
+                }
+                Index += mBlockSize;
+            }
+
         }
 
-        if(NeedRotation)
-        {
-            TLocalVectorType Tmp = boost::numeric::ublas::prod(Rotation,rLocalVector);
-            noalias(rLocalVector) = Tmp;
-        }
     }
 
     /// Apply slip boundary conditions to the rotated local contributions.
@@ -247,21 +290,38 @@ public:
     /// Transform nodal velocities to the rotated coordinates (aligned with each node's normal)
     void RotateVelocities(ModelPart& rModelPart) const
     {
-        TLocalMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
         TLocalVectorType Vel(mDomainSize);
         TLocalVectorType Tmp(mDomainSize);
-	
 
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-        {	  
+        ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
+        #pragma omp parallel for firstprivate(Vel,Tmp)
+        for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
+        {
+            ModelPart::NodeIterator itNode = it_begin+iii;
             const NodeType& rNode = *itNode; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
             if( rNode.GetValue(mrFlagVariable) != mZero )
             {
-                this->RotationOperator<TLocalMatrixType>(Rotation,*itNode);
-                array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-                for(unsigned int i = 0; i < mDomainSize; i++) Vel[i] = rVelocity[i];
-                noalias(Tmp) = boost::numeric::ublas::prod(Rotation,Vel);
-                for(unsigned int i = 0; i < mDomainSize; i++) rVelocity[i] = Tmp[i];
+                //this->RotationOperator<TLocalMatrixType>(Rotation,);
+                if(mDomainSize == 3)
+                {
+                    boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+                    LocalRotationOperatorPure(rRot,*itNode);
+
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(rRot,Vel);
+                    for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
+                }
+                else
+                {
+                    boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+                    LocalRotationOperatorPure(rRot,*itNode);
+
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(rRot,Vel);
+                    for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
+                }
             }
         }
     }
@@ -269,21 +329,38 @@ public:
     /// Transform nodal velocities from the rotated system to the original one
     void RecoverVelocities(ModelPart& rModelPart) const
     {
-        TLocalMatrixType Rotation = IdentityMatrix(mDomainSize,mDomainSize);
         TLocalVectorType Vel(mDomainSize);
         TLocalVectorType Tmp(mDomainSize);
-	
 
-        for (ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); ++itNode)
-        {   
+
+        ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
+        #pragma omp parallel for firstprivate(Vel,Tmp)
+        for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
+        {
+            ModelPart::NodeIterator itNode = it_begin+iii;
             const NodeType& rNode = *itNode; // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined.
             if( rNode.GetValue(mrFlagVariable) != mZero )
             {
-                this->RotationOperator<TLocalMatrixType>(Rotation,*itNode);
-                array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
-                for(unsigned int i = 0; i < mDomainSize; i++) Vel[i] = rVelocity[i];
-                noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(Rotation),Vel);
-                for(unsigned int i = 0; i < mDomainSize; i++) rVelocity[i] = Tmp[i];
+                if(mDomainSize == 3)
+                {
+                    boost::numeric::ublas::bounded_matrix<double,3,3> rRot;
+                    LocalRotationOperatorPure(rRot,*itNode);
+
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),Vel);
+                    for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
+                }
+                else
+                {
+                    boost::numeric::ublas::bounded_matrix<double,2,2> rRot;
+                    LocalRotationOperatorPure(rRot,*itNode);
+
+                    array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+                    for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
+                    noalias(Tmp) = boost::numeric::ublas::prod(boost::numeric::ublas::trans(rRot),Vel);
+                    for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
+                }
             }
         }
     }
@@ -311,7 +388,10 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "CoordinateTransformationUtils";}
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "CoordinateTransformationUtils";
+    }
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
@@ -409,76 +489,76 @@ private:
     }
 
 
-    /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
-    /**
-     * The normal is read from solution step data NORMAL. Use NormalCalculationUtils::CalculateOnSimplex to
-     * obtain and store the nodal normal from the normals of the model's conditons.
-     * @param rRot The rotation matrix (output)
-     * @param rThisPoint The point used to orient the new coordinate system.
-     * @see NormalCalculationUtils
-     */
-    template<class TMatrixType>
-    void RotationOperator(TMatrixType& rRot,
-                          GeometryType::PointType& rThisPoint) const
-    {
-        typedef boost::numeric::ublas::matrix_row<TMatrixType> ThisRowType;
-        // Get the normal evaluated at the node
-        const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
-
-        if(mDomainSize == 3)
-        {
-            // Define the new coordinate system, where the first vector is aligned with the normal
-            ThisRowType rN(rRot,0);
-            for( unsigned int i = 0; i < 3; ++i)
-                rN[i] = rNormal[i];
-            this->Normalize(rN);
-
-            // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
-            ThisRowType rT1(rRot,1);
-            rT1(0) = 1.0;
-            rT1(1) = 0.0;
-            rT1(2) = 0.0;
-
-            double dot = this->Dot(rN,rT1);
-
-            // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
-            // If this is the case, repeat the procedure using (0,1,0)
-            if ( fabs(dot) > 0.99 )
-            {
-                rT1(0) = 0.0;
-                rT1(1) = 1.0;
-                rT1(2) = 0.0;
-
-                dot = this->Dot(rN,rT1);
-            }
-
-            // calculate projection and normalize
-            rT1 -= dot * rN;
-            this->Normalize(rT1);
-
-            // The third base component is choosen as N x T1, which is normalized by construction
-            ThisRowType rT2(rRot,2);
-            rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
-            rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
-            rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
-        }
-        else //if(mDomainSize == 2)
-        {
-            /* The basis for the new coordinate system is (normal,tangent)
-               Tangent vector is chosen (-normal_y, normal_x) so that the resulting base
-               is right-handed.
-             */
-            ThisRowType rN(rRot,0);
-            ThisRowType rT(rRot,1);
-
-            rN[0] = rNormal[0];
-            rN[1] = rNormal[1];
-            this->Normalize(rN);
-            rT[0] = -rN[1];
-            rT[1] = rN[0];
-        }
-
-    }
+//     /// Compute a rotation matrix to transform values from the cartesian base to one oriented with the node's normal
+//     /**
+//      * The normal is read from solution step data NORMAL. Use NormalCalculationUtils::CalculateOnSimplex to
+//      * obtain and store the nodal normal from the normals of the model's conditons.
+//      * @param rRot The rotation matrix (output)
+//      * @param rThisPoint The point used to orient the new coordinate system.
+//      * @see NormalCalculationUtils
+//      */
+//     template<class TMatrixType>
+//     void RotationOperator(TMatrixType& rRot,
+//                           GeometryType::PointType& rThisPoint) const
+//     {
+//         typedef boost::numeric::ublas::matrix_row<TMatrixType> ThisRowType;
+//         // Get the normal evaluated at the node
+//         const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+//
+//         if(mDomainSize == 3)
+//         {
+//             // Define the new coordinate system, where the first vector is aligned with the normal
+//             ThisRowType rN(rRot,0);
+//             for( unsigned int i = 0; i < 3; ++i)
+//                 rN[i] = rNormal[i];
+//             this->Normalize(rN);
+//
+//             // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+//             ThisRowType rT1(rRot,1);
+//             rT1(0) = 1.0;
+//             rT1(1) = 0.0;
+//             rT1(2) = 0.0;
+//
+//             double dot = this->Dot(rN,rT1);
+//
+//             // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+//             // If this is the case, repeat the procedure using (0,1,0)
+//             if ( fabs(dot) > 0.99 )
+//             {
+//                 rT1(0) = 0.0;
+//                 rT1(1) = 1.0;
+//                 rT1(2) = 0.0;
+//
+//                 dot = this->Dot(rN,rT1);
+//             }
+//
+//             // calculate projection and normalize
+//             rT1 -= dot * rN;
+//             this->Normalize(rT1);
+//
+//             // The third base component is choosen as N x T1, which is normalized by construction
+//             ThisRowType rT2(rRot,2);
+//             rT2(0) = rN(1)*rT1(2) - rN(2)*rT1(1);
+//             rT2(1) = rN(2)*rT1(0) - rN(0)*rT1(2);
+//             rT2(2) = rN(0)*rT1(1) - rN(1)*rT1(0);
+//         }
+//         else //if(mDomainSize == 2)
+//         {
+//             /* The basis for the new coordinate system is (normal,tangent)
+//                Tangent vector is chosen (-normal_y, normal_x) so that the resulting base
+//                is right-handed.
+//              */
+//             ThisRowType rN(rRot,0);
+//             ThisRowType rT(rRot,1);
+//
+//             rN[0] = rNormal[0];
+//             rN[1] = rNormal[1];
+//             this->Normalize(rN);
+//             rT[0] = -rN[1];
+//             rT[1] = rN[0];
+//         }
+//
+//     }
 
 
     template< class TVectorType >
@@ -495,35 +575,362 @@ private:
 
 
     /// Transform a local contribution from cartesian coordinates to rotated ones
-    void ApplyRotation(TLocalMatrixType& rMatrix,
-                       const TLocalMatrixType& rRotation) const
-    {
-        // compute B = R*A*transpose(R)
-        const unsigned int LocalSize = rMatrix.size1();
-        const unsigned int NumBlocks = LocalSize / mBlockSize;
-        TLocalMatrixType Tmp = ZeroMatrix(LocalSize,LocalSize);
+//     void ApplyRotation(TLocalMatrixType& rMatrix,
+//                        const TLocalMatrixType& rRotation) const
+//     {
+//         // compute B = R*A*transpose(R)
+//         const unsigned int LocalSize = rMatrix.size1();
+//         const unsigned int NumBlocks = LocalSize / mBlockSize;
+//         //TLocalMatrixType Tmp = ZeroMatrix(LocalSize,LocalSize);
+// /*
+//         for (unsigned int iBlock = 0; iBlock < NumBlocks; iBlock++)
+//         {
+//             for (unsigned int jBlock = 0; jBlock < NumBlocks; jBlock++)
+//             {
+//                 for (unsigned int i = iBlock*mBlockSize; i < (iBlock+1)*mBlockSize; i++)
+//                 {
+//                     for(unsigned int j = jBlock*mBlockSize; j < (jBlock+1)*mBlockSize; j++)
+//                     {
+//                         double& tij = Tmp(i,j);
+//                         for(unsigned int k = iBlock*mBlockSize; k < (iBlock+1)*mBlockSize; k++)
+//                         {
+//                             for(unsigned int l = jBlock*mBlockSize; l < (jBlock+1)*mBlockSize; l++)
+//                             {
+//                                 tij += rRotation(i,k)*rMatrix(k,l)*rRotation(j,l);
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }*/
+//
+// 	Matrix Tmp = prod(rMatrix,trans(rRotation));
+// 	noalias(rMatrix) = prod(rRotation,Tmp);
+//
+// //         noalias(rMatrix) = Tmp;
+//     }
 
-        for (unsigned int iBlock = 0; iBlock < NumBlocks; iBlock++)
+
+    //auxiliary functions
+    template< unsigned int TBlockSize >
+    void ReadBlockMatrix( boost::numeric::ublas::bounded_matrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
+    {
+        for(unsigned int i=0; i<TBlockSize; i++)
         {
-            for (unsigned int jBlock = 0; jBlock < NumBlocks; jBlock++)
+            for(unsigned int j=0; j<TBlockSize; j++)
             {
-                for (unsigned int i = iBlock*mBlockSize; i < (iBlock+1)*mBlockSize; i++)
+                block(i,j) = origin(Ibegin+i, Jbegin+j);
+            }
+        }
+    }
+
+    template< unsigned int TBlockSize >
+    void WriteBlockMatrix( const boost::numeric::ublas::bounded_matrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
+    {
+        for(unsigned int i=0; i<TBlockSize; i++)
+        {
+            for(unsigned int j=0; j<TBlockSize; j++)
+            {
+                destination(Ibegin+i, Jbegin+j) = block(i,j);
+            }
+        }
+    }
+
+    void LocalRotationOperator(boost::numeric::ublas::bounded_matrix<double,4,4>& rRot,
+                               GeometryType::PointType& rThisPoint) const
+    {
+        noalias(rRot) = IdentityMatrix(4,4);
+
+        // Get the normal evaluated at the node
+        const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
+        aux = sqrt(aux);
+        rRot(0,0) = rNormal[0]/aux;
+        rRot(0,1) = rNormal[1]/aux;
+        rRot(0,2) = rNormal[2]/aux;
+        // Define the new coordinate system, where the first vector is aligned with the normal
+
+        // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+        array_1d<double,3> rT1;
+        rT1(0) = 1.0;
+        rT1(1) = 0.0;
+        rT1(2) = 0.0;
+        double dot = rRot(0,0); //this->Dot(rN,rT1);
+
+        // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+        // If this is the case, repeat the procedure using (0,1,0)
+        if ( fabs(dot) > 0.99 )
+        {
+            rT1(0) = 0.0;
+            rT1(1) = 1.0;
+            rT1(2) = 0.0;
+
+            dot = rRot(0,1); //this->Dot(rN,rT1);
+        }
+
+        // calculate projection and normalize
+        rT1[0] -= dot*rRot(0,0);
+        rT1[1] -= dot*rRot(0,1);
+        rT1[2] -= dot*rRot(0,2);
+        this->Normalize(rT1);
+        rRot(1,0) = rT1[0];
+        rRot(1,1) = rT1[1];
+        rRot(1,2) = rT1[2];
+
+        // The third base component is choosen as N x T1, which is normalized by construction
+        rRot(2,0) = rRot(0,1)*rT1[2] - rRot(0,2)*rT1[1];
+        rRot(2,1) = rRot(0,2)*rT1[0] - rRot(0,0)*rT1[2];
+        rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
+    }
+
+    void LocalRotationOperator(boost::numeric::ublas::bounded_matrix<double,3,3>& rRot,
+                               GeometryType::PointType& rThisPoint) const
+    {
+        noalias(rRot) = IdentityMatrix(3,3);
+
+        // Get the normal evaluated at the node
+        const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
+        aux = sqrt(aux);
+
+        rRot(0,0) = rNormal[0]/aux;
+        rRot(0,1) = rNormal[1]/aux;
+        rRot(1,0) = -rNormal[1]/aux;
+        rRot(1,1) = rNormal[0]/aux;
+
+    }
+
+    void LocalRotationOperatorPure(boost::numeric::ublas::bounded_matrix<double,3,3>& rRot,
+                                   GeometryType::PointType& rThisPoint) const
+    {
+
+        // Get the normal evaluated at the node
+        const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
+        aux = sqrt(aux);
+        rRot(0,0) = rNormal[0]/aux;
+        rRot(0,1) = rNormal[1]/aux;
+        rRot(0,2) = rNormal[2]/aux;
+        // Define the new coordinate system, where the first vector is aligned with the normal
+
+        // To choose the remaining two vectors, we project the first component of the cartesian base to the tangent plane
+        array_1d<double,3> rT1;
+        rT1(0) = 1.0;
+        rT1(1) = 0.0;
+        rT1(2) = 0.0;
+        double dot = rRot(0,0); //this->Dot(rN,rT1);
+
+        // It is possible that the normal is aligned with (1,0,0), resulting in norm(rT1) = 0
+        // If this is the case, repeat the procedure using (0,1,0)
+        if ( fabs(dot) > 0.99 )
+        {
+            rT1(0) = 0.0;
+            rT1(1) = 1.0;
+            rT1(2) = 0.0;
+
+            dot = rRot(0,1); //this->Dot(rN,rT1);
+        }
+
+        // calculate projection and normalize
+        rT1[0] -= dot*rRot(0,0);
+        rT1[1] -= dot*rRot(0,1);
+        rT1[2] -= dot*rRot(0,2);
+        this->Normalize(rT1);
+        rRot(1,0) = rT1[0];
+        rRot(1,1) = rT1[1];
+        rRot(1,2) = rT1[2];
+
+        // The third base component is choosen as N x T1, which is normalized by construction
+        rRot(2,0) = rRot(0,1)*rT1[2] - rRot(0,2)*rT1[1];
+        rRot(2,1) = rRot(0,2)*rT1[0] - rRot(0,0)*rT1[2];
+        rRot(2,2) = rRot(0,0)*rT1[1] - rRot(0,1)*rT1[0];
+    }
+
+    void LocalRotationOperatorPure(boost::numeric::ublas::bounded_matrix<double,2,2>& rRot,
+                                   GeometryType::PointType& rThisPoint) const
+    {
+        // Get the normal evaluated at the node
+        const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+
+        double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
+        aux = sqrt(aux);
+
+        rRot(0,0) = rNormal[0]/aux;
+        rRot(0,1) = rNormal[1]/aux;
+        rRot(1,0) = -rNormal[1]/aux;
+        rRot(1,1) = rNormal[0]/aux;
+
+    }
+
+
+
+
+
+
+
+
+    template<unsigned int TDim>
+    void RotateAux(TLocalMatrixType& rLocalMatrix,
+                   TLocalVectorType& rLocalVector,
+                   GeometryType& rGeometry) const
+    {
+        const unsigned int LocalSize = rLocalVector.size();
+
+        unsigned int Index = 0;
+        int rotations_needed = 0;
+        const unsigned int NumBlocks = LocalSize / mBlockSize;
+        boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+
+        std::vector< boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> > rRot(NumBlocks);
+        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        {
+            const NodeType& rNode = rGeometry[j];
+            // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
+            if( rNode.GetValue(mrFlagVariable) != mZero )
+            {
+                NeedRotation[j] = true;
+                rotations_needed++;
+
+                LocalRotationOperator(rRot[j],rGeometry[j]);
+            }
+
+            Index += mBlockSize;
+        }
+
+        if(rotations_needed > 0)
+        {
+            boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim+1> mat_block, tmp;
+            array_1d<double,TDim+1> aux, aux1;
+
+            for(unsigned int i=0; i<NumBlocks; i++)
+            {
+                if(NeedRotation[i] == true)
                 {
-                    for(unsigned int j = jBlock*mBlockSize; j < (jBlock+1)*mBlockSize; j++)
+                    for(unsigned int j=0; j<NumBlocks; j++)
                     {
-                        double& tij = Tmp(i,j);
-                        for(unsigned int k = iBlock*mBlockSize; k < (iBlock+1)*mBlockSize; k++)
+                        if(NeedRotation[j] == true)
                         {
-                            for(unsigned int l = jBlock*mBlockSize; l < (jBlock+1)*mBlockSize; l++)
-                            {
-                                tij += rRotation(i,k)*rMatrix(k,l)*rRotation(j,l);
-                            }
+                            ReadBlockMatrix<TDim+1>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(mat_block,trans(rRot[j]));
+                            noalias(mat_block) = prod(rRot[i],tmp);
+                            WriteBlockMatrix<TDim+1>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                        }
+                        else
+                        {
+                            ReadBlockMatrix<TDim+1>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(rRot[i],mat_block);
+                            WriteBlockMatrix<TDim+1>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                        }
+                    }
+
+                    for(unsigned int k=0; k<TDim+1; k++)
+                        aux[k] = rLocalVector[i*mBlockSize+k];
+
+                    noalias(aux1) = prod(rRot[i],aux);
+
+                    for(unsigned int k=0; k<TDim+1; k++)
+                        rLocalVector[i*mBlockSize+k] = aux1[k];
+
+                }
+                else
+                {
+                    for(unsigned int j=0; j<NumBlocks; j++)
+                    {
+                        if(NeedRotation[j] == true)
+                        {
+                            ReadBlockMatrix<TDim+1>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(mat_block,trans(rRot[j]));
+                            WriteBlockMatrix<TDim+1>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
                         }
                     }
                 }
+
             }
         }
-        noalias(rMatrix) = Tmp;
+    }
+
+    //to be used when there is only velocity (no additional pressure or other var block)
+    template<unsigned int TDim>
+    void RotateAuxPure(TLocalMatrixType& rLocalMatrix,
+                       TLocalVectorType& rLocalVector,
+                       GeometryType& rGeometry) const
+    {
+        const unsigned int LocalSize = rLocalVector.size();
+
+        unsigned int Index = 0;
+        int rotations_needed = 0;
+        const unsigned int NumBlocks = LocalSize / mBlockSize;
+        boost::numeric::ublas::vector<bool> NeedRotation( NumBlocks, false);
+
+        std::vector< boost::numeric::ublas::bounded_matrix<double,TDim,TDim> > rRot(NumBlocks);
+        for(unsigned int j = 0; j < rGeometry.PointsNumber(); ++j)
+        {
+            const NodeType& rNode = rGeometry[j];
+            // The const reference is needed to ensure that we don't initialize the value for mrFlagVariable when it is not defined (which produces a race condtion in openmp).
+            if( rNode.GetValue(mrFlagVariable) != mZero )
+            {
+                NeedRotation[j] = true;
+                rotations_needed++;
+
+                LocalRotationOperatorPure(rRot[j],rGeometry[j]);
+            }
+
+            Index += mBlockSize;
+        }
+
+        if(rotations_needed > 0)
+        {
+            boost::numeric::ublas::bounded_matrix<double,TDim,TDim> mat_block, tmp;
+            array_1d<double,TDim> aux, aux1;
+
+            for(unsigned int i=0; i<NumBlocks; i++)
+            {
+                if(NeedRotation[i] == true)
+                {
+                    for(unsigned int j=0; j<NumBlocks; j++)
+                    {
+                        if(NeedRotation[j] == true)
+                        {
+                            ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(mat_block,trans(rRot[j]));
+                            noalias(mat_block) = prod(rRot[i],tmp);
+                            WriteBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                        }
+                        else
+                        {
+                            ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(rRot[i],mat_block);
+                            WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                        }
+                    }
+
+                    for(unsigned int k=0; k<TDim; k++)
+                        aux[k] = rLocalVector[i*mBlockSize+k];
+
+                    noalias(aux1) = prod(rRot[i],aux);
+
+                    for(unsigned int k=0; k<TDim; k++)
+                        rLocalVector[i*mBlockSize+k] = aux1[k];
+
+                }
+                else
+                {
+                    for(unsigned int j=0; j<NumBlocks; j++)
+                    {
+                        if(NeedRotation[j] == true)
+                        {
+                            ReadBlockMatrix<TDim>(mat_block, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                            noalias(tmp) = prod(mat_block,trans(rRot[j]));
+                            WriteBlockMatrix<TDim>(tmp, rLocalMatrix, i*mBlockSize, j*mBlockSize);
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
     ///@}
@@ -541,10 +948,10 @@ private:
     ///@{
 
     /// Assignment operator.
-    CoordinateTransformationUtils& operator=(CoordinateTransformationUtils const& rOther){}
+    CoordinateTransformationUtils& operator=(CoordinateTransformationUtils const& rOther) {}
 
     /// Copy constructor.
-    CoordinateTransformationUtils(CoordinateTransformationUtils const& rOther){}
+    CoordinateTransformationUtils(CoordinateTransformationUtils const& rOther) {}
 
 
     ///@}
