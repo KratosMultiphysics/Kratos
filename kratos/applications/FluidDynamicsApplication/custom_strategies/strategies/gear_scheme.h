@@ -249,9 +249,17 @@ public:
     {
         KRATOS_TRY
 
-        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
+
+        KRATOS_CATCH("")
+    }
+
+    virtual void FinalizeNonLinIteration(ModelPart &rModelPart,
+                                         TSystemMatrixType &A,
+                                         TSystemVectorType &Dx,
+                                         TSystemVectorType &b)
+    {
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
         //if orthogonal subscales are computed
         if (CurrentProcessInfo[OSS_SWITCH] == 1.0)
@@ -260,7 +268,6 @@ public:
             //this->FullProjection(rModelPart);
         }
 
-        KRATOS_CATCH("")
     }
 
     /// Start the iteration by providing a first approximation to the solution.
@@ -618,20 +625,23 @@ protected:
                                    LocalSystemMatrixType& rMass,
                                    const ProcessInfo& rCurrentProcessInfo)
     {
-        const Vector& rCoefs = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS);
-
-        LocalSystemVectorType Acc;
-        pObject->GetFirstDerivativesVector(Acc);
-        Acc *= rCoefs[0];
-
-        for(unsigned int n = 1; n < 3; ++n)
+        if (rMass.size1() != 0)
         {
-            LocalSystemVectorType rVel;
-            pObject->GetFirstDerivativesVector(rVel,n);
-            noalias(Acc) += rCoefs[n] * rVel;
-        }
+            const Vector& rCoefs = rCurrentProcessInfo.GetValue(BDF_COEFFICIENTS);
 
-        noalias(rRHS) -= prod(rMass,Acc);
+            LocalSystemVectorType Acc;
+            pObject->GetFirstDerivativesVector(Acc);
+            Acc *= rCoefs[0];
+
+            for(unsigned int n = 1; n < 3; ++n)
+            {
+                LocalSystemVectorType rVel;
+                pObject->GetFirstDerivativesVector(rVel,n);
+                noalias(Acc) += rCoefs[n] * rVel;
+            }
+
+            noalias(rRHS) -= prod(rMass,Acc);
+        }
     }
 
 

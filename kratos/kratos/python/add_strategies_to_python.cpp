@@ -312,6 +312,7 @@ namespace Kratos
                     .def("Update", &BaseSchemeType::Update)
                     .def("CalculateOutputData", &BaseSchemeType::CalculateOutputData)
                     .def("Clean", &BaseSchemeType::Clean)
+                    .def("Clear",&BaseSchemeType::Clear)
                     .def("MoveMesh", MoveMesh)
                     .def("Check", &BaseSchemeType::Check)
                     ;

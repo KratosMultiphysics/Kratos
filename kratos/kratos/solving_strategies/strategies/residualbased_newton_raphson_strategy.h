@@ -709,6 +709,7 @@ public:
         GetBuilderAndSolver()->SetDofSetIsInitializedFlag(false);
         GetBuilderAndSolver()->Clear();
 
+        GetScheme()->Clear();
 
         KRATOS_CATCH("");
     }

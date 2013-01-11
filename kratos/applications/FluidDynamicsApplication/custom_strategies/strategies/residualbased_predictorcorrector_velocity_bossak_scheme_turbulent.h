@@ -164,6 +164,33 @@ namespace Kratos {
             maccold.resize(NumThreads);
         }
 
+        /** Constructor without a turbulence model
+         */
+        ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
+            double NewAlphaBossak,
+            double MoveMeshStrategy,
+            unsigned int DomainSize,
+            Variable<double>& rSlipVar)
+        :
+          Scheme<TSparseSpace, TDenseSpace>(),
+          mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+        {
+            //default values for the Newmark Scheme
+            mAlphaBossak = NewAlphaBossak;
+            mBetaNewmark = 0.25 * pow((1.00 - mAlphaBossak), 2);
+            mGammaNewmark = 0.5 - mAlphaBossak;
+            mMeshVelocity = MoveMeshStrategy;
+
+
+            //Allocate auxiliary memory
+            int NumThreads = OpenMPUtils::GetNumThreads();
+            mMass.resize(NumThreads);
+            mDamp.resize(NumThreads);
+            mvel.resize(NumThreads);
+            macc.resize(NumThreads);
+            maccold.resize(NumThreads);
+        }
+
         /** Constructor with a turbulence model
          */
         ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(
@@ -555,16 +582,21 @@ namespace Kratos {
         {
             KRATOS_TRY
 
-            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
             if (mpTurbulenceModel != 0) // If not null
                 mpTurbulenceModel->Execute();
 
+            KRATOS_CATCH("")
+        }
+
+        virtual void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)
+        {
+            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
-                if (r_model_part.GetCommunicator().MyPID() == 0)
+                if (rModelPart.GetCommunicator().MyPID() == 0)
                     std::cout << "Computing OSS projections" << std::endl;
-                for (typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++) {
+                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++) {
 
                     noalias(ind->FastGetSolutionStepValue(ADVPROJ)) = ZeroVector(3);
 
@@ -579,17 +611,17 @@ namespace Kratos {
                 array_1d<double, 3 > output;
 
 
-                for (typename ModelPart::ElementsContainerType::iterator elem = r_model_part.ElementsBegin(); elem != r_model_part.ElementsEnd(); elem++)
+                for (typename ModelPart::ElementsContainerType::iterator elem = rModelPart.ElementsBegin(); elem != rModelPart.ElementsEnd(); elem++)
                 {
                     elem->Calculate(ADVPROJ, output, CurrentProcessInfo);
                 }
 
-                r_model_part.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-                r_model_part.GetCommunicator().AssembleCurrentData(DIVPROJ);
-                r_model_part.GetCommunicator().AssembleCurrentData(ADVPROJ);
+                rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+                rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
+                rModelPart.GetCommunicator().AssembleCurrentData(ADVPROJ);
 
 
-                for (typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
+                for (typename ModelPart::NodesContainerType::iterator ind = rModelPart.NodesBegin(); ind != rModelPart.NodesEnd(); ind++)
                 {
                     if (ind->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
                     {
@@ -601,8 +633,6 @@ namespace Kratos {
                     ind->FastGetSolutionStepValue(DIVPROJ) /= Area;
                 }
             }
-
-            KRATOS_CATCH("")
         }
 
         void FinalizeSolutionStep(ModelPart &rModelPart, TSystemMatrixType &A, TSystemVectorType &Dx, TSystemVectorType &b)

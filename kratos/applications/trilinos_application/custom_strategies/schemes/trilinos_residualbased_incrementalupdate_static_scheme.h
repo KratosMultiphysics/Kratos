@@ -150,8 +150,9 @@ public:
 
     /** Constructor.
     */
-    TrilinosResidualBasedIncrementalUpdateStaticScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+    TrilinosResidualBasedIncrementalUpdateStaticScheme():
+        Scheme<TSparseSpace,TDenseSpace>(),
+        mImporterIsInitialized(false)
     {}
 
     /** Destructor.
@@ -176,50 +177,24 @@ public:
         TSystemVectorType& b
     )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
+
+        if (!DofImporterIsInitialized())
+            this->InitializeDofImporter(rDofSet,Dx);
+
         int system_size = TSparseSpace::Size1(A);
-        int number_of_dofs = rDofSet.size();
-        int* index_array = new int[number_of_dofs];
-
-
-        //filling the array with the global ids
-        int counter = 0;
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            int id = i_dof->EquationId();
-            if( id < system_size )
-            {
-                index_array[counter] = id;
-                counter += 1;
-            }
-        }
-        int tot_update_dofs = counter;
-
-        int check_size = -1;
-        b.Comm().SumAll(&tot_update_dofs,&check_size,1);
-        if(check_size < system_size)
-        {
-            cout << "expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
-            KRATOS_ERROR(std::logic_error,"dof count is not correct. There are less dofs then expected","")
-        }
-
-        //defining a map as needed
-        Epetra_Map dof_update_map(-1,tot_update_dofs,index_array,0,b.Comm() );
-
-        //defining the importer class
-        Epetra_Import importer( dof_update_map, Dx.Map() );
 
         //defining a temporary vector to gather all of the values needed
-        Epetra_Vector temp( importer.TargetMap() );
+        Epetra_Vector temp( mpDofImporter->TargetMap() );
 
         //importing in the new temp vector the values
-        int ierr = temp.Import(Dx,importer,Insert);
+        int ierr = temp.Import(Dx,*mpDofImporter,Insert);
         if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
 
         double* temp_values; //DO NOT make delete of this one!!
         temp.ExtractView( &temp_values );
 
-        b.Comm().Barrier();
+        Dx.Comm().Barrier();
 
 
 // ModelPart::NodesContainerType::iterator node_it = r_model_part.Nodes().find(2756);
@@ -234,14 +209,12 @@ public:
             int global_id = (dof_begin+iii)->EquationId();
             if(global_id < system_size)
             {
-                double aaa = temp[dof_update_map.LID(global_id)];
+                double aaa = temp[mpDofImporter->TargetMap().LID(global_id)];
                 /*		if(global_id == 117) std::cout << "rank = " << b.Comm().MyPID() << " global id" << global_id << "local num" << iii << " map num " << dof_update_map.LID(global_id) << " value= " << aaa << std::endl;*/
                 (dof_begin+iii)->GetSolutionStepValue() += aaa;
             }
         }
 
-        //removing unnecessary memory
-        delete [] index_array;
 //                        delete [] temp_values;  //deleting this is WRONG! do not do it!!
 
         KRATOS_CATCH("")
@@ -378,6 +351,12 @@ public:
     /*@{ */
 
 
+    virtual void Clear()
+    {
+        mpDofImporter.reset();
+        mImporterIsInitialized = false;
+    }
+
     /*@} */
     /**@name Access */
     /*@{ */
@@ -387,6 +366,11 @@ public:
     /**@name Inquiry */
     /*@{ */
 
+
+    bool DofImporterIsInitialized()
+    {
+        return mImporterIsInitialized;
+    }
 
     /*@} */
     /**@name Friends */
@@ -412,11 +396,65 @@ protected:
     /**@name Protected Operations*/
     /*@{ */
 
+    virtual void InitializeDofImporter(DofsArrayType& rDofSet,
+                                       TSystemVectorType& Dx)
+    {
+        int system_size = TSparseSpace::Size(Dx);
+        int number_of_dofs = rDofSet.size();
+        std::vector< int > index_array(number_of_dofs);
+
+        //filling the array with the global ids
+        int counter = 0;
+        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+            int id = i_dof->EquationId();
+            if( id < system_size )
+            {
+                index_array[counter] = id;
+                counter += 1;
+            }
+        }
+
+        std::sort(index_array.begin(),index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(),index_array.end());
+        index_array.resize(NewEnd-index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
+        if ( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
+        {
+            std::stringstream Msg;
+            Msg << "Dof count is not correct. There are less dofs then expected." << std::endl;
+            Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+            KRATOS_ERROR(std::runtime_error,Msg.str(),"")
+        }
+
+        //defining a map as needed
+        Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
+
+        //defining the importer class
+        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
+        mpDofImporter.swap(pDofImporter);
+
+        mImporterIsInitialized = true;
+    }
+
 
     /*@} */
     /**@name Protected  Access */
     /*@{ */
 
+    /// Get pointer Epetra_Import instance that can be used to import values from Dx to the owner of each Dof.
+    /**
+     * @note Important: always check that the Importer is initialized before calling using
+     * DofImporterIsInitialized or initialize it with InitializeDofImporter.
+     * @return Importer
+     */
+    boost::shared_ptr<Epetra_Import> pGetImporter()
+    {
+        return mpDofImporter;
+    }
 
     /*@} */
     /**@name Protected Inquiry */
@@ -439,6 +477,10 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
+    bool mImporterIsInitialized;
+
+    boost::shared_ptr<Epetra_Import> mpDofImporter;
 
     /*@} */
     /**@name Private Operators*/
