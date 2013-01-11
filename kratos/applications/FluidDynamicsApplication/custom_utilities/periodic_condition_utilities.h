@@ -105,13 +105,17 @@ namespace Kratos
  * This class is used as follows:
  * - Initialize a PeriodicConditionUtilities, passing the ModelPart containing the nodes
  * and the domain size.
+ * - Define the nodal unknowns of the problem with AddPeriodicVariable
  * - Define a spatial search strategy with SetUpSearchStrategy
- * - Define a periodic boundary with DefinePeriodicBoundary (for the flow problem) or
- * DefinePeriodicBoundaryViscosity (for the eddy viscosity transport problem.
+ * - Define a periodic boundary with GenerateConditions
  * - Additional periodic boundaries can be defined by calling DefinePeriodicBoundary
  * again, if the new boundary is identified by the same variable and value (Otherwise,
  * first set a new search structure with the new variable and value).
  * @see PeriodicCondition
+ * @note If the PeriodicCondition are already defined in the ModelPart (for example,
+ * if they are already defined in the mdpa file) one can simply call AddPeriodicVariable
+ * to define the system unknowns to be linked and DefinePeriodicBoundary to initialize
+ * the conditions.
  */
 class PeriodicConditionUtilities
 {
@@ -154,7 +158,8 @@ public:
       * @param ThisModelPart The problem's ModelPart
       * @param ThisDomainSize The domain size
       */
-    PeriodicConditionUtilities(ModelPart& ThisModelPart,SizeType ThisDomainSize):
+    PeriodicConditionUtilities(ModelPart& ThisModelPart,
+                               SizeType ThisDomainSize):
         mrModelPart(ThisModelPart),
         mDomainSize(ThisDomainSize),
         mpSearchStrategy()
@@ -244,17 +249,6 @@ public:
         else
             Id = (mrModelPart.ConditionsEnd()-1)->Id();
 
-//            // Spatial search setup (for SearchInRadius)
-//            const double Distance = sqrt(Translation[0]*Translation[0] + Translation[1]*Translation[1] + Translation[2]*Translation[2]);
-//            const double SearchRadius = Tolerance * Distance;
-//
-//            PointType ImageNode;
-//            SizeType NodesFound;
-//            SizeType MaxResults = 20;
-//
-//            PointIterator Results;
-//            DistanceIterator Distances;
-
         // Spatial search setup (for SearchNearestPoint)
         double ResultDistance = 0.0;
         PointTypePointer SecondNode;
@@ -265,28 +259,6 @@ public:
         for(PointVector::iterator itNode = mCandidateNodes.begin(); itNode != mCandidateNodes.end(); itNode++)
         {
             this->MoveNode(**itNode,ImageNode,MovementRef); // * for iterator + * for pointer
-//                NodesFound = mpSearchStrategy->SearchInRadius(ImageNode,SearchRadius,Results,MaxResults);
-//                if (NodesFound > 0)
-//                {
-//                    ConditionNodes.GetContainer()[0] = *itNode;
-//
-//                    // Find nearest node in radius
-//                    double MinDistance = Distance;
-//                    for(SizeType i = 0; i < NodesFound; ++i)
-//                    {
-//                        if(*Distances < MinDistance)
-//                        {
-//                            MinDistance = *Distances;
-//                            ConditionNodes.GetContainer()[1] = *Results;
-//                        }
-//                        Distances++;
-//                        Results++;
-//                    }
-//
-//                    // Add condition to model part
-//                    Condition::Pointer pNewCondition = rCondition.Create(++Id,ConditionNodes,pProperties);
-//                    rConditions.push_back(pNewCondition);
-//                }
 
             SecondNode = mpSearchStrategy->SearchNearestPoint(ImageNode,ResultDistance);
             if(ResultDistance < Tolerance)
@@ -312,10 +284,6 @@ public:
       * where one is the image of the other by the translation
       * defined by the arguments. The resulting conditions will enforce
       * equal values of velocity for each node pair.
-      * @param PenaltyWeight The weight of the periodic boundary condition.
-      * This is an algorithmic parameter, higher weights imply a stricter
-      * verification of the boundary condition, but produce stiff linear
-      * systems, so iterative linear solvers might not converge.
       * @param TranslationX X component of the vector that transforms each
       * node in one side of the periodic boundary to its image in the other.
       * @param TranslationY Y component of the vector that transforms each
@@ -323,7 +291,7 @@ public:
       * @param TranslationZ Z component of the vector that transforms each
       * node in one side of the periodic boundary to its image in the other.
       */
-    void DefinePeriodicBoundary(const double PenaltyWeight,
+    void DefinePeriodicBoundary(Properties::Pointer pNewProperties,
                                 const double TranslationX,
                                 const double TranslationY,
                                 const double TranslationZ = 0.0)
@@ -342,141 +310,21 @@ public:
         Translation[1] = TranslationY;
         Translation[2] = TranslationZ;
 
-        Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-        SetPropertiesForVelocity(pNewProperties);
-        SetSymmetry(pNewProperties,PenaltyWeight);
-
         GenerateConditions(Translation,pNewProperties,Tolerance);
 
         KRATOS_CATCH("")
     }
 
-    void DefinePeriodicBoundaryPressure(const double PenaltyWeight,
-                                        const double TranslationX,
-                                        const double TranslationY,
-                                        const double TranslationZ = 0.0)
+    void AddPeriodicVariable(Properties& rProperties,
+                             Variable<double>& rVariable)
     {
-        KRATOS_TRY;
-
-        // check that the spatial seach structure was initialized
-        if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundaryPressure() called without a spatial search structure. Please call SetUpSearchStructure() first.","");
-
-        const double Tolerance = 1e-4;
-
-        array_1d<double,3> Translation;
-        Translation[0] = TranslationX;
-        Translation[1] = TranslationY;
-        Translation[2] = TranslationZ;
-
-        Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-        SetPropertiesForPressure(pNewProperties);
-        SetSymmetry(pNewProperties,PenaltyWeight);
-
-        GenerateConditions(Translation,pNewProperties,Tolerance);
-        KRATOS_CATCH("")
+        rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
     }
 
-    /// Define periodic boundary pairs according to a central symmetry.
-    /** @see DefinePeriodicBoundary */
-    void DefineCentralSymmetry(const double PenaltyWeight,
-                               const double CentreX,
-                               const double CentreY,
-                               const double CentreZ = 0.0)
+    void AddPeriodicVariable(Properties &rProperties,
+                             VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&rVariable)
     {
-        KRATOS_TRY
-
-        // check that the spatial seach structure was initialized
-        if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralSymmetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
-
-
-            const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
-
-        std::size_t Id = 1; // throwaway id for the central node (it doesn't matter if it is not unique, as we are not going to put it in a model part)
-        Node<3> Centre(Id,CentreX,CentreY,CentreZ);
-
-        Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-        SetPropertiesForPressure(pNewProperties);
-        SetSymmetry(pNewProperties,PenaltyWeight);
-
-        GenerateConditions(Centre,pNewProperties,Tolerance);
-
-        KRATOS_CATCH("")
-    }
-
-
-    /// Define periodic boundary pairs according to a central symmetry.
-    /** The periodic boundary is here used to define an antimetry (V_node1 = - V_node2).
-      * @see DefinePeriodicBoundary
-      */
-    void DefineCentralAntimetry(const double PenaltyWeight,
-                                const double CentreX,
-                                const double CentreY,
-                                const double CentreZ = 0.0)
-    {
-        KRATOS_TRY
-
-        // check that the spatial seach structure was initialized
-        if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefineCentralAntimetry() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
-
-
-            const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
-
-        std::size_t Id = 1; // throwaway id for the central node (it doesn't matter if it is not unique, as we are not going to put it in a model part)
-        Node<3> Centre(Id,CentreX,CentreY,CentreZ);
-
-        Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-        SetPropertiesForVelocity(pNewProperties);
-        SetAntimetry(pNewProperties,PenaltyWeight);
-
-        GenerateConditions(Centre,pNewProperties,Tolerance);
-
-        KRATOS_CATCH("")
-    }
-
-    /// Find node pairs to define periodic boundary conditions (version for the eddy viscosity problem).
-    /** This function uses GenerateConditions to find node pairs
-      * where one is the image of the other by the translation
-      * defined by the arguments. The resulting conditions will enforce
-      * equal values of eddy viscosity for each node pair.
-      * @param PenaltyWeight The weight of the periodic boundary condition.
-      * This is an algorithmic parameter, higher weights imply a stricter
-      * verification of the boundary condition, but produce stiff linear
-      * systems, so iterative linear solvers might not converge.
-      * @param TranslationX X component of the vector that transforms each
-      * node in one side of the periodic boundary to its image in the other.
-      * @param TranslationY Y component of the vector that transforms each
-      * node in one side of the periodic boundary to its image in the other.
-      * @param TranslationZ Z component of the vector that transforms each
-      * node in one side of the periodic boundary to its image in the other.
-      */
-    void DefinePeriodicBoundaryViscosity(const double PenaltyWeight,
-                                         const double TranslationX,
-                                         const double TranslationY,
-                                         const double TranslationZ = 0.0)
-    {
-        KRATOS_TRY
-
-        if(mpSearchStrategy == 0)
-            KRATOS_ERROR(std::logic_error,"PeriodicConditionUtilities error: DefinePeriodicBoundaryViscosity() called without a spatial search structure. Please call SetUpSearchStructure() first.","")
-
-
-            const double Tolerance = 1e-4; // Relative tolerance when searching for node pairs
-
-        array_1d<double,3> Translation;
-        Translation[0] = TranslationX;
-        Translation[1] = TranslationY;
-        Translation[2] = TranslationZ;
-
-        Properties::Pointer pNewProperties = boost::shared_ptr<Properties>( new Properties() );
-        SetPropertiesForViscosity(pNewProperties);
-        SetSymmetry(pNewProperties,PenaltyWeight);
-
-        GenerateConditions(Translation,pNewProperties,Tolerance);
-
-        KRATOS_CATCH("")
+        rProperties.GetValue(PERIODIC_VARIABLES).Add(rVariable);
     }
 
     ///@}
@@ -583,49 +431,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    void SetSymmetry(Properties::Pointer pProperties,
-                     const double PenaltyWeight) const
-    {
-        pProperties->GetValue(PERIODIC_VARIABLES).SetSymmetricCondition(PenaltyWeight);
-    }
-
-    void SetAntimetry(Properties::Pointer pProperties,
-                      const double PenaltyWeight) const
-    {
-        pProperties->GetValue(PERIODIC_VARIABLES).SetAntimetricCondition(PenaltyWeight);
-    }
-
-
-    void SetPropertiesForVelocity(Properties::Pointer pProperties) const
-    {
-        pProperties->GetValue(PERIODIC_VARIABLES) = PeriodicVariablesContainer();
-        PeriodicVariablesContainer& rPeriodicVariables = pProperties->GetValue(PERIODIC_VARIABLES);
-
-        rPeriodicVariables.Add(VELOCITY_X);
-        rPeriodicVariables.Add(VELOCITY_Y);
-        if(mDomainSize == 3)
-        {
-            rPeriodicVariables.Add(VELOCITY_Z);
-        }
-//            rPeriodicVariables.Add(PRESSURE);
-    }
-
-    void SetPropertiesForPressure(Properties::Pointer pProperties) const
-    {
-        pProperties->GetValue(PERIODIC_VARIABLES) = PeriodicVariablesContainer();
-        PeriodicVariablesContainer& rPeriodicVariables = pProperties->GetValue(PERIODIC_VARIABLES);
-
-        rPeriodicVariables.Add(PRESSURE);
-    }
-
-    void SetPropertiesForViscosity(Properties::Pointer pProperties) const
-    {
-        pProperties->GetValue(PERIODIC_VARIABLES) = PeriodicVariablesContainer();
-        PeriodicVariablesContainer& rPeriodicVariables = pProperties->GetValue(PERIODIC_VARIABLES);
-
-        rPeriodicVariables.Add(TURBULENT_VISCOSITY);
-    }
 
     void MoveNode( const Node<3>& rInNode, Node<3>& rOutNode, const array_1d<double,3>& rTranslation) const
     {

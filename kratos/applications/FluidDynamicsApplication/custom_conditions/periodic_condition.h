@@ -87,11 +87,20 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Condition used to assign periodic boundary conditions
+/// Condition used to assign periodic boundary conditions.
 /**
- * This condition imposes periodic boundary conditions in a weak sense.
  * A conformant mapping between the two related boundaries is assumed, so this condition
- * will link two nodes, one on each boundary.
+ * will link two nodes, one on each boundary, which are considered to be "images" of one
+ * another on both periodic sides.\n
+ * Note that the periodic boundary condition is enforced by the builder and solver, this Condition
+ * is simply used to provide it the required information to set it up.\n
+ * This condtion has to be carefully set up in order to work properly, see PeriodicConditionUtilities,
+ * which provides some tools to do so.
+ * @note PeriodicCondition is designed designed to work with a builder and solver
+ * that recognizes the presence of periodic conditions, as ResidualBasedBlockBuilderAndSolverPeriodic
+ * for shared memory runs or TrilinosResidualBasedBuilderAndSolverMLPeriodic (which is specific
+ * for monolithic incompressible flow problems) for an MPI implementation.
+ * @see PeriodicConditionUtilities,ResidualBasedBlockBuilderAndSolverPeriodic,TrilinosResidualBasedBuilderAndSolverMLPeriodic
  */
 class PeriodicCondition : public Condition
 {
@@ -275,11 +284,11 @@ public:
         rOStream << "PeriodicCondition #" << Id();
     }
 
-//        /// Print object's data.
-//        virtual void PrintData(std::ostream& rOStream) const
-//        {
-//            BaseType::PrintData(rOStream);
-//        }
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        Condition::PrintData(rOStream);
+    }
 
 
     ///@}

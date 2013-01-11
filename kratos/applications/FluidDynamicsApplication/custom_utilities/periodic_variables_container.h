@@ -52,9 +52,6 @@ namespace Kratos
 /** It can be filled using either Kratos::Variable<double> or
  * array_1d<double,3> components (VariableComponent< VectorComponentAdaptor< array_1d<double, 3 > > >).
  * It is used by PeriodicCondition to identify the Dofs where the periodic condition applies.
- * In addition to the list of variables, an algorithmic weight can also be defined. Higher weights imply
- * a stricter verification of the boundary condition, but produce stiff linear systems, so iterative
- * linear solvers might not converge.
  * @see PeriodicCondition
  */
 class PeriodicVariablesContainer
@@ -93,18 +90,14 @@ public:
     /// Default constructor.
     PeriodicVariablesContainer():
         mPeriodicDoubleVars(),
-        mPeriodicVarComponents(),
-        mDiag(0.0),
-        mOffDiag(0.0)
+        mPeriodicVarComponents()
     {
     }
 
     /// Copy constructor.
     PeriodicVariablesContainer(PeriodicVariablesContainer const& rOther):
         mPeriodicDoubleVars(rOther.mPeriodicDoubleVars),
-        mPeriodicVarComponents(rOther.mPeriodicVarComponents),
-        mDiag(rOther.mDiag),
-        mOffDiag(rOther.mOffDiag)
+        mPeriodicVarComponents(rOther.mPeriodicVarComponents)
     {
     }
 
@@ -123,8 +116,6 @@ public:
     {
         this->mPeriodicDoubleVars = rOther.mPeriodicDoubleVars;
         this->mPeriodicVarComponents = rOther.mPeriodicVarComponents;
-        this->mDiag = rOther.mDiag;
-        this->mOffDiag = rOther.mOffDiag;
         return *this;
     }
 
@@ -157,8 +148,6 @@ public:
     {
         mPeriodicDoubleVars.clear();
         mPeriodicVarComponents.clear();
-        mDiag = 0.0;
-        mOffDiag = 0.0;
     }
 
     ///@}
@@ -195,34 +184,6 @@ public:
         return mPeriodicDoubleVars.size() + mPeriodicVarComponents.size();
     }
 
-    /** Returns the weights to be used on the diagonal and off diagonal components of the local finite element matrix
-     * used to impose the boundary condition
-     */
-    void GetWeights(double& Diag, double& OffDiag) const
-    {
-        Diag = mDiag;
-        OffDiag = mOffDiag;
-    }
-
-    /// Define the algorithmic weight for the periodic boundary condition
-    void SetSymmetricCondition(const double ThisWeight)
-    {
-        mDiag = ThisWeight;
-        mOffDiag = -ThisWeight;
-    }
-
-    /// Define the algorithmic weight for the periodic boundary condition (antimetric version)
-    /**
-      * This function is used to define an antimetric condition, where V_node1 = - V_node2.
-      * If this overload is used, the off-diagonal terms will be given a weight of opposite sign
-      * to achieve this effect.
-      */
-    void SetAntimetricCondition(const double ThisWeight)
-    {
-        mDiag = ThisWeight;
-        mOffDiag = ThisWeight;
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -249,10 +210,6 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        if (mDiag == -mOffDiag)
-            rOStream << "Symmetric condition, weight = " << mDiag << std::endl;
-        else if (mDiag == mOffDiag)
-            rOStream << "Antimetric condition, weight = " << mDiag << std::endl;
         rOStream << "Double Variables:" << std::endl;
         for (DoubleVariablesContainerType::const_iterator it = mPeriodicDoubleVars.begin(); it != mPeriodicDoubleVars.end(); ++it)
         {
@@ -327,12 +284,6 @@ private:
     /// Container for variable components
     VariableComponentsContainerType mPeriodicVarComponents;
 
-    /// Penalty weight for the periodic variables (diagonal terms)
-    double mDiag;
-
-    /// Penalty weight for the periodic variables (off-diagonal terms)
-    double mOffDiag;
-
 
     ///@}
     ///@name Private Operators
@@ -360,8 +311,6 @@ private:
         rSerializer.save("VarComponentSize",VarComponentSize);
         for(std::size_t i = 0; i < VarComponentSize; i++)
             rSerializer.save("Variable Name", mPeriodicVarComponents[i]->Name());
-        rSerializer.save("mDiag",mDiag);
-        rSerializer.save("mOffDiag",mOffDiag);
     }
 
     virtual void load(Serializer& rSerializer)
@@ -382,8 +331,6 @@ private:
             rSerializer.load("Variable Name", Name);
             Add( *(static_cast<VariableComponentType*>(KratosComponents<VariableData>::pGet(Name))) );
         }
-        rSerializer.load("mDiag",mDiag);
-        rSerializer.load("mOffDiag",mOffDiag);
     }
 
     ///@}

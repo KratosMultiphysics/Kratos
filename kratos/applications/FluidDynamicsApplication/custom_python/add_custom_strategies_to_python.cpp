@@ -68,6 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 
+// builder_and_solvers
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
+
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy.h"
@@ -98,6 +101,11 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
     //********************************************************************
 
+    class_< ResidualBasedBlockBuilderAndSolverPeriodic< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            bases< ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > >,
+            boost::noncopyable >
+            ("ResidualBasedBlockBuilderAndSolverPeriodic", init<LinearSolverType::Pointer, const Variable<int>& >());
+
     class_< FSStrategy< SparseSpaceType,LocalSpaceType, LinearSolverType >, bases<BaseSolvingStrategyType>, boost::noncopyable >
             ("FSStrategy",init<ModelPart&,LinearSolverType::Pointer,LinearSolverType::Pointer,bool,bool,double,double,int,int,unsigned int,unsigned int,bool>())
             .def(init< ModelPart&, SolverSettings< SparseSpaceType,LocalSpaceType, LinearSolverType >&, bool >() )
@@ -110,6 +118,7 @@ void  AddCustomStrategiesToPython()
             bases< BaseSchemeType >,  boost::noncopyable >
             ("ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent",init<double,double,unsigned int,Process::Pointer >() )
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
             ;
 
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
