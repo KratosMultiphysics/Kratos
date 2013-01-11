@@ -89,12 +89,17 @@ void  AddCustomUtilitiesToPython()
     .def("CorrectFlagValues",&DynamicSmagorinskyUtils::CorrectFlagValues)
     ;
 
+    typedef void (PeriodicConditionUtilities::*AddDoubleVariableType)(Properties&,Variable<double>&);
+    typedef void (PeriodicConditionUtilities::*AddVariableComponentType)(Properties&,VariableComponent< VectorComponentAdaptor< array_1d<double, 3> > >&);
+
+    AddDoubleVariableType AddDoubleVariable = &PeriodicConditionUtilities::AddPeriodicVariable;
+    AddVariableComponentType AddVariableComponent = &PeriodicConditionUtilities::AddPeriodicVariable;
+
     class_<PeriodicConditionUtilities>("PeriodicConditionUtilities", init<ModelPart&,unsigned int>())
-    .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
-    .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
-    .def("DefinePeriodicBoundaryPressure",&PeriodicConditionUtilities::DefinePeriodicBoundaryPressure)
-    .def("DefineCentralSymmetry",&PeriodicConditionUtilities::DefineCentralSymmetry)
-    .def("DefineCentralAntimetry",&PeriodicConditionUtilities::DefineCentralAntimetry)
+            .def("SetUpSearchStructure",&PeriodicConditionUtilities::SetUpSearchStructure)
+            .def("DefinePeriodicBoundary",&PeriodicConditionUtilities::DefinePeriodicBoundary)
+            .def("AddPeriodicVariable",AddDoubleVariable)
+            .def("AddPeriodicVariable",AddVariableComponent)
     ;
 
     typedef SolverSettings<SparseSpaceType,LocalSpaceType,LinearSolverType> BaseSettingsType;

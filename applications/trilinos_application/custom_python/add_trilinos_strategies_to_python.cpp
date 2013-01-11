@@ -62,6 +62,7 @@
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_mixed.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation.h"
 #include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_deactivation_vec.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_periodic.h"
 #include "custom_strategies/builder_and_solvers/trilinos_pressure_splitting_builder_and_solver.h"
 #include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 
@@ -355,6 +356,12 @@ void AddStrategies()
     .def( "SetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::SetEchoLevel )
     .def( "GetEchoLevel", &TrilinosBuilderAndSolverMLDeactivation2Dtype::GetEchoLevel )
     ;
+
+    typedef TrilinosBuilderAndSolverMLPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLPeriodicType;
+
+    class_< TrilinosBuilderAndSolverMLPeriodicType, bases<TrilinosBuilderAndSolverMLmixedType>, boost::noncopyable >
+            ("TrilinosBuilderAndSolverMLPeriodic", init<Epetra_MpiComm&, int, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& > () )
+            ;
 
     typedef TrilinosPressureSplittingBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
     TrilinosPressureSplittingBuilderAndSolverType;
