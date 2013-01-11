@@ -14,8 +14,8 @@
 
 // Application includes
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
-//#include "custom_strategies/strategies/trilinos_residualbased_linear_strategy.h"
+//#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 #include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
@@ -72,9 +72,11 @@ public:
     TrilinosStokesInitializationProcess(Epetra_MpiComm& rComm,
                                         const ModelPart::Pointer pModelPart,
                                         typename TLinearSolver::Pointer pLinearSolver,
-                                        unsigned int DomainSize):
+                                        unsigned int DomainSize,
+                                        const Variable<int>& PeriodicPairIndicesVar):
         BaseType(pModelPart,pLinearSolver,DomainSize,this),
-        mrComm(rComm)
+        mrComm(rComm),
+        mrPeriodicVar(PeriodicPairIndicesVar)
     {
         KRATOS_TRY;
 
@@ -155,9 +157,8 @@ public:
         if(DomainSize == 2) guess_row_size = 15;
         else guess_row_size = 40;
 
-        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,
-                                                                                                                                                                          guess_row_size,
-                                                                                                                                                                          pLinearSolver));
+        //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver));
+        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBuilderAndSolverMLPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,DomainSize,pLinearSolver,mrPeriodicVar));
 
         // Strategy
         bool ReactionFlag = false;
@@ -253,6 +254,8 @@ protected:
     ///@{
 
     Epetra_MpiComm& mrComm;
+
+    const Variable<int>& mrPeriodicVar;
 
     ///@}
     ///@name Protected Operators

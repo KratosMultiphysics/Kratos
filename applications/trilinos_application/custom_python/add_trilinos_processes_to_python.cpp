@@ -61,10 +61,11 @@ void AddProcesses()
     typedef StokesInitializationProcess<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseStokesInitializationType;
 
     class_ < BaseStokesInitializationType,bases< Process >, boost::noncopyable >
-    ( "TrilinosBaseStokesInitialization",no_init );
+            ( "TrilinosBaseStokesInitialization",no_init )
+            .def("SetConditions",&BaseStokesInitializationType::SetConditions);
 
     class_< TrilinosStokesInitializationProcess< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, bases<BaseStokesInitializationType>, boost::noncopyable >
-            ("TrilinosStokesInitializationProcess",init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int >())
+            ("TrilinosStokesInitializationProcess",init<Epetra_MpiComm&, ModelPart::Pointer,TrilinosLinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
             ;
 }
 
