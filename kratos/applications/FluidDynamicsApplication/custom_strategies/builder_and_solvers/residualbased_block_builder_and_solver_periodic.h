@@ -120,14 +120,11 @@ public:
     {
         // Assign an Equation Id to all non-duplicate nodes
         unsigned int EqId = 0;
-        int countup = 0;
-        int countdown = 0;
+
         for (typename DofsArrayType::iterator itDof = BaseType::mDofSet.begin(); itDof != BaseType::mDofSet.end(); ++itDof)
         {
             if ( itDof->GetSolutionStepValue(mPeriodicIdVar) < static_cast<int>(itDof->Id()) )
                 itDof->SetEquationId(EqId++);
-            else
-                countup++;
         }
 
         // Copy Equation Id to duplicate nodes.
@@ -150,12 +147,9 @@ public:
                         CopyEquationId(rGeom[1],rGeom[0]);
                     else
                         CopyEquationId(rGeom[0],rGeom[1]);
-                    countdown++;
                 }
             }
         }
-        KRATOS_WATCH(countup);
-        KRATOS_WATCH(countdown);
 
         BaseType::mEquationSystemSize = EqId;
     }
