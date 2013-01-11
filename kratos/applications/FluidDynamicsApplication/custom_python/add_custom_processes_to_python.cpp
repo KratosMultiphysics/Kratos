@@ -88,11 +88,11 @@ void AddCustomProcessesToPython()
     ("SpalartAllmarasTurbulenceModel", init < ModelPart&, LinearSolverType::Pointer, unsigned int, double, unsigned int, bool, unsigned int>())
     .def("ActivateDES", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::ActivateDES)
     .def("AdaptForFractionalStep", &SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::AdaptForFractionalStep)
-    .def("SetPeriodicBoundaryCondition",&SpalartAllmarasTurbulenceModel< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetPeriodicBoundaryCondition)
     ;
 
     class_< StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>, bases<Process>, boost::noncopyable >
-            ("StokesInitializationProcess", init< ModelPart::Pointer, LinearSolverType::Pointer, unsigned int>() );
+            ("StokesInitializationProcess",init<ModelPart::Pointer, LinearSolverType::Pointer, unsigned int, const Kratos::Variable<int>& >())
+            .def("SetConditions",&StokesInitializationProcess<SparseSpaceType, LocalSpaceType, LinearSolverType>::SetConditions);
 }
 
 

@@ -17,6 +17,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_periodic.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -68,7 +69,8 @@ public:
 
     StokesInitializationProcess(const ModelPart::Pointer pModelPart,
                                 typename TLinearSolver::Pointer pLinearSolver,
-                                unsigned int DomainSize):
+                                unsigned int DomainSize,
+                                const Variable<int>& PeriodicPairIndicesVar):
         Process(),
         mpReferenceModelPart(pModelPart),
         mpLinearSolver(pLinearSolver),
@@ -109,7 +111,10 @@ public:
         SchemePointerType pScheme = SchemePointerType( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > () );
 
         // Builder and solver
-        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver));
+        BuilderSolverTypePointer pBuildAndSolver;
+        pBuildAndSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolverPeriodic<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver,
+                                                                                                                                              PeriodicPairIndicesVar));
+
 
         // Strategy
         bool ReactionFlag = false;
@@ -173,6 +178,11 @@ public:
     ///@name Access
     ///@{
 
+    void SetConditions(ModelPart::ConditionsContainerType::Pointer pConditions)
+    {
+        mpStokesModelPart->SetConditions(pConditions);
+        mpStokesModelPart->GetCommunicator().LocalMesh().SetConditions(pConditions);
+    }
 
     ///@}
     ///@name Inquiry
