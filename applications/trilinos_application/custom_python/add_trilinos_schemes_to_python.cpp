@@ -131,6 +131,7 @@ void  AddSchemes()
     .def( "Update", &TrilinosBaseSchemeType::Update )
     .def( "CalculateOutputData", &TrilinosBaseSchemeType::CalculateOutputData )
     .def( "Clean", &TrilinosBaseSchemeType::Clean )
+    .def( "Clear", &TrilinosBaseSchemeType::Clear )
     .def( "MoveMesh", MoveMesh )
     .def("Check", &TrilinosBaseSchemeType::Check )
     ;

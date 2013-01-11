@@ -114,6 +114,7 @@ public:
     /** @param DefaultOmega Default relaxation factor to use in the first iteration, where Aitken's factor cannot be computed. Use a value between 0 and 1.
       */
     TrilinosResidualBasedIncrementalAitkenStaticScheme(double DefaultOmega):
+        TrilinosResidualBasedIncrementalUpdateStaticScheme<TSparseSpace,TDenseSpace>(),
         mDefaultOmega(DefaultOmega),
         mOldOmega(DefaultOmega)
     {}
@@ -306,43 +307,18 @@ protected:
     {
         KRATOS_TRY;
 
+        if (!this->DofImporterIsInitialized())
+            this->InitializeDofImporter(rDofSet,Dx);
+
+        boost::shared_ptr<Epetra_Import> pImporter = this->pGetImporter();
+
         int system_size = TSparseSpace::Size(Dx);
-        int number_of_dofs = rDofSet.size();
-        int* index_array = new int[number_of_dofs];
-
-
-        //filling the array with the global ids
-        int counter = 0;
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            int id = i_dof->EquationId();
-            if( id < system_size )
-            {
-                index_array[counter] = id;
-                counter += 1;
-            }
-        }
-        int tot_update_dofs = counter;
-
-        int check_size = -1;
-        Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
-        if(check_size < system_size)
-        {
-            std::cout << Dx.Comm().MyPID() << ": expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
-            KRATOS_ERROR(std::logic_error,"dof count is not correct. There are less dofs then expected","")
-        }
-
-        //defining a map as needed
-        Epetra_Map dof_update_map(-1,tot_update_dofs,index_array,0,Dx.Comm() );
-
-        //defining the importer class
-        Epetra_Import importer( dof_update_map, Dx.Map() );
 
         //defining a temporary vector to gather all of the values needed
-        Epetra_Vector temp( importer.TargetMap() );
+        Epetra_Vector temp( pImporter->TargetMap() );
 
         //importing in the new temp vector the values
-        int ierr = temp.Import(Dx,importer,Insert);
+        int ierr = temp.Import(Dx,*pImporter,Insert);
         if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
 
         double* temp_values; //DO NOT make delete of this one!!
@@ -357,16 +333,12 @@ protected:
             int global_id = (dof_begin+iii)->EquationId();
             if(global_id < system_size)
             {
-                double aaa = temp[dof_update_map.LID(global_id)];
+                double aaa = temp[pImporter->TargetMap().LID(global_id)];
                 (dof_begin+iii)->GetSolutionStepValue() += Omega * aaa;
             }
         }
 
-        //removing unnecessary memory
-        delete [] index_array;
-        // delete [] temp_values;  //deleting this is WRONG! do not do it!!
-
-        KRATOS_CATCH("")
+        KRATOS_CATCH("");
     }
 
     ///@}

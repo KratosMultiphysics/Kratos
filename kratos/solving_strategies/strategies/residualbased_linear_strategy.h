@@ -771,6 +771,8 @@ private:
 
         GetBuilderAndSolver()->Clear();
 
+        GetScheme()->Clear();
+
 
         KRATOS_CATCH("");
     }

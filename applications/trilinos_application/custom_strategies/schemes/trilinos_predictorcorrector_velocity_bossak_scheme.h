@@ -215,39 +215,18 @@ public:
         TSystemVectorType& b
     )
     {
-        KRATOS_TRY
+        KRATOS_TRY;
+
+        if ( !this->DofImporterIsInitialized() )
+            this->InitializeDofImporter(rDofSet,Dx);
 
         int system_size = TSparseSpace::Size(Dx);
-        int number_of_dofs = rDofSet.size();
-        std::vector< int > index_array(number_of_dofs);
-
-        //filling the array with the global ids
-        int counter = 0;
-        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
-        {
-            int id = i_dof->EquationId();
-            if( id < system_size )
-            {
-                index_array[counter] = id;
-                counter += 1;
-            }
-        }
-        double tot_update_dofs = counter;
-
-//                        double* pValues;
-//                        TSparseSpace::GatherValues(Dx, index_array, pValues)
-
-        //defining a map as needed
-        Epetra_Map dof_update_map(-1,tot_update_dofs, &(*(index_array.begin())),0,b.Comm() );
-
-        //defining the importer class
-        Epetra_Import importer( dof_update_map, Dx.Map() );
 
         //defining a temporary vector to gather all of the values needed
-        Epetra_Vector temp( importer.TargetMap() );
+        Epetra_Vector temp( mpDofImporter->TargetMap() );
 
         //importing in the new temp vector the values
-        int ierr = temp.Import(Dx,importer,Insert) ;
+        int ierr = temp.Import(Dx,*mpDofImporter,Insert) ;
         if(ierr != 0) KRATOS_ERROR(std::logic_error,"Epetra failure found","");
 
         double* temp_values;
@@ -262,23 +241,26 @@ public:
             int global_id = (dof_begin+iii)->EquationId();
             if(global_id < system_size)
             {
-                double aaa = temp[dof_update_map.LID(global_id)];
+                double aaa = temp[mpDofImporter->TargetMap().LID(global_id)];
                 (dof_begin+iii)->GetSolutionStepValue() += aaa;
             }
         }
-
-//			//performing the update
-//			typename DofsArrayType::iterator dof_begin = rDofSet.begin();
-//			for(unsigned int iii=0; iii<rDofSet.size(); iii++)
-//			{
-//                            (dof_begin+iii)->GetSolutionStepValue() += pValues[iii];
-//			}
-
 
         //removing unnecessary memory
 //			delete [] temp_values; //DO NOT DELETE THIS!!
 
         KRATOS_CATCH("")
+    }
+
+    bool DofImporterIsInitialized()
+    {
+        return mImporterIsInitialized;
+    }
+
+    virtual void Clear()
+    {
+        mpDofImporter.reset();
+        mImporterIsInitialized = false;
     }
 
 
@@ -323,6 +305,50 @@ protected:
     /**@name Protected Operations*/
     /*@{ */
 
+    virtual void InitializeDofImporter(DofsArrayType& rDofSet,
+                                       TSystemVectorType& Dx)
+    {
+        int system_size = TSparseSpace::Size(Dx);
+        int number_of_dofs = rDofSet.size();
+        std::vector< int > index_array(number_of_dofs);
+
+        //filling the array with the global ids
+        int counter = 0;
+        for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
+        {
+            int id = i_dof->EquationId();
+            if( id < system_size )
+            {
+                index_array[counter] = id;
+                counter += 1;
+            }
+        }
+
+        std::sort(index_array.begin(),index_array.end());
+        std::vector<int>::iterator NewEnd = std::unique(index_array.begin(),index_array.end());
+        index_array.resize(NewEnd-index_array.begin());
+
+        int check_size = -1;
+        int tot_update_dofs = index_array.size();
+        Dx.Comm().SumAll(&tot_update_dofs,&check_size,1);
+        if ( (check_size < system_size) &&  (Dx.Comm().MyPID() == 0) )
+        {
+            std::stringstream Msg;
+            Msg << "Dof count is not correct. There are less dofs then expected." << std::endl;
+            Msg << "Expected number of active dofs = " << system_size << " dofs found = " << check_size << std::endl;
+            KRATOS_ERROR(std::runtime_error,Msg.str(),"")
+        }
+
+        //defining a map as needed
+        Epetra_Map dof_update_map(-1,index_array.size(), &(*(index_array.begin())),0,Dx.Comm() );
+
+        //defining the importer class
+        boost::shared_ptr<Epetra_Import> pDofImporter( new Epetra_Import(dof_update_map,Dx.Map()) );
+        mpDofImporter.swap(pDofImporter);
+
+        mImporterIsInitialized = true;
+    }
+
 
     /*@} */
     /**@name Protected  Access */
@@ -350,15 +376,11 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    /*		Matrix mMass;
-                    Matrix mDamp;
 
-                    Vector mvel;
-                    Vector macc;
-                    Vector maccold;
 
-                    DofsVectorType mElementalDofList;
-     */
+    bool mImporterIsInitialized;
+
+    boost::shared_ptr<Epetra_Import> mpDofImporter;
 
     /*@} */
     /**@name Private Operators*/

@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -28,7 +29,7 @@ class SolvingStrategyPython:
 	elif(builder_and_solver_type == "ML2D"):
         	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3D"):
-        	self.builder_and_solver = TrilinosBuilderAndSolverML3D(Comm,guess_row_size,3,self.linear_solver)
+                self.builder_and_solver = TrilinosBuilderAndSolverML(Comm,guess_row_size,self.linear_solver)
 	elif(builder_and_solver_type == "ML2Dpress"):
         	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3Dpress"):
@@ -151,6 +152,9 @@ class SolvingStrategyPython:
             self.Dx = (self.pDx).GetReference()
             self.b = (self.pb).GetReference()
 
+            #clear scheme so dof update map is recomputed for the new Dof set
+            self.scheme.Clear()
+
 
             
         self.builder_and_solver.InitializeSolutionStep(self.model_part,self.A,self.Dx,self.b)
@@ -221,8 +225,12 @@ class SolvingStrategyPython:
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
 
         self.builder_and_solver.Clear()
+
+        self.scheme.Clear()
+
         if(mpi.rank == 0):
             print "Clear is completed"
+
         
     #######################################################################   
     def SetEchoLevel(self,level):
