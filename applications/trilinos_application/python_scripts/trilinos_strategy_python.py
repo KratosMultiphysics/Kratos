@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.FluidDynamicsApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -33,6 +34,8 @@ class SolvingStrategyPython:
         	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3Dpress"):
         	self.builder_and_solver = TrilinosBuilderAndSolverMLmixed(Comm,guess_row_size,3,self.linear_solver)
+        elif(builder_and_solver_type == "MLPeriodic"):
+                self.builder_and_solver = TrilinosBuilderAndSolverMLPeriodic(Comm,guess_row_size,3,self.linear_solver,PATCH_INDEX)
   
 
         #local matrices and vectors

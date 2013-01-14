@@ -91,7 +91,7 @@ class MonolithicSolver:
             estimate_neighbours = 25
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
             self.buildertype="ML3Dpress"
-            
+        self.buildertype="MLPeriodic"
         #self.guess_row_size = 25
         #self.buildertype="standard"
 	#aztec_parameters = ParameterList()
