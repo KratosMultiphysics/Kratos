@@ -90,16 +90,22 @@ class MonolithicSolver:
 ##        self.linear_solver =SuperLUSolver()
 ##        self.linear_solver = MKLPardisoSolver()
 
-        pPrecond = DiagonalPreconditioner()
+        #pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
-	gmres_size = 30
-	ilu_level_of_fill = 2
-	tol = 1e-5
+	#gmres_size = 30
+	#ilu_level_of_fill = 2
+	#tol = 1e-5
+	#verbosity = 0
+        #self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
+        #self.linear_solver = PastixSolver(verbosity,False)
+        
+        #new solvers
+	gmres_size = 50
+	tol = 1e-7
 	verbosity = 0
-        self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)         
-        #self.linear_solver = PastixSolver(verbosity,False)         
+	self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,200,verbosity,gmres_size)         
 
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -154,7 +160,7 @@ class MonolithicSolver:
         self.rho2 = 1.0 #applied to the positive part of the domain#1.0
         self.conductivity2 = 1.0 
         
-	self.mu   = 1.0e-3
+	self.mu   = 3.0e-3
 	self.divergence_clearance_performed = False
         ################################################ 
         
@@ -166,10 +172,10 @@ class MonolithicSolver:
         else:
             self.redistance_utils = ParallelDistanceCalculator3D()
 
-        self.max_levels = 50
+        self.max_levels = 5
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
-        self.max_distance = self.max_edge_size * 20.0;
+        self.max_distance = self.max_edge_size * 5.0;
 
 
         self.max_ns_iterations = 8
@@ -180,7 +186,7 @@ class MonolithicSolver:
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
-        mu1 = self.mu/self.rho1
+        mu1 = 10.0*self.mu/self.rho1
         #mu1 = self.mu
         #mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
@@ -200,10 +206,10 @@ class MonolithicSolver:
                                            self.rel_pres_tol,self.abs_pres_tol)
 ##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
-	#builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+	builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
         #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
 
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         (self.solver).SetEchoLevel(self.echo_level)
         print ">>>>>>>>>>>>>>>", self.oss_switch
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau_fluid);
@@ -282,7 +288,7 @@ class MonolithicSolver:
         self.level_set_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
         (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau_levelset)#self.dynamic_tau
-	self.WettenNodes()
+	#self.WettenNodes()
 	(self.level_set_solver).Solve()
         print "finished convection step for the distance function"     
      #######################################################################                 
@@ -294,17 +300,20 @@ class MonolithicSolver:
 	    node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
 	  self.divergence_clearance_performed = True    
 
-        #recompute distance function as needed
-        if(self.internal_step_counter >= self.next_redistance):
-	  self.DoRedistance()
+        ##recompute distance function as needed
+        #if(self.internal_step_counter >= self.next_redistance):
+	  #self.DoRedistance()
 	  #for node in self.model_part.Nodes:	    
 	    #node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
 	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
 
 	#convect distance function
         self.ConvectDistance()
+        #recompute distance function as needed
+        if(self.internal_step_counter >= self.next_redistance):
+	  self.DoRedistance()
 
-        self.ApplyFluidProperties()
+	self.ApplyFluidProperties()
         #Recompute normals if necessary
 	if(self.ReformDofSetAtEachStep == True):
            if self.use_slip_conditions == True:
