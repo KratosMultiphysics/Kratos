@@ -34,6 +34,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
     model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
     model_part.AddNodalSolutionStepVariable(DISTANCE)
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
 
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
@@ -86,11 +87,11 @@ class MonolithicSolver:
         if(domain_size == 2):
             estimate_neighbours = 10
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
-            self.buildertype="ML2Dpress"
+            #self.buildertype="ML2Dpress"
         else:
             estimate_neighbours = 25
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
-            self.buildertype="ML3Dpress"
+            #self.buildertype="ML3Dpress"
             
         #self.guess_row_size = 25
         #self.buildertype="standard"
@@ -198,8 +199,18 @@ class MonolithicSolver:
         self.conv_criteria = TrilinosUPCriteria(self.vel_criteria,self.vel_abs_criteria,self.press_criteria,self.press_abs_criteria,self.Comm)
 
         #creating the solution strategy
-        import trilinos_strategy_python
-        self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
+        import trilinos_strategy_python_periodic
+        self.solver = trilinos_strategy_python_periodic.SolvingStrategyPeriodic(self.domain_size,
+                                                                                self.model_part,
+                                                                                self.time_scheme,
+                                                                                self.linear_solver,
+                                                                                self.conv_criteria,
+                                                                                self.CalculateReactionFlag,
+                                                                                self.ReformDofSetAtEachStep,
+                                                                                self.MoveMeshFlag,
+                                                                                self.Comm,
+                                                                                self.guess_row_size,
+                                                                                PATCH_INDEX)
         self.solver.max_iter = self.max_iter
 
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   

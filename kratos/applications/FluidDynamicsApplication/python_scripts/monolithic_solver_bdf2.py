@@ -39,7 +39,7 @@ def AddVariables(model_part):
 ##    model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
 ##    model_part.AddNodalSolutionStepVariable(NORMAL);
-
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX);
 
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
@@ -116,7 +116,9 @@ class MonolithicSolver:
                                            self.rel_pres_tol,self.abs_pres_tol)
 ##        self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+
+        builder_and_solver = ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,PATCH_INDEX)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
