@@ -1,12 +1,13 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 #from KratosMultiphysics.MetisApplication import *
-#from KratosMultiphysics.mpi import *
-
-from numpy import *
 
 from DEM_explicit_solver_var import *
 from pressure_script import *
+
+from numpy import *
+
+#from KratosMultiphysics.mpi import *
 
 def AddMpiVariables(model_part):
     
@@ -82,17 +83,16 @@ def ProcModelData(solid_model_part,solver):
   
   Model_Data.close()    
 
+sup_layer = list()
+inf_layer = list()
+fix_particles = list()
+force_measurement = list()
+special_selection = list()
+others = list()
    
 def ProcListDefinition(model_part,solver):
   
   # Defining lists (FOR COMPRESSION TESTS)
-
-  sup_layer = list()
-  inf_layer = list()
-  fix_particles = list()
-  force_measurement = list()
-  special_selection = list()
-  others = list()
   
   for node in model_part.Nodes:
     if (node.GetSolutionStepValue(GROUP_ID)==1):
