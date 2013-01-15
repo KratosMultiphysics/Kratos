@@ -5,7 +5,9 @@ from KratosMultiphysics.DEMApplication import *
 #CheckForPreviousImport(
 
 def AddVariables(model_part):
-    #model_part.AddNodalSolutionStepVariable(NUMBER_OF_NEIGHBOURS)
+    print("")
+    print("HIOISAID")
+    print(" ")
     model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
     model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     model_part.AddNodalSolutionStepVariable(GROUP_ID)
@@ -70,6 +72,7 @@ class ExplicitStrategy:
         self.damping_ratio                  	= 0.00;
         self.penalty_factor                 	= 10.00
         self.max_delta_time                 	= 0.05;
+        self.final_time							= 3.0;
         self.fraction_delta_time            	= 0.90;
         self.MoveMeshFlag                   	= True;
         self.gravity                        	= Vector(3)#(0.0,-9.81,0.0)
