@@ -5,37 +5,17 @@ from KratosMultiphysics.DEMApplication import *
 #CheckForPreviousImport(
 
 def AddVariables(model_part):
-    print("")
-    print("HIOISAID")
-    print(" ")
-    model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
-    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)
+
+    model_part.AddNodalSolutionStepVariable(RADIUS)    
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
-    model_part.AddNodalSolutionStepVariable(RHS)
-    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
-    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
-    model_part.AddNodalSolutionStepVariable(RADIUS)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
-    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-    model_part.AddNodalSolutionStepVariable(VISCO_DAMP_COEFF)
-    model_part.AddNodalSolutionStepVariable(RESTITUTION_COEFF)
-    #model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
-    model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)    
-    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-    model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
+
+    model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
+    model_part.AddNodalSolutionStepVariable(GROUP_ID)    
+
+
 
     model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
@@ -44,6 +24,32 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+
+
+    
+    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
+    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
+    
+    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
+    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+    model_part.AddNodalSolutionStepVariable(VISCO_DAMP_COEFF)
+    model_part.AddNodalSolutionStepVariable(RESTITUTION_COEFF)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
+    model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)    
+    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+    #model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
+
+    
    
 
     print "variables for the explicit solver added correctly"
@@ -86,6 +92,7 @@ class ExplicitStrategy:
         #type of problem:
 
         self.critical_time_OPTION           	= 0 #its 1/0 xapuza
+        self.final_time                         = 3.0
 
         self.delta_OPTION                   	= False
         self.continuum_simulating_OPTION    	= False
