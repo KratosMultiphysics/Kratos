@@ -277,16 +277,12 @@ public:
     }
     
     //Paritcionament basat en l'algortime LLoyds per fer algo similar a una tesselacio de voronoi
-    //el que vui consegir es el clustering de elements que no es fa amb morton pero amb la propietat que sigin
-    //dominis no fixes.
     void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
     {
         std::vector<std::vector<PointerType> > SendObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
         std::vector<std::vector<PointerType> > RecvObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
     
-        DefineKSets(mModelPart,SendObjects,RecvObjects,MaxNodeRadius,CalculateBoundry); //A l'algortime clasic definiriam N sets al azar. Aprofitem i ho fem amb els punts de cada domini
-//         CommunicationPhase(mModelPart,SendObjects,RecvObjects); //Comuniquem els resultats
-//         Repartitionate(mModelPart,RecvObjects); // I per ultim reparticionem
+        DefineKSets(mModelPart,SendObjects,RecvObjects,MaxNodeRadius,CalculateBoundry);
     }
     
     //Todo: Clean this mess
@@ -296,13 +292,15 @@ public:
                      double MaxNodeRadius,
                      int CalculateBoundry)
     {
-        std::cout << "Entra al reparticionat" << std::endl;
-
         ContainerType& pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
       
+        //This variables are used to perform all calculus without transfer anything
         double SetCentroid[mpi_size*Dimension], SendSetCentroid[mpi_size*Dimension];
+        int NumParticlesPerVirtualPartition[mpi_size], SendNumParticlesPerVirtualPartition[mpi_size];
+        
         int PartitionNumberOfElements[mpi_size], SendPartitionNumberOfElements[mpi_size];
         
+        //Plane calculation
         double MeanPoint[mpi_size*Dimension];
         double Normal[mpi_size*Dimension];
         double Plane[mpi_size];
@@ -311,16 +309,13 @@ public:
         double MidDistance[mpi_size];
         double FulDistance[mpi_size];
         
-//         double thisDiferentialDistance = 0;
-        
-        //Mog: fix me
+        //TODO: Fix me
         static std::vector<double> LastDistance(0);
         
         if(LastDistance.size() == 0)
             for(int i = 0 ; i < mpi_size; i++)
                 LastDistance.push_back(0);
-        
-//         double SelfWeight[mpi_size];
+
         double TheyWeight[mpi_size];
         
         int NewNumberOfObjects[mpi_size];
@@ -330,149 +325,99 @@ public:
         
         MPI_Allreduce(&LocalParticles,&TotalParticles,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
         
-        SendPartitionNumberOfElements[mpi_rank] = LocalParticles;
+        int NumIterations = 100;
         
-        for(int i = 0; i < mpi_size; i++)
-            NewNumberOfObjects[i] = 0;
-
-        for(int i = 0; i < Dimension; i++)
-            SendSetCentroid[mpi_rank*Dimension+i] = 0;
-        
-        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        for(int iterations = 0; iterations < NumIterations; iterations++)
         {
-            for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
+            for(int i = 0; i < mpi_size; i++)
             {
-                ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                
+                NewNumberOfObjects[i] = 0;
+                SendNumParticlesPerVirtualPartition[i] = 0;
+
                 for(int j = 0; j < Dimension; j++)
+                    SendSetCentroid[i*Dimension+j] = 0;
+            }
+            
+            for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+            {
+                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
                 {
-                    SendSetCentroid[mpi_rank*Dimension+j] += i_nod->Coordinate(j+1);
-                    SetCentroid[mpi_rank*Dimension+j] = SendSetCentroid[mpi_rank*Dimension+j];
+                    ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                    int element_partition = i_nod->GetSolutionStepValue(PARTITION_INDEX);
+                    
+                    for(int j = 0; j < Dimension; j++)
+                    {
+                        SendSetCentroid[element_partition*Dimension+j] += i_nod->Coordinate(j+1);
+                    }
+                    
+                    SendNumParticlesPerVirtualPartition[element_partition]++;
                 }
             }
-        }
+            
+            MPI_Allreduce(SendSetCentroid,SetCentroid,mpi_size*Dimension,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);                     
+            MPI_Allreduce(SendNumParticlesPerVirtualPartition,NumParticlesPerVirtualPartition,mpi_size,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 
-        //Set the centroids
-        if(LocalParticles == 0)
-        {
-            for(int j = 0; j < Dimension; j++)
+            //Set the centroids
+            if(NumParticlesPerVirtualPartition[mpi_rank] == 0)
+            {
+                for(int j = 0; j < Dimension; j++)
                 {
                     SendSetCentroid[mpi_rank*Dimension+j] = 0;
-                    SetCentroid[mpi_rank*Dimension+j] = SendSetCentroid[mpi_rank*Dimension+j];
+                    SetCentroid[mpi_rank*Dimension+j] = 0;
                 }
-        } 
-        else
-        {                   
-            for(int i = 0; i < Dimension; i++)
-            {
-                SendSetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-                SetCentroid[mpi_rank*Dimension+i] /= mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
+            } 
+            else
+            {                   
+                for(int i = 0; i < mpi_size; i++)
+                {
+                    for(int j = 0; j < Dimension; j++)
+                    {
+                        SendSetCentroid[i*Dimension+j] /= NumParticlesPerVirtualPartition[i];
+                        SetCentroid[i*Dimension+j] /= NumParticlesPerVirtualPartition[i];
+                    }
+                }
             }
-        }
-        
-        std::cout << "Center of partition at: " << SetCentroid[mpi_rank*Dimension+0] << " " << SetCentroid[mpi_rank*Dimension+1] << " " << SetCentroid[mpi_rank*Dimension+2] << std::endl;
-        
-        MPI_Allgather(&SendPartitionNumberOfElements[mpi_rank],1,MPI_INT,PartitionNumberOfElements,1,MPI_INT,MPI_COMM_WORLD);
-        MPI_Allgather(&SendSetCentroid[mpi_rank*Dimension],Dimension,MPI_DOUBLE,SetCentroid,Dimension,MPI_DOUBLE,MPI_COMM_WORLD);
-        
-//         std::cout << "Weights\t ";
-        
-        for(int i = 0; i < mpi_size; i++)
-        {    
-            FulDistance[i] = 0;
-            
-            if(i != mpi_rank)
+
+            //Calculate the perpendicular plane who cuts the new partition
+            for(int i = 0; i < mpi_size; i++)
             {
+                Dot[i] = 0;
+                Plane[i] = 0;
+
                 for(int j = 0; j < Dimension; j++)
                 {
-                    double aux = SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j];
-                    FulDistance[i] += (aux*aux); //aka D
+                    MeanPoint[i*Dimension+j] = (SetCentroid[i*Dimension+j] + SetCentroid[mpi_rank*Dimension+j])/2;
+                    Normal[i*Dimension+j]    = (SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j]);
+                    Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
+                    Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
                 }
                 
-                MidDistance[i] = FulDistance[i]/2;
-                
-                double factor = 0;
-//                 double reduction = 0.5f;
-
-                if (PartitionNumberOfElements[i] > LocalParticles)
-                    factor = (double)(PartitionNumberOfElements[i] - LocalParticles) / (double)PartitionNumberOfElements[i];
-                else
-                    factor = (double)(LocalParticles - PartitionNumberOfElements[i]) / (double)LocalParticles;
-                
-                static int cak = 5;
-                if (LastDistance[i] == 0 || cak < 5)
-                {
-                    LastDistance[i] = MidDistance[i];
-                }
-                cak++;
-                
-                double thisDistance = LastDistance[i] * factor;   
-                double newDistance  = fabs(LastDistance[i] - thisDistance);
-                
-//                 std::cout << "LD: " << LastDistance[i] << " TD: " << thisDistance << " ND: " <<  newDistance << " MD: " << MidDistance[i] << std::endl;
-
-                // No se si aixo es calcula aixi
-                if (PartitionNumberOfElements[i] > LocalParticles)
-                {
-                    TheyWeight[i] = 0.5f;//(MidDistance[i] / newDistance) * reduction;
-//                     SelfWeight[i] = 0.5f;//(MidDistance[i] / (FulDistance[i]-newDistance)) * reduction;
-                }
-                else
-                {
-//                     SelfWeight[i] = 0.5f;//(MidDistance[i] / newDistance) * reduction;
-                    TheyWeight[i] = 0.5f;//(MidDistance[i] / (FulDistance[i]-newDistance)) * reduction;
-                }
-                
-                std::cout << TheyWeight[i] << " ";
-                
-                LastDistance[i] = newDistance;
+                Dot[i] = sqrt(Dot[i]);
             }
-        }
-        
-//         std::cout << std::endl;
-
-        //Calculate the perpendicular plane who cuts the new partition
-        //TODO: Just for fun. This isn't working anymore with the new algorithm. ha. ha. ha.
-        for(int i = 0; i < mpi_size; i++)
-        {
-            Dot[i] = 0;
-            Plane[i] = 0;
-
-            for(int j = 0; j < Dimension; j++)
-            {
-                MeanPoint[i*Dimension+j] = (SetCentroid[i*Dimension+j] + SetCentroid[mpi_rank*Dimension+j])/2;
-                Normal[i*Dimension+j]    = (SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j]);
-                Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
-                Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
-            }
-            Dot[i] = sqrt(Dot[i]);
-        }
-        
-        //Continue with the partitioning
-        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        { 
-            for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
-            {
-                ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                
-                int PartitionIndex = mpi_rank;
-                
-                //Calcualte distance with my center first.
-                double distX = i_nod->X() - SetCentroid[mpi_rank*Dimension+0];
-                double distY = i_nod->Y() - SetCentroid[mpi_rank*Dimension+1];
-                double distZ = i_nod->Z() - SetCentroid[mpi_rank*Dimension+2];
-                
-                distX *= distX;
-                distY *= distY;
-                distZ *= distZ;
-                
-                double dist = (distX+distY+distZ);
-                double min_dist = dist;
-                
-                for(int j = 0; j < mpi_size; j++)
+            
+            //Continue with the partitioning
+            for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+            { 
+                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
                 {
-                    if(j != mpi_rank)
-                    {         
+                    ModelPart::NodeType::Pointer i_nod = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                    
+                    int PartitionIndex = mpi_rank;
+                    
+                    //Calcualte distance with my center first.
+                    double distX = i_nod->X() - SetCentroid[mpi_rank*Dimension+0];
+                    double distY = i_nod->Y() - SetCentroid[mpi_rank*Dimension+1];
+                    double distZ = i_nod->Z() - SetCentroid[mpi_rank*Dimension+2];
+                    
+                    distX *= distX;
+                    distY *= distY;
+                    distZ *= distZ;
+                    
+                    double dist = (distX+distY+distZ);
+                    double min_dist = dist;
+                    
+                    for(int j = 0; j < mpi_size; j++)
+                    {    
                         distX = i_nod->X() - SetCentroid[j*Dimension+0];
                         distY = i_nod->Y() - SetCentroid[j*Dimension+1];
                         distZ = i_nod->Z() - SetCentroid[j*Dimension+2];
@@ -481,28 +426,23 @@ public:
                         distY *= distY;
                         distZ *= distZ;
                         
-                        double TheyDist = (distX+distY+distZ);// * TheyWeight[j];
-                        double SelfDist = (distX+distY+distZ);// * SelfWeight[j];
+                        double TheyDist = (distX+distY+distZ);
+                        double SelfDist = (distX+distY+distZ);
                         
                         if (TheyDist < min_dist)
                         {
                             min_dist = TheyDist;
                             PartitionIndex = j;
                         }
-                        
-                        if (SelfDist < min_dist)
-                        {
-                            min_dist = SelfDist;
-                            PartitionIndex = mpi_rank;
-                        }
                     }
+                    
+                    (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
+                    (i_nod)->GetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
                 }
-                
-                (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
-                (i_nod)->GetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
             }
         }
-          
+        
+        //Transfer the elements
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {
             for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
@@ -522,7 +462,7 @@ public:
             SendObjects[i].resize(NewNumberOfObjects[i]);
         }
         
-        //Comunication here!
+        //Comunication here
         CommunicationPhase(mModelPart,SendObjects,RecvObjects);
         Repartitionate(mModelPart,RecvObjects);
         
@@ -572,9 +512,9 @@ public:
         
         MPI_Barrier(MPI_COMM_WORLD);
         
+        //Mark elements in boundary (Level-2) (Only last iteration)
         if(CalculateBoundry)
         {
-            //This matrix are used to perform the level-2 marking reduction
             std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
             std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
           
