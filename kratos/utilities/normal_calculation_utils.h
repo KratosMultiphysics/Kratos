@@ -360,7 +360,7 @@ public:
 		  else{
 			
 			int added = 0;
-			for(int ii=0; ii<N_Mat.size();++ii)
+			for(unsigned int ii=0; ii<N_Mat.size();++ii)
 			  {
 			  const array_1d<double,3>& temp_normal = N_Mat[ii];
 			  double norm_temp = norm_2( temp_normal );
@@ -383,7 +383,7 @@ public:
 	  //compute NORMAL and mark 
 	  array_1d<double,3> sum_Normal(3,0.0);	  
 	  
-	  for(int ii=0; ii<N_Mat.size(); ++ii){
+	  for(unsigned int ii=0; ii<N_Mat.size(); ++ii){
 	    sum_Normal += N_Mat[ii];
 	  }
 	  
