@@ -3,14 +3,15 @@ import time as timer
 import os
 import sys
 import math
-import matplotlib
 
+import matplotlib
 from numpy import *
 from pylab import *  
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-#from KratosMultiphysics.MetisApplication import *
+#
+#
 
 from DEM_explicit_solver_var import *
 from DEM_procedures import *
@@ -20,9 +21,12 @@ my_timer=Timer();
 solid_model_part = ModelPart("SolidPart");  
 #############################################
 
+#
+
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
+#
 
 ## reading the solid part: binary or ascii, multifile or single
 
@@ -214,14 +218,15 @@ os.chdir(post_path)
 if(Multifile == "single_file"):
 
   gid_io.InitializeMesh(0.0)
-  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
-  gid_io.FinalizeMesh()
-  gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
 
-  gid_io.InitializeMesh(0.0)
   gid_io.WriteMesh(contact_model_part.GetMesh());
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
+
+  gid_io.InitializeMesh(0.0)
+  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
+  gid_io.FinalizeMesh()
+  gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
 
 os.chdir(main_path)
 
@@ -233,10 +238,14 @@ for node in force_measurement:
 
 done=False  #flag for the end of the confinement  
  
-    
+###################################################################
+#                                                                 #
+#---------------------------MAIN LOOP-----------------------------#
+#                                                                 #
+###################################################################
+
 while(time < final_time):
-  
-  
+ 
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
     time = time + dt
     solid_model_part.CloneTimeStep(time)
@@ -270,7 +279,6 @@ while(time < final_time):
     if(ContinuumOption =="ON"):
       strain += -2*velocity_node_y*dt/0.3
       strainlist.append(strain)
-
 	   
     #writing lists to be printed
     forcelist.append(total_force)
@@ -281,18 +289,16 @@ while(time < final_time):
     
     for node in inf_layer:
 	
-	force_node = node.GetSolutionStepValue(RHS,0)
-	force_node_x = node.GetSolutionStepValue(RHS,0)[0]
-	force_node_y = node.GetSolutionStepValue(RHS,0)[1]
-	force_node_z = node.GetSolutionStepValue(RHS,0)[2]
+		force_node = node.GetSolutionStepValue(RHS,0)
+		force_node_x = node.GetSolutionStepValue(RHS,0)[0]
+		force_node_y = node.GetSolutionStepValue(RHS,0)[1]
+		force_node_z = node.GetSolutionStepValue(RHS,0)[2]
 
-	total_force += force_node_y
-    
-    
+		total_force += force_node_y
+       
     #writing lists to be printed
     forcelist2.append(total_force)
-    
-    
+        
     summary_results.write(str(step)+"  "+str(total_force)+'\n')
 
     os.chdir(main_path)
@@ -307,13 +313,10 @@ while(time < final_time):
 		  #element.SetValue(APPLIED_FORCE,(0,0,0))
 		
 		#print("Confinement finished at time "+str(time))
-    
- 
-    
+       
     solver.Solve()
 
-    #dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
-    
+   
     incremental_time = (timer.time()-initial_real_time)- prev_time
 
     if (incremental_time > control_time): 
@@ -339,17 +342,18 @@ while(time < final_time):
       if (((estimation_time/60)/60)/24 > 2.0):
 	print('WARNING!!!:       VERY LASTING CALCULATION'+'\n')
 	   	      
-    
+
     os.chdir(list_path)
     
     multifile.write(problem_name+'_'+str(time)+'.post.bin\n')
     
     os.chdir(main_path)
+
+  ##############     GiD IO        ################################################################################
     
-##############     GiD IO        ################################################################################
     time_to_print = time - time_old_print
     #print str(time)
-    
+       
     if(time_to_print >= output_dt):
     
 	os.chdir(graphs_path)
@@ -369,26 +373,21 @@ while(time < final_time):
 
 	if(PrintNeighbourLists == "ON"): #printing neighbours id's
 	  
-   
 	  os.chdir(neigh_list_path)
 	  neighbours_list = open('neigh_list_'+ str(time),'w')
       
 	  for elem in solid_model_part.Elements:
 	
 	      ID=(elem.Id)
-	      #Neigh_ID = elem.GetValue(NEIGHBOURS_IDS_DOUBLE)
 	      Neigh_ID = elem.GetValue(NEIGHBOURS_IDS)
-	      #print(len(Neigh_ID))
 	      
 	      for i in range(len(Neigh_ID)):
 	
 		neighbours_list.write(str(ID)+' '+str(Neigh_ID[i])+'\n')
 	  
 	  neighbours_list.close()
-	  os.chdir(main_path)
-	
+
 	os.chdir(post_path)
-	
 	
 	if(Multifile == "multiple_files"):
 
@@ -401,7 +400,7 @@ while(time < final_time):
 	  gid_io.WriteMesh(contact_model_part.GetMesh());
 	  gid_io.FinalizeMesh()
 	  gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
-	
+
 	if (print_velocity=="1"):
 	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
         if (print_displacement=="1"):
@@ -428,7 +427,11 @@ while(time < final_time):
 	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
 	if (print_export_skin_sphere=="1"):
 	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
-	
+
+	#Aixo sempre per que si no hi ha manera de debugar
+    #gid_io.WriteNodalResults(PARTITION_INDEX, contact_model_part.Nodes, time, 0)
+    #gid_io.WriteNodalResults(INTERNAL_ENERGY, contact_model_part.Nodes, time, 0)
+
 	if (ContactMeshOption == "ON"): ##xapuza
 	  if (print_local_contact_force_low=="1"):
 	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
@@ -442,8 +445,7 @@ while(time < final_time):
 	    gid_io.PrintOnGaussPoints(CONTACT_TAU,contact_model_part,time)
 	  if (print_contact_sigma=="1"):
 	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
-	  
-             
+
         if (RotationOption == "ON"): ##xapuza
             if (print_angular_velocity=="1"):
 	      gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
@@ -482,12 +484,11 @@ while(time < final_time):
 	if(Multifile == "multiple_files"):
 	  gid_io.FinalizeResults()
 	
-	os.chdir(main_path)
-       
+	os.chdir(main_path)     
               
-           
 	time_old_print = time
-    
+   
+    #End of print loop
 
     os.chdir(main_path)
     
@@ -511,10 +512,9 @@ multifile_5.close()
 multifile_10.close()
 multifile_50.close()
 
-os.chdir(graphs_path)
-
 ###PLOTS
 
+os.chdir(graphs_path)
 
 if (1<2):
   clf()
@@ -528,15 +528,6 @@ if (1<2):
   #legend(('force'))
   savefig('Grafic_1')
 
-#if(ConcreteTestOption =="ON"):   #Akest grafic ja simprimeix pas a pas, no cal sobrescriurel oi???
-  #clf()
-  #plot(strainlist,stresslist,'b-')
-  #grid(True)
-  #title('Stress - Strain')
-  #xlabel('Strain')
-  #ylabel('Stress (MPa)')
-  #savefig('Stress_strain')
-  
 if (1<2):
   clf()
   plot(timelist,forcelist2,'b-')
@@ -548,8 +539,6 @@ if (1<2):
   #ylim(-5.0,103870403.214)
   #legend(('force'))
   savefig('Grafic_2')
-  
-  
   
 if (3<2):
   clf()
@@ -563,10 +552,7 @@ if (3<2):
   legend(('Ep','Ec','Ee','Et'))
   savefig('Grafic_energies_1_fe')
 
-
 os.chdir(main_path)
-
-
 
 print 'Calculation ends at instant: ' + str(timer.time())
 elapsed_pr_time = timer.clock() - initial_pr_time
