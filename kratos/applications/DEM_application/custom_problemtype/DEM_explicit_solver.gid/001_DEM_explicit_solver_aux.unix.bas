@@ -17,6 +17,7 @@ then
  cp $file_location $2/script.py
 fi
 
+cp $3/script_mpi.py $2/
 cp $3/DEM_procedures.py $2/
 cp $3/pressure_script.py $2/
 
