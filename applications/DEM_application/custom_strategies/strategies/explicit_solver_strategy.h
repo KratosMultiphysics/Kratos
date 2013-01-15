@@ -177,12 +177,9 @@ namespace Kratos
               extension_option = true;
           }
 
-          //2. Initializing elements and perform the 1st repartition
+          //2. Initializing elements and perform the repartition
           if(mElementsAreInitialized == false)
           {
-              for(int i = 0; i < 25; i++)
-                  Repart(r_model_part,0);
-              
               Repart(r_model_part,1);
 
               InitializeElements();
@@ -267,19 +264,19 @@ namespace Kratos
           //3. Neighbouring search. Every N times. +bounding box destruction
           
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
-		  {
+          {
 
-			  if ( (time_step + 1)%mnstepsearch == 0 && time_step >0 )
-			  {
+              if ( (time_step + 1)%mnstepsearch == 0 && time_step >0 )
+              {
 
-				  if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
-				  {
-					  BoundingBoxUtility(mEnlargementFactor);
-				  }
-		
-				  SearchNeighbours(r_model_part,extension_option); //extension option false;
-			  }
-		  }
+                  if(rCurrentProcessInfo[BOUNDING_BOX_OPTION]==1)
+                  {
+                      BoundingBoxUtility(mEnlargementFactor);
+                  }
+
+                  SearchNeighbours(r_model_part,extension_option); //extension option false;
+              }
+          }
           
           //4.Final operations
           FinalizeSolutionStep();

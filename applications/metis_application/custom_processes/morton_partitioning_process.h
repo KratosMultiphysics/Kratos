@@ -409,42 +409,42 @@ protected:
                 
                 mid.push_back(index);
                 
-                NPart[(*i_node-1)] = index;
-                EPart[i_element] = index;
+                NPart[(*i_node-1)] = i_element%mNumberOfPartitions;
+                EPart[i_element] = i_element%mNumberOfPartitions;
             }
         }
         
-        mid.sort();
-        mid.unique();
-        
-        std::cout << mid.size() << std::endl;
-        
-        std::vector<int> mid_v(mid.begin(), mid.end());
-        
-        int mid_element[mNumberOfPartitions];
-        
-        for(unsigned int i = 0; i < mNumberOfPartitions; i++)
-            mid_element[i] = mid_v[i*(mid.size()/mNumberOfPartitions-1)];
-
-        for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++)
-        {
-            for(IO::ConnectivitiesContainerType::value_type::iterator i_node = mrElementsConnectivities[i_element].begin() ;
-                    i_node != mrElementsConnectivities[i_element].end() ; i_node++)
-            { 
-                IO::NodesContainerType::iterator i_nod = mrNodesContainer.begin() + (*i_node-1);
-                
-                int scaledIndexNode = NPart[(*i_node-1)];
-                int scaledIndexElement = EPart[i_element];
-                
-                for(unsigned int i = 0; i < mNumberOfPartitions; i++)
-                {
-                    if(scaledIndexNode >= mid_element[i])
-                        NPart[(*i_node-1)] = i;
-                    if(scaledIndexElement >= mid_element[i])
-                        EPart[i_element] = i;
-                }
-            }
-        }
+//         mid.sort();
+//         mid.unique();
+//         
+//         std::cout << mid.size() << std::endl;
+//         
+//         std::vector<int> mid_v(mid.begin(), mid.end());
+//         
+//         int mid_element[mNumberOfPartitions];
+//         
+//         for(unsigned int i = 0; i < mNumberOfPartitions; i++)
+//             mid_element[i] = mid_v[i*(mid.size()/mNumberOfPartitions-1)];
+// 
+//         for(SizeType i_element = 0 ; i_element < NumberOfElements ; i_element++)
+//         {
+//             for(IO::ConnectivitiesContainerType::value_type::iterator i_node = mrElementsConnectivities[i_element].begin() ;
+//                     i_node != mrElementsConnectivities[i_element].end() ; i_node++)
+//             { 
+//                 IO::NodesContainerType::iterator i_nod = mrNodesContainer.begin() + (*i_node-1);
+//                 
+//                 int scaledIndexNode = NPart[(*i_node-1)];
+//                 int scaledIndexElement = EPart[i_element];
+//                 
+//                 for(unsigned int i = 0; i < mNumberOfPartitions; i++)
+//                 {
+//                     if(scaledIndexNode >= mid_element[i])
+//                         NPart[(*i_node-1)] = i;
+//                     if(scaledIndexElement >= mid_element[i])
+//                         EPart[i_element] = i;
+//                 }
+//             }
+//         }
     }
 
     ///@}
