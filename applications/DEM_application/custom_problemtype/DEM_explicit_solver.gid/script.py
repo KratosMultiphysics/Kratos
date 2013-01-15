@@ -16,17 +16,14 @@ from KratosMultiphysics.DEMApplication import *
 from DEM_explicit_solver_var import *
 from DEM_procedures import *
 
+
 #defining a model part for the solid part
+
 my_timer=Timer();
 solid_model_part = ModelPart("SolidPart");  
-#############################################
-
-#
 
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
-
-#
 
 ## reading the solid part: binary or ascii, multifile or single
 
@@ -58,77 +55,19 @@ SolverStrategy.AddDofs(solid_model_part)
 
 solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, solver variables initialize as default
 
-##Obtaning options and values
-
-InitializeSolver(solid_model_part,solver)
-
-if(1<2):
-
-  ## ADVANCED USER INTERACTION
-
-  # Previous Calculations.
-
-  Model_Data = open('Model_Data.txt','w')
+if(ConcreteTestOption =="ON"):
   
-  #mean radius, and standard deviation:
+  contact_model_part = solver.contact_model_part   
+  
+solver.Initialize()
 
-  i = 0
-  sum_radi = 0
-  sum_squared = 0
-  for node in solid_model_part.Nodes:
-  
-    sum_radi += node.GetSolutionStepValue(RADIUS)
-    sum_squared += node.GetSolutionStepValue(RADIUS)**2
-    i+=1
+if(ConcreteTestOption =="ON"):
 
-  mean=sum_radi/i
-  var =sum_squared/i-mean**2
-  if(abs(var)<1e-05):
-    var=0
-  std_dev=var**0.5
+  ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
+  ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
+  ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
   
-  Model_Data.write("Radius Mean: "+str(mean)+'\n')
-  Model_Data.write("Std Deviation: "+str(std_dev)+'\n')
-  Model_Data.write('\n')
-  
-  Total_Particles 	= len(solid_model_part.Nodes)
-  Total_Contacts  	= solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS)/2
-  Coordination_Number	= 1.0*(Total_Contacts*2)/Total_Particles
-  
-  Model_Data.write("Total Number of Particles: "+str(Total_Particles)+'\n')
-  Model_Data.write("Total Number of Contacts: "+str(Total_Contacts)+'\n')
-  Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
-  Model_Data.write('\n')
-  
-  Model_Data.write("Volume Elements: "+str(mass_elements)+'\n')
-  
-  Model_Data.close()
-
-  # Defining lists (FOR COMPRESSION TESTS)
-
-  sup_layer = list()
-  inf_layer = list()
-  fix_particles = list()
-  force_measurement = list()
-  special_selection = list()
-  others = list()
-  
-  for node in solid_model_part.Nodes:
-    if (node.GetSolutionStepValue(GROUP_ID)==1):
-      sup_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==2):
-      inf_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==3):
-      fix_particles.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==4):
-      force_measurement.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==5):
-      special_selection.append(node)
-    else:
-      others.append(node)
-
-
-dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+  dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
