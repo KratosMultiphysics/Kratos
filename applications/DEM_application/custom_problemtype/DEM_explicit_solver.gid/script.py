@@ -58,6 +58,9 @@ solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, s
 if(ConcreteTestOption =="ON"):
   
   contact_model_part = solver.contact_model_part   
+
+  
+ProcGiDSolverTransfer(solid_model_part,solver)
   
 solver.Initialize()
 
@@ -175,7 +178,7 @@ velocity_node_y = 0.0
 for node in force_measurement:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
 
-done=False  #flag for the end of the confinement  
+#done=False  #flag for the end of the confinement  
  
 ###################################################################
 #                                                                 #
