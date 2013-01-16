@@ -182,7 +182,7 @@ class ExplicitStrategy:
         
         
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_OPTION)
-	self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
+        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
@@ -205,6 +205,18 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(GLOBAL_FRI_ANG, self.global_fri_ang)
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
+        
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #Reserved for: message when confinement ends.
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, 0)
+        
+        
         
         #creating the solution strategy
         if(self.use_mpi):
