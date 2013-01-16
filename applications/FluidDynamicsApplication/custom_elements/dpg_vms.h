@@ -904,8 +904,8 @@ public:
             this->GetAdvectiveVel(AdvVel, N);
 
             double Density,KinViscosity;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            ElementBaseType::EvaluateInPoint(Density, DENSITY, N);
+            ElementBaseType::EvaluateInPoint(KinViscosity, VISCOSITY, N);
 
             double Viscosity;
             this->GetEffectiveViscosity(Density,KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
