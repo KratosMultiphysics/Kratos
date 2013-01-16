@@ -186,7 +186,7 @@ class MonolithicSolver:
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
-        mu1 = 10.0*self.mu/self.rho1
+        mu1 = 1.0*self.mu/self.rho1
         #mu1 = self.mu
         #mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
@@ -305,13 +305,14 @@ class MonolithicSolver:
 	  #self.DoRedistance()
 	  #for node in self.model_part.Nodes:	    
 	    #node.SetSolutionStepValue(DISTANCE,1,node.GetSolutionStepValue(DISTANCE))
-	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
+	  #self.next_redistance = self.internal_step_counter + self.redistance_frequency
 
 	#convect distance function
         self.ConvectDistance()
         #recompute distance function as needed
         if(self.internal_step_counter >= self.next_redistance):
 	  self.DoRedistance()
+	  self.next_redistance = self.internal_step_counter + self.redistance_frequency	  
 
 	self.ApplyFluidProperties()
         #Recompute normals if necessary
