@@ -69,14 +69,14 @@ class Solver:
         self.max_iter = 5
 
         #material settings
-        self.rho_mat = 100.0
-        self.rho_empty = 1.0
+        #self.rho_mat = 100.0
+        #self.rho_empty = 1.0
         
-        self.specific_heat_mat = 1006.0
-        self.specific_heat_empty = 1.0   
+        #self.specific_heat_mat = 1006.0
+        #self.specific_heat_empty = 1.0   
         
-        self.conductivity_mat = 0.024
-        self.conductivity_empty = 1.0          
+        #self.conductivity_mat = 0.024
+        #self.conductivity_empty = 1.0          
     #######################################################################
     def Initialize(self):
 
