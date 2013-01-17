@@ -261,6 +261,8 @@ namespace Kratos {
         {   
             KRATOS_TRY
             
+            KRATOS_WATCH("SEARCH_NEIGHBOURS")
+            
             ContainerType& pIteratorElements = Get_Elements(r_model_part);
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
             
@@ -478,13 +480,15 @@ namespace Kratos {
 
                     } // for each neighbour, neighbour_it.
                     
-                    Timer::Start("SORT");
-                    Sort_Modelpart(r_model_part);
-                    Timer::Stop("SORT");
-                    
                 }//Loop for evey particle as a base.
             }
+            Timer::Start("SORT");
+            Sort_Modelpart(r_model_part);
+            Timer::Stop("SORT");
+            
             Timer::Stop("PROCESS");
+            
+            Timer::PrintTimingInformation();
             
             KRATOS_CATCH("")
         }// Search_Neighbours
