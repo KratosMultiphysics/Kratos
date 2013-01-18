@@ -73,7 +73,7 @@ class MonolithicSolver:
         self.vel_abs_criteria = 1e-9
         self.press_abs_criteria = 1e-9
 
-        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        ##self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.max_iter = 20
                             
@@ -192,7 +192,7 @@ class MonolithicSolver:
             self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
             self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size,self.turbulence_model )
         else: # No turbulence model
-            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size )
+            self.time_scheme = TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent( self.alpha,self.move_mesh_strategy,self.domain_size,PATCH_INDEX )
 
         self.time_scheme.Check(self.model_part)
         

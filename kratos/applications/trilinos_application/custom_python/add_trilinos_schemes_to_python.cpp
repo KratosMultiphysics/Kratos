@@ -187,7 +187,8 @@ void  AddSchemes()
            (
                "TrilinosPredictorCorrectorVelocityBossakSchemeTurbulent", init<double, double, unsigned int, Process::Pointer >()
            )
-           .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            .def(init<double,double,unsigned int >())// constructor without a turbulence model
+            .def(init<double,double,unsigned int, const Variable<int>&>())
            ;
 
 //            typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
