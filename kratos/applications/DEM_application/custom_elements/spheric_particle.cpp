@@ -376,7 +376,8 @@ namespace Kratos
           double final_time = 0.15*rCurrentProcessInfo[FINAL_SIMULATION_TIME]; //15% final_time
 		  double current_time = rCurrentProcessInfo[TIME];
 		  
-		  int& dummy_switch = rCurrentProcessInfo[INT_DUMMY_1];
+          int temporalfix = 0;
+		  int& dummy_switch = temporalfix;//rCurrentProcessInfo[INT_DUMMY_1];
 	  
 		  applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(external_total_applied_force,initial_time,current_time,final_time,dummy_switch);
 
