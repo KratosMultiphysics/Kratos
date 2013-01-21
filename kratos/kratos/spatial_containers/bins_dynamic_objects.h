@@ -337,7 +337,7 @@ public:
         PointType Low, High;
         SearchStructureType Box;
 
-        //#pragma omp parallel for private(Low,High,Box)
+        #pragma omp parallel for private(Low,High,Box)
         for(size_t i = 0; i < NumberOfObjects; i++)
         {   
             ResultIteratorType ResultsPointer            = Results[i].begin();
