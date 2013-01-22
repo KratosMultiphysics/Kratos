@@ -74,9 +74,7 @@ def AddVariables(model_part):
 #Temporarily Unused
 
     #model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
-
-    
-   
+ 
 
     print "variables for the explicit solver added correctly"
 
