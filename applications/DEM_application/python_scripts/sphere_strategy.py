@@ -38,8 +38,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
 
-    if ( (ConfinementPressure != 0.0) and (TriaxialOption == "ON" ) ):
-      model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE) 
+    #if ( (ConfinementPressure != 0.0) and (TriaxialOption == "ON" ) ):
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE) 
 
 #ROTATION
 
@@ -51,16 +51,15 @@ def AddVariables(model_part):
       model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
       model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
       model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-
       
-      if(TrihedronOption =="ON"):
-         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+      #if(TrihedronOption =="ON"):
+      model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
          
-      if(RotaDampId =="LocalDamp"):
-        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+      #if(RotaDampId =="LocalDamp"):
+      model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
          
-      if(RotaDampId =="RollingFric"): 
-        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION) 
+      #if(RotaDampId =="RollingFric"): 
+      model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION) 
 
 #ONLY VISUALITZATION
  
