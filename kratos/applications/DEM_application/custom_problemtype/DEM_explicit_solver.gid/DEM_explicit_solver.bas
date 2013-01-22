@@ -161,6 +161,14 @@ Begin NodalData PARTICLE_COHESION
 *end elems 
 End NodalData
 
+Begin NodalData PARTICLE_TENSION
+*loop elems *all
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*elemsconec(1) 0 *elemsmatprop(Tension)
+*endif
+*end elems 
+End NodalData
+
 Begin NodalData PARTICLE_FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
@@ -178,14 +186,6 @@ Begin NodalData ROLLING_FRICTION
 *end elems 
 End NodalData
 *endif
-
-Begin NodalData PARTICLE_TENSION
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Tension)
-*endif
-*end elems 
-End NodalData
 
 *if(strcmp(GenData(Rota_Damp_Id),"LocalDamp")==0)
 Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
