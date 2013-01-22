@@ -70,8 +70,15 @@ namespace Kratos
       /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
       void Calculate(ModelPart& model_part)
       {
+          ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
+          
           CalculateTranslationalMotion(model_part);
-          CalculateRotationalMotion(model_part);
+          
+          if(rCurrentProcessInfo[ROTATION_OPTION]!=0)
+          {
+             CalculateRotationalMotion(model_part);
+          }
+          
       }
 
       void CalculateTranslationalMotion(ModelPart& model_part)

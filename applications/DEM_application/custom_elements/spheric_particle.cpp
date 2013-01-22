@@ -396,10 +396,7 @@ namespace Kratos
           rhs  = mass*gravity + applied_force;
 
           total_forces = rhs;
-            
-            
-          array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-
+                  
           size_t iContactForce = 0;
 
           array_1d<double, 3 > AngularVel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -935,6 +932,8 @@ namespace Kratos
 	      
               if ( rotation_OPTION == 1 )
               {
+				
+					 array_1d<double, 3 > & mRota_Moment = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
                     double Rota_Moment[3] = {0.0};
                         
                     Rota_Moment[0] = mRota_Moment[0];
@@ -1018,7 +1017,7 @@ namespace Kratos
                     mRota_Moment[1] = Rota_Moment[1];
                     mRota_Moment[2] = Rota_Moment[2];               
                         
-              } if ( rotation_OPTION == 1 )     
+              } //if ( rotation_OPTION == 1 )     
               
 
 /*              if ( rotation_OPTION == 1 )
@@ -1503,15 +1502,18 @@ namespace Kratos
           }
 
           array_1d<double,3>& rhs               = this->GetGeometry()[0].GetSolutionStepValue(RHS);//RHS forces, we reset to 0. and we calculate again.
+          noalias(rhs)                          = ZeroVector(3);
           array_1d<double,3>& total_forces      = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
+          noalias(total_forces)                 = ZeroVector(3);
           array_1d<double,3>& damp_forces       = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
-          array_1d<double, 3 > & mRota_Moment   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-          
-          noalias(rhs)          = ZeroVector(3);
-          noalias(total_forces) = ZeroVector(3);
           noalias(damp_forces)  = ZeroVector(3);
-          noalias(mRota_Moment) = ZeroVector(3);
-
+          
+          if(rCurrentProcessInfo[ROTATION_OPTION]==1)
+          {
+            array_1d<double, 3 > & mRota_Moment   = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
+            noalias(mRota_Moment) = ZeroVector(3);
+          }
+          
       }
         
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
