@@ -48,72 +48,6 @@ VALUE: -9.81
 QUESTION: Gravity_Z
 VALUE: 0.0
 
-TITLE: Special Features
-
-QUESTION: Continuum_Option#CB#(ON,OFF)
-VALUE: ON
-DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#,HIDE,Concrete_Test_Option,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#,RESTORE,Concrete_Test_Option,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#)
-QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
-VALUE: OFF
-QUESTION: Concrete_Test_Option#CB#(ON,OFF)
-VALUE: OFF
-QUESTION: Confinement_Pressure
-HELP:MPa
-VALUE: 0.0
-QUESTION: Failure_Criterion_Option#CB#(Mohr-Coulomb,Uncoupled)
-VALUE: Uncoupled
-QUESTION: Tau_Zero
-HELP:MPa
-VALUE: 5.26
-QUESTION: Sigma_Max
-HELP:MPa
-VALUE: 33.2
-QUESTION: Sigma_Min
-HELP:MPa
-VALUE: 3.32
-QUESTION: Internal_Fricc
-HELP:Degrees
-VALUE: 35
-QUESTION: Delta_Option#CB#(ON,OFF)
-VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#)
-QUESTION: Search_Radius_Extension
-VALUE: 0.01
-QUESTION: Rotation_Option#CB#(ON,OFF)
-VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Trihedron_Option,#CURRENT#,HIDE,Rota_Damp_Id,#CURRENT#)(ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Trihedron_Option,#CURRENT#,RESTORE,Rota_Damp_Id,#CURRENT#)
-QUESTION: Trihedron_Option#CB#(ON,OFF)
-VALUE: OFF
-QUESTION: Rotation_Spring#CB#(ON,OFF)
-VALUE: OFF
-QUESTION: Rota_Damp_Id#CB#(LocalDamp,NoDamp)
-VALUE: LocalDamp
-QUESTION: Virtual_Mass_Option_Id#CB#(ON,OFF)
-VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Virtual_Mass_Coefficient,#CURRENT#)(ON,RESTORE,Virtual_Mass_Coefficient,#CURRENT#)
-QUESTION: Virtual_Mass_Coefficient
-VALUE: 0.0
-QUESTION: Global_Variables_Option#CB#(ON,OFF)
-VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Global_KN,#CURRENT#,HIDE,Global_KT,#CURRENT#,HIDE,Global_KR,#CURRENT#,HIDE,Global_RN,#CURRENT#,HIDE,Global_RT,#CURRENT#,HIDE,Global_RR,#CURRENT#,HIDE,Global_FRI_ANG,#CURRENT#)(ON,RESTORE,Global_KN,#CURRENT#,RESTORE,Global_KT,#CURRENT#,RESTORE,Global_KR,#CURRENT#,RESTORE,Global_RN,#CURRENT#,RESTORE,Global_RT,#CURRENT#,RESTORE,Global_RR,#CURRENT#,RESTORE,Global_FRI_ANG,#CURRENT#)
-QUESTION: Global_KN
-VALUE: 3000.0
-QUESTION: Global_KT
-VALUE: 1000.0
-QUESTION: Global_KR
-VALUE: 1000.0
-QUESTION: Global_RN
-VALUE: 1000.0
-QUESTION: Global_RT
-VALUE: 1000.0
-QUESTION: Global_RR
-VALUE: 1000.0
-QUESTION: Global_FRI_ANG
-VALUE: 40.0
-QUESTION: Print_Neighbour_Lists#CB#(ON,OFF)
-VALUE: OFF
-
-
 TITLE: Time Settings
 
 QUESTION: Search_Step
@@ -133,7 +67,92 @@ QUESTION: Control_Time
 VALUE: 20.0
 
 
-# Properties
+TITLE: Special Features
+
+QUESTION: Virtual_Mass_Option_Id#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Virtual_Mass_Coefficient,#CURRENT#)(ON,RESTORE,Virtual_Mass_Coefficient,#CURRENT#)
+QUESTION: Virtual_Mass_Coefficient
+VALUE: 0.0
+QUESTION: Delta_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#)
+QUESTION: Search_Radius_Extension
+VALUE: 0.01
+QUESTION: Print_Neighbour_Lists#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Global_Variables_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Global_KN,#CURRENT#,HIDE,Global_KT,#CURRENT#,HIDE,Global_KR,#CURRENT#,HIDE,Global_RN,#CURRENT#,HIDE,Global_RT,#CURRENT#,HIDE,Global_RR,#CURRENT#,HIDE,Global_FRI_ANG,#CURRENT#)(ON,RESTORE,Global_KN,#CURRENT#,RESTORE,Global_KT,#CURRENT#,RESTORE,Global_KR,#CURRENT#,RESTORE,Global_RN,#CURRENT#,RESTORE,Global_RT,#CURRENT#,RESTORE,Global_RR,#CURRENT#,RESTORE,Global_FRI_ANG,#CURRENT#)
+QUESTION: Global_KN
+VALUE: 3000.0
+QUESTION: Global_KT
+VALUE: 1000.0
+QUESTION: Global_KR
+VALUE: 1000.0
+QUESTION: Global_RN
+VALUE: 1000.0
+QUESTION: Global_RT
+VALUE: 1000.0
+QUESTION: Global_RR
+VALUE: 1000.0
+QUESTION: Global_FRI_ANG
+VALUE: 40.0
+
+TITLE: Continuum Options
+
+QUESTION: Continuum_Option#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#)(ON,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#)
+QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Failure_Criterion_Option#CB#(Mohr-Coulomb,Uncoupled)
+VALUE: Uncoupled
+QUESTION: Tau_Zero
+HELP:MPa
+VALUE: 5.26
+QUESTION: Sigma_Max
+HELP:MPa
+VALUE: 33.2
+QUESTION: Sigma_Min
+HELP:MPa
+VALUE: 3.32
+QUESTION: Internal_Fricc
+HELP:Degrees
+VALUE: 35
+
+
+TITLE: Concrete Test Options
+
+QUESTION: Concrete_Test_Option#CB#(ON,OFF)
+HELP: Necessary for Skin determination
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#)
+QUESTION: Triaxial_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Time,#CURRENT#,HIDE,Increasing_Temporaily,#CURRENT#)(ON,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Initial_Time,#CURRENT#,RESTORE,Increasing_Temporaily,#CURRENT#)
+QUESTION: Confinement_Pressure
+HELP:MPa
+VALUE: 0.0
+QUESTION: Initial_Time
+HELP:Time when the external pressure starts to act
+VALUE: 0.0
+QUESTION: Increasing_Temporaily
+HELP:A percentage of the total simulation time from the initial time linearly increassing the pressure from 0 to the especified value
+VALUE: 15.0
+
+TITLE: Rotation Options
+
+QUESTION: Rotation_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Trihedron_Option,#CURRENT#,HIDE,Rota_Damp_Id,#CURRENT#)(ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Trihedron_Option,#CURRENT#,RESTORE,Rota_Damp_Id,#CURRENT#)
+QUESTION: Trihedron_Option#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Rotation_Spring#CB#(ON,OFF)
+VALUE: OFF
+QUESTION: Rota_Damp_Id#CB#(NoDamp,LocalDamp,RollingFric)
+VALUE: NoDamp
+
 
 TITLE: Export Selection 
 
