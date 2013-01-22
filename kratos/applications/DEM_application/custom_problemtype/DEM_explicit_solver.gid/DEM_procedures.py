@@ -134,6 +134,8 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     if(RotaDampId == "LocalDamp"):
         rota_damp_id = 1
+    elif(RotaDampId == "RollingFric"):
+        rota_damp_id = 2
     else:
         rota_damp_id = 0
         
@@ -177,7 +179,13 @@ def ProcGiDSolverTransfer(model_part,solver):
             solver.contact_mesh_OPTION=1  #xapuza
                
         if(ConcreteTestOption =="ON"):
-           solver.concrete_test_OPTION=1  #xapuza  
+           solver.concrete_test_OPTION=1  #xapuza 
+           
+           if(TriaxialOption =="ON"):
+           
+             solver.initial_pressure_time = InitialTime
+             solver.time_increasing_ratio = IncreasingTemporaily
+           
       
         if(FailureCriterionOption =="Mohr-Coulomb"):
             solver.failure_criterion_OPTION=1 
@@ -253,8 +261,11 @@ def ProcSkinAndPressure(model_part,solver):
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
     
-    print(ConfinementPressure)
     Pressure = ConfinementPressure*1e6 #Mpa
+    
+    if(Pressure!=0):
+      
+      solver.external_pressure = 1
     
     SKIN = list()  
     LAT = list()
@@ -339,10 +350,69 @@ def ProcSkinAndPressure(model_part,solver):
                     
                   XTOP.append(node)
                                     
-    if ( Pressure != 0.0 ):
+    if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
  
       ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER) 
       print("End Applying Imposed Forces")
+     
+def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
+  
+	if (print_velocity=="1"):
+	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
+	if (print_displacement=="1"):
+	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
+	if (print_rhs=="1"):
+	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
+	if (print_applied_forces=="1"):
+	  gid_io.WriteNodalResults(APPLIED_FORCE, contact_model_part.Nodes, time, 0)       
+	if (print_total_forces=="1"):	  
+	  gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)	  
+	if (print_damp_forces=="1"):
+	  gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)        
+	if (print_radius=="1"):
+	  gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)       
+	if (print_particle_cohesion=="1"):
+	  gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)       
+	if (print_particle_tension=="1"):
+	  gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
+	if (print_group_id=="1"):
+	  gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
+	if (print_export_id=="1"):
+	  gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
+	if (print_export_particle_failure_id=="1"):
+	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
+	if (print_export_skin_sphere=="1"):
+	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
+
+  #Aixo sempre per que si no hi ha manera de debugar
+  #gid_io.WriteNodalResults(PARTITION_INDEX, contact_model_part.Nodes, time, 0)
+  #gid_io.WriteNodalResults(INTERNAL_ENERGY, contact_model_part.Nodes, time, 0)
+
+	if (ContactMeshOption == "ON"): ##xapuza
+	  if (print_local_contact_force_low=="1"):
+		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
+	  if (print_local_contact_force_high=="1"):
+		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
+	  if (print_contact_failure=="1"): 
+		  gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
+	  if (print_failure_criterion_state=="1"):
+		  gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,contact_model_part,time)  	    
+	  if (print_contact_tau=="1"):
+		  gid_io.PrintOnGaussPoints(CONTACT_TAU,contact_model_part,time)
+	  if (print_contact_sigma=="1"):
+		  gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
+
+	if (RotationOption == "ON"): ##xapuza
+	  if (print_angular_velocity=="1"):
+		  gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
+	  if (print_particle_moment=="1"):
+		  gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
+		  # if (print_euler_angles=="1"):
+		#gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
+
+	gid_io.Flush()
+	sys.stdout.flush()
+
 
  
     
