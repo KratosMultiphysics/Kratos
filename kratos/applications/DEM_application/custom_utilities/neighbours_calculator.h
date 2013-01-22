@@ -290,7 +290,7 @@ namespace Kratos {
             for (IteratorType particle_pointer_it = pIteratorElements.begin(); particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it)
             {
                 //####################################################################################################################
-                double new_extension = 2.0; ///WARNING: PROVISIONALLY SET AS 2.0. SHOULD BE CALCULATED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                double new_extension = 1.01; ///WARNING: PROVISIONALLY SET AS 1.01 SHOULD BE CALCULATED!!!!!!!!! ITS OK FOR CONCRETE
                 //####################################################################################################################
               
                 Radius[particle_pointer_it - pIteratorElements.begin()] = new_extension*((1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
