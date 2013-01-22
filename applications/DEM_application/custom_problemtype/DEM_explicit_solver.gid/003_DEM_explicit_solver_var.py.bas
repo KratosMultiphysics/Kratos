@@ -18,8 +18,13 @@ ContactMeshOption = "*GenData(Contact_Mesh_Option)"
 GlobalVariablesOption= "*GenData(Global_Variables_Option)"
 VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
 FailureCriterionOption = "*GenData(Failure_Criterion_Option)"
+TriaxialOption = "*GenData(Triaxial_Option)"
 *format "%10.5e"
 ConfinementPressure = *GenData(Confinement_Pressure)
+*format "%10.5e"
+InitialTime = *GenData(Initial_Time)
+*format "%10.5e"
+IncreasingTemporaily = *GenData(Increasing_Temporaily)
 *format "%10.5e"
 TauZero = *GenData(Tau_Zero)
 *format "%10.5e"
