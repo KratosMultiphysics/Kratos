@@ -358,8 +358,7 @@ namespace Kratos
           double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
           double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
           double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
-          double RollingFriction      = this->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
-          double RollingFrictionCoeff = RollingFriction * radius;  
+          
           double restitution_coeff    = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
       
           array_1d<double,3>& rhs             = this->GetGeometry()[0].GetSolutionStepValue(RHS);
@@ -368,19 +367,32 @@ namespace Kratos
 
 		  //Aplied Force for pressure:
 		  
-          array_1d<double,3> external_total_applied_force  = this->GetGeometry()[0].GetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
-          array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
+          array_1d<double,3> external_total_applied_force;
+		  
+		  external_total_applied_force[1] = 0.0;
+		  external_total_applied_force[1] = 0.0;
+		  external_total_applied_force[1] = 0.0;
+		  
+		  array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
+		  
+		  if (rCurrentProcessInfo[INT_DUMMY_2]==1) //activated external force
+		  {
+			
+            external_total_applied_force = this->GetGeometry()[0].GetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
+		  
+            double initial_time 	= rCurrentProcessInfo[INITIAL_PRESSURE_TIME];
+            double final_time 	= 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * rCurrentProcessInfo[FINAL_SIMULATION_TIME]; 
+            double current_time 	= rCurrentProcessInfo[TIME];
+		  
+            int& dummy_switch = rCurrentProcessInfo[INT_DUMMY_1];
+	  
+            applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(external_total_applied_force,initial_time,current_time,final_time,dummy_switch);
+
+		  }
+          
 			  
           //temporaly modulation of the applied force:
-          double initial_time = 0.0;
-          double final_time = 0.15*rCurrentProcessInfo[FINAL_SIMULATION_TIME]; //15% final_time
-		  double current_time = rCurrentProcessInfo[TIME];
-		  
-          int temporalfix = 0;
-		  int& dummy_switch = temporalfix;//rCurrentProcessInfo[INT_DUMMY_1];
-	  
-		  applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(external_total_applied_force,initial_time,current_time,final_time,dummy_switch);
-
+		           
           rhs  = mass*gravity + applied_force;
 
           total_forces = rhs;
@@ -436,9 +448,7 @@ namespace Kratos
               //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
               double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
               double equiv_FriAngle               = (FriAngle + other_FriAngle) * 0.5; 
-              double other_RollingFriction        = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
-              double other_RollingFrictionCoeff   = other_RollingFriction * other_radius;
-              double equiv_RollingFrictionCoeff   = 2*RollingFrictionCoeff * other_RollingFrictionCoeff / (RollingFrictionCoeff + other_RollingFrictionCoeff); 
+              
               
               // CONTINUUM SIMULATING PARAMETERS:
 
@@ -939,67 +949,76 @@ namespace Kratos
                     Rota_Moment[0] -= MA[0] * radius;
                     Rota_Moment[1] -= MA[1] * radius;
                     Rota_Moment[2] -= MA[2] * radius;
-                        
-                    if (equiv_RollingFrictionCoeff != 0.0)
+                   
+                    if(rCurrentProcessInfo[ROTA_DAMP_TYPE]==2)  //Rolling friccion type   
                     {
-                        Max_Rota_Moment[0] += Rota_Moment[0];
-                        Max_Rota_Moment[1] += Rota_Moment[1];
-                        Max_Rota_Moment[2] += Rota_Moment[2];                     
-                                
-                        double CoordSystemMoment[3] = {0.0};
-                        double MR[3] = {0.0};
-                        
-                        double NormalForce[3] = {0.0};      
-                        
-                        //NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalResultantContactForce[2]);
-                        //NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalResultantContactForce[2]);
-                        //NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalResultantContactForce[2]);
-                        
-                        NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalContactForce[2]);
-                        NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalContactForce[2]);
-                        NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalContactForce[2]);
-                        
-                        GeometryFunctions::CrossProduct(LocalCoordSystem[2], Max_Rota_Moment, CoordSystemMoment);
-                        
-                        double DetCoordSystemMoment = sqrt(CoordSystemMoment[0] * CoordSystemMoment[0] + CoordSystemMoment[1] * CoordSystemMoment[1] + CoordSystemMoment[2] * CoordSystemMoment[2]);
-
-                        if(equiv_RollingFrictionCoeff != 0.0)
-                        {
-                            CoordSystemMoment[0] = CoordSystemMoment[0] / DetCoordSystemMoment;
-                            CoordSystemMoment[1] = CoordSystemMoment[1] / DetCoordSystemMoment;
-                            CoordSystemMoment[2] = CoordSystemMoment[2] / DetCoordSystemMoment;                            
-                        }
-                        
-                        GeometryFunctions::CrossProduct(NormalForce, CoordSystemMoment, MR);
-
-                        double DetMR = sqrt( MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2] );
-                        double MR_now = DetMR * equiv_RollingFrictionCoeff;
-                        double MR_max = sqrt( Max_Rota_Moment[0] * Max_Rota_Moment[0] + Max_Rota_Moment[1] * Max_Rota_Moment[1] + Max_Rota_Moment[2] * Max_Rota_Moment[2] );
-                        
-                        if ( MR_max > MR_now )
-                        {
-                            Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
-                            Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
-                            Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;
-                            
-                            Max_Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
-                            Max_Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
-                            Max_Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;                            
-                        }
-                       
-                        else
-                        {
-                            Rota_Moment[0] = -Initial_Rota_Moment[0];
-                            Rota_Moment[1] = -Initial_Rota_Moment[1];
-                            Rota_Moment[2] = -Initial_Rota_Moment[2];
-                        }                        
-                    }
+                       double RollingFriction              = this->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
+                       double RollingFrictionCoeff         = RollingFriction * radius;  
+                       double other_RollingFriction        = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(ROLLING_FRICTION);
+                       double other_RollingFrictionCoeff   = other_RollingFriction * other_radius;
+                       double equiv_RollingFrictionCoeff   = 2*RollingFrictionCoeff * other_RollingFrictionCoeff / (RollingFrictionCoeff + other_RollingFrictionCoeff); 
                     
+                       if (equiv_RollingFrictionCoeff != 0.0)
+                       {
+                          Max_Rota_Moment[0] += Rota_Moment[0];
+                          Max_Rota_Moment[1] += Rota_Moment[1];
+                          Max_Rota_Moment[2] += Rota_Moment[2];                     
+                          
+                          double CoordSystemMoment[3] = {0.0};
+                          double MR[3] = {0.0};
+                          
+                          double NormalForce[3] = {0.0};      
+                          
+                          //NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalResultantContactForce[2]);
+                          //NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalResultantContactForce[2]);
+                          //NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalResultantContactForce[2]);
+                          
+                          NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalContactForce[2]);
+                          NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalContactForce[2]);
+                          NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalContactForce[2]);
+                          
+                          GeometryFunctions::CrossProduct(LocalCoordSystem[2], Max_Rota_Moment, CoordSystemMoment);
+                          
+                          double DetCoordSystemMoment = sqrt(CoordSystemMoment[0] * CoordSystemMoment[0] + CoordSystemMoment[1] * CoordSystemMoment[1] + CoordSystemMoment[2] * CoordSystemMoment[2]);
+
+                          if(equiv_RollingFrictionCoeff != 0.0)
+                          {
+                              CoordSystemMoment[0] = CoordSystemMoment[0] / DetCoordSystemMoment;
+                              CoordSystemMoment[1] = CoordSystemMoment[1] / DetCoordSystemMoment;
+                              CoordSystemMoment[2] = CoordSystemMoment[2] / DetCoordSystemMoment;                            
+                          }
+                          
+                          GeometryFunctions::CrossProduct(NormalForce, CoordSystemMoment, MR);
+
+                          double DetMR = sqrt( MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2] );
+                          double MR_now = DetMR * equiv_RollingFrictionCoeff;
+                          double MR_max = sqrt( Max_Rota_Moment[0] * Max_Rota_Moment[0] + Max_Rota_Moment[1] * Max_Rota_Moment[1] + Max_Rota_Moment[2] * Max_Rota_Moment[2] );
+                          
+                          if ( MR_max > MR_now )
+                          {
+                              Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
+                              Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
+                              Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;
+                              
+                              Max_Rota_Moment[0] += MR[0] * equiv_RollingFrictionCoeff;
+                              Max_Rota_Moment[1] += MR[1] * equiv_RollingFrictionCoeff;
+                              Max_Rota_Moment[2] += MR[2] * equiv_RollingFrictionCoeff;                            
+                          }
+						
+                          else
+                          {
+                              Rota_Moment[0] = -Initial_Rota_Moment[0];
+                              Rota_Moment[1] = -Initial_Rota_Moment[1];
+                              Rota_Moment[2] = -Initial_Rota_Moment[2];
+                          }                        
+                       } // if (equiv_RollingFrictionCoeff != 0.0)
+                    } //  if(rCurrentProcessInfo[ROTA_DAMP_TYPE]==2)
+              
                     mRota_Moment[0] = Rota_Moment[0];
                     mRota_Moment[1] = Rota_Moment[1];
                     mRota_Moment[2] = Rota_Moment[2];               
                         
-              }      
+              } if ( rotation_OPTION == 1 )     
               
 
 /*              if ( rotation_OPTION == 1 )
