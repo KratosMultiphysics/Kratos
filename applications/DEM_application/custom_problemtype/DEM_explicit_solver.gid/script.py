@@ -64,13 +64,14 @@ ProcGiDSolverTransfer(solid_model_part,solver)
   
 solver.Initialize()
 
+dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+
 if(ConcreteTestOption =="ON"):
 
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
   
-  dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
