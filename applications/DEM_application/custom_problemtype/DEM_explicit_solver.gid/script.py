@@ -343,65 +343,14 @@ while(time < final_time):
 	  gid_io.FinalizeMesh()
 	  gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
 
-	if (print_velocity=="1"):
-	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
-        if (print_displacement=="1"):
-	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
-        if (print_rhs=="1"):
-	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
-        if (print_applied_forces=="1"):
-	  gid_io.WriteNodalResults(APPLIED_FORCE, contact_model_part.Nodes, time, 0)       
-        if (print_total_forces=="1"):	  
-	  gid_io.WriteNodalResults(TOTAL_FORCES, contact_model_part.Nodes, time, 0)	  
-        if (print_damp_forces=="1"):
-	  gid_io.WriteNodalResults(DAMP_FORCES, contact_model_part.Nodes, time, 0)        
-        if (print_radius=="1"):
-	  gid_io.WriteNodalResults(RADIUS, contact_model_part.Nodes, time, 0)       
-        if (print_particle_cohesion=="1"):
-	  gid_io.WriteNodalResults(PARTICLE_COHESION, contact_model_part.Nodes, time, 0)       
-        if (print_particle_tension=="1"):
-	  gid_io.WriteNodalResults(PARTICLE_TENSION, contact_model_part.Nodes, time, 0)
-        if (print_group_id=="1"):
-	  gid_io.WriteNodalResults(GROUP_ID, contact_model_part.Nodes, time, 0)
-        if (print_export_id=="1"):
-	  gid_io.WriteNodalResults(EXPORT_ID, contact_model_part.Nodes, time, 0)
-        if (print_export_particle_failure_id=="1"):
-	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
-	if (print_export_skin_sphere=="1"):
-	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
+	  
+	##########PRINTING VARIABLES############
+	
+	ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time)  
 
-	#Aixo sempre per que si no hi ha manera de debugar
-    #gid_io.WriteNodalResults(PARTITION_INDEX, contact_model_part.Nodes, time, 0)
-    #gid_io.WriteNodalResults(INTERNAL_ENERGY, contact_model_part.Nodes, time, 0)
-
-	if (ContactMeshOption == "ON"): ##xapuza
-	  if (print_local_contact_force_low=="1"):
-	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
-	  if (print_local_contact_force_high=="1"):
-	    gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
-	  if (print_contact_failure=="1"): 
-	    gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
-	  if (print_failure_criterion_state=="1"):
-	    gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,contact_model_part,time)  	    
-	  if (print_contact_tau=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_TAU,contact_model_part,time)
-	  if (print_contact_sigma=="1"):
-	    gid_io.PrintOnGaussPoints(CONTACT_SIGMA,contact_model_part,time)
-
-        if (RotationOption == "ON"): ##xapuza
-            if (print_angular_velocity=="1"):
-	      gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
-            if (print_particle_moment=="1"):
-	      gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
-           # if (print_euler_angles=="1"):
-	      #gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
-
-        gid_io.Flush()
-        sys.stdout.flush()
+	os.chdir(data_and_results)
         
-        os.chdir(data_and_results)
-        
-        if (index_5==5):
+	if (index_5==5):
 	  
 	  multifile_5.write(problem_name+'_'+str(time)+'.post.bin\n')
 	  
