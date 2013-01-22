@@ -4,49 +4,76 @@ from KratosMultiphysics.DEMApplication import *
 # Check that KratosMultiphysics was imported in the main script
 #CheckForPreviousImport(
 
-def AddVariables(model_part):
+from DEM_explicit_solver_var import *
 
-    model_part.AddNodalSolutionStepVariable(RADIUS)    
+def AddVariables(model_part):
+  
+# BASIQUES
+
+    model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
+    
+    #may be grouped
+    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+    model_part.AddNodalSolutionStepVariable(RESTITUTION_COEFF)  # pot posarse mes ifs.....
+    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION) 
+    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
+    
+    #es podrien eliminar
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
 
-    model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
-    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    model_part.AddNodalSolutionStepVariable(GROUP_ID)    
+# ADVANCED
 
-
-
-    model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
-    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
-
-
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   #colour defined in GiD
+    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  #Continuum group
+    model_part.AddNodalSolutionStepVariable(GROUP_ID)            #differencied groups for plotting, etc..
     
     model_part.AddNodalSolutionStepVariable(RHS)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
-    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
+
+    if ( (ConfinementPressure != 0.0) and (TriaxialOption == "ON" ) ):
+      model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE) 
+
+#ROTATION
+
+    if(RotationOption =="ON"):
+
+      model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
+      model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+      model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+      model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+      model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+      model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
+
+      
+      if(TrihedronOption =="ON"):
+         model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+         
+      if(RotaDampId =="LocalDamp"):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+         
+      if(RotaDampId =="RollingFric"): 
+        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION) 
+
+#ONLY VISUALITZATION
+ 
+    if(print_export_skin_sphere =="1"):
+      model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+      
+    if(print_export_id =="1"):      
+      model_part.AddNodalSolutionStepVariable(EXPORT_ID) 
+      
+         
     
-    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_STIFFNESS)
-    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-    model_part.AddNodalSolutionStepVariable(VISCO_DAMP_COEFF)
-    model_part.AddNodalSolutionStepVariable(RESTITUTION_COEFF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
-    model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)    
-    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+#Temporarily Unused
+
     #model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
 
     
@@ -105,12 +132,16 @@ class ExplicitStrategy:
         self.activate_search					= 1  #its 1/0 xapuza
         self.concrete_test_OPTION				= 0  #its 1/0 xapuza
         
-        self.contact_mesh_OPTION            	= 0 #its 1/0 xapuza
-        self.failure_criterion_OPTION       	= 1 #its 1/0 xapuza
-        self.tau_zero			    	= 0.0
-        self.sigma_max				= 0.0
-        self.sigma_min			    	= 0.0
-        self.internal_fricc			= 0.0
+        self.external_pressure					= 0
+        self.time_increasing_ratio				= 15 # Percentage%
+        self.initial_pressure_time				= 0.0
+        
+        self.contact_mesh_OPTION               = 0 #its 1/0 xapuza
+        self.failure_criterion_OPTION          = 1 #its 1/0 xapuza
+        self.tau_zero                          = 0.0
+        self.sigma_max                         = 0.0
+        self.sigma_min                         = 0.0
+        self.internal_fricc	                    = 0.0
 
         #global parameters
         self.global_variables_OPTION        	= 0 #its 1/0 xapuza
@@ -126,7 +157,7 @@ class ExplicitStrategy:
 
         self.force_calculation_type_id      	= 1
         self.damp_id                        	= 1
-        self.rota_damp_id                   	= 1
+        self.rota_damp_id                   	= 0
         self.search_radius_extension        	= 0.0
 
         self.dummy_switch                   	=0
@@ -188,6 +219,9 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
        
        
+        self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
+        self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
+       
         #####
 
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)    
@@ -207,7 +241,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #Reserved for: message when confinement ends.
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, self.external_pressure) #Reserved for: External Applied force is acting
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0)
