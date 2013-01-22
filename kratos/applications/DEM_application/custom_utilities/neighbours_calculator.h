@@ -261,7 +261,7 @@ namespace Kratos {
         {   
             KRATOS_TRY
             
-            KRATOS_WATCH("SEARCH_NEIGHBOURS")
+            //KRATOS_WATCH("SEARCH_NEIGHBOURS")
             
             ContainerType& pIteratorElements = Get_Elements(r_model_part);
             ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
