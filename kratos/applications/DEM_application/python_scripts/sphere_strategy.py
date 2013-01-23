@@ -73,7 +73,7 @@ def AddVariables(model_part):
     
 #Temporarily Unused
 
-    #model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID)
+    #model_part.AddNodalSolutionStepVariable(EXPORT_PARTICLE_FAILURE_ID) //tocar el EXPORT_IDalizestep del sphere.cpp quan l'activis
  
 
     print "variables for the explicit solver added correctly"
@@ -141,14 +141,19 @@ class ExplicitStrategy:
         self.internal_fricc	                    = 0.0
 
         #global parameters
-        self.global_variables_OPTION        	= 0 #its 1/0 xapuza
-        self.global_kn                      	= 1000.0
-        self.global_kt                      	= 1000.0
-        self.global_kr                      	= 1000.0
-        self.global_rn                      	= 1000.0
-        self.global_rt                      	= 1000.0
-        self.global_rr                      	= 1000.0
-        self.global_fri_ang                 	= 40
+        self.global_variables_OPTION          = 0 #its 1/0 xapuza
+        self.global_kn                        = 1000.0
+        self.global_kt                        = 1000.0
+        self.global_kr                        = 1000.0
+        self.global_rn                        = 1000.0
+        self.global_rt                        = 1000.0
+        self.global_rr                        = 1000.0
+        self.global_fri_ang                   = 40
+        
+        #prints
+        
+        self.print_export_id                   = 0
+        self.print_export_skin_sphere          = 0
 
         #problem specific parameters
 
@@ -239,8 +244,8 @@ class ExplicitStrategy:
         
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #Reserved for: message when confinement ends.
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, self.external_pressure) #Reserved for: External Applied force is acting
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, 0)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) #reserved for: Export Print Skin sphere
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) #reserved for print_export_skin_sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)
