@@ -208,6 +208,15 @@ def ProcGiDSolverTransfer(model_part,solver):
       
     solver.safety_factor = dt_safety_factor #for critical time step calculation 
 
+    #Prints
+    if (print_export_id=="1"):
+      solver.print_export_id =1
+      
+    if (print_export_skin_sphere=="1"): 
+      solver.print_export_skin_sphere = 1
+      
+    
+    
     # global variable settings
 
     if(GlobalVariablesOption =="ON"):
