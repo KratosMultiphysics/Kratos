@@ -3,7 +3,7 @@ project (KratosMultiphysics)
 
 #set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_VERSION_MAJOR 3)
-set (KratosMultiphysics_VERSION_MINOR 0)
+set (KratosMultiphysics_VERSION_MINOR 2)
 
 #get subversion data. This is done automagically by the cmake
 
@@ -271,6 +271,7 @@ sys.path.append(kratos_scripts)
 	 
     SET(CPACK_GENERATOR "DEB")
     SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kratos Team") #required
+    set(CPACK_PACKAGE_FILE_NAME  "Kratos_${KratosMultiphysics_VERSION_MAJOR}_${KratosMultiphysics_VERSION_MINOR}")
     #SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} "libc6, libgcc1, libgfortran3, libgomp1, libopenmpi1.3, libparmetis3.1, libstdc++6, openmpi-bin, ${KRATOS_EXTRA_PACKAGE_DEPENDS} " )
 #    SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS} " openmpi-bin, libboost-mpi-python-dev, ${KRATOS_EXTRA_PACKAGE_DEPENDS}" )
