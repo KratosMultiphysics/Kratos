@@ -1104,7 +1104,7 @@ public:
         typedef PointerVector<PointType > PointVector;
         typedef PointVector::iterator PointIterator;
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0;
 
         int layer_counter = -1;
@@ -1114,7 +1114,7 @@ public:
         //Re-generate a container with LAYER 0 and LAYER 1 after convection of the free surface
         layer_limits[0] = 0;
 		#pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for (int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
         {
             if(mdistances[i_node] < 0.0)
             {
@@ -1157,7 +1157,7 @@ public:
 
         //on the first layer outside the pressure is set to a value such that on the free surface the pressure is approx 0
 		#pragma omp parallel for
-        for(unsigned int iii=layer_limits[1]; iii<layer_limits[2]; iii++)
+        for( int iii=static_cast<int>(layer_limits[1]); iii<static_cast<int>(layer_limits[2]); iii++)
         {
             unsigned int i_node = layers[iii];
             array_1d<double, TDim> grad_d;
@@ -1886,7 +1886,7 @@ public:
         mr_matrix_container.FillScalarFromDatabase (DISTANCE, mdistances,mr_model_part.Nodes() );
 
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0.0;
 
         boost::numeric::ublas::vector<int> layers(mr_model_part.Nodes().size(),-1);
@@ -2063,7 +2063,7 @@ public:
         //mark nodes on which we will have to solve for convection
         //mark all of internal nodes
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
         {
             if (mdistances[i_node] <= 0.0)
                 mis_visited[i_node] = 1.0;
@@ -2075,7 +2075,7 @@ public:
         for (unsigned int il = 0; il < extrapolation_layers-1; il++)
         {
             #pragma omp parallel for
-            for(unsigned int iii = layer_limits[il]; iii<layer_limits[il+1]; iii++)
+            for( int iii = static_cast<int>(layer_limits[il]); iii<static_cast<int>(layer_limits[il+1]); iii++)
             {
                 unsigned int i_node = layers[iii];
                 mis_visited[i_node] = 1.0;
@@ -2121,7 +2121,7 @@ public:
     {
         KRATOS_TRY
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
         {
             double& dist = mdistances[i_node];
             if ( dist > min && dist < max )
@@ -2148,7 +2148,7 @@ public:
         KRATOS_TRY
 
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0;
 
         for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
@@ -2170,7 +2170,7 @@ public:
     {
         KRATOS_TRY
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0;
 
         for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
@@ -2193,7 +2193,7 @@ public:
         KRATOS_TRY
 
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
         {
             if(mdistances[i_node] <= 0.0)
                 mis_visited[i_node] = 1;
@@ -2887,7 +2887,7 @@ public:
         const int max_bubble_nodes = 12;
         const int min_bubble_nodes = 2;
         #pragma omp parallel for
-        for (unsigned int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for ( int i_node = 0; i_node < static_cast<int>(mr_model_part.Nodes().size()); i_node++)
             mis_visited[i_node] = 0;
 
         // loop over the nodes to find a outside node.
