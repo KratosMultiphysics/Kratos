@@ -74,7 +74,7 @@ class Solver:
         self.normal_tools = BodyNormalCalculationUtils()
 
         self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
-        self.max_iter = 10
+        self.max_iter = 3
 
         #material settings
         self.rho_mat = 100.0
