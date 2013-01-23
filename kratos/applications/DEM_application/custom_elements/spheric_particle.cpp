@@ -1518,9 +1518,19 @@ namespace Kratos
         
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
       {
-          this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID));
-          this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-          this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
+          
+	
+          //this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID)); //temporarily unused
+          if(rCurrentProcessInfo[INT_DUMMY_3]==1)
+		  {
+			this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
+		  }
+		  if(rCurrentProcessInfo[INT_DUMMY_4]==1)
+		  {
+			this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
+		  }
+          
+          
            
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
