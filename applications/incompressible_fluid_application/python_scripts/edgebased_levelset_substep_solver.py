@@ -121,7 +121,7 @@ class EdgeBasedLevelSetSolver:
         self.distance_size = self.max_edge_size * 3.0;
         print "###################### max distance = ",self.distance_size;
 
-        self.fluid_solver.SetShockCapturingCoefficient(0.7)
+        self.fluid_solver.SetShockCapturingCoefficient(0.1) #0.7)
         
 #        self.reorder = True
 #        self.distance_tools = BodyDistanceCalculationUtils()
@@ -162,6 +162,8 @@ class EdgeBasedLevelSetSolver:
 #        self.Redistance()
 	self.measured_volume = 0.0
 	self.expected_volume = self.fluid_solver.ComputeWetVolume()
+	self.tot_volume = self.fluid_solver.ComputeTotalVolume()
+
 	self.vol_variation = 0.0
 	print "initial wet volume = ", self.expected_volume
 	
@@ -211,9 +213,14 @@ class EdgeBasedLevelSetSolver:
     ################################################################
     ################################################################
     def Solve(self):
+	self.AuxSolve(True)
+    
+    def AuxSolve(self, allow_redistancing):
         if (self.extrapolation_layers<3):
             print "insufficient number of extrapolation layers. Minimum is 3"
             raise ValueError
+            
+        (self.fluid_solver).GatherValues()
 
 	self.timer.Start("Update Fixed Velocity Values")
         (self.fluid_solver).UpdateFixedVelocityValues()
@@ -240,13 +247,15 @@ class EdgeBasedLevelSetSolver:
 	  self.measured_volume = self.fluid_solver.ComputeWetVolume()
 	  self.vol_variation =  self.fluid_solver.ComputeVolumeVariation()
 	  self.expected_volume = self.expected_volume + self.vol_variation
+	  if(self.measured_volume >= 0.9999*self.tot_volume):
+	      return 1
 	  #print "measured volume = ", measured_volume
 	  #print "vol_variation   = ",vol_variation
 	  #print "expected volume = ", self.expected_volume
 	  max_volume_error =  0.99
-	  if(self.measured_volume / self.expected_volume < max_volume_error):
+	  #if(self.measured_volume / self.expected_volume < max_volume_error):
 	    #print "artificial mass correction"
-	    aaa =  self.fluid_solver.ContinuousVolumeCorrection(self.expected_volume, self.measured_volume)
+	  aaa =  self.fluid_solver.ContinuousVolumeCorrection(self.expected_volume, self.measured_volume)
  	  self.timer.Stop("MassCorrection")
  	     
         if(self.step == self.redistance_frequency):
@@ -254,7 +263,7 @@ class EdgeBasedLevelSetSolver:
             self.Redistance()
  	    self.timer.Stop("Redistance")
             self.step = 0
-            #print "redistance was executed"
+            print "redistance was executed"
         self.step += 1
         	
         ##solve fluid
@@ -268,10 +277,11 @@ class EdgeBasedLevelSetSolver:
 	    self.timer.Start("Solve Step 3")
 	    (self.fluid_solver).SolveStep3();
 	    self.timer.Stop("Solve Step 3")
-	else: #something went wrong ... restart step and do redistance
+	elif(allow_redistancing == True): #something went wrong ... restart step and do redistance
+	    print "*********************************** TIMESTEP REDUCTION EXECUTED ********************************"
 	    self.fluid_solver.ReduceTimeStep(self.model_part,self.model_part.ProcessInfo[TIME])
 	    self.step = self.redistance_frequency
-	    self.Solve()
+	    self.AuxSolve(False)
 	    
 
 ##        if(self.step == self.redistance_frequency):
