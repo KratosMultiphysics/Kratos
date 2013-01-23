@@ -132,8 +132,11 @@ namespace Kratos {
                         
                 if(!IsInGhostMesh /*&& !IsInLocalMesh*/)
                 {
-                    r_model_part.GetCommunicator().GhostMesh().Elements().push_back((*neighbour_it));
-                    r_model_part.GetCommunicator().GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                    #pragma omp critical
+                    {
+                        r_model_part.GetCommunicator().GhostMesh().Elements().push_back((*neighbour_it));
+                        r_model_part.GetCommunicator().GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                    }
                 }
                 
                 IsInGhostMesh = false;
@@ -151,9 +154,12 @@ namespace Kratos {
 //                         IsInLocalMesh = true;
                 
                 if(!IsInGhostMesh)
-                {
-                    r_model_part.GetCommunicator().GhostMesh(destination).Elements().push_back((*neighbour_it));
-                    r_model_part.GetCommunicator().GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                {   
+                    #pragma omp critical
+                    {
+                        r_model_part.GetCommunicator().GhostMesh(destination).Elements().push_back((*neighbour_it));
+                        r_model_part.GetCommunicator().GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                    }
                 }
                 
 //                if(!IsInLocalMesh)
