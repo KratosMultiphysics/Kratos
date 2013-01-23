@@ -288,7 +288,14 @@ public:
         }
         destination -= aux_j * phi_j - aux_i * phi_i;
 #endif
-
+//         double second = a_i[0] * DNi_Nj[0];
+//         double first = a_j[0] * Ni_DNj[0];
+//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+//         {
+//             second += a_i[k_comp] * DNi_Nj[k_comp];
+//             first += a_j[k_comp] * Ni_DNj[k_comp];
+//         }
+//         destination -= first * phi_j - second * phi_i;
 
     }
 
@@ -312,7 +319,14 @@ public:
         }
         destination += aux_j * phi_j - aux_i * phi_i;
 #endif
-
+//         double second = a_i[0] * DNi_Nj[0];
+//         double first = a_j[0] * Ni_DNj[0];
+//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+//         {
+//             second += a_i[k_comp] * DNi_Nj[k_comp];
+//             first += a_j[k_comp] * Ni_DNj[k_comp];
+//         }
+//         destination += first * phi_j - second * phi_i;
     }
 
     //*************************************************************************************
