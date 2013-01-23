@@ -112,7 +112,7 @@ public:
 		prm.interp.eps_strong = 0;
 
 		AMG amg(amgcl::sparse::map(rA), prm);
-//  		std::cout << amg << std::endl;
+		if(mverbosity > 0) amg.print(std::cout);
 		
 		if(msolver == GMRES)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
@@ -134,7 +134,7 @@ public:
 		prm.interp.eps_strong = 0;
 
 		AMG amg(amgcl::sparse::map(rA), prm);
-//  		std::cout << amg << std::endl;
+  		if(mverbosity > 0) amg.print(std::cout);
 		if(msolver == GMRES)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
 		else if(msolver == BICGSTAB)
@@ -154,7 +154,8 @@ public:
 		prm.interp.eps_strong = 0;
 
 		AMG amg(amgcl::sparse::map(rA), prm);
-//  		std::cout << amg << std::endl;
+		if(mverbosity > 0) amg.print(std::cout);
+		
 		if(msolver == GMRES)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
 		else if(msolver == BICGSTAB)
@@ -174,7 +175,8 @@ public:
 		prm.interp.eps_strong = 0;
 
 		AMG amg(amgcl::sparse::map(rA), prm);
-//  		std::cout << amg << std::endl;
+		if(mverbosity > 0) amg.print(std::cout);
+		
 		if(msolver == GMRES)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
 		else if(msolver == BICGSTAB)
@@ -182,10 +184,12 @@ public:
 		else if(msolver == CG)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
 	  }	
-	  
+	  if(mverbosity > 0)
+	  {
  		std::cout << "Iterations: " << cnv.first << std::endl
  			  << "Error: " << cnv.second << std::endl
  			  << std::endl;
+	  }
 
 // 		std::cout << prof;
 
