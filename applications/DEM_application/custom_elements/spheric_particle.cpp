@@ -500,13 +500,11 @@ namespace Kratos
                   } //for every neighbour       
                   
               }
-              
-              
+         
               //MACRO PARAMETERS
 
-              
               double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
-              double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+              double ks               = 0;// kn / (2.0 * (1.0 + equiv_poisson));
               //double RN               = CTension * equiv_area; //tensile strenght
               //double RT_base          = CCohesion * equiv_area; //cohesion
 
