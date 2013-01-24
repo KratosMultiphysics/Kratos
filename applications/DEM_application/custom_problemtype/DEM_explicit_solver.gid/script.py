@@ -55,7 +55,7 @@ SolverStrategy.AddDofs(solid_model_part)
 
 solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, solver variables initialize as default
 
-if(ConcreteTestOption =="ON"):
+if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
   
   contact_model_part = solver.contact_model_part   
 
@@ -66,9 +66,10 @@ solver.Initialize()
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-if(ConcreteTestOption =="ON"):
-
+if(ModelDataInfo =="ON"):
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
+  
+if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
   
@@ -303,7 +304,7 @@ while(time < final_time):
 
 	#Drawing graph stress_strain:
 
-	if(ConcreteTestOption =="ON"):
+	if( (ConcreteTestOption =="ON") and (RealTimeGraph =="ON") ):
 	  clf()
 	  plot(strainlist,stresslist,'b-')
 	  grid(True)
