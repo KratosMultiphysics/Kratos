@@ -366,10 +366,10 @@ def ProcSkinAndPressure(model_part,solver):
      
 def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
   
-	if (print_velocity=="1"):
-	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
 	if (print_displacement=="1"):
 	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
+	if (print_velocity=="1"):
+	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
 	if (print_rhs=="1"):
 	  gid_io.WriteNodalResults(RHS, contact_model_part.Nodes, time, 0)       
 	if (print_applied_forces=="1"):
