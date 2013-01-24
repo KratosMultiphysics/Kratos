@@ -98,6 +98,9 @@ QUESTION: Global_RR
 VALUE: 1000.0
 QUESTION: Global_FRI_ANG
 VALUE: 40.0
+QUESTION: Model_Data_Info#CB#(ON,OFF)
+VALUE: OFF
+HELP:It calculates the radius mean, variation, etc...
 
 TITLE: Continuum Options
 
@@ -127,7 +130,9 @@ TITLE: Concrete Test Options
 QUESTION: Concrete_Test_Option#CB#(ON,OFF)
 HELP: Necessary for Skin determination
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Time,#CURRENT#,HIDE,Increasing_Temporaily,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,Real_Time_Graph,#CURRENT#)
+QUESTION: Real_Time_Graph#CB#(ON,OFF)
+VALUE: OFF
 QUESTION: Triaxial_Option#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Time,#CURRENT#,HIDE,Increasing_Temporaily,#CURRENT#)(ON,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Initial_Time,#CURRENT#,RESTORE,Increasing_Temporaily,#CURRENT#)
