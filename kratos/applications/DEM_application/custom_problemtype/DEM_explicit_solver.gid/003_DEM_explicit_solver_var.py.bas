@@ -59,6 +59,7 @@ global_rt = *GenData(Global_RT)
 global_rr = *GenData(Global_RR)
 *format "%10.5e"
 global_fri_ang = *GenData(Global_FRI_ANG)
+ModelDataInfo = "*GenData(Model_Data_Info)"
 
 #Continuum Options
 
@@ -76,7 +77,8 @@ InternalFricc = *GenData(Internal_Fricc)
 
 #Concrete Test Options
 
-ConcreteTestOption= "*GenData(Concrete_Test_Option)"
+ConcreteTestOption = "*GenData(Concrete_Test_Option)"
+RealTimeGraph = "*GenData(Real_Time_Graph)"
 TriaxialOption = "*GenData(Triaxial_Option)"
 *format "%10.5e"
 ConfinementPressure = *GenData(Confinement_Pressure)
