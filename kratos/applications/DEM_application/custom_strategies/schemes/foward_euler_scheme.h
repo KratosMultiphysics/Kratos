@@ -95,7 +95,7 @@ namespace Kratos
           vector<unsigned int> node_partition;
           //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
           //NodesArrayType::iterator it_end   = pNodes.ptr_end();
-          int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+          int number_of_threads             = OpenMPUtils::GetNumThreads();
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
           
           #pragma omp parallel for firstprivate(aux) shared(delta_t) 
@@ -213,7 +213,7 @@ namespace Kratos
         vector<unsigned int> node_partition;
 	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();
 	//NodesArrayType::iterator it_end   = pNodes.ptr_end();
-	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+	int number_of_threads             = OpenMPUtils::GetNumThreads();
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
 
