@@ -61,6 +61,8 @@ namespace Kratos
 
         double & Inertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
         double & MomentOfInertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+		
+		this->GetValue(OLD_COORDINATES) = this->GetGeometry()(0)->Coordinates();
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
 
@@ -350,13 +352,12 @@ namespace Kratos
 
           
           // GETTING PARTICLE PROPERTIES
-        
-          
+             
           double radius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
           double mass                 = mRealMass;
 
           double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-          double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+          //double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
           double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
           
           double restitution_coeff    = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
@@ -425,7 +426,7 @@ namespace Kratos
           for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
               neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
           {
-            
+
               // GETTING NEIGHBOUR PROPERTIES
 
               
@@ -440,7 +441,7 @@ namespace Kratos
               double equiv_restitution_coeff      = sqrt(restitution_coeff * other_restitution_coeff); //I: we assume this.
             
               double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-              double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+              //double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
               //double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
               //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
               double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
@@ -480,7 +481,7 @@ namespace Kratos
               double equiv_radius     = 2*radius * other_radius / (radius + other_radius);
               //we now take 1/2 of the efective radius.
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
-              double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
+              //double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
               double equiv_young      = 2 * young * other_young / (young + other_young);
               
               double corrected_area = equiv_area;
@@ -504,7 +505,7 @@ namespace Kratos
               //MACRO PARAMETERS
 
               double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
-              double ks               = 0;// kn / (2.0 * (1.0 + equiv_poisson));
+              double ks               = 0;//kn / (2.0 * (1.0 + equiv_poisson));
               //double RN               = CTension * equiv_area; //tensile strenght
               //double RT_base          = CCohesion * equiv_area; //cohesion
 
@@ -547,18 +548,27 @@ namespace Kratos
                 
               // FORMING LOCAL CORDINATES
 
-              
               double NormalDir[3]           = {0.0};
               double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
               NormalDir[0] = other_to_me_vect[0];   // M. this way the compresion is positive.
               NormalDir[1] = other_to_me_vect[1];
               NormalDir[2] = other_to_me_vect[2];
-              GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);
-
-              
+              GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
+			  
+			  // FORMING OLD LOCAL CORDINATES
+			  
+			  array_1d<double,3> Old_other_to_me_vect = this->GetValue(OLD_COORDINATES) - neighbour_iterator->GetValue(OLD_COORDINATES);
+			  
+              double OldNormalDir[3]           = {0.0};
+              double OldLocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+              OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
+              OldNormalDir[1] = Old_other_to_me_vect[1];
+              OldNormalDir[2] = Old_other_to_me_vect[2];
+              GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
+			  
+			  
               // VELOCITIES AND DISPLACEMENTS
 
-              
               array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
               array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
 
@@ -615,11 +625,14 @@ namespace Kratos
               GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1];
               GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2];
 
-              GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
-              GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForce, LocalContactForce);
-              GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
 
+             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalContactForce, LocalContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
+             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
+             
+             this->GetValue(OLD_COORDINATES) = this->GetGeometry()(0)->Coordinates(); //storing the old coordinates
 
+			 
               // FORCES
            
 
@@ -655,7 +668,6 @@ namespace Kratos
 
                   LocalContactForce[0] += - ks * LocalDeltDisp[0];  // 0: first tangential
                   LocalContactForce[1] += - ks * LocalDeltDisp[1];  // 1: second tangential
-           
               }
 
 
@@ -692,7 +704,7 @@ namespace Kratos
               {
                   failure_criterion_state = 1.0;
                                                         
-                  if( ShearForceNow >  Frictional_ShearForceMax ) 
+                  if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) 
                   {
                       
                       LocalContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalContactForce[0];
@@ -701,7 +713,9 @@ namespace Kratos
                                   
                   }
                   
-              } 
+              }
+              
+              //KRATOS_w
   
               if(corrected_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
               
@@ -782,7 +796,8 @@ namespace Kratos
                   ///vam decidir amb miguel angel de no fer el mapping de les shear fins al pas seguent.. esta correcte? afecta quan trenca?
             
                   if (failure_criterion_OPTION==2)//UNCOUPLED FRACTURE
-                  {
+                  {	   
+					
                       contact_tau = ShearForceNow/(corrected_area);
                       contact_sigma = LocalContactForce[2]/(corrected_area);
 
@@ -902,12 +917,12 @@ namespace Kratos
               {
                   LocalResultantContactForce[index] = LocalContactForce[index]  + ViscoDampingLocalContactForce[index];
               }
-
+   
 
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalResultantContactForce, GlobalResultantContactForce);
-
+		  
 
               rhs[0] += GlobalContactForce[0]; //RHS
               rhs[1] += GlobalContactForce[1];
@@ -1014,8 +1029,15 @@ namespace Kratos
                     mRota_Moment[0] = Rota_Moment[0];
                     mRota_Moment[1] = Rota_Moment[1];
                     mRota_Moment[2] = Rota_Moment[2];               
-                        
+               
+				
+		  
+					
+					
               } //if ( rotation_OPTION == 1 )     
+              
+             	 
+		 
               
 
 /*              if ( rotation_OPTION == 1 )
