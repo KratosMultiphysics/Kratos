@@ -210,6 +210,7 @@ namespace Kratos
     double mtotal_equiv_area;
     vector<double> mcont_ini_neigh_area;
 
+
         //std::vector<double> mForce;
 
 
