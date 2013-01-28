@@ -357,7 +357,7 @@ namespace Kratos
           double mass                 = mRealMass;
 
           double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-          //double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+          double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
           double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
           
           double restitution_coeff    = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
@@ -441,7 +441,7 @@ namespace Kratos
               double equiv_restitution_coeff      = sqrt(restitution_coeff * other_restitution_coeff); //I: we assume this.
             
               double other_young                  = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-              //double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+              double other_poisson                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
               //double other_tension                = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
               //double other_cohesion               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
               double other_FriAngle               = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
@@ -481,7 +481,7 @@ namespace Kratos
               double equiv_radius     = 2*radius * other_radius / (radius + other_radius);
               //we now take 1/2 of the efective radius.
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
-              //double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
+              double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
               double equiv_young      = 2 * young * other_young / (young + other_young);
               
               double corrected_area = equiv_area;
@@ -505,7 +505,7 @@ namespace Kratos
               //MACRO PARAMETERS
 
               double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
-              double ks               = 0;//kn / (2.0 * (1.0 + equiv_poisson));
+              double ks               = kn / (2.0 * (1.0 + equiv_poisson));
               //double RN               = CTension * equiv_area; //tensile strenght
               //double RT_base          = CCohesion * equiv_area; //cohesion
 
