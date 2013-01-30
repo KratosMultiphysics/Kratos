@@ -55,6 +55,27 @@ SolverStrategy.AddDofs(solid_model_part)
 
 solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, solver variables initialize as default
 
+
+#CREATING PATHS:
+
+main_path 	 = os.getcwd()
+post_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Files'
+list_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Lists'
+neigh_list_path  = str(main_path)+'/'+str(problem_name)+'_Neigh_Lists'
+data_and_results = str(main_path)+'/'+str(problem_name)+'_Results_and_Data'
+graphs_path	 = str(main_path)+'/'+str(problem_name)+'_Graphs'	
+MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'	
+
+for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
+
+  if not os.path.isdir(directory):
+    
+      os.makedirs(str(directory))
+
+os.chdir(data_and_results)
+
+
+
 if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
   
   contact_model_part = solver.contact_model_part   
@@ -67,7 +88,9 @@ solver.Initialize()
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if(ModelDataInfo =="ON"):
+  os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
+  os.chdir(main_path)
   
 if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
@@ -96,23 +119,6 @@ total_steps_expected = int(final_time/dt)
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
 
 
-#paths:
-
-main_path 	 = os.getcwd()
-post_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Files'
-list_path 	 = str(main_path)+'/'+str(problem_name)+'_Post_Lists'
-neigh_list_path  = str(main_path)+'/'+str(problem_name)+'_Neigh_Lists'
-data_and_results = str(main_path)+'/'+str(problem_name)+'_Results_and_Data'
-graphs_path	 = str(main_path)+'/'+str(problem_name)+'_Graphs'	
-MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'	
-
-for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
-
-  if not os.path.isdir(directory):
-    
-      os.makedirs(str(directory))
-
-os.chdir(data_and_results)
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
@@ -352,13 +358,6 @@ while(time < final_time):
 	
 	ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time)  
 
-	
-	
-	
-	
-	
-	
-	
 	os.chdir(data_and_results)
         
 	if (index_5==5):
@@ -398,6 +397,8 @@ while(time < final_time):
     
     ####DEBUG ONLY # MIQUEL
     
+    os.chdir(data_and_results)
+    
     if(1<2):
     
       mean_sigma = solid_model_part.ProcessInfo[DOUBLE_DUMMY_2]
@@ -410,7 +411,7 @@ while(time < final_time):
       
     #############
     
-    step += 1
+    os.chdir(main_path)
 
 if(Multifile == "single_file"):
   gid_io.FinalizeResults()
