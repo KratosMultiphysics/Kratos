@@ -74,6 +74,9 @@ VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Virtual_Mass_Coefficient,#CURRENT#)(ON,RESTORE,Virtual_Mass_Coefficient,#CURRENT#)
 QUESTION: Virtual_Mass_Coefficient
 VALUE: 0.0
+QUESTION: Magic_Factor
+VALUE: 1.0
+HELP: It multiplies kn and ks in order to adjust the correct plot.
 QUESTION: Delta_Option#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#)
