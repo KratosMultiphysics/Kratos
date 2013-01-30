@@ -62,6 +62,9 @@ namespace Kratos
         double & Inertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
         double & MomentOfInertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		
+		double& Eq_Volume = this->GetGeometry()[0].GetSolutionStepValue(EQ_VOLUME_DEM);
+		Eq_Volume = 0.0;
+		
 		this->GetValue(OLD_COORDINATES) = this->GetGeometry()(0)->Coordinates();
 
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
@@ -335,6 +338,7 @@ namespace Kratos
           
           // PROCESS INFO
 
+          double magic_factor                 = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
           
           const array_1d<double,3>& gravity   = rCurrentProcessInfo[GRAVITY];
 
@@ -369,6 +373,9 @@ namespace Kratos
 		  //Aplied Force for pressure:
 		  
           array_1d<double,3> external_total_applied_force;
+		  
+		  double& Eq_Volume = this->GetGeometry()[0].GetSolutionStepValue(EQ_VOLUME_DEM);
+		  
 		  
 		  external_total_applied_force[1] = 0.0;
 		  external_total_applied_force[1] = 0.0;
@@ -502,9 +509,17 @@ namespace Kratos
                   
               }
          
+         
+     
+         
+         
+         
+         
+         
+         
               //MACRO PARAMETERS
 
-              double kn               = equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
+              double kn               = magic_factor*equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
               double ks               = kn / (2.0 * (1.0 + equiv_poisson));
               //double RN               = CTension * equiv_area; //tensile strenght
               //double RT_base          = CCohesion * equiv_area; //cohesion
@@ -714,8 +729,7 @@ namespace Kratos
                   }
                   
               }
-              
-              //KRATOS_w
+
   
               if(corrected_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
               
@@ -852,7 +866,7 @@ namespace Kratos
               {
                   rCurrentProcessInfo.SetValue(ACTIVATE_SEARCH, 1);
 
-                  KRATOS_WATCH("")
+                  KRATOS_WATCH(" ")
                   KRATOS_WATCH("-------->From now on, searching neighbours, some contacs have failed<-------")
                   KRATOS_WATCH("Time step:")
                   KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
@@ -860,7 +874,7 @@ namespace Kratos
                   KRATOS_WATCH(this->Id())
                   KRATOS_WATCH("Particle_2")
                   KRATOS_WATCH(neighbour_iterator->Id())	  
-                  KRATOS_WATCH("")
+                  KRATOS_WATCH(" ")
               }
 
    /*             
@@ -1036,23 +1050,73 @@ namespace Kratos
 					
               } //if ( rotation_OPTION == 1 )     
               
-             	 
+        
+        //COMPUTE THE MEAN STRESS TENSOR:
+       
+           
+       double gap                  = distance - radius_sum;
+	   
+       array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
+       
+       double Dummy_Dummy = 0.0;
+       GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+
+	   array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
+	   array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
+	   double neigh_radius    = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+       array_1d<double,3> x_centroid      = coord_neigh + ( neigh_radius + 0.5*gap )*(-1*normal_vector_on_contact);
+	   
+	   
+	   
+	   double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
+	   
+       Eq_Volume = Eq_Volume + 0.33333333333333 * (result_product * corrected_area);
+       
+	  /*
+	   if(this->Id()==1){
 		 
+		 KRATOS_WATCH("_________O__________")
+		 KRATOS_WATCH(coord_neigh)
+		 KRATOS_WATCH(coord_target)
+		 KRATOS_WATCH(neigh_radius)
+		 KRATOS_WATCH(distance)
+		 KRATOS_WATCH(radius_sum)
+		 KRATOS_WATCH(gap)
+		 KRATOS_WATCH(x_centroid)
+		 KRATOS_WATCH(normal_vector_on_contact)
+		 KRATOS_WATCH(Eq_Volume)
+		 KRATOS_WATCH(result_product)
+		 KRATOS_WATCH(corrected_area)
+		 
+	  }
+*/
+   
+	   /*
+        GlobalContactForce[0]...
+        NormalDir[0]                           //these are the global vectors other to me.
+        NormalDir[1] 
+        NormalDir[2]
+        
+        AuxiliaryFunctions::Dialicproduct: 
+        
+        for (i=0; i<3; i++;)
+		{
+		  
+		  for (j=0; j<3; j++;)
+		  {
+			 StressTensor[i][j] += GlobalContactForce[i] * NormalDir[j] ; //ref: Katalin Bagi 1995 Mean stress tensor
+		  }
+		  
+		}
+		*/
+		
+		//al final de tot quan tens el eq volume (1/Eq_Volume)*
+        
+        
+        
+        //CONTACT ELEMENT
               
-
-/*              if ( rotation_OPTION == 1 )
-              {
-                  ////global moment return back,for the ball self
-
-                  double MA[3] = {0.0};
-                  GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalResultantContactForce, MA);
-                  mRota_Moment[0] -= MA[0] * radius;
-                  mRota_Moment[1] -= MA[1] * radius;
-                  mRota_Moment[2] -= MA[2] * radius;
-              }*/
-                    
-                    
-              //CONTACT ELEMENT
+              
               // Transfer values to the contact element
                     
               //obtenir el punter a la barra 
@@ -1137,9 +1201,29 @@ namespace Kratos
               iContactForce++;
 
           }//for each neighbour
-          
-          KRATOS_CATCH("")
-
+         
+         
+         
+         if ( ( Eq_Volume < 0.0 ) && ( this->GetValue(SKIN_SPHERE) == 0 ) )
+		 {
+	 
+		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
+		   
+		   
+     		}
+     		
+		/* 
+		 KRATOS_WATCH(" ") 
+		  KRATOS_WATCH(Eq_Volume)
+		  double Volume_real = M_PI*radius*radius*radius*0.25*3;
+		  KRATOS_WATCH(Volume_real);
+		  KRATOS_WATCH(this->GetValue(SKIN_SPHERE));
+		  KRATOS_WATCH("Particle_1")
+		  KRATOS_WATCH(this->Id())
+		  */
+		 
+		 
+		 KRATOS_CATCH("")
       }//ComputeParticleContactForce
 
       void SphericParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
@@ -1267,7 +1351,8 @@ namespace Kratos
             força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the paramaters. easier...
                                 /no puc amb MPI oi? pk hauria de passar punters...
           */
-
+		  double magic_factor =  rCurrentProcessInfo[DEM_MAGIC_FACTOR];
+		  
           double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
           double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
           double young          = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
@@ -1290,7 +1375,8 @@ namespace Kratos
               //if( mRotaSpringFailureType[iContactForce] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
               //mmm.. what about the other failure types? if a contact is broken due to shear or tensile, it cant be a bending
               {
-
+				
+				
                   array_1d<double, 3 > & mRotaSpringMoment  = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[ iContactForce ];
 
                   double other_radius    = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
@@ -1308,7 +1394,7 @@ namespace Kratos
                   double equiv_poisson    = (poisson + other_poisson) * 0.5 ;
                   double equiv_young      = (young  + other_young)  * 0.5;
 
-                  double kn               = equiv_young * equiv_area / (2.0 * equiv_radius);
+                  double kn               = magic_factor*equiv_young * equiv_area / (2.0 * equiv_radius);
                   double ks               = kn / (2.0 * (1.0 + equiv_poisson));
 
                   array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
@@ -1408,7 +1494,7 @@ namespace Kratos
 
       void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo )
       {
-          KRATOS_WATCH("INITIALIZE_AXES")
+          //KRATOS_WATCH("INITIALIZE_AXES")
 
           //1. Create the local axes (points)
 
@@ -1426,7 +1512,7 @@ namespace Kratos
           TargetPointVector[1][1] += 1.0;
           TargetPointVector[2][2] += 1.0;
 
-          KRATOS_WATCH(TargetPointVector)
+          //KRATOS_WATCH(TargetPointVector)
 
       }
 
@@ -1482,7 +1568,6 @@ namespace Kratos
           Eu[1]=EulerAngles[1]-0.0;
           Eu[2]=EulerAngles[2]-1.57080e+00;
           
-          // KRATOS_WATCH(Eu)
 /*
           KRATOS_WATCH(OriginalVector_X)
             KRATOS_WATCH(RotatedVector_X)
@@ -1550,7 +1635,10 @@ namespace Kratos
 			this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
 		  }
           
-          
+          double& Eq_Volume = this->GetGeometry()[0].GetSolutionStepValue(EQ_VOLUME_DEM);
+		 
+		  
+		  Eq_Volume = 0.0;
            
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
