@@ -21,6 +21,9 @@
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
 #include "discrete_particle_configure.h"
+// Project includes
+#include "includes/define.h"
+#include "custom_elements/discrete_element.h"
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
@@ -34,6 +37,7 @@ public:
         typedef Configure::ContainerType                    ParticlePointerVector;
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
+		
 
 
     KRATOS_CLASS_POINTER_DEFINITION(Particle_Creator_Destructor);
@@ -165,6 +169,9 @@ public:
         KRATOS_CATCH("")
        
     }
+      
+    
+    
 
     void DestroyDistantParticlesGivenBBox( ModelPart& r_model_part, array_1d<double, 3 > low_point,
                                           array_1d<double, 3 > high_point)
