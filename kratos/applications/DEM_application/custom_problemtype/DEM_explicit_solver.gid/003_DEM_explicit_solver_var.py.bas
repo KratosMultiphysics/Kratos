@@ -40,6 +40,8 @@ control_time = *GenData(Control_Time)
 VirtualMassOption = "*GenData(Virtual_Mass_Option_Id)"
 *format "%10.5e"
 VirtualMassCoefficient = *GenData(Virtual_Mass_Coefficient)
+*format "%10.5e"
+MagicFactor = *GenData(Magic_Factor)
 DeltaOption = "*GenData(Delta_Option)"
 *format "%10.5e"
 search_radius_extension = *GenData(Search_Radius_Extension)

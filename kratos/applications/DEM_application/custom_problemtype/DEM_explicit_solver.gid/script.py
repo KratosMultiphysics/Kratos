@@ -146,6 +146,8 @@ cond = 0
 os.chdir(main_path)
 
 graph_export = open("strain_stress_data.csv",'w')
+sigma_writting = open("mean_sigma.csv",'w')
+sigma_writting2 = open("mean_sigma.csv",'w')
 
 #Adding stress and strain lists
 strainlist=[]
@@ -350,6 +352,13 @@ while(time < final_time):
 	
 	ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time)  
 
+	
+	
+	
+	
+	
+	
+	
 	os.chdir(data_and_results)
         
 	if (index_5==5):
@@ -387,6 +396,20 @@ while(time < final_time):
     
     graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
     
+    ####DEBUG ONLY # MIQUEL
+    
+    if(1<2):
+    
+      mean_sigma = solid_model_part.ProcessInfo[DOUBLE_DUMMY_2]
+     
+      sigma_writting2.write(str(time)+" "+str(mean_sigma)+'\n')
+      
+      if(total_stress > 1e-6):
+          ratio_contact_total = mean_sigma/(1e6*total_stress);
+          sigma_writting.write(str(time)+" "+str(ratio_contact_total)+'\n')
+      
+    #############
+    
     step += 1
 
 if(Multifile == "single_file"):
@@ -395,6 +418,9 @@ if(Multifile == "single_file"):
 os.chdir(data_and_results)
 
 graph_export.close() 
+sigma_writting.close()
+sigma_writting2.close()
+
 results.close()
 summary_results.close()
 

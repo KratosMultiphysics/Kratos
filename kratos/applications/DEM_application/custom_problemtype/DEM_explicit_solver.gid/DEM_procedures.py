@@ -140,6 +140,8 @@ def ProcGiDSolverTransfer(model_part,solver):
         rota_damp_id = 0
         
     solver.rota_damp_id=rota_damp_id
+    
+    solver.magic_factor = MagicFactor
 
 
     gravity = Vector(3)
@@ -416,8 +418,8 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
 		  gid_io.WriteNodalResults(ANGULAR_VELOCITY, contact_model_part.Nodes, time, 0)
 	  if (print_particle_moment=="1"):
 		  gid_io.WriteNodalResults(PARTICLE_MOMENT, contact_model_part.Nodes, time, 0)
-		  # if (print_euler_angles=="1"):
-		#gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
+	  if (print_euler_angles=="1"):
+		  gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, contact_model_part.Nodes, time, 0)
 
 	gid_io.Flush()
 	sys.stdout.flush()
