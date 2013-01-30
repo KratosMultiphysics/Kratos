@@ -26,6 +26,7 @@ def AddVariables(model_part):
     
     #es podrien eliminar
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+    model_part.AddNodalSolutionStepVariable(EQ_VOLUME_DEM) #temporal
 
 # ADVANCED
 
@@ -117,6 +118,8 @@ class ExplicitStrategy:
 
         self.critical_time_OPTION           	= 0 #its 1/0 xapuza
         self.final_time                         = 3.0
+        
+        self.magic_factor						=1.0
 
         self.delta_OPTION                   	= False
         self.continuum_simulating_OPTION    	= False
@@ -239,6 +242,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(GLOBAL_RT, self.global_rt)
         self.model_part.ProcessInfo.SetValue(GLOBAL_RR, self.global_rr)
         self.model_part.ProcessInfo.SetValue(GLOBAL_FRI_ANG, self.global_fri_ang)
+        
+        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR,self.magic_factor)
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         
@@ -246,13 +251,22 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, self.external_pressure) #Reserved for: External Applied force is acting
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) #reserved for: Export Print Skin sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) #reserved for print_export_skin_sphere
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0) #reserved for counter of checking contact sigma mean in contact elements
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, 0)
         
-        
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) #reserved for adding up the contact mean in contact elements.
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_2, 0.0) # reserved for the sigma mean
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_3, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_4, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_5, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_6, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_7, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_8, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_9, 0.0)
+               
         
         #creating the solution strategy
         if(self.use_mpi):
