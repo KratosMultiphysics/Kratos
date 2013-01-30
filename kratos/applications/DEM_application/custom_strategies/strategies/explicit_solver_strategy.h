@@ -36,6 +36,8 @@
 #include <omp.h>
 #endif
 
+//#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+
 #include "boost/smart_ptr.hpp"
 
 /* Project includes */
@@ -112,6 +114,7 @@ namespace Kratos
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
  
+     
       
       ///@}
       ///@name Life Cycle 
@@ -159,12 +162,20 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~ExplicitSolverStrategy(){}
+      virtual ~ExplicitSolverStrategy(){ 
+ 	Timer my_timer;
+ 	my_timer.PrintTimingInformation();
+      }
       
       void Initialized()
       {
           KRATOS_TRY
           
+#ifdef CUSTOMTIMER
+ 	  Timer::SetOuputFile("customTimer.time");
+	  
+ 	  Timer::Start("INITIALIZED");
+#endif
           //M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -209,7 +220,9 @@ namespace Kratos
 
           //6.Final operations
           FinalizeSolutionStep();
-
+#ifdef CUSTOMTIMER
+ 	  Timer::Stop("INITIALIZED");
+#endif
           KRATOS_CATCH("")
       }
        
@@ -238,8 +251,10 @@ namespace Kratos
 
           //1.1
           Synchronize(r_model_part,mcontacts_model_part);
-
-          //1. Get and Calculate the forces
+#ifdef CUSTOMTIMER
+ 	  Timer::Start("SOLVEFORCE");
+#endif
+	  //1. Get and Calculate the forces
           GetForce();
                 //C.1
                 //TransferDataContactElements();
@@ -252,17 +267,26 @@ namespace Kratos
           {
               ApplyRotationalDampings();
           }
+#ifdef CUSTOMTIMER
 
-          //2. Motion Integration
+ 	  Timer::Stop("SOLVEFORCE");
+
+ 	  Timer::Start("SOLVEMOTION");
+#endif
+	  //2. Motion Integration
           ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           
           if( time_step == 1)
           {
               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox(r_model_part, mEnlargementFactor);
           }
-          
+#ifdef CUSTOMTIMER
+ 	  Timer::Stop("SOLVEMOTION");
+        
           //***************************///
           
+ 	  Timer::Start("SOLVENEIGHBORS");
+#endif
           //3. Neighbouring search. Every N times. +bounding box destruction
           
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
@@ -279,9 +303,13 @@ namespace Kratos
                   SearchNeighbours(r_model_part,extension_option); //extension option false;
               }
           }
+#ifdef CUSTOMTIMER
+ 	  Timer::Stop("SOLVENEIGHBORS");
           
           //ONLY A DEBUG TES.T
- 
+
+	  Timer::Start("COMPRESIVECHECK");
+#endif
           if ( ( 2<3 ) && ( (time_step + 1)%150 == 0 && time_step >0 ))
           {
           
@@ -294,10 +322,16 @@ namespace Kratos
 			rCurrentProcessInfo.SetValue(INT_DUMMY_5, 0) ;
 			
 		  }
+#ifdef CUSTOMTIMER
+	Timer::Stop("COMPRESIVECHECK");
 
-          //4.Final operations
-          FinalizeSolutionStep();
-
+	//4.Final operations
+	Timer::Start("SOLVEFINAL");
+#endif
+        FinalizeSolutionStep();
+#ifdef CUSTOMTIMER
+	Timer::Stop("SOLVEFINAL");
+#endif
           return 0.00;
           KRATOS_CATCH("")
       }
@@ -950,7 +984,7 @@ namespace Kratos
         ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
 		
 		
-		 #ifdef _OPENMP
+	#ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
         #else
         int number_of_threads = 1;
