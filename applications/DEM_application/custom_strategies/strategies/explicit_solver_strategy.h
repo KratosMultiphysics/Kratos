@@ -260,7 +260,9 @@ namespace Kratos
           {
               mParticle_Creator_Destructor.CalculateSurroundingBoundingBox(r_model_part, mEnlargementFactor);
           }
-
+          
+          //***************************///
+          
           //3. Neighbouring search. Every N times. +bounding box destruction
           
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
@@ -273,11 +275,26 @@ namespace Kratos
                   {
                       BoundingBoxUtility(mEnlargementFactor);
                   }
-
+                  
                   SearchNeighbours(r_model_part,extension_option); //extension option false;
               }
           }
           
+          //ONLY A DEBUG TES.T
+ 
+          if ( ( 2<3 ) && ( (time_step + 1)%150 == 0 && time_step >0 ))
+          {
+          
+			CompressiveCheck();
+
+			double mean = rCurrentProcessInfo[DOUBLE_DUMMY_1]/rCurrentProcessInfo[INT_DUMMY_5];
+		
+			rCurrentProcessInfo.SetValue(DOUBLE_DUMMY_2, mean) ;
+			rCurrentProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) ;
+			rCurrentProcessInfo.SetValue(INT_DUMMY_5, 0) ;
+			
+		  }
+
           //4.Final operations
           FinalizeSolutionStep();
 
@@ -489,7 +506,7 @@ namespace Kratos
           }// loop threads OpenMP
 
        
-    if(rCurrentProcessInfo[CONTACT_MESH_OPTION]==1)
+    if ( rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 )
     {
         //CONTACT MODEL PART
                 
@@ -918,6 +935,57 @@ namespace Kratos
   
         KRATOS_CATCH("")
     }  //Set_Initial_Contacts
+    
+    
+  
+   void CompressiveCheck()
+      {
+          KRATOS_TRY
+
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          
+		  //CONTACT MODEL PART
+                
+        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+		
+		
+		 #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+    
+        vector<unsigned int> contact_element_partition;
+        //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+
+        #pragma omp parallel for //private(index)
+        for(int k=0; k<number_of_threads; k++)
+
+        {
+
+          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+          
+          for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+          
+        {
+        
+          (it_contact)->FinalizeSolutionStep(rCurrentProcessInfo); //calculates the sigma mean.
+          
+		  
+		   
+        } //loop over CONTACT ELEMENTS
+
+        }// loop threads OpenMP
+
+        KRATOS_CATCH("")
+		
+    } //CompressiveCheck
+    
+    
+    
     
     /* All functions below need to be redefined in the mpi specialization */
     virtual void Synchronize(ModelPart& r_model_part,ModelPart& r_contact_model_part)
