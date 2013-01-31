@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
@@ -48,10 +49,16 @@ class Solver:
 ##        self.linear_solver =SuperLUSolver()
 ##        self.linear_solver = MKLPardisoSolver()
 
-        pPrecond = DiagonalPreconditioner()
+##        pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-        self.linear_solver = BICGSTABSolver(1e-3, 5000,pPrecond)
+##        self.linear_solver = BICGSTABSolver(1e-3, 5000,pPrecond)
+
+        #new solvers
+	gmres_size = 50
+	tol = 1e-7
+	verbosity = 0
+	self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,tol,200,verbosity,gmres_size)         
 
         self.dynamic_tau = 0.0
 
