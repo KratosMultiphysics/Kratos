@@ -20,7 +20,7 @@ def AddVariables(model_part):
 
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
-    print "variables for the edgebased incompressible fluid solver added correctly"
+    print "variables for the edgebased incompressible fluid substep solver added correctly"
 
 def AddDofs(model_part):
     for node in model_part.Nodes:
@@ -34,7 +34,7 @@ class EdgeBasedLevelSetSolver:
     
     def __init__(self,model_part,domain_size,body_force,viscosity,density):
 
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print "entered in EdgeBasedLevelSetSubstepSolver python constructor"
         #data of the problem
         self.model_part = model_part
         self.domain_size = domain_size
@@ -82,14 +82,14 @@ class EdgeBasedLevelSetSolver:
         for node in self.model_part.Nodes:
             eps = node.GetSolutionStepValue(POROSITY)
             node.SetSolutionStepValue(PRESS_PROJ,0,press_proj_init*eps)
-        print "entered in EdgeBasedLevelSetSolver initialize"
+        print "entered in EdgeBasedLevelSetSubstepSolver initialize"
         
         self.keep_inlet_nodes = True
 
 
 
     def Initialize(self):
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print "entered in EdgeBasedLevelSetSubstepSolver python constructor"
         #build the edge data structure
         if(self.domain_size == 2):
             self.matrix_container = MatrixContainer2D()
@@ -168,7 +168,7 @@ class EdgeBasedLevelSetSolver:
 	print "initial wet volume = ", self.expected_volume
 	
 #        print "**********************************************"
-        print "finished EdgeBasedLevelSetSolver initialize"
+        print "finished EdgeBasedLevelSetSubstepSolver initialize"
 
     ################################################################
     ################################################################
