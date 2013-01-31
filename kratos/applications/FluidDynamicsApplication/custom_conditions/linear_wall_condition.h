@@ -319,7 +319,7 @@ protected:
 // 		double tau = rho * nu * wall_vel / y;
 		double tau = edge_fac * y * rho * wall_vel * area ;		
 		
-rGeometry[itNode].FastGetSolutionStepValue(SOUND_VELOCITY)=tau;
+//rGeometry[itNode].FastGetSolutionStepValue(SOUND_VELOCITY)=tau;
 		for (size_t d = 0; d < TDim; d++)
 		{
 		    size_t k = itNode*BlockSize+d;
