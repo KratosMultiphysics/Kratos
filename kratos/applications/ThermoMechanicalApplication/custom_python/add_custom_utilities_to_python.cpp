@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/assign_environment_condition.h"
 #include "custom_utilities/estimate_time_step.h"
+#include "custom_utilities/biphasic_filling_utilities.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -88,7 +89,11 @@ void  AddCustomUtilitiesToPython()
     ;    
     class_<EstimateTimeStep > ("EstimateTimeStep", init<>())
     .def("ComputeDt", &EstimateTimeStep::ComputeDt)
-    ;    
+    ;  
+    class_<BiphasicFillingUtilities > ("BiphasicFillingUtilities", init<>())
+    .def("CreateAutoExitAssignAirSmagorinsky", &BiphasicFillingUtilities::CreateAutoExitAssignAirSmagorinsky)
+	.def("AssignSmoothBoundaryAirExit", &BiphasicFillingUtilities::AssignSmoothBoundaryAirExit)
+    ; 
 
 }
 
