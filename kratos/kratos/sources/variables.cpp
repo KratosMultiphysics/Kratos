@@ -615,6 +615,7 @@ KRATOS_CREATE_VARIABLE(double,  LATENT_HEAT)
 KRATOS_CREATE_VARIABLE(double,  SOLID_TEMPERATURE );
 KRATOS_CREATE_VARIABLE(double,  FLUID_TEMPERATURE ); 
 KRATOS_CREATE_VARIABLE(double,  AMBIENT_TEMPERATURE );
+KRATOS_CREATE_VARIABLE(double,  Y_WALL);
 
 KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -1058,7 +1059,8 @@ void KratosApplication::RegisterVariables()
 	KRATOS_REGISTER_VARIABLE( LATENT_HEAT)
 	KRATOS_REGISTER_VARIABLE( SOLID_TEMPERATURE );
 	KRATOS_REGISTER_VARIABLE( FLUID_TEMPERATURE ); 
-    KRATOS_REGISTER_VARIABLE( AMBIENT_TEMPERATURE)
+    KRATOS_REGISTER_VARIABLE( AMBIENT_TEMPERATURE);
+	KRATOS_REGISTER_VARIABLE(Y_WALL);
 
     //registering geometries in Serializer
     Line2D2<Node<3> > Line2D2Prototype( Element::GeometryType::PointsArrayType( 2, Node<3>() ) );
