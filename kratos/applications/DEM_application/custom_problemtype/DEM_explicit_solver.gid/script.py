@@ -155,6 +155,11 @@ graph_export = open("strain_stress_data.csv",'w')
 sigma_writting = open("mean_sigma.csv",'w')
 sigma_writting2 = open("mean_sigma.csv",'w')
 
+vs_radi = open("vs_radi.csv",'w')
+vs_var_rad = open("vs_var_rad.csv",'w')
+
+
+
 #Adding stress and strain lists
 strainlist=[]
 strainlist.append(0.0)
@@ -192,7 +197,7 @@ for node in force_measurement:
  
 ###################################################################
 #                                                                 #
-#---------------------------MAIN LOOP-----------------------------#
+#--------------------------MAIN LOOP------------------------------#
 #                                                                 #
 ###################################################################
 
@@ -394,6 +399,7 @@ while(time < final_time):
     os.chdir(main_path)
     
     graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+      
     
     ####DEBUG ONLY # MIQUEL
     
@@ -410,13 +416,79 @@ while(time < final_time):
           sigma_writting.write(str(time)+" "+str(ratio_contact_total)+'\n')
       
     #############
-    
-    os.chdir(main_path)
+   
+    step += 1
 
 if(Multifile == "single_file"):
   gid_io.FinalizeResults()
+  
+  
 
 os.chdir(data_and_results)
+
+counter = 0
+counter_all = 0
+
+h   = 0.3
+d   = 0.15
+eps = 2
+
+
+for element in solid_model_part.Elements:
+  
+  counter_all = counter_all +1
+
+  node = element.GetNode(0)
+  r = node.GetSolutionStepValue(RADIUS,0)
+  x = node.X
+  y = node.Y
+  z = node.Z
+  
+  if ( ( (x*x+z*z) < ((d/2-eps*r)*(d/2-eps*r)) ) and ( (y>eps*r ) and (y<(h-eps*r)) ) ): 
+    
+    counter = counter + 1
+    num_of_neigh = node.GetSolutionStepValue(NUM_OF_NEIGH,0)
+    r = node.GetSolutionStepValue(RADIUS,0)
+    volume_real = 3.141592*r*r*r*3*0.25
+    volume_equ = node.GetSolutionStepValue(EQ_VOLUME_DEM,0)
+    vs_radi.write(str(r)+"  "+str(volume_equ/volume_real)+'\n')
+    vs_var_rad.write(str(num_of_neigh)+"  "+str(volume_equ/volume_real)+'\n')
+  
+print("nodes interior")
+print (counter)
+
+print("nodes totals")
+print (counter_all)
+
+print("nodes skin")
+print (counter_all-counter)
+  
+
+total_volume = 0
+
+for element in solid_model_part.Elements:
+  
+  node = element.GetNode(0)
+  volume_equ = node.GetSolutionStepValue(EQ_VOLUME_DEM,0)
+  
+  total_volume = total_volume + volume_equ
+  
+  
+
+real_volume = 3.141592*d*d*0.25*h
+  
+print (total_volume)
+print (real_volume)
+
+
+
+print ( ( (total_volume/real_volume) - 1 ) * 100 )
+
+
+vs_radi.close() 
+vs_var_rad.close() 
+
+
 
 graph_export.close() 
 sigma_writting.close()
