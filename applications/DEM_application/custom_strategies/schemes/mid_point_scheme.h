@@ -106,7 +106,11 @@ namespace Kratos
         vector<unsigned int> node_partition;
 	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();
 	//NodesArrayType::iterator it_end   = pNodes.ptr_end();
-	int number_of_threads             = 1; //OpenMPUtils::GetNumThreads();
+	#ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 	
 	#pragma omp parallel for private(aux) shared(delta_t) 
@@ -160,7 +164,7 @@ namespace Kratos
               
 	         delta_displ[0]  = delta_t * vel_copy[0];
               
-                 displ[0]   +=delta_displ[0];
+                 displ[0]   += delta_displ[0];
               
                  coor[0]   = initial_coor[0] + displ[0];
               
@@ -245,8 +249,8 @@ namespace Kratos
 	        displ[2]  = displ_old[2]    + delta_t * vel_old[2] * (1 + half_delta_t);
 		coor[2]   = initial_coor[2] + displ[2]; 
 	      }*/
-	    }
-	  }
+	    } //End nodes loop
+	  } //End openMP loop
 	  
 	  KRATOS_CATCH("")
 	}
