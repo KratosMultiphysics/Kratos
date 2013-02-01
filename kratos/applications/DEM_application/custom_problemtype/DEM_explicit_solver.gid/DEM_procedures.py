@@ -306,7 +306,10 @@ def ProcSkinAndPressure(model_part,solver):
     for element in model_part.Elements:
     
       element.SetValue(SKIN_SPHERE,0)
-
+      if (element.GetValue(PREDEFINED_SKIN)==1):
+		
+        element.SetValue(SKIN_SPHERE,1)
+      
       node = element.GetNode(0)
       r = node.GetSolutionStepValue(RADIUS,0)
       x = node.X
@@ -394,7 +397,16 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
 	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
 	if (print_export_skin_sphere=="1"):
 	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
-
+	gid_io.WriteNodalResults(DEM_STRESS_XX, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_XY, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_XZ, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_YX, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_YY, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_YZ, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_ZX, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_ZY, contact_model_part.Nodes, time, 0)
+	gid_io.WriteNodalResults(DEM_STRESS_ZZ, contact_model_part.Nodes, time, 0)
+    
   #Aixo sempre per que si no hi ha manera de debugar
   #gid_io.WriteNodalResults(PARTITION_INDEX, contact_model_part.Nodes, time, 0)
   #gid_io.WriteNodalResults(INTERNAL_ENERGY, contact_model_part.Nodes, time, 0)
