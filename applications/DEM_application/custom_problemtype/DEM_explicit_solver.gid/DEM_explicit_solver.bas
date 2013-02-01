@@ -215,6 +215,20 @@ Begin NodalData PARTICLE_MATERIAL
 *end elems 
 End NodalData
 
+*Set cond SET_SKIN *elems
+Begin ElementalData PREDEFINED_SKIN
+*loop elems *OnlyInCond
+*elemsnum *Cond(SET)
+End ElementalData
+
+Begin NodalData PARTICLE_DYNAMIC_FRICTION_COEF
+*loop elems *all
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*elemsconec(1) 0 *elemsmatprop(Dynamic_friction_coef)
+*endif
+*end elems 
+End NodalData
+
 *#Begin NodalData PARTICLE_STATIC_FRICTION_COEF
 *#*loop elems *all
 *#*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
