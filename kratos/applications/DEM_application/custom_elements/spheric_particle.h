@@ -126,8 +126,7 @@ namespace Kratos
        //vector<array_1d<double,3> > mVectorContactForces;
        //array_1d<double,3>& mContactForces;
 
-       int mContinuumGroup;
-       int* mpFailureId;
+
 
        //auxiliar variables
 /*
@@ -195,7 +194,17 @@ namespace Kratos
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
         
-        //FOR DEM_FEM APP
+		
+		//member variables DEM
+		
+		double mStressTensor[3][3]; 
+        //array_1d<double, 3 > mStressTensor; 
+		double mtotal_equiv_area;
+        vector<double> mcont_ini_neigh_area;
+	    int mContinuumGroup;
+        int* mpFailureId;
+		
+		//FOR DEM_FEM APP
         
         void ComputeParticleBlockContactForce_With_Rotation();
         void ComputeParticleBlockContactForce_Without_Rotation();
@@ -207,8 +216,7 @@ namespace Kratos
       
         double mRealMass;
     
-    double mtotal_equiv_area;
-    vector<double> mcont_ini_neigh_area;
+
 
 
         //std::vector<double> mForce;
