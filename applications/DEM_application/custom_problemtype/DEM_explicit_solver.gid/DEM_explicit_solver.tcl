@@ -209,9 +209,9 @@ proc InitGIDProject {dir} {
 		kratos_splash $dir 1
 	}
 	GiDMenu::Create "DEM explicit solver" PRE
-	GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE "GidOpenConditions \"Nodal Values\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Test Particles"] 1 PRE "GidOpenConditions \"Test Particles\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 2 PRE "GidOpenConditions \"Predefined Skin Particles\"" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE {GidOpenConditions Nodal_Values} "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Test Particles"] 1 PRE {GidOpenConditions Test_Particles} "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 2 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 3 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 4 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
 	GiDMenu::InsertOption "DEM explicit solver" [list "---"] 5 PRE "" "" ""
