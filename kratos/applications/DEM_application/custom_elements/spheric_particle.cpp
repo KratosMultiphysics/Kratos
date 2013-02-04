@@ -382,8 +382,6 @@ namespace Kratos
 		  external_total_applied_force[1] = 0.0;
 		  
 		  array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
-		 
-		  KRATOS_WATCH(rCurrentProcessInfo[INT_DUMMY_2])
 		  
 		  if (rCurrentProcessInfo[INT_DUMMY_2]==1) //activated external force
 		  {
@@ -1198,7 +1196,7 @@ namespace Kratos
           }//for each neighbour
          
          
-         if ( ( Eq_Volume < 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
+         if ( ( Eq_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
 		 {
 	 
 		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
@@ -1206,7 +1204,7 @@ namespace Kratos
 		   
      		}
      		
-     	if (Eq_Volume > 0.0 )
+     	else
 		{
 		      for (int i=0; i<3; i++)
 		      {
@@ -1218,7 +1216,7 @@ namespace Kratos
 			   }		  
      	
 		}
-		else {KRATOS_WATCH("Eq_Volume less or equal to zero!!!")KRATOS_WATCH(this->Id())}
+		
 		/*
 		 KRATOS_WATCH(" ") 
 		  KRATOS_WATCH(Eq_Volume)
