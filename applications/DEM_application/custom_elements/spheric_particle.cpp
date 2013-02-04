@@ -382,6 +382,8 @@ namespace Kratos
 		  external_total_applied_force[1] = 0.0;
 		  
 		  array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
+		 
+		  KRATOS_WATCH(rCurrentProcessInfo[INT_DUMMY_2])
 		  
 		  if (rCurrentProcessInfo[INT_DUMMY_2]==1) //activated external force
 		  {
@@ -509,20 +511,17 @@ namespace Kratos
                   
               }
          
-         
-     
-         
-         
-         
-         
-         
+
          
               //MACRO PARAMETERS
 
               double kn               = magic_factor*equiv_young*corrected_area/(radius + other_radius); //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA               
-              double ks               = kn / (2.0 * (1.0 + equiv_poisson));
-              //double RN               = CTension * equiv_area; //tensile strenght
-              //double RT_base          = CCohesion * equiv_area; //cohesion
+              //KRATOS_WATCH(corrected_area)
+			  //KRATOS_WATCH(this->Id())
+			  //KRATOS_WATCH(neighbour_iterator->Id())
+			  
+			  double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+           
 
               if (global_variables_OPTION == 1) //globally defined parameters       // ha de ser canviat aixo pk ara rn i rt no entren al calcul
               {
@@ -1063,11 +1062,11 @@ namespace Kratos
 
 	   array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
 	   array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
-	   double neigh_radius    = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-       array_1d<double,3> x_centroid      = coord_neigh + ( neigh_radius + 0.5*gap )*(-1*normal_vector_on_contact);
-	   
-	   
-	   
+	   double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+	   double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+       array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
+	  
+	   //KRATOS_WATCH(kn)
 	   double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
 	   
        Eq_Volume = Eq_Volume + 0.33333333333333 * (result_product * corrected_area);
@@ -1091,24 +1090,20 @@ namespace Kratos
 	  }
 */
    
-	   /*
-        GlobalContactForce[0]...
-        NormalDir[0]                           //these are the global vectors other to me.
-        NormalDir[1] 
-        NormalDir[2]
+	  
+	  
+	   
         
-        AuxiliaryFunctions::Dialicproduct: 
-        
-        for (i=0; i<3; i++;)
+        for (int i=0; i<3; i++)
 		{
 		  
-		  for (j=0; j<3; j++;)
+		  for (int j=0; j<3; j++)
 		  {
-			 StressTensor[i][j] += GlobalContactForce[i] * NormalDir[j] ; //ref: Katalin Bagi 1995 Mean stress tensor
+			 mStressTensor[i][j] += (-other_to_me_vect[j]) * GlobalContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor
 		  }
 		  
 		}
-		*/
+		
 		
 		//al final de tot quan tens el eq volume (1/Eq_Volume)*
         
@@ -1203,8 +1198,7 @@ namespace Kratos
           }//for each neighbour
          
          
-         
-         if ( ( Eq_Volume < 0.0 ) && ( this->GetValue(SKIN_SPHERE) == 0 ) )
+         if ( ( Eq_Volume < 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
 		 {
 	 
 		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
@@ -1212,7 +1206,20 @@ namespace Kratos
 		   
      		}
      		
-		/* 
+     	if (Eq_Volume > 0.0 )
+		{
+		      for (int i=0; i<3; i++)
+		      {
+		  
+					  for (int j=0; j<3; j++)
+					  {
+			                 mStressTensor[i][j] = (1/Eq_Volume)*mStressTensor [i][j];
+					  }
+			   }		  
+     	
+		}
+		else {KRATOS_WATCH("Eq_Volume less or equal to zero!!!")KRATOS_WATCH(this->Id())}
+		/*
 		 KRATOS_WATCH(" ") 
 		  KRATOS_WATCH(Eq_Volume)
 		  double Volume_real = M_PI*radius*radius*radius*0.25*3;
@@ -1619,6 +1626,21 @@ namespace Kratos
             noalias(mRota_Moment) = ZeroVector(3);
           }
           
+          double& Eq_Volume = this->GetGeometry()[0].GetSolutionStepValue(EQ_VOLUME_DEM);
+		 
+		  Eq_Volume = 0.0;
+		  
+		  for (int i=0; i<3; i++)
+		  {
+		  
+		      for (int j=0; j<3; j++)
+		      {
+			       mStressTensor[i][j] += 0.0;
+		      }
+		  
+		   }
+           
+          
       }
         
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
@@ -1634,12 +1656,21 @@ namespace Kratos
 		  {
 			this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));
 		  }
-          
-          double& Eq_Volume = this->GetGeometry()[0].GetSolutionStepValue(EQ_VOLUME_DEM);
-		 
 		  
-		  Eq_Volume = 0.0;
-           
+		  this->GetGeometry()[0].FastGetSolutionStepValue(NUM_OF_NEIGH) = this->GetValue(NEIGHBOUR_ELEMENTS).size();
+         
+  
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) =  mStressTensor[0][0];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) =  mStressTensor[0][1];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) =  mStressTensor[0][2];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YX) =  mStressTensor[1][0];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YY) =  mStressTensor[1][1];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_YZ) =  mStressTensor[1][2];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZX) =  mStressTensor[2][0];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZY) =  mStressTensor[2][1];
+          this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ) =  mStressTensor[2][2];
+          
+		  
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
       }
