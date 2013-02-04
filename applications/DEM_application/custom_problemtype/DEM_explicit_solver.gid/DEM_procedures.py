@@ -267,6 +267,12 @@ def ProcGiDSolverTransfer(model_part,solver):
     m_bounding_box_enlargement_factor = max(1.0 + extra_radius, bounding_box_enlargement_factor)
 
     solver.enlargement_factor = m_bounding_box_enlargement_factor
+    
+    Pressure = ConfinementPressure*1e6 #Mpa
+    
+    if(Pressure!=0):
+      
+      solver.external_pressure = 1
 
 def ProcSkinAndPressure(model_part,solver):
     
@@ -274,10 +280,9 @@ def ProcSkinAndPressure(model_part,solver):
     
     Pressure = ConfinementPressure*1e6 #Mpa
     
-    if(Pressure!=0):
-      
-      solver.external_pressure = 1
-    
+    print(" ")
+    print(solver.external_pressure)
+    print("")
     SKIN = list()  
     LAT = list()
     BOT = list()
