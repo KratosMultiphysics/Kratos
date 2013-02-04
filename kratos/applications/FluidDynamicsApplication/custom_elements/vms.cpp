@@ -14,15 +14,18 @@ void VMS<2>::EquationIdVector(EquationIdVectorType& rResult,
 {
     const unsigned int NumNodes(3),LocalSize(9);
     unsigned int LocalIndex = 0;
+    
+    unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
     }
 }
 
@@ -35,16 +38,18 @@ void VMS<3>::EquationIdVector(EquationIdVectorType& rResult,
 {
     const unsigned int NumNodes(4),LocalSize(16);
     unsigned int LocalIndex = 0;
+    unsigned int vpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+    unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
 
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
     for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
     {
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
-        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X,vpos).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y,vpos+1).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z,vpos+2).EquationId();
+        rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE,ppos).EquationId();
     }
 }
 
