@@ -444,6 +444,10 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
 		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
 	  if (print_local_contact_force_high=="1"):
 		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
+	  #if (print_local_contact_force_low=="1"):
+	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,contact_model_part,time)
+	  #if (print_local_contact_area_high=="1"):
+	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,contact_model_part,time)
 	  if (print_contact_failure=="1"): 
 		  gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
 	  if (print_failure_criterion_state=="1"):
