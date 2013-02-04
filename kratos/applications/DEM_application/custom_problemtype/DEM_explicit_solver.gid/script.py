@@ -82,7 +82,7 @@ if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
 
   
 ProcGiDSolverTransfer(solid_model_part,solver)
-  
+
 solver.Initialize()
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
