@@ -1,6 +1,7 @@
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+
 # Check that KratosMultiphysics was imported in the main script
 #CheckForPreviousImport(
 
@@ -25,9 +26,21 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
     
     #es podrien eliminar
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
-    model_part.AddNodalSolutionStepVariable(EQ_VOLUME_DEM) #temporal
-
+    model_part.AddNodalSolutionStepVariable( NODAL_MASS )
+    model_part.AddNodalSolutionStepVariable( EQ_VOLUME_DEM ) #temporal
+    model_part.AddNodalSolutionStepVariable( NUM_OF_NEIGH ) #temporal
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_XX )    
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_XY )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_XZ )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_YX )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_YY )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_YZ )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_ZX )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_ZY )
+    model_part.AddNodalSolutionStepVariable( DEM_STRESS_ZZ )
+    
+    
+    
 # ADVANCED
 
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   #colour defined in GiD
