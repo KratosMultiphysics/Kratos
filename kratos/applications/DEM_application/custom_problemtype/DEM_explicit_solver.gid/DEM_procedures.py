@@ -305,6 +305,12 @@ def ProcSkinAndPressure(model_part,solver):
     
     top_pressure = 0.0
     bot_pressure = 0.0
+
+    xlat_area = 0.0
+    xbot_area = 0.0
+    xtop_area = 0.0
+    xbotcorner_area = 0.0
+    xtopcorner_area = 0.0
       
     #SKIN DETERMINATION
     
@@ -335,6 +341,7 @@ def ProcSkinAndPressure(model_part,solver):
           SKIN.append(element)
         
           XLAT.append(node)
+	  xlat_area = xlat_area + cross_section
     
       if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
 
@@ -355,23 +362,39 @@ def ProcSkinAndPressure(model_part,solver):
               if ( y>h/2 ):
 
                   XTOPCORNER.append(node)
+		  xtopcorner_area = xtopcorner_area + cross_section
                 
               else:
 
                   XBOTCORNER.append(node)
+		  xbotcorner_area = xbotcorner_area + cross_section
           else:
 
               if ( y<=eps*r ):
                 
                   XBOT.append(node)
+		  xbot_area = xbot_area + cross_section
                 
               elif ( y>=(h-eps*r) ):
                     
                   XTOP.append(node)
+		  xtop_area = xtop_area + cross_section
+
+    #Coeficient correccio area tapa superior
+  
+    alpha_top = 3.141592*d*d*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+
+    #Coeficient correccio area tapa inferior
+  
+    alpha_bot = 3.141592*d*d*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+
+    #Coeficient correccio area lateral
+  
+    alpha_lat = 3.141592*d*h/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area)
                                     
     if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
  
-      ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER) 
+      ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
       print("End Applying Imposed Forces")
      
 def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
