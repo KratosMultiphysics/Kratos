@@ -312,7 +312,7 @@ def ProcSkinAndPressure(model_part,solver):
     
       element.SetValue(SKIN_SPHERE,0)
       if (element.GetValue(PREDEFINED_SKIN)==1):
-		
+        print("SKIN!!!")
         element.SetValue(SKIN_SPHERE,1)
       
       node = element.GetNode(0)
