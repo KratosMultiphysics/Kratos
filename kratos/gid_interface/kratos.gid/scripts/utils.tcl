@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.2- 22/10/12- J.Garate, Support for new GiD Groups
 #     1.1- 26/09/12- J.Garate, update Parsing function to allow spacing when renaming
 #     1.0- 20/07/12-GSM, update the proc ElemenDosListas and rename it to TwoListRepeatedItems
 #     0.9- 13/07/12- J. Garate, ElemenDosListas Compara 2 listas a ver si hay coincidencias
@@ -33,12 +34,17 @@ namespace eval ::KUtils:: {
 }
 
 proc ::KUtils::DeleteAllGroupIdentifier { } {
- 
-    foreach groupid [Cond_Groups list] {
-	# Cond_Groups delete $groupid
-	# wa "que groupid:$groupid"
-	gid_groups_conds::delete_group -check_entities 0 $groupid
+    #msg [kipt::NewGiDGroups]
+    if {[kipt::NewGiDGroups]} {
+        set grw "GiD_Groups"
+    } else {
+        set grw "Cond_Groups"
+        foreach groupid [$grw list] {
+             #wa "que groupid:$groupid"
+            $grw delete $groupid
+        }
     }
+    
 }
 
 proc ::KUtils::CreateTBEFiles {} {

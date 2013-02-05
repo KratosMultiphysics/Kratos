@@ -13,8 +13,17 @@
 #
 #    HISTORY:
 #   
-#     5.6- 10/10/12-G. Socorro, update the proc SelectPythonScript to select the the active structural analysis python script
-#     5.5- 09/10/12-G. Socorro, modify the procs WriteElementConnectivities (add linear elements) and WriteModelPartData (write cross section properties)
+#     6.2- 17/12/12-J. Garate,  PFEM Wall is disabled for .mdpa
+#     6.1- 21/11/12-J. Garate,  Modified ::wkcf::WriteNodalCoordinates_m2 ::wkcf::WriteElementConnectivities_m2 ::wkcf::WriteBoundaryCondition for PFEM
+#     6.0- 26/11/12-J. Garate,  Support to PFEM Application
+#     5.9- 12/11/12-J. Garate,  Fixed some errors
+#     5.8- 07/11/12-J. Garate,  Added to namespace variable filechannel, New GiD method to write on files will use this channel the .mdpa file
+#                               Modification and adaptation on functions: WriteCalculationFiles , WriteModelPartData, ::wkcf::WriteProperties
+#                               WriteNodalCoordinates, WriteElementConnectivities, WriteBoundaryConditions, WriteConditions.
+#                               Creation of functions using GiD_File fprintf $filechannel "%s" format
+#     5.7- 22/10/12-J. Garate,  Massive group erasing correction
+#     5.6- 10/10/12-J. Garate,  Adaptation for New GiD Groups
+#     5.5- 10/10/12-G. Socorro, update the proc SelectPythonScript to select the the active structural analysis python script
 #     5.4- 03/10/12-G. Socorro, add a call to the proc WriteFluidDistanceBC to write the distance variable
 #     5.3- 24/09/12-G. Socorro, create a new variable "wbatfile" to control when write the bat file for Kratos 
 #     5.2- 23/09/12-G. Socorro, Write the GroupMeshProperties before  the cut and graph properties to get the mesh reference
@@ -104,104 +113,140 @@ namespace eval ::wkcf:: {
     variable pflag 
     
     # 0 => Metodo antiguo (Poco eficiente)
-    # 1 => Metodo nuevo (write_calc_data)
+    # 1 => Metodo Cond (write_calc_data -> Cond_Groups)
+    # 2 => Metodo Nuevo (GiD_Groups)
     variable wmethod 
 
     # To write the bat file
     variable wbatfile
+    
+    # When $vmethod == 2, filechannel -> output file .mdpa
+    variable filechannel
 }
 
 proc ::wkcf::WriteCalculationFiles {filename} {
     global KPriv     
     variable FluidApplication; variable StructuralAnalysis
     variable ActiveAppList
+    variable wmethod 
+    variable filechannel
     
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
     
     # Init some namespace global variables
     ::wkcf::Preprocess
-  
+    
+   
+##     # Copy New GiD_Groups to OldConds
+ #     if {[kipt::NewGiDGroups]} {
+ #         ::KEGroups::TransferGiDGroupstoCondGroups
+ #     }
+ ##
+    
     # Write each block of the files *.mdpa
     # Rename the file name => Change .dat by .mdpa
     set basefilename "[string range $filename 0 end-4]"
     # Write a mdpa file for each application
     foreach AppId $ActiveAppList {
-	set filename "${basefilename}${AppId}.mdpa"
-	# WarnWinText "filename:$filename"
-	# Use the write_calc_data procedure from the GiD kernel
-	# Init
-	write_calc_data init $filename
+        set filename "${basefilename}${AppId}.mdpa"
+        # WarnWinText "filename:$filename"
+        
+        if {$wmethod eq "1"} {
+            # Use the write_calc_data procedure from the GiD kernel
+            # Init
+            write_calc_data init $filename
+        } elseif {$wmethod eq "2"} {
+            # Use the GiD_Groups and GiD_EntitiesGroups procedures from the GiD kernel
+            # Init
+            set filechannel [GiD_File fopen $filename]
+        }
+        
+        # Write model part data
+        ::wkcf::WriteModelPartData $AppId
 
-	# Write model part data
-	::wkcf::WriteModelPartData $AppId
+        # Write properties block
+        ::wkcf::WriteProperties $AppId
+        
+        # Write nodes block    
+        ::wkcf::WriteNodalCoordinates $AppId
 
-	# Write properties block
-	::wkcf::WriteProperties $AppId
-	
-	# Write nodes block    
-	::wkcf::WriteNodalCoordinates $AppId
+        # Write elements block 
+        ::wkcf::WriteElementConnectivities $AppId
 
-	# Write elements block 
-	::wkcf::WriteElementConnectivities $AppId
+        # For fluid application
+        if {$AppId == "Fluid"} {
+            # Write conditions (Condition2D and Condition3D)
+            ::wkcf::WriteConditions $AppId  
+        }
 
-	# For fluid application
-	if {$AppId == "Fluid"} {
-	    # Write conditions (Condition2D and Condition3D)
-	    ::wkcf::WriteConditions $AppId  
-	}
+        # Write boundary condition block
+        ::wkcf::WriteBoundaryConditions $AppId
+          
+          # For structural analysis application
+          if {$AppId =="StructuralAnalysis"} {
+              # Write load properties block
+              ::wkcf::WriteLoads $AppId
+          }
+  
+          # For fluid application
+          if {$AppId == "Fluid"} {
+              # Write nodal data for density and viscosity            
+              ::wkcf::WritePropertyAtNodes $AppId
 
-	# Write boundary condition block
-	::wkcf::WriteBoundaryConditions $AppId
-	
-	# For structural analysis application
-	if {$AppId =="StructuralAnalysis"} {
-	    # Write load properties block
-	    ::wkcf::WriteLoads $AppId
-	}
+              # Write all group properties
+              # ::wkcf::WriteGroupProperties $AppId
+              ::wkcf::WriteGroupMeshProperties $AppId
 
-	# For fluid application
-	if {$AppId == "Fluid"} {
-	    # Write nodal data for density and viscosity            
-	    ::wkcf::WritePropertyAtNodes $AppId
-	    
-	    # Write all group properties
-	    # ::wkcf::WriteGroupProperties $AppId
-	    ::wkcf::WriteGroupMeshProperties $AppId
+              # Write the cutting and point history properties
+              ::wkcf::WriteCutAndGraph $AppId
+         }
+ 
+          if {$wmethod eq 1} {
+              # End
+              write_calc_data end
+              
+          } elseif {$wmethod eq 2} {
+              # Use the GiD_Groups and GiD_EntitiesGroups procedures from the GiD kernel
+              # Init
+              GiD_File fclose $filechannel
+          }
+      }
+     
+      # Write the project parameters file
+      ::wkcf::WriteProjectParameters
+      
+      # Write python group properties
+       ::wkcf::WritePythonGroupProperties
+      
+      # Select python scripts
+      ::wkcf::SelectPythonScript
+      
+      # Write constitutive laws properties
+      if {$StructuralAnalysis=="Yes"} {
+          ::wkcf::WriteConstitutiveLawsProperties
+      }
 
-	    # Write the cutting and point history properties
-	    ::wkcf::WriteCutAndGraph $AppId
-	}
-
-
-	# End
-	write_calc_data end
-    }
-    
-    # Write the project parameters file
-    ::wkcf::WriteProjectParameters
-    
-    # Write python group properties
-    # ::wkcf::WritePythonGroupProperties
-    
-    # Select python scripts
-    ::wkcf::SelectPythonScript
-    
-    # Write constitutive laws properties
-    if {$StructuralAnalysis=="Yes"} {
-	::wkcf::WriteConstitutiveLawsProperties
-    }
 
     variable wbatfile
     if {$wbatfile} {
-	# Write bat file only for the Linux OS
-	if {($::tcl_platform(os) eq "Linux")} {
-	    ::wkcf::WriteBatFile $AppId
-	}
+        # Write bat file only for the Linux OS
+        if {($::tcl_platform(os) eq "Linux")} {
+            ::wkcf::WriteBatFile $AppId
+        }
     }
     
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
+    
+##     # Erase Old Conds
+ #     if {[kipt::NewGiDGroups]} {
+ #         set oldstate $::KPriv(Groups,DeleteGroup)
+ #         set ::KPriv(Groups,DeleteGroup) 0
+ #         ::KEGroups::DestroyOldCondGroups
+ #         set ::KPriv(Groups,DeleteGroup) $oldstate
+ #     }
+ ##
     
     return 1
 }
@@ -317,15 +362,33 @@ proc ::wkcf::WriteModelPartData {AppId} {
     # Write the model part data
     # Arguments
     # AppId => Application identifier
-    
-    write_calc_data puts "Begin ModelPartData"
-    write_calc_data puts "//  VARIABLE_NAME value"
-    write_calc_data puts "End ModelPartData"
-    write_calc_data puts ""
-    
+    variable filechannel
+    variable wmethod
+        
+    if {$wmethod eq 1} {
+        write_calc_data puts "Begin ModelPartData"
+        write_calc_data puts "//  VARIABLE_NAME value"
+        write_calc_data puts "End ModelPartData"
+        write_calc_data puts ""
+    } elseif {$wmethod eq 2} {
+        GiD_File fprintf $filechannel "%s" "Begin ModelPartData"
+        GiD_File fprintf $filechannel "%s" "//  VARIABLE_NAME value"
+        GiD_File fprintf $filechannel "%s" "End ModelPartData"
+        GiD_File fprintf $filechannel "%s" ""
+    }   
 }
 
 proc ::wkcf::WriteProperties {AppId} {
+    variable wmethod
+    
+    if {$wmethod eq 1} {
+        ::wkcf::WriteProperties_m1 $AppId
+    } elseif {$wmethod eq 2} {
+        ::wkcf::WriteProperties_m2 $AppId
+    }
+}
+
+proc ::wkcf::WriteProperties_m1 {AppId} {
     # Write the properties block
     # Arguments
     # AppId => Application identifier
@@ -333,75 +396,179 @@ proc ::wkcf::WriteProperties {AppId} {
     
     # For structural analysis application
     if {$AppId =="StructuralAnalysis"} {
-	set propid 0
-	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
-	    incr propid 1
-	    write_calc_data puts "Begin Properties $propid // GUI property identifier: $PropertyId"
-	    # Get the material identifier for this property 
-	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-	    # wa "PropertyId:$PropertyId MatId:$MatId"
-	    write_calc_data puts "// GUI material identifier: $MatId"
-	    # Write material properties
-	    foreach cpropid $dprops($AppId,Material,$MatId,Props) {
-		# WarnWinText "material propid:$cpropid"
-		lassign $cpropid key value
-		write_calc_data puts " $key $value"
-	    } 
-	    
-	    # Write section (others) properties (thickness, etc.)
-	    if {[info exists dprops($AppId,Material,$PropertyId,CProps)]} {
-		foreach cpropid $dprops($AppId,Material,$PropertyId,CProps) {
-		    # wa "cpropid:$cpropid"
-		    lassign $cpropid cvaluetype ckeyword cvalue
-		    # wa "cvaluetype:$cvaluetype ckeyword:$ckeyword cvalue:$cvalue"
-		    #  Check the data type
-		    if {$cvaluetype eq "Scalar"} {
-			# Scalar
-			write_calc_data puts " $ckeyword $cvalue"
-		    } elseif {$cvaluetype eq "Matrix"} {
-			# Matrix
-			lassign $cvalue matdim matvalue 
-			write_calc_data puts " $ckeyword ${matdim} $matvalue"
-		    }
-		} 
-	    }
-	    
-	    if {$dprops($AppId,GKProps,$PropertyId,AddBF)=="Yes"} {
-		# Get the body force properties
-		set cloadtid "BodyForce"
-		# Get the group identifier list for this property
-		if {([info exists dprops($AppId,Property,$PropertyId,GroupId)]) && ([llength $dprops($AppId,Property,$PropertyId,GroupId)]>0)} {
-		    foreach GroupId $dprops($AppId,Property,$PropertyId,GroupId) {
-			# WarnWinText "GroupId:$GroupId"
-			if {[info exists dprops($AppId,Loads,$cloadtid,$GroupId,GProps)]} {
-			    set cprop $dprops($AppId,Loads,$cloadtid,$GroupId,GProps)
-			    # WarnWinText "cprop:$cprop GroupId:$GroupId"
-			    write_calc_data puts "// GUI body force group identifier: $GroupId"
-			    ::wkcf::WriteBodyForceValues $cprop
-			}
-		    }
-		}
-	    } else {
-		# Write the body forces with default values
-		set cprop [list [list GravityValue 9.8] [list Cx 0.0] [list Cy 0.0] [list Cz 0.0]]
-		::wkcf::WriteBodyForceValues $cprop
-	    }
-	    
-	    write_calc_data puts "End Properties"
-	}
-	write_calc_data puts ""
+        set propid 0
+        foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
+            incr propid 1
+            write_calc_data puts "Begin Properties $propid // GUI property identifier: $PropertyId"
+            # Get the material identifier for this property 
+            set MatId $dprops($AppId,Property,$PropertyId,MatId) 
+            # wa "PropertyId:$PropertyId MatId:$MatId"
+            write_calc_data puts "// GUI material identifier: $MatId"
+            # Write material properties
+            foreach cpropid $dprops($AppId,Material,$MatId,Props) {
+                # WarnWinText "material propid:$cpropid"
+                lassign $cpropid key value
+                write_calc_data puts " $key $value"
+            } 
+            
+            # Write section (others) properties (thickness, etc.)
+            if {[info exists dprops($AppId,Material,$PropertyId,CProps)]} {
+                foreach cpropid $dprops($AppId,Material,$PropertyId,CProps) {
+                    # wa "cpropid:$cpropid"
+                    lassign $cpropid cvaluetype ckeyword cvalue
+                    # wa "cvaluetype:$cvaluetype ckeyword:$ckeyword cvalue:$cvalue"
+                    #  Check the data type
+                    if {$cvaluetype eq "Scalar"} {
+                    # Scalar
+                    write_calc_data puts " $ckeyword $cvalue"
+                    } elseif {$cvaluetype eq "Matrix"} {
+                    # Matrix
+                    lassign $cvalue matdim matvalue 
+                    write_calc_data puts " $ckeyword ${matdim} $matvalue"
+                    }
+                } 
+            }
+            
+            if {$dprops($AppId,GKProps,$PropertyId,AddBF)=="Yes"} {
+                # Get the body force properties
+                set cloadtid "BodyForce"
+                # Get the group identifier list for this property
+                if {([info exists dprops($AppId,Property,$PropertyId,GroupId)]) && ([llength $dprops($AppId,Property,$PropertyId,GroupId)]>0)} {
+                    foreach GroupId $dprops($AppId,Property,$PropertyId,GroupId) {
+                        # WarnWinText "GroupId:$GroupId"
+                        if {[info exists dprops($AppId,Loads,$cloadtid,$GroupId,GProps)]} {
+                            set cprop $dprops($AppId,Loads,$cloadtid,$GroupId,GProps)
+                            # WarnWinText "cprop:$cprop GroupId:$GroupId"
+                            write_calc_data puts "// GUI body force group identifier: $GroupId"
+                            ::wkcf::WriteBodyForceValues $cprop
+                        }
+                    }
+                }
+            } else {
+            # Write the body forces with default values
+            set cprop [list [list GravityValue 9.8] [list Cx 0.0] [list Cy 0.0] [list Cz 0.0]]
+            ::wkcf::WriteBodyForceValues $cprop
+            }
+            
+            write_calc_data puts "End Properties"
+        }
+        write_calc_data puts ""
     }
     
     # For fluid application
     if {$AppId =="Fluid"} {
-	write_calc_data puts "Begin Properties 0"
-	write_calc_data puts "End Properties"
-	write_calc_data puts ""
+        write_calc_data puts "Begin Properties 0"
+        write_calc_data puts "End Properties"
+        write_calc_data puts ""
+    }
+    
+}
+
+proc ::wkcf::WriteProperties_m2 {AppId} {
+    # Write the properties block
+    # Arguments
+    # AppId => Application identifier
+    variable dprops;  variable ndime
+    variable filechannel
+    
+    # For structural analysis application
+    if {$AppId =="StructuralAnalysis"} {
+        set propid 0
+        foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
+            incr propid 1
+            GiD_File fprintf $filechannel "%s" "Begin Properties $propid // GUI property identifier: $PropertyId"
+            
+            # Get the material identifier for this property 
+            set MatId $dprops($AppId,Property,$PropertyId,MatId) 
+            # wa "PropertyId:$PropertyId MatId:$MatId"
+            GiD_File fprintf $filechannel "%s" "// GUI material identifier: $MatId"
+            
+            # Write material properties
+            foreach cpropid $dprops($AppId,Material,$MatId,Props) {
+                # WarnWinText "material propid:$cpropid"
+                lassign $cpropid key value
+                GiD_File fprintf $filechannel "%s" " $key $value"
+            } 
+            
+            # Write section (others) properties (thickness, etc.)
+            if {[info exists dprops($AppId,Material,$PropertyId,CProps)]} {
+                foreach cpropid $dprops($AppId,Material,$PropertyId,CProps) {
+                    # wa "cpropid:$cpropid"
+                    lassign $cpropid cvaluetype ckeyword cvalue
+                    # wa "cvaluetype:$cvaluetype ckeyword:$ckeyword cvalue:$cvalue"
+                    #  Check the data type
+                    if {$cvaluetype eq "Scalar"} {
+                        # Scalar
+                        GiD_File fprintf $filechannel "%s" " $ckeyword $cvalue"
+                    } elseif {$cvaluetype eq "Matrix"} {
+                        # Matrix
+                        lassign $cvalue matdim matvalue 
+                        GiD_File fprintf $filechannel "%s" " $ckeyword ${matdim} $matvalue"
+                    }
+                } 
+            }
+            
+            if {$dprops($AppId,GKProps,$PropertyId,AddBF)=="Yes"} {
+                # Get the body force properties
+                set cloadtid "BodyForce"
+                # Get the group identifier list for this property
+                if {([info exists dprops($AppId,Property,$PropertyId,GroupId)]) && ([llength $dprops($AppId,Property,$PropertyId,GroupId)]>0)} {
+                    foreach GroupId $dprops($AppId,Property,$PropertyId,GroupId) {
+                        # WarnWinText "GroupId:$GroupId"
+                        if {[info exists dprops($AppId,Loads,$cloadtid,$GroupId,GProps)]} {
+                            set cprop $dprops($AppId,Loads,$cloadtid,$GroupId,GProps)
+                            # WarnWinText "cprop:$cprop GroupId:$GroupId"
+                            GiD_File fprintf $filechannel "%s" "// GUI body force group identifier: $GroupId"
+                            ::wkcf::WriteBodyForceValues $cprop
+                        }
+                    }
+                }
+            } else {
+                # Write the body forces with default values
+                set cprop [list [list GravityValue 9.8] [list Cx 0.0] [list Cy 0.0] [list Cz 0.0]]
+                ::wkcf::WriteBodyForceValues $cprop
+            }
+            
+            #write_calc_data puts "End Properties"
+            GiD_File fprintf $filechannel "%s" "End Properties"
+        }
+        #write_calc_data puts ""
+        GiD_File fprintf $filechannel ""
+    }
+    
+    # For fluid application
+    if {$AppId =="Fluid"} {
+
+        GiD_File fprintf $filechannel "%s" "Begin Properties 0"
+        GiD_File fprintf $filechannel "%s" "End Properties"
+        GiD_File fprintf $filechannel ""
     }
     
 }
 
 proc ::wkcf::WriteNodalCoordinates {AppId} {
+    variable wmethod
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+    
+    if {($wmethod eq 1) || ($wmethod eq 0)} {
+        ::wkcf::WriteNodalCoordinates_m1 $AppId
+    } elseif {$wmethod eq 2} {
+        ::wkcf::WriteNodalCoordinates_m2 $AppId
+    }
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write nodal coordinates: [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteNodalCoordinates_m1 {AppId} {
     # Write the nodal coordinates block
     # Nodes block format
     # Begin Nodes
@@ -411,132 +578,246 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
     # AppId  => Application identifier
     variable ndime; variable dprops; variable wmethod
     
+    # Check for all defined kratos elements
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+
+        if {$wmethod eq "1"} {
+            set cformat "%10d"
+            # For all defined kratos nodes        
+            foreach celemid $dprops($AppId,AllKElemId) {
+                # Check for all defined group identifier for this element
+                if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                    # For all defined group identifier for this element
+                    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                        # Get the GiD entity type, element type and property identifier
+                        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                        # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+                        # Create the dictionary used in the format
+                        set gprop [dict create]	
+                        dict set gprop $cgroupid "$cformat"
+                        
+                        if {[write_calc_data nodes -count $gprop]>0} {
+                            # Write all nodes for this group in incresing orden
+                            write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
+                            set wbuff ""
+                            if {$ndime =="2D"} {
+                                foreach nodeid [write_calc_data nodes -sorted -return $gprop] {
+                                    lassign  [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval
+                                    # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
+                                    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval 0.0]\n"
+                                } 
+                            } else {
+                                foreach nodeid [write_calc_data nodes -sorted -return $gprop] {
+                                    lassign  [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval zval
+                                    # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
+                                    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval $zval]\n"
+                                }
+                            }
+                            write_calc_data puts "[string trimright $wbuff]"
+                        }
+                        write_calc_data puts "End Nodes"
+                        write_calc_data puts ""
+                        # Unset the dictionary
+                        unset gprop
+                    }
+                }
+            }
+        } else {
+            set cnodeglist [list]
+            # Create a dictionary
+            set nc [dict create 0 0]
+            # For all defined kratos nodes        
+            foreach celemid $dprops($AppId,AllKElemId) {
+                # Check for all defined group identifier for this element
+                if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                    # For all defined group identifier for this element
+                    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                        # Get the GiD entity type, element type and property identifier
+                        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                        # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+                        # Get all defined entities for this group identifier
+                        set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
+                        # WarnWinText "alllist:$allelist"
+                        if {[llength $allelist]} {
+                            # Non repeated nodes identifier
+                            # Get all defined nodes
+                            foreach elemid $allelist {
+                                # Get the element properties
+                                foreach nodeid [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] {
+                                    dict set nc $nodeid $cgroupid 
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            # Write the group nodal properties
+            foreach celemid $dprops($AppId,AllKElemId) {
+                # Check for all defined group identifier for this element
+                if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
+                    # For all defined group identifier for this element
+                    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                        # Init the node group list
+                        set cnodeglist [list]
+                        dict for {nodeid dgroupid} $nc {
+                            if {$cgroupid ==$dgroupid} {
+                            lappend cnodeglist $nodeid
+                            }
+                        }
+                        if {[llength $cnodeglist]} {
+                            # Write all nodes for this group in incresing orden
+                            write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
+                            set wbuff ""
+                            foreach nodeid [lsort -integer $cnodeglist] {
+                                set ncoord [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2]
+                                # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
+                                if {$ndime =="2D"} {
+                                    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] 0.0]\n"
+                                } elseif {$ndime =="3D"} {
+                                    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] [lindex $ncoord 2]]\n"
+                                }
+                            }
+                            write_calc_data puts "[string trimright $wbuff]"
+                        }
+                        write_calc_data puts "End Nodes"
+                        write_calc_data puts ""
+                        unset cnodeglist 
+                    }
+                }
+            }
+            unset nc
+            write_calc_data puts ""
+        }
+    }
+}
+
+proc ::wkcf::WriteNodalCoordinates_m2 {AppId} {
+    # Write the nodal coordinates block
+    # Nodes block format
+    # Begin Nodes
+    # // id          X        Y        Z 
+    # End Nodes
+    # Arguments
+    # AppId  => Application identifier
+    variable ndime; variable dprops; variable wmethod
+    variable filechannel
     
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set inittime [clock seconds]
-	}
-	if {$wmethod eq "1"} {
-	    set cformat "%10d"
+       
+	# For all defined kratos nodes        
+	foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {[info exists dprops($AppId,KElem,$celemid,AllGroupId)] && [llength $dprops($AppId,KElem,$celemid,AllGroupId)]} {
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+                        # Write all nodes for this group in increasing orden
+                        GiD_File fprintf $filechannel "Begin Nodes // GUI group identifier: $cgroupid"			
+                        if {$ndime == "2D"} {			    
+                            foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {                               
+                                lassign [GiD_Mesh get node $nodeid] layer x y z
+                                # msg "nodeid:$nodeid layer:$layer x:$x y:$y z:$z"
+                                GiD_File fprintf $filechannel "$nodeid [format {%.5f %.5f} $x $y] 0"
+                            }
+                        } else {			            
+                            foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {                                
+                                lassign [GiD_Mesh get node $nodeid] layer x y z
+                                # msg "nodeid:$nodeid layer:$layer x:$x y:$y z:$z"
+                                GiD_File fprintf $filechannel "$nodeid [format {%.5f %.5f %.5f} $x $y $z]"                 
+                            }
+                        }
+                    }
+                    GiD_File fprintf $filechannel "End Nodes"
+                    GiD_File fprintf $filechannel ""
+                }
+            }
+        }
+    }
+}
+
+proc ::wkcf::WriteNodalCoordinates_m2_old {AppId} {
+    # Write the nodal coordinates block
+    # Nodes block format
+    # Begin Nodes
+    # // id          X        Y        Z 
+    # End Nodes
+    # Arguments
+    # AppId  => Application identifier
+    variable ndime; variable dprops; variable wmethod
+    variable filechannel
+    
+    # Check for all defined kratos elements
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+
+        set cformat "%10d"
 	    # For all defined kratos nodes        
 	    foreach celemid $dprops($AppId,AllKElemId) {
-		# Check for all defined group identifier for this element
-		if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
-		    # For all defined group identifier for this element
-		    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-			# Get the GiD entity type, element type and property identifier
-			lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-			# WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
-			# Create the dictionary used in the format
-			set gprop [dict create]	
-			dict set gprop $cgroupid "$cformat"
-			
-			if {[write_calc_data nodes -count $gprop]>0} {
-			    # Write all nodes for this group in incresing orden
-			    write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
-			    set wbuff ""
-			    if {$ndime =="2D"} {
-				foreach nodeid [write_calc_data nodes -sorted -return $gprop] {
-				    lassign  [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval
-				    # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
-				    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval 0.0]\n"
-				    
-				} 
-			    } else {
-				foreach nodeid [write_calc_data nodes -sorted -return $gprop] {
-				    lassign  [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval zval
-				    # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
-				    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval $zval]\n"
-				}
-			    }
-			    write_calc_data puts "[string trimright $wbuff]"
-			}
-			write_calc_data puts "End Nodes"
-			write_calc_data puts ""
-			# Unset the dictionary
-			unset gprop
-		    }
-		}
+            # Check for all defined group identifier for this element
+            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                    # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+                    # msg "Nodos [GiD_EntitiesGroups get $cgroupid nodes]"
+                    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+                        # Write all nodes for this group in incresing orden
+                        #write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
+                        GiD_File fprintf $filechannel "%s" "Begin Nodes \/\/ GUI group identifier: $cgroupid"
+                        set wbuff ""
+                        if {$ndime == "2D"} {
+
+                            foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+                                lassign [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval
+                                # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
+                                append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval 0.0]\n"
+                                
+                            } 
+                        } else {
+                            # foreach nodeid [write_calc_data nodes -sorted -return $gprop] {}
+                            foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+                                lassign [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2] xval yval zval
+                                # WarnWinText "nodeid:$nodeid ncoord:$ncoord"
+                                append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid $xval $yval $zval]\n"
+                            }
+                        }
+                        GiD_File fprintf $filechannel "%s" "[string trimright $wbuff]"
+                    }
+                    GiD_File fprintf $filechannel "%s" "End Nodes"
+                    GiD_File fprintf $filechannel ""
+                }
+            }
 	    }
-	} else {
-	    set cnodeglist [list]
-	    # Create a dictionary
-	    set nc [dict create 0 0]
-	    # For all defined kratos nodes        
-	    foreach celemid $dprops($AppId,AllKElemId) {
-		# Check for all defined group identifier for this element
-		if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
-		    # For all defined group identifier for this element
-		    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-			# Get the GiD entity type, element type and property identifier
-			lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-			# WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
-			# Get all defined entities for this group identifier
-			set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
-			# WarnWinText "alllist:$allelist"
-			if {[llength $allelist]} {
-			    # Non repeated nodes identifier
-			    # Get all defined nodes
-			    foreach elemid $allelist {
-				# Get the element properties
-				foreach nodeid [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] {
-				    dict set nc $nodeid $cgroupid 
-				}
-			    }
-			}
-		    }
-		}
-	    }
-	    # Write the group nodal properties
-	    foreach celemid $dprops($AppId,AllKElemId) {
-		# Check for all defined group identifier for this element
-		if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
-		    # For all defined group identifier for this element
-		    foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-			# Init the node group list
-			set cnodeglist [list]
-			dict for {nodeid dgroupid} $nc {
-			    if {$cgroupid ==$dgroupid} {
-				lappend cnodeglist $nodeid
-			    }
-			}
-			if {[llength $cnodeglist]} {
-			    # Write all nodes for this group in incresing orden
-			    write_calc_data puts "Begin Nodes \/\/ GUI group identifier: $cgroupid"
-			    set wbuff ""
-			    foreach nodeid [lsort -integer $cnodeglist] {
-				set ncoord [lrange [lindex [GiD_Info Coordinates $nodeid mesh] 0] 0 2]
-				# WarnWinText "nodeid:$nodeid ncoord:$ncoord"
-				if {$ndime =="2D"} {
-				    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] 0.0]\n"
-				} elseif {$ndime =="3D"} {
-				    append wbuff "[format "%4i  %10.5f  %10.5f  %10.5f" $nodeid [lindex $ncoord 0] [lindex $ncoord 1] [lindex $ncoord 2]]\n"
-				}
-			    }
-			    write_calc_data puts "[string trimright $wbuff]"
-			}
-			write_calc_data puts "End Nodes"
-			write_calc_data puts ""
-			unset cnodeglist 
-		    }
-		}
-	    }
-	    unset nc
-	    write_calc_data puts ""
-	}
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set endtime [clock seconds]
-	    set ttime [expr $endtime-$inittime]
-	    # WarnWinText "endtime:$endtime ttime:$ttime"
-	    WarnWinText "Write nodal coordinates: [::KUtils::Duration $ttime]"
-	}
     }
 }
 
 proc ::wkcf::WriteElementConnectivities {AppId} {
+    variable wmethod
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+    
+    if {($wmethod eq 1) || ($wmethod eq 0)} {
+        ::wkcf::WriteElementConnectivities_m1 $AppId
+    } elseif {$wmethod eq 2} {
+        ::wkcf::WriteElementConnectivities_m2 $AppId
+    }
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write element connectivities: [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteElementConnectivities_m1 {AppId} {
     # Write the element connectivities block
     # Element block format
     # Begin Elements element_name
@@ -549,105 +830,222 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
     
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set inittime [clock seconds]
-	}
-	set kwxpath "Applications/$AppId"
-	# For all defined kratos elements        
-	foreach celemid $dprops($AppId,AllKElemId) {
-	    # Check for all defined group identifier for this element
-	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
-		# WarnWinText "celemid:$celemid"
-		# For all defined group identifier for this element
-		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
-		    # Get the GiD entity type, element type and property identifier
-		    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-		    # wa "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
-		    
-		    # Get the element identifier => nDimNNode
-		    set etbf ""
-		    # Get use ndimNNode from the kratos keyword file
-		    set usennode [::xmlutils::getKKWord $kwxpath "$celemid" "usennode"]
-		    # wa "usennode:$usennode elemkword:$KEKWord"
-		    if {$usennode eq "Yes"} {
-			set etbf [::wkcf::GetnDimnNode $GiDElemType $nDim]
-		    } 
-		    if {$wmethod ne "1"} {
-			# Get all defined entities for this group identifier
-			set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
-			# WarnWinText "alllist:$allelist"
-			if {[llength $allelist]} {
-			    set kelemtype "[string trim ${KEKWord}${etbf}]"
-			    set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
-			    write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
-			    foreach elemid $allelist {
-				# WarnWinText "elemid:$elemid"
-				# Get the element properties
-				set eprop [GiD_Info Mesh Elements $GiDElemType $elemid]
-				# WarnWinText "eprop:$eprop"
-				if {[llength $eprop]} {
-				    set elemf ""
-				    append elemf [format "%8i%8i" $elemid $GlobalPId]
-				    foreach citem [lrange $eprop 1 end-1] {
-					append elemf [format "%8i" $citem] " "
-				    }
-				    write_calc_data puts "$elemf"
-				}
-			    }
-			}
-			write_calc_data puts "End Elements"
-			write_calc_data puts ""
-		    } else {
-			# Create the dictionary
-			set gprop [dict create]
-			set f "%10d"
-			set f [subst $f]
-			dict set gprop $cgroupid "$f"
-			if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} { 
-			    set kelemtype "[string trim ${KEKWord}${etbf}]"
-			    set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
-			    write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
-			    switch -exact -- $GiDElemType {
-				"Linear" {
-				    set f "%10d [format "%10d" $GlobalPId] %10d %10d\n"
-				}
-				"Triangle" {
-				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
-				}
-				"Quadrilateral" {
-				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
-				}
-				"Tetrahedra" {
-				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
-				}
-				"Hexahedra" {
-				    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d %10d %10d %10d %10d\n"
-				}
-			    }
-			    # wa "f:$f"
-			    set f [subst $f]
-			    dict set gprop $cgroupid "$f"
-			    # wa "GiDElemType:$GiDElemType"
-			    write_calc_data connectivities -elemtype "$GiDElemType" $gprop
-			    write_calc_data puts "End Elements"
-			    write_calc_data puts ""
-			}
-			# Unset the dictionary
-			unset gprop
-		    }
-		}
-	    }
-	}
-	write_calc_data puts ""
-	
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set endtime [clock seconds]
-	    set ttime [expr $endtime-$inittime]
-	    # WarnWinText "endtime:$endtime ttime:$ttime"
-	    WarnWinText "Write element connectivities: [::KUtils::Duration $ttime]"
-	}
+        set kwxpath "Applications/$AppId"
+        # For all defined kratos elements        
+        foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                # WarnWinText "celemid:$celemid"
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                    # wa "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+                    
+                    # Get the element identifier => nDimNNode
+                    set etbf ""
+                    # Get use ndimNNode from the kratos keyword file
+                    set usennode [::xmlutils::getKKWord $kwxpath "$celemid" "usennode"]
+                    # wa "usennode:$usennode elemkword:$KEKWord"
+                    if {$usennode eq "Yes"} {
+                        set etbf [::wkcf::GetnDimnNode $GiDElemType $nDim]
+                    } 
+                    if {$wmethod ne "1"} {
+                        # Get all defined entities for this group identifier
+                        set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
+                        # WarnWinText "alllist:$allelist"
+                        if {[llength $allelist]} {
+                            set kelemtype "[string trim ${KEKWord}${etbf}]"
+                            set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
+                            write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
+                            foreach elemid $allelist {
+                                # WarnWinText "elemid:$elemid"
+                                # Get the element properties
+                                set eprop [GiD_Info Mesh Elements $GiDElemType $elemid]
+                                # WarnWinText "eprop:$eprop"
+                                if {[llength $eprop]} {
+                                    set elemf ""
+                                    append elemf [format "%8i%8i" $elemid $GlobalPId]
+                                    foreach citem [lrange $eprop 1 end-1] {
+                                        append elemf [format "%8i" $citem] " "
+                                    }
+                                    write_calc_data puts "$elemf"
+                                }
+                            }
+                        }
+                        write_calc_data puts "End Elements"
+                        write_calc_data puts ""
+                    } else {
+                        # Create the dictionary
+                        set gprop [dict create]
+                        set f "%10d"
+                        set f [subst $f]
+                        dict set gprop $cgroupid "$f"
+                        if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} { 
+                            set kelemtype "[string trim ${KEKWord}${etbf}]"
+                            set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
+                            write_calc_data puts "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
+                            switch -exact -- $GiDElemType {
+                                "Linear" {
+                                    set f "%10d [format "%10d" $GlobalPId] %10d %10d\n"
+                                }
+                                "Triangle" {
+                                    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
+                                }
+                                "Quadrilateral" {
+                                    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+                                }
+                                "Tetrahedra" {
+                                    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+                                }
+                                "Hexahedra" {
+                                    set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d %10d %10d %10d %10d\n"
+                                }
+                            }
+                            # wa "f:$f"
+                            set f [subst $f]
+                            dict set gprop $cgroupid "$f"
+                            # wa "GiDElemType:$GiDElemType"
+                            write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+                            write_calc_data puts "End Elements"
+                            write_calc_data puts ""
+                        }
+                        # Unset the dictionary
+                        unset gprop
+                    }
+                }
+            }
+        }
+        write_calc_data puts ""
+    }
+}
+
+proc ::wkcf::WriteElementConnectivities_m2 {AppId} {
+    # Write the element connectivities block
+    # Element block format
+    # Begin Elements element_name
+    # // id prop_id         n1        n2        n3        ...
+    # End Elements
+    # Arguments
+    # AppId => Application identifier
+    variable useqelem; variable dprops; variable wmethod
+    variable filechannel
+    global KPriv
+    
+    # Check for all defined kratos elements
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+        set kwxpath "Applications/$AppId"        
+        # For all defined kratos elements        
+        foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {[info exists dprops($AppId,KElem,$celemid,AllGroupId)] && [llength $dprops($AppId,KElem,$celemid,AllGroupId)]} {
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                    if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+                        set etbf ""
+                        set usennode [::xmlutils::getKKWord $kwxpath $celemid usennode]                                       
+                        if {$usennode eq "Yes"} {
+                            set etbf [::wkcf::GetnDimnNode $GiDElemType $nDim]
+                        }   
+                        set kelemtype [string trim ${KEKWord}${etbf}]
+                        set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
+                        GiD_File fprintf $filechannel "Begin Elements $kelemtype   // GUI group identifier: $cgroupid"
+                        foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                            GiD_File fprintf $filechannel "$elem_id $GlobalPId [lrange [GiD_Mesh get element $elem_id] 3 end]"
+                        }
+                        GiD_File fprintf $filechannel "End Elements"
+                        GiD_File fprintf $filechannel ""
+                    }
+                }
+            }
+        }
+        GiD_File fprintf $filechannel ""
+    }
+}
+
+
+proc ::wkcf::WriteElementConnectivities_m2_old {AppId} {
+    # Write the element connectivities block
+    # Element block format
+    # Begin Elements element_name
+    # // id prop_id         n1        n2        n3        ...
+    # End Elements
+    # Arguments
+    # AppId => Application identifier
+    variable useqelem; variable dprops; variable wmethod
+    variable filechannel
+    global KPriv
+    
+    # Check for all defined kratos elements
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+        set kwxpath "Applications/$AppId"
+        
+        # For all defined kratos elements        
+        foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                # WarnWinText "celemid:$celemid"
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                
+                    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+                    # wa "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
+                    
+                    # Get the element identifier => nDimNNode
+                    
+                    set etbf ""
+                    # Get use ndimNNode from the kratos keyword file
+                    
+                    set usennode [::xmlutils::getKKWord $kwxpath "$celemid" "usennode"]
+                    # wa "usennode:$usennode elemkword:$KEKWord"
+                    
+                    if {$usennode eq "Yes"} {
+                        set etbf [::wkcf::GetnDimnNode $GiDElemType $nDim]
+                    } 
+                    ################################################################
+                    # Get all defined entities for this group identifier
+
+                    if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+                        set kelemtype "[string trim ${KEKWord}${etbf}]"
+                        set GlobalPId $dprops($AppId,KElem,$celemid,$cgroupid,GlobalPId)
+                        GiD_File fprintf $filechannel "%s" "Begin Elements $kelemtype   \/\/ GUI group identifier: $cgroupid"
+                        switch -exact -- $GiDElemType {
+                            "Linear" {
+                                set f "%10d [format "%10d" $GlobalPId] %10d %10d\n"
+                            }
+                            "Triangle" {
+                                set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d\n"
+                            }
+                            "Quadrilateral" {
+                                set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+                            }
+                            "Tetrahedra" {
+                                set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d\n"
+                            }
+                            "Hexahedra" {
+                                set f "%10d [format "%10d" $GlobalPId] %10d %10d %10d %10d %10d %10d %10d %10d\n"
+                            }
+                        }
+                        # wa "f:$f"
+                        # wa "GiDElemType:$GiDElemType"
+                        foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                            GiD_File fprintf -nonewline $filechannel "%10d " $elem_id
+                            foreach node_id [lrange [GiD_Mesh get element $elem_id] 3 end] {
+                                GiD_File fprintf -nonewline $filechannel "%10d " $node_id
+                            }
+                            GiD_File fprintf $filechannel ""
+                        }
+                        GiD_File fprintf $filechannel "%s" "End Elements"
+                        GiD_File fprintf $filechannel ""
+                    }
+                }
+            }
+        }
+        #################################################################################
+        GiD_File fprintf $filechannel ""
     }
 }
 
@@ -657,199 +1055,333 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
     
     # Check for all defined condition type
     if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)])} {
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set inittime [clock seconds]
-	}
-	set inletvelglist [list]; set noslipglist [list]
-	set flagvariablelist [list] 
-	# For all defined condition identifier
-	foreach ccondid $dprops($AppId,AllBCTypeId) {
-	    # WarnWinText "ccondid:$ccondid"
-	    # Check for all defined group identifier inside this condition type
-	    if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
-		# Select the condition type
-		switch -exact -- $ccondid {
-		    "Displacements" {
-			set kwxpath "Applications/StructuralAnalysis"
-			set kwordlist [list [::xmlutils::getKKWord $kwxpath "Dx" "kkword"] [::xmlutils::getKKWord $kwxpath "Dy" "kkword"] [::xmlutils::getKKWord $kwxpath "Dz" "kkword"]]
-			# Process displacement properties
-			::wkcf::WriteDispRotBC $AppId $ccondid $kwordlist 
-		    }
-		    "Rotations" {
-			set usenbst2 "No"
-			set useshells2 "No"
-			set shelllist2 [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
-			if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-			    # For all defined kratos elements        
-			    foreach celemid $dprops($AppId,AllKElemId) {
-				if {$celemid in $shelllist2} {
-				    set useshells2 "Yes"
-				}
-			    }
-			}
-			if {$useshells2 == "Yes"} {
-			    set kwxpath "Applications/StructuralAnalysis"
-			    set kwordlist [list [::xmlutils::getKKWord $kwxpath "Rx"] [::xmlutils::getKKWord $kwxpath "Ry"] [::xmlutils::getKKWord $kwxpath "Rz"]]
-			    # Process displacement properties
-			    ::wkcf::WriteDispRotBC $AppId $ccondid $kwordlist 
-			}
-		    }
-		    "OutletPressure" {
-			set kwordlist [list "PRESSURE"]
-			# Process outlet pressure
-			::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
-		    }
-		    "InletVelocity" {
-			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
-			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
-				lappend inletvelglist $_gid
-			    }
-			}
-		    }
-		    "No-Slip" {
-			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
-			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
-				lappend noslipglist $_gid
-			    }
-			}
-		    }
-		    "Flag-Variable" {
-			if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
-			    foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
-				lappend flagvariablelist $_gid
-			    }
-			}
-		    }
-		    "Is-Slip" {
-			# Write is-slip boundary condition
-			# set kwordlist [list "IS-SLIP"]
-			set kwordlist [list "IS_STRUCTURE" "Y_WALL"]
-			::wkcf::WriteFluidIsSlipBC $AppId $ccondid $kwordlist
-		    }
-		    "WallLaw" {
-			# Write wall law boundary condition
-			set kwordlist [list "WALL_LAW_Y"]
-			::wkcf::WriteFluidWallLawBC $AppId $ccondid $kwordlist
-		    }
-		    "Distance" {
-			# Write distance boundary condition
-			set kwordlist [list "DISTANCE"]
-			::wkcf::WriteFluidDistanceBC $AppId $ccondid $kwordlist
-		    }
-		}
-	    }
-	}
-	
-	# For fluid application
-	if {$AppId=="Fluid"} {
-	    set kwxpath "Applications/$AppId"
-	    set kwordlist [list [::xmlutils::getKKWord $kwxpath "Vx"] [::xmlutils::getKKWord $kwxpath "Vy"] [::xmlutils::getKKWord $kwxpath "Vz"]]
-	    ::wkcf::WriteFluidBC $AppId $inletvelglist $noslipglist $flagvariablelist $kwordlist
-	}
+        # For debug
+        if {!$::wkcf::pflag} {
+            set inittime [clock seconds]
+        }
+        set inletvelglist [list]; set noslipglist [list]
+        set flagvariablelist [list] 
+        # For all defined condition identifier
+        foreach ccondid $dprops($AppId,AllBCTypeId) {
+            # WarnWinText "ccondid:$ccondid"
+            # Check for all defined group identifier inside this condition type
+            if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
+                # Select the condition type
+                switch -exact -- $ccondid {
+                    "Displacements" {
+                        set kwxpath "Applications/StructuralAnalysis"
+                        set kwordlist [list [::xmlutils::getKKWord $kwxpath "Dx" "kkword"] [::xmlutils::getKKWord $kwxpath "Dy" "kkword"] [::xmlutils::getKKWord $kwxpath "Dz" "kkword"]]
+                        # Process displacement properties
+                        ::wkcf::WriteDispRotBC $AppId $ccondid $kwordlist 
+                    }
+                    "Rotations" {
+                        set usenbst2 "No"
+                        set useshells2 "No"
+                        set shelllist2 [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
+                        if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
+                            # For all defined kratos elements        
+                            foreach celemid $dprops($AppId,AllKElemId) {
+                                if {$celemid in $shelllist2} {
+                                    set useshells2 "Yes"
+                                }
+                            }
+                        }
+                        if {$useshells2 == "Yes"} {
+                            set kwxpath "Applications/StructuralAnalysis"
+                            set kwordlist [list [::xmlutils::getKKWord $kwxpath "Rx"] [::xmlutils::getKKWord $kwxpath "Ry"] [::xmlutils::getKKWord $kwxpath "Rz"]]
+                            # Process displacement properties
+                            ::wkcf::WriteDispRotBC $AppId $ccondid $kwordlist 
+                        }
+                    }
+                    "OutletPressure" {
+                        set kwordlist [list "PRESSURE"]
+                        # Process outlet pressure
+                        ::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
+                    }
+                    "InletVelocity" {
+                        if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
+                            foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+                                lappend inletvelglist $_gid
+                            }
+                        }
+                    }
+                    "No-Slip" {
+                        if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
+                            foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+                                lappend noslipglist $_gid
+                            }
+                        }
+                    }
+                    "Flag-Variable" {
+                        if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
+                            foreach _gid $dprops($AppId,BC,$ccondid,AllGroupId) {
+                                lappend flagvariablelist $_gid
+                            }
+                        }
+                    }
+                    "Is-Slip" {
+                        # Write is-slip boundary condition
+                        # set kwordlist [list "IS-SLIP"]
+                        set kwordlist [list "IS_STRUCTURE" "Y_WALL"]
+                        ::wkcf::WriteFluidIsSlipBC $AppId $ccondid $kwordlist
+                    }
+                    "WallLaw" {
+                        # Write wall law boundary condition
+                        set kwordlist [list "WALL_LAW_Y"]
+                        ::wkcf::WriteFluidWallLawBC $AppId $ccondid $kwordlist
+                    }
+                    "Distance" {
+                        # Write distance boundary condition
+                        set kwordlist [list "DISTANCE"]
+                        ::wkcf::WriteFluidDistanceBC $AppId $ccondid $kwordlist
+                    }
+                    "PFEMWall--" {
+                        # Commented by J. Garate on 17/12/2012
+                        set kwordlist [list "LINEAR_VELOCITY_X" "LINEAR_VELOCITY_Y" "LINEAR_VELOCITY_Z" "ANGULAR_VELOCITY_X" "ANGULAR_VELOCITY_Y" "ANGULAR_VELOCITY_Z" ]
+                        ::wkcf::WriteFluidPFEMWallBC $AppId $ccondid $kwordlist
+                    }
+                    "PFEMFluidInlet" {
+                        # Write PFEM Fluid Velocity
+                        # msg "entrando"
+                        # set kwordlist [list "PFEM_VELOCITY_X" "PFEM_VELOCITY_Y" "PFEM_VELOCITY_Z"]
+                        set kwordlist [list "VELOCITY_X" "VELOCITY_Y" "VELOCITY_Z"]
+                        ::wkcf::WriteFluidPFEMInletBC $AppId $ccondid $kwordlist
+                    }
+                }
+            }
+        }
+        
+        # For fluid application
+        if {$AppId=="Fluid"} {
+            set kwxpath "Applications/$AppId"
+            set kwordlist [list [::xmlutils::getKKWord $kwxpath "Vx"] [::xmlutils::getKKWord $kwxpath "Vy"] [::xmlutils::getKKWord $kwxpath "Vz"]]
+            ::wkcf::WriteFluidBC $AppId $inletvelglist $noslipglist $flagvariablelist $kwordlist
+        }
 
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set endtime [clock seconds]
-	    set ttime [expr $endtime-$inittime]
-	    # WarnWinText "endtime:$endtime ttime:$ttime"
-	    WarnWinText "Write boundary conditions: [::KUtils::Duration $ttime]"
-	}
+        # For debug
+        if {!$::wkcf::pflag} {
+            set endtime [clock seconds]
+            set ttime [expr $endtime-$inittime]
+            # WarnWinText "endtime:$endtime ttime:$ttime"
+            WarnWinText "Write boundary conditions: [::KUtils::Duration $ttime]"
+        }
     }
 }
 
 proc ::wkcf::WriteConditions {AppId} {
+    variable wmethod
+    
+    if {($wmethod eq 1) || ($wmethod eq 0)} {
+        ::wkcf::WriteConditions_m1 $AppId
+    } elseif {$wmethod eq 2} {
+        ::wkcf::WriteConditions_m2 $AppId
+    }
+}
+
+proc ::wkcf::WriteConditions_m1 {AppId} {
     # ABSTRACT: Write condition properties
     variable dprops; variable ndime
     variable ctbclink
 
     # Check for all defined kratos elements
     if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set inittime [clock seconds]
-	}
-	set fixval "0"
-	# Write conditions
-	# Select the condition identifier
-	set ConditionId "Condition"
-	set cproperty "dv"
-	# Solver type
-	set cxpath "$AppId//c.AnalysisData//i.SolverType"
-	set SolverType [::xmlutils::setXml $cxpath $cproperty]
-	# WarnWinText "SolverType:$SolverType"
-	switch -exact -- $SolverType {
-	    "ElementBased" {
-		set ConditionId "WallCondition${ndime}"     
-	    }
-	    "Monolithic" {
-		set ConditionId "MonolithicWallCondition${ndime}"
-	    }
-	}
+        # For debug
+        if {!$::wkcf::pflag} {
+            set inittime [clock seconds]
+        }
+        set fixval "0"
+        # Write conditions
+        # Select the condition identifier
+        set ConditionId "Condition"
+        set cproperty "dv"
+        # Solver type
+        set cxpath "$AppId//c.AnalysisData//i.SolverType"
+        set SolverType [::xmlutils::setXml $cxpath $cproperty]
+        # WarnWinText "SolverType:$SolverType"
+        switch -exact -- $SolverType {
+            "ElementBased" {
+            set ConditionId "WallCondition${ndime}"     
+            }
+            "Monolithic" {
+            set ConditionId "MonolithicWallCondition${ndime}"
+            }
+        }
 
-	if {$ndime =="2D"} {
-	    set cgroupid "-@kratos@b2d"
-	    set GiDElemType "Linear"
-	    set gprop [dict create]
-	    set f "%10i"
-	    dict set gprop $cgroupid "$f"
-	    if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
-		set f "%10d [format "%4d" $fixval] %10d %10d\n"
-		set f [subst $f]
-		dict set gprop $cgroupid "$f"
-		# Write the pressure value
-		write_calc_data puts "Begin Conditions $ConditionId"
-		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
-		set condid 0
-		foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
-		    incr condid 1 
-		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
-		    write_calc_data puts "[format "%10d %4d %10d %10d" $condid $cfixval $nodei $nodej]"
-		    
-		    # Update the link between the condition id. and the BC element id
-		    dict set ctbclink $elemid $condid
-		}
-		write_calc_data puts "End Conditions"
-		write_calc_data puts ""
-	    }
-	    unset gprop
+        if {$ndime =="2D"} {
+            if {[kipt::NewGiDGroups]} {
+                set cgroupid "-AKGSkinMesh2D"
+            } else {
+                set cgroupid "-@kratos@b2d"
+            }
+            set GiDElemType "Linear"
+            set gprop [dict create]
+            set f "%10i"
+            dict set gprop $cgroupid "$f"
+            if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
+            set f "%10d [format "%4d" $fixval] %10d %10d\n"
+            set f [subst $f]
+            dict set gprop $cgroupid "$f"
+            # Write the pressure value
+            write_calc_data puts "Begin Conditions $ConditionId"
+            # write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+            set condid 0
+            foreach {elemid cfixval nodei nodej} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+                incr condid 1 
+                # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
+                write_calc_data puts "[format "%10d %4d %10d %10d" $condid $cfixval $nodei $nodej]"
+                
+                # Update the link between the condition id. and the BC element id
+                dict set ctbclink $elemid $condid
+            }
+            write_calc_data puts "End Conditions"
+            write_calc_data puts ""
+            }
+            unset gprop
 
-	} elseif {$ndime =="3D"} {
+        } elseif {$ndime =="3D"} {
 
-	    set cgroupid "-@kratos@b3d"
-	    set GiDElemType "Triangle"
-	    set gprop [dict create]
-	    set f "%10i"
-	    dict set gprop $cgroupid "$f"
-	    if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
-		set f "%10d [format "%4d" $fixval] %10d %10d %10d\n"
-		set f [subst $f]
-		dict set gprop $cgroupid "$f"
-		# Write the condition3D
-		write_calc_data puts "Begin Conditions $ConditionId"
-		# write_calc_data connectivities -elemtype "$GiDElemType" $gprop
-		set condid 0
-		foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
-		    incr condid 1 
-		    # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
-		    write_calc_data puts "[format "%10d %4d %10d %10d %10d" $condid $cfixval $nodei $nodej $nodek]"
+            if {[kipt::NewGiDGroups]} {
+                set cgroupid "-AKGSkinMesh3D"
+            } else {
+                set cgroupid "-@kratos@b3d"
+            }
+            set GiDElemType "Triangle"
+            set gprop [dict create]
+            set f "%10i"
+            dict set gprop $cgroupid "$f"
+            if {[write_calc_data has_elements -elemtype $GiDElemType $gprop]} {
+            set f "%10d [format "%4d" $fixval] %10d %10d %10d\n"
+            set f [subst $f]
+            dict set gprop $cgroupid "$f"
+            # Write the condition3D
+            write_calc_data puts "Begin Conditions $ConditionId"
+            # write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+            set condid 0
+            foreach {elemid cfixval nodei nodej nodek} [write_calc_data connectivities -return -elemtype "$GiDElemType" $gprop] {
+                incr condid 1 
+                # wa "elemid:$elemid cfixval:$cfixval nodei:$nodei nodej:$nodej"
+                write_calc_data puts "[format "%10d %4d %10d %10d %10d" $condid $cfixval $nodei $nodej $nodek]"
 
-		    # Update the link between the condition id. and the BC element id
-		    dict set ctbclink $elemid $condid
-		}
-		write_calc_data puts "End Conditions"
-		write_calc_data puts ""
-	    }
-	    unset gprop
-	}
+                # Update the link between the condition id. and the BC element id
+                dict set ctbclink $elemid $condid
+            }
+            write_calc_data puts "End Conditions"
+            write_calc_data puts ""
+            }
+            unset gprop
+        }
 
-	# For debug
-	if {!$::wkcf::pflag} {
-	    set endtime [clock seconds]
-	    set ttime [expr $endtime-$inittime]
-	    # WarnWinText "endtime:$endtime ttime:$ttime"
-	    WarnWinText "Write conditions: [::KUtils::Duration $ttime]"
-	}
+        # For debug
+        if {!$::wkcf::pflag} {
+            set endtime [clock seconds]
+            set ttime [expr $endtime-$inittime]
+            # WarnWinText "endtime:$endtime ttime:$ttime"
+            WarnWinText "Write conditions: [::KUtils::Duration $ttime]"
+        }
+    }
+}
+
+proc ::wkcf::WriteConditions_m2 {AppId} {
+    # ABSTRACT: Write condition properties
+    variable dprops; variable ndime
+    variable ctbclink
+    variable filechannel
+
+    # Check for all defined kratos elements
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+        # For debug
+        if {!$::wkcf::pflag} {
+            set inittime [clock seconds]
+        }
+        
+        set fixval "0"
+        # Write conditions
+        # Select the condition identifier
+        set ConditionId "Condition"
+        set cproperty "dv"
+        set cxpath "$AppId//c.AnalysisData//i.FluidApproach"
+        set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+        if { $FluidApproach eq "Eulerian" } {
+            # Solver type
+            set cxpath "$AppId//c.AnalysisData//i.SolverType"
+            set SolverType [::xmlutils::setXml $cxpath $cproperty]
+            # WarnWinText "SolverType:$SolverType"
+            switch -exact -- $SolverType {
+                "ElementBased" {
+                    set ConditionId "WallCondition${ndime}"     
+                }
+                "Monolithic" {
+                    set ConditionId "MonolithicWallCondition${ndime}"
+                }
+            }
+        } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
+            set ConditionId "Condition${ndime}"
+        }
+        
+        if {$ndime =="2D"} {
+            if {[kipt::NewGiDGroups]} {
+                set cgroupid "-AKGSkinMesh2D"
+            } else {
+                set cgroupid "-@kratos@b2d"
+            }
+            set GiDElemType "Linear"
+
+            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+                # Write the pressure value
+                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
+                # write_calc_data connectivities -elemtype "$GiDElemType" $gprop
+                set condid 0
+                
+                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                    incr condid 1 
+                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+                    # nodes = [list nodei nodej]
+                    GiD_File fprintf $filechannel "%10d %4d %10d %10d" $condid $fixval [lindex $nodes 0] [lindex $nodes 1]
+                    # Update the link between the condition id. and the BC element id
+                    dict set ctbclink $elem_id $condid
+                }
+                
+                GiD_File fprintf $filechannel "%s" "End Conditions"
+                GiD_File fprintf $filechannel ""
+            }
+
+        } elseif {$ndime =="3D"} {
+
+            if {[kipt::NewGiDGroups]} {
+                set cgroupid "-AKGSkinMesh3D"
+            } else {
+                set cgroupid "-@kratos@b3d"
+            }
+            set GiDElemType "Triangle"
+
+            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+                # Write the pressure value
+                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
+                set condid 0
+                
+                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                    incr condid 1 
+                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+                    set ni [lindex $nodes 0]
+                    set nj [lindex $nodes 1]
+                    set nk [lindex $nodes 2]
+                    # msg "$ni $nj $nk $condid"
+                    GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d" $condid $fixval $ni $nj $nk
+                    # Update the link between the condition id. and the BC element id
+                    dict set ctbclink $elem_id $condid
+                }
+                GiD_File fprintf $filechannel "%s" "End Conditions"
+                GiD_File fprintf $filechannel ""
+            }
+        }
+
+        # For debug
+        if {!$::wkcf::pflag} {
+            set endtime [clock seconds]
+            set ttime [expr $endtime-$inittime]
+            # WarnWinText "endtime:$endtime ttime:$ttime"
+            WarnWinText "Write conditions: [::KUtils::Duration $ttime]"
+        }
     }
 }
 
@@ -863,7 +1395,7 @@ proc ::wkcf::WriteProjectParameters {} {
     set fullname [file native [file join $PDir $ppfilename]]
     # First delete the file
     if {[file exists $fullname]} {
-	set res [file delete -force $fullname]
+        set res [file delete -force $fullname]
     }
     
     if { [catch { set fileid [open $fullname w+] }] } {
@@ -895,38 +1427,22 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
     # Gid results
     set gidrlist [list "GiDPostMode" "GiDWriteMeshFlag" "GiDWriteConditionsFlag" "GiDMultiFileFlag"]
     foreach gidr $gidrlist {
-	# Get the value
-	set cxpath "$AppId//c.Results//c.GiDOptions//i.${gidr}"
-	set cproperty "dv"
-	set cvalue [::xmlutils::setXml $cxpath $cproperty]
-	# Get the kratos keyword
-	set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
-	# WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
-	if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag")} {
-	    if {$cvalue =="Yes"} {
-		set cvalue "True"
-	    } elseif {$cvalue =="Yes"} {
-		set cvalue "False"
-	    }
-	    puts $fileid "$gidrkw = $cvalue"
-	} else {
-	    puts $fileid "$gidrkw = \"$cvalue\""
-	}
+        # Get the value
+        set cxpath "$AppId//c.Results//c.GiDOptions//i.${gidr}"
+        set cproperty "dv"
+        set cvalue [::xmlutils::setXml $cxpath $cproperty]
+        # Get the kratos keyword
+        set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
+        # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
+        if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag")} {
+            if {$cvalue =="Yes"} {
+            set cvalue "True"
+            } elseif {$cvalue =="Yes"} {
+            set cvalue "False"
+            }
+            puts $fileid "$gidrkw = $cvalue"
+        } else {
+            puts $fileid "$gidrkw = \"$cvalue\""
+        }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

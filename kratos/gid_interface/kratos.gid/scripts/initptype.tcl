@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     1.1-22/10/12-J. Garate, Support for new GiD Groups
+#     1.0-08/10/12-J. Garate, Enable/disable kipt::NewGiDGroups
 #     0.9-01/10/12-J. Garate, Enable/disable Curves Module
 #     0.8-20/09/12-J. Garate, add Curves, Tables and Plotgraph source files
 #     0.7-04/05/12-G. Socorro, add a new variable to control the group deletion (when exists from the problem type)  
@@ -51,7 +53,7 @@ proc kipt::InitPType { dir } {
     ###########Aqui hay que separar entre GiD Classic y GiD Dark #########
     set imagespath "images/Classic"
     if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
-	set imagespath "images/Dark"
+        set imagespath "images/Dark"
     }
     set KPriv(imagesdir) $imagespath
     
@@ -78,14 +80,11 @@ proc kipt::CheckLicense { } {
     set res [vp_getauthorization myprogname 1.1 * my_secret_key]
     set status [lindex $res 0]    
     if { $status != "VERSION_PRO" } {
-	set msg [lindex $res 1]
-	WarnWin "unregistered version. msg:$msg"
+        set msg [lindex $res 1]
+        WarnWin "unregistered version. msg:$msg"
     } else {
-	WarnWin "professional version."
+        WarnWin "professional version."
     }
-
-    #do thinks...
-
     #release password (specially if password is floating)
     vp_releaseauthorization myprogname 1.1 *
 }
@@ -132,26 +131,26 @@ proc kipt::FreePType {} {
     # For group editor
     set w ".gid.kegroups" 
     if {[winfo exists $w]} {
-	destroy $w
+        destroy $w
     }
     
     set w ".gid.kmprops" 
     if {[winfo exists $w]} {
-	destroy $w
+        destroy $w
     }
 
     # Validation window
     set w ".gid.modelvalidation" 
     if {[winfo exists $w]} {
-	::KMValid::CreateReportWindowbClose $w 
+        ::KMValid::CreateReportWindowbClose $w 
     }
     
     # Close Project Settings Window if it exists
     set w ".gid.settingWin" 
     if {[winfo exists $w]} {
-	::kps::WindowbClose $w 
+        ::kps::WindowbClose $w 
     }
-
+    
     # ********************************
     #     End the bitmaps
     # ********************************
@@ -159,7 +158,7 @@ proc kipt::FreePType {} {
     ::kmtb::EndCreatePreprocessTBar
     
     # Postprocess 
-
+    
     # Set the delete group variable to 0 => Not delete group identifier from the properties tree
     set KPriv(Groups,DeleteGroup) 0
 
@@ -168,6 +167,10 @@ proc kipt::FreePType {} {
   
     # Close all group window
     Cond_Groups window close
+    
+    if {[kipt::NewGiDGroups]} {
+        GiD_Groups window close
+    }
 
     # Limpiar los objetos tDom si aun existían
     catch { [$KPriv(xml) delete] }
@@ -175,11 +178,14 @@ proc kipt::FreePType {} {
     catch { [$KPriv(xmlMat) delete] }
 
     if { [info exists KPriv(xmlDoc) ] } { 
-	$KPriv(xmlDoc) delete
+        $KPriv(xmlDoc) delete
     }
     
+    # Set the delete group variable to 1 => delete group identifier from the properties tree
+    set KPriv(Groups,DeleteGroup) 1
+    
     if { [info exists KPriv(xml) ] } { 
-	unset KPriv(xml)
+        unset KPriv(xml)
     }
     
     # Unset the problem type global variables
@@ -191,8 +197,6 @@ proc kipt::FreePType {} {
     set GidPriv(ProgName) "GiD"
     ChangeWindowTitle ""
 
-    # Set the delete group variable to 1 => delete group identifier from the properties tree
-    set KPriv(Groups,DeleteGroup) 1
 }
 
 proc kipt::LoadSourceMessage {tclfname} {
@@ -205,12 +209,7 @@ proc kipt::LoadSourceFiles {dir} {
     
     # Load the application scripts for Kratos applications
     global KPriv
-    
-    #if { [lsearch -exact $::auto_path [file join $dir scripts]] == -1 } {
-    #        lappend ::auto_path [file join $dir scripts]
-    #}
-    # WarnWinText "::auto_path:$::auto_path"
-    
+
     # Load some packages
     
     # WarnWinText "dir:$dir"
@@ -275,7 +274,8 @@ proc kipt::LoadSourceFiles {dir} {
     
     # For write calculation file
     set wkcfpath "$dir/scripts/libs/wkcf"
-    if { [catch {source $wkcfpath/wkcf.tcl}] } {
+    if { [catch {source $wkcfpath/wkcf.tcl} cerror] } {
+    # WarnWin $cerror
 	::kipt::LoadSourceMessage wkcf.tcl
 	return ""
     }
@@ -380,5 +380,14 @@ proc kipt::CurvesModule { } {
         return $KPriv(CurvesModule)
     } 
     return 0
+}
+
+proc kipt::NewGiDGroups { } {
+    global KPriv
     
+    if { [info exists KPriv(NewGiDGroups)] } {
+        # msg $KPriv(NewGiDGroups)
+        return $KPriv(NewGiDGroups)
+    } 
+    return 0
 }

@@ -12,6 +12,12 @@
 #
 #    HISTORY:
 #	
+#     3.1- 17/12/12-J. Garate,  Disabled the Wall PFEM .mdpa Write. Add Beam 2D
+#     3.0- 05/12/12-J. Garate,  PFEM Slip velocity format correction
+#     2.9- 03/12/12-J. Garate,  Corrected a Bug on Angular Velocity for PFEM
+#     2.8- 28/11/12-J. Garate,  Update ::wkcf::GetBoundaryConditionProperties for PFEM
+#     2.7- 07/11/12-J. Garate,  Preprocess now selects the wmethod value { 0, 1, 2 } depending on GiD_Version.
+#                               Added the CleanAutomaticConditionGroupGiD and AssignConditionToGroupGID functions for "Before Mesh Generation" Event Procedure
 #     2.6- 10/10/12-G. Socorro, update the proc GetPropertiesData to assign the cross section properties for all constitutive laws
 #     2.5- 09/10/12-G. Socorro, add the proc GetCrossSectionProperties, modify other procs to include the structural 
 #                               analysis cross section properties options
@@ -25,7 +31,7 @@
 #     1.7- 20/04/12-G. Socorro, update the proc GetBoundaryConditionProperties to include is-slip and walllaw boundary conditions
 #     1.6- 10/03/12-G. Socorro, pass some proc to fluid or structural analysis script (WriteFluidSolvers,etc.)
 #     1.5- 27/03/12-G. Socorro, modify some structural analysis application properties (constitutive modeling)	
-#     1.4- 20/02/12-J. Garate, añadida una opcion para corregir un bug con Solid 2D
+#     1.4- 20/02/12-J. Garate,  añadida una opcion para corregir un bug con Solid 2D
 #     1.3- 30/06/11-G. Socorro, add the new condition Flag-Variable to the fluid application
 #     1.2- 07/06/11-G. Socorro, correct a bug when defined many properties which different thickness => proc GetMaterialProperties
 #     1.1- 24/05/11-G. Socorro, update some procedure to use the membrane element => Use thickness property
@@ -133,7 +139,10 @@ proc ::wkcf::Preprocess {} {
     # 1 => Metodo nuevo (write_calc_data)
     variable wmethod 
     set wmethod 1
-
+    if {[kipt::NewGiDGroups]} {
+        set wmethod 2
+    }
+    # msg "wmethod: $wmethod"
     # To write the bat file
     variable wbatfile
     set wbatfile 0
@@ -287,113 +296,165 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
     
     # For each active application
     foreach AppId $ActiveAppList {
-	# Get the application root identifier    
-	set rootdataid $AppId
-        # Get all defined condition groups
-	set cxpath "$rootdataid//c.Conditions"
-	set cbcproplist [::xmlutils::setXmlContainerIds $cxpath]
-	# WarnWinText "cbcproplist:$cbcproplist"
-	# Boundary condition type list
-	set dprops($AppId,AllBCTypeId) [list]
-	foreach cbctid $cbcproplist {
-	    # WarnWinText "cbctid:$cbctid"
-	    # Get the group identifier defined for this condition
-	    set cxpath "${cxpath}//c.${cbctid}"
-	    set cbcgrouplist [::xmlutils::setXmlContainerIds $cxpath]
-	    # WarnWinText "cbcgrouplist:$cbcgrouplist"
-	    if {[llength $cbcgrouplist]} {
-		# Update boundary condition type identifier
-		lappend dprops($AppId,AllBCTypeId) $cbctid
-		# WarnWinText "inside cbcgrouplist:$cbcgrouplist"
-		foreach cgroupid $cbcgrouplist {
-		    set proplist [list]
-		    switch -exact -- $cbctid {
-			"Displacements" - "Rotations" - "InletVelocity" - "No-Slip" {
-			    # Get activation properties
-			    foreach ca [list Ax Ay Az] cv [list Vx Vy Vz] {
-				# Activation
-				set acxpath "$cxpath//c.${cgroupid}//c.Activation//i.${ca}"
-				# WarnWinText "Activation :cxpath:$cxpath"
-				set cproperty "dv"
-				set CActive [::xmlutils::setXml $acxpath $cproperty]
-				# Values
-				set vcxpath "$cxpath//c.${cgroupid}//c.Values//i.${cv}"
-				# WarnWinText "Values :cxpath:$cxpath"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $vcxpath $cproperty]
-				lappend proplist $CActive $CValue
-			    }
-			}
-			"OutletPressure" {
-			    # Get properties
-			    foreach citem [list "FixPressure" "PressureValue"] {
-				# set xpath
-				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $pcxpath $cproperty]
-				lappend proplist $CValue
-			    }
-			}
-			"Flag-Variable" {
-			    # Get properties
-			    foreach citem [list "Flag"] {
-				# set xpath
-				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $pcxpath $cproperty]
-				lappend proplist $CValue
-			    }
-			}
-			"Is-Slip" {
-			    # Get properties
-			    foreach citem [list "Activate" "ConstantValue"] {
-				# set xpath
-				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $pcxpath $cproperty]
-				lappend proplist $CValue
-			    }
-			}
-			"WallLaw" {
-			    # Get properties
-			    foreach citem [list "ConstantValue"] {
-				# set xpath
-				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $pcxpath $cproperty]
-				lappend proplist $CValue
-			    }
-			}
-			"Distance" {
-			    # Get properties
-			    foreach citem [list "DistanceValue"] {
-				# set xpath
-				set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
-				set cproperty "dv"
-				set CValue [::xmlutils::setXml $pcxpath $cproperty]
-				lappend proplist $CValue
-			    }
-			}
-		    }
-		    # WarnWinText "proplist:$proplist"
-		    # Kratos BC to group link
-		    # Group list
-		    if {![info exists dprops($AppId,BC,$cbctid,AllGroupId)]} {
-			set dprops($AppId,BC,$cbctid,AllGroupId) [list]
-		    }
-		    if {$cgroupid ni $dprops($AppId,BC,$cbctid,AllGroupId)} {
-			lappend dprops($AppId,BC,$cbctid,AllGroupId) $cgroupid
-		    }
-		    # Group properties
-		    if {![info exists dprops($AppId,BC,$cbctid,$cgroupid,GProps)]} {
-			set dprops($AppId,BC,$cbctid,$cgroupid,GProps) [list]
-		    }
-		    set dprops($AppId,BC,$cbctid,$cgroupid,GProps) $proplist
-		}
-	    }
-	    # Reset the path
-	    set cxpath "$rootdataid//c.Conditions"
-	}
+        # Get the application root identifier    
+        set rootdataid $AppId
+            # Get all defined condition groups
+        set cxpath "$rootdataid//c.Conditions"
+        set cbcproplist [::xmlutils::setXmlContainerIds $cxpath]
+        # WarnWinText "cbcproplist:$cbcproplist"
+        # Boundary condition type list
+        set dprops($AppId,AllBCTypeId) [list]
+        foreach cbctid $cbcproplist {
+            # WarnWinText "cbctid:$cbctid"
+            # Get the group identifier defined for this condition
+            set cxpath "${cxpath}//c.${cbctid}"
+            set cbcgrouplist [::xmlutils::setXmlContainerIds $cxpath]
+            # WarnWinText "cbcgrouplist:$cbcgrouplist"
+            if {[llength $cbcgrouplist]} {
+                # Update boundary condition type identifier
+                lappend dprops($AppId,AllBCTypeId) $cbctid
+                # WarnWinText "inside cbcgrouplist:$cbcgrouplist"
+                foreach cgroupid $cbcgrouplist {
+                    set proplist [list]
+                    switch -exact -- $cbctid {
+                        "Displacements" - "Rotations" - "InletVelocity" - "No-Slip" {
+                            # Get activation properties
+                            foreach ca [list Ax Ay Az] cv [list Vx Vy Vz] {
+                                # Activation
+                                set acxpath "$cxpath//c.${cgroupid}//c.Activation//i.${ca}"
+                                # WarnWinText "Activation :cxpath:$cxpath"
+                                set cproperty "dv"
+                                set CActive [::xmlutils::setXml $acxpath $cproperty]
+                                # Values
+                                set vcxpath "$cxpath//c.${cgroupid}//c.Values//i.${cv}"
+                                # WarnWinText "Values :cxpath:$cxpath"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $vcxpath $cproperty]
+                                lappend proplist $CActive $CValue
+                            }
+                        }
+                        "OutletPressure" {
+                            # Get properties
+                            foreach citem [list "FixPressure" "PressureValue"] {
+                                # set xpath
+                                set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "Flag-Variable" {
+                            # Get properties
+                            foreach citem [list "Flag"] {
+                                # set xpath
+                                set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "Is-Slip" {
+                            # Get properties
+                            foreach citem [list "Activate" "ConstantValue"] {
+                                # set xpath
+                                set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "WallLaw" {
+                            # Get properties
+                            foreach citem [list "ConstantValue"] {
+                                # set xpath
+                                set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "Distance" {
+                            # Get properties
+                            foreach citem [list "DistanceValue"] {
+                                # set xpath
+                                set pcxpath "$cxpath//c.${cgroupid}//c.MainProperties//i.${citem}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "PFEMWall--" {
+                        # Commented by J. Garate on 17/12/2012
+                            # Get properties
+                            set citem "LinearVelocity" 
+                            # set xpath
+                            foreach cv [list LVx LVy LVz] {
+                                set pcxpath "$cxpath//c.${cgroupid}//c.$citem//i.${cv}"
+                                set cproperty "dv"
+                                # msg "pcxpath : $pcxpath"
+                                # msg "cproperty : $cproperty"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                # msg "CValue : $CValue"
+                                lappend proplist $CValue
+                            }
+                            
+                            set citem "AngularVelocity" 
+                            # set xpath
+                            foreach cv [list AVx AVy AVz] {
+                                set pcxpath "$cxpath//c.${cgroupid}//c.$citem//i.${cv}"
+                                set cproperty "dv"
+                                # msg "pcxpath : $pcxpath"
+                                # msg "cproperty : $cproperty"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                # msg "CValue : $CValue"
+                                lappend proplist $CValue
+                            }
+                            
+                            set citem "RotationCenter"
+                            foreach cv [list Gx Gy Gz] {
+                                set pcxpath "$cxpath//c.${cgroupid}//c.$citem//i.${cv}"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+                                lappend proplist $CValue
+                            }
+                        }
+                        "PFEMFluidInlet" {
+                            # Get properties
+                            foreach ca [list Ax Ay Az] cv [list Vx Vy Vz] {
+                                # Activation
+                                set acxpath "$cxpath//c.${cgroupid}//c.Activation//i.${ca}"
+                                # WarnWinText "Activation :acxpath:$acxpath"
+                                set cproperty "dv"
+                                set CActive [::xmlutils::setXml $acxpath $cproperty]
+                                # Values
+                                set vcxpath "$cxpath//c.${cgroupid}//c.Values//i.${cv}"
+                                # WarnWinText "Values :vcxpath:$vcxpath"
+                                set cproperty "dv"
+                                set CValue [::xmlutils::setXml $vcxpath $cproperty]
+                                lappend proplist $CActive $CValue
+                                # msg "$CActive $CValue"
+                            }
+                        }
+                    }
+                    # WarnWinText "proplist:$proplist"
+                    # Kratos BC to group link
+                    # Group list
+                    if {![info exists dprops($AppId,BC,$cbctid,AllGroupId)]} {
+                        set dprops($AppId,BC,$cbctid,AllGroupId) [list]
+                    }
+                    if {$cgroupid ni $dprops($AppId,BC,$cbctid,AllGroupId)} {
+                        lappend dprops($AppId,BC,$cbctid,AllGroupId) $cgroupid
+                    }
+                    # Group properties
+                    if {![info exists dprops($AppId,BC,$cbctid,$cgroupid,GProps)]} {
+                        set dprops($AppId,BC,$cbctid,$cgroupid,GProps) [list]
+                    }
+                    set dprops($AppId,BC,$cbctid,$cgroupid,GProps) $proplist
+                }
+            }
+            # Reset the path
+            set cxpath "$rootdataid//c.Conditions"
+        }
     }
 }
 
@@ -493,187 +554,214 @@ proc ::wkcf::GetPropertiesData {} {
 
     # For each active application
     foreach AppId $ActiveAppList {
-	# Get the application root identifier    
-	set rootdataid $AppId
-	# Get the properties identifier 
-	set cxpath "$rootdataid//c.Properties"
-	set cproplist [::xmlutils::setXmlContainerIds $cxpath]
-	# WarnWinText "cproplist:$cproplist"
-	# All material list
-	set dprops($AppId,AllMatId) [list]
-	# Get the properties
-	foreach propid $cproplist {
-	    # Material identifier
-	    set mxpath "$cxpath//c.${propid}//c.MainProperties//i.Material"
-	    set cproperty "dv"
-	    set MatId [::xmlutils::setXml $mxpath $cproperty]
-	    # WarnWinText "MatId:$MatId"
-	    set dprops($AppId,Property,$propid,MatId) "$MatId"
-	    # Get the material properties
-	    if {$MatId ni $dprops($AppId,AllMatId)} {
-		lappend dprops($AppId,AllMatId) $MatId
-	    }
-	    
-	    # Property type => Base element type
-	    set ptypexpath "$cxpath//c.${propid}//c.MainProperties//i.ElemType"
-	    set cproperty "dv"
-	    set ptype [::xmlutils::setXml $ptypexpath $cproperty]
-	    # WarnWinText "ptype:$ptype"
-	    set dprops($AppId,Property,$propid,BaseElemType) $ptype
+        # Get the application root identifier    
+        set rootdataid $AppId
+        # Get the properties identifier 
+        set cxpath "$rootdataid//c.Properties"
+        set cproplist [::xmlutils::setXmlContainerIds $cxpath]
+        # WarnWinText "cproplist:$cproplist"
+        # All material list
+        set dprops($AppId,AllMatId) [list]
+        # Get the properties
+        foreach propid $cproplist {
+            # Material identifier
+            set mxpath "$cxpath//c.${propid}//c.MainProperties//i.Material"
+            set cproperty "dv"
+            set MatId [::xmlutils::setXml $mxpath $cproperty]
+            # WarnWinText "MatId:$MatId"
+            set dprops($AppId,Property,$propid,MatId) "$MatId"
+            # Get the material properties
+            if {$MatId ni $dprops($AppId,AllMatId)} {
+                lappend dprops($AppId,AllMatId) $MatId
+            }
+            
+            # Property type => Base element type
+            set ptypexpath "$cxpath//c.${propid}//c.MainProperties//i.ElemType"
+            set cproperty "dv"
+            set ptype [::xmlutils::setXml $ptypexpath $cproperty]
+            # WarnWinText "ptype:$ptype"
+            set dprops($AppId,Property,$propid,BaseElemType) $ptype
 
-	    # Material model 
-	    set xpath "$cxpath//c.${propid}//c.MainProperties//i.MatModel"
-	    set cproperty "dv"
-	    set MatModel [::xmlutils::setXml $xpath $cproperty]
-	    # WarnWinText "MatModel:$MatModel"
-	    set dprops($AppId,Property,$propid,MatModel) $MatModel
+            # Material model 
+            set xpath "$cxpath//c.${propid}//c.MainProperties//i.MatModel"
+            set cproperty "dv"
+            set MatModel [::xmlutils::setXml $xpath $cproperty]
+            # WarnWinText "MatModel:$MatModel"
+            set dprops($AppId,Property,$propid,MatModel) $MatModel
 
-	    # For cross section properties
-	    # Get the property list
-	    set pid "propertylist"
-	    set id "CSProperty"
-	    set CSProperty [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
-	    # wa "CSProperty:$CSProperty"
-	    foreach cspropid $CSProperty { 
-		# Get the current value
-		set txpath "$cxpath//c.${propid}//c.MainProperties//i.${cspropid}"
-		set cproperty "dv"
-		set cvalue [::xmlutils::setXml $txpath $cproperty]
-		# wa "cspropid:$cspropid cvalue:$cvalue"
-		set dprops($AppId,Property,$propid,${cspropid}) $cvalue
-	    }
-	    
-	    # Set fluency and behavior variables
-	    set dprops($AppId,Material,$MatId,UseFluency) "No"
-	    set dprops($AppId,Material,$MatId,Fluency) ""
-	    set dprops($AppId,Material,$MatId,UseBehavior) "No"
-	    set dprops($AppId,Material,$MatId,Behavior) ""
-	    
-	    # Get material properties
-	    switch -exact -- $MatModel {
-		"Elastic-Isotropic" {
-		    if {$ndime eq "2D"} {
-			# 2D case
-			if {$ptype=="PlaneStrain"} {
-			    # Get the material properties
-			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+            # For cross section properties
+            # Get the property list
+            set pid "propertylist"
+            set id "CSProperty"
+            set CSProperty [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+            # wa "CSProperty:$CSProperty"
+            foreach cspropid $CSProperty { 
+                # Get the current value
+                set txpath "$cxpath//c.${propid}//c.MainProperties//i.${cspropid}"
+                set cproperty "dv"
+                set cvalue [::xmlutils::setXml $txpath $cproperty]
+                # wa "cspropid:$cspropid cvalue:$cvalue"
+                set dprops($AppId,Property,$propid,${cspropid}) $cvalue
+            }
+            
+            # Set fluency and behavior variables
+            set dprops($AppId,Material,$MatId,UseFluency) "No"
+            set dprops($AppId,Material,$MatId,Fluency) ""
+            set dprops($AppId,Material,$MatId,UseBehavior) "No"
+            set dprops($AppId,Material,$MatId,Behavior) ""
+            
+            # Get material properties
+            switch -exact -- $MatModel {
+                "Elastic-Isotropic" {
+                    if {$ndime eq "2D"} {
+                        # 2D case
+                        if {$ptype=="PlaneStrain"} {
+                            # Get the material properties
+                            ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
 
-			    # Get the cross section properties
-			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                            # Get the cross section properties
+                            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 
-			} elseif {$ptype=="PlaneStress"} {
-			    set cptype "Isotropic2D"
-			    # Get the material properties
-			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			    
-			    # Get the cross section properties
-			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-			}
-		    } elseif {$ndime =="3D"} {
-			# 3D case
-			set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
-			# Check that this ptype is in the list
-			if {$ptype in $ltypelist} {
-			    if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
-				set cptype "Isotropic2D"
-			    } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
-				set cptype "Isotropic2D"
-			    } else {
-				set cptype "Isotropic3D"
-			    }
-			    
-			    # Get the material properties
-			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			    
-			    # Get the cross section properties
-			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-			}
-		    }
-		}
-		"Elastic-Orthotropic" {
-		}
-		"Elasto-Plastic" {
-		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-			set cptype "Plasticity2D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-		
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                        } elseif {$ptype=="PlaneStress"} {
+                            set cptype "Isotropic2D"
+                            # Get the material properties
+                            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                            
+                            # Get the cross section properties
+                            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        } elseif {$ptype=="Beam"} {
+                            set cptype "Isotropic2D"
+                            # Get the material properties
+                            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                            
+                            # Get the cross section properties
+                            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        } elseif {$ptype=="Solid"} {
+                            # Confirmar la veracidad!
+                            set cptype "Isotropic2D"
+                            # Get the material properties
+                            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                            
+                            # Get the cross section properties
+                            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        }
+                    } elseif {$ndime =="3D"} {
+                        # 3D case
+                        set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
+                        # Check that this ptype is in the list
+                        if {$ptype in $ltypelist} {
+                            if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
+                                set cptype "Isotropic2D"
+                            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+                                set cptype "Isotropic2D"
+                            } else {
+                                set cptype "Isotropic3D"
+                            }
+                            
+                            # Get the material properties
+                            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                            
+                            # Get the cross section properties
+                            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        }
+                    }
+                }
+                "Elastic-Orthotropic" {
+                    msgS "Elastic-Orthotropic is not implemented yet. Contact the Kratos team."
+                }
+                "Elasto-Plastic" {
+                    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
+                        set cptype "Plasticity2D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                    
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-			
-		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-			set cptype "Plasticity2D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-			
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-		    } elseif {($ptype=="Solid") && ($ndime =="2D")} {
-			set cptype "Plasticity2D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                    
+                    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
+                        set cptype "Plasticity2D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                        
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                    } elseif {($ptype=="Solid") && ($ndime =="2D")} {
+                        set cptype "Plasticity2D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 
-		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
-			set cptype "Plasticity3D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
+                        set cptype "Plasticity3D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-		    }
-		}
-		"Damage" {
-		    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
-			set cptype "IsotropicDamage"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                    }
+                }
+                "Damage" {
+                    if {($ptype=="PlaneStrain") && ($ndime =="2D")} {
+                        set cptype "IsotropicDamage"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 
-		    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
-			set cptype "IsotropicDamage"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
-			
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                    } elseif {($ptype=="PlaneStress") && ($ndime =="2D")} {
+                        set cptype "IsotropicDamage"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                        
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 
-		    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
-			set cptype "IsotropicDamage3D"
-			# Get the material properties
-			::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-			
-			# Get the material behavior and fluency properties
-			::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+                    } elseif {($ptype=="Solid") && ($ndime =="3D")} {
+                        set cptype "IsotropicDamage3D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
 
-			# Get the cross section properties
-			::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-		    }
-		}
-	    }
-	}
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                        
+                    } elseif {($ptype=="Solid") && ($ndime =="2D")} {
+                        set cptype "IsotropicDamage2D"
+                        # Get the material properties
+                        ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+                        
+                        # Get the material behavior and fluency properties
+                        ::wkcf::GetBehaviorFluencyProperties $AppId $MatId $MatModel $ptype $cptype
+
+                        # Get the cross section properties
+                        ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1346,6 +1434,7 @@ proc ::wkcf::CleanAutomatic {Condition args} {
 } 
 
 proc ::wkcf::CleanAutomaticConditionGroup {what args {fieldname ""} {fieldvalue ""}} {
+    # Need New GiD_group adaptation
     set Condition "groups"
 
     switch -- -exact $what {
@@ -1364,15 +1453,39 @@ proc ::wkcf::CleanAutomaticConditionGroup {what args {fieldname ""} {fieldvalue 
 	}
 	"UseAllWhereField" {
 	    foreach entity $args {
-		GiD_UnAssignData Condition ${entity}_${Condition} ${entity}s all $fieldname $fieldvalue
+            GiD_UnAssignData Condition ${entity}_${Condition} ${entity}s all $fieldname $fieldvalue
 	    }
 	}
     }
 }
 
+proc ::wkcf::CleanAutomaticConditionGroupGiD {args {fieldvalue ""}} {
+    if {![GiD_Groups exists $fieldvalue]} {
+        GiD_Groups create $fieldvalue
+    }
+    GiD_Groups edit state $fieldvalue hidden
+    # msg [GiD_Groups get state $fieldvalue]
+    # msg "$fieldvalue [GiD_EntitiesGroups get $fieldvalue elements]"
+    foreach entity $args {
+        GiD_EntitiesGroups unassign $fieldvalue $entity
+    }
+}
+
 proc ::wkcf::AssignConditionToGroup {entity elist groupid} {
+    # Need New GiD_group adaptation
     set Condition "groups"
 
     GiD_AssignData Condition ${entity}_${Condition} ${entity}s $groupid $elist
+
+}
+proc ::wkcf::AssignConditionToGroupGID {entity elist groupid} {
+    # Need New GiD_group adaptation
+    if {![GiD_Groups exists $groupid]} {
+        GiD_Groups create $groupid
+    }
+    GiD_Groups edit state $groupid hidden
+    # msg [GiD_Groups get state $groupid]
+    # msg "$groupid [GiD_EntitiesGroups get $groupid elements]"
+    GiD_EntitiesGroups assign $groupid $entity $elist
 
 }

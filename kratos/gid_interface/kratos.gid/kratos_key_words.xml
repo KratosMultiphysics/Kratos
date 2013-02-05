@@ -59,6 +59,8 @@
         <Item id="LevelSetFluid3D" kkword="TwoFluidVMS3D" usennode="No" />
 	<Item id="VMS2D" kkword="FractionalStep2D" usennode="No" /> 
         <Item id="VMS3D" kkword="FractionalStep3D" usennode="No" /> 
+        <Item id="PFEM2D" kkword="ASGS2D" usennode="No" /> 
+        <Item id="PFEM3D" kkword="ASGS3D" usennode="No" /> 
         <Item id="Vx" kkword="VELOCITY_X" />
         <Item id="Vy" kkword="VELOCITY_Y" />
         <Item id="Vz" kkword="VELOCITY_Z" />
@@ -186,7 +188,7 @@
         <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
         <Item id="Beam" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
-		<Item id="Membrane" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
+        <Item id="Membrane" ivalues="Elastic-Isotropic" values="Elastic-Isotropic"/>
         <Item id="Shell" ivalues="Elastic-Isotropic,Elastic-Anisotropic" values="Elastic-Isotropic,Elastic-Anisotropic"/>
         <Item id="EBST" ivalues="Elastic-Isotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elasto-Plastic,Damage"/>
         <Item id="Solid" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />

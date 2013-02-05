@@ -13,6 +13,8 @@
 #
 #    HISTORY:
 #
+#     1.5-10/10/12-G. Socorro, change arc.gif by curves.gif
+#     1.4-08/10/12-J. Garate, adapted to New GiD Groups
 #     1.3-03/10/12-G. Socorro, update some menu option to use the new curve module
 #     1.2-01/10/12-J. Garate, Enable/disable Curves Module
 #     1.1-20/09/12-J. Garate, Add Curve's menu button
@@ -91,10 +93,14 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
 			       --- \
 			       [= "Function editor#C#menu"] \
 			       [= "Project settings#C#menu"]]
-
-    #set gr [list "::KEGroups::InitBaseWindow"]
-  
-    set MenuCommands($pos) [list [list -np- Cond_Groups window open] \
+                   
+    
+    if {[kipt::NewGiDGroups]} {
+        set grw "GiD_Groups"
+    } else {
+        set grw "Cond_Groups"
+    }
+    set MenuCommands($pos) [list [list -np- $grw window open] \
 				"" \
 				[list -np- ::KMProps::StartBaseWindow] \
 				[list -np- ::KMProps::StartBaseWindow Materials] \
@@ -103,7 +109,7 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
 				[list  -np- ::kps::InitSettingWindow]]
     
     if { [kipt::CurvesModule ] } {
-        set MenuCommands($pos) [list [list -np- Cond_Groups window open] \
+        set MenuCommands($pos) [list [list -np- $grw window open] \
             "" \
             [list -np- ::KMProps::StartBaseWindow] \
             [list -np- ::KMProps::StartBaseWindow Materials] \
@@ -196,15 +202,19 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
     global KPriv
     
     catch { unset KBitmapsNames KBitmapsCommands KBitmapsHelp }
-    
+    if {[kipt::NewGiDGroups]} {
+        set grw "GiD_Groups"
+    } else {
+        set grw "Cond_Groups"
+    }
     
     if { [kipt::CurvesModule ] } {
-        set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif $KPriv(imagesdir)/curves.gif \
+        set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif $KPriv(imagesdir)/nonlinear.gif \
 				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
 				$KPriv(imagesdir)/stop.gif"
 	
 	set KBitmapsCommands(0) [list \
-				     [list -np- Cond_Groups window open] \
+				     [list -np- $grw window open] \
 				     [list -np- ::KMProps::StartBaseWindow] \
 				     [list -np- ::KMProps::StartBaseWindow Materials] \
 				     [list -np- ::KMProps::StartBaseWindow Curve] \
@@ -230,7 +240,7 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
 				$KPriv(imagesdir)/stop.gif"
 	
 	set KBitmapsCommands(0) [list \
-				     [list -np- Cond_Groups window open] \
+				     [list -np- $grw window open] \
 				     [list -np- ::KMProps::StartBaseWindow] \
 				     [list -np- ::KMProps::StartBaseWindow Materials] \
 				     "" \
