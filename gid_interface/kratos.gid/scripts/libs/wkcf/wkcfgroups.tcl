@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     0.7- 07/11/12-J. Garate,  Modification and adaptation on functions: WriteGroupMeshProperties, WriteGroupProperties
+#                               Creation of functions using GiD_File fprintf $filechannel "%s" format
 #     0.6- 24/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the Spalart-Allmaras turbulence model
 #     0.5- 23/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the drag forces
 #     0.4- 22/07/12-G. Socorro, write the group properties using the new mesh format
@@ -27,19 +29,22 @@ proc ::wkcf::WriteGroupMeshProperties {AppId} {
     
     # For debug
     if {!$::wkcf::pflag} {
-	set inittime [clock seconds]
+        set inittime [clock seconds]
     }
     switch -exact -- $wmethod {
-	"1" {
-	    ::wkcf::WriteGroupMeshProperties_m1 $AppId
-	}
+        "1" {
+            ::wkcf::WriteGroupMeshProperties_m1 $AppId
+        }
+        "2" {
+            ::wkcf::WriteGroupMeshProperties_m2 $AppId
+        }
     }
     # For debug
     if {!$::wkcf::pflag} {
-	set endtime [clock seconds]
-	set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	WarnWinText "Write group using the new mesh format: [::KUtils::Duration $ttime]"
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write group using the new mesh format: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -179,28 +184,158 @@ proc ::wkcf::WriteGroupMeshProperties_m1 {AppId} {
     }
  }
 
+proc ::wkcf::WriteGroupMeshProperties_m2 {AppId} {
+    # ABSTRACT: Write the group properties to the end of the mdpa file
+    variable dprops
+    variable filechannel
+
+    #
+    # Write assigned group to the elements
+    #
+    set meshgroupid 0
+
+    # Init the global mesh identifier list
+    set dprops($AppId,AllMeshId) [list]
+    
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+
+        # For all defined kratos elements        
+        foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                # wa "celemid:$celemid"
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+                        incr meshgroupid 1
+                        # Create the meshid-group identifier mapping
+                        lappend dprops($AppId,AllMeshId) $meshgroupid
+                        set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+
+                        # Write mesh properties for this group
+                        GiD_File fprintf $filechannel "%s" "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+                        # Write nodes
+                        GiD_File fprintf $filechannel "%s" " "
+                        GiD_File fprintf $filechannel "%s" " Begin MeshNodes"
+                        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                            GiD_File fprintf $filechannel "%10i" $node_id
+                        }
+                        GiD_File fprintf $filechannel "%s" " End MeshNodes"
+                        # Write elements
+                        GiD_File fprintf $filechannel "%s" " "
+                        GiD_File fprintf $filechannel "%s" " Begin MeshElements"
+                        foreach node_id [GiD_EntitiesGroups get $cgroupid elements] {
+                            GiD_File fprintf $filechannel "%10i" $node_id
+                        }
+                        GiD_File fprintf $filechannel "%s" " End MeshElements"
+                        GiD_File fprintf $filechannel "%s" " "
+                        GiD_File fprintf $filechannel "%s" "End Mesh"
+                        GiD_File fprintf $filechannel "%s" ""
+                    }
+                }
+            }
+        }
+
+        # For all defined group in the drag calculation
+        # Get the value
+        set basexpath "$AppId//c.Results//c.DragOptions"
+        set dragproplist [::xmlutils::setXmlContainerIds $basexpath]
+        # wa "dragproplist:$dragproplist"
+        foreach cgroupid $dragproplist {
+            if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+                incr meshgroupid 1
+                # Create the meshid-group identifier mapping
+                lappend dprops($AppId,AllMeshId) $meshgroupid
+                set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+                
+                # Write mesh properties for this group
+                GiD_File fprintf $filechannel "%s" "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+                # Write nodes
+                GiD_File fprintf $filechannel "%s" " "
+                GiD_File fprintf $filechannel "%s" " Begin MeshNodes"
+                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                    GiD_File fprintf $filechannel "%10i" $node_id
+                }
+                GiD_File fprintf $filechannel "%s" " End MeshNodes"
+                GiD_File fprintf $filechannel "%s" " "
+                GiD_File fprintf $filechannel "%s" "End Mesh"
+                GiD_File fprintf $filechannel "%s" ""
+            }
+        }
+
+        # Check for used Spalart-Allmaras turbulence model
+        set rootid "$AppId"
+        set cproperty "dv"
+        # Get the turbulence properties
+        set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
+        set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
+        # WarnWinText "TurbulenceModel:$TurbulenceModel"
+        if {$TurbulenceModel eq "Spalart-Allmaras"} {
+            variable ndime
+            # Get the values
+            set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
+            set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+            # wa "gproplist:$gproplist"
+            foreach cgroupid $gproplist {
+                # Get the group properties
+                set cxpath "${basexpath}//c.${cgroupid}//c.MainProperties"
+                set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+                # wa "allgprop:$allgprop"
+                if {[llength $allgprop]} {
+                    set Activate [lindex $allgprop 0 1]
+                    # wa "Activate:$Activate"
+                    if {$Activate} {
+                        if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+                            incr meshgroupid 1
+                            # Create the meshid-group identifier mapping
+                            lappend dprops($AppId,AllMeshId) $meshgroupid
+                            set dprops($AppId,Mesh,$cgroupid,MeshIdGroup) $meshgroupid
+                            
+                            # Write mesh properties for this group
+                            GiD_File fprintf $filechannel "%s" "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+                            # Write nodes
+                            GiD_File fprintf $filechannel "%s" " "
+                            GiD_File fprintf $filechannel "%s" " Begin MeshNodes"
+                            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                                GiD_File fprintf $filechannel "%10i" $node_id
+                            }
+                            GiD_File fprintf $filechannel "%s" " End MeshNodes"
+                            GiD_File fprintf $filechannel "%s" " "
+                            GiD_File fprintf $filechannel "%s" "End Mesh"
+                            GiD_File fprintf $filechannel "%s" ""
+                        }
+                    }
+                }
+            }
+        }
+    }
+ }
+
 proc ::wkcf::WriteGroupProperties {AppId} {
     # ABSTRACT: Write the group properties file
     variable wmethod
     
     # For debug
     if {!$::wkcf::pflag} {
-	set inittime [clock seconds]
+        set inittime [clock seconds]
     }
     switch -exact -- $wmethod {
-	"0" {
-	    ::wkcf::WriteGroupProperties_m0 $AppId
-	}
-	"1" {
-	    ::wkcf::WriteGroupProperties_m1 $AppId
-	}
+        "0" {
+            ::wkcf::WriteGroupProperties_m0 $AppId
+        }
+        "1" {
+            ::wkcf::WriteGroupProperties_m1 $AppId
+        }
+        "2" {
+            ::wkcf::WriteGroupProperties_m2 $AppId
+        }
     }
     # For debug
     if {!$::wkcf::pflag} {
-	set endtime [clock seconds]
-	set ttime [expr $endtime-$inittime]
-	# WarnWinText "endtime:$endtime ttime:$ttime"
-	WarnWinText "Write group in nodes: [::KUtils::Duration $ttime]"
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write group in nodes: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -279,6 +414,88 @@ proc ::wkcf::WriteGroupProperties_m1 {AppId} {
 		}
 	    }
 	}
+    }
+     
+    # End
+    write_calc_data end
+}
+
+proc ::wkcf::WriteGroupProperties_m2 {AppId} {
+    # ABSTRACT: Write the group properties file
+    variable dprops
+    variable filechannel
+
+    set filename "GroupDefinition.txt"
+    set PDir [::KUtils::GetPaths "PDir"]
+
+    set fullname [file native [file join $PDir $filename]]
+    
+    # Use the write_calc_data procedure from the GiD kernel
+    # Init
+    write_calc_data init $fullname
+
+    #
+    # Write assigned group to the elements
+    #
+    set ggroupid 0
+     
+    if {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])} {
+        # For all defined kratos elements        
+        foreach celemid $dprops($AppId,AllKElemId) {
+            # Check for all defined group identifier for this element
+            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+                # wa "celemid:$celemid"
+                # For all defined group identifier for this element
+                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+                    # Group properties format 
+                    set gprop [dict create]
+                    set f "%10i\n"
+                    set f [subst $f]
+                    dict set gprop $cgroupid "$f"
+                    if {[write_calc_data nodes -count $gprop]>0} {
+                        incr ggroupid 1
+                        write_calc_data puts "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid"
+                        write_calc_data nodes -sorted $gprop
+                        write_calc_data puts "End GroupNodes"
+                        write_calc_data puts ""
+                    }
+                    unset gprop
+                }
+            }
+        }
+    }
+   
+    #
+    # Write the group assigned to the boundary condition
+    #
+  
+    # Check for all defined condition type
+    if {([info exists dprops($AppId,AllBCTypeId)]) && ([llength $dprops($AppId,AllBCTypeId)])} {
+        variable gidentitylist; variable useqelem; variable ndime
+        # For all defined condition identifier
+        foreach ccondid $dprops($AppId,AllBCTypeId) {
+            # wa "ccondid:$ccondid"
+            # Check for all defined group identifier inside this condition type
+            if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
+                # For each group of this BC 	
+                foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
+                    # Group properties format for the boundary condition groups
+                    set gprop_bc [dict create]
+                    set f "%10i\n"
+                    set f [subst $f]
+                    dict set gprop_bc $cgroupid "$f"
+                    if {[write_calc_data nodes -count $gprop_bc]>0} {
+                        incr ggroupid 1
+                        write_calc_data puts "Begin GroupNodes $ggroupid $cgroupid  \/\/ GUI group identifier: $cgroupid"
+                        write_calc_data nodes -sorted $gprop_bc
+                        write_calc_data puts "End GroupNodes"
+                        write_calc_data puts ""
+                    }
+                    # Unset the dictionaries
+                    unset gprop_bc
+                }
+            }
+        }
     }
      
     # End

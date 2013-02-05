@@ -12,16 +12,20 @@
 #
 #    HISTORY:
 #
-#     0.9- 03/10/12-J. Garate, update transform spd proc
-#     0.8- 27/05/12-J. Garate, Preparacion para actualizar la base de datos de materiales.
-#     0.7- 03/05/12-J. Garate, state/visibility while transfering groups from .spd 
-#     0.6- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
-#     0.5- 22/03/2012 J.Garate,  Cambio de funciones a funciones publicas de GiD
-#     0.4- 08/03/2012 J.Garate,  ::kfiles::TransferOldGroupstoGID Mantiene la jerarquía Padre-Hijos en los grupos. 
+#     1.3- 12/11/12- J. Garate, ::kfiles::TransferOldGroupstoGID modifications
+#     1.2- 07/11/12- J. Garate, Adaptation for New GiD Groups on Transfer Function
+#     1.1- 17/10/12- J. Garate, Correction when transferring old Cond_Groups to GiD_Groups
+#     1.0- 08/10/12- J. Garate, Adaptation for New GiD Groups
+#     0.9- 03/10/12- J. Garate, update transform spd proc
+#     0.8- 27/05/12- J. Garate, Preparacion para actualizar la base de datos de materiales.
+#     0.7- 03/05/12- J. Garate, state/visibility while transfering groups from .spd 
+#     0.6- 26/04/12- G. Socorro, change GiD_Groups by Cond_Groups
+#     0.5- 22/03/12- J. Garate,  Cambio de funciones a funciones publicas de GiD
+#     0.4- 08/03/12- J. Garate,  ::kfiles::TransferOldGroupstoGID Mantiene la jerarquía Padre-Hijos en los grupos. 
 #                                 El color identificativo de cada grupo se pasa de forma correcta.
-#     0.3- 05/03/2012 J.Garate,  ::kfiles::TransferOldGroupstoGID Transfiere los grupos del .spd a los grupos de GiD
-#     0.2- 18/06/10-G. Socorro, Set ::KMat::xml path variable
-#     0.1- 01/11/09-G. Socorro, create a base source code
+#     0.3- 05/03/12- J. Garate,  ::kfiles::TransferOldGroupstoGID Transfiere los grupos del .spd a los grupos de GiD
+#     0.2- 18/06/10- G. Socorro, Set ::KMat::xml path variable
+#     0.1- 01/11/09- G. Socorro, create a base source code
 #
 ###############################################################################
 
@@ -32,71 +36,118 @@ namespace eval ::kfiles:: {
 proc ::kfiles::TransferOldGroupstoGID { filename } {
     global KPriv
     
-    set GiDGroups [Cond_Groups list]
-    #wa $filename
-    if { $filename != "" } { 
-      
-	if {[file exists $filename] && [file size $filename] > 1} {
-	    
-	    #Reseteamos la lista de Id's por si contenía un estado anterior
-	    set KPriv(groupsId) {}
-	    set KPriv(groupsCol) {}
-	    # Si llega un groupId
-	    set childNodes {}
-	    #gid_groups_conds::delete -exactname $gname
-	    
-	    #msg "[$KPriv(xmlDoc) asXML]"
-	    #Seleccionamos todos los nodos del primer nivel
-	    set nodes [$KPriv(xml) selectNodes "/Kratos_Data/Groups/Group\[@id\]"]
-	    foreach node $nodes {
-		        set gname [$node getAttribute id ""]
-		        set gcolor [$node getAttribute color ""]
-		        set state [$node getAttribute state ""]
-		        if {$gname ni $GiDGroups} {
-		    
-		            Cond_Groups create $gname
-		            
-		    
-		            Cond_Groups edit color $gname $gcolor
-		            Cond_Groups edit visible $gname $state
-		            #Seleccionamos sus hijos (2º nivel)
-		            set nodes2 [$node childNodes]
-		            set gpath $gname
-		    
-		            ::kfiles::RecursiveChildTransfer $nodes2 $gpath
-		        } else {
-		            wa "It already exists a GiD Group with name \"$gname\""
-		        }
-	    }
-	}
-    }
+    set root [$KPriv(xml) selectNodes "/Kratos_Data/Groups"]
+    set model [$root getAttribute modeltype ""]
+    
+    if {$model != "GiD" } {
+        set grw "Cond_Groups"
+        set GiDGroups [Cond_Groups list]
+        #wa $filename
+        if { $filename != "" } { 
+
+            if {[file exists $filename] && [file size $filename] > 1} {
+                
+                #Reseteamos la lista de Id's por si contenía un estado anterior
+                set KPriv(groupsId) {}
+                set KPriv(groupsCol) {}
+                # Si llega un groupId
+                set childNodes {}
+
+                #Seleccionamos todos los nodos del primer nivel
+                set nodes [$KPriv(xml) selectNodes "/Kratos_Data/Groups/Group\[@id\]"]
+                foreach node $nodes {
+                    set gname [$node getAttribute id ""]
+                    #set gcolor [$node getAttribute color ""]
+                    set state [$node getAttribute state ""]
+                    if {$gname ni $GiDGroups} {
+                
+                        Cond_Groups create $gname
+                        #Cond_Groups edit color $gname $gcolor
+                        Cond_Groups edit visible $gname $state
+                        #Seleccionamos sus hijos (2º nivel)
+                        set nodes2 [$node childNodes]
+                        set gpath $gname
+                
+                        ::kfiles::RecursiveChildTransfer $nodes2 $gpath
+                    } else {
+                        #wa "It already exists a GiD Group with name \"$gname\""
+                    }
+                }
+                if {[kipt::NewGiDGroups]} {
+                    ::KEGroups::TransferCondGroupstoGiDGroups
+                }
+            }
+        }
+    } else {
+        
+        if {[kipt::NewGiDGroups]} {
+            set grw "GiD_Groups"
+            set force 2
+        } else {
+            set grw "Cond_Groups"
+            set force 1
+        }
+        set GiDGroups [$grw list]
+        
+        if { $filename != "" } { 
+
+            if {[file exists $filename] && [file size $filename] > 1} {
+                
+                #Reseteamos la lista de Id's por si contenía un estado anterior
+                set KPriv(groupsId) {}
+                set KPriv(groupsCol) {}
+                # Si llega un groupId
+                set childNodes {}
+
+                #Seleccionamos todos los nodos del primer nivel
+                set nodes [$KPriv(xml) selectNodes "/Kratos_Data/Groups/Group\[@id\]"]
+                foreach node $nodes {
+                    set gname [$node getAttribute id ""]
+                    #set gcolor [$node getAttribute color ""]
+                    set state [$node getAttribute state ""]
+                    if {$gname ni $GiDGroups} {
+                
+                        $grw create $gname
+                        #Cond_Groups edit color $gname $gcolor
+                        $grw edit visible $gname $state
+                        #Seleccionamos sus hijos (2º nivel)
+                        set nodes2 [$node childNodes]
+                        set gpath $gname
+                
+                        ::kfiles::RecursiveChildTransfer $nodes2 $gpath $force
+                    } else {
+                        #wa "It already exists a GiD Group with name \"$gname\""
+                    }
+                }
+            }
+        }
+    } 
 }
 
-
-proc ::kfiles::RecursiveChildTransfer {nodes gpath} {
+proc ::kfiles::RecursiveChildTransfer {nodes gpath {force 0} } {
     
     if {$nodes != ""} {
-	set GiDGroups [Cond_Groups list]
-	foreach node $nodes {
-	    #Agregamos cada elemento de 2º nivel
-	    #msg $gpath
-	    append gname $gpath "//" [$node getAttribute id ""]
-	    #msg $gname
-	    set gcolor [$node getAttribute color ""]
-	    set state [$node getAttribute state ""]
-	    #msg $gcolor
-	    if {$gname ni $GiDGroups} {
-		
-		        Cond_Groups create $gname
-		        Cond_Groups edit color $gname $gcolor
-		        Cond_Groups edit visible $gname $state
-		        #Seleccionamos los hijos (siguiente nivel)
-		        set nodes2 [$node childNodes]
-		        ::kfiles::RecursiveChildTransfer $nodes2 $gname
-	    } else {
-		msg "It already exists a GiD Group with name \"$gname\""
-	    }
-	}
+        set grw "Cond_Groups"
+        if {$force eq 2} { set grw "GiD_Groups" }
+        set GiDGroups [grw list]
+        foreach node $nodes {
+            #Agregamos cada elemento de 2º nivel
+
+            append gname $gpath "//" [$node getAttribute id ""]
+            set state [$node getAttribute state ""]
+
+            if {$gname ni $GiDGroups} {
+            
+                    $grw create $gname
+                    #$grw edit color $gname $gcolor
+                    $grw edit visible $gname $state
+                    #Seleccionamos los hijos (siguiente nivel)
+                    set nodes2 [$node childNodes]
+                    ::kfiles::RecursiveChildTransfer $nodes2 $gname
+            } else {
+                #msg "It already exists a GiD Group with name \"$gname\""
+            }
+        }
     }
 }
 
@@ -113,12 +164,12 @@ proc ::kfiles::LoadSPD {filename} {
     
     if {![file exists $filename] || [file size $filename] < 1} {
 	
-	set filename "$KPriv(dir)/$xmlNameFile"
+        set filename "$KPriv(dir)/$xmlNameFile"
 	
     } else {
 	
-	#Se guarda una copia del archivo original antes de modificarlo
-	    ::kfiles::MakeBackupCopyOfSPDFile $filename
+        #Se guarda una copia del archivo original antes de modificarlo
+        ::kfiles::MakeBackupCopyOfSPDFile $filename
     }
     
     #::KEGroups::Init
@@ -150,10 +201,10 @@ proc ::kfiles::LoadSPD {filename} {
     #msg "filename_mat:$filename_mat xmlFile_mat:$xmlFile_mat"
     if {![file exists $filename_mat] || [file size $filename_mat] < 1} {
 	
-	set filename_mat "$KPriv(dir)/$xmlFile_mat"
+        set filename_mat "$KPriv(dir)/$xmlFile_mat"
 	
     } else {
-	#Se guarda una copia del archivo original antes de modificarlo
+        #Se guarda una copia del archivo original antes de modificarlo
 	    ::kfiles::MakeBackupCopyOfSPDFile $filename_mat ".kmdb"
     }
     
@@ -187,20 +238,13 @@ proc ::kfiles::LoadSPD {filename} {
 
     # Set KMat xml path
     if {[info exists ::KMat::xml]} {
-	set ::KMat::xml $KPriv(xmlMat)
+        set ::KMat::xml $KPriv(xmlMat)
     }
     
     # Nos guardamos el nombre del problemType cargado
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
     set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
-    
-    
-    #PRUEBAS: Inicios rápidos para probar
-    #::kps::InitSettingWindow
-    # ::KMValid::ValidateModel
-    #::KMProps::InitBaseWindow Materials
-    #::KMProps::InitBaseWindow
-    #::KFun::InitBaseWindow ".gid.kmprops.nb.fProp.fBottom.nb.fMainProperties" "Fx"
+
     ::kfiles::TransferOldGroupstoGID $filename
     
 }
@@ -217,7 +261,7 @@ proc ::kfiles::SaveSPD {filename} {
     
     # Coger de la ventana de grupos y guardar en $KPriv(xmlDoc)
     ::KEGroups::GroupsToXml
-
+    # msg $filename
     # Escribimos en el fichero .spd el xml almacenado en memoria
     ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(RDConfig)
     
@@ -251,7 +295,7 @@ proc ::kfiles::MakeBackupCopyOfSPDFile {filename {extension ".spd"}} {
     #msg "filename$filename \n word:$word"
     set found [string first $word $basename]
     if {$found !="-1"} {
-	set name [string range $basename 0 [expr $found-1]]
+        set name [string range $basename 0 [expr $found-1]]
     } else {
 	    return ""        
     }
@@ -262,8 +306,8 @@ proc ::kfiles::MakeBackupCopyOfSPDFile {filename {extension ".spd"}} {
     #WarnWinText "SPDBackup:$dirGid/$SPDBackup"
     
     if {[catch {file copy -force "$filename" "$dir/$SPDBackup"} error]} {
-	WarnWin [= "Could not make a backup copy of Kratos interface data file (%s)" $error]
-	return ""
+        WarnWin [= "Could not make a backup copy of Kratos interface data file (%s)" $error]
+        return ""
     }
 }
 
@@ -290,14 +334,14 @@ proc ::kfiles::varOnConfigFile { var {def 0} } {
     # Check the value of variable in the configuration file
     set file [::kfiles::giveConfigFile]
     if { [catch { set fileid [open $file r] }] } {
-	return $def
+        return $def
     }
     while { ![eof $fileid] } {
-	set aa [gets $fileid]
-	if { [regexp "$var\[ ]*(\[01])" $aa {} val] } {
-	    close $fileid
-	    return $val
-	}
+        set aa [gets $fileid]
+        if { [regexp "$var\[ ]*(\[01])" $aa {} val] } {
+            close $fileid
+            return $val
+        }
     }
     close $fileid
     return $def
@@ -311,29 +355,31 @@ proc ::kfiles::writeVarConfigFile { varArray valArray } {
     
     set file [::kfiles::giveConfigFile]
     if { [file readable $file] } {
-	if { [catch { set fileid [open $file r] }] } { return 0 }
-	set fileread [read $fileid]
-	close $fileid
+        if { [catch { set fileid [open $file r] }] } {
+            return 0
+        }
+        set fileread [read $fileid]
+        close $fileid
     } else {
-	set fileread ""
+        set fileread ""
     }
     
     foreach var $varArray val $valArray {
 	
-	if { [regexp "$var" $fileread {}] } {
-	    regsub "$var\[ ]*(\[01])" $fileread "$var $val"  filewrite
-	} else {
-	    set filewrite ""
-	    append filewrite $fileread "\n$var $val"
-	}
-	if { [catch { set fileid [open $file w+] }] } {
-	    WarnWin [= "Cannot write file %s. Permission denied" $file].
-	    return 0
-	}
-	puts $fileid $filewrite
+        if { [regexp "$var" $fileread {}] } {
+            regsub "$var\[ ]*(\[01])" $fileread "$var $val"  filewrite
+        } else {
+            set filewrite ""
+            append filewrite $fileread "\n$var $val"
+        }
+        if { [catch { set fileid [open $file w+] }] } {
+            WarnWin [= "Cannot write file %s. Permission denied" $file].
+            return 0
+        }
+        puts $fileid $filewrite
     }
     if { $fileid != "" } {
-	close $fileid
+        close $fileid
     }
     return 1
 }

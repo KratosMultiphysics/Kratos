@@ -12,24 +12,29 @@
 #
 #        HISTORY:
 #
-#        1.8- 27/05/12- J. Garate, ::KEGroups::listReplace
-#        1.7- 07/05/12- J. Garate, update renaming groups restrictions
-#        1.6- 04/05/12-G. Socorro, update some procedures
-#        1.5- 03/05/12-J. Garate, GiD Groups transfer to .spd // W Child
-#        1.4- 03/05/12-J. Garate, GiD Groups transfer to .spd
-#        1.3- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
-#        1.2- 26/03/12- J. Gárate, Cambio de iconos para AutoGroup
-#        1.1- 26/03/12- J. Gárate, Renombrado de grupos. Ventana de error en el renombrado.
-#        1.0- 22/03/12- J. Gárate, Cambio a funciones públicas de los grupos de GiD. Borrado de funciones de Grupos antiguas, ahora están en OLDKEGROUPS.TCL
-#        0.9- 20/03/12- J. Garate, Renombrado de grupos y actualizacion del arbol tras el evento de renombrado
-#        0.8- 19/03/12- J. Garate, Borrado de grupos y actualizacion del arbol tras el evento de borrado
-#        0.7- 12/03/12- J. Garate AutoGroup arreglado para INSIDE Window
-#        0.6- 12/03/12- J. Garate Adaptacion a los nuevos Grupos de GiD. Pendiente: Eliminar funciones antiguas.
-#        0.5- 7/02/12- J. Garate Actualizada la funcion ::KEGroups::getGroupGiDEntities
-#        0.4- 22/06/11-G. Socorro, delete snit, tdom and xmlstruct from the package require
-#        0.3- 13/05/10-G. Socorro, add the procedure ::KEGroups::RenameGroupIdGiDCond to rename the group identifier in the GiD condition database
-#        0.2- 19/03/10-LCA, Reparar acciones en el arbol (delete masivo, rename, ...) y aumentar el número de niveles a 5
-#        0.1- 01/11/09-G. Socorro, create a base source code from the GiD layer.tcl script
+#        2.3- 13/12/12- J. Garate,  Corrected ::KEGroups::getGroupGiDEntities bug for Model Validation and Transfrer CondGroups to GiD Groups
+#        2.2- 28/11/12- J. Garate,  Corrected bug when transferring old groups to new gid groups, erasing old Cond
+#        2.1- 07/11/12- J. Garate,  ::KEGroups::GroupsToXml is ready to accept New GiD Groups, and modificate the .spd field "Groups modeltype"
+#        2.0- 22/10/12- J. Garate,  Corrected bugs on New GiD_Groups management
+#        1.9- 10/10/12- J. Garate,  Full Adaptation to New GiD_Groups, including corrections and new functions
+#        1.8- 27/05/12- J. Garate,  Creation of ::KEGroups::listReplace function
+#        1.7- 07/05/12- J. Garate,  update renaming groups restrictions
+#        1.6- 04/05/12- G. Socorro, update some procedures
+#        1.5- 03/05/12- J. Garate,  GiD Groups transfer to .spd // W Child
+#        1.4- 03/05/12- J. Garate,  GiD Groups transfer to .spd
+#        1.3- 26/04/12- G. Socorro, change GiD_Groups by Cond_Groups
+#        1.2- 26/03/12- J. Gárate,  Cambio de iconos para AutoGroup
+#        1.1- 26/03/12- J. Gárate,  Renombrado de grupos. Ventana de error en el renombrado.
+#        1.0- 22/03/12- J. Gárate,  Cambio a funciones públicas de los grupos de GiD. Borrado de funciones de Grupos antiguas, ahora están en OLDKEGROUPS.TCL
+#        0.9- 20/03/12- J. Garate,  Renombrado de grupos y actualizacion del arbol tras el evento de renombrado
+#        0.8- 19/03/12- J. Garate,  Borrado de grupos y actualizacion del arbol tras el evento de borrado
+#        0.7- 12/03/12- J. Garate   AutoGroup arreglado para INSIDE Window
+#        0.6- 12/03/12- J. Garate   Adaptacion a los nuevos Grupos de GiD. Pendiente: Eliminar funciones antiguas.
+#        0.5- 07/02/12- J. Garate   Actualizada la funcion ::KEGroups::getGroupGiDEntities
+#        0.4- 22/06/11- G. Socorro, delete snit, tdom and xmlstruct from the package require
+#        0.3- 13/05/10- G. Socorro, add the procedure ::KEGroups::RenameGroupIdGiDCond to rename the group identifier in the GiD condition database
+#        0.2- 19/03/10- Luis CA,    Reparar acciones en el arbol (delete masivo, rename, ...) y aumentar el número de niveles a 5
+#        0.1- 01/11/09- G. Socorro, create a base source code from the GiD layer.tcl script
 #         
 #
 ##############################################################################################
@@ -69,23 +74,39 @@ proc ::KEGroups::GroupsSelectionAssign {entity} {
 }
 
 proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
-    
+
+    # msg $entity
     # Get the condition identifier
-    #set condname [::groupProp::EditSelectionGetConditionId $groupid "Assign"]
+    if {[kipt::NewGiDGroups]} {
     
-	if { [string range $entity 0 6] == "element" } {
-		#WarnWin [= "Element assignation unavailable"]
-		#return ""
-		set condname [string range $entity 8 end]
-		append condname "_groups"
-	} else {
-    
-		if { $entity == "node" } {
-		        set condname "point_groups"
-		} else {
-		        set condname "${entity}_groups"
-		}
-	}
+        # Mapeamos el tipo de entity
+        if {$entity eq "point"} {
+            set entity "Points"
+        } elseif {$entity eq "line"} {
+            set entity "Lines"
+        } elseif {$entity eq "surface"} {
+            set entity "Surfaces"
+        } elseif {$entity eq "volume"} {
+            set entity "Volumes"
+        } elseif {$entity eq "node"} {
+            set entity "Nodes"
+        } else {
+            set entity "Elements"
+        } 
+    } else {
+        if { [string range $entity 0 6] == "element" } {
+            #WarnWin [= "Element assignation unavailable"]
+            #return ""
+            set condname [string range $entity 8 end]
+            append condname "_groups"
+        } else {
+            if { $entity == "node" } {
+                    set condname "point_groups"
+            } else {
+                    set condname "${entity}_groups"
+            }
+        }
+    }
     
 	set OldSmallWinSelecting [GiD_Info variable SmallWinSelecting]
 	if {$OldSmallWinSelecting == 0 } {
@@ -95,23 +116,20 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
 		set SmallWinSelecting 1
 	}
     
-	#set OldSmallWinSelecting $entity
-
-	# set Location $::KMProps::Location
 	#msg $Location
 	#msg $WinPath
-	# ::GidUtils::DisableWarnLine
-	FinishButton $WinPath $WinPath [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
+	FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
 	# Try to assign conditions
-	#::KEGroups::RestoreWindow $WinPath
-	#msg $condname
-	GiD_Process MEscape
-	GiD_Process Data Conditions AssignCond $condname NoRepeatField name
-	GiD_Process change $GroupId
-	#msg "GroupId:  $GroupId   .  condname:$condname \nentity:$entity WinPath:$WinPath"
     
-	# ::GidUtils::EnableWarnLine
-
+    GiD_Process MEscape
+    
+    
+    if {[kipt::NewGiDGroups]} {
+        GiD_Process Utilities EntitiesGroups Assign $GroupId $entity
+    } else {
+        GiD_Process Data Conditions AssignCond $condname NoRepeatField name
+        GiD_Process change $GroupId
+    }
 }
 
 
@@ -134,7 +152,17 @@ proc ::KEGroups::UnFreezeLayers {} {
 	return $frozen_layers
 }
 
-
+proc ::KEGroups::GetStateGeoMesh { entity } {
+    switch $entity {   
+        "point" { return "geometry" }
+        "line" { return "geometry" }
+        "surface" { return "geometry" }
+        "volume" { return "geometry" }
+        "nodes" { return "mesh" }
+        "element" { return "mesh" }
+        "faces" { return "mesh" }
+    }
+}
 
 proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}} {
     
@@ -144,45 +172,45 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
     ::GidUtils::DisableGraphics
     # Store the freeze layers
     set flayerslist [::KEGroups::UnFreezeLayers]
-    # Get the project view mode
-    set PState [GiD_Info Project ViewMode]
-    
-    
-    # Switch state
-    if {($PState == "GEOMETRYUSE")} {
-	
-	set gmid "geometry"
-	
-    } elseif {($PState == "MESHUSE")} {
-	
-	set gmid "mesh"
-    }
     
     # For each GiD group entities
     set EntityIdList {}
     
     
-    if { $givenEntity == "ALL" } {
-    
-	set entities [list point line surface volume]
+    if { $givenEntity eq "ALL" } {
 	
-    } elseif { $givenEntity == "elements" } {
-	    
+        set entities [list point line surface volume node element]
+	
+    } elseif { $givenEntity == "element" } {
+    
 	    set entities [list line surface volume]
 	
+	set entities [list line surface volume]
+	
     } elseif { $givenEntity == "nodes" } {
+	
+    } elseif { $givenEntity == "faces" } {
 	    
-	    set entities "point"
+	    set entities [list line surface]
 	
     } else {
-	    
-	    set entities $givenEntity
+	
+	set entities $givenEntity
     }
     
     foreach entity $entities {
+        if {$givenEntity eq "ALL" } {
+            set gmid [::KEGroups::GetStateGeoMesh $entity]
+        } else {
+            set gmid [::KEGroups::GetStateGeoMesh $givenEntity]
+        }
 		foreach CondProp [GiD_Info conditions ${entity}_groups $gmid] {
 		    lassign $CondProp CId CEId - CGroupId
-		    #WarnWinText "entity : $entity // Cprop: $CondProp // gmid: $gmid"
+            # msg "Entity = $entity"
+            # msg "CId = $CId"
+            # msg "CEId = $CEId"
+		    # msg "entity : $entity // Cprop: $CondProp // gmid: $gmid"
+            
 		    # Update the entities list
 		    if {$CGroupId == $groupId } {
 		
@@ -195,31 +223,62 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
                     return 1
                 }
                 if {$CId == "E" } {
-                lappend EntityIdList $CEId
+                    lappend EntityIdList $CEId
 
                 } else {
                     if {$CId == "N" } {
-                         lappend EntityIdList $CEId
+			lappend EntityIdList $CEId
                     } else {
-                            lappend EntityIdList $CId
+                        if {$givenEntity eq "faces"} {
+                            lappend EntityIdList $CId $CEId
+                        }
                     }
                 }
-		    }
-		}
+	    }
+	}
     }
     
     # Restore the layer state
     ::KEGroups::FreezeLayers $flayerslist
+    
     # Enable graphics
     ::GidUtils::EnableGraphics 
     
     if {$action == "hasEntities" } {
-	    return 0
+	return 0
     }
-    
     return $EntityIdList
 }
 
+proc ::KEGroups::getGroupGiDEntitiesNew {groupId {action ""}} {
+    
+    # Update the link to the GiD condition properties for this group identifier
+
+    # Get the project view mode
+    set PState [GiD_Info Project ViewMode]
+
+    # Switch state
+    if {($PState == "GEOMETRYUSE")} {
+	
+        set gmid "all_geometry"
+	
+    } elseif {($PState == "MESHUSE")} {
+	
+        set gmid "all_mesh"
+    }
+    
+    # For each GiD group entities
+    set EntityList [GiD_EntitiesGroups get $groupId $gmid]
+    #msg " Groups $groupId -> $EntityList"
+    if {$action != ""} {
+        #msg "entro en action no vacio"
+        if { [llength $EntityList] > 0} { 
+            #msg "hay elementos"
+            return 1 
+        } else { return 0 }
+    }
+    return $EntityIdList
+}
 
 #
 ###################################################################################################
@@ -242,25 +301,26 @@ proc ::KEGroups::split2 { x separator } {
 proc ::KEGroups::GetAutomaticGroupName { {auto ""} } {
     
     set name ""
-    set groups [Cond_Groups list]
-    set i 0
-    #foreach grup $KPriv(groupsId) {
-    #msg "group$i:KPriv $grup"
-    #incr $i
-    #}
-    if { [llength $groups] > 0 } {
-	
-	for {set i 1} {$i<10000} {incr i} {
-	    
-	    set name ${auto}Group${i}
-	    if { [lsearch -exact $groups $name] == -1 } { break }
-	}
+    if {[kipt::NewGiDGroups]} {
+        set groups [GiD_Groups list]
     } else {
-	if { $auto == "" } {
-	    set name "Group1"
-	} else {
-	    set name "${auto}Group1"
-	}
+        set groups [Cond_Groups list]
+    }
+    set i 0
+
+    if { [llength $groups] > 0 } {
+        
+        for {set i 1} {$i<10000} {incr i} {
+            
+            set name ${auto}Group${i}
+            if { [lsearch -exact $groups $name] == -1 } { break }
+        }
+    } else {
+        if { $auto == "" } {
+            set name "Group1"
+        } else {
+            set name "${auto}Group1"
+        }
     }
     return $name
 }
@@ -315,24 +375,24 @@ proc ::KEGroups::RenameGroupIdGiDCond {oldgroupid newgroupid} {
 
 		# For each GiD group entities
 		foreach EntityId [list point line surface volume] {
-		        set EntityList [list]
-		        foreach CondProp [GiD_Info conditions ${EntityId}_groups $gmid] {
-		                lassign $CondProp - CEId - CGroupId
-		                # Update the entities list
-		                if { $CGroupId eq $oldgroupid } {
-		                lappend EntityList $CEId
-		                }
-		        }
-		        #WarnWinText "EntityList:$EntityList"
-		        if {[llength $EntityList]} {
-		                # Rename the GiD conditions
-		                # UnAssign condition
-		                eval [list GiD_Process MEscape Data Conditions AssignCond \
-		                ${EntityId}_groups UnAssign Field groupid $oldgroupid] $EntityList escape
-		                # Reassign condition with the new name
-		                GiD_Process MEscape Data Conditions AssignCond ${EntityId}_groups NoRepeatField groupid
-		                eval [list GiD_Process change $newgroupid] $EntityList escape
-		        }
+            set EntityList [list]
+            foreach CondProp [GiD_Info conditions ${EntityId}_groups $gmid] {
+                lassign $CondProp - CEId - CGroupId
+                # Update the entities list
+                if { $CGroupId eq $oldgroupid } {
+                lappend EntityList $CEId
+                }
+            }
+            #WarnWinText "EntityList:$EntityList"
+            if {[llength $EntityList]} {
+                # Rename the GiD conditions
+                # UnAssign condition
+                eval [list GiD_Process MEscape Data Conditions AssignCond \
+                ${EntityId}_groups UnAssign Field groupid $oldgroupid] $EntityList escape
+                # Reassign condition with the new name
+                GiD_Process MEscape Data Conditions AssignCond ${EntityId}_groups NoRepeatField groupid
+                eval [list GiD_Process change $newgroupid] $EntityList escape
+            }
 		}
 		# Switch state
 		if {($PState == "GEOMETRYUSE") && ($gmid == "mesh")} {
@@ -355,21 +415,22 @@ proc ::KEGroups::randomColor { } {
     
     return [format "\#%02x%02x%02x" $r $g $b]
 }
+
 proc ::KEGroups::listReplace {listVariable value {newVal ""}} {
     
     set idx [lsearch -exact $listVariable $value]
     
     if { $idx != -1 } {
-	
-	if { $newVal == "" } { 
-	    return [lreplace $listVariable $idx $idx]
-	} else {
-	    return [lreplace $listVariable $idx $idx $newVal]
-	}
+        if { $newVal == "" } { 
+            return [lreplace $listVariable $idx $idx]
+        } else {
+            return [lreplace $listVariable $idx $idx $newVal]
+        }
     } else {
-	return $listVariable
+        return $listVariable
     }
 }
+
 proc ::KEGroups::addGroupId { node groupId } {
     
     global KPriv
@@ -379,17 +440,18 @@ proc ::KEGroups::addGroupId { node groupId } {
     
     if { $groupId == $id } {
 	
-	set childs {$groupId}
-	set descendants [$node descendant all]
-	
-	foreach des $descendants {
-	    lappend childs [$des getAttribute id ""]
-	    #msg [$des getAttribute id ""]
-	}
-	return $childs
+        set childs {$groupId}
+        set descendants [$node descendant all]
+        
+        foreach des $descendants {
+            lappend childs [$des getAttribute id ""]
+            #msg [$des getAttribute id ""]
+        }
+        return $childs
     }
     return {}
 }
+
 ## Transfer GROUPS to .spd
 proc ::KEGroups::GroupsToXml { } {
 
@@ -397,15 +459,27 @@ proc ::KEGroups::GroupsToXml { } {
 
 	set xpath "/Kratos_Data/Groups"
 	set basenode [$KPriv(xmlDoc) selectNodes $xpath]
+    
 	foreach child [$basenode childNodes] {
-	 $child delete
-     }
-	set GiDGroups [Cond_Groups list]
+        $child delete
+    }
+    if {[kipt::NewGiDGroups]} {
+        # msg "New GiD Groups"
+        set grw "GiD_Groups"
+        ::xmlutils::setXml $xpath "modeltype" "write" "GiD" "props" 1
+    } else {
+        # msg "Cond Groups"
+        set grw "Cond_Groups"
+        ::xmlutils::setXml $xpath "modeltype" "write" "Cond" "props" 1
+    }
+    
+    set GiDGroups [$grw list]
 	foreach group $GiDGroups {
 		set lgroup [split $group //]
 		set path [::KEGroups::nodePath $group]
-		set color [Cond_Groups get color $group]
-		set state [Cond_Groups get visible $group]
+		#set color [$grw get color $group]
+		set color [::KEGroups::randomColor]
+		set state [$grw get visible $group]
 		::KEGroups::insertgroupXml $path $group $color $state 
 	}
 }
@@ -414,14 +488,13 @@ proc ::KEGroups::insertgroupXml { path id color state } {
     
     global KPriv
     
-    #$KPriv(xmlDoc) lappend "$xpath/Group id=\"$id\" color=\"$color\" state=\"$state\" " ""
     set basenode [$KPriv(xmlDoc) selectNodes $path]
     if { $basenode != "" } {
 	    set id [lindex [split $id //] end]
 	    $basenode appendXML "<Group id=\"$id\" color=\"$color\" state=\"$state\" type=\"Generic\"/>"
     } else {
     
-	}        
+	}
 }
 
 proc ::KEGroups::nodePath { group } {
@@ -437,7 +510,7 @@ proc ::KEGroups::nodePath { group } {
 		        set path "$path/Group\[@id='$gr'\]"
 		    }
 		}
-	}        
+	}
 	
 	return $path
 }
@@ -467,7 +540,6 @@ proc ::KEGroups::setGroupsXPath { path } {
 	
 	set xpath "$xpath/Group\[@id='[lindex $splitted 4]'\]"
     }
-
     return $xpath
 }
 
@@ -478,27 +550,27 @@ proc ::KEGroups::BorraGrupo { name } {
     set deletinglist [::KMProps::findGroups $name]
     #msg "deleting $deletinglist"
     if { $deletinglist != 0 } {
-	#wa "si-2"
-	if { [::KEGroups::CheckGroup $name "delete"] != "-cancel-" } {
-	    if { [winfo exists $::KMProps::WinPath] } {
-		foreach { fullname T item } $deletinglist {
-		    
-		    #Elimina el grupo del xml
-		    ::xmlutils::unsetXml $fullname
-		    #Elimina el grupo del árbol
-		    ::KMProps::deleteItem $T $item
-		    
-		}
-		::KMProps::RefreshTree $T
-	    } else {
-		foreach { node } $deletinglist {
-		    $node delete
-		    
-		}
-	    }
-	} else {
-	    return "-cancel-"
-	}
+        #wa "si-2"
+        if { [::KEGroups::CheckGroup $name "delete"] != "-cancel-" } {
+            if { [winfo exists $::KMProps::WinPath] } {
+            foreach { fullname T item } $deletinglist {
+                
+                #Elimina el grupo del xml
+                ::xmlutils::unsetXml $fullname
+                #Elimina el grupo del árbol
+                ::KMProps::deleteItem $T $item
+                
+            }
+            ::KMProps::RefreshTree $T
+            } else {
+                foreach { node } $deletinglist {
+                    $node delete
+                    
+                }
+            }
+        } else {
+            return "-cancel-"
+        }
     }
 }
 
@@ -526,19 +598,18 @@ proc ::KEGroups::RenombraGrupo { oldname newname validation } {
 		global KPriv
 		#msg "editing $editinglist"
 		if { $editinglist != 0 } {
-		        if { [winfo exists $::KMProps::WinPath] } {
-		            foreach { fullname T item } $editinglist {
-
-		                ::xmlutils::setXml $fullname pid "write" $newname
-		                ::xmlutils::setXml $fullname id "write" $newname
-		            }
-		                ::KMProps::RefreshTree $T
-		        } else {
-		            foreach { node } $editinglist {
-		                $node setAttribute pid $newname
-		                $node setAttribute id $newname
-		            }
-		        }
+            if { [winfo exists $::KMProps::WinPath] } {
+                foreach { fullname T item } $editinglist {
+                    ::xmlutils::setXml $fullname pid "write" $newname
+                    ::xmlutils::setXml $fullname id "write" $newname
+                }
+                    ::KMProps::RefreshTree $T
+            } else {
+                foreach { node } $editinglist {
+                    $node setAttribute pid $newname
+                    $node setAttribute id $newname
+                }
+            }
 		} 
 	}
 }
@@ -551,17 +622,17 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
     set newtext [::KUtils::parseTreeStr $newname]
     
     if { $newname == ""} {  
-	append errlist "You can not choose an empty group name."
-	set ret 0
+        append errlist "You can not choose an empty group name."
+        set ret 0
     } elseif { $newtext == -1 } {
-	append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
-	set ret 0
+        append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
+        set ret 0
     } elseif { [::KEGroups::isValidGroupName $newname] != 1} {
-	append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
-	set ret 0
+        append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
+        set ret 0
     }
     if { $ret == 0 } {
-	::KEGroups::ErrorRenameWindow $oldname $newname $errlist
+        ::KEGroups::ErrorRenameWindow $oldname $newname $errlist
     }
     return $ret
 }
@@ -589,13 +660,12 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	grid [ttk::label $qq.main.ask -text "Please choose a new name: "] -sticky nswe -pady 2 -padx 2 -column 0 -row 1
 	grid [ttk::entry $qq.main.ent -textvariable KPriv(newnewname) -validate key] -sticky nswe -pady 2 -padx 2 -column 1 -row 1
 	grid [ttk::button $qq.main.ok -text "Ok" -command [list ::KEGroups::AuxRenameGroup $oldname $newname $qq] ] -sticky nswe -pady 2 -padx 2 -ipady 2 -column 1 -row 2
-	bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]        
-
+	bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]
 }
 
  proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
 	global KPriv
-	if { $KPriv(newnewname) == ""} {  
+	if { $KPriv(newnewname) == ""} {
 		set Kpriv(grnamerror) "Choose a valid name"
 		
 	} elseif { [::KEGroups::isValidGroupName $KPriv(newnewname)] != 1} {
@@ -605,9 +675,14 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 		set Kpriv(grnamerror) "Group name already exists"
 		
 	} else {
-		set valid 0
+        set valid 0
+            
+        if {[kipt::NewGiDGroups]} {
+            GiD_Groups edit rename $newname $KPriv(newnewname)
+        } else {
+            Cond_Groups edit rename $newname $KPriv(newnewname)
+        }
 		
-		Cond_Groups edit rename $newname $KPriv(newnewname)
 		::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
 		
 		catch {destroy $qq}
@@ -617,6 +692,125 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	if { [winfo exists  $qq.main.warn] } {
 		catch {destroy  $qq.main.warn}
 	}
-		grid [ttk::label $qq.main.warn -text $Kpriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
-		$qq.main.warn configure -foreground red
+    grid [ttk::label $qq.main.warn -text $Kpriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
+    $qq.main.warn configure -foreground red
+}
+
+proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
+    # Transfers from Cond_Groups -> GiD_Groups (&entities), deleting the old ones
+    global KPriv
+    
+    set oldGroupList [Cond_Groups list]
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+        set oldvar $::KPriv(Groups,DeleteGroup)
+        set ::KPriv(Groups,DeleteGroup) 0
+    }
+    
+    foreach oldGr $oldGroupList {
+        set GiDGroups [GiD_Groups list]
+        if {$oldGr in $GiDGroups} {
+            # First, create the new groups with the old data
+            GiD_Groups delete $oldGr
+        }
+        #set clr [Cond_Groups get color $oldGr]
+        set state [Cond_Groups get visible $oldGr]
+        GiD_Groups create $oldGr
+        #GiD_Groups edit color $oldGr $clr
+        GiD_Groups edit visible $oldGr $state
+        
+        # Then we fill the new group with the old group's conditions
+        foreach entity [list point line surface volume nodes element faces] {
+            set entityList [::KEGroups::getGroupGiDEntities $oldGr $entity ]
+            # msg "Group $oldGr"
+            # msg "Entity $entity"
+            # msg "EntityList $entityList"
+            # msg "\n"
+           
+            if {[llength $entityList]} {
+                if {$entity eq "faces"} {
+                    set elemIdList ""
+                    set faceIdList ""
+                    foreach {EID FID} $entityList {
+                        lappend elemIdList $EID
+                        lappend faceIdList $FID
+                    }
+                    set entityList [list $elemIdList $faceIdList]
+                }
+                GiD_EntitiesGroups assign $oldGr $entity $entityList
+            }
+        }
+        
+        # Finally we can delete from the Old Group's System
+        
+        #msg $oldGr
+        Cond_Groups delete $oldGr
+        #msg $oldGr
+        }
+    
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+     set ::KPriv(Groups,DeleteGroup) $oldvar
+    }
+}
+
+proc ::KEGroups::TransferGiDGroupstoCondGroups { { what "all" } } {
+    # Transfers from GiD_Groups -> Cond_Groups (&entities)
+
+    global KPriv
+    
+    set oldGroupList [GiD_Groups list]
+    set condgrouplist [Cond_Groups list]
+    
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+        set oldvar $::KPriv(Groups,DeleteGroup)
+        set ::KPriv(Groups,DeleteGroup) 0
+    }
+    
+    foreach oldGr $oldGroupList {
+    
+        if {$oldGr in $condgrouplist} {
+            Cond_Groups delete $oldGr
+        }
+        
+		#set clr [Cond_Groups get color $oldGr]
+		set state [GiD_Groups get visible $oldGr]
+        Cond_Groups create $oldGr
+        #GiD_Groups edit color $oldGr $clr
+        Cond_Groups edit visible $oldGr $state
+        
+        # Then we fill the new group with the old group's conditions
+        foreach entity [list elements nodes] {
+		    set entityList [GiD_EntitiesGroups get $oldGr $entity]
+            if {$entityList != ""} {
+                set entidad [append entity "_groups"]
+##                 msg "entidad $entidad , grupo $oldGr , lista $entityList"
+ #                 msg "Group $oldGr"
+ #                 msg "Entity $entidad"
+ #                 msg "EntityList $entityList"
+ #                 msg " "
+ ##
+                eval [GiD_Process MEscape Data Conditions AssignCond $entidad NoRepeatField name Change $oldGr $entityList MEscape]
+                #msg [::KEGroups::getGroupGiDEntities $oldGr $entity]
+            }
+        }
+    }
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+        set ::KPriv(Groups,DeleteGroup) $oldvar
+    }
+}
+
+proc ::KEGroups::DestroyOldCondGroups { } {
+    # Destruye todos los grupos antiguos
+    
+    global KPriv
+    set oldGroupList [Cond_Groups list]
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+        set oldvar $::KPriv(Groups,DeleteGroup)
+        set ::KPriv(Groups,DeleteGroup) 0
+    }
+    foreach oldGr $oldGroupList {
+        Cond_Groups delete $oldGr
+    }
+    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
+        set ::KPriv(Groups,DeleteGroup) $oldvar
+    }
 }

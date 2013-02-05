@@ -14,20 +14,22 @@
 #
 #        HISTORY:
 #
-#       1.4- 09/10/12- G. Socorro, add the proc GetPropertyElemType 
-#		1.3- 03/10/12.J. Garate, Update ::xmlutils::UpdateSpd
-#		1.2- 01/10/12-J. Garate, Enable/disable Curves Module
-#		1.1- 20/09/12-J. Garate, Adaptacion de más funciones para las creacion / edicion de curvas 
-#		1.0- 20/07/12-J. Garate, Adaptacion de más funciones para los Tabs de Materiales 
-#		0.9- 19/07/12-J. Garate, Adaptacion de funciones para los Tabs de Materiales (MyPathFromNode, parentNodePath, setXML, getXMLvalues)
-#		0.8- 04/06/12-J. Garate, Template select when transferring user materials
-#		0.7- 27/05/12-J. Garate, ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
-#		0.6- 04/05/12-J. Garate, cambio en el log
-#		0.5- 26/04/12-J. Garate, ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
-#		0.4- 27/02/12-J. Garate, Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
-#		0.3- 03/09/10-G. Socorro, correct an error with outfd
-#		0.2- 24/12/09-G. Socorro, add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
-#		0.1- 01/11/09-G. Socorro, create a base source code
+#       1.6- 13/12/12- J. Garate,   Modification on UpdateSpd. If an Item or Container is hidden at Default.spd, keep it hidden.
+#       1.5- 07/11/12- J. Garate,   Modification on ::xmlutils::setXml to accept xpath or path as parameter
+#       1.4- 09/10/12- G. Socorro,  add the proc GetPropertyElemType 
+#		1.3- 03/10/12- J. Garate,   Update ::xmlutils::UpdateSpd
+#		1.2- 01/10/12- J. Garate,   Enable/disable Curves Module
+#		1.1- 20/09/12- J. Garate,   Adaptacion de más funciones para las creacion / edicion de curvas 
+#		1.0- 20/07/12- J. Garate,   Adaptacion de más funciones para los Tabs de Materiales 
+#		0.9- 19/07/12- J. Garate,   Adaptacion de funciones para los Tabs de Materiales (MyPathFromNode, parentNodePath, setXML, getXMLvalues)
+#		0.8- 04/06/12- J. Garate,   Template select when transferring user materials
+#		0.7- 27/05/12- J. Garate,   ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
+#		0.6- 04/05/12- J. Garate,   cambio en el log
+#		0.5- 26/04/12- J. Garate,   ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
+#		0.4- 27/02/12- J. Garate,   Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
+#		0.3- 03/09/10- G. Socorro,  correct an error with outfd
+#		0.2- 24/12/09- G. Socorro,  add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
+#		0.1- 01/11/09- G. Socorro,  create a base source code
 #
 ###############################################################################
 
@@ -503,16 +505,20 @@ proc ::xmlutils::checkSpdVersion { filename } {
     
     #Comprobamos en los settings del proyecto si es necesario validar la versión
 	set validateSPD [::kps::getConfigValue "CheckSpdVersion"]
-	#msg "validateSPD: $validateSPD"
+    
+	# msg "validateSPD: $validateSPD"
 	if { !$validateSPD } {
-		
+    
 		return 0
 	}
 	
 	#Comprobamos las versiones
 	set pTypeVersion [::xmlutils::xmlVersion]
 	set defaultVersion [::xmlutils::xmlVersion $xmlDef]
-		
+    
+    # msg "pTypeVersion $pTypeVersion"
+    #msg "defaultVersion $defaultVersion"
+    
 	if {$pTypeVersion != $defaultVersion} { 
         return 1
     }
@@ -522,16 +528,16 @@ proc ::xmlutils::checkSpdVersion { filename } {
 proc ::xmlutils::UpdateSpd {filename {outputDisplay 1} {outputLog 1}} {
     global KPriv
 	
-	#Abrimos el spd default
+    # Abrimos el spd default
 	set xmlFileDefault "$KPriv(dir)/kratos_default.spd"
 	set xmlArray [::xmlutils::openFile "." "$xmlFileDefault"]
 	set xmlDef [lindex $xmlArray 0]
 	set encrXmlDef [lindex $xmlArray 1]
 	
-	#Este es el xml del modelo actual
+	# Este es el xml del modelo actual
 	set xmlOld $KPriv(xml)
 
-    #msg [$xmlOld asXML]
+    # msg [$xmlOld asXML]
     variable logChanges {}
 		
     set xmlDocNew [dom parse [$xmlDef asXML]]
@@ -547,6 +553,7 @@ proc ::xmlutils::UpdateSpd {filename {outputDisplay 1} {outputLog 1}} {
         set aviso [= "This model version it is older than the problem type one. The file: \n '$filename'\n it is going to be updated.\n A back-up of the original file will be generated."]
         msg $aviso
     }
+    
     #--------------------------------------------------------------------
     # RECORRER TODOS LOS NODOS COMPROBANDO EL VALOR DV (tb open y state)
     #--------------------------------------------------------------------
@@ -583,7 +590,9 @@ proc ::xmlutils::UpdateSpd {filename {outputDisplay 1} {outputLog 1}} {
         # Cada node aux es un nodo del documento auxiliar que utilizamos para recorrer por partes
         foreach nodeAux $nodes {
 
-            set attributes [list state dv open]
+            #set attributes [list state dv open]
+            # If an Item or Container is hidden at Default.spd, keep it hidden
+            set attributes [list dv open]
             foreach att $attributes {
 
                 #Si tiene dv actualizamos su valor
@@ -1145,13 +1154,16 @@ proc ::xmlutils::setXPath { path { type "props"} } {
 # Editar o extraer propiedades del xml en memoria
 #
 
-proc ::xmlutils::setXml { path property {command "read"} {value ""} {type "props"} } {
+proc ::xmlutils::setXml { path property {command "read"} {value ""} {type "props"} {xpathvar 0} } {
 
 	global KPriv
 	#msg "path $path Property $property Command $command value $value type $type"
 	if { $type == "props" } {
-		set xpath "[::xmlutils::setXPath $path]"
-		
+        if {$xpathvar} {
+            set xpath $path
+        } else {
+            set xpath "[::xmlutils::setXPath $path]"
+		}
 		if { $command == "read" } {
 
 			set value [$KPriv(xml) set "$xpath/@$property" ]

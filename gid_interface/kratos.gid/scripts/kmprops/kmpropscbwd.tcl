@@ -12,8 +12,9 @@
 #  CREATED AT: 29/03/2012
 #
 #  HISTORY:
-# 
-#   0.6- 09/10/12-G. Socorro, update others procs to include the cross property functionality
+#
+#   0.7- 13/12/12- J. Garate, add a message for the "PFEM" fluid case on old versions (11.1.2d)
+#   0.6- 09/10/12- G. Socorro, update others procs to include the cross property functionality
 #   0.5- 03/10/12- GSM, add a message for the "Compressible" fluid case
 #   0.4- 27/09/12- J.Garate, Change combo's size
 #   0.3- 23/09/12- GSM, update the proc specialComboAction to disabled FSI application
@@ -409,25 +410,37 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
     }
     
     foreach var $::KMProps::visibilityVars {
-	
-	if {$var == $clase} {
-	    
-	    # General case
-	    if { [set ::KMProps::$var] != "$selCombo" } {
-		set ::KMProps::$var $selCombo
-		#msg "var$var"
-	    }
-	    
-	    # Special cases
-	    if { $var == "fluidType" } {
-		if {$selCombo == "Compressible" } {
-		    set txt [= "Compressible fluids are not available in this version"]   
-		    WarnWin "$txt."
-		    set fullname [DecodeName [$T item tag names $item]]
-		    ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
-		} 
-	    } 
-	}
+        # msg "var $var"
+        if {$var == $clase} {
+            
+            # General case
+            if { [set ::KMProps::$var] != "$selCombo" } {
+                set ::KMProps::$var $selCombo
+                #msg "var$var"
+            }
+            
+            # Special cases
+            # Compressible Fluids
+            if { $var == "fluidType" } {
+                if {$selCombo == "Compressible" } {
+                    set txt [= "Compressible fluids are not available in this version"]   
+                    WarnWin "$txt."
+                    set fullname [DecodeName [$T item tag names $item]]
+                    ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
+                } 
+            } 
+            # PFEM restricted to GiD versions older than 11.1.2d
+            if { $var == "fluidAppr" } {
+                if {$selCombo == "PFEM-Lagrangian" } {
+                    if {![kipt::NewGiDGroups] } {
+                        set txt [= "PFEM is not available in this version.\nYou need the GiD version 11.1.2d or higher."]   
+                        WarnWin "$txt."
+                        set fullname [DecodeName [$T item tag names $item]]
+                        ::xmlutils::setXml "$fullname" dv "write" "Eulerian"
+                    }
+                } 
+            } 
+        }
     }
     return ""
 }

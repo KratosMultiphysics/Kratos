@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.5- 10/10/12-J. Garate, Adaptation for New GiD Groups, Autogroup Frame Bug Corrected when assigning entities
 #   0.4- 01/10/12-J. Garate, Deleting group function corrected
 #   0.3- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups
 #   0.2- 02/04/12-G. Socorro, correct a bug with the combobox path (update the autoNewGroup proc)
@@ -26,7 +27,12 @@
 
 
 proc ::KMProps::changeGroups { entityList f {fullname ""} } {
-    set valores [Cond_Groups list]
+    
+    if {[kipt::NewGiDGroups]} {
+        set valores [GiD_Groups list]
+    } else {
+        set valores [Cond_Groups list]
+    }
     #set valores [::KMProps::getGroups $entityList $fullname]
     $f configure -values $valores
     
@@ -40,21 +46,26 @@ proc ::KMProps::changeGroups { entityList f {fullname ""} } {
 }
 
 proc ::KMProps::cmbChangeCheckGroups { f } {
-    #
+
     global KPriv
     #msg "entro a cambio de grupos"
     if { [winfo exists $f.cGroups] } {
-	set Groups [Cond_Groups list]
-	if { [llength $Groups] } {
-	    
-	    $f.cGroups configure -values $Groups
-	    if { $::KMProps::selGroup ni $Groups} {
-		set ::KMProps::selGroup [lindex $Groups 0]
-	    }
-	} else {
-	    $f.cGroups configure -values {}
-	    set ::KMProps::selGroup ""
-	}
+        if {[kipt::NewGiDGroups]} {
+            set Groups [GiD_Groups list]
+        } else {
+            set Groups [Cond_Groups list]
+        }
+        
+        if { [llength $Groups] } {
+            
+            $f.cGroups configure -values $Groups
+            if { $::KMProps::selGroup ni $Groups} {
+            set ::KMProps::selGroup [lindex $Groups 0]
+            }
+        } else {
+            $f.cGroups configure -values {}
+            set ::KMProps::selGroup ""
+        }
     }
 }
 
@@ -85,50 +96,36 @@ proc ::KMProps::getGroups { entityList {fullname ""}} {
     }
     
     set grupos {}
-    
-    foreach groupId [Cond_Groups list] {
-	foreach entity $entityList {
-	    if { [::KEGroups::getGroupGiDEntities $groupId $entity "hasEntities"] } {
-		if { !( $groupId in $grupos) } {
-		    lappend grupos $groupId
-		}
-	    }
-	}
+    if {[kipt::NewGiDGroups]} {
+        set grw "GiD_Groups"
+    } else {
+        set grw "Cond_Groups"
+    }
+    foreach groupId [$grw list] {
+        foreach entity $entityList {
+            if { [::KEGroups::getGroupGiDEntities $groupId $entity "hasEntities"] } {
+            if { !( $groupId in $grupos) } {
+                lappend grupos $groupId
+            }
+            }
+        }
     }
     
-    #foreach groupId $KPriv(groupsId) {
-    #set gEntities [::KEGroups::getAssignedGiDEntities $groupId]
-    #set geomEntities [lindex $gEntities 0]
-    #foreach "points lines surfaces volumes" $geomEntities {
-    #        
-    #        # Si el grupo tiene alguna de esas entidades asignadas lo añadirá al combo
-    #        if { "point" in $entityList && [llength $points] } {
-    #        lappend grupos $groupId
-    #        } elseif {"line" in $entityList && [llength $lines] } {
-    #        lappend grupos $groupId
-    #        } elseif {"surface" in $entityList && [llength $surfaces] } {
-    #        lappend grupos $groupId
-    #        } elseif {"volume" in $entityList && [llength $volumes] } {
-    #        lappend grupos $groupId
-    #        }
-    #}
-    #}
     
     if {$fullname != ""} {
 	
-	#Eliminamos de la lista los grupos ya asignados a esta propiedad
-	set assignedGroups [::xmlutils::setXmlContainerIds $fullname]
-	foreach g $assignedGroups {
-	    if { $g != $::KMProps::selGroup } {
-		set grupos [::KEGroups::listReplace $grupos $g]
-	    }
-	}
+        #Eliminamos de la lista los grupos ya asignados a esta propiedad
+        set assignedGroups [::xmlutils::setXmlContainerIds $fullname]
+        foreach g $assignedGroups {
+            if { $g != $::KMProps::selGroup } {
+            set grupos [::KEGroups::listReplace $grupos $g]
+            }
+        }
     }
     return $grupos
 }
 
-proc ::KMProps::autoNewGroup { id } {
-    variable NbPropsPath; variable winpath
+proc ::KMProps::autoNewGroup { id fpath } {
     variable selGroup
     global KPriv
     
@@ -136,12 +133,15 @@ proc ::KMProps::autoNewGroup { id } {
     
     # Assign the selected group identifier
     set selGroup $GroupId 
-   
-    # Create the new group
-    Cond_Groups create $GroupId
     
+    # Create the new group
+    if {[kipt::NewGiDGroups]} {
+        GiD_Groups create $GroupId
+    } else {
+        Cond_Groups create $GroupId
+    }
     # Selection the entities to be assigned
-    ::KEGroups::SelectionAssign $::KMProps::selectedEntity $GroupId $winpath
+    ::KEGroups::SelectionAssign $::KMProps::selectedEntity $GroupId $fpath
     
     # Ponemos el foco en la ventana de propiedades
     #focus $winpath
@@ -155,121 +155,126 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
     set grupo $selGroup
     
     if { $grupo == "" } {
-	WarnWin [= "You have to choose one group\n (you can create a new one pushing the button on the right)"]
+        WarnWin [= "You have to choose one group\n (you can create a new one pushing the button on the right)"]
     } else {
-	
-	#Primero comprobamos q el grupo aun no exista
-	set id [::xmlutils::setXml "$fullname//c.$grupo" id]
-	
-	if { $id != "" } {
-	    
-	    WarnWin [= "This group it is already assigned to this condition."]
-	} else {
-	    
-	    #Validamos que haya alguna propiedad seleccionada
-	    if {[info exists ::KMProps::cmbProperty]} {
-		if {$::KMProps::cmbProperty == "" } {
-		    WarnWin [= "You must define a Property before!"]
-		    return ""
-		}
-	    }
-	    
-	    #Comprobamos que el grupo no sea un AutoGroup sin entidades
-	    ::KMProps::changeGroups $entityList $fGroups
-	    if { $::KMProps::selGroup == "" } {
-		return ""
-	    }
-	    
-	    set template [::KMProps::copyTemplate ${idTemplate} $fullname "$grupo" "Group"]
-	    #Validamos que haya algún combo de "properties" en el template
-	    if {[string match "*GCV=\"Properties*" $template]} {
-		
-		#Miramos si hay alguna propiedad dada de alta (si la hay,obligatoriamente estará seleccionada)
-		set props [::xmlutils::setXmlContainerIds "[::KMProps::getApplication $fullname]//c.Properties"]
-		if { [llength $props] < 1 } {
-		    WarnWin [= "You must define a Property before."]
-		    #::KMProps::deleteProps $T $itemSel $newPropertyName
-		    return  ""
-		}
-	    }
-	    
-	    
-	    #
-	    # Ahora debemos actualizar todos los valores en el xml
-	    #
-	    set fBottom ${NbPropsPath}.fBottom
-	    
-	    if {[llength $listT] >= 1 } {
-		
-		#Lista de listas con formato {idContainer idItem1 idItem2...}
-		foreach listContainer $listT {
-		    
-		    #Si tiene como mínimo el container y un item entramos
-		    if {[llength $listContainer] >= 2} {
-		        
-		        set idContainer [lindex $listContainer 0]
-		        
-		        #set id [::KMProps::getPropTemplate $idTemplate id $idContainer]
-		        
-		        #Recorremos los items
-		        for {set i 1} { $i < [llength $listContainer] } {incr i} {
-		            
-		            set id [lindex $listContainer $i]
-		            
-		            #Cuando tengamos nodos ocultos o incompatibles la variable no existirá
-		            if {[info exists ::KMProps::cmb$id]} {
-		                
-		                set fullNombre "$fullname//c.$grupo//c.$idContainer//i.$id"
-		                
-		                set f "${fBottom}.nb.f${idContainer}.cmb${id}"
-		                
-		                if { [winfo exists $f] } {
-		                    
-		                    if { [$f cget -state] == "readonly" } {
-		                        
-		                        set value [::xmlutils::getComboDv $f $fullNombre]
-		                    } else {
-		                        
-		                        set value [set ::KMProps::cmb$id]                                                                          
-		                    }
-		                    
-		                    if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
-		                        
-		                        set activeId "A[string range $id 1 1]"
-		                        set fullActive "$fullname//c.$grupo//c.Activation//i.$activeId"
-		                        set active [::xmlutils::setXml $fullActive dv "read"]
-		                        
-		                        if { $active == 0 } {
-		                            ::xmlutils::setXml $fullNombre state "write" "disabled"
-		                        } else {
-		                            ::xmlutils::setXml $fullNombre state "write" "normal"
-		                        }
-		                    }
-		                    #Comprobamos si el combo tiene una función asignada
-		                    set function [::xmlutils::setXml $fullNombre function]
-		                    if { $function != "" && [$f cget -state] == "disabled"} {
-		                        
-		                        ::xmlutils::setXml $fullNombre function "write" 1
-		                        ::xmlutils::setXml $fullNombre state "write" "disabled"
-		                    } 
-		                    
-		                    #Guarda el nuevo valor en el xml
-		                    ::xmlutils::setXml $fullNombre dv "write" $value
-		                }
-		            }
-		        }
-		    }
-		}
-	    }
+        
+        #Primero comprobamos q el grupo aun no exista
+        set id [::xmlutils::setXml "$fullname//c.$grupo" id]
+        
+        if { $id != "" } {
+            
+            WarnWin [= "This group it is already assigned to this condition."]
+        } else {
+            
+            #Validamos que haya alguna propiedad seleccionada
+            if {[info exists ::KMProps::cmbProperty]} {
+            if {$::KMProps::cmbProperty == "" } {
+                WarnWin [= "You must define a Property before!"]
+                return ""
+            }
+            }
+            
+            #Comprobamos que el grupo no sea un AutoGroup sin entidades
+            ::KMProps::changeGroups $entityList $fGroups
+            if { $::KMProps::selGroup == "" } {
+            return ""
+            }
+            
+            set template [::KMProps::copyTemplate ${idTemplate} $fullname "$grupo" "Group"]
+            #Validamos que haya algún combo de "properties" en el template
+            if {[string match "*GCV=\"Properties*" $template]} {
+            
+            #Miramos si hay alguna propiedad dada de alta (si la hay,obligatoriamente estará seleccionada)
+            set props [::xmlutils::setXmlContainerIds "[::KMProps::getApplication $fullname]//c.Properties"]
+            if { [llength $props] < 1 } {
+                WarnWin [= "You must define a Property before."]
+                #::KMProps::deleteProps $T $itemSel $newPropertyName
+                return  ""
+            }
+            }
+            
+            
+            #
+            # Ahora debemos actualizar todos los valores en el xml
+            #
+            set fBottom ${NbPropsPath}.fBottom
+            
+            if {[llength $listT] >= 1 } {
+            
+            #Lista de listas con formato {idContainer idItem1 idItem2...}
+            foreach listContainer $listT {
+                
+                #Si tiene como mínimo el container y un item entramos
+                if {[llength $listContainer] >= 2} {
+                    
+                    set idContainer [lindex $listContainer 0]
+                    
+                    #set id [::KMProps::getPropTemplate $idTemplate id $idContainer]
+                    
+                    #Recorremos los items
+                    for {set i 1} { $i < [llength $listContainer] } {incr i} {
+                        
+                        set id [lindex $listContainer $i]
+                        
+                        #Cuando tengamos nodos ocultos o incompatibles la variable no existirá
+                        if {[info exists ::KMProps::cmb$id]} {
+                            
+                            set fullNombre "$fullname//c.$grupo//c.$idContainer//i.$id"
+                            
+                            set f "${fBottom}.nb.f${idContainer}.cmb${id}"
+                            
+                            if { [winfo exists $f] } {
+                                
+                                if { [$f cget -state] == "readonly" } {
+                                    
+                                    set value [::xmlutils::getComboDv $f $fullNombre]
+                                } else {
+                                    
+                                    set value [set ::KMProps::cmb$id]                                                                          
+                                }
+                                
+                                if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
+                                    
+                                    set activeId "A[string range $id 1 1]"
+                                    set fullActive "$fullname//c.$grupo//c.Activation//i.$activeId"
+                                    set active [::xmlutils::setXml $fullActive dv "read"]
+                                    
+                                    if { $active == 0 } {
+                                        ::xmlutils::setXml $fullNombre state "write" "disabled"
+                                    } else {
+                                        ::xmlutils::setXml $fullNombre state "write" "normal"
+                                    }
+                                }
+                                #Comprobamos si el combo tiene una función asignada
+                                set function [::xmlutils::setXml $fullNombre function]
+                                if { $function != "" && [$f cget -state] == "disabled"} {
+                                    
+                                    ::xmlutils::setXml $fullNombre function "write" 1
+                                    ::xmlutils::setXml $fullNombre state "write" "disabled"
+                                } 
+                                
+                                #Guarda el nuevo valor en el xml
+                                ::xmlutils::setXml $fullNombre dv "write" $value
+                            }
+                        }
+                    }
+                }
+            }
+            }
 
-	    #Destruimos el frame inferior
-	    ::KMProps::DestroyBottomFrame
-	    
-	    ::KMProps::RefreshTree $T
-	    
-	    $T selection add $item
-	    $T item expand $item
-	}
+            #Destruimos el frame inferior
+            ::KMProps::DestroyBottomFrame
+            
+            ::KMProps::RefreshTree $T
+            
+            $T selection add $item
+            $T item expand $item
+            if {[kipt::NewGiDGroups]} {
+                    GiD_Groups window open
+                } else {
+                    Cond_Groups window open
+            }
+        }
     }
 }
 
