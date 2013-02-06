@@ -329,7 +329,7 @@ namespace Kratos {
 	 grad_t[0] = DN_DX(0,0) * temp_cup;
 	 grad_t[1] = DN_DX(0,1) * temp_cup;	 
 	 
-	for( int ii=1; ii < number_of_nodes; ++ii)
+	for( unsigned int ii=1; ii < number_of_nodes; ++ii)
 	{	
 	   temp_cup = GetGeometry()[ii].FastGetSolutionStepValue(temperature);
 	   grad_t[0] += DN_DX(ii,0) * temp_cup;

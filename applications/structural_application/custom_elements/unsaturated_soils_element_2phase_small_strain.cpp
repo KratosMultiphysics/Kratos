@@ -1229,17 +1229,17 @@ void UnsaturatedSoilsElement_2phase_SmallStrain::CalculateStiffnesMatrixUW( Matr
 
     Vector gravity( dim );
 
-    double density_soil = 0.0;
+    // double density_soil = 0.0;
 
     if ( GetValue( USE_DISTRIBUTED_PROPERTIES ) )
     {
         noalias( gravity ) = GetValue( GRAVITY );
-        density_soil = GetValue( DENSITY );
+        //density_soil = GetValue( DENSITY );
     }
     else
     {
         noalias( gravity ) = GetProperties()[GRAVITY];
-        density_soil = GetProperties()[DENSITY];
+        //density_soil = GetProperties()[DENSITY];
     }
     double density_water = GetValue( DENSITY_WATER );
     double density_air = GetValue( DENSITY_AIR );

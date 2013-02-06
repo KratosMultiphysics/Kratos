@@ -111,8 +111,8 @@ namespace Kratos
 			  Check();
 			  double max_distance = 0.00;
 			  double min_distance = -1.00e-6;
-			  double max_temp = mrModelPart.GetProcessInfo()[AUX_INDEX];
-			  double min_temp = mrModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];
+			  //	  double max_temp = mrModelPart.GetProcessInfo()[AUX_INDEX];
+			  //double min_temp = mrModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];
 
 			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 			 {

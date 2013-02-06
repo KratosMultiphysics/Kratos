@@ -1060,7 +1060,7 @@ namespace Kratos
 
 	   array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
 	   array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
-	   double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+	   //double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
 	   double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
        array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
 	  

@@ -165,12 +165,14 @@ class BiphasicFillingUtilities
 						it->SetValue(IS_STRUCTURE,0.0);	  
 						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
 				else if(slip_flag == 10.0)//smooth boundaries(10), if dry, can be air exit or not
+				  {
 				  if(dist<0.0){
 					    it->SetValue(IS_STRUCTURE,1.0);	  
 					    it->SetValue(Y_WALL,y_wall_val);}
 				  else{
 						it->SetValue(IS_STRUCTURE,is_str);	  
 						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
+				  }
 			}
 		  KRATOS_CATCH("")
 		}
