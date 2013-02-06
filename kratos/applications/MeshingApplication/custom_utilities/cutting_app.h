@@ -356,7 +356,7 @@ public:
 
         double dist_node_point;          // node to closest point in the plane
         double dist_neigh_point;        //other node of the edge (neighbour) to closest point in the plane
-        double dist_node_neigh;             //distance between the two nodes of the edge
+        //double dist_node_neigh;             //distance between the two nodes of the edge
         array_1d<double, 3 > temp_dist;               //aux segment
         array_1d<double, 3 > node_coord;             //
         array_1d<double, 3 > neigh_coord;             //
@@ -393,7 +393,7 @@ public:
                         noalias(temp_dist) = neigh_coord;
                         noalias(temp_dist) -= Xp;             //temp_dist =node_coord-Xpoint
                         dist_neigh_point = inner_prod(temp_dist,versor);     // dist = (xnode-xp)*versor closest point-plane distance
-                        dist_node_neigh = sqrt( pow((node_coord[0]- neigh_coord[0]),2) + pow((node_coord[1]- neigh_coord[1]),2) + pow((node_coord[2]- neigh_coord[2]),2) ); // looks ugly, doesn't it? it's supposed to calculate the distance
+			//        dist_node_neigh = sqrt( pow((node_coord[0]- neigh_coord[0]),2) + pow((node_coord[1]- neigh_coord[1]),2) + pow((node_coord[2]- neigh_coord[2]),2) ); // looks ugly, doesn't it? it's supposed to calculate the distance
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
                         bool isovernode=false;   // if true, then it can't be between the nodes
 

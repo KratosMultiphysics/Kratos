@@ -132,7 +132,7 @@ public:
     void Rotate(TLocalVectorType& rLocalVector,
                 GeometryType& rGeometry) const
     {
-        const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
+      //const unsigned int LocalSize = rLocalVector.size(); // We expect this to work both with elements (4 nodes) and conditions (3 nodes)
 
         unsigned int Index = 0;
 

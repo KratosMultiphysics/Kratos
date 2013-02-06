@@ -145,7 +145,7 @@ public:
                 dv12 -= geom[1].FastGetSolutionStepValue(VELOCITY);
 
                 dvprim12[0] = dv12[1];
-                dvprim12[1] = -1*dv12[0];
+                dvprim12[1] = -dv12[0];
 
                 dxprim12[0] = geom[0].Y() - geom[1].Y();
                 dxprim12[1] = geom[1].X() - geom[0].X();
@@ -180,8 +180,8 @@ public:
                     delta = B*B - 4.0*A*C;
                     if(delta > 0.0)
                     {
-                        Zdt1 = (-1*B + sqrt(delta))/(2.0*A);
-                        Zdt2 = (-1*B - sqrt(delta))/(2.0*A);
+                        Zdt1 = (-B + sqrt(delta))/(2.0*A);
+                        Zdt2 = (-B - sqrt(delta))/(2.0*A);
 
                         //zerodt = -1.0;
                         if(Zdt1 > machin_zero) zerodt = Zdt1;

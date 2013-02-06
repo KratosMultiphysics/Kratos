@@ -537,7 +537,7 @@ public:
     {
         KRATOS_TRY
         //read velocity and pressure data from Kratos
-        ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
+	  // ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
 //         mr_matrix_container.FillVectorFromDatabase (VELOCITY, mvel_n1, rNodes);
         int fixed_size = mFixedVelocities.size();
         #pragma omp parallel for firstprivate(fixed_size)
@@ -1903,7 +1903,7 @@ public:
         layer_limits[0] = 0;
         int layer_counter = -1;
         #pragma omp parallel for
-        for (int i_node = 0; i_node < mr_model_part.Nodes().size(); i_node++)
+        for (int i_node = 0; i_node < static_cast<int>( mr_model_part.Nodes().size()); i_node++)
         {
             if(mdistances[i_node] < 0.0)
         {
@@ -1956,8 +1956,8 @@ public:
 
         array_1d<double, TDim > aux, aux_proj;
 
-        ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
-        double delta_t = CurrentProcessInfo[DELTA_TIME];
+        //ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
+        //double delta_t = CurrentProcessInfo[DELTA_TIME];
 
         //fill the pressure projection on the first layer inside the fluid
         //by extrapolating from the pressure projection on the layer -1 (the first layer completely inside the domain)
@@ -2014,7 +2014,7 @@ public:
         	    std::cout << mis_visited[i_node] << std::endl;
         	 std::cout << std::endl;*/
 
-        for (unsigned int il = 1; il < extrapolation_layers; il++)
+        for (int il = 1; il < static_cast<int>(extrapolation_layers); il++)
         {
             //parallelization of this loop not trivial
             for(int iii = layer_limits[il]; iii<layer_limits[il+1]; iii++)

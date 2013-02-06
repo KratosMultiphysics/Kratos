@@ -219,7 +219,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double h = pow(12.0 * Volume, 0.333333333333333333333);
     h = 0.666666667 * h * 1.732;
 
-    double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
+    //double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
 //        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
 
 //     double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);

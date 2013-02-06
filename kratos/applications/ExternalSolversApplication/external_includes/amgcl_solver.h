@@ -255,9 +255,8 @@ public:
     )
     {
         int old_ndof = -1;
-		int old_node_id = rdof_set.begin()->Id();
+		unsigned int old_node_id = rdof_set.begin()->Id();
 		int ndof=0;
-		int node_id;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
 		{
 			
