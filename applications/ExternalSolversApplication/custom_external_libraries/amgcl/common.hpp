@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -95,35 +95,6 @@ template <class spmat, class VectorX, class VectorY>
 void axpy(const spmat &A, const VectorX &x, VectorY &y) {
     y = A * x;
 }
-
-namespace gmres {
-
-//---------------------------------------------------------------------------
-template <typename value_t>
-void apply_plane_rotation(value_t &dx, value_t &dy, value_t cs, value_t sn) {
-    value_t tmp = cs * dx + sn * dy;
-    dy = -sn * dx + cs * dy;
-    dx = tmp;
-}
-
-//---------------------------------------------------------------------------
-template <typename value_t>
-void generate_plane_rotation(value_t dx, value_t dy, value_t &cs, value_t &sn) {
-    if (dy == 0) {
-	cs = 1;
-	sn = 0;
-    } else if (fabs(dy) > fabs(dx)) {
-	value_t tmp = dx / dy;
-	sn = 1 / sqrt(1 + tmp * tmp);
-	cs = tmp * sn;
-    } else {
-	value_t tmp = dy / dx;
-	cs = 1 / sqrt(1 + tmp * tmp);
-	sn = tmp * cs;
-    }
-}
-
-} // namespace gmres
 
 } // namespace amgcl
 

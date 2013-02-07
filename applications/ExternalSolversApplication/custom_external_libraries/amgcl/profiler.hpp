@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ namespace amgcl {
  */
 template <
     class clock = boost::chrono::high_resolution_clock,
-    uint SHIFT_WIDTH = 2
+    unsigned SHIFT_WIDTH = 2
     >
 class profiler {
     public:
@@ -77,10 +77,7 @@ class profiler {
         }
 
         /// Stops named timer.
-        /**
-         * \param name Timer name.
-         */
-        double toc(const std::string &name) {
+        double toc(const std::string& /*name*/) {
             BOOST_AUTO(top, stack.top());
             stack.pop();
 

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -188,11 +188,11 @@ pointwise_coarsening(const spmat &A, float eps_strong, unsigned dof_per_node) {
     std::vector<index_t> &aggr = S_aggr.second;
 
     TIC("reduce matrix");
-    BOOST_AUTO(Ap, aggr::pointwise_matrix(A, dof_per_node));
+    BOOST_AUTO(Ap, pointwise_matrix(A, dof_per_node));
     TOC("reduce matrix");
 
     TIC("connections");
-    BOOST_AUTO(Sp, aggr::connect(Ap, eps_strong));
+    BOOST_AUTO(Sp, connect(Ap, eps_strong));
 
     S.resize(sparse::matrix_nonzeros(A));
 
@@ -238,7 +238,7 @@ pointwise_coarsening(const spmat &A, float eps_strong, unsigned dof_per_node) {
 
     aggr.resize(n);
     for(index_t i = 0, ip = 0; ip < Ap.rows; ++ip)
-        for(index_t k = 0; k < dof_per_node; ++k, ++i)
+        for(unsigned k = 0; k < dof_per_node; ++k, ++i)
             aggr[i] = aggr_p[ip] * dof_per_node + k;
     TOC("aggregates");
 

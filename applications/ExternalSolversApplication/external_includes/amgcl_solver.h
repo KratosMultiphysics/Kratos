@@ -295,10 +295,10 @@ public:
 private:
 
 	double mTol;
-	int mmax_it;
+	unsigned int mmax_it;
 	int mverbosity;
 	int mndof;
-        int mgmres_size;
+        unsigned int mgmres_size;
 	AMGCLSmoother msmoother;
 	AMGCLIterativeSolverType msolver;
 
