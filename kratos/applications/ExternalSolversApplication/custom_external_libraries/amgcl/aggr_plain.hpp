@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,6 @@ aggregates( const spmat &A, const std::vector<char> &S ) {
 
     BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
     BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-    BOOST_AUTO(Aval, sparse::matrix_values(A));
 
     // Remove nodes without neighbours
     index_t max_neib = 0;

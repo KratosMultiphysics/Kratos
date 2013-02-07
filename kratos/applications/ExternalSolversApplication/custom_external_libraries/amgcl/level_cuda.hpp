@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,19 +35,20 @@ THE SOFTWARE.
 #include <stdexcept>
 
 #include <boost/static_assert.hpp>
-#include <boost/array.hpp>
+#include <boost/smart_ptr/scoped_ptr.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <boost/type_traits/is_same.hpp>
-
-#include <amgcl/level_params.hpp>
-#include <amgcl/spmat.hpp>
-#include <amgcl/spai.hpp>
-#include <amgcl/common.hpp>
 
 #include <thrust/device_vector.h>
 #include <thrust/inner_product.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <cusparse_v2.h>
+
+#include <amgcl/level_params.hpp>
+#include <amgcl/spmat.hpp>
+#include <amgcl/spai.hpp>
+#include <amgcl/operations_cuda.hpp>
+#include <amgcl/gmres.hpp>
 
 namespace amgcl {
 
@@ -353,57 +354,6 @@ cusparseHandle_t cuda_matrix<value_type, GPU_MATRIX_CRS>::cusp_handle = 0;
 
 namespace level {
 
-template <typename T>
-struct ax {
-    T a;
-
-    ax(T a) : a(a) {}
-
-    template <class Tuple>
-    __device__ __host__ void operator()(Tuple t) const {
-        thrust::get<0>(t) = a * thrust::get<1>(t);
-    }
-};
-
-template <typename T>
-struct axpby {
-    T a;
-    T b;
-
-    axpby(T a, T b) : a(a), b(b) {}
-
-    template <class Tuple>
-    __device__ __host__ void operator()(Tuple t) const {
-        thrust::get<0>(t) =
-            a * thrust::get<1>(t) +
-            b * thrust::get<2>(t);
-    }
-};
-
-template <typename T>
-struct axpbypcz {
-    T a;
-    T b;
-    T c;
-
-    axpbypcz(T a, T b, T c) : a(a), b(b), c(c) {}
-
-    template <class Tuple>
-    __device__ __host__ void operator()(Tuple t) const {
-        thrust::get<0>(t) =
-            a * thrust::get<1>(t) +
-            b * thrust::get<2>(t) +
-            c * thrust::get<3>(t);
-    }
-};
-
-template <typename T>
-static T norm(const thrust::device_vector<T> &x) {
-    return sqrt(thrust::inner_product(
-        x.begin(), x.end(), x.begin(), static_cast<T>(0)
-        ));
-}
-
 struct cuda_damped_jacobi {
     struct params {
         float damping;
@@ -422,8 +372,7 @@ struct cuda_damped_jacobi {
 
         template <class spmat, class vector>
         void apply(const spmat &A, const vector &rhs, vector &x, vector &tmp, const params &prm) const {
-            thrust::copy(rhs.begin(), rhs.end(), tmp.begin());;
-            A.mul(-1, x, 1, tmp);
+            residual(A, x, rhs, tmp);
 
             thrust::for_each(
                     thrust::make_zip_iterator(thrust::make_tuple(
@@ -467,9 +416,8 @@ struct cuda_spai0 {
         }
 
         template <class spmat, class vector>
-        void apply(const spmat &A, const vector &rhs, vector &x, vector &tmp, const params &prm) const {
-            thrust::copy(rhs.begin(), rhs.end(), tmp.begin());;
-            A.mul(-1, x, 1, tmp);
+        void apply(const spmat &A, const vector &rhs, vector &x, vector &tmp, const params&) const {
+            residual(A, x, rhs, tmp);
 
             thrust::for_each(
                     thrust::make_zip_iterator(thrust::make_tuple(
@@ -537,8 +485,9 @@ class instance {
                 f.resize(a.rows);
 
                 if (prm.kcycle && nlevel % prm.kcycle == 0)
-                    for(BOOST_AUTO(v, cg.begin()); v != cg.end(); ++v)
-                        v->resize(a.rows);
+                    gmres.reset(
+                            new gmres_data<thrust::device_vector<value_t> >(
+                                prm.kcycle_iterations, a.rows));
             }
 
             a.clear();
@@ -546,7 +495,7 @@ class instance {
             r.clear();
         }
 
-        instance(cpu_matrix &a, cpu_matrix &ai, const params &prm, unsigned nlevel)
+        instance(cpu_matrix &a, cpu_matrix &ai, const params&, unsigned /*nlevel*/)
             : A(a), Ainv(ai), u(a.rows), f(a.rows), t(a.rows)
         {
             a.clear();
@@ -562,9 +511,7 @@ class instance {
         value_t resid(const thrust::device_vector<value_t> &rhs,
                 thrust::device_vector<value_t> &x) const
         {
-            thrust::copy(rhs.begin(), rhs.end(), t.begin());;
-            A.mul(-1, x, 1, t);
-
+            residual(A, x, rhs, t);
             return norm(t);
         }
 
@@ -584,12 +531,12 @@ class instance {
                     for(unsigned i = 0; i < prm.npre; ++i)
                         lvl->relax.apply(lvl->A, rhs, x, lvl->t, prm.relax);
 
-                    thrust::copy(rhs.begin(), rhs.end(), lvl->t.begin());;
-                    lvl->A.mul(-1, x, 1, lvl->t);
-                    lvl->R.mul(1, lvl->t, 0, nxt->f);
-                    thrust::fill(nxt->u.begin(), nxt->u.end(), static_cast<value_t>(0));
+                    residual(lvl->A, x, rhs, lvl->t);
 
-                    if (nxt->cg[0].size())
+                    lvl->R.mul(1, lvl->t, 0, nxt->f);
+                    clear(nxt->u);
+
+                    if (nxt->gmres)
                         kcycle(pnxt, end, prm, nxt->f, nxt->u);
                     else
                         cycle(pnxt, end, prm, nxt->f, nxt->u);
@@ -608,60 +555,19 @@ class instance {
         static void kcycle(Iterator plvl, Iterator end, const params &prm,
                 const thrust::device_vector<value_t> &rhs, thrust::device_vector<value_t> &x)
         {
-            static const value_t zero = 0;
-
             Iterator pnxt = plvl; ++pnxt;
 
             instance *lvl = plvl->get();
-            instance *nxt = pnxt->get();
 
             if (pnxt != end) {
-                thrust::device_vector<value_t> &r = lvl->cg[0];
-                thrust::device_vector<value_t> &s = lvl->cg[1];
-                thrust::device_vector<value_t> &p = lvl->cg[2];
-                thrust::device_vector<value_t> &q = lvl->cg[3];
+                cycle_precond<Iterator> p(plvl, end, prm);
 
-                thrust::copy(rhs.begin(), rhs.end(), r.begin());
+                lvl->gmres->restart(lvl->A, rhs, p, x);
 
-                value_t rho1 = 0, rho2 = 0;
+                for(int i = 0; i < lvl->gmres->M; ++i)
+                    lvl->gmres->iteration(lvl->A, p, i);
 
-                for(int iter = 0; iter < 2; ++iter) {
-                    thrust::fill(s.begin(), s.end(), zero);
-                    cycle(plvl, end, prm, r, s);
-
-                    rho2 = rho1;
-                    rho1 = thrust::inner_product(r.begin(), r.end(), s.begin(), zero);
-
-                    if (iter)
-                        thrust::for_each(
-                                thrust::make_zip_iterator(thrust::make_tuple(
-                                        p.begin(), p.begin(), s.begin())),
-                                thrust::make_zip_iterator(thrust::make_tuple(
-                                        p.end(), p.end(), s.end())),
-                                axpby<value_t>(1, rho1 / rho2)
-                                );
-                    else
-                        thrust::copy(s.begin(), s.end(), p.begin());
-
-                    lvl->A.mul(1, p, 0, q);
-
-                    value_t alpha = rho1 / thrust::inner_product(q.begin(), q.end(), p.begin(), zero);
-
-                    thrust::for_each(
-                            thrust::make_zip_iterator(thrust::make_tuple(
-                                    x.begin(), p.begin(), x.begin())),
-                            thrust::make_zip_iterator(thrust::make_tuple(
-                                    x.end(), p.end(), x.end())),
-                            axpby<value_t>(1, alpha)
-                            );
-                    thrust::for_each(
-                            thrust::make_zip_iterator(thrust::make_tuple(
-                                    r.begin(), q.begin(), r.begin())),
-                            thrust::make_zip_iterator(thrust::make_tuple(
-                                    r.end(), q.end(), r.end())),
-                            axpby<value_t>(1, -alpha)
-                            );
-                }
+                lvl->gmres->update(x, lvl->gmres->M - 1);
             } else {
                 lvl->Ainv.mul(1, rhs, 0, x);
             }
@@ -680,13 +586,27 @@ class instance {
         sparse::cuda_matrix<value_t, Format> R;
         sparse::cuda_matrix<value_t, Format> Ainv;
 
-        mutable boost::array<thrust::device_vector<value_t>, 4> cg;
-
         mutable thrust::device_vector<value_t> u;
         mutable thrust::device_vector<value_t> f;
         mutable thrust::device_vector<value_t> t;
 
         typename cuda_relax_scheme<Relaxation>::type::template instance<value_t, index_t> relax;
+
+        mutable boost::scoped_ptr< gmres_data< thrust::device_vector<value_t> > > gmres;
+
+        template <class Iterator>
+        struct cycle_precond {
+            cycle_precond(Iterator lvl, Iterator end, const params &prm)
+                : lvl(lvl), end(end), prm(prm) {}
+
+            void apply(const thrust::device_vector<value_t> &r,
+                    thrust::device_vector<value_t> &x) const {
+                cycle(lvl, end, prm, r, x);
+            }
+
+            Iterator lvl, end;
+            const params &prm;
+        };
 };
 
 };
@@ -720,18 +640,16 @@ std::pair< int, value_t > solve(
         )
 {
     const size_t n = x.size();
-    static const value_t zero = 0;
 
     thrust::device_vector<value_t> r(n), s(n), p(n), q(n);
 
-    thrust::copy(rhs.begin(), rhs.end(), r.begin());
-    A.mul(-1, x, 1, r);
+    residual(A, x, rhs, r);
 
     value_t rho1 = 0, rho2 = 0;
-    value_t norm_of_rhs = level::norm(rhs);
+    value_t norm_of_rhs = norm(rhs);
 
     if (norm_of_rhs == 0) {
-        thrust::fill(x.begin(), x.end(), zero);
+        clear(x);
         return std::make_pair(0, norm_of_rhs);
     }
 
@@ -739,15 +657,15 @@ std::pair< int, value_t > solve(
     value_t res;
     for(
             iter = 0;
-            (res = level::norm(r) / norm_of_rhs) > prm.tol && iter < prm.maxiter;
+            (res = norm(r) / norm_of_rhs) > prm.tol && iter < prm.maxiter;
             ++iter
        )
     {
-        thrust::fill(s.begin(), s.end(), zero);
+        clear(s);
         P.apply(r, s);
 
         rho2 = rho1;
-        rho1 = thrust::inner_product(r.begin(), r.end(), s.begin(), zero);
+        rho1 = inner_prod(r, s);
 
         if (iter)
             thrust::for_each(
@@ -755,28 +673,28 @@ std::pair< int, value_t > solve(
                             p.begin(), p.begin(), s.begin())),
                     thrust::make_zip_iterator(thrust::make_tuple(
                             p.end(), p.end(), s.end())),
-                    level::axpby<value_t>(1, rho1 / rho2)
+                    cuda_ops::axpby<value_t>(1, rho1 / rho2)
                     );
         else
             thrust::copy(s.begin(), s.end(), p.begin());
 
         A.mul(1, p, 0, q);
 
-        value_t alpha = rho1 / thrust::inner_product(q.begin(), q.end(), p.begin(), zero);
+        value_t alpha = rho1 / inner_prod(q, p);
 
         thrust::for_each(
                 thrust::make_zip_iterator(thrust::make_tuple(
                         x.begin(), p.begin(), x.begin())),
                 thrust::make_zip_iterator(thrust::make_tuple(
                         x.end(), p.end(), x.end())),
-                level::axpby<value_t>(1, alpha)
+                cuda_ops::axpby<value_t>(1, alpha)
                 );
         thrust::for_each(
                 thrust::make_zip_iterator(thrust::make_tuple(
                         r.begin(), q.begin(), r.begin())),
                 thrust::make_zip_iterator(thrust::make_tuple(
                         r.end(), q.end(), r.end())),
-                level::axpby<value_t>(1, -alpha)
+                cuda_ops::axpby<value_t>(1, -alpha)
                 );
     }
 
@@ -809,7 +727,6 @@ std::pair< int, value_t > solve(
         )
 {
     const size_t n = x.size();
-    static const value_t zero = 0;
 
     thrust::device_vector<value_t> r (n);
     thrust::device_vector<value_t> p (n);
@@ -820,20 +737,19 @@ std::pair< int, value_t > solve(
     thrust::device_vector<value_t> ph(n);
     thrust::device_vector<value_t> sh(n);
 
-    thrust::copy(rhs.begin(), rhs.end(), r.begin());
-    A.mul(-1, x, 1, r);
+    residual(A, x, rhs, r);
     thrust::copy(r.begin(), r.end(), rh.begin());
 
     value_t rho1  = 0, rho2  = 0;
     value_t alpha = 0, omega = 0;
 
-    value_t norm_of_rhs = level::norm(rhs);
+    value_t norm_of_rhs = norm(rhs);
 
     int     iter;
     value_t res = 2 * prm.tol;
     for(iter = 0; res > prm.tol && iter < prm.maxiter; ++iter) {
         rho2 = rho1;
-        rho1 = thrust::inner_product(r.begin(), r.end(), rh.begin(), zero);
+        rho1 = inner_prod(r, rh);
 
         if (fabs(rho1) < 1e-32)
             throw std::logic_error("Zero rho in BiCGStab");
@@ -844,42 +760,41 @@ std::pair< int, value_t > solve(
                             p.begin(), r.begin(), p.begin(), v.begin())),
                     thrust::make_zip_iterator(thrust::make_tuple(
                             p.end(), r.end(), p.end(), v.end())),
-                    level::axpbypcz<value_t>(1, rho1 * alpha / (rho2 * omega), -rho1 * alpha / rho2)
+                    cuda_ops::axpbypcz<value_t>(1, rho1 * alpha / (rho2 * omega), -rho1 * alpha / rho2)
                     );
         else
             thrust::copy(r.begin(), r.end(), p.begin());
 
-        thrust::fill(ph.begin(), ph.end(), zero);
+        clear(ph);
         P.apply(p, ph);
 
         A.mul(1, ph, 0, v);
 
-        alpha = rho1 / thrust::inner_product(rh.begin(), rh.end(), v.begin(), zero);
+        alpha = rho1 / inner_prod(rh, v);
 
         thrust::for_each(
                 thrust::make_zip_iterator(thrust::make_tuple(
                         s.begin(), r.begin(), v.begin())),
                 thrust::make_zip_iterator(thrust::make_tuple(
                         s.end(), r.end(), v.end())),
-                level::axpby<value_t>(1, -alpha)
+                cuda_ops::axpby<value_t>(1, -alpha)
                 );
 
-        if ((res = level::norm(s) / norm_of_rhs) < prm.tol) {
+        if ((res = norm(s) / norm_of_rhs) < prm.tol) {
             thrust::for_each(
                     thrust::make_zip_iterator(thrust::make_tuple(
                             x.begin(), x.begin(), ph.begin())),
                     thrust::make_zip_iterator(thrust::make_tuple(
                             x.end(), x.end(), ph.end())),
-                    level::axpby<value_t>(1, alpha)
+                    cuda_ops::axpby<value_t>(1, alpha)
                     );
         } else {
-            thrust::fill(sh.begin(), sh.end(), zero);
+            clear(sh);
             P.apply(s, sh);
 
             A.mul(1, sh, 0, t);
 
-            omega = thrust::inner_product(t.begin(), t.end(), s.begin(), zero)
-                  / thrust::inner_product(t.begin(), t.end(), t.begin(), zero);
+            omega = inner_prod(t, s) / inner_prod(t, t);
 
             if (fabs(omega) < 1e-32)
                 throw std::logic_error("Zero omega in BiCGStab");
@@ -889,160 +804,18 @@ std::pair< int, value_t > solve(
                             x.begin(), x.begin(), ph.begin(), sh.begin())),
                     thrust::make_zip_iterator(thrust::make_tuple(
                             x.end(), x.end(), ph.end(), sh.end())),
-                    level::axpbypcz<value_t>(1, alpha, omega)
+                    cuda_ops::axpbypcz<value_t>(1, alpha, omega)
                     );
             thrust::for_each(
                     thrust::make_zip_iterator(thrust::make_tuple(
                             r.begin(), s.begin(), t.begin())),
                     thrust::make_zip_iterator(thrust::make_tuple(
                             r.end(), s.end(), t.end())),
-                    level::axpby<value_t>(1, -omega)
+                    cuda_ops::axpby<value_t>(1, -omega)
                     );
 
-            res = level::norm(r) / norm_of_rhs;
+            res = norm(r) / norm_of_rhs;
         }
-    }
-
-    return std::make_pair(iter, res);
-}
-
-namespace gmres {
-
-template <typename value_t>
-void update(
-        thrust::device_vector<value_t> &x, int M, int k,
-        const std::vector<value_t> &h,
-        const std::vector<value_t> &s,
-        const std::vector< thrust::device_vector<value_t> > &v,
-        std::vector<value_t> &y
-        )
-{
-    thrust::copy(s.begin(), s.end(), y.begin());
-
-    for (int i = k; i >= 0; --i) {
-	y[i] /= h[i * M + i];
-	for (int j = i - 1; j >= 0; --j)
-	    y[j] -= h[j * M + i] * y[i];
-    }
-
-    for (int j = 0; j <= k; j++)
-        thrust::for_each(
-                thrust::make_zip_iterator(thrust::make_tuple(
-                        x.begin(), x.begin(), v[j].begin())),
-                thrust::make_zip_iterator(thrust::make_tuple(
-                        x.end(), x.end(), v[j].end())),
-                level::axpby<value_t>(1, y[j])
-                );
-}
-
-}
-
-/// GMRES method for Thrust/CUSPARSE combination.
-/**
- * Implementation is based on \ref Templates_1994 "Barrett (1994)"
- *
- * \param A   The system matrix.
- * \param rhs The right-hand side.
- * \param P   The preconditioner. Should provide apply(rhs, x) method.
- * \param x   The solution. Contains an initial approximation on input, and
- *            the approximated solution on output.
- * \param prm The control parameters.
- *
- * \returns a pair containing number of iterations made and precision
- * achieved.
- *
- * \ingroup iterative
- */
-template <class value_t, gpu_matrix_format Format, class precond>
-std::pair< int, value_t > solve(
-        const sparse::cuda_matrix<value_t, Format> &A,
-        const thrust::device_vector<value_t> &rhs,
-        const precond &P,
-        thrust::device_vector<value_t> &x,
-        gmres_tag prm = gmres_tag()
-        )
-{
-    const size_t n = x.size();
-    const size_t M = prm.M;
-    static const value_t zero = 0;
-
-    std::vector<value_t> H(M * (M + 1));
-    std::vector<value_t> s(M + 1), cs(M + 1), sn(M + 1), y(M + 1);
-
-    thrust::device_vector<value_t> r(n), w(n);
-    std::vector< thrust::device_vector<value_t> > v(M + 1);
-    for(BOOST_AUTO(vp, v.begin()); vp != v.end(); ++vp) vp->resize(n);
-
-    thrust::copy(rhs.begin(), rhs.end(), w.begin());
-    A.mul(-1, x, 1, w);
-    thrust::fill(r.begin(), r.end(), zero);
-    P.apply(w, r);
-
-    value_t res  = level::norm(r);
-    int     iter = 0;
-
-    while(iter < prm.maxiter && res > prm.tol) {
-        if (iter > 0) {
-            thrust::copy(rhs.begin(), rhs.end(), w.begin());
-            A.mul(-1, x, 1, w);
-            thrust::fill(r.begin(), r.end(), zero);
-            P.apply(w, r);
-            res = level::norm(r);
-        }
-
-        thrust::for_each(
-                thrust::make_zip_iterator(thrust::make_tuple(
-                        v[0].begin(), r.begin())),
-                thrust::make_zip_iterator(thrust::make_tuple(
-                        v[0].end(), r.end())),
-                level::ax<value_t>(1 / res)
-                );
-
-        std::fill(s.begin(), s.end(), static_cast<value_t>(0));
-        s[0] = res;
-
-        for(int i = 0; i < M && iter < prm.maxiter; ++i, ++iter) {
-            A.mul(1, v[i], 0, r);
-            thrust::fill(w.begin(), w.end(), zero);
-            P.apply(r, w);
-
-            for(int k = 0; k <= i; ++k) {
-                H[k * M + i] = thrust::inner_product(w.begin(), w.end(), v[k].begin(), zero);
-                thrust::for_each(
-                        thrust::make_zip_iterator(thrust::make_tuple(
-                                w.begin(), w.begin(), v[k].begin())),
-                        thrust::make_zip_iterator(thrust::make_tuple(
-                                w.end(), w.end(), v[k].end())),
-                        level::axpby<value_t>(1, -H[k * M + i])
-                        );
-            }
-
-            H[(i+1) * M + i] = level::norm(w);
-
-            thrust::for_each(
-                    thrust::make_zip_iterator(thrust::make_tuple(
-                            v[i+1].begin(), w.begin())),
-                    thrust::make_zip_iterator(thrust::make_tuple(
-                            v[i+1].end(), w.end())),
-                    level::ax<value_t>(1 / H[(i+1) * M + i])
-                    );
-
-            for(int k = 0; k < i; ++k)
-                gmres::apply_plane_rotation(H[k * M + i], H[(k+1) * M + i], cs[k], sn[k]);
-
-            gmres::generate_plane_rotation(H[i * M + i], H[(i+1) * M + i], cs[i], sn[i]);
-            gmres::apply_plane_rotation(H[i * M + i], H[(i+1) * M + i], cs[i], sn[i]);
-            gmres::apply_plane_rotation(s[i], s[i+1], cs[i], sn[i]);
-
-	    res = fabs(s[i+1]);
-
-	    if (res < prm.tol) {
-                gmres::update(x, M, i, H, s, v, y);
-		return std::make_pair(iter + 1, res);
-	    };
-	}
-
-        gmres::update(x, M, M - 1, H, s, v, y);
     }
 
     return std::make_pair(iter, res);

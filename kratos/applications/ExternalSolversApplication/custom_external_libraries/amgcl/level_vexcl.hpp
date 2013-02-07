@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,10 +31,14 @@ THE SOFTWARE.
  * \brief  Level of an AMG hierarchy for use with VexCL vectors.
  */
 
+#include <array>
+#include <memory>
+
 #include <amgcl/level_params.hpp>
 #include <amgcl/spmat.hpp>
 #include <amgcl/spai.hpp>
 #include <amgcl/operations_vexcl.hpp>
+#include <amgcl/gmres.hpp>
 
 #include <vexcl/vexcl.hpp>
 
@@ -79,7 +83,7 @@ struct vexcl_spai0 {
         { }
 
         template <class spmat, class vector>
-        void apply(const spmat &A, const vector &rhs, vector &x, vector &tmp, const params &prm) const {
+        void apply(const spmat &A, const vector &rhs, vector &x, vector &tmp, const params&) const {
             tmp = rhs - A * x;
             x += M * tmp;
         }
@@ -142,7 +146,7 @@ class instance {
                 f.resize(prm.ctx ? prm.ctx->queue() : vex::StaticContext<>::get().queue(), a.rows);
 
                 if (prm.kcycle && nlevel % prm.kcycle == 0)
-                    cg.resize(prm.ctx ? prm.ctx->queue() : vex::StaticContext<>::get().queue(), a.rows);
+                    gmres.reset(new gmres_data<vector>(prm.kcycle_iterations, a.rows));
             }
 
             a.clear();
@@ -152,7 +156,7 @@ class instance {
 
         // Construct the coarsest hierarchy level from system matrix (a) and
         // its inverse (ai).
-        instance(cpu_matrix &a, cpu_matrix &ai, const params &prm, unsigned nlevel)
+        instance(cpu_matrix &a, cpu_matrix &ai, const params &prm, unsigned /*nlevel*/)
             : A(prm.ctx ? prm.ctx->queue() : vex::StaticContext<>::get().queue(),
                         a.rows, a.cols, a.row.data(), a.col.data(), a.val.data()),
               Ainv(prm.ctx ? prm.ctx->queue() : vex::StaticContext<>::get().queue(),
@@ -198,7 +202,7 @@ class instance {
                     nxt->f = lvl->R * lvl->t;
                     nxt->u = 0;
 
-                    if (nxt->cg.size())
+                    if (nxt->gmres)
                         kcycle(pnxt, end, prm, nxt->f, nxt->u);
                     else
                         cycle(pnxt, end, prm, nxt->f, nxt->u);
@@ -220,37 +224,16 @@ class instance {
             Iterator pnxt = plvl; ++pnxt;
 
             instance *lvl = plvl->get();
-            instance *nxt = pnxt->get();
 
             if (pnxt != end) {
-                vex::vector<value_t> &r = lvl->cg(0);
-                vex::vector<value_t> &s = lvl->cg(1);
-                vex::vector<value_t> &p = lvl->cg(2);
-                vex::vector<value_t> &q = lvl->cg(3);
+                cycle_precond<Iterator> p(plvl, end, prm);
 
-                r = rhs;
+                lvl->gmres->restart(lvl->A, rhs, p, x);
 
-                value_t rho1 = 0, rho2 = 0;
+                for(int i = 0; i < lvl->gmres->M; ++i)
+                    lvl->gmres->iteration(lvl->A, p, i);
 
-                for(int iter = 0; iter < 2; ++iter) {
-                    s = 0;
-                    cycle(plvl, end, prm, r, s);
-
-                    rho2 = rho1;
-                    rho1 = lvl->sum(r * s);
-
-                    if (iter)
-                        p = s + (rho1 / rho2) * p;
-                    else
-                        p = s;
-
-                    q = lvl->A * p;
-
-                    value_t alpha = rho1 / lvl->sum(q * p);
-
-                    x += alpha * p;
-                    r -= alpha * q;
-                }
+                lvl->gmres->update(x, lvl->gmres->M - 1);
             } else {
                 x = lvl->Ainv * rhs;
             }
@@ -269,15 +252,28 @@ class instance {
         matrix R;
         matrix Ainv;
 
-        vex::Reductor<value_t, vex::SUM> sum;
-
         mutable vector u;
         mutable vector f;
         mutable vector t;
 
+        vex::Reductor<value_t, vex::SUM> sum;
+
         typename vexcl_relax_scheme<Relaxation>::type::template instance<value_t, index_t> relax;
 
-        mutable vex::multivector<value_t,4> cg;
+        mutable std::unique_ptr< gmres_data<vector> > gmres;
+
+        template <class Iterator>
+        struct cycle_precond {
+            cycle_precond(Iterator lvl, Iterator end, const params &prm)
+                : lvl(lvl), end(end), prm(prm) {}
+
+            void apply(const vector &r, vector &x) const {
+                cycle(lvl, end, prm, r, x);
+            }
+
+            Iterator lvl, end;
+            const params &prm;
+        };
 };
 
 };

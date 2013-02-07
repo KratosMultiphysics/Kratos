@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,14 +49,16 @@ struct params {
     /// How often to invoke k-cycle instead of just v-cycle.
     /**
      * See \ref Notay_2008 "Notay (2008)". K-cycle employs a Krylov method
-     * (here CG) on each level of the grid hierarchy and uses this grid
+     * (here GMRES) on each level of the grid hierarchy and uses this grid
      * hierarchy for the preconditioning of this Krylov method. The approach is
      * further extended by allowing such inner iterations only at levels of
      * given multiplicity, whereas normal V-cycle formulation is used at all
      * other levels.
      */
-    // TODO: Try flexible (generalized) CG method here.
     unsigned kcycle;
+
+    /// Number of GMRES iterations inside K-cycle.
+    unsigned kcycle_iterations;
 
     /// Maximum number of iterations in standalone solver.
     unsigned maxiter;
@@ -65,7 +67,8 @@ struct params {
     double   tol;
 
     params()
-        : npre(1), npost(1), ncycle(1), kcycle(0), maxiter(100), tol(1e-8)
+        : npre(1), npost(1), ncycle(1), kcycle(0), kcycle_iterations(2),
+          maxiter(100), tol(1e-8)
     { }
 };
 

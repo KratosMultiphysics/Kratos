@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -59,39 +59,90 @@ T1 inner_prod(const boost::numeric::ublas::vector<T1> &x,
               const boost::numeric::ublas::vector<T2> &y
         )
 {
-    int size = x.size();
-    double value = 0.0;
-    #pragma omp parallel for reduction(+:value) firstprivate(size) shared(x,y)
-    for(int i=0; i<size; i++)
-      value += x[i]*y[i];
-    return value;
-//      return boost::numeric::ublas::inner_prod(x, y);
+    const ptrdiff_t n = x.size();
+    T1 sum = 0;
+
+#pragma omp parallel for schedule(dynamic, 1024) reduction(+:sum)
+    for(ptrdiff_t i = 0; i < n; ++i)
+        sum += x[i] * y[i];
+
+    return sum;
 }
 
 /// Returns norm of an ublas vector.
 /** Necessary for ublas types to work with amgcl::solve() functions. */
 template <typename T>
 T norm(const boost::numeric::ublas::vector<T> &x) {
-    int size = x.size();
-    double value = 0.0;
-    #pragma omp parallel for reduction(+:value) firstprivate(size) shared(x)
-    for(int i=0; i<size; i++)
-      value += x[i]*x[i];
-    return sqrt(value);
-//      return boost::numeric::ublas::norm_2(x);
+    const ptrdiff_t n = x.size();
+    T sum = 0;
+
+#pragma omp parallel for schedule(dynamic, 1024) reduction(+:sum)
+    for(ptrdiff_t i = 0; i < n; ++i)
+        sum += x[i] * x[i];
+
+    return sqrt(sum);
 }
 
 /// Clears (sets elements to zero) an ublas vector.
 /** Necessary for ublas types to work with amgcl::solve() functions. */
 template <typename T>
 void clear(boost::numeric::ublas::vector<T> &x) {
-    int size = x.size();
-    #pragma omp parallel for firstprivate(size)
-    for(int i=0; i<size; i++)
-      x[i] = 0.0;
-//      x.clear();
+    const ptrdiff_t n = x.size();
+
+#pragma omp parallel for schedule(dynamic, 1024)
+    for(ptrdiff_t i = 0; i < n; ++i)
+        x[i] = 0;
 }
 
+
+/// Specialization of residual operation for ublas types.
+/** Necessary for ublas types to work with amgcl::solve() functions. */
+template <typename real>
+void residual(
+        const boost::numeric::ublas::compressed_matrix<real, boost::numeric::ublas::row_major> &A,
+        const boost::numeric::ublas::vector<real> &x,
+        const boost::numeric::ublas::vector<real> &f,
+        boost::numeric::ublas::vector<real> &y
+        )
+{
+    const ptrdiff_t n = A.size1();
+
+    BOOST_AUTO(Arow, A.index1_data().begin());
+    BOOST_AUTO(Acol, A.index2_data().begin());
+    BOOST_AUTO(Aval, A.value_data().begin());
+
+#pragma omp parallel for schedule(dynamic, 1024)
+    for(ptrdiff_t i = 0; i < n; ++i) {
+        real buf = f[i];
+        for(size_t j = Arow[i], e = Arow[i + 1]; j < e; ++j)
+            buf -= Aval[j] * x[Acol[j]];
+        y[i] = buf;
+    }
+}
+
+/// Specialization of matrix-vector product for ublas types.
+/** Necessary for ublas types to work with amgcl::solve() functions. */
+template <typename real>
+void axpy(
+        const boost::numeric::ublas::compressed_matrix<real, boost::numeric::ublas::row_major> &A,
+        const boost::numeric::ublas::vector<real> &x,
+        boost::numeric::ublas::vector<real> &y
+        )
+{
+    const ptrdiff_t n = A.size1();
+
+    BOOST_AUTO(Arow, A.index1_data().begin());
+    BOOST_AUTO(Acol, A.index2_data().begin());
+    BOOST_AUTO(Aval, A.value_data().begin());
+
+#pragma omp parallel for schedule(dynamic, 1024)
+    for(ptrdiff_t i = 0; i < n; ++i) {
+        real buf = 0;
+        for(size_t j = Arow[i], e = Arow[i + 1]; j < e; ++j)
+            buf += Aval[j] * x[Acol[j]];
+        y[i] = buf;
+    }
+}
 
 namespace sparse {
 
@@ -112,55 +163,6 @@ map(const boost::numeric::ublas::compressed_matrix<T, boost::numeric::ublas::row
 }
 
 } // namespace sparse
-
-/// Specialization of residual operation for ublas types.
-/** Necessary for ublas types to work with amgcl::solve() functions. */
-template <typename real>
-void residual(
-        const boost::numeric::ublas::compressed_matrix<real, boost::numeric::ublas::row_major> &A,
-        const boost::numeric::ublas::vector<real> &x,
-        const boost::numeric::ublas::vector<real> &f,
-        boost::numeric::ublas::vector<real> &y
-        )
-{
-    const size_t n = A.size1();
-
-    BOOST_AUTO(Arow, A.index1_data().begin());
-    BOOST_AUTO(Acol, A.index2_data().begin());
-    BOOST_AUTO(Aval, A.value_data().begin());
-
-#pragma omp parallel for schedule(dynamic, 1024)
-    for(size_t i = 0; i < n; ++i) {
-        real buf = f[i];
-        for(size_t j = Arow[i], e = Arow[i + 1]; j < e; ++j)
-            buf -= Aval[j] * x[Acol[j]];
-        y[i] = buf;
-    }
-}
-
-/// Specialization of matrix-vector product for ublas types.
-/** Necessary for ublas types to work with amgcl::solve() functions. */
-template <typename real>
-void axpy(
-        const boost::numeric::ublas::compressed_matrix<real, boost::numeric::ublas::row_major> &A,
-        const boost::numeric::ublas::vector<real> &x,
-        boost::numeric::ublas::vector<real> &y
-        )
-{
-    const size_t n = A.size1();
-
-    BOOST_AUTO(Arow, A.index1_data().begin());
-    BOOST_AUTO(Acol, A.index2_data().begin());
-    BOOST_AUTO(Aval, A.value_data().begin());
-
-#pragma omp parallel for schedule(dynamic, 1024)
-    for(size_t i = 0; i < n; ++i) {
-        real buf = 0;
-        for(size_t j = Arow[i], e = Arow[i + 1]; j < e; ++j)
-            buf += Aval[j] * x[Acol[j]];
-        y[i] = buf;
-    }
-}
 
 } // namespace amgcl
 

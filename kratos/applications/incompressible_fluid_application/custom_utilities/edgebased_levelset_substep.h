@@ -3607,13 +3607,13 @@ private:
     )
     {
         //parameters:
-        double k = 0.41;
-        double B = 5.1;
+      //        double k = 0.41;
+      //        double B = 5.1;
 //         double density = mRho;
-        double toll = 1e-6;
+//        double toll = 1e-6;
         double ym = mY_wall; //0.0825877; //0.0093823
-        double y_plus_incercept = 10.9931899;
-        unsigned int itmax = 100;
+//        double y_plus_incercept = 10.9931899;
+//        unsigned int itmax = 100;
         if (mViscosity[0] == 0)
             KRATOS_ERROR (std::logic_error, "it is not possible to use the wall law with 0 viscosity", "");
         /*        //slip condition
@@ -3696,7 +3696,7 @@ private:
 
 		//slip condition
         int slip_size = mSlipBoundaryList.size();
-        #pragma omp parallel for firstprivate(slip_size,B,toll,ym,y_plus_incercept,itmax)
+#pragma omp parallel for firstprivate(slip_size,ym)
         for (int i_slip = 0; i_slip < slip_size; i_slip++)
         {
             unsigned int i_node = mSlipBoundaryList[i_slip];

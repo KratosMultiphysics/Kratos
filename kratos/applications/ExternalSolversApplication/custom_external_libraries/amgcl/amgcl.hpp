@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -201,7 +201,7 @@ namespace interp {
 struct galerkin_operator {
     template <class spmat, class Params>
     static spmat apply(const spmat &R, const spmat &A, const spmat &P,
-            const Params &prm)
+            const Params&)
     {
         return sparse::prod(sparse::prod(R, A), P);
     }
@@ -309,8 +309,8 @@ class solver {
          */
         template <class vector1, class vector2>
         std::pair< int, value_t > solve(const vector1 &rhs, vector2 &x) const {
-            int     iter = 0;
-            value_t res  = 2 * prm.level.tol;
+            unsigned iter = 0;
+            value_t  res  = 2 * prm.level.tol;
 
             for(; res > prm.level.tol && iter < prm.level.maxiter; ++iter) {
                 apply(rhs, x);
@@ -385,7 +385,7 @@ class solver {
     private:
         void build_level(matrix &A, const params &prm, unsigned nlevel = 0)
         {
-            if (A.rows <= prm.coarse_enough) {
+            if (static_cast<size_t>(A.rows) <= prm.coarse_enough) {
                 TIC("coarsest level");
                 matrix Ai = sparse::inverse(A);
                 hier.push_back( boost::shared_ptr<level_type>(new level_type(A, Ai, prm.level, nlevel) ) );

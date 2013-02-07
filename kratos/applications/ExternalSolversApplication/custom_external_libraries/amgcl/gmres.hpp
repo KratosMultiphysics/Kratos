@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012 Denis Demidov <ddemidov@ksu.ru>
+Copyright (c) 2012-2013 Denis Demidov <ddemidov@ksu.ru>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,31 +41,126 @@ THE SOFTWARE.
 
 namespace amgcl {
 
-namespace gmres {
+namespace gmres_ops {
 
-//---------------------------------------------------------------------------
-template <class vector>
-void update(
-        vector &x, int M, int k,
-        const std::vector<typename value_type<vector>::type> &h,
-        const std::vector<typename value_type<vector>::type> &s,
-        const std::vector<vector> &v,
-        std::vector<typename value_type<vector>::type> &y
-        )
-{
-    std::copy(s.begin(), s.end(), y.begin());
+template <typename value_t>
+void apply_plane_rotation(value_t &dx, value_t &dy, value_t cs, value_t sn) {
+    value_t tmp = cs * dx + sn * dy;
+    dy = -sn * dx + cs * dy;
+    dx = tmp;
+}
+
+template <typename value_t>
+void generate_plane_rotation(value_t dx, value_t dy, value_t &cs, value_t &sn) {
+    if (dy == 0) {
+        cs = 1;
+        sn = 0;
+    } else if (fabs(dy) > fabs(dx)) {
+        value_t tmp = dx / dy;
+        sn = 1 / sqrt(1 + tmp * tmp);
+        cs = tmp * sn;
+    } else {
+        value_t tmp = dy / dx;
+        cs = 1 / sqrt(1 + tmp * tmp);
+        sn = tmp * cs;
+    }
+}
+
+template <class GMRES, class Vector>
+void update(GMRES &gmres, Vector &x, int k) {
+    std::copy(gmres.s.begin(), gmres.s.end(), gmres.y.begin());
 
     for (int i = k; i >= 0; --i) {
-	y[i] /= h[i * M + i];
-	for (int j = i - 1; j >= 0; --j)
-	    y[j] -= h[j * M + i] * y[i];
+        gmres.y[i] /= gmres.H[i * gmres.M + i];
+        for (int j = i - 1; j >= 0; --j)
+            gmres.y[j] -= gmres.H[j * gmres.M + i] * gmres.y[i];
     }
 
     for (int j = 0; j <= k; j++)
-        x += y[j] * v[j];
+        x += gmres.y[j] * gmres.v[j];
 }
 
-} // namespace gmres
+template <class GMRES, class matrix, class Vector, class precond>
+typename value_type<Vector>::type restart(GMRES &gmres,
+        const matrix &A, const Vector &rhs, const precond &P, const Vector &x
+        )
+{
+    typedef typename value_type<Vector>::type value_t;
+
+    residual(A, x, rhs, gmres.w);
+    clear(gmres.r);
+    P.apply(gmres.w, gmres.r);
+
+    gmres.s[0] = norm(gmres.r);
+    gmres.v[0] = gmres.r / gmres.s[0];
+
+    std::fill(gmres.s.begin() + 1, gmres.s.end(), value_t());
+
+    return gmres.s[0];
+}
+
+template <class GMRES, class matrix, class precond>
+typename GMRES::value_t iteration(
+        GMRES &gmres, const matrix &A, const precond &P, int i)
+{
+    axpy(A, gmres.v[i], gmres.r);
+    clear(gmres.w);
+    P.apply(gmres.r, gmres.w);
+
+    for(int k = 0; k <= i; ++k) {
+        gmres.H[k * gmres.M + i] = inner_prod(gmres.w, gmres.v[k]);
+        gmres.w -= gmres.H[k * gmres.M + i] * gmres.v[k];
+    }
+
+    gmres.H[(i+1) * gmres.M + i] = norm(gmres.w);
+
+    gmres.v[i+1] = gmres.w / gmres.H[(i+1) * gmres.M + i];
+
+    for(int k = 0; k < i; ++k)
+        apply_plane_rotation(gmres.H[k * gmres.M + i], gmres.H[(k+1) * gmres.M + i], gmres.cs[k], gmres.sn[k]);
+
+    generate_plane_rotation(gmres.H[i * gmres.M + i], gmres.H[(i+1) * gmres.M + i], gmres.cs[i], gmres.sn[i]);
+    apply_plane_rotation(gmres.H[i * gmres.M + i], gmres.H[(i+1) * gmres.M + i], gmres.cs[i], gmres.sn[i]);
+    apply_plane_rotation(gmres.s[i], gmres.s[i+1], gmres.cs[i], gmres.sn[i]);
+
+    return fabs(gmres.s[i + 1]);
+}
+
+} // namespace gmres_ops
+
+template <class Vector>
+struct gmres_data {
+    typedef typename value_type<Vector>::type value_t;
+
+    int M;
+    std::vector<value_t> H, s, cs, sn, y;
+    Vector r, w;
+    std::vector<Vector> v;
+
+    gmres_data(int M, size_t n)
+        : M(M), H(M * (M + 1)), s(M + 1), cs(M + 1), sn(M + 1), y(M + 1),
+          r(n), w(n), v(M + 1)
+    {
+        for(BOOST_AUTO(vp, v.begin()); vp != v.end(); ++vp) vp->resize(n);
+    }
+
+    void update(Vector &x, int k) {
+        gmres_ops::update(*this, x, k);
+    }
+
+    template <class matrix, class precond>
+    value_t restart(
+            const matrix &A, const Vector &rhs, const precond &P, const Vector &x
+            )
+    {
+        return gmres_ops::restart(*this, A, rhs, P, x);
+    }
+
+    template <class matrix, class precond>
+    value_t iteration(const matrix &A, const precond &P, int i) {
+        return gmres_ops::iteration(*this, A, P, i);
+    }
+};
 
 /// GMRES method.
 /**
@@ -89,66 +184,26 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, gmres_tag
 {
     typedef typename value_type<vector>::type value_t;
     const size_t n = x.size();
-    const size_t M = prm.M;
 
-    std::vector<value_t> H(M * (M + 1));
-    std::vector<value_t> s(M + 1), cs(M + 1), sn(M + 1), y(M + 1);
+    gmres_data<vector> gmres(prm.M, n);
 
-    vector r(n), w(n);
-    std::vector<vector> v(M + 1);
-    for(BOOST_AUTO(vp, v.begin()); vp != v.end(); ++vp) vp->resize(n);
-
-    residual(A, x, rhs, w);
-    clear(r);
-    P.apply(w, r);
-
-    value_t res  = norm(r);
     int     iter = 0;
+    value_t res;
 
-    while(iter < prm.maxiter && res > prm.tol) {
-        if (iter > 0) {
-            residual(A, x, rhs, w);
-            clear(r);
-            P.apply(w, r);
-            res = norm(r);
-        }
+    do {
+        res = gmres.restart(A, rhs, P, x);
 
-        v[0] = r / res;
-
-        std::fill(s.begin(), s.end(), static_cast<value_t>(0));
-        s[0] = res;
-
-        for(int i = 0; i < M && iter < prm.maxiter; ++i, ++iter) {
-            axpy(A, v[i], r);
-            clear(w);
-            P.apply(r, w);
-
-            for(int k = 0; k <= i; ++k) {
-                H[k * M + i] = inner_prod(w, v[k]);
-                w -= H[k * M + i] * v[k];
-            }
-
-            H[(i+1) * M + i] = norm(w);
-
-            v[i+1] = w / H[(i+1) * M + i];
-
-            for(int k = 0; k < i; ++k)
-                gmres::apply_plane_rotation(H[k * M + i], H[(k+1) * M + i], cs[k], sn[k]);
-
-            gmres::generate_plane_rotation(H[i * M + i], H[(i+1) * M + i], cs[i], sn[i]);
-            gmres::apply_plane_rotation(H[i * M + i], H[(i+1) * M + i], cs[i], sn[i]);
-            gmres::apply_plane_rotation(s[i], s[i+1], cs[i], sn[i]);
-
-	    res = fabs(s[i+1]);
+        for(int i = 0; i < prm.M && iter < prm.maxiter; ++i, ++iter) {
+            res = gmres.iteration(A, P, i);
 
 	    if (res < prm.tol) {
-                gmres::update(x, M, i, H, s, v, y);
+                gmres.update(x, i);
 		return std::make_pair(iter + 1, res);
 	    };
 	}
 
-        gmres::update(x, M, M - 1, H, s, v, y);
-    }
+        gmres.update(x, prm.M - 1);
+    } while (iter < prm.maxiter && res > prm.tol);
 
     return std::make_pair(iter, res);
 }
