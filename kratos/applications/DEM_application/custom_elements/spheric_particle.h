@@ -187,8 +187,8 @@ namespace Kratos
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
-        void CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo );
-        void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
+        //void CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo );
+        //void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
