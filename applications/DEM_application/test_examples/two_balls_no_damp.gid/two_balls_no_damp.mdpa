@@ -54,8 +54,8 @@ Begin NodalData PARTICLE_DENSITY
 End NodalData
 
 Begin NodalData YOUNG_MODULUS
-1 0 2.1e7
-2 0 2.1e7
+1 0 2.1e5
+2 0 2.1e5
 End NodalData
 
 Begin NodalData POISSON_RATIO
@@ -65,8 +65,13 @@ End NodalData
 
 
 Begin NodalData PARTICLE_COHESION
-1 0 4.16e6
-2 0 4.16e6
+1 0 0
+2 0 0
+End NodalData
+
+Begin NodalData PARTICLE_TENSION
+1 0 0
+2 0 0
 End NodalData
 
 Begin NodalData PARTICLE_FRICTION
@@ -74,15 +79,7 @@ Begin NodalData PARTICLE_FRICTION
 2 0 45
 End NodalData
 
-Begin NodalData PARTICLE_TENSION
-1 0 2.01e6
-2 0 2.01e6
-End NodalData
 
-Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
-1 0 0
-2 0 0
-End NodalData
 
 
 Begin NodalData RESTITUTION_COEFF
@@ -95,5 +92,8 @@ Begin NodalData PARTICLE_MATERIAL
 1 0 1
 2 0 1
 End NodalData
+
+Begin ElementalData PREDEFINED_SKIN
+End ElementalData
 
 

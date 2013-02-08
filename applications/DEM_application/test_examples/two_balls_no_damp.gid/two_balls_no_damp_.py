@@ -6,7 +6,7 @@ import math
 
 #import matplotlib
 #from numpy import *
-#from pylab import *  
+#from pylab import *
 
 ##import cProfile
 ##################################################################
@@ -45,11 +45,13 @@ def BenchmarkCheck(time, node1):
 ##################################################################
 ##################################################################
 
-
 #defining a model part for the solid part
-
 my_timer=Timer();
 solid_model_part = ModelPart("SolidPart");  
+#############################################
+
+#introducing input file name
+input_file_name = DEM_explicit_solver_var.problem_name
 
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
@@ -346,8 +348,9 @@ while(time < final_time):
     #print str(time)
        
     if(time_to_print >= output_dt):
-
-        BenchmarkCheck(time, node1)    
+ 
+        BenchmarkCheck(time, node1)
+        
 	os.chdir(graphs_path)
 
 	#Drawing graph stress_strain:

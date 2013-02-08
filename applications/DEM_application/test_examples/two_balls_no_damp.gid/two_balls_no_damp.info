@@ -2,14 +2,9 @@
  ' /   __| _` | __|  _ \   __|
  . \  |   (   | |   (   |\__ \ 
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 3.0.2
+           Multi-Physics 3.1.0
 Importing KratosDEMApplication
-"kernel synchronization in AddApplication" : kernel synchronization in AddApplication
 Initializing KratosDEMApplication... 
-"Application Registered" : Application Registered
-"Variables   Registered" : Variables   Registered
-"Elements    Registered" : Elements    Registered
-"Conditions  Registered" : Conditions  Registered
 Initializing  KratosDEMApplication
 variables for the explicit solver added correctly
 two_balls_no_damp opened for io
@@ -20,133 +15,33 @@ two_balls_no_damp.cond opened for io
 two_balls_no_damp.init opened for io
 initializing result files
 Reading Nodes : 2 nodes read
-	Reading Elements : 2 SphericParticle3D read
+Reading Elements : 2 SphericParticle3D read
 lines read : 100
 dofs for the DEM solution added correctly
-OFF
-Calculation starts at instant: 0.09
+******************Calculating TimeStep Is 0.0001******************
 
-Last TIME STEP is expected to be: 60000
 
-TIME STEP =  999
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  2000
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  3001
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  4002
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  5003
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  6004
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  7005
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  8006
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  9007
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  10008
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  11009
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  12010
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  13011
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  14012
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  15013
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  16014
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  17015
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  18016
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  19017
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  20018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  21018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  22018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  23018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  24018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  25018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  26018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  27018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  28018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  29018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  30018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  31018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  32018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  33018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  34018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  35018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  36018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  37018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  38018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  39018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  40018
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  41019
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  42020
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  43021
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  44022
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  45023
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  46024
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  47025
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  48026
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  49027
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  50028
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  51029
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  52030
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  53031
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  54032
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  55033
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  56034
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  57035
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  58036
-"writing Sphere Mesh" : writing Sphere Mesh
-TIME STEP =  59037
-"writing Sphere Mesh" : writing Sphere Mesh
-Traceback (most recent call last):
-  File "/home/CIMNE/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid/script.py", line 371, in <module>
-    import matplotlib
-ImportError: No module named matplotlib
+Calculation starts at instant: 0.11
+
+Total number of TIME STEPs expected in the calculation are: 30000 if time step is kept 
+
+nodes interior
+0
+nodes totals
+2
+nodes skin
+2
+0.0
+0.0053014365
+-100.0
+Calculation ends at instant: 1360329616.66
+Calculation ends at processing time instant: 4.05
+Elapsed processing time: 3.94
+Elapsed real time: 4.20291090012
+
+                                 Repeat # 	Total     	Max     	Min     	Average     	%
+Reading Input.......................... 1 	0.0378816s     	0.0378816s     	0.0378816s     	0.0378816s     	0.824509%
+Writing Mesh........................... 2 	0.00538764s     	0.00537542s     	1.2222e-05s     	0.00269382s     	0.117264%
+Writing Results........................ 7450 	1.47596s     	0.0282792s     	5.728e-06s     	0.000198115s     	32.1248%
+
+COMPLETED ANALYSIS
