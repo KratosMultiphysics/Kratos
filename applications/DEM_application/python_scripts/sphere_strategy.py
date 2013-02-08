@@ -15,6 +15,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
+    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     
     #may be grouped
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
@@ -61,7 +63,7 @@ def AddVariables(model_part):
 
       model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
       model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
-      model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+      model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)     
       model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
       model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
       model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
