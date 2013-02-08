@@ -117,11 +117,11 @@ namespace Kratos
                   array_1d<double, 3 > & coor            = i->Coordinates();
                   array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
-
+                  
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
 
                   aux = delta_t / mass;
-
+                          
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
@@ -241,16 +241,17 @@ namespace Kratos
                 double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
 
-                array_1d<double, 3 > & AngularVel           = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3 > & RotaMoment           = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
-                array_1d<double, 3 > & delta_rotation_displ = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
-                array_1d<double, 3 > & Rota_Displace        = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-
+                array_1d<double, 3 > & AngularVel             = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                array_1d<double, 3 > & RotaMoment             = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
+                array_1d<double, 3 > & delta_rotation_displ   = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
+                array_1d<double, 3 > & Rota_Displace          = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
+                double & Orientation_real                     = i->FastGetSolutionStepValue(ORIENTATION_REAL); 
+                array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
+                
                 bool If_Fix_Rotation[3] = {false, false, false};
                 If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
                 If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
                 If_Fix_Rotation[2] = i->pGetDof(VELOCITY_Z)->IsFixed();
-
 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
@@ -261,25 +262,22 @@ namespace Kratos
                          RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia);
 
                          if(rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-                                {
+                         {
                                   RotaAcc = RotaAcc * ( 1 - coeff );
-                                }
+                         }
                        
-                         double RotaVelOld = AngularVel[iterator];
-                         double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
-
-                         AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
+                         //double RotaVelOld = AngularVel[iterator];
+                         //double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
+                         AngularVel[iterator] += RotaAcc * delta_t;
+                         //AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
                          //AngularVel[iterator]  = RotaVelNew;                         
                         
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
                          
-                                 //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
-
-                      
-                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator]; // it is not used...
-                         
-                    }
-                   
+                         //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
+                               
+                         Rota_Displace[iterator] +=  delta_rotation_displ[iterator];                         
+                    }                   
 
                     else
                     {
@@ -296,20 +294,70 @@ namespace Kratos
                        */
 
                     }
-
-                     //RotaMoment[iterator] = 0.0;
-
-
-                }
                     
-            }
+                    //RotaMoment[iterator] = 0.0;
+                }
+                
+                //double RotationAngle;
+          
+                //GeometryFunctions::norm(Rota_Displace,RotationAngle);
+                
+                double theta[3] = {0.0};
+                
+                theta[0] = Rota_Displace[0] * 0.5;
+                theta[1] = Rota_Displace[1] * 0.5;
+                theta[2] = Rota_Displace[2] * 0.5;                
 
-        }
+                double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
+
+                if(thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON)  //Taylor: low angle
+                {
+                    Orientation_real = 1 + thetaMag * thetaMag / 2;
+                    Orientation_imag[0] = theta[0] * ( 1 - thetaMag * thetaMag / 6 );
+                    Orientation_imag[1] = theta[1] * ( 1 - thetaMag * thetaMag / 6 );
+                    Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );                    
+                }
+                
+                else
+                {
+                    Orientation_real = cos (thetaMag);
+                    Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
+                    Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
+                    Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);                    
+                }
+                
+                array_1d<double,3>& EulerAngles       = i->FastGetSolutionStepValue(EULER_ANGLES);    
+	        
+                double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
+                
+                if ( test > 0.49999999 )               // singularity at north pole
+                {
+                    EulerAngles[0] = 2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                    EulerAngles[1] = pi;
+                    EulerAngles[2] = 0.0;
+                }
+                
+                else if (test < -0.49999999 )          // singularity at south pole
+                {                 
+                    EulerAngles[0] = -2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                    EulerAngles[1] = -pi;
+                    EulerAngles[2] = 0.0;
+                }
+
+                else                
+                {
+                    EulerAngles[0] = atan2( 2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2] , 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1] );
+                    EulerAngles[1] = asin ( 2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0] );
+                    EulerAngles[2] = -atan2( 2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1] , 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2] );
+                }
+              }
+            }
+        
         KRATOS_CATCH(" ")
         
      }
 	
- 
+
       /// Turn back information as a string.
       virtual std::string Info() const
       {
