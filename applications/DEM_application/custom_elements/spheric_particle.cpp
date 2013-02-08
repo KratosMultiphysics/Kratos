@@ -1497,7 +1497,7 @@ namespace Kratos
           }
       }//ComputeParticleRotationSpring
 
-      void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo )
+      /*void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo )
       {
           //KRATOS_WATCH("INITIALIZE_AXES")
 
@@ -1573,15 +1573,15 @@ namespace Kratos
           Eu[1]=EulerAngles[1]-0.0;
           Eu[2]=EulerAngles[2]-1.57080e+00;
           
-/*
-          KRATOS_WATCH(OriginalVector_X)
-            KRATOS_WATCH(RotatedVector_X)
-            KRATOS_WATCH(OriginalVector_Z)
-            KRATOS_WATCH(RotatedVector_Z)
-*/
+
+          //KRATOS_WATCH(OriginalVector_X)
+          //KRATOS_WATCH(RotatedVector_X)
+          //KRATOS_WATCH(OriginalVector_Z)
+          //KRATOS_WATCH(RotatedVector_Z)
+
           GeometryFunctions::CalculateEulerAngles(OriginalVector_X, OriginalVector_Z, RotatedVector_X, RotatedVector_Z, EulerAngles );        
 
-      }
+      }*/
 
       void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
@@ -1719,7 +1719,7 @@ namespace Kratos
               ApplyLocalMomentsDamping( rCurrentProcessInfo );
           } //DAMPING
 
-          if (rVariable == DUMMY_LOCAL_AXES) //M.S: CANVIAR!!
+          /*if (rVariable == DUMMY_LOCAL_AXES) //M.S: CANVIAR!!
           {
               CalculateInitialLocalAxes( rCurrentProcessInfo );
           } //EULER_ANGLES
@@ -1727,7 +1727,7 @@ namespace Kratos
           if (rVariable == PRESSURE) //M.S: CANVIAR!!
           {               
               CalculateLocalAxes( rCurrentProcessInfo );
-          } //EULER_ANGLES
+          } //EULER_ANGLES*/
 
       }//calculate
 
