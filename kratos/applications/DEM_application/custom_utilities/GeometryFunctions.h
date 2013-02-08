@@ -378,13 +378,36 @@ namespace Kratos
         }
 
      }
+     
+     /////////****Quaternions****///////////////     
 
+     static inline void Align(double normal[3], double quart_imag[3], double quart_angle, double quart_axis[3])
+     {   
+         double temp[3] = {0.0};
+         
+         temp[0] = normal[0] + quart_imag[0];
+         temp[1] = normal[1] + quart_imag[1];
+         temp[2] = normal[2] + quart_imag[2];
+         
+         norm(temp);
+         
+         double normal_norm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
+         
+         quart_angle = DotProduct(normal, temp) / normal_norm;
+         
+         CrossProduct(normal, temp, quart_axis);
+         
+         quart_axis[0] = quart_axis[0] / normal_norm;
+         quart_axis[1] = quart_axis[2] / normal_norm;
+         quart_axis[2] = quart_axis[2] / normal_norm;
+     }
+     
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      ///////////////******EULER ANGLES from 2 vectors******/////////////////////////////////////////////////////////////////////////
      ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-    static inline void CalculateEulerAngles(const array_1d<double,3>& OriginalVector_X, const array_1d<double,3>& OriginalVector_Z,
+    /*static inline void CalculateEulerAngles(const array_1d<double,3>& OriginalVector_X, const array_1d<double,3>& OriginalVector_Z,
                 const array_1d<double,3>& RotatedVector_X, const array_1d<double,3>& RotatedVector_Z, array_1d<double,3>& EulerAngles)
     {
 
@@ -402,8 +425,8 @@ namespace Kratos
         EulerAngles[1] = acos(return2);
         EulerAngles[2] = acos(return3);
 
-    }
-     static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double Particle_Coord[3], double rad)
+    }*/
+    static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double Particle_Coord[3], double rad)
      {
          bool If_Conact = false;
 
