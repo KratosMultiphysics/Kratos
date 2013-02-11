@@ -116,9 +116,9 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             const double nu = GetProperties()[POISSON_RATIO];
             const double pi = 3.14159265;
             const double coriolis_coefficient = 1.0001;
-            const double kr_coefficient = 1.0;
+	    // const double kr_coefficient = 1.0;
 
-            const double kinematic_viscosity = dynamic_viscosity/density;
+	    // const double kinematic_viscosity = dynamic_viscosity/density;
             const double beta = E*mH0*1.77245385/(1.0-nu*nu);
 
 
@@ -148,7 +148,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 artery_property[i]=mBeta/mInitialArea[i];
                 coef[i] = sqrt(mBeta/(2*density * mInitialArea[i]));
             }
-
+ 	    flow[1] = flow[0];
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
 
@@ -168,22 +168,59 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
                 permutation_matrix<double> permutation(4);
                 array_1d<double,4> delta_x = -f_out;
+		
+		array_1d<int,4> fixity  = ZeroVector(4);
+		if(GetGeometry()[0].IsFixed(NODAL_AREA) == true) fixity[0] = 1.0;
+		if(GetGeometry()[1].IsFixed(NODAL_AREA) == true) fixity[1] = 1.0;
+		if(GetGeometry()[0].IsFixed(FLOW) == true) fixity[2] = 1.0;
+		if(GetGeometry()[1].IsFixed(FLOW) == true) fixity[3] = 1.0;
+		
+// fixity[0] = 1.0;		
+// fixity[3] = 1.0;
 
+		KRATOS_WATCH(jacobian);
+KRATOS_WATCH(delta_x);
+		
+		
+		
+		for(unsigned int i =0; i<4; i++)
+		{
+		    if(fixity[i] == 1)
+		    {
+		      for(unsigned int j =0; j<4; j++)
+		      {
+			  jacobian(j,i) = 0.0;
+			  jacobian(i,j) = 0.0;
+		      }
+		      delta_x[i] = 0.0;
+		      jacobian(i,i) = 1.0;		      
+		    }
+		}
+		
+		KRATOS_WATCH(jacobian);
+		KRATOS_WATCH(f_out);
+		KRATOS_WATCH(area);
+KRATOS_WATCH(flow);
                 lu_factorize(jacobian, permutation);
                 lu_substitute(jacobian,permutation, delta_x);
+		
+
 
                 convergence = norm_2(delta_x);
 
-                // we have to add the relative convergence check
-                if(convergence < tolerance)
-                    break;
+
 
                 area[0] += delta_x[0];
                 area[1] += delta_x[1];
                 flow[0] += delta_x[2];
-                flow[1] = flow[0];
-
+                flow[1] += delta_x[3];
+KRATOS_WATCH(flow);
+                // we have to add the relative convergence check
+                if(convergence < tolerance)
+                    break;
             }
+	    
+            
             double A1 = area[0];
 
             double A0 = mInitialArea[0];
@@ -194,6 +231,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
 
             A1 = area[1];
+	    A0 = mInitialArea[1];
             C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
 
             rRightHandSideVector[2] = flow[1];

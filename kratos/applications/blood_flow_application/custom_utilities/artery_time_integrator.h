@@ -299,7 +299,8 @@ private:
       //set to the value at the beginning of the step
       for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-	    in->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA,1);
+	    if(in->IsFixed(NODAL_AREA) == false)
+	      in->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA,1);
 
 	    //FLOW
 	    if(in->IsFixed(FLOW) == false)
@@ -316,8 +317,8 @@ private:
         double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
         double nodal_flow = in->FastGetSolutionStepValue(FLOW);
 
-	    //NODAL_AREA is never prescribed
-        in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] / nodal_mass;
+	    if(in->IsFixed(NODAL_AREA) == false)
+		in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] / nodal_mass;
 
 	    //FLOW
 	    if(in->IsFixed(FLOW) == false)

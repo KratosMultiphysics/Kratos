@@ -119,7 +119,7 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     //mL = 0.001;
 
     //get data as needed
-    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    //    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];

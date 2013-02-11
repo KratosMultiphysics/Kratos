@@ -1,7 +1,7 @@
 from KratosBloodFlowApplication import *
 application = KratosBloodFlowApplication()
 application_name = "KratosBloodFlowApplication"
-application_folder = "BloodFlowApplication"
+application_folder = "blood_flow_application"
 
 # The following lines are common for all applications
 import application_importer
