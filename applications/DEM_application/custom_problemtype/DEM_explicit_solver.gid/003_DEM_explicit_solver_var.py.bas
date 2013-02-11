@@ -62,6 +62,10 @@ global_rr = *GenData(Global_RR)
 *format "%10.5e"
 global_fri_ang = *GenData(Global_FRI_ANG)
 ModelDataInfo = "*GenData(Model_Data_Info)"
+FixVelocities = "*GenData(Fix_Velocities_At_Predetermined_Time)"
+*format "%10.5e"
+TimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
+
 
 #Continuum Options
 
@@ -120,6 +124,19 @@ print_contact_sigma              = "*GenData(CONTACT_SIGMA)"
 print_angular_velocity           = "*GenData(ANGULAR_VELOCITY)"
 print_particle_moment            = "*GenData(PARTICLE_MOMENT)"
 print_euler_angles               = "*GenData(EULER_ANGLES)"
+print_representative_volume      = "*GenData(REPRESENTATIVE_VOLUME)"
+print_mean_contact_area          = "*GenData(MEAN_CONTACT_AREA)"
+print_stress_tensor              = "*GenData(STRESS_TENSOR)"
+
+
+#FROM CND:
+
+*Set cond SET_SKIN *elems
+*if(CondNumEntities(int))
+predefined_skin_option = "ON"
+*else
+predefined_skin_option = "OFF"
+*endif
 
 
 mass_elements=*tcl(DEM::Get_Mass_Elements)
