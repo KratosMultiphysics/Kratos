@@ -116,7 +116,7 @@ namespace Kratos
 			  
 	  } //SwitchCase
 	  
-	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, double current_time, double final_time, int dummy_switch)
+	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, double current_time, double final_time, int& dummy_switch)
 	  {
 				
 		array_1d<double,3> applied_force;
