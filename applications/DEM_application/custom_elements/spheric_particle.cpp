@@ -296,6 +296,8 @@ namespace Kratos
           
           } //for every neighbour
        
+       KRATOS_WATCH(skin_sphere)
+       
           if(skin_sphere != 1)
           {
           
@@ -305,7 +307,9 @@ namespace Kratos
           else //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
           {
               //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
-              alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+              //alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+              KRATOS_WATCH("IGNASI")
+              alpha            = 100000000*(1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
                 
           }
           
@@ -1201,7 +1205,7 @@ namespace Kratos
 							   
 							   else if ( ( rCurrentProcessInfo[TIME_STEPS]==0 ) && ( this->GetValue(SKIN_SPHERE)==1 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
 							   {
-							   
+							
 								 lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
 															 
 							   }
@@ -1665,30 +1669,71 @@ namespace Kratos
 		      }
 		  
 		   }
-		   
+	
+              
 		   //DEBUG MEDICIÓ
 		   
-		   size_t index = 0;
-		   ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
+                  double& area_vertical_tapa = rCurrentProcessInfo[AREA_VERTICAL_TAPA];
+                  double& area_vertical_centre = rCurrentProcessInfo[AREA_VERTICAL_CENTRE];
+                  
+                  if(rCurrentProcessInfo[TIME_STEPS]==2)
+                      
+                  {
+                     
+                     if( (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1) || (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==2))
+                            
+                      {
+                      
+                       ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
 		   
-		   for(ParticleWeakIteratorType_ptr ineighbour = r_neighbours.ptr_begin();  //loop over the neighbours and store into a initial_neighbours vector.
-            ineighbour != r_neighbours.ptr_end(); ineighbour++)
-            {
-			  
-			 if( (this->GetValue(GROUP_ID)==4 ) && ( ((*ineighbour).lock())->GetValue(GROUP_ID)!=4 ) )
-			 {
+                         for(ParticleWeakIteratorType_ptr ineighbour = r_neighbours.ptr_begin();  //loop over the neighbours and store into a initial_neighbours vector.
+                             ineighbour != r_neighbours.ptr_end(); ineighbour++)
+                  
+                           {
+                             
+                             if( (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=1) && (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=2) ) 
+			       
+                             {
+                                 
+                                 int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
+                                 
+                                  for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
+				  {
+
+					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(((*ineighbour).lock())->Id()) ) 
+					  {     
+						 Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
+                                                 double corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+
+                                                  array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
+			                          array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
+			                          double Dummy_Dummy = 0.0;
+			                          GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+                                                  if ((this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1)){
+                                                      area_vertical_tapa += corrected_area*fabs(normal_vector_on_contact[1]);
+                                                   
+                                                  }
+                                                  else{
+                                                      area_vertical_centre += 0.5*corrected_area*fabs(normal_vector_on_contact[1]);
+                                                  }
+                                                  
+                                                  break;
+					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+					  
+					  
+				  }//for every neighbour      
+                                 
+                                 
+                                 
+                             }
+                             
+                         }
+                       
+                     }
+                  }
+      	   
 			   
-			    array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
-			    array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
-			    double Dummy_Dummy = 0.0;
-			    GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
-			    
-				//area_vertical += mcont_ini_neigh_area[index]*normal_vector_on_contact[1];
-			   
-			  }
-			  
-			}
-   
+		
       }
         
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) 
