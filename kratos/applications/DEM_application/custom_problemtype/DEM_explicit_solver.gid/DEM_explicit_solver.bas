@@ -218,7 +218,7 @@ End NodalData
 *Set cond SET_SKIN *elems
 Begin ElementalData PREDEFINED_SKIN
 *loop elems *OnlyInCond
-*elemsnum *Cond(SET)
+*elemsnum 1.0
 *end elems
 End ElementalData
 
