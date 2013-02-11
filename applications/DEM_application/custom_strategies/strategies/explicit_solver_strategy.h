@@ -217,6 +217,13 @@ namespace Kratos
           {
               rCurrentProcessInfo[ACTIVATE_SEARCH] = 0;
           }
+         
+          if( rCurrentProcessInfo[INT_DUMMY_6] )
+		  {
+		  FreeVelocities();
+		  }		    
+          
+          
 
           //6.Final operations
           FinalizeSolutionStep();
@@ -463,8 +470,15 @@ namespace Kratos
 
       void ComputeIntermedialVelocityAndNewDisplacement()
       {
-          ModelPart& r_model_part = BaseType::GetModelPart();
-          mpScheme->Calculate(r_model_part);
+		 ModelPart& r_model_part = BaseType::GetModelPart();  
+		 ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+		
+          if( rCurrentProcessInfo[INT_DUMMY_6] && ( rCurrentProcessInfo[TIME_STEPS] == int(rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ) ) )
+		  
+		  {
+		  FixVelocities();
+		  }		  
+		  mpScheme->Calculate(r_model_part);
       }
       
       void ComputeCriticalTime()
@@ -834,6 +848,98 @@ namespace Kratos
           KRATOS_CATCH("")
           
       }
+        
+      void FixVelocities()
+	  {
+         KRATOS_TRY
+
+         KRATOS_WATCH("")
+		 KRATOS_WATCH("FIXING VELOCITIES!")
+         
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements      = GetElements(r_model_part);
+          
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+          #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          #pragma omp parallel for //private(index)
+
+          for(int k=0; k<number_of_threads; k++)
+          {
+              typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+              typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+              for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+				
+				   if( ( it->GetValue(GROUP_ID) == 1) || ( it->GetValue(GROUP_ID) == 4)  ) 
+				   {
+                        //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
+						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+                        //(it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;
+                        
+				   }
+				   
+              } //loop over particles
+
+          }// loop threads OpenMP
+          
+     
+          KRATOS_CATCH("")
+
+	  }
+      
+      void FreeVelocities()
+	  {
+         KRATOS_TRY
+                  
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements      = GetElements(r_model_part);
+          
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+          #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+          #pragma omp parallel for //private(index)
+
+          for(int k=0; k<number_of_threads; k++)
+          {
+              typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+              typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+              for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+				
+				   if( ( it->GetValue(GROUP_ID) == 1) || ( it->GetValue(GROUP_ID) == 4)  ) 
+				   {
+                        (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
+                        
+				   }
+				   
+              } //loop over particles
+
+          }// loop threads OpenMP
+          
+     
+          KRATOS_CATCH("")
+
+	  }
+      
+      
         
       void CalculateEnergies()
       {
