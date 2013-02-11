@@ -91,7 +91,7 @@ if(ModelDataInfo =="ON"):
   os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
   os.chdir(main_path)
-  
+
 if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
@@ -190,9 +190,10 @@ os.chdir(main_path)
 # for the graph plotting    
 velocity_node_y = 0.0
     
-for node in force_measurement:
+for node in sup_layer_fm:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-
+    break
+    
 #done=False  #flag for the end of the confinement  
  
 ###################################################################
@@ -216,7 +217,7 @@ while(time < final_time):
     
     os.chdir(data_and_results)
     
-    for node in force_measurement:
+    for node in sup_layer_fm:
 	
 		force_node = node.GetSolutionStepValue(RHS,0)
 		force_node_x = node.GetSolutionStepValue(RHS,0)[0]
@@ -244,7 +245,7 @@ while(time < final_time):
     total_force=0
     force_node= 0
     
-    for node in inf_layer:
+    for node in inf_layer_fm:
 	
 		force_node = node.GetSolutionStepValue(RHS,0)
 		force_node_x = node.GetSolutionStepValue(RHS,0)[0]
@@ -270,7 +271,7 @@ while(time < final_time):
 		  #element.SetValue(APPLIED_FORCE,(0,0,0))
 		
 		#print("Confinement finished at time "+str(time))
-       
+		
     solver.Solve()
 
    
@@ -454,14 +455,15 @@ for element in solid_model_part.Elements:
     vs_radi.write(str(r)+"  "+str(volume_equ/volume_real)+'\n')
     vs_var_rad.write(str(num_of_neigh)+"  "+str(volume_equ/volume_real)+'\n')
   
-print("nodes interior")
-print (counter)
+  
+#print("nodes interior")
+#print (counter)
 
-print("nodes totals")
-print (counter_all)
+#print("nodes totals")
+#print (counter_all)
 
-print("nodes skin")
-print (counter_all-counter)
+#print("nodes skin")
+#print (counter_all-counter)
   
 
 total_volume = 0
@@ -469,7 +471,7 @@ total_volume = 0
 for element in solid_model_part.Elements:
   
   node = element.GetNode(0)
-  volume_equ = node.GetSolutionStepValue(EQ_VOLUME_DEM,0)
+  volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0)
   
   total_volume = total_volume + volume_equ
   
