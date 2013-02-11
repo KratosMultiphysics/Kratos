@@ -221,6 +221,8 @@ class ExplicitStrategy:
             if(self.continuum_simulating_OPTION==False): self.case_OPTION = 0
             else: self.case_OPTION = 3
 
+        self.model_part.ProcessInfo.SetValue(AREA_VERTICAL_TAPA,0.0);
+        self.model_part.ProcessInfo.SetValue(AREA_VERTICAL_CENTRE,0.0);
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED,0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS,0);
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
