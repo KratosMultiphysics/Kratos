@@ -1234,11 +1234,11 @@ namespace Kratos
 
           }//for each neighbour
 
-         
+        
          if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
 		 {
 	 
-		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
+		  //this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
 		   
 		   
      		}
@@ -1670,7 +1670,7 @@ namespace Kratos
 		  
 		   }
 	
-              
+           
 		   //DEBUG MEDICIÓ
 		   
                   double& area_vertical_tapa = rCurrentProcessInfo[AREA_VERTICAL_TAPA];
