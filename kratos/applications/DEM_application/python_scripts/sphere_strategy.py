@@ -29,7 +29,7 @@ def AddVariables(model_part):
     
     #es podrien eliminar
     model_part.AddNodalSolutionStepVariable( NODAL_MASS )
-    model_part.AddNodalSolutionStepVariable( EQ_VOLUME_DEM ) #temporal
+    
     model_part.AddNodalSolutionStepVariable( NUM_OF_NEIGH ) #temporal
     model_part.AddNodalSolutionStepVariable( DEM_STRESS_XX )    
     model_part.AddNodalSolutionStepVariable( DEM_STRESS_XY )
@@ -48,6 +48,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   #colour defined in GiD
     model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  #Continuum group
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            #differencied groups for plotting, etc..
+    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     
     model_part.AddNodalSolutionStepVariable(RHS)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
@@ -157,6 +158,9 @@ class ExplicitStrategy:
         self.sigma_max                         = 0.0
         self.sigma_min                         = 0.0
         self.internal_fricc	                    = 0.0
+        
+        self.fix_velocities                      = 0  
+        self.time_step_percentage_fix_velocities = 0 #int(final_time/delta_time)*10;
 
         #global parameters
         self.global_variables_OPTION          = 0 #its 1/0 xapuza
@@ -267,14 +271,15 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) #reserved for: Export Print Skin sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) #reserved for print_export_skin_sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0) #reserved for counter of checking contact sigma mean in contact elements
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, 0)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
+
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)#int( self.time_step_percentage_fix_velocities * ( self.final_time/self.delta_time) ) ) #reserved for timestep fix_velocities
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, 0)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, 0)
         
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) #reserved for adding up the contact mean in contact elements.
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_2, 0.0) # reserved for the sigma mean
-        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_3, 0.0)
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_3, self.time_step_percentage_fix_velocities)# reserved for percentage when start the fixing of velocities
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_4, 0.0)
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_5, 0.0)
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_6, 0.0)
