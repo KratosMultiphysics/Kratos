@@ -147,8 +147,8 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         //mlocalcontactforcelow[2] = const_this->GetValue(rVariable)[2];
         
     }
-    
-  }
+}
+
  
   void Particle_Contact_Element::GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
     {
@@ -214,7 +214,10 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
     this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = 0.0;
-
+    
+	this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
+    this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
+    //this->GetValue(MEAN_CONTACT_AREA) = 0.0;
    
 }
 
@@ -240,8 +243,7 @@ void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 }
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
-{
-
+{ 
 }
 
 
