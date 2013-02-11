@@ -83,10 +83,10 @@ def ProcModelData(solid_model_part,solver):
   
   Model_Data.close()    
 
-sup_layer = list()
-inf_layer = list()
-fix_particles = list()
-force_measurement = list()
+sup_layer_fm = list()
+inf_layer_fm = list()
+sup_plate_fm = list()
+inf_plate_fm = list()
 special_selection = list()
 others = list()
    
@@ -95,14 +95,14 @@ def ProcListDefinition(model_part,solver):
   # Defining lists (FOR COMPRESSION TESTS)
   
   for node in model_part.Nodes:
-    if (node.GetSolutionStepValue(GROUP_ID)==1):
-      sup_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==2):
-      inf_layer.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==3):
-      fix_particles.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==4):
-      force_measurement.append(node)
+    if (node.GetSolutionStepValue(GROUP_ID)==4):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+      sup_layer_fm.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+      inf_layer_fm.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==1):    #reserved for auxiliar strain-stress measurement plate (superior)
+      sup_plate_fm.append(node)
+    elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (inferior)
+      inf_plate_fm.append(node)
     elif (node.GetSolutionStepValue(GROUP_ID)==5):
       special_selection.append(node)
     else:
@@ -273,6 +273,10 @@ def ProcGiDSolverTransfer(model_part,solver):
     if(Pressure!=0):
       
       solver.external_pressure = 1
+   
+    if(FixVelocities =="ON"):
+        solver.fix_velocities = 1  #xapuza
+    solver.time_step_percentage_fix_velocities = TimePercentageFixVelocities
 
 def ProcSkinAndPressure(model_part,solver):
     
@@ -280,9 +284,6 @@ def ProcSkinAndPressure(model_part,solver):
     
     Pressure = ConfinementPressure*1e6 #Mpa
     
-    print(" ")
-    print(solver.external_pressure)
-    print("")
     SKIN = list()  
     LAT = list()
     BOT = list()
@@ -313,90 +314,103 @@ def ProcSkinAndPressure(model_part,solver):
     xtopcorner_area = 0.0
       
     #SKIN DETERMINATION
-    
+
     for element in model_part.Elements:
     
+      
       element.SetValue(SKIN_SPHERE,0)
-      if (element.GetValue(PREDEFINED_SKIN)==1):
-        print("SKIN!!!")
-        element.SetValue(SKIN_SPHERE,1)
       
-      node = element.GetNode(0)
-      r = node.GetSolutionStepValue(RADIUS,0)
-      x = node.X
-      y = node.Y
-      z = node.Z
-
-      cross_section = 3.141592*r*r
-
-      if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
       
-        element.SetValue(SKIN_SPHERE,1)     
-        total_cross_section = total_cross_section + cross_section
-      
-        LAT.append(node)
-            
-        if ( (y>eps*r ) and (y<(h-eps*r)) ) :
-        
-          SKIN.append(element)
-        
-          XLAT.append(node)
-	  xlat_area = xlat_area + cross_section
-    
-      if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
-
-          element.SetValue(SKIN_SPHERE,1)
-        
-          SKIN.append(element)
-        
-          if ( y<=eps*r ):
-
-              BOT.append(node)
-
-          elif ( y>=(h-eps*r) ):
-
-              TOP.append(node)
-
-          if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+      if (predefined_skin_option == "ON" ):
          
-              if ( y>h/2 ):
+         if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
+      
+           element.SetValue(SKIN_SPHERE,1)
+      
+      if ( predefined_skin_option == "OFF" ):
+      
+        node = element.GetNode(0)
+        r = node.GetSolutionStepValue(RADIUS,0)
+        x = node.X
+        y = node.Y
+        z = node.Z
+        node_group = node.GetSolutionStepValue(GROUP_ID,0)
+        cross_section = 3.141592*r*r
 
-                  XTOPCORNER.append(node)
-		  xtopcorner_area = xtopcorner_area + cross_section
-                
-              else:
+        if( (node_group!=2) and (node_group!=4) ):
+      
+          if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
+      
+             element.SetValue(SKIN_SPHERE,1)     
+             total_cross_section = total_cross_section + cross_section
+      
+             LAT.append(node)
+            
+             if ( (y>eps*r ) and (y<(h-eps*r)) ) :
+        
+               SKIN.append(element)
+        
+               XLAT.append(node)
+          
+             xlat_area = xlat_area + cross_section
+    
+          if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
 
-                  XBOTCORNER.append(node)
-		  xbotcorner_area = xbotcorner_area + cross_section
-          else:
+               element.SetValue(SKIN_SPHERE,1)
+        
+               SKIN.append(element)
+        
+               if ( y<=eps*r ):
 
-              if ( y<=eps*r ):
+                   BOT.append(node)
+
+               elif ( y>=(h-eps*r) ):
+
+                   TOP.append(node)
+
+               if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+         
+                   if ( y>h/2 ):
+
+                       XTOPCORNER.append(node)
+                       
+                       xtopcorner_area = xtopcorner_area + cross_section
                 
-                  XBOT.append(node)
-		  xbot_area = xbot_area + cross_section
+                   else:
+
+                       XBOTCORNER.append(node)
+                       xbotcorner_area = xbotcorner_area + cross_section
+               else:
+
+                   if ( y<=eps*r ):
                 
-              elif ( y>=(h-eps*r) ):
+                       XBOT.append(node)
+                       xbot_area = xbot_area + cross_section
+                
+                   elif ( y>=(h-eps*r) ):
                     
-                  XTOP.append(node)
-		  xtop_area = xtop_area + cross_section
-
-    #Coeficient correccio area tapa superior
-  
-    alpha_top = 3.141592*d*d*0.25/(xtop_area + 0.70710678*xtopcorner_area)
-
-    #Coeficient correccio area tapa inferior
-  
-    alpha_bot = 3.141592*d*d*0.25/(xbot_area + 0.70710678*xbotcorner_area)
-
-    #Coeficient correccio area lateral
-  
-    alpha_lat = 3.141592*d*h/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area)
-                                    
+                       XTOP.append(node)
+                       xtop_area = xtop_area + cross_section
+                                       
+    
     if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
- 
-      ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
-      print("End Applying Imposed Forces")
-     
+        
+        #Coeficient correccio area tapa superior
+        alpha_top = 3.141592*d*d*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+
+        #Coeficient correccio area tapa inferior
+        alpha_bot = 3.141592*d*d*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+
+        #Coeficient correccio area lateral
+        alpha_lat = 3.141592*d*h/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+        
+        ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+        print("End Applying Imposed Forces")
+        
+    if (predefined_skin_option == "ON" ):
+      print "\n", "Predefined Skin by the user, Pressure may not be applied"  ,"\n" 
+      
+      
 def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
   
 	if (print_displacement=="1"):
@@ -425,15 +439,18 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
 	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, contact_model_part.Nodes, time, 0)
 	if (print_export_skin_sphere=="1"):
 	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_XX, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_XY, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_XZ, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_YX, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_YY, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_YZ, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_ZX, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_ZY, contact_model_part.Nodes, time, 0)
-	gid_io.WriteNodalResults(DEM_STRESS_ZZ, contact_model_part.Nodes, time, 0)
+	if (print_stress_tensor == "1"):
+	  gid_io.WriteNodalResults(DEM_STRESS_XX, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_XY, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_XZ, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_YX, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_YY, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_YZ, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_ZX, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_ZY, contact_model_part.Nodes, time, 0)
+	  gid_io.WriteNodalResults(DEM_STRESS_ZZ, contact_model_part.Nodes, time, 0)
+	if (print_representative_volume == "1"):
+	  gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, contact_model_part.Nodes, time, 0)
     
   #Aixo sempre per que si no hi ha manera de debugar
   #gid_io.WriteNodalResults(PARTITION_INDEX, contact_model_part.Nodes, time, 0)
@@ -444,10 +461,8 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
 		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,contact_model_part,time)
 	  if (print_local_contact_force_high=="1"):
 		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,contact_model_part,time)
-	  #if (print_local_contact_force_low=="1"):
-	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,contact_model_part,time)
-	  #if (print_local_contact_area_high=="1"):
-	  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,contact_model_part,time)
+	  if (print_mean_contact_area=="1"): 
+		  gid_io.PrintOnGaussPoints(MEAN_CONTACT_AREA,contact_model_part,time)
 	  if (print_contact_failure=="1"): 
 		  gid_io.PrintOnGaussPoints(CONTACT_FAILURE,contact_model_part,time)	 
 	  if (print_failure_criterion_state=="1"):
