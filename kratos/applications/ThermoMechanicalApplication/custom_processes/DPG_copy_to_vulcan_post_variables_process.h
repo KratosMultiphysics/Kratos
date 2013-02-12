@@ -116,8 +116,11 @@ namespace Kratos
 			 // double min_temp = mrModelPart.GetProcessInfo()[AMBIENT_TEMPERATURE];
 			 // double min_mat_temp = 100000.0;
 
-			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
-			 {
+		//	 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+			 #pragma omp parallel for
+		        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		        {
+				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
 				 double distance = i_node->GetSolutionStepValue(DISTANCE);
 				// double slip_flag = i_node->FastGetSolutionStepValue(IS_SLIP);
 				 if(distance > max_distance)
@@ -177,9 +180,12 @@ namespace Kratos
 			    }	
 			 mean_interface_temp /= cnt_intr;
 
-			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
-			 {
-				 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
+//			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
+			 #pragma omp parallel for
+		        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		        {
+				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+			 	 double distance = i_node->GetSolutionStepValue(DISTANCE) * distance_norm_inverse;
 				 // the distance is between -1 and 1 where < 0 is material while
 				 // the material is between 0 and 1 with >=0.5 is material!
 				 i_node->FastGetSolutionStepValue(MATERIAL) = (1.00 - distance) * 0.5;

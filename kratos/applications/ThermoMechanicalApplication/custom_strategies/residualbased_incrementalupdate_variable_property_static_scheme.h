@@ -188,8 +188,12 @@ public:
 	    ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);
 	    ModelPart::TableType HTC_table = r_model_part.GetTable(7);
 	    
-	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
+	    
+// 	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
+	      #pragma omp parallel for
+	      for (int k = 0; k< static_cast<int> (r_model_part.Nodes().size()); k++)
 	      {
+		ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
 		      const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
 		      const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
@@ -258,6 +262,7 @@ public:
     {
         KRATOS_TRY
 
+        
         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
         {
             if(i_dof->IsFree())
@@ -282,8 +287,11 @@ public:
        ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);	
 	   ModelPart::TableType HTC_table = r_model_part.GetTable(7);	
 
-	for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
+	//for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
+	 #pragma omp parallel for
+	for (int k = 0; k< static_cast<int> (r_model_part.Nodes().size()); k++)
 	{
+		ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin() + k;
 		const double unknown_val = ind->FastGetSolutionStepValue(rUnknownVar);
 		const double dist = ind->FastGetSolutionStepValue(DISTANCE);
 
