@@ -78,7 +78,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //schemes
 #include "solving_strategies/schemes/scheme.h"
-#include "custom_strategies/schemes/foward_euler_scheme.h"
+#include "custom_strategies/schemes/forward_euler_scheme.h"
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
@@ -86,7 +86,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
 
 //parallel schemes
-//#include "custom_strategies/schemes/mpi_foward_euler_scheme.h" //MPI CARLOS descomentar aixo
+//#include "custom_strategies/schemes/mpi_forward_euler_scheme.h" //MPI CARLOS descomentar aixo
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -115,9 +115,9 @@ namespace Kratos
                     ("IntegrationScheme", init< >())
                   ;
                   
-		  class_< FowardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
+		  class_< ForwardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
 		  (
-                   "FowardEulerScheme", init<>()
+                   "ForwardEulerScheme", init<>()
                   )
                   ;
 
@@ -137,9 +137,9 @@ namespace Kratos
 		  //MPI CARLOS decomentar de aqui....
 		/*  
           //Mpi schemes
-           class_< MpiFowardEulerScheme, bases<FowardEulerScheme>,  boost::noncopyable>
+           class_< MpiForwardEulerScheme, bases<ForwardEulerScheme>,  boost::noncopyable>
            (
-                    "MpiFowardEulerScheme", init<>()
+                    "MpiForwardEulerScheme", init<>()
                    )
                    ;
 		  */
