@@ -83,10 +83,6 @@ if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
   
 ProcGiDSolverTransfer(solid_model_part,solver)
 
-solver.Initialize()
-
-dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
-
 if(ModelDataInfo =="ON"):
   os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
@@ -95,6 +91,10 @@ if(ModelDataInfo =="ON"):
 if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
+
+solver.Initialize()
+
+dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
   
 
 if (CriticalTimeOption =="ON"):
@@ -192,10 +192,12 @@ velocity_node_y = 0.0
     
 for node in sup_layer_fm:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+    print("velocity for the graph")
+    print(velocity_node_y)
+    print(" ")
     break
+
     
-#done=False  #flag for the end of the confinement  
- 
 ###################################################################
 #                                                                 #
 #--------------------------MAIN LOOP------------------------------#
@@ -211,6 +213,28 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
         
     ####imprimint les forces en un arxiu.
+    
+    if( (ConcreteTestOption =="ON") and (step==3) ):
+      print("Total Horitzontal Cross Section")
+      print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA) )
+      print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_CENTRE) )
+      
+      total_volume = 0.0
+      h   = 0.3
+      d   = 0.15
+      eps = 2
+      
+      for element in solid_model_part.Elements:
+  
+        node = element.GetNode(0)
+        volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0)
+  
+        total_volume = total_volume + volume_equ
+
+      real_volume = 3.141592*d*d*0.25*h
+  
+      print (total_volume)
+      print (real_volume)
     
     total_force=0
     force_node= 0
@@ -260,20 +284,14 @@ while(time < final_time):
     summary_results.write(str(step)+"  "+str(total_force)+'\n')
 
     os.chdir(main_path)
-    
-    #Dissable the confinement
-    
-    #if(ConcreteTestOption==True):
-    
-	  #if( (time > final_time*0.1) and (done==False)):
-		#done=True;
-		#for element in skin_list:
-		  #element.SetValue(APPLIED_FORCE,(0,0,0))
-		
-		#print("Confinement finished at time "+str(time))
+
 		
     solver.Solve()
+    
 
+
+   #--------------------------------------------------------------------------------------------------
+   #TIME CONTROL
    
     incremental_time = (timer.time()-initial_real_time)- prev_time
 
@@ -299,7 +317,9 @@ while(time < final_time):
 	
       if (((estimation_time/60)/60)/24 > 2.0):
 	print('WARNING!!!:       VERY LASTING CALCULATION'+'\n')
-	   	      
+	
+	#----------------------------------------------------------------------------------------------------
+	
 
     os.chdir(list_path)
     
@@ -307,8 +327,10 @@ while(time < final_time):
     
     os.chdir(main_path)
 
-  ##############     GiD IO        ################################################################################
     
+   #--------------------------------------------------------------------------------------------------
+   #      GiD IO 
+
     time_to_print = time - time_old_print
     #print str(time)
        
@@ -359,7 +381,9 @@ while(time < final_time):
 	  gid_io.FinalizeMesh()
 	  gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
 
-	  
+	#----------------------------------------------------------------------------------------------
+	
+	
 	##########PRINTING VARIABLES############
 	
 	ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time)  
@@ -406,7 +430,7 @@ while(time < final_time):
     
     os.chdir(data_and_results)
     
-    if(1<2):
+    if(3<2):
     
       mean_sigma = solid_model_part.ProcessInfo[DOUBLE_DUMMY_2]
      
