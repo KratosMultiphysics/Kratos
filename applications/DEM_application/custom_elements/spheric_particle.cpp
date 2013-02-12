@@ -247,7 +247,7 @@ namespace Kratos
                             }                          
                         }
 
-                    }//for continuum_simulation_OPTION                                                                                                 //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
+                    }//for continuum_simulation_OPTION      //hi havia: r_VectorContactFailureId[i]=1; //generally detached    //diferent group
 
                 } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
 
@@ -296,7 +296,6 @@ namespace Kratos
           
           } //for every neighbour
        
-       KRATOS_WATCH(skin_sphere)
        
           if(skin_sphere != 1)
           {
@@ -308,8 +307,8 @@ namespace Kratos
           {
               //alpha            = 1.40727*4*M_PI*radius*radius*n_neighbours/(11*total_equiv_area);
               //alpha            = (1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
-              KRATOS_WATCH("IGNASI")
-              alpha            = 100000000*(1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
+            
+              alpha            = 1.0*(1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
                 
           }
           
@@ -522,7 +521,7 @@ namespace Kratos
 
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
-						  if(rCurrentProcessInfo[TIME_STEPS]==0)
+						  if(1<2)//rCurrentProcessInfo[TIME_STEPS]==0)
 						  {
 
 							  corrected_area = mcont_ini_neigh_area[index_area];
@@ -530,7 +529,7 @@ namespace Kratos
 							  
 						  } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
 						  						  
-						  else 
+						 /* else 
 						  {
 
 							  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
@@ -538,7 +537,7 @@ namespace Kratos
 							  corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
 							  break;
 						  }//for the known steps....
-
+*/
 					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
 					  
@@ -1680,7 +1679,7 @@ namespace Kratos
                       
                   {
                      
-                     if( (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1) || (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==2))
+                     if( (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1) || (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==5))
                             
                       {
                       
@@ -1691,37 +1690,39 @@ namespace Kratos
                   
                            {
                              
-                             if( (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=1) && (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=2) ) 
+                             if( (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=1) && (((*ineighbour).lock())->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)!=5) ) 
 			       
                              {
                                  
                                  int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
                                  
                                   for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
-				  {
+				               {
 
-					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(((*ineighbour).lock())->Id()) ) 
-					  {     
-						 Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
+					             if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(((*ineighbour).lock())->Id()) ) 
+					            {     
+						             Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
                                                  double corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
 
                                                   array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
 			                          array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
 			                          double Dummy_Dummy = 0.0;
 			                          GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
-                                                  if ((this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1)){
-                                                      area_vertical_tapa += corrected_area*fabs(normal_vector_on_contact[1]);
+                                                 
+									               if ((this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==1)){
+                                                 area_vertical_tapa += corrected_area*fabs(normal_vector_on_contact[1]);
                                                    
                                                   }
-                                                  else{
+                                                  else if ( this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==5 ) 
+												   {
                                                       area_vertical_centre += 0.5*corrected_area*fabs(normal_vector_on_contact[1]);
                                                   }
                                                   
                                                   break;
-					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+					                   }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
 					  
-				  }//for every neighbour      
+				                  }//for every neighbour      
                                  
                                  
                                  
