@@ -56,7 +56,7 @@ class Solver:
 
         #new solvers
 	gmres_size = 50
-	tol = 1e-7
+	tol = 1e-3
 	verbosity = 0
 	self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,tol,200,verbosity,gmres_size)         
 
@@ -122,19 +122,19 @@ class Solver:
         #self.ApplyFluidProperties()
 ##        print "Initialization monolithic solver finished"
     #######################################################################   
-    def ApplyFluidProperties(self):
-        #apply density
-        for node in self.model_part.Nodes:
-            dist = node.GetSolutionStepValue(DISTANCE)
-            if(dist < 0):
-                node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_mat)
-                node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_mat)
-                node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_mat)               
-                #node.SetSolutionStepValue(TEMPERATURE,0,melting_temp)                   
-            else:
-                node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_empty)
-                node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_empty)
-                node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_empty)              
+    #def ApplyFluidProperties(self):
+        ##apply density
+        #for node in self.model_part.Nodes:
+            #dist = node.GetSolutionStepValue(DISTANCE)
+            #if(dist < 0):
+                #node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_mat)
+                #node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_mat)
+                #node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_mat)               
+                ##node.SetSolutionStepValue(TEMPERATURE,0,melting_temp)                   
+            #else:
+                #node.SetSolutionStepValue(self.settings.GetDensityVariable(),0,self.rho_empty)
+                #node.SetSolutionStepValue(self.settings.GetDiffusionVariable(),0,self.conductivity_empty)
+                #node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat_empty)              
 
     #######################################################################   
     def Solve(self):        
