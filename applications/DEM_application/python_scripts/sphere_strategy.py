@@ -196,9 +196,9 @@ class ExplicitStrategy:
         self.use_mpi                        	= 0; #MPI Carlos change to 1
         
         if(self.use_mpi):
-            self.time_scheme                 	= MpiFowardEulerScheme();
+            self.time_scheme                 	= MpiForwardEulerScheme();
         else:
-            self.time_scheme                  	= FowardEulerScheme();
+            self.time_scheme                  	= ForwardEulerScheme();
 
     ######################################################################
 
