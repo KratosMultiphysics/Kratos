@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     3.2- 11/02/13-G. Socorro, correct a bug in the proc GetCrossSectionProperties when write the matrix properties (delete a parenthesis was left)
 #     3.1- 17/12/12-J. Garate,  Disabled the Wall PFEM .mdpa Write. Add Beam 2D
 #     3.0- 05/12/12-J. Garate,  PFEM Slip velocity format correction
 #     2.9- 03/12/12-J. Garate,  Corrected a Bug on Angular Velocity for PFEM
@@ -1019,7 +1020,7 @@ proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
 	    }
 	}
 	# End the matrix brackets
-	append matbf "))"
+	append matbf ")"
 	# wa "matbf:$matbf"
 	# Set the matrix properties
 	lappend CMatrixProp [list "Matrix" "$kword" "$matbf"]
@@ -1164,39 +1165,52 @@ proc ::wkcf::UnsetLocalVariables {} {
 proc ::wkcf::GetnDimnNode {GiDElemType nDim} {
     # ABSTRACT: Get the kratos element identifier as a function of GiD element type
     variable useqelem
-
+    
+    # wa "GiDElemType:$GiDElemType nDim:$nDim"
     set etbf ""
     set nid "3N"
     if {$nDim =="2D"} {
-    if {$GiDElemType =="Triangle"} {
-        if {$useqelem=="1"} {
-        set nid "6N"
-        } else {
-        set nid "3N"
-        }
-    } elseif {$GiDElemType =="Quadrilateral"} {
-        if {$useqelem=="1"} {
-        set nid "8N"
-        } else {
-        set nid "4N"
-        }
-    }
+	if {$GiDElemType =="Triangle"} {
+	    if {$useqelem=="1"} {
+		set nid "6N"
+	    } else {
+		set nid "3N"
+	    }
+	} elseif {$GiDElemType =="Quadrilateral"} {
+	    if {$useqelem=="1"} {
+		set nid "8N"
+	    } else {
+		set nid "4N"
+	    }
+	} elseif {$GiDElemType =="Linear"} {
+	    if {$useqelem=="1"} {
+		set nid "3N"
+	    } else {
+		set nid "2N"
+	    }
+	}
     } elseif {$nDim =="3D"} {
-    if {$GiDElemType =="Tetrahedra"} {
-        if {$useqelem=="1"} {
-        set nid "10N"
-        } else {
-        set nid "4N"
-        }
-    } elseif {$GiDElemType =="Hexahedra"} {
-        if {$useqelem=="1"} {
-        set nid "20N"
-        } elseif {$useqelem=="2"} {
-        set nid "27N"
-        } else {
-        set nid "8N"
-        }
-    }
+	if {$GiDElemType =="Tetrahedra"} {
+	    if {$useqelem=="1"} {
+		set nid "10N"
+	    } else {
+		set nid "4N"
+	    }
+	} elseif {$GiDElemType =="Hexahedra"} {
+	    if {$useqelem=="1"} {
+		set nid "20N"
+	    } elseif {$useqelem=="2"} {
+		set nid "27N"
+	    } else {
+		set nid "8N"
+	    }
+	} elseif {$GiDElemType =="Linear"} {
+	    if {$useqelem=="1"} {
+		set nid "3N"
+	    } else {
+		set nid "2N"
+	    }
+	}
     }
     set etbf "${nDim}${nid}"
     return $etbf

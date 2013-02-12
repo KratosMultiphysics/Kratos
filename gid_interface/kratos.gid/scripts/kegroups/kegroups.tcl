@@ -178,24 +178,24 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
     
     
     if { $givenEntity eq "ALL" } {
-	
+    
         set entities [list point line surface volume node element]
 	
     } elseif { $givenEntity == "element" } {
     
 	    set entities [list line surface volume]
 	
-	set entities [list line surface volume]
-	
     } elseif { $givenEntity == "nodes" } {
+	    
+	    set entities "point"
 	
     } elseif { $givenEntity == "faces" } {
 	    
 	    set entities [list line surface]
 	
     } else {
-	
-	set entities $givenEntity
+	    
+	    set entities $givenEntity
     }
     
     foreach entity $entities {
@@ -227,15 +227,15 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
 
                 } else {
                     if {$CId == "N" } {
-			lappend EntityIdList $CEId
+                         lappend EntityIdList $CEId
                     } else {
                         if {$givenEntity eq "faces"} {
                             lappend EntityIdList $CId $CEId
                         }
                     }
                 }
-	    }
-	}
+		    }
+		}
     }
     
     # Restore the layer state
@@ -245,7 +245,7 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
     ::GidUtils::EnableGraphics 
     
     if {$action == "hasEntities" } {
-	return 0
+	    return 0
     }
     return $EntityIdList
 }

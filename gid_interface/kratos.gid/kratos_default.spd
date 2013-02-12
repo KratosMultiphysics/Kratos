@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.5">
+<Kratos_Data version="1.2.6">
     <Groups modeltype=""/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -83,7 +83,7 @@
             <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
             <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
             <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="1"/>
-	    <Container id="BeamElement" pid="Beam element" class="Groups" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="1"/>
+	    <Container id="BeamElement" pid="Beam element" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="1"/>
             <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="1"/>
             <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="1"/>
             <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>

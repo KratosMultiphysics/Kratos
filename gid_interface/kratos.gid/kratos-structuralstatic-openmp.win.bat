@@ -15,4 +15,4 @@ REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
 REM Run Python using the script KratosOpenMPStructuralStatic.py
-%3\\Python27\\python.exe KratosOpenMPStructuralStatic.py > "%2\%1.info" 2> "%2\%1.err"
+%3\\kratos\\runkratos.exe KratosOpenMPStructuralStatic.py > "%2\%1.info" 2> "%2\%1.err"
