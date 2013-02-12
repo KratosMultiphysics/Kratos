@@ -7,8 +7,8 @@
 
 
 
-#if !defined(KRATOS_MPI_FOWARD_EULER_SCHEME_H_INCLUDED )
-#define  KRATOS_MPI_FOWARD_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_MPI_FORWARD_EULER_SCHEME_H_INCLUDED )
+#define  KRATOS_MPI_FORWARD_EULER_SCHEME_H_INCLUDED
 
 
 
@@ -29,13 +29,13 @@
 
 #include "DEM_application.h"
 
-#include "custom_strategies/schemes/foward_euler_scheme.h"
+#include "custom_strategies/schemes/forward_euler_scheme.h"
 
 namespace Kratos
 {
   
   
-  class MpiFowardEulerScheme :  public FowardEulerScheme
+  class MpiForwardEulerScheme :  public ForwardEulerScheme
     {
     public:
       ///@name Type Definitions
@@ -44,18 +44,18 @@ namespace Kratos
       typedef ModelPart::NodesContainerType NodesArrayType;
     
     
-      /// Pointer definition of FowardEulerScheme
-      KRATOS_CLASS_POINTER_DEFINITION(MpiFowardEulerScheme);
+      /// Pointer definition of ForwardEulerScheme
+      KRATOS_CLASS_POINTER_DEFINITION(MpiForwardEulerScheme);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      MpiFowardEulerScheme(){}
+      MpiForwardEulerScheme(){}
 
       /// Destructor.
-      virtual ~MpiFowardEulerScheme(){}
+      virtual ~MpiForwardEulerScheme(){}
       
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
@@ -66,12 +66,12 @@ namespace Kratos
       virtual std::string Info() const
       {
           std::stringstream buffer;
-          buffer << "FowardEulerScheme" ;
+          buffer << "ForwardEulerScheme" ;
           return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FowardEulerScheme";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ForwardEulerScheme";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -156,13 +156,13 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-     MpiFowardEulerScheme& operator=(MpiFowardEulerScheme const& rOther)
+     MpiForwardEulerScheme& operator=(MpiForwardEulerScheme const& rOther)
      {
        return *this;
      }
 
       /// Copy constructor.
-     MpiFowardEulerScheme(MpiFowardEulerScheme const& rOther)
+     MpiForwardEulerScheme(MpiForwardEulerScheme const& rOther)
      {
        *this = rOther;
      }
@@ -170,7 +170,7 @@ namespace Kratos
         
       ///@}    
         
-    }; // Class FowardEulerScheme 
+    }; // Class ForwardEulerScheme 
 
   ///@} 
   
@@ -185,11 +185,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-                    MpiFowardEulerScheme& rThis){return rIStream;}
+                    MpiForwardEulerScheme& rThis){return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-                    const MpiFowardEulerScheme& rThis)
+                    const MpiForwardEulerScheme& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -203,5 +203,5 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_MPI_FOWARD_EULER_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_MPI_FORWARD_EULER_SCHEME_H_INCLUDED  defined 
 
