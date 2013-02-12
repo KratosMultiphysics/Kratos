@@ -95,13 +95,13 @@ def ProcListDefinition(model_part,solver):
   # Defining lists (FOR COMPRESSION TESTS)
   
   for node in model_part.Nodes:
-    if (node.GetSolutionStepValue(GROUP_ID)==4):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+    if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
       sup_layer_fm.append(node)
     elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
       inf_layer_fm.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==1):    #reserved for auxiliar strain-stress measurement plate (superior)
+    elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
       sup_plate_fm.append(node)
-    elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (inferior)
+    elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
       inf_plate_fm.append(node)
     elif (node.GetSolutionStepValue(GROUP_ID)==5):
       special_selection.append(node)
@@ -112,7 +112,7 @@ def ProcListDefinition(model_part,solver):
 def ProcGiDSolverTransfer(model_part,solver):
     
     if (Integration_Scheme == 'forward_euler'):
-        time_scheme = FowardEulerScheme()
+        time_scheme = ForwardEulerScheme()
     elif (Integration_Scheme == 'mid_point_rule'):
         time_scheme = MidPointScheme()
     elif (Integration_Scheme == 'const_average_acc'):
