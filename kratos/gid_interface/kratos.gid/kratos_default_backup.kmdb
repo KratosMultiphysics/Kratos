@@ -417,7 +417,7 @@
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="1">
                     <Property id="Viscosity" pid="Viscosity" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="2.2e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 </Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>

@@ -270,9 +270,10 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
             $T selection add $item
             $T item expand $item
             if {[kipt::NewGiDGroups]} {
-                    GiD_Groups window open
-                } else {
-                    Cond_Groups window open
+		# Open the new group tab
+		::WinUtils::OpenGiDGroupTab
+	    } else {
+		Cond_Groups window open
             }
         }
     }

@@ -96,17 +96,24 @@ proc ::kmtb::AddMenuToPreprocessMenu {dir} {
                    
     
     if {[kipt::NewGiDGroups]} {
-        set grw "GiD_Groups"
+     	set MenuCommands($pos) [list [list -np- ::WinUtils::OpenGiDGroupTab] \
+				    "" \
+				    [list -np- ::KMProps::StartBaseWindow] \
+				    [list -np- ::KMProps::StartBaseWindow Materials] \
+				    "" \
+				    "" \
+				    [list  -np- ::kps::InitSettingWindow]]
     } else {
         set grw "Cond_Groups"
+	set MenuCommands($pos) [list [list -np- $grw window open] \
+				    "" \
+				    [list -np- ::KMProps::StartBaseWindow] \
+				    [list -np- ::KMProps::StartBaseWindow Materials] \
+				    "" \
+				    "" \
+				    [list  -np- ::kps::InitSettingWindow]]
     }
-    set MenuCommands($pos) [list [list -np- $grw window open] \
-				"" \
-				[list -np- ::KMProps::StartBaseWindow] \
-				[list -np- ::KMProps::StartBaseWindow Materials] \
-				"" \
-				"" \
-				[list  -np- ::kps::InitSettingWindow]]
+   
     
     if { [kipt::CurvesModule ] } {
         set MenuCommands($pos) [list [list -np- $grw window open] \

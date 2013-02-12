@@ -16,8 +16,9 @@
 #
 #    HISTORY:
 #
+#     0.3- 11/02/13- G. Socorro, add the proc OpenGiDGroupTab
 #     0.2- 10/04/12- J. Garate Change image path to KPriv(imagesdir) en ::WinUtils::GetImage
-#     0.1-04/11/09-G. Socorro, create the base source code
+#     0.1- 04/11/09-G. Socorro, create the base source code
 #
 ###############################################################################
 
@@ -32,6 +33,24 @@ namespace eval ::WinUtils:: {
 # List of procedure that is inside the WinUtils namespace
 # 1. 
 # 2.
+
+proc ::WinUtils::OpenGiDGroupTab {} {
+    # ABSTRACT: Open the GiD group tab inside the layer window
+   
+    set w ".gid.central.wlay"
+    if {![winfo exists $w]} {   
+	ChangeLayers
+    }
+    # wa "::GID_INTERNAL_GROUPS:$::GID_INTERNAL_GROUPS ::GidPriv(ShowGroupsTab):$::GidPriv(ShowGroupsTab) ::GidPriv(LayersOrGroupsCurrentTab):$::GidPriv(LayersOrGroupsCurrentTab) "
+    # Select the tab
+    if { [info exists ::GID_INTERNAL_GROUPS] && $::GidPriv(ShowGroupsTab) } {
+	set nb $w.body.nb
+	if {[info exists ::GidPriv(LayersOrGroupsCurrentTab)] } {
+	    set ::GidPriv(LayersOrGroupsCurrentTab) 1
+	    $nb select $::GidPriv(LayersOrGroupsCurrentTab)                
+	}
+    }
+}
 
 proc ::WinUtils::confirmBox {w txt {option okcancel} {title "Confirm"}} {
 	
