@@ -7,8 +7,8 @@
 
 
 
-#if !defined(KRATOS_FOWARD_EULER_SCHEME_H_INCLUDED )
-#define  KRATOS_FOWARD_EULER_SCHEME_H_INCLUDED
+#if !defined(KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED )
+#define  KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED
 
 
 
@@ -33,7 +33,7 @@ namespace Kratos
 {
   
   
-  class FowardEulerScheme :  public IntegrationScheme
+  class ForwardEulerScheme :  public IntegrationScheme
     {
     public:
       ///@name Type Definitions
@@ -42,18 +42,18 @@ namespace Kratos
       typedef ModelPart::NodesContainerType NodesArrayType;
 	
 	
-      /// Pointer definition of FowardEulerScheme
-      KRATOS_CLASS_POINTER_DEFINITION(FowardEulerScheme);
+      /// Pointer definition of ForwardEulerScheme
+      KRATOS_CLASS_POINTER_DEFINITION(ForwardEulerScheme);
   
       ///@}
       ///@name Life Cycle 
       ///@{ 
       
       /// Default constructor.
-      FowardEulerScheme(){}
+      ForwardEulerScheme(){}
 
       /// Destructor.
-      virtual ~FowardEulerScheme(){}
+      virtual ~ForwardEulerScheme(){}
       
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
@@ -362,12 +362,12 @@ namespace Kratos
       virtual std::string Info() const
       {
 	std::stringstream buffer;
-        buffer << "FowardEulerScheme" ;
+        buffer << "ForwardEulerScheme" ;
         return buffer.str();
       }
       
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "FowardEulerScheme";}
+      virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "ForwardEulerScheme";}
 
       /// Print object's data.
       virtual void PrintData(std::ostream& rOStream) const {}
@@ -452,13 +452,13 @@ namespace Kratos
       ///@{ 
       
       /// Assignment operator.
-     FowardEulerScheme& operator=(FowardEulerScheme const& rOther)
+     ForwardEulerScheme& operator=(ForwardEulerScheme const& rOther)
      {
        return *this;
      }
 
       /// Copy constructor.
-      FowardEulerScheme(FowardEulerScheme const& rOther)
+      ForwardEulerScheme(ForwardEulerScheme const& rOther)
       {
 	*this = rOther;
       }
@@ -466,7 +466,7 @@ namespace Kratos
         
       ///@}    
         
-    }; // Class FowardEulerScheme 
+    }; // Class ForwardEulerScheme 
 
   ///@} 
   
@@ -481,11 +481,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    FowardEulerScheme& rThis){return rIStream;}
+				    ForwardEulerScheme& rThis){return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const FowardEulerScheme& rThis)
+				    const ForwardEulerScheme& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -499,5 +499,5 @@ namespace Kratos
   
 }  // namespace Kratos.
 
-#endif // KRATOS_FOWARD_EULER_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED  defined 
 
