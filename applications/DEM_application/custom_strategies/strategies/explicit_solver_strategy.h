@@ -220,10 +220,12 @@ namespace Kratos
          
           if( rCurrentProcessInfo[INT_DUMMY_6] )
 		  {
+
 		  FreeVelocities();
+		  
 		  }		    
           
-          
+                    
 
           //6.Final operations
           FinalizeSolutionStep();
@@ -317,7 +319,7 @@ namespace Kratos
 
 	  Timer::Start("COMPRESIVECHECK");
 #endif
-          if ( ( 2<3 ) && ( (time_step + 1)%150 == 0 && time_step >0 ))
+          if ( ( 4<3 ) && ( (time_step + 1)%150 == 0 && time_step >0 ))
           {
           
 			CompressiveCheck();
@@ -332,6 +334,7 @@ namespace Kratos
 #ifdef CUSTOMTIMER
 	Timer::Stop("COMPRESIVECHECK");
 
+	
 	//4.Final operations
 	Timer::Start("SOLVEFINAL");
 #endif
@@ -473,9 +476,14 @@ namespace Kratos
 		 ModelPart& r_model_part = BaseType::GetModelPart();  
 		 ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
 		
-          if( rCurrentProcessInfo[INT_DUMMY_6] && ( rCurrentProcessInfo[TIME_STEPS] == int(rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ) ) )
+		 //KRATOS_WATCH(rCurrentProcessInfo[INT_DUMMY_6])
+		//KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+		//KRATOS_WATCH(int(rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ))
+		
+          if( rCurrentProcessInfo[INT_DUMMY_6] && ( rCurrentProcessInfo[TIME_STEPS] == int(0.01*rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ) ) )
 		  
 		  {
+	
 		  FixVelocities();
 		  }		  
 		  mpScheme->Calculate(r_model_part);
@@ -840,6 +848,8 @@ namespace Kratos
 
                       (it)->Calculate(PRESSURE, dummy2, rCurrentProcessInfo);
                   }
+                  
+                  
               } //loop over particles
 
           }// loop threads OpenMP
@@ -879,11 +889,21 @@ namespace Kratos
               for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
 				
-				   if( ( it->GetValue(GROUP_ID) == 1) || ( it->GetValue(GROUP_ID) == 4)  ) 
+				   if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) 
 				   {
                         //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
 						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
-                        //(it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;
+											
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;
+                        
+				   }
+				   
+				    if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   
+				   {
+                        //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
+						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+											
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = +0.0625;
                         
 				   }
 				   
@@ -922,12 +942,14 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
+		
 				
-				   if( ( it->GetValue(GROUP_ID) == 1) || ( it->GetValue(GROUP_ID) == 4)  ) 
+				//KRATOS_WATCH(it->GetValue(GROUP_ID))
+				   if( ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) || ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2)  ) 
 				   {
                         (it)->GetGeometry()(0)->Free(VELOCITY_Y);
                         (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
-                        
+
 				   }
 				   
               } //loop over particles
@@ -937,8 +959,7 @@ namespace Kratos
      
           KRATOS_CATCH("")
 
-	  }
-      
+	  }    
       
         
       void CalculateEnergies()
