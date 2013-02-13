@@ -104,6 +104,7 @@ RotaDampId = "*GenData(Rota_Damp_Id)"
 
 print_velocity                   = "*GenData(VELOCITY)"
 print_displacement               = "*GenData(DISPLACEMENT)"
+print_radial_displacement        = "*GenData(RADIAL_DISPLACEMENT)"
 print_rhs                        = "*GenData(RHS)"
 print_total_forces               = "*GenData(TOTAL_FORCES)"
 print_damp_forces                = "*GenData(DAMP_FORCES)"
