@@ -87,12 +87,13 @@ void  AddCustomUtilitiesToPython()
     class_<AssignEnvironmentCondition > ("AssignEnvironmentCondition", init<>())
     .def("AssignCondition", &AssignEnvironmentCondition::AssignCondition)
     ;    
-    class_<EstimateTimeStep > ("EstimateTimeStep", init<>())
-    .def("ComputeDt", &EstimateTimeStep::ComputeDt)
+    class_<EstimateTimeStep < 3 > > ("EstimateTimeStep3D", init<>())
+    .def("ComputeDt", &EstimateTimeStep < 3 >::ComputeDt)
     ;  
     class_<BiphasicFillingUtilities > ("BiphasicFillingUtilities", init<>())
     .def("CreateAutoExitAssignAirSmagorinsky", &BiphasicFillingUtilities::CreateAutoExitAssignAirSmagorinsky)
 	.def("AssignSmoothBoundaryAirExit", &BiphasicFillingUtilities::AssignSmoothBoundaryAirExit)
+	.def("ApplyFluidProperties", &BiphasicFillingUtilities::ApplyFluidProperties)
     ; 
 
 }
