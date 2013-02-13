@@ -182,6 +182,16 @@ include files.
 #include <utility>
 #include <list>
 
+#if(BOOST_VERSION > 104900)
+  #include <boost/static_assert.hpp>
+#else
+  #ifndef BOOST_STATIC_ASSERT_MSG
+    #define BOOST_STATIC_ASSERT_MSG(something,message)  \
+      something;
+  #endif
+#endif
+  
+
 #include <boost/static_assert.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
