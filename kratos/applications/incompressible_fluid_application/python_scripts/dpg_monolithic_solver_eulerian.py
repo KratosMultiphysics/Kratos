@@ -93,7 +93,7 @@ class MonolithicSolver:
         
         #new solvers
 	gmres_size = 50
-	tol = 1e-7
+	tol = 1e-5
 	verbosity = 0
 	self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,200,verbosity,gmres_size)         
 
@@ -177,15 +177,16 @@ class MonolithicSolver:
         #mu1 = self.mu
         #mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
-
-        for node in self.model_part.Nodes:
-            dist = node.GetSolutionStepValue(DISTANCE)
-            if(dist < 0):
-                node.SetSolutionStepValue(DENSITY,0,self.rho1)
-                node.SetSolutionStepValue(VISCOSITY,0,mu1)
-            else:
-                node.SetSolutionStepValue(DENSITY,0,self.rho2)
-                node.SetSolutionStepValue(VISCOSITY,0,mu2)	
+        
+        BiphasicFillingUtilities().ApplyFluidProperties(self.model_part,mu1,self.rho1,mu2,self.rho2)
+##        for node in self.model_part.Nodes:
+##            dist = node.GetSolutionStepValue(DISTANCE)
+##            if(dist < 0):
+##                node.SetSolutionStepValue(DENSITY,0,self.rho1)
+##                node.SetSolutionStepValue(VISCOSITY,0,mu1)
+##            else:
+##                node.SetSolutionStepValue(DENSITY,0,self.rho2)
+##                node.SetSolutionStepValue(VISCOSITY,0,mu2)	
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
@@ -203,7 +204,8 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+##        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.Initialize()
 
         self.ApplyFluidProperties()
@@ -234,7 +236,8 @@ class MonolithicSolver:
     #######################################################################   
     def DoRedistance(self):	
 	#redistance if required
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
     
      #######################################################################   
     def ConvectDistance(self):
