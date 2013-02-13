@@ -529,7 +529,9 @@ namespace Kratos
 							  
 						  } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
 						  						  
-						 /* else 
+						
+						/*
+						else 
 						  {
 
 							  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
@@ -1755,7 +1757,7 @@ namespace Kratos
 		  
 		  this->GetGeometry()[0].FastGetSolutionStepValue(NUM_OF_NEIGH) = this->GetValue(NEIGHBOUR_ELEMENTS).size();
          
-  
+      
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) =  mStressTensor[0][0];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) =  mStressTensor[0][1];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XZ) =  mStressTensor[0][2];
@@ -1765,7 +1767,17 @@ namespace Kratos
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZX) =  mStressTensor[2][0];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZY) =  mStressTensor[2][1];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ) =  mStressTensor[2][2];
-          
+		  
+		   if(rCurrentProcessInfo[INT_DUMMY_8]==1)
+		  {
+			
+			double X = this->GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
+			double Z = this->GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
+			
+			this->GetGeometry()[0].GetSolutionStepValue(RADIAL_DISPLACEMENT) = sqrt(X*X+Z*Z);
+			
+		  }
+		  
 		  
 
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
