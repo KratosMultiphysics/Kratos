@@ -48,6 +48,9 @@ namespace Kratos
 		
                 KRATOS_DEFINE_VARIABLE(double, AREA_VERTICAL_TAPA)
                 KRATOS_DEFINE_VARIABLE(double, AREA_VERTICAL_CENTRE)
+				
+	    KRATOS_DEFINE_VARIABLE(double, RADIAL_DISPLACEMENT)
+				
                 
 		KRATOS_DEFINE_VARIABLE(double, DEM_STRESS_XX)
 		KRATOS_DEFINE_VARIABLE(double, DEM_STRESS_XY)
