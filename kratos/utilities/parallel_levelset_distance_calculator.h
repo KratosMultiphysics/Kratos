@@ -173,7 +173,7 @@ public:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) firstprivate(elem_size)
+            #pragma omp parallel for private(DN_DX,visited) 
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -194,7 +194,7 @@ public:
             //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+                #pragma omp parallel for private(DN_DX) 
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -211,7 +211,7 @@ public:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+                #pragma omp parallel for private(DN_DX) 
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -223,7 +223,7 @@ public:
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+            #pragma omp parallel for private(DN_DX) 
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -243,7 +243,7 @@ public:
         //*****************************************************************+
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
-        #pragma omp parallel for firstprivate(node_size)
+        #pragma omp parallel for 
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -852,7 +852,7 @@ private:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) firstprivate(elem_size)
+            #pragma omp parallel for private(DN_DX,visited) 
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -877,7 +877,7 @@ private:
 		    //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+                #pragma omp parallel for private(DN_DX) 
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -894,7 +894,7 @@ private:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+                #pragma omp parallel for private(DN_DX) 
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -906,7 +906,7 @@ private:
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) firstprivate(node_size)
+            #pragma omp parallel for private(DN_DX) 
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -938,7 +938,7 @@ private:
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
         const int node_size = rModelPart.Nodes().size();
-        #pragma omp parallel for firstprivate(node_size)
+        #pragma omp parallel for 
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
