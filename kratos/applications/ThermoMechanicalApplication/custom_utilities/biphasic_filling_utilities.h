@@ -143,19 +143,25 @@ class BiphasicFillingUtilities
 	    node.SetValue(Y_WALL,y_wall_val*y_wall_fac)
 	    node.SetValue(IS_STRUCTURE,0.0)*/
 	//**********************************************************************************************
-    void AssignSmoothBoundaryAirExit(ModelPart& ThisModelPart, bool air_exit_flag, const double y_wall_val, const double  y_wall_fac)
+    double AssignSmoothBoundaryAirExit(ModelPart& ThisModelPart, bool air_exit_flag, const double y_wall_val, const double  y_wall_fac)
 		{			
 		  KRATOS_TRY;
 			int node_size = ThisModelPart.Nodes().size();
 			double is_str = 1.0;
 			if(air_exit_flag) is_str = 0.0;
 
+			int wet_nodes = 0;
+
 #pragma omp parallel for firstprivate(node_size)
 			for (int ii = 0; ii < node_size; ii++)
 			 {
+
                  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 				double dist = it->FastGetSolutionStepValue(DISTANCE);
 				double slip_flag = it->GetSolutionStepValue(IS_SLIP);
+				if(dist<0.0){
+				 #pragma omp atomic
+				 wet_nodes++;}
 
 				if(slip_flag == 20.0 || slip_flag == 30.0 )//edges(20) and corners(30) are automatic air exits till they are wetten
 				  if(dist<0.0){
@@ -174,8 +180,38 @@ class BiphasicFillingUtilities
 						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
 				  }
 			}
+			double filling_percent = 0.0;
+
+			if(wet_nodes != 0) filling_percent = 100.0*double(wet_nodes)/double(node_size);
+
+			return filling_percent;
 		  KRATOS_CATCH("")
 		}
+	//**********************************************************************************************
+	//**********************************************************************************************
+    void ApplyFluidProperties(ModelPart& ThisModelPart, const double water_mu, const double water_density ,const double air_mu,const double air_density)
+		{	
+		  KRATOS_TRY;
+		 int node_size = ThisModelPart.Nodes().size();
+
+#pragma omp parallel for firstprivate(node_size)
+		 for (int ii = 0; ii < node_size; ii++)
+		 {
+           ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		   double dist = it->FastGetSolutionStepValue(DISTANCE);
+		   if(dist<=0.0){
+                it->FastGetSolutionStepValue(DENSITY) = water_density;
+                it->FastGetSolutionStepValue(VISCOSITY) = water_mu;
+		   }
+		   else
+		   {
+                it->FastGetSolutionStepValue(DENSITY) = air_density;
+                it->FastGetSolutionStepValue(VISCOSITY) = air_mu;
+		   }
+		 }
+		  KRATOS_CATCH("")
+		}
+
 
   private:
  	
