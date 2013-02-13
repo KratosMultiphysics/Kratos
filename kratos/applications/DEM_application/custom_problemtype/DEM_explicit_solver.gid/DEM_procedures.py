@@ -306,7 +306,7 @@ def ProcSkinAndPressure(model_part,solver):
     
     h   = 0.3
     d   = 0.15
-    eps = 2
+    eps = 2.0
     
     surface = 2*(3.141592*d*d*0.25)+(3.141592*d*h)
     
@@ -416,7 +416,37 @@ def ProcSkinAndPressure(model_part,solver):
     if (predefined_skin_option == "ON" ):
       print "\n", "Predefined Skin by the user, Pressure may not be applied"  ,"\n" 
       
+    return (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER)
+    
+def ProcMeasureBOT(BOT,solver):
+    
+    tol = 2.0
+    y_mean = 0.0
+    counter = 0.0
+    for node in BOT:
+      r = node.GetSolutionStepValue(RADIUS,0)
+      y = node.Y
+
+      y_mean += (y-r)*r
+      counter += r
+
+    return (y_mean/counter)
+
+def ProcMeasureTOP(TOP,solver):
+    
+    tol = 2.0
+    y_mean = 0.0
+    counter = 0.0
+    
+    for node in TOP:
+      r = node.GetSolutionStepValue(RADIUS,0)
+      y = node.Y
       
+      y_mean += (y+r)*r
+      counter += r
+
+    return (y_mean/counter)
+    
 def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
   
 	if (print_displacement=="1"):
