@@ -30,7 +30,7 @@ def AddVariables(model_part):
     #es podrien eliminar
     model_part.AddNodalSolutionStepVariable( NODAL_MASS )
     
-    model_part.AddNodalSolutionStepVariable( NUM_OF_NEIGH ) #temporal
+    model_part.AddNodalSolutionStepVariable( NUM_OF_NEIGH ) #temporal    
     model_part.AddNodalSolutionStepVariable( DEM_STRESS_XX )    
     model_part.AddNodalSolutionStepVariable( DEM_STRESS_XY )
     model_part.AddNodalSolutionStepVariable( DEM_STRESS_XZ )
@@ -86,6 +86,8 @@ def AddVariables(model_part):
     if(print_export_id =="1"):      
       model_part.AddNodalSolutionStepVariable(EXPORT_ID) 
       
+    if(print_radial_displacement =="1"):
+      model_part.AddNodalSolutionStepVariable(RADIAL_DISPLACEMENT) 
          
     
 #Temporarily Unused
@@ -176,6 +178,7 @@ class ExplicitStrategy:
         
         self.print_export_id                   = 0
         self.print_export_skin_sphere          = 0
+        self.print_radial_displacement         = 0
 
         #problem specific parameters
 
@@ -268,6 +271,8 @@ class ExplicitStrategy:
 
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
         
+        #self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, 0)
+        
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #Reserved for: message when confinement ends.
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, self.external_pressure) #Reserved for: External Applied force is acting
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) #reserved for: Export Print Skin sphere
@@ -276,7 +281,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
 
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)#int( self.time_step_percentage_fix_velocities * ( self.final_time/self.delta_time) ) ) #reserved for timestep fix_velocities
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, 0)
         
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) #reserved for adding up the contact mean in contact elements.
