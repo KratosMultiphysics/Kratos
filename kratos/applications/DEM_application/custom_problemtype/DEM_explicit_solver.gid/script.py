@@ -90,17 +90,27 @@ if(ModelDataInfo =="ON"):
 
 if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
-  ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
+  (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
   
   # for the graph plotting    
 velocity_node_y = 0.0
     
 for node in sup_layer_fm:
     velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-    print(" ")
-    print("velocity for the graph")
-    print(velocity_node_y)
+    print 'velocity for the graph' + str(velocity_node_y) + '\n'
     break
+  
+heigh = 0.3
+
+#mesurement
+if(ConcreteTestOption =="ON"):
+  
+  Y_mean_bot = ProcMeasureBOT(BOT,solver)
+  Y_mean_top = ProcMeasureTOP(TOP,solver)
+  ini_heigh = Y_mean_top - Y_mean_bot
+  
+  print ('Initial Heigh of the Model: ' + str(ini_heigh)+'\n')
+  heigh = ini_heigh
   
 solver.Initialize()
 
@@ -175,6 +185,7 @@ stresslist.append(0.0)
 
 strain=0.0	
 total_stress = 0.0
+first_time_entry = 1
 
 contact_model_part = solver.contact_model_part   
 
@@ -220,7 +231,6 @@ while(time < final_time):
       total_volume = 0.0
       h   = 0.3
       d   = 0.15
-      eps = 2
       
       for element in solid_model_part.Elements:
   
@@ -245,7 +255,20 @@ while(time < final_time):
 
     if(ContinuumOption =="ON" and ( time > 0.01*TimePercentageFixVelocities*final_time) ):
     
-      strain += -2*velocity_node_y*dt/0.3
+    
+      if(first_time_entry):
+        Y_mean_bot = ProcMeasureBOT(BOT,solver)
+        Y_mean_top = ProcMeasureTOP(TOP,solver)
+        
+        ini_heigh2 = Y_mean_top - Y_mean_bot
+        
+        print 'Current Heigh after confinement: ' + str(ini_heigh2) + '\n'
+        print 'Axial strain due to the confinement: ' + str( 100*(ini_heigh2-ini_heigh)/ini_heigh ) + ' %' +'\n'
+
+        first_time_entry = 0
+        heigh = ini_heigh2
+        
+      strain += -2*velocity_node_y*dt/heigh
       strainlist.append(strain)
       
       for node in sup_layer_fm:
@@ -456,7 +479,7 @@ counter_all = 0
 
 h   = 0.3
 d   = 0.15
-eps = 2
+eps = 2.0
 
 
 for element in solid_model_part.Elements:
