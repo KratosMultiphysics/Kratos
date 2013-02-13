@@ -80,8 +80,8 @@ if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
   
   contact_model_part = solver.contact_model_part   
 
-  
-ProcGiDSolverTransfer(solid_model_part,solver)
+Pressure = 0.0  
+Pressure = ProcGiDSolverTransfer(solid_model_part,solver)
 
 if(ModelDataInfo =="ON"):
   os.chdir(data_and_results)
@@ -91,7 +91,17 @@ if(ModelDataInfo =="ON"):
 if(ConcreteTestOption =="ON"):
   ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
-
+  
+  # for the graph plotting    
+velocity_node_y = 0.0
+    
+for node in sup_layer_fm:
+    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+    print(" ")
+    print("velocity for the graph")
+    print(velocity_node_y)
+    break
+  
 solver.Initialize()
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -112,13 +122,10 @@ time_old_print = 0.0
 initial_pr_time = timer.clock()
 initial_real_time = timer.time()
 
-print('\n')
 print ('Calculation starts at instant: ' + str(initial_pr_time)+'\n')
 
 total_steps_expected = int(final_time/dt)
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
-
-
 
 results = open('results.txt','w') #file to export some results
 summary_results = open('summary_results.txt','w')
@@ -167,6 +174,7 @@ stresslist=[]
 stresslist.append(0.0)
 
 strain=0.0	
+total_stress = 0.0
 
 contact_model_part = solver.contact_model_part   
 
@@ -186,16 +194,6 @@ if(Multifile == "single_file"):
   gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
 
 os.chdir(main_path)
-
-# for the graph plotting    
-velocity_node_y = 0.0
-    
-for node in sup_layer_fm:
-    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-    print("velocity for the graph")
-    print(velocity_node_y)
-    print(" ")
-    break
 
     
 ###################################################################
@@ -241,26 +239,27 @@ while(time < final_time):
     
     os.chdir(data_and_results)
     
-    for node in sup_layer_fm:
-	
-		force_node = node.GetSolutionStepValue(RHS,0)
-		force_node_x = node.GetSolutionStepValue(RHS,0)[0]
-		force_node_y = node.GetSolutionStepValue(RHS,0)[1]
-		force_node_z = node.GetSolutionStepValue(RHS,0)[2]
-	
-	
-		results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
-		total_force += force_node_y
-
-
+    
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
-    total_stress = total_force/(math.pi*75*75) #Stress in MPa
-    stresslist.append(total_stress)
 
-    #For a test tube of height 30 cm
-    if(ContinuumOption =="ON"):
+
+    if(ContinuumOption =="ON" and ( time > 0.01*TimePercentageFixVelocities*final_time) ):
+    
       strain += -2*velocity_node_y*dt/0.3
       strainlist.append(strain)
+      
+      for node in sup_layer_fm:
+      
+        force_node = node.GetSolutionStepValue(RHS,0)
+        force_node_x = node.GetSolutionStepValue(RHS,0)[0]
+        force_node_y = node.GetSolutionStepValue(RHS,0)[1]
+        force_node_z = node.GetSolutionStepValue(RHS,0)[2]
+
+        results.write(str(node.Id)+"  "+str(step)+"  "+str(force_node_y)+'\n')
+        total_force += force_node_y
+      
+      total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
+      stresslist.append(total_stress)
 	   
     #writing lists to be printed
     forcelist.append(total_force)
@@ -289,6 +288,7 @@ while(time < final_time):
     solver.Solve()
     
 
+    
 
    #--------------------------------------------------------------------------------------------------
    #TIME CONTROL
@@ -345,8 +345,8 @@ while(time < final_time):
 	  plot(strainlist,stresslist,'b-')
 	  grid(True)
 	  title('Stress - Strain')
-	  xlabel('Strain')
-	  ylabel('Stress (MPa)')
+	  xlabel('Total Vertical Strain')
+	  ylabel('Total Stress (MPa)')
 	  savefig('Stress_strain') 
 
 	os.chdir(main_path)	   	   
@@ -475,7 +475,7 @@ for element in solid_model_part.Elements:
     num_of_neigh = node.GetSolutionStepValue(NUM_OF_NEIGH,0)
     r = node.GetSolutionStepValue(RADIUS,0)
     volume_real = 3.141592*r*r*r*3*0.25
-    volume_equ = node.GetSolutionStepValue(EQ_VOLUME_DEM,0)
+    volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0)
     vs_radi.write(str(r)+"  "+str(volume_equ/volume_real)+'\n')
     vs_var_rad.write(str(num_of_neigh)+"  "+str(volume_equ/volume_real)+'\n')
   
