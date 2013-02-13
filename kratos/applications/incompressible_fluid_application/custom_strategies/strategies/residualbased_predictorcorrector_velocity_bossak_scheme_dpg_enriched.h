@@ -288,10 +288,12 @@ public:
 	
 	  //Condense
 	  const unsigned int local_size = (Dim + 1) * NumberOfNodes;	
-	  LocalSystemMatrixType aux_LHS;
-	  LocalSystemVectorType aux_RHS;
-	  aux_LHS.resize(local_size,local_size,false);
-	  aux_RHS.resize(local_size,false);
+	 // LocalSystemMatrixType aux_LHS;
+      boost::numeric::ublas::bounded_matrix <double, 16,16> aux_LHS;
+	  //LocalSystemVectorType aux_RHS;
+	  array_1d<double,16>  aux_RHS;
+	  //aux_LHS.resize(local_size,local_size,false);
+	  //aux_RHS.resize(local_size,false);
 	  
 	  double inv_D = 0.0;
 	  if( LHS_Contribution(enriched_size-1,enriched_size-1) != 0.0)
