@@ -217,6 +217,10 @@ def ProcGiDSolverTransfer(model_part,solver):
     if (print_export_skin_sphere=="1"): 
       solver.print_export_skin_sphere = 1
       
+    if (print_radial_displacement=="1"): 
+      solver.print_radial_displacement = 1
+
+      
     
     
     # global variable settings
@@ -277,7 +281,9 @@ def ProcGiDSolverTransfer(model_part,solver):
     if(FixVelocities =="ON"):
         solver.fix_velocities = 1  #xapuza
     solver.time_step_percentage_fix_velocities = TimePercentageFixVelocities
-
+    
+    return Pressure
+    
 def ProcSkinAndPressure(model_part,solver):
     
     #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -337,9 +343,9 @@ def ProcSkinAndPressure(model_part,solver):
         node_group = node.GetSolutionStepValue(GROUP_ID,0)
         cross_section = 3.141592*r*r
 
-        if( (node_group!=2) and (node_group!=4) ):
+        #if( (node_group!=2) and (node_group!=4) ):
       
-          if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
+        if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
       
              element.SetValue(SKIN_SPHERE,1)     
              total_cross_section = total_cross_section + cross_section
@@ -354,7 +360,7 @@ def ProcSkinAndPressure(model_part,solver):
           
              xlat_area = xlat_area + cross_section
     
-          if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
+        if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
 
                element.SetValue(SKIN_SPHERE,1)
         
@@ -415,6 +421,8 @@ def ProcPrintingVariables(gid_io,solid_model_part,contact_model_part,time):
   
 	if (print_displacement=="1"):
 	  gid_io.WriteNodalResults(DISPLACEMENT, contact_model_part.Nodes, time, 0)       
+	if (print_radial_displacement=="1"):
+	  gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, contact_model_part.Nodes, time, 0)       
 	if (print_velocity=="1"):
 	  gid_io.WriteNodalResults(VELOCITY, contact_model_part.Nodes, time, 0)	  
 	if (print_rhs=="1"):
