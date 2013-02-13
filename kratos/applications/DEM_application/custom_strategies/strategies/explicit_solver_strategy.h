@@ -894,7 +894,7 @@ namespace Kratos
                         //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
 						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
 											
-                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;// rCurrentProcessInfo[FIXED_VEL_TOP];
                         
 				   }
 				   
@@ -903,7 +903,7 @@ namespace Kratos
                         //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
 						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
 											
-                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = +0.0625;
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = +0.0625; //rCurrentProcessInfo[FIXED_VEL_BOT];
                         
 				   }
 				   
