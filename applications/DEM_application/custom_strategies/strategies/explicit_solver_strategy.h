@@ -867,7 +867,7 @@ namespace Kratos
 		 KRATOS_WATCH("FIXING VELOCITIES!")
          
           ModelPart& r_model_part           = BaseType::GetModelPart();
-          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements      = GetElements(r_model_part);
           
           #ifdef _OPENMP
@@ -894,7 +894,7 @@ namespace Kratos
                         //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
 						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
 											
-                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = -0.0625;// rCurrentProcessInfo[FIXED_VEL_TOP];
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
                         
 				   }
 				   
@@ -903,7 +903,7 @@ namespace Kratos
                         //(it)->GetGeometry()(0)->Free(VELOCITY_Y);
 						(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
 											
-                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = +0.0625; //rCurrentProcessInfo[FIXED_VEL_BOT];
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
                         
 				   }
 				   
@@ -921,7 +921,7 @@ namespace Kratos
          KRATOS_TRY
                   
           ModelPart& r_model_part           = BaseType::GetModelPart();
-          //ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements      = GetElements(r_model_part);
           
           #ifdef _OPENMP
@@ -945,11 +945,24 @@ namespace Kratos
 		
 				
 				//KRATOS_WATCH(it->GetValue(GROUP_ID))
-				   if( ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) || ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2)  ) 
+				   if (  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 ) 
 				   {
+					     
                         (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+						 rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
+						 //I only store one value for every ball in the group ID
                         (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
 
+				   }
+				   
+				    if ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2 ) 
+				   {
+					     
+                        (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+						 rCurrentProcessInfo[FIXED_VEL_BOT] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
+                         //I only store one value for every ball in the group ID
+						 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
+						 
 				   }
 				   
               } //loop over particles
