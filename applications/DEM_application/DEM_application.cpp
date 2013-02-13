@@ -33,7 +33,7 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
-	
+	    KRATOS_CREATE_VARIABLE(double, RADIAL_DISPLACEMENT)
     	    KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_TAPA)
             KRATOS_CREATE_VARIABLE(double, AREA_VERTICAL_CENTRE)
 	    KRATOS_CREATE_VARIABLE(double, DEM_STRESS_XX)
@@ -157,7 +157,7 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
 
-                
+       KRATOS_REGISTER_VARIABLE( RADIAL_DISPLACEMENT )
                 KRATOS_REGISTER_VARIABLE( AREA_VERTICAL_TAPA)
                 KRATOS_REGISTER_VARIABLE( AREA_VERTICAL_CENTRE)
 		KRATOS_REGISTER_VARIABLE(DEM_MAGIC_FACTOR)
