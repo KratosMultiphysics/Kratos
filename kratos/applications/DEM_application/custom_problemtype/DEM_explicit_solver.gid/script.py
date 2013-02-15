@@ -24,7 +24,9 @@ solid_model_part = ModelPart("SolidPart");
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
-## reading the solid part: binary or ascii, multifile or single
+#
+
+## reading the solid part: binary or ascii, multifile or single --> only binary and single for mpi.
 
 if(OutputFileType == "Binary"):
   gid_mode = GiDPostMode.GiD_PostBinary
@@ -73,12 +75,6 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
     
       os.makedirs(str(directory))
 
-os.chdir(data_and_results)
-
-#results = open('results.txt','w'); summary_results = open('summary_results.txt','w')
-
-forcelist = []; forcelist2 = []; timelist = []; displacementlist = []
-
 os.chdir(list_path)
 
 multifile = open(problem_name+'_all'+'.post.lst','w'); multifile_5 = open(problem_name+'_5'+'.post.lst','w');
@@ -89,7 +85,7 @@ index_5 = 1; index_10 = 1; index_50 = 1; prev_time = 0.0; control = 0.0; cond = 
 
 os.chdir(main_path)
 
-graph_export = open("strain_stress_data.csv",'w'); sigma_writting = open("mean_sigma.csv",'w'); sigma_writting2 = open("mean_sigma.csv",'w')
+graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
 strainlist=[]; strainlist.append(0.0)
@@ -111,7 +107,6 @@ if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
   contact_model_part = solver.contact_model_part   
   export_model_part = contact_model_part
  
-  
 #-------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATION--------------------------------------------------------
@@ -247,7 +242,7 @@ while(time < final_time):
   
         node = element.GetNode(0)
         volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0) 
-        total_volume = total_volume + volume_equ
+        total_volume += volume_equ
 
       real_volume = 3.141592*d*d*0.25*h
       
@@ -292,7 +287,6 @@ while(time < final_time):
       total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
       stresslist.append(total_stress)
 
-
     os.chdir(list_path)
     
     multifile.write(problem_name+'_'+str(time)+'.post.bin\n')
@@ -321,9 +315,7 @@ while(time < final_time):
         multifile_50.write(problem_name+'_'+str(time)+'.post.bin\n')
         index_50=0
       
-      index_5 += 1
-      index_10 += 1
-      index_50 += 1
+      index_5 += 1;      index_10 += 1;      index_50 += 1
 
       if(Multifile == "multiple_files"):
         gid_io.FinalizeResults()
@@ -371,14 +363,12 @@ while(time < final_time):
           gid_io.WriteMesh(contact_model_part.GetMesh());
           gid_io.FinalizeMesh()
           gid_io.InitializeResults(time, contact_model_part.GetMesh()); 
-
-          
+ 
       ProcPrintingVariables(gid_io,export_model_part,time)  
 
       os.chdir(main_path)     
               
       time_old_print = time
-
 
     graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
          
@@ -389,21 +379,16 @@ while(time < final_time):
 #-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
 
 if(Multifile == "single_file"):
+
   gid_io.FinalizeResults()
    
-os.chdir(data_and_results)
+os.chdir(graphs_path)
  
 graph_export.close() 
-sigma_writting.close()
-sigma_writting2.close()
 
 os.chdir(list_path)
 
-multifile.close()
-multifile_5.close()
-multifile_10.close()
-multifile_50.close()
-
+multifile.close(); multifile_5.close(); multifile_10.close(); multifile_50.close()
 os.chdir(main_path)
 
 print 'Calculation ends at instant: ' + str(timer.time())
