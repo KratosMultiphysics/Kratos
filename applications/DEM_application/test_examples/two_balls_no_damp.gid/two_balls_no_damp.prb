@@ -92,6 +92,13 @@ VALUE: 40.0
 QUESTION: Model_Data_Info#CB#(ON,OFF)
 VALUE: OFF
 HELP: It calculates the radius mean, variation, etc...
+QUESTION: Fix_Velocities_At_Predetermined_Time#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)
+HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
+QUESTION: Time_Step_Constrain_DOFs_Percentage
+VALUE: 10.0
+HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
 TITLE: Continuum Options
 QUESTION: Continuum_Option#CB#(ON,OFF)
 VALUE: OFF
@@ -146,6 +153,8 @@ QUESTION: VELOCITY#CB#(1,0)
 VALUE: 1
 QUESTION: DISPLACEMENT#CB#(1,0)
 VALUE: 1
+QUESTION: RADIAL_DISPLACEMENT#CB#(1,0)
+VALUE: 0
 QUESTION: RHS#CB#(1,0)
 VALUE: 1
 QUESTION: TOTAL_FORCES#CB#(1,0)
@@ -171,6 +180,12 @@ VALUE: 1
 QUESTION: LOCAL_CONTACT_FORCE_LOW#CB#(1,0)
 VALUE: 0
 QUESTION: LOCAL_CONTACT_FORCE_HIGH#CB#(1,0)
+VALUE: 0
+QUESTION: REPRESENTATIVE_VOLUME#CB#(1,0)
+VALUE: 0
+QUESTION: MEAN_CONTACT_AREA#CB#(1,0)
+VALUE: 0
+QUESTION: STRESS_TENSOR#CB#(1,0)
 VALUE: 0
 QUESTION: CONTACT_FAILURE#CB#(1,0)
 VALUE: 1
