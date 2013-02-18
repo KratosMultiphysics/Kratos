@@ -18,30 +18,24 @@ Reading Nodes : 2 nodes read
 Reading Elements : 2 SphericParticle3D read
 lines read : 100
 dofs for the DEM solution added correctly
+
+
+Initialitzating Problem....
+Initialitzation Complete
+
 ******************Calculating TimeStep Is 0.0001******************
-
-
-Calculation starts at instant: 0.11
+SOLVE starts at instant: 0.3
 
 Total number of TIME STEPs expected in the calculation are: 30000 if time step is kept 
 
-nodes interior
-0
-nodes totals
-2
-nodes skin
-2
-0.0
-0.0053014365
--100.0
-Calculation ends at instant: 1360329616.66
-Calculation ends at processing time instant: 4.05
-Elapsed processing time: 3.94
-Elapsed real time: 4.20291090012
+Calculation ends at instant: 1361187879.16
+Calculation ends at processing time instant: 3.31
+Elapsed processing time: 3.01
+Elapsed real time: 3.01261401176
 
                                  Repeat # 	Total     	Max     	Min     	Average     	%
-Reading Input.......................... 1 	0.0378816s     	0.0378816s     	0.0378816s     	0.0378816s     	0.824509%
-Writing Mesh........................... 2 	0.00538764s     	0.00537542s     	1.2222e-05s     	0.00269382s     	0.117264%
-Writing Results........................ 7450 	1.47596s     	0.0282792s     	5.728e-06s     	0.000198115s     	32.1248%
+Reading Input.......................... 1 	0.000460533s     	0.000460533s     	0.000460533s     	0.000460533s     	0.0149888%
+Writing Mesh........................... 1 	1.1943e-05s     	1.1943e-05s     	1.1943e-05s     	1.1943e-05s     	0.000388704%
+Writing Results........................ 2086 	0.063237s     	9.4076e-05s     	4.819e-06s     	3.03149e-05s     	2.05815%
 
 COMPLETED ANALYSIS

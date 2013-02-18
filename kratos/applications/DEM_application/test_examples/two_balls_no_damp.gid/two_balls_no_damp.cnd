@@ -194,6 +194,4 @@ BOOK:Predefined_Skin_Particles
 NUMBER: 11 CONDITION: SET_SKIN
 CONDTYPE: over volumes
 CONDMESHTYPE: over body elements
-QUESTION: SET#CB#(1,0)
-VALUE: 0
 END CONDITION

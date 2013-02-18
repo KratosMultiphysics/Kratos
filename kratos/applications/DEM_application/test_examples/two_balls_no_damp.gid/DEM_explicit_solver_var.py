@@ -42,6 +42,9 @@ global_rt = 1.00000e+03
 global_rr = 1.00000e+03
 global_fri_ang = 4.00000e+01
 ModelDataInfo = "OFF"
+FixVelocities = "OFF"
+TimePercentageFixVelocities = 1.00000e+01
+
 
 #Continuum Options
 
@@ -73,6 +76,7 @@ RotaDampId = "NoDamp"
 
 print_velocity                   = "1"
 print_displacement               = "1"
+print_radial_displacement        = "0"
 print_rhs                        = "1"
 print_total_forces               = "0"
 print_damp_forces                = "0"
@@ -93,12 +97,20 @@ print_contact_sigma              = "1"
 print_angular_velocity           = "0"
 print_particle_moment            = "0"
 print_euler_angles               = "0"
+print_representative_volume      = "0"
+print_mean_contact_area          = "0"
+print_stress_tensor              = "0"
+
+
+#FROM CND:
+
+predefined_skin_option = "OFF"
 
 
 mass_elements=1.30900e-01
 
 # Declare Python Variables
 problem_name = 'two_balls_no_damp'
-problem_path = '/home/CIMNE/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid'
-kratos_path = '/home/CIMNE/kratos'
+problem_path = '/home/cimne/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid'
+kratos_path = '/home/cimne'
 
