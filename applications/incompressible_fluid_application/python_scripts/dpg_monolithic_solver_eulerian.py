@@ -159,11 +159,11 @@ class MonolithicSolver:
         else:
             self.redistance_utils = ParallelDistanceCalculator3D()
 
-        self.max_levels = 5
+        
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
         self.max_distance = self.max_edge_size * 5.0;
-
+	self.max_levels = 25 ##self.max_distance/self.min_edge_size 	
 
         self.max_ns_iterations = 8
 	self.internal_step_counter = 1  
