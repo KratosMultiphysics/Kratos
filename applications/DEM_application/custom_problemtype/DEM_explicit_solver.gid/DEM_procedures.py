@@ -7,7 +7,7 @@ from pressure_script import *
 
 from numpy import *
 
-#from KratosMultiphysics.mpi import *
+#from KratosMultiphysics.mpi import * #CARLOS
 
 def AddMpiVariables(model_part):
     
@@ -106,6 +106,8 @@ def ProcListDefinition(model_part,solver):
       special_selection.append(node)
     else:
       others.append(node)
+      
+  return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
 
     
 def ProcGiDSolverTransfer(model_part,solver):
@@ -322,14 +324,7 @@ def ProcSkinAndPressure(model_part,solver):
     
       
       element.SetValue(SKIN_SPHERE,0)
-      
-      
-      if (predefined_skin_option == "ON" ):
-         
-         if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
-      
-           element.SetValue(SKIN_SPHERE,1)
-      
+   
       if ( predefined_skin_option == "OFF" ):
       
         node = element.GetNode(0)
@@ -419,7 +414,7 @@ def ProcMeasureBOT(BOT,solver):
     
     tol = 2.0
     y_mean = 0.0
-    counter = 0.0
+    counter = 0
     for node in BOT:
       r = node.GetSolutionStepValue(RADIUS,0)
       y = node.Y
@@ -506,6 +501,9 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
 		  gid_io.PrintOnGaussPoints(CONTACT_TAU,export_model_part,time)
 	  if (print_contact_sigma=="1"):
 		  gid_io.PrintOnGaussPoints(CONTACT_SIGMA,export_model_part,time)
+		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,export_model_part,time)
+		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,export_model_part,time)
+		  
 
 	if (RotationOption == "ON"): ##xapuza
 	  if (print_angular_velocity=="1"):
