@@ -518,7 +518,7 @@ namespace Kratos
 
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
-						  if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
+						 // if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
 						  {
 
 							  corrected_area = mcont_ini_neigh_area[index_area];
@@ -528,7 +528,7 @@ namespace Kratos
 						  						  
 						
 						
-						else 
+						/*else 
 						  {
 
 							  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
@@ -537,7 +537,7 @@ namespace Kratos
 							  break;
                               
 						  }//for the known steps....
-
+                        */
 					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
 					  
@@ -762,7 +762,7 @@ namespace Kratos
               }
 
   
-              if(corrected_area < 1e-09) {KRATOS_WATCH("ERROR!!!!! AREA OR ALPHA TOO CLOSE TO 0.0")}
+              if(corrected_area < 1e-09) {KRATOS_WATCH(corrected_area) KRATOS_WATCH(this->Id())}
               
               if(this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0)         
               {  
@@ -1600,7 +1600,7 @@ namespace Kratos
 	
            
 		   //DEBUG MEDICIÓ
-		   
+		   /*
                   double& area_vertical_tapa = rCurrentProcessInfo[AREA_VERTICAL_TAPA];
                   double& area_vertical_centre = rCurrentProcessInfo[AREA_VERTICAL_CENTRE];
                   
@@ -1661,7 +1661,7 @@ namespace Kratos
                        
                      }
                   }
-      	   
+      	   */
 			   
 		
       }
