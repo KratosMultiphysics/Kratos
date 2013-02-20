@@ -7,11 +7,6 @@ import matplotlib
 from numpy import *
 from pylab import *  
 
-##import cProfile
-##################################################################
-##################################################################
-## ATTENTION: here the order is important
-
 #including kratos path
 kratos_path = '../../../..'         #########################NUEVO
 kratos_libs_path = '../../../../libs' ##kratos_root/libs
