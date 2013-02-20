@@ -24,18 +24,18 @@ Initialitzating Problem....
 Initialitzation Complete
 
 ******************Calculating TimeStep Is 0.0001******************
-SOLVE starts at instant: 0.3
+SOLVE starts at instant: 0.36
 
 Total number of TIME STEPs expected in the calculation are: 30000 if time step is kept 
 
-Calculation ends at instant: 1361187879.16
-Calculation ends at processing time instant: 3.31
-Elapsed processing time: 3.01
-Elapsed real time: 3.01261401176
+Calculation ends at instant: 1361355156.35
+Calculation ends at processing time instant: 3.41
+Elapsed processing time: 3.05
+Elapsed real time: 3.0754699707
 
                                  Repeat # 	Total     	Max     	Min     	Average     	%
-Reading Input.......................... 1 	0.000460533s     	0.000460533s     	0.000460533s     	0.000460533s     	0.0149888%
-Writing Mesh........................... 1 	1.1943e-05s     	1.1943e-05s     	1.1943e-05s     	1.1943e-05s     	0.000388704%
-Writing Results........................ 2086 	0.063237s     	9.4076e-05s     	4.819e-06s     	3.03149e-05s     	2.05815%
+Reading Input.......................... 1 	0.00046668s     	0.00046668s     	0.00046668s     	0.00046668s     	0.0148295%
+Writing Mesh........................... 1 	1.4527e-05s     	1.4527e-05s     	1.4527e-05s     	1.4527e-05s     	0.000461618%
+Writing Results........................ 2086 	0.0783355s     	0.000314146s     	4.749e-06s     	3.7553e-05s     	2.48923%
 
 COMPLETED ANALYSIS
