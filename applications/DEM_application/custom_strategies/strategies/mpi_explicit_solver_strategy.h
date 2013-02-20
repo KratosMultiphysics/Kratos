@@ -194,6 +194,10 @@ namespace Kratos
 
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_FORCE_LOW);
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_FORCE_HIGH);
+        
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(MEAN_CONTACT_AREA);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_AREA_LOW);
+        r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_AREA_HIGH);
     }
     
     virtual void Repart(ModelPart& r_model_part, int CalculateBoundry)
