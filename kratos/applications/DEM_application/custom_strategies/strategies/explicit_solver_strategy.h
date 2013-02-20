@@ -50,9 +50,6 @@
 #include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
 
-/* REMOVE THIS */
-//#include "custom_utilities/mpi_discrete_particle_configure.h" //CARLOS REVISA-HO
-
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication
@@ -280,6 +277,24 @@ namespace Kratos
 
  	  Timer::Stop("SOLVEFORCE");
 
+      /*
+      if(rCurrentProcessInfo[INT_DUMMY_9]) //if strain_stress_operations
+      {
+        
+      Timer::Start("STRAINSTRESSOPERATIONS");
+#endif      
+      
+      StrainStressOperations();
+      
+      
+      
+#ifdef CUSTOMTIMER
+
+      Timer::Stop("STRAINSTRESSOPERATIONS");      
+      
+      }
+      
+      */
  	  Timer::Start("SOLVEMOTION");
 #endif
 	  //2. Motion Integration
@@ -562,39 +577,38 @@ namespace Kratos
           }// loop threads OpenMP
 
        
-    if ( rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 )
-    {
-        //CONTACT MODEL PART
+          if ( rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1 )
+          {
+              //CONTACT MODEL PART
+                      
+              //ProcessInfo& rCurrentProcessInfo  = contacts_model_part.GetProcessInfo();
+      //      ElementsArrayType& pContactElements = GetElements(mcontacts_model_part);
+              ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+
+          
+              vector<unsigned int> contact_element_partition;
+              //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+              OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+
+              #pragma omp parallel for //private(index)
+              for(int k=0; k<number_of_threads; k++)
+
+              {
+
+                typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+                typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
                 
-        //ProcessInfo& rCurrentProcessInfo  = contacts_model_part.GetProcessInfo();
-//      ElementsArrayType& pContactElements = GetElements(mcontacts_model_part);
-        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+                for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+                
+              {
+              
+                (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
 
-    
-        vector<unsigned int> contact_element_partition;
-        //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
-        OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+              } //loop over CONTACT ELEMENTS
 
-        #pragma omp parallel for //private(index)
-        for(int k=0; k<number_of_threads; k++)
+              }// loop threads OpenMP
 
-        {
-
-          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
-          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
-          
-          for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
-          
-        {
-        
-          (it_contact)->InitializeSolutionStep(rCurrentProcessInfo); 
-
-        } //loop over CONTACT ELEMENTS
-
-        }// loop threads OpenMP
-
-    }
-    
+          }
 
         KRATOS_CATCH("")
       }
@@ -804,6 +818,45 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }//Apply local damps
+      
+    /* 
+      void StrainStressOperations()
+      {
+          KRATOS_TRY
+
+          ModelPart& r_model_part           = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements      = GetElements(r_model_part);
+
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+          #endif
+
+          vector<unsigned int> element_partition;
+          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          
+          #pragma omp parallel for 
+          for(int k=0; k<number_of_threads; k++)
+          {
+              typename ElementsArrayType::iterator it_begin=pElements.ptr_begin()+element_partition[k];
+              typename ElementsArrayType::iterator it_end=pElements.ptr_begin()+element_partition[k+1];
+
+              double dummy = 0.0;
+
+              for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
+              {
+                  
+                  it->Calculate(DEM_STRESS_XX, dummy, rCurrentProcessInfo); //not only stress_xx but many operations
+                  
+              } //loop over particles
+              
+          }// loop threads OpenMP
+
+          KRATOS_CATCH("")
+      }//StrainStressOperations
+     */
 
       void MoveMesh()
       {
@@ -837,18 +890,8 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it= it_begin; it!=it_end; ++it)
               {
-                  (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
-              
-                  //Rotate trihedron
-
-                  if (trihedron_OPTION==1)
-                  {
-                      array_1d<double,3> dummy(3,0.0);
-                      double dummy2 =0.0;
-
-                      (it)->Calculate(PRESSURE, dummy2, rCurrentProcessInfo);
-                  }
                   
+                (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
                   
               } //loop over particles
 
