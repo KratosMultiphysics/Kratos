@@ -151,12 +151,10 @@ if(problem_settings.wall_law_y > 1e-10):
 ####
 
 def BenchmarkCheck(time, model_part):
-    inlet_node = model_part.Nodes[169]
     outlet_node = model_part.Nodes[2215]            
        
     benchmarking.Output(time, "Time")
     
-    benchmarking.Output(inlet_node.GetSolutionStepValue(VELOCITY_X), "velocity on node 169 ", None, 0.01)
     benchmarking.Output(outlet_node.GetSolutionStepValue(DISTANCE), "distance on node 2215 ", None, 0.01)
 
 print "fluid solver created"
