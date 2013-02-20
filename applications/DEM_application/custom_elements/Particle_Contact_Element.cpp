@@ -215,8 +215,8 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
     this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = 0.0;
     this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = 0.0;
     
-	this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
-    this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
+	//this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
+    //this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
     //this->GetValue(MEAN_CONTACT_AREA) = 0.0;
    
 }
