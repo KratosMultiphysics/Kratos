@@ -270,8 +270,7 @@ namespace Kratos
        { 
      
           int skin_sphere     = this->GetValue(SKIN_SPHERE);
-        
-          
+
           double alpha = 1.0;
           double radius = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
           double external_sphere_area = 4*M_PI*radius*radius;  
@@ -445,9 +444,7 @@ namespace Kratos
               neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
           {
 			
-			/* if(this->Id()==3022)
-			  {KRATOS_WATCH(neighbour_iterator->Id())}
-*/
+
               // GETTING NEIGHBOUR PROPERTIES
 
               
@@ -521,7 +518,7 @@ namespace Kratos
 
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
-						  if(1<2)//rCurrentProcessInfo[TIME_STEPS]==0)
+						  if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
 						  {
 
 							  corrected_area = mcont_ini_neigh_area[index_area];
@@ -530,7 +527,7 @@ namespace Kratos
 						  } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
 						  						  
 						
-						/*
+						
 						else 
 						  {
 
@@ -538,8 +535,9 @@ namespace Kratos
 
 							  corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
 							  break;
+                              
 						  }//for the known steps....
-*/
+
 					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
 					  
@@ -945,7 +943,7 @@ namespace Kratos
 
                       if(sliding == false) //only applied when no sliding to help to the regularized friccion law or the spring convergence
                       {
-                          ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  //same visco_coeff to all directions???
+                          ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  
                       }
                   }
               }
@@ -1108,11 +1106,14 @@ namespace Kratos
 		  
 		  for (int j=0; j<3; j++)
 		  {
-			 mStressTensor[i][j] += (-other_to_me_vect[j]) * GlobalContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor
-		  }
+            
+			 mStressTensor[i][j] += (x_centroid[j]) * GlobalContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
+            
+          }
 		  
 		}
 		
+				
   
         //CONTACT ELEMENT
               
@@ -1148,6 +1149,7 @@ namespace Kratos
 							  if(rCurrentProcessInfo[TIME_STEPS]==0)
 							  {
 							  lock_p_weak->GetValue(LOCAL_CONTACT_AREA_LOW) = corrected_area;
+                              
 							  }
 							  
                               //COMBINED MEAN          
@@ -1183,7 +1185,9 @@ namespace Kratos
 							  
 							  if(rCurrentProcessInfo[TIME_STEPS]==0)
 							  {
+
 							  lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = corrected_area;
+
 							  }
 							  
                                                                     
@@ -1211,13 +1215,16 @@ namespace Kratos
 															 
 							   }
 							   
-							    else if ( ( rCurrentProcessInfo[TIME_STEPS]==0 ) && ( this->GetValue(SKIN_SPHERE)==0 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
+										
+                               
+							   else if ( ( rCurrentProcessInfo[TIME_STEPS]==0 ) && ( this->GetValue(SKIN_SPHERE)==0 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
 							   {
 							   
-								  lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += corrected_area;
+								lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = corrected_area;
 								 
 							   }
-
+                              
+							   
 
                       } //copying the data only to the initial neighbours.
                             
@@ -1239,10 +1246,13 @@ namespace Kratos
          if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
 		 {
 	 
-		  //this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
-		   
-		   
-     		}
+		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
+		  /* KRATOS_WATCH(this->Id())
+		   KRATOS_WATCH("Negatiu volume")
+     		KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+            */
+           
+        }
      		
      	else
 		{
@@ -1251,6 +1261,8 @@ namespace Kratos
 		  
 					  for (int j=0; j<3; j++)
 					  {
+                        //KRATOS_WATCH(Representative_Volume)
+                        //KRATOS_WATCH(mStressTensor[i][j])
 			                 mStressTensor[i][j] = (1/Representative_Volume)*mStressTensor [i][j];
 					  }
 			   }		  
@@ -1528,92 +1540,7 @@ namespace Kratos
           }
       }//ComputeParticleRotationSpring
 
-      /*void SphericParticle::CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo )
-      {
-          //KRATOS_WATCH("INITIALIZE_AXES")
-
-          //1. Create the local axes (points)
-
-          array_1d<double,3> CentrePoint = this->GetGeometry()(0)->Coordinates();
-           
-          this->GetValue(ARROW_POINT) = vector< array_1d<double,3> >();
-          this->GetValue(ARROW_POINT).resize(3);
-          vector< array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);
-
-          TargetPointVector[0]=CentrePoint;
-          TargetPointVector[1]=CentrePoint;
-          TargetPointVector[2]=CentrePoint;
-        
-          TargetPointVector[0][0] += 1.0;
-          TargetPointVector[1][1] += 1.0;
-          TargetPointVector[2][2] += 1.0;
-
-          //KRATOS_WATCH(TargetPointVector)
-
-      }
-
-      void SphericParticle::CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo )
-      {
-          //1. rotate the local axes
-
-          array_1d<double,3> CentrePoint = this->GetGeometry()(0)->Coordinates();
-          array_1d<double,3> LineVector  = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
-
-          
-          //KRATOS_WATCH(LineVector)
-
-          double RotationAngle;
-          
-          GeometryFunctions::norm(LineVector,RotationAngle);
-
-           
-          //KRATOS_WATCH(LineVector)
-          // KRATOS_WATCH(RotationAngle)
-
-          // KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
-          
-          //vector<array_1d<double,3> >& TargetPointVector = this->GetValue(ARROW_POINT);
-  
-          for (int e = 0; e<3; e++)
-          {
-
-              array_1d<double,3>& TargetPoint = this->GetValue(ARROW_POINT)[e];
-
-              GeometryFunctions::RotatePointAboutArbitraryLine( TargetPoint, CentrePoint, LineVector, RotationAngle);
-
-          }
-        
-          //2. calculate the Euler angles from the rotation
-
-          array_1d<double,3>  OriginalVector_X  = ZeroVector(3);
-          OriginalVector_X[0] = 1.0;
-          OriginalVector_X[1] = 0.0;
-          OriginalVector_X[2] = 0.0;
-
-          array_1d<double,3>  OriginalVector_Z  = ZeroVector(3);
-          OriginalVector_Z[0] = 0.0;
-          OriginalVector_Z[1] = 0.0;
-          OriginalVector_Z[2] = 1.0;
-
-          array_1d<double,3>  RotatedVector_X   = this->GetValue(ARROW_POINT)[0] - CentrePoint;
-          array_1d<double,3>  RotatedVector_Z   = this->GetValue(ARROW_POINT)[2] - CentrePoint;
-          array_1d<double,3>& EulerAngles       = this->GetGeometry()(0)->GetSolutionStepValue(EULER_ANGLES);
-          
-          array_1d<double,3> Eu = ZeroVector(3);
-          Eu[0]=EulerAngles[0]-1.57080e+00;
-          Eu[1]=EulerAngles[1]-0.0;
-          Eu[2]=EulerAngles[2]-1.57080e+00;
-          
-
-          //KRATOS_WATCH(OriginalVector_X)
-          //KRATOS_WATCH(RotatedVector_X)
-          //KRATOS_WATCH(OriginalVector_Z)
-          //KRATOS_WATCH(RotatedVector_Z)
-
-          GeometryFunctions::CalculateEulerAngles(OriginalVector_X, OriginalVector_Z, RotatedVector_X, RotatedVector_Z, EulerAngles );        
-
-      }*/
-
+     
       void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
       void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
@@ -1666,7 +1593,7 @@ namespace Kratos
 		  
 		      for (int j=0; j<3; j++)
 		      {
-			       mStressTensor[i][j] += 0.0;
+			       mStressTensor[i][j] = 0.0;
 		      }
 		  
 		   }
@@ -1701,7 +1628,7 @@ namespace Kratos
                                   for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
 				               {
 
-					             if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(((*ineighbour).lock())->Id()) ) 
+					             if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == (int)( ((*ineighbour).lock())->Id() ) )
 					            {     
 						             Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
                                                  double corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
@@ -1829,15 +1756,18 @@ namespace Kratos
               ApplyLocalMomentsDamping( rCurrentProcessInfo );
           } //DAMPING
 
-          /*if (rVariable == DUMMY_LOCAL_AXES) //M.S: CANVIAR!!
+          if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
           {
-              CalculateInitialLocalAxes( rCurrentProcessInfo );
+            
+             // SymmetrizeTensor( rCurrentProcessInfo );
+             // SymmetrizeTensor( rCurrentProcessInfo );
+             // SymmetrizeTensor( rCurrentProcessInfo );
+            
           } //EULER_ANGLES
 
-          if (rVariable == PRESSURE) //M.S: CANVIAR!!
-          {               
-              CalculateLocalAxes( rCurrentProcessInfo );
-          } //EULER_ANGLES*/
+          
+          
+          
 
       }//calculate
 
