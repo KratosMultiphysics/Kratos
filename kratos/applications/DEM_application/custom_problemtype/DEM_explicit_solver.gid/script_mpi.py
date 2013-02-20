@@ -43,7 +43,7 @@ write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_solid = ModelPartIO(problem_name)
-
+model_part_io_solid = PerformInitialPartition(solid_model_part,model_part_io_solid,problem_name)
 model_part_io_solid.ReadModelPart(solid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -81,24 +81,9 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 #
 
 #
-#
+prev_time = 0.0; control = 0.0; cond = 0
 
 os.chdir(main_path)
-
-graph_export = open("strain_stress_data.csv",'w');
-
-#
-#strainlist=[]; strainlist.append(0.0)
-#stresslist=[]; stresslist.append(0.0)
-strain=0.0; total_stress = 0.0; first_time_entry = 1
-
-# for the graph plotting    
-velocity_node_y = 0.0
-    
-for node in sup_layer_fm:
-    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-    print 'velocity for the graph' + str(velocity_node_y) + '\n'
-    break
 
 export_model_part = solid_model_part
 
@@ -118,11 +103,36 @@ if(ModelDataInfo =="ON"):
   os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
   os.chdir(main_path)
-
+  
+if (predefined_skin_option == "ON" ):
+   
+   for element in solid_model_part.Elements:
+         
+      element.SetValue(SKIN_SPHERE,0)   
+   
+      if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
+      
+         element.SetValue(SKIN_SPHERE,1)
+         
+           
 if(ConcreteTestOption =="ON"):
-  ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
+  (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
+  
+graph_export = open("strain_stress_data.csv",'w');
 
+#Adding stress and strain lists
+#strainlist=[]; strainlist.append(0.0)
+#stresslist=[]; stresslist.append(0.0)
+strain=0.0; total_stress = 0.0; first_time_entry = 1
+
+# for the graph plotting    
+velocity_node_y = 0.0
+    
+for node in sup_layer_fm:
+    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+    print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+    break  
 #mesurement
 heigh = 0.3
 
@@ -165,18 +175,18 @@ print ('Total number of TIME STEPs expected in the calculation are: ' + str(tota
 
 os.chdir(post_path)
 
-if(Multifile == "single_file"):
+#
 
-  if (ContactMeshOption =="ON"): 
+if (ContactMeshOption =="ON"): 
     gid_io.InitializeMesh(0.0)
     gid_io.WriteMesh(contact_model_part.GetMesh());
     gid_io.FinalizeMesh()
     gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
 
-  gid_io.InitializeMesh(0.0)
-  gid_io.WriteSphereMesh(solid_model_part.GetMesh())
-  gid_io.FinalizeMesh()
-  gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
+gid_io.InitializeMesh(0.0)
+gid_io.WriteSphereMesh(solid_model_part.GetMesh())
+gid_io.FinalizeMesh()
+gid_io.InitializeResults(0.0, solid_model_part.GetMesh()); 
 
 #------------------------------------------------------------------------------------------
  
@@ -232,8 +242,14 @@ while(time < final_time):
     if( (ConcreteTestOption =="ON") and (step==3) ):
       
       #Cross section Area Control
+      
+      Num_Cross_Sect = solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA)
+      Exact_Cross_Sect = 3.141592*0.15*0.15*0.25
+      
       print '\n' + '----------------------CONCRETE TEST CONTROLS----------------------' + '\n'
-      print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA))
+      print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(Num_Cross_Sect)
+      print 'Total Horitzontal Real Cross Section on Force Measurement was: ' + str(Exact_Cross_Sect)
+      print 'Relative Error: ' + str (100*(abs(Num_Cross_Sect-Exact_Cross_Sect)/Exact_Cross_Sect)) + ' %'
       #print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_CENTRE) )
       
       total_volume = 0.0;  h   = 0.3;    d   = 0.15
@@ -247,7 +263,7 @@ while(time < final_time):
       real_volume = 3.141592*d*d*0.25*h
       
       print 'Total Numerical Volume: ' + str(total_volume)
-      print 'Total Numerical Volume: ' + str(real_volume)
+      print 'Total Real Volume: ' + str(real_volume)
       print 'Error: ' + str(100*abs(total_volume-real_volume)/real_volume) +'%'+'\n'
       print '------------------------------------------------------------------' + '\n'
     
@@ -258,8 +274,11 @@ while(time < final_time):
     
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
 
-    if( ContinuumOption =="ON" and ( time > 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON" and ConcreteTestOption =="ON" ):
-    
+    if( FixVelocities == 'OFF'):
+      TimePercentageFixVelocities = 0.0
+      
+    if( ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON"):
+     
       if(first_time_entry):
         Y_mean_bot = ProcMeasureBOT(BOT,solver)
         Y_mean_top = ProcMeasureTOP(TOP,solver)
@@ -273,8 +292,8 @@ while(time < final_time):
         heigh = ini_heigh2
         
       strain += -2*velocity_node_y*dt/heigh
-      strainlist.append(strain)
-      
+      #strainlist.append(strain)
+
       for node in sup_layer_fm:
       
         force_node = node.GetSolutionStepValue(RHS,0)
@@ -283,9 +302,14 @@ while(time < final_time):
         force_node_z = node.GetSolutionStepValue(RHS,0)[2]
         
         total_force += force_node_y
+        
+      total_force_gath   = mpi.gather(mpi.world, total_force, 0) 
+        
+      if(mpi.rank == 0):
+        total_force = reduce(lambda x,y:x+y,total_force_gath)
       
       total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
-      stresslist.append(total_stress)
+      #stresslist.append(total_stress)
 
     #
     
