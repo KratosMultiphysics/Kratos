@@ -211,8 +211,27 @@ class BiphasicFillingUtilities
 		 }
 		  KRATOS_CATCH("")
 		}
+	//**********************************************************************************************
+	//**********************************************************************************************
+    void DistanceFarRegionCorrection(ModelPart& ThisModelPart, const double max_distance)
+		{	
+		  KRATOS_TRY;
+		    int node_size = ThisModelPart.Nodes().size();
 
-
+    #pragma omp parallel for firstprivate(node_size)
+		    for (int ii = 0; ii < node_size; ii++)
+		    {
+		      ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		      double& current_dist = it->FastGetSolutionStepValue(DISTANCE);		  
+		      const double old_dist = it->FastGetSolutionStepValue(DISTANCE,1);	
+		      
+		      if( fabs(old_dist) >= 0.8*max_distance && current_dist*old_dist <= 0.0)
+			current_dist = old_dist;
+		    }
+		  KRATOS_CATCH("")
+		}
+	//**********************************************************************************************
+	//**********************************************************************************************		  
   private:
  	
 	void AirSmagorinskey(ModelPart& ThisModelPart, double C_Smagorinsky)
