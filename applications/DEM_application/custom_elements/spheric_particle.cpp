@@ -1561,10 +1561,6 @@ namespace Kratos
             {
                 mSymmStressTensor[i][j] = 0.5*(mStressTensor[i][j]+mStressTensor[j][i]);
                 
-                if(this->Id()==1)
-                {
-                KRATOS_WATCH(mSymmStressTensor[i][j])
-                }
             }
 
         }
