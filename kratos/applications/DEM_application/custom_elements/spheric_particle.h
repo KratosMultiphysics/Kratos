@@ -182,6 +182,7 @@ namespace Kratos
 
         void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo );
         void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
+        void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
     
         void ComputeParticleContactForce(ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -198,7 +199,8 @@ namespace Kratos
 		//member variables DEM
 		
 		double mStressTensor[3][3]; 
-        //array_1d<double, 3 > mStressTensor; 
+        double mSymmStressTensor[3][3]; 
+        
 		double mtotal_equiv_area;
         vector<double> mcont_ini_neigh_area;
 	    int mContinuumGroup;
