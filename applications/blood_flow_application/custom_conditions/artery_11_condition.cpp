@@ -178,8 +178,8 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 // fixity[0] = 1.0;		
 // fixity[3] = 1.0;
 
-		KRATOS_WATCH(jacobian);
-KRATOS_WATCH(delta_x);
+//		KRATOS_WATCH(jacobian);
+//KRATOS_WATCH(delta_x);
 		
 		
 		
@@ -197,10 +197,10 @@ KRATOS_WATCH(delta_x);
 		    }
 		}
 		
-		KRATOS_WATCH(jacobian);
-		KRATOS_WATCH(f_out);
-		KRATOS_WATCH(area);
-KRATOS_WATCH(flow);
+//		KRATOS_WATCH(jacobian);
+//		KRATOS_WATCH(f_out);
+//		KRATOS_WATCH(area);
+//KRATOS_WATCH(flow);
                 lu_factorize(jacobian, permutation);
                 lu_substitute(jacobian,permutation, delta_x);
 		
