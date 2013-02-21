@@ -79,6 +79,7 @@ namespace Python
     class_<ArteryTimeIntegrator > ("ArteryTimeIntegrator", init<>())
     .def("Initialize", &ArteryTimeIntegrator::Initialize)
     .def("SolveStep", &ArteryTimeIntegrator::SolveStep)
+    .def("EstimateDeltaTime", &ArteryTimeIntegrator::EstimateDeltaTime)
     ;
     
   }

@@ -272,10 +272,10 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
        rRightHandSideVector[i+2] = rhs[1];
       
     }
-    if(Id() == 1)
-    {
- KRATOS_WATCH(rRightHandSideVector);
-    }
+//    if(Id() == 1)
+//    {
+// KRATOS_WATCH(rRightHandSideVector);
+//    }
 // KRATOS_ERROR(std::logic_error,"i want it to go out here","");
 
 

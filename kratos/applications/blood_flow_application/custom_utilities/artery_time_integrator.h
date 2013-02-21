@@ -192,6 +192,59 @@ public:
         KRATOS_CATCH("")
     }
 
+    double EstimateDeltaTime(ModelPart& ThisModelPart, double CFL)
+    {
+        KRATOS_TRY
+        double delta_time = 1.00e12;
+        for(ModelPart::ElementsContainerType::iterator i_element = ThisModelPart.ElementsBegin(); i_element !=ThisModelPart.ElementsEnd(); i_element++)
+        {
+            double h = i_element->GetGeometry().Length();
+
+            const double& A0 = i_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+            const double& A1 = i_element->GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
+
+            if((A0 == 0.00) || (A1== 0.00))
+                KRATOS_ERROR(std::runtime_error, "Zero Nodal area found", "");
+
+            double v0 = i_element->GetGeometry()[0].GetSolutionStepValue(FLOW) / A0;
+            double v1 = i_element->GetGeometry()[1].GetSolutionStepValue(FLOW) / A1;
+            double v = std::max(v0,v1);
+            const double density = i_element->GetProperties()[DENSITY];
+            const double E = i_element->GetProperties()[YOUNG_MODULUS];
+            const double nu = i_element->GetProperties()[POISSON_RATIO];
+            const double thickness = i_element->GetProperties()[THICKNESS];
+            const double beta = E*thickness*1.77245385/(1.0-nu*nu);
+            const double coriolis_coefficient = 1.0001;
+            const double kr_coefficient = 1.0;
+
+            const double C1_0 = sqrt(beta / (2.0 * density * A0)) * pow(A0,0.25);
+            const double C1_1 = sqrt(beta / (2.0 * density * A1)) * pow(A1,0.25);
+
+            const double c_max = std::max(C1_0, C1_1);
+
+            const double c_alpha = sqrt(c_max*c_max + v*v * coriolis_coefficient* (coriolis_coefficient-1));
+
+            const double la = coriolis_coefficient * v + c_alpha;
+
+            double element_dt = fabs(CFL * h / la);
+
+//            KRATOS_WATCH(i_element->Id());
+//            KRATOS_WATCH(beta);
+//            KRATOS_WATCH(C1_0);
+//            KRATOS_WATCH(C1_1);
+//            KRATOS_WATCH(v);
+//            KRATOS_WATCH(h)
+//            KRATOS_WATCH(element_dt);
+
+            delta_time = std::min(delta_time, element_dt);
+
+        }
+
+        return delta_time;
+
+        KRATOS_CATCH("")
+    }
+
 private:
 
     void ComputeRHS(ModelPart& ThisModelPart)
