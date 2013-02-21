@@ -495,7 +495,7 @@ namespace Kratos
 
               double radius_sum                   = radius + other_radius;
               double indentation                  = radius_sum - distance - initial_delta; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
-          
+
               double equiv_radius     = 2*radius * other_radius / (radius + other_radius);
               //we now take 1/2 of the efective radius.
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
@@ -516,9 +516,11 @@ namespace Kratos
 				  for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
 				  {
 
+                    //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
+                    
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
-						 // if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
+						 if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
 						  {
 
 							  corrected_area = mcont_ini_neigh_area[index_area];
@@ -528,7 +530,7 @@ namespace Kratos
 						  						  
 						
 						
-						/*else 
+						else 
 						  {
 
 							  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
@@ -537,7 +539,10 @@ namespace Kratos
 							  break;
                               
 						  }//for the known steps....
-                        */
+                       
+                       //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
+                       
+                       
 					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
 					  
@@ -593,14 +598,20 @@ namespace Kratos
               
                 
               // FORMING LOCAL CORDINATES
+              
+              //Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
+              //In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
+              //the way the normal direction is defined (other_to_me_vect) compression is positive
 
               double NormalDir[3]           = {0.0};
               double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-              NormalDir[0] = other_to_me_vect[0];   // M. this way the compresion is positive.
+              NormalDir[0] = other_to_me_vect[0];  
               NormalDir[1] = other_to_me_vect[1];
               NormalDir[2] = other_to_me_vect[2];
+              
+              
               GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
-			  
+		
 			  // FORMING OLD LOCAL CORDINATES
 			  
 			  array_1d<double,3> Old_other_to_me_vect = this->GetValue(OLD_COORDINATES) - neighbour_iterator->GetValue(OLD_COORDINATES);
@@ -1541,6 +1552,132 @@ namespace Kratos
       }//ComputeParticleRotationSpring
 
      
+     void SphericParticle::SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo)
+     {
+
+        for (int i=0; i<3; i++)
+        {
+            for (int j=0; j<3; j++)
+            {
+                mSymmStressTensor[i][j] = 0.5*(mStressTensor[i][j]+mStressTensor[j][i]);
+                
+                if(this->Id()==1)
+                {
+                KRATOS_WATCH(mSymmStressTensor[i][j])
+                }
+            }
+
+        }
+
+       //composició 
+          double radius                             = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+          ParticleWeakVectorType& r_neighbours      = this->GetValue(NEIGHBOUR_ELEMENTS);
+          double poisson                            = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+          
+          for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
+              neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+          {            
+              // GETTING NEIGHBOUR PROPERTIES
+
+              //searching for the area
+              double other_radius     = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+              double other_poisson    = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+              double equiv_radius     = 2*radius * other_radius / (radius + other_radius);
+              int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
+              double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
+              double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
+              //double equiv_young      = 2 * young * other_young / (young + other_young);
+              
+               double corrected_area = equiv_area;
+               for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
+               {
+
+                      if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+                      {
+                         
+                        //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
+                        
+                        //if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
+                          if( rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//
+                          {
+
+                              corrected_area = mcont_ini_neigh_area[index_area];
+                              break;
+                              
+                          } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
+   
+                       else 
+                          {
+
+                              Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
+
+                              corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+                              break;
+                              
+                          }//for the known steps....
+                          
+                          //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
+                        
+                        
+                      }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
+                                         
+                  }//for every ini_neighbour      
+              
+              //NOTE: this area is provisionally obtained diferent from each side of the contact. bars are not yet ready for mpi.
+              
+              array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              
+              double NormalDir[3]           = {0.0};
+              double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+              NormalDir[0] = other_to_me_vect[0];  
+              NormalDir[1] = other_to_me_vect[1];
+              NormalDir[2] = other_to_me_vect[2];
+              
+              
+              double Auxiliar[3][2] = {{0.0}, {0.0}, {0.0}};
+              double stress_projection[2] = {0.0};
+              GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);  
+              
+                   
+              //assumció de que la suma de sigmaX i sigmaZ en un pla sempre dona el mateix valor.
+              // aqui anem passant veí per veí i modifiquem la seva normal amb les projeccions normals del tensor de tensions,
+              //pero hauria el tensor de modificarse cada cop que modifiquem un veí=?????
+              
+              //vector ortogonal 1 = LocalCoordSystem[0]
+              //vector ortogonal 2 = LocalCoordSystem[1]
+              
+              //NOTE:puc fer un clean si un valor es massa petit
+              
+              for (int i=0;i<2;i++)//only for 0 and 1, dos auxiliars
+              { 
+                           
+                  for (int j=0;j<3;j++)//for 0,1,2. Component dels auxiliars
+                  {
+                    for (int u=0;u<3;u++)
+                    {
+    
+                     
+                    Auxiliar[j][i] += mSymmStressTensor[j][u]*LocalCoordSystem[i][u];
+                   
+                    }
+
+                      for (int k=0;k<3;k++)//for 0,1,2.
+                      {
+                                      
+                          stress_projection[i] += Auxiliar[k][i]*LocalCoordSystem[i][k];
+                    
+                      } 
+                  }  
+                  
+              }
+              
+              double Normal_Contact_Contribution = corrected_area*equiv_poisson*(stress_projection[0]+stress_projection[1]); 
+              
+              
+          } // for every neighbour    
+     }
+     
+     
       void SphericParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo){}
 
       void SphericParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
@@ -1594,6 +1731,7 @@ namespace Kratos
 		      for (int j=0; j<3; j++)
 		      {
 			       mStressTensor[i][j] = 0.0;
+                   mSymmStressTensor[i][j] = 0.0;
 		      }
 		  
 		   }
@@ -1759,7 +1897,7 @@ namespace Kratos
           if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
           {
             
-             // SymmetrizeTensor( rCurrentProcessInfo );
+              SymmetrizeTensor( rCurrentProcessInfo );
              // SymmetrizeTensor( rCurrentProcessInfo );
              // SymmetrizeTensor( rCurrentProcessInfo );
             
