@@ -108,59 +108,45 @@ namespace Kratos
 	ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
-    static inline void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3])
+   //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (may be the one proposed by F.Chun was for a more generalized case) 
+    static inline void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
         int ii;
-	double Vector0[3] = {0.0},Vector1[3] = {0.0};
+        double Vector0[3] = {0.0},Vector1[3] = {0.0};
 
-	norm(NormalDirection);
-
-	double fix_coord[3]={0.0};
-
-	//Ax+By+Cz=D
-	double x0,y0,z0,D;
-
-       // D=fix_coord[0]*NormalDirection[0] + fix_coord[1]*NormalDirection[1] +fix_coord[2]*NormalDirection[2];
-
-        D = DotProduct(fix_coord, NormalDirection);
+        norm(NormalDirection);
 
         if(fabs(NormalDirection[0])>=0.577)
-	{
-            y0=fix_coord[1]+1.0;
-            z0=fix_coord[2];
-            x0=( D-NormalDirection[1]*y0-NormalDirection[2]*z0 )/NormalDirection[0];
-	    Vector0[0]=x0-fix_coord[0];
-	    Vector0[1]=1.0;
-	    Vector0[2]=0.0;
-	}
-	else if(fabs(NormalDirection[1])>=0.577)
-	{
-	    x0=fix_coord[0];
-	    z0=fix_coord[2]+1.0;
-	    y0=( D-NormalDirection[0]*x0-NormalDirection[2]*z0 )/NormalDirection[1];
-	    Vector0[0]=0.0;
-	    Vector0[1]=y0-fix_coord[1];
-	    Vector0[2]=1.0;
-	}
-	else
-	{
-	    x0=fix_coord[0]+1.0;
-	    y0=fix_coord[1];
-	    z0=( D-NormalDirection[0]*x0-NormalDirection[1]*y0 )/NormalDirection[2];
-	    Vector0[0]=1.0;
-	    Vector0[1]=0.0;
-	    Vector0[2]=z0-fix_coord[2];
-	}
+        {
+            Vector0[0]= - NormalDirection[1]/NormalDirection[0];
+            Vector0[1]=1.0;
+            Vector0[2]=0.0;
+        }
+        else if(fabs(NormalDirection[1])>=0.577)
+        {
 
-	norm(Vector0);
-	CrossProduct(NormalDirection,Vector0,Vector1);
-	norm(Vector1);
-	for(ii=0;ii<3;ii++)
-	{
+            Vector0[0]=0.0;
+            Vector0[1]= - NormalDirection[2]/NormalDirection[1];
+            Vector0[2]=1.0;
+        }
+        
+        else
+        {                   
+            Vector0[0]= 1.0;
+            Vector0[1]= 0.0;
+            Vector0[2]= - NormalDirection[0] /NormalDirection[2];
+        }
+
+        norm(Vector0);
+        CrossProduct(NormalDirection,Vector0,Vector1);
+        norm(Vector1);
+        
+        for(ii=0;ii<3;ii++)
+        {
             LocalCoordSystem[0][ii]=Vector0[ii];
             LocalCoordSystem[1][ii]=Vector1[ii];
             LocalCoordSystem[2][ii]=NormalDirection[ii];
-	}
+        }
 
     }
 
