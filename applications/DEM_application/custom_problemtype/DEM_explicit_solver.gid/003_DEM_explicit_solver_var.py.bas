@@ -70,6 +70,7 @@ TimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
 #Continuum Options
 
 ContinuumOption= "*GenData(Continuum_Option)"
+StressStrainOperations= "*GenData(Stress_Strain_Operations)"
 ContactMeshOption = "*GenData(Contact_Mesh_Option)"
 FailureCriterionOption = "*GenData(Failure_Criterion_Option)"
 *format "%10.5e"
