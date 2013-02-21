@@ -277,24 +277,22 @@ namespace Kratos
 
  	  Timer::Stop("SOLVEFORCE");
 
-      /*
-      if(rCurrentProcessInfo[INT_DUMMY_9]) //if strain_stress_operations
-      {
+      
         
       Timer::Start("STRAINSTRESSOPERATIONS");
-#endif      
+#endif     
       
+      if(rCurrentProcessInfo[INT_DUMMY_9] == 1) //if strain_stress_operations
+      {
+
       StrainStressOperations();
       
-      
+      }
       
 #ifdef CUSTOMTIMER
 
       Timer::Stop("STRAINSTRESSOPERATIONS");      
-      
-      }
-      
-      */
+     
  	  Timer::Start("SOLVEMOTION");
 #endif
 	  //2. Motion Integration
@@ -819,7 +817,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }//Apply local damps
       
-    /* 
+    
       void StrainStressOperations()
       {
           KRATOS_TRY
@@ -856,7 +854,7 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }//StrainStressOperations
-     */
+     
 
       void MoveMesh()
       {
