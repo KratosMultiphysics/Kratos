@@ -150,6 +150,8 @@ class ExplicitStrategy:
         self.activate_search					= 1  #its 1/0 xapuza
         self.concrete_test_OPTION				= 0  #its 1/0 xapuza
         
+        self.stress_strain_operations          = 0
+        
         self.external_pressure					= 0
         self.time_increasing_ratio				= 15 # Percentage%
         self.initial_pressure_time				= 0.0
@@ -279,10 +281,9 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) #reserved for print_export_skin_sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0) #reserved for counter of checking contact sigma mean in contact elements
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
-
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)#int( self.time_step_percentage_fix_velocities * ( self.final_time/self.delta_time) ) ) #reserved for timestep fix_velocities
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, 0)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, self.stress_strain_operations)#reserved for ON_OFF stress_strain_operations
         
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) #reserved for adding up the contact mean in contact elements.
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_2, 0.0) # reserved for the sigma mean
