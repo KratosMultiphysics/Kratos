@@ -168,7 +168,7 @@ public:
             grad_d /= (norm);
 
         array_1d<double, n_nodes> exact_distance = rDistances;
-        array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
+        array_1d<double, n_nodes> abs_distance = rDistances;
         double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
@@ -316,6 +316,7 @@ public:
         //            KRATOS_WATCH(volume)
         if (number_of_splitted_edges == 0) // no splitting
         {
+	  
             rVolumes[0] = volume;
             sub_volumes_sum = volume;
 //                 // Looking for the first node with sign not zero to get the sign of the element.
