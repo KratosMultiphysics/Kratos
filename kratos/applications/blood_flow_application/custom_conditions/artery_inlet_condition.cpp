@@ -119,19 +119,20 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     //get data as needed
     const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double nu = GetProperties()[POISSON_RATIO];
+    const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+    const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
     //const double pi = 3.14159265;
     const double coriolis_coefficient = 1.0001;
     //const double kr_coefficient = 1.0;
 
     //const double kinematic_viscosity = dynamic_viscosity/density;
-    const double beta = E*mH0*1.77245385/(1.0-nu*nu);
+    const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);;
+    const double beta = E*H0*1.77245385/(1.0-nu*nu);
 
     const double& A = UpdateArea(beta, density);
 
     const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-    const double C = beta*sqrt(A*A*A)/(3.0*density*mInitialArea[0]);
+    const double C = beta*sqrt(A*A*A)/(3.0*density*GetGeometry()[0].GetValue(NODAL_AREA));
 //    std::cout << "inlet: " << std::endl;
 //    KRATOS_WATCH(flow);
 //    KRATOS_WATCH(A);
@@ -150,7 +151,7 @@ double ArteryInletCondition::UpdateArea(double Beta, double Density)
     const int max_iteration = 10;
     double& A = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-    const double par2 = sqrt(Beta / (2.00*Density*mInitialArea[0]));
+    const double par2 = sqrt(Beta / (2.00*Density*GetGeometry()[0].GetValue(NODAL_AREA)));
     const double w1 = flow / A - 4.00*par2*pow(A,0.25);
 
     double x = A;
@@ -176,27 +177,6 @@ double ArteryInletCondition::UpdateArea(double Beta, double Density)
 void ArteryInletCondition::Initialize()
 {
     KRATOS_TRY
-
-
-    const double pi = 3.14159265;
-    double radius = GetProperties()[RADIUS];
-
-    const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[0] = pi*r0*r0;
-
-    mH0 = GetProperties()[THICKNESS];
-
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double nu = GetProperties()[POISSON_RATIO];
-
-    mBeta = E*mH0*1.77245385/(1.0-nu*nu);
-
-
-    //save area to the nodes. as well as its nodal mass
-    GetGeometry()[0].SetLock();
-    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
-    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[0].UnSetLock();
 
     KRATOS_CATCH("");
 }

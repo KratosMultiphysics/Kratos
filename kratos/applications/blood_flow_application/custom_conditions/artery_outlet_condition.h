@@ -198,11 +198,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    array_1d<double,1> mInitialArea;
-	double mH0;
-        double mBeta;
-
-
     ///@}
     ///@name Private Operators
     ///@{
