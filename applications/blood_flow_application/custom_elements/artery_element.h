@@ -196,8 +196,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-	array_1d<double,2> mA0;
-	double mH0;
 	double mL;
 
 
