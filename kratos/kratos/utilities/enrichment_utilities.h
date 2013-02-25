@@ -168,7 +168,7 @@ public:
             grad_d /= (norm);
 
         array_1d<double, n_nodes> exact_distance = rDistances;
-        array_1d<double, n_nodes> abs_distance = rDistances;
+        array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
         double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
@@ -207,7 +207,7 @@ public:
             else
                 collapsed_node[i] = false;
 
-// 	       abs_distance[i] = fabs(rDistances[i]);
+	  abs_distance[i] = fabs(rDistances[i]);
         }
 
         //now decide splitting pattern
