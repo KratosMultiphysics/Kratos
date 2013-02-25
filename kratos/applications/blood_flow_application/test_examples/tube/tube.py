@@ -15,6 +15,11 @@ fluid_model_part.AddNodalSolutionStepVariable(RHS)
 fluid_model_part.AddNodalSolutionStepVariable(WORK)
 fluid_model_part.AddNodalSolutionStepVariable(FLOW)
 fluid_model_part.AddNodalSolutionStepVariable(VELOCITY)
+fluid_model_part.AddNodalSolutionStepVariable(RADIUS)
+fluid_model_part.AddNodalSolutionStepVariable(THICKNESS)
+fluid_model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+fluid_model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+fluid_model_part.AddNodalSolutionStepVariable(TERMINAL_RESISTANCE)
 
 
 #introducing input file name
@@ -48,8 +53,8 @@ for node in fluid_model_part.Nodes:
 Dt = 4e-4
 full_Dt = Dt 
 initial_Dt = Dt#0.001 * full_Dt #0.05 #0.01
-final_time = 0.8
-output_step = 1
+final_time = 5.0
+output_step = 100
 
 out = 1
 

@@ -90,6 +90,7 @@ Begin Conditions Artery11Condition
 3 1 11 10
 End Conditions
 
+
  Begin NodalData FLOW
 21 1 0.0008
 //1  0 0.0008

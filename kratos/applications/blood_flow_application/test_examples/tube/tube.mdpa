@@ -80,6 +80,10 @@ End Conditions
 //1  0 0.0008
  End NodalData
  
+ Begin NodalData TERMINAL_RESISTANCE
+1 1 5e9
+ End NodalData
+
  Begin NodalData NODAL_AREA
 //21 1 0.00061575216010359944
 //1  1 0.00061575216010359944
