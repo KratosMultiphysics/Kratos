@@ -110,6 +110,7 @@ namespace Kratos
 
             double Area;
             array_1d<double, NumNodes> N;
+	    array_1d<double, NumNodes> dist_vec;
             boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
 
             for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
@@ -119,10 +120,11 @@ namespace Kratos
 			    double ele_dist = 0.0;
 			    for (unsigned int kk = 0; kk < rGeom.size(); kk++){
 				     double dist = rGeom[kk].FastGetSolutionStepValue(DISTANCE);
+				     dist_vec[kk] = dist;
 				  ele_dist +=  fabs(dist);
 			    }
 
-			    if(ele_dist <= dist_max){
+	       if(ele_dist <= dist_max){
                 GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
 
                 // Elemental Velocity
@@ -130,11 +132,24 @@ namespace Kratos
                 for (unsigned int i = 1; i < NumNodes; ++i)
                     ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-                // Velocity norm
-                double VelNorm = ElementVel[0]*ElementVel[0];
-                for (unsigned int d = 1; d < TDim; ++d)
-                    VelNorm += ElementVel[d]*ElementVel[d];
-                VelNorm = sqrt(VelNorm);
+		//compute normal velocity
+		array_1d<double, NumNodes>  grad_dist = prod(trans(DN_DX),dist_vec);
+		double norm_grad_dist = grad_dist[0]*grad_dist[0] + grad_dist[1]*grad_dist[1] + grad_dist[2]*grad_dist[2];
+		norm_grad_dist = sqrt(norm_grad_dist);
+		
+		double normal_speed = inner_prod(ElementVel,grad_dist);
+		if(norm_grad_dist > 0.0){
+		  normal_speed /= norm_grad_dist;
+		  ElementVel = (normal_speed*grad_dist)/norm_grad_dist;
+		}
+		else 
+		  ElementVel = ZeroVector(3);
+		
+// 		// Velocity norm
+//                 double VelNorm = ElementVel[0]*ElementVel[0];
+//                 for (unsigned int d = 1; d < TDim; ++d)
+//                     VelNorm += ElementVel[d]*ElementVel[d];
+//                 VelNorm = sqrt(VelNorm);
 
                 // Maximum element size along the direction of velocity
                 for (unsigned int i = 0; i < NumNodes; ++i)
@@ -158,8 +173,8 @@ namespace Kratos
         double dt = CFL / Max;
         if(dt > dt_max)
             dt = dt_max;
-		else if(dt < dt_min)
-			dt = dt_min;
+	else if(dt < dt_min)
+	    dt = dt_min;
 
         //perform mpi sync if needed
         double global_dt = dt;
