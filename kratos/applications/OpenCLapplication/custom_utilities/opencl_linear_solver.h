@@ -1061,7 +1061,6 @@ namespace OpenCL
 				mrDeviceGroup.ExecuteKernel(mkUpdateVector4, mSize);
 
 
-				// If not first iteration, Rho = 1 / (1 - (rr * Gamma) / (rr_old * Gamma_old * Rho_old))
 				if (!mIterationNo++)
 				{
 					bb = rr;
