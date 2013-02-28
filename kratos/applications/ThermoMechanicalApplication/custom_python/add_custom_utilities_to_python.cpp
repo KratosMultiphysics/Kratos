@@ -94,6 +94,9 @@ void  AddCustomUtilitiesToPython()
     .def("CreateAutoExitAssignAirSmagorinsky", &BiphasicFillingUtilities::CreateAutoExitAssignAirSmagorinsky)
 	.def("AssignSmoothBoundaryAirExit", &BiphasicFillingUtilities::AssignSmoothBoundaryAirExit)
 	.def("ApplyFluidProperties", &BiphasicFillingUtilities::ApplyFluidProperties)
+	.def("DistanceFarRegionCorrection", &BiphasicFillingUtilities::DistanceFarRegionCorrection)
+	.def("ComputeNetInletVolume", &BiphasicFillingUtilities::ComputeNetInletVolume)
+	.def("VolumeCorrection", &BiphasicFillingUtilities::VolumeCorrection)
     ; 
 
 }
