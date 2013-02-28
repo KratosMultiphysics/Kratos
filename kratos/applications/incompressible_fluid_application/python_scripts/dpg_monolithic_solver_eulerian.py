@@ -46,8 +46,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MATERIAL)
     model_part.AddNodalSolutionStepVariable(LAST_AIR)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)   
-    model_part.AddNodalSolutionStepVariable(CUTTED_AREA)   
-    model_part.AddNodalSolutionStepVariable(WET_VOLUME)     
+    #model_part.AddNodalSolutionStepVariable(CUTTED_AREA)   
+    #model_part.AddNodalSolutionStepVariable(WET_VOLUME)     
     #variables needed for the distance solver
     levelset_solver.AddVariables(model_part,distance_settings)
 
