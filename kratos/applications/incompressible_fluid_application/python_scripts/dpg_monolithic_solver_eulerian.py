@@ -258,23 +258,32 @@ class MonolithicSolver:
 	  self.divergence_clearance_performed = True    
 
 
+        Timer.Start("ConvectDistance")
 	#convect distance function
         self.ConvectDistance()
+        Timer.Stop("ConvectDistance")
         #recompute distance function as needed
+        Timer.Start("DoRedistance")
         if(self.internal_step_counter >= self.next_redistance):
 	  self.DoRedistance()
 	  #BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)	  
 	  self.next_redistance = self.internal_step_counter + self.redistance_frequency	  
-
+        Timer.Stop("DoRedistance")
 	net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
 	BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume)
+        Timer.Start("ApplyFluidProperties")
 	self.ApplyFluidProperties()
+        Timer.Stop("ApplyFluidProperties")
         #Recompute normals if necessary
 ##	if(self.ReformDofSetAtEachStep == True):
 ##           if self.use_slip_conditions == True:
-##	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0     
+##	      self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0
+
+
+        Timer.Start("self.solve")
         (self.solver).Solve()
         self.internal_step_counter += 1       
+        Timer.Stop("self.solve")
     #######################################################################   
     def SetEchoLevel(self,level):
         (self.solver).SetEchoLevel(level)
