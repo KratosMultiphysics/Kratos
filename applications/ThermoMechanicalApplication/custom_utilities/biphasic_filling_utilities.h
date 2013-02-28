@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/node.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/enrichment_utilities.h"
+#include "utilities/timer.h"
 //#include "geometries/tetrahedra_3d_4.h"
 #include "geometries/point.h"
 #include "thermo_mechanical_application.h"
@@ -95,7 +96,9 @@ class BiphasicFillingUtilities
 				 double slip_flag = it->GetSolutionStepValue(IS_SLIP);
 
 				 if (str_flag == 0.0 && slip_flag>=10.0)
+				 {
 					 return 1.0;
+				 }
 			 }
 			// if there is no dry node
 		    double is_dry_node = 0.0;
@@ -119,6 +122,7 @@ class BiphasicFillingUtilities
 
 			//assign smagorinsky at air element
 			AirSmagorinskey(ThisModelPart, C_Smagorinsky);
+
 
 		    return is_dry_node;
 		
