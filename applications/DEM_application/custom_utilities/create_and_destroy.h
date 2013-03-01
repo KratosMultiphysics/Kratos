@@ -60,8 +60,8 @@ public:
         Configure::ElementsContainerType::Pointer pElements         = r_model_part.pElements();
         Configure::ElementsContainerType Elements                   = r_model_part.Elements();
        
+        double ref_radius = (*(Elements.begin().base()))->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
 
-        double ref_radius = (*(Elements.begin().base()))->GetValue(RADIUS);
         array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
         mLowPoint = coor;
         mHighPoint = coor;
@@ -88,8 +88,8 @@ public:
         Particle_Creator_Destructor::GetHighNode() = mHighPoint;
         Particle_Creator_Destructor::GetLowNode() = mLowPoint;
         
-        //KRATOS_WATCH(mHighPoint)
-        //KRATOS_WATCH(mLowPoint)
+//         KRATOS_WATCH(mHighPoint)
+//         KRATOS_WATCH(mLowPoint)
 
         KRATOS_CATCH("")
          
