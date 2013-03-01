@@ -208,6 +208,7 @@ namespace Kratos
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           {   
               CreateContactElements();
+              InitializeContactElements();
           }
           
           if(rCurrentProcessInfo[CONCRETE_TEST_OPTION] == 1)
@@ -329,24 +330,6 @@ namespace Kratos
  	  Timer::Stop("SOLVENEIGHBORS");
           
           //ONLY A DEBUG TES.T
-
-	  Timer::Start("COMPRESIVECHECK");
-#endif
-          if ( ( 4<3 ) && ( (time_step + 1)%150 == 0 && time_step >0 ))
-          {
-          
-			CompressiveCheck();
-
-			double mean = rCurrentProcessInfo[DOUBLE_DUMMY_1]/rCurrentProcessInfo[INT_DUMMY_5];
-		
-			rCurrentProcessInfo.SetValue(DOUBLE_DUMMY_2, mean) ;
-			rCurrentProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) ;
-			rCurrentProcessInfo.SetValue(INT_DUMMY_5, 0) ;
-			
-		  }
-#ifdef CUSTOMTIMER
-	Timer::Stop("COMPRESIVECHECK");
-
 	
 	//4.Final operations
 	Timer::Start("SOLVEFINAL");
@@ -867,9 +850,7 @@ namespace Kratos
           ModelPart& r_model_part           = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements      = GetElements(r_model_part);
-          
-          int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
-
+       
           #ifdef _OPENMP
           int number_of_threads = omp_get_max_threads();
           #else
@@ -1105,6 +1086,50 @@ namespace Kratos
         mElementsAreInitialized   = true;
         KRATOS_CATCH("")
     }
+    
+    void InitializeContactElements()
+    {
+            KRATOS_TRY
+
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+        //ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          
+          //CONTACT MODEL PART
+                
+        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+        
+        
+        #ifdef _OPENMP
+        int number_of_threads = omp_get_max_threads();
+        #else
+        int number_of_threads = 1;
+        #endif
+    
+        vector<unsigned int> contact_element_partition;
+        //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+        OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
+
+        #pragma omp parallel for //private(index)
+        for(int k=0; k<number_of_threads; k++)
+
+        {
+
+          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+          
+          for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+          
+        {
+        
+          (it_contact)->Initialize(); 
+           
+        } //loop over CONTACT ELEMENTS
+
+        }// loop threads OpenMP
+
+        KRATOS_CATCH("")
+        
+    }
       
        
     void Set_Initial_Contacts(const bool& delta_OPTION, const bool& continuum_simulating_OPTION)
@@ -1153,52 +1178,6 @@ namespace Kratos
     
     
   
-   void CompressiveCheck()
-      {
-          KRATOS_TRY
-
-          ModelPart& r_model_part             = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
-          
-		  //CONTACT MODEL PART
-                
-        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
-		
-		
-	#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-        #else
-        int number_of_threads = 1;
-        #endif
-    
-        vector<unsigned int> contact_element_partition;
-        //OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
-        OpenMPUtils::CreatePartition(number_of_threads, pContactElements.size(), contact_element_partition);
-
-        #pragma omp parallel for //private(index)
-        for(int k=0; k<number_of_threads; k++)
-
-        {
-
-          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
-          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
-          
-          for (ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
-          
-        {
-        
-          (it_contact)->FinalizeSolutionStep(rCurrentProcessInfo); //calculates the sigma mean.
-          
-		  
-		   
-        } //loop over CONTACT ELEMENTS
-
-        }// loop threads OpenMP
-
-        KRATOS_CATCH("")
-		
-    } //CompressiveCheck
-    
     
     
     
