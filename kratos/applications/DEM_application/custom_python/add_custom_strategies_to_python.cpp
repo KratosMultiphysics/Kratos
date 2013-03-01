@@ -83,10 +83,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
 //parallel strategies
-//#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
+#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
 
 //parallel schemes
-//#include "custom_strategies/schemes/mpi_forward_euler_scheme.h" //MPI CARLOS descomentar aixo
+#include "custom_strategies/schemes/mpi_forward_euler_scheme.h" //MPI CARLOS descomentar aixo
 
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
@@ -135,14 +135,14 @@ namespace Kratos
        
 		  
 		  //MPI CARLOS decomentar de aqui....
-		/*
+		
           //Mpi schemes
            class_< MpiForwardEulerScheme, bases<ForwardEulerScheme>,  boost::noncopyable>
            (
                     "MpiForwardEulerScheme", init<>()
                    )
                    ;
-		 */
+		 
 				   // MPI CARLOS.... a aqui
 		   
 
@@ -156,7 +156,7 @@ namespace Kratos
 		  ;
 		  
            //MPI CARLOS decomentar de aqui....
-		  /*
+		  
            typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
            class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
            (
@@ -164,7 +164,7 @@ namespace Kratos
                    .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
                    .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
            ;
-		  */
+		  
 		  // MPI CARLOS.... a aqui
 	   
 		}
