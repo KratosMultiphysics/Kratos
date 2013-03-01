@@ -4,6 +4,8 @@ from KratosMultiphysics.OpenCLApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 CheckForPreviousImport()
 
+import time as timer
+
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -90,16 +92,31 @@ class OpenClSolver:
     ################################################################
     ################################################################
     def Solve(self):
+	t0 = timer.time()
 	(self.fluid_solver).LoadDataToGPU();
 ##        (self.fluid_solver).UpdateFixedVelocityValues()
 
+	t1 = timer.time()
         (self.fluid_solver).SolveStep1();
 
+        t2 = timer.time()
         (self.fluid_solver).SolveStep2();
 
+        t3 = timer.time()
         (self.fluid_solver).SolveStep3();
         
+        t4 = timer.time()
         (self.fluid_solver).WriteDataToCPU();
+        
+        t5 = timer.time()
+        tot = t5-t0
+        print "TOTAL STEP	  time --->",t5-t0
+        print "CPU->GPU transfer time --->",t1-t0, "tot % -->", (t1-t0)/tot
+        print "Step1		  time --->",t2-t1, "tot % -->", (t2-t1)/tot
+        print "Step2		  time --->",t3-t2, "tot % -->", (t3-t2)/tot
+        print "Step3		  time --->",t4-t3, "tot % -->", (t4-t3)/tot
+        print "GPU->CPU transfer time --->",t5-t4, "tot % -->", (t5-t4)/tot
+       
    
     ################################################################
     ################################################################
