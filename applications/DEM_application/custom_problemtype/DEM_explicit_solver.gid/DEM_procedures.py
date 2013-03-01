@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-#from KratosMultiphysics.MetisApplication import *
+#from KratosMultiphysics.MetisApplication import * #CARLOS
 
 from DEM_explicit_solver_var import *
 from pressure_script import *
@@ -106,7 +106,7 @@ def ProcListDefinition(model_part,solver):
       special_selection.append(node)
     else:
       others.append(node)
-      
+    
   return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
 
     
@@ -126,9 +126,15 @@ def ProcGiDSolverTransfer(model_part,solver):
     elif (NormalForceCalculation == "Hertz"):
         force_calculation_type_id = 1
 
-    if(DampId == "ViscDamp"):
-        damp_id = 1
+    if(NormalDampId == "ViscDamp"):
+      if(TangentialDampId == "ViscDamp"):
+        damp_id = 11
+      else:
+        damp_id = 10
     else:
+      if(TangentialDampId == "ViscDamp"):
+        damp_id = 1
+      else:
         damp_id = 0
         
     solver.damp_id=damp_id
@@ -177,6 +183,17 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     if(ContinuumOption =="ON"):
         solver.continuum_simulating_OPTION=True
+        
+        if(NonLinearOption =="ON"):
+           solver.Non_Linear_Option=1
+        
+        if(StressStrainOperations =="ON"): #xapuza
+          solver.stress_strain_operations = 1#xapuza
+          
+          solver.C1 = C1
+          solver.C2 = C2
+          solver.N1 = N1
+          solver.N2 = N2
       
         if(ContactMeshOption =="ON"):
             solver.contact_mesh_OPTION=1  #xapuza
@@ -279,7 +296,7 @@ def ProcGiDSolverTransfer(model_part,solver):
    
     if(FixVelocities =="ON"):
         solver.fix_velocities = 1  #xapuza
-    solver.time_step_percentage_fix_velocities = TimePercentageFixVelocities
+    solver.time_step_percentage_fix_velocities = TimePercentageFixVelocities   
     
     return Pressure
     
@@ -411,21 +428,21 @@ def ProcSkinAndPressure(model_part,solver):
     return (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER)
     
 def ProcMeasureBOT(BOT,solver):
-    
+
     tol = 2.0
     y_mean = 0.0
-    counter = 0
+    counter = 0.0
     for node in BOT:
       r = node.GetSolutionStepValue(RADIUS,0)
       y = node.Y
-
+      
       y_mean += (y-r)*r
       counter += r
 
-    return (y_mean/counter)
+    return (y_mean,counter)      
 
 def ProcMeasureTOP(TOP,solver):
-    
+
     tol = 2.0
     y_mean = 0.0
     counter = 0.0
@@ -437,85 +454,81 @@ def ProcMeasureTOP(TOP,solver):
       y_mean += (y+r)*r
       counter += r
 
-    return (y_mean/counter)
+    return (y_mean,counter)
     
 def ProcPrintingVariables(gid_io,export_model_part,time):
   
-	if (print_displacement=="1"):
-	  gid_io.WriteNodalResults(DISPLACEMENT, export_model_part.Nodes, time, 0)       
-	if (print_radial_displacement=="1"):
-	  gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
-	if (print_velocity=="1"):
-	  gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)	  
-	if (print_rhs=="1"):
-	  gid_io.WriteNodalResults(RHS, export_model_part.Nodes, time, 0)       
-	if (print_applied_forces=="1"):
-	  gid_io.WriteNodalResults(APPLIED_FORCE, export_model_part.Nodes, time, 0)       
-	if (print_total_forces=="1"):	  
-	  gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0)	  
-	if (print_damp_forces=="1"):
-	  gid_io.WriteNodalResults(DAMP_FORCES, export_model_part.Nodes, time, 0)        
-	if (print_radius=="1"):
-	  gid_io.WriteNodalResults(RADIUS, export_model_part.Nodes, time, 0)       
-	if (print_particle_cohesion=="1"):
-	  gid_io.WriteNodalResults(PARTICLE_COHESION, export_model_part.Nodes, time, 0)       
-	if (print_particle_tension=="1"):
-	  gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
-	if (print_group_id=="1"):
-	  gid_io.WriteNodalResults(GROUP_ID, export_model_part.Nodes, time, 0)
-	if (print_export_id=="1"):
-	  gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
-	if (print_export_particle_failure_id=="1"):
-	  gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
-	if (print_export_skin_sphere=="1"):
-	  gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
-	if (print_stress_tensor == "1"):
-	  gid_io.WriteNodalResults(DEM_STRESS_XX, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_XY, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_XZ, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_YX, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_YY, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_YZ, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_ZX, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_ZY, export_model_part.Nodes, time, 0)
-	  gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
-	if (print_representative_volume == "1"):
-	  gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
-    
-  #Aixo sempre per que si no hi ha manera de debugar
-  #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
-  #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
+    if (print_displacement=="1"):
+      gid_io.WriteNodalResults(DISPLACEMENT, export_model_part.Nodes, time, 0)       
+    if (print_radial_displacement=="1"):
+      gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
+    if (print_velocity=="1"):
+      gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)    
+    if (print_rhs=="1"):
+      gid_io.WriteNodalResults(RHS, export_model_part.Nodes, time, 0)       
+    if (print_applied_forces=="1"):
+      gid_io.WriteNodalResults(APPLIED_FORCE, export_model_part.Nodes, time, 0)       
+    if (print_total_forces=="1"):     
+      gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0)    
+    if (print_damp_forces=="1"):
+      gid_io.WriteNodalResults(DAMP_FORCES, export_model_part.Nodes, time, 0)        
+    if (print_radius=="1"):
+      gid_io.WriteNodalResults(RADIUS, export_model_part.Nodes, time, 0)       
+    if (print_particle_cohesion=="1"):
+      gid_io.WriteNodalResults(PARTICLE_COHESION, export_model_part.Nodes, time, 0)       
+    if (print_particle_tension=="1"):
+      gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
+    if (print_group_id=="1"):
+      gid_io.WriteNodalResults(GROUP_ID, export_model_part.Nodes, time, 0)
+    if (print_export_id=="1"):
+      gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
+    if (print_export_particle_failure_id=="1"):
+      gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
+    if (print_export_skin_sphere=="1"):
+      gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
+    if (print_stress_tensor == "1"):
+      gid_io.WriteNodalResults(DEM_STRESS_XX, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_XY, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_XZ, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_YX, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_YY, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_YZ, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_ZX, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_ZY, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
+    if (print_representative_volume == "1"):
+      gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
 
-	if (ContactMeshOption == "ON"): ##xapuza
-	  if (print_local_contact_force_low=="1"):
-		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,export_model_part,time)
-	  if (print_local_contact_force_high=="1"):
-		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,export_model_part,time)
-	  if (print_mean_contact_area=="1"): 
-		  gid_io.PrintOnGaussPoints(MEAN_CONTACT_AREA,export_model_part,time)
-	  if (print_contact_failure=="1"): 
-		  gid_io.PrintOnGaussPoints(CONTACT_FAILURE,export_model_part,time)	 
-	  if (print_failure_criterion_state=="1"):
-		  gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,export_model_part,time)  	    
-	  if (print_contact_tau=="1"):
-		  gid_io.PrintOnGaussPoints(CONTACT_TAU,export_model_part,time)
-	  if (print_contact_sigma=="1"):
-		  gid_io.PrintOnGaussPoints(CONTACT_SIGMA,export_model_part,time)
-		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,export_model_part,time)
-		  gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,export_model_part,time)
-		  
+    #Aixo sempre per que si no hi ha manera de debugar
+    #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
+    #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
 
-	if (RotationOption == "ON"): ##xapuza
-	  if (print_angular_velocity=="1"):
-		  gid_io.WriteNodalResults(ANGULAR_VELOCITY, export_model_part.Nodes, time, 0)
-	  if (print_particle_moment=="1"):
-		  gid_io.WriteNodalResults(PARTICLE_MOMENT, export_model_part.Nodes, time, 0)
-	  if (print_euler_angles=="1"):
-		  gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, export_model_part.Nodes, time, 0)
+    if (ContactMeshOption == "ON"): ##xapuza
+      if (print_local_contact_force_low=="1"):
+          gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW,export_model_part,time)
+      if (print_local_contact_force_high=="1"):
+          gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH,export_model_part,time)
+      if (print_mean_contact_area=="1"): 
+          gid_io.PrintOnGaussPoints(MEAN_CONTACT_AREA,export_model_part,time)
+      if (print_contact_failure=="1"): 
+          gid_io.PrintOnGaussPoints(CONTACT_FAILURE,export_model_part,time)  
+      if (print_failure_criterion_state=="1"):
+          gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE,export_model_part,time)         
+      if (print_contact_tau=="1"):
+          gid_io.PrintOnGaussPoints(CONTACT_TAU,export_model_part,time)
+      if (print_contact_sigma=="1"):
+          gid_io.PrintOnGaussPoints(CONTACT_SIGMA,export_model_part,time)
+          gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,export_model_part,time)
+          gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,export_model_part,time)
+          
 
-	gid_io.Flush()
-	sys.stdout.flush()
+    if (RotationOption == "ON"): ##xapuza
+      if (print_angular_velocity=="1"):
+          gid_io.WriteNodalResults(ANGULAR_VELOCITY, export_model_part.Nodes, time, 0)
+      if (print_particle_moment=="1"):
+          gid_io.WriteNodalResults(PARTICLE_MOMENT, export_model_part.Nodes, time, 0)
+      if (print_euler_angles=="1"):
+          gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, export_model_part.Nodes, time, 0)
 
-
- 
-    
+    gid_io.Flush()
+    sys.stdout.flush()
