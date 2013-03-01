@@ -9,10 +9,7 @@ from DEM_explicit_solver_var import *
 
 def AddVariables(model_part):
   
-  
-    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
-    
-    
+   
 # BASIQUES
 
     model_part.AddNodalSolutionStepVariable(RADIUS)
