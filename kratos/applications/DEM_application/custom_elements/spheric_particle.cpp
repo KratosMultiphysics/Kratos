@@ -1062,13 +1062,7 @@ namespace Kratos
               damp_forces[1] += ViscoDampingGlobalContactForce[1];
               damp_forces[2] += ViscoDampingGlobalContactForce[2];
 
-              if(this->Id()==12 && rCurrentProcessInfo[TIME_STEPS]==150)
-              
-              {
-                KRATOS_WATCH(this->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT))
-          
-              }
-             
+                          
               // SAVING CONTACT FORCES FOR NEXT STEPS
 
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
