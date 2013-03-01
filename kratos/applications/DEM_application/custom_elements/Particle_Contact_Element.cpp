@@ -107,7 +107,9 @@ std::string Particle_Contact_Element::Info() const
 void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
-
+    
+    this->GetValue(LOW_POISSON_FORCE) = 0.0;  
+    this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
    
     KRATOS_CATCH( "" )
 }
@@ -226,20 +228,7 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
 void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
 
-   int& counter_sigma = rCurrentProcessInfo[INT_DUMMY_5];
-		  double contact_sigma = this->GetValue(CONTACT_SIGMA);
-		  double& accumulative_sigma = rCurrentProcessInfo[DOUBLE_DUMMY_1];
-			  
-			  if(contact_sigma>0.0)
-			  {
-				  counter_sigma++;
-				  accumulative_sigma += contact_sigma;
-				
-			  }
-		  
-  
-  
-  
+ 
 }
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
