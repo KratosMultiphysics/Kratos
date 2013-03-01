@@ -10,7 +10,7 @@
 // System includes
 #include <string>
 #include <iostream>
-
+#include <iomanip>
 
 // External includes
 
@@ -65,8 +65,6 @@ namespace Kratos
 		double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
 		Representative_Volume = 0.0;
 		
-		this->GetValue(OLD_COORDINATES) = this->GetGeometry()(0)->Coordinates();
-
         mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
 
         //TO BE IMPROVED: i would like to work with *mpFailureId as integer. the problem is that it has to be exported to GID to be plotted.
@@ -344,6 +342,12 @@ namespace Kratos
           vector<double>& r_VectorContactInitialDelta         = this->GetValue(PARTICLE_CONTACT_DELTA);
 
           
+          
+          //optimitzation:
+          
+          VectorArray3Double&  GlobalContactForceMatrix = this->GetValue(PARTICLE_CONTACT_FORCES);
+   
+          
           // PROCESS INFO
 
           double magic_factor                 = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
@@ -378,6 +382,9 @@ namespace Kratos
           array_1d<double,3>& total_forces    = this->GetGeometry()[0].GetSolutionStepValue(TOTAL_FORCES);
           array_1d<double,3>& damp_forces     = this->GetGeometry()[0].GetSolutionStepValue(DAMP_FORCES);
 
+          array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
+          array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+          
 		  //Aplied Force for pressure:
 		  
           array_1d<double,3> external_total_applied_force;
@@ -438,8 +445,7 @@ namespace Kratos
               Max_Rota_Moment[2] = Initial_Rota_Moment[2];
             }  
                       
-
-                      
+             
           for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
               neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
           {
@@ -503,7 +509,9 @@ namespace Kratos
               double equiv_young      = 2 * young * other_young / (young + other_young);
               
               double corrected_area = equiv_area;
-            
+              double this_poisson_contribution = 0.0;
+              double neigh_poisson_contribution = 0.0;
+              
               int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
 
 			  
@@ -520,32 +528,63 @@ namespace Kratos
                     
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
-						 if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
+						
+                       // if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
 						  {
 
 							  corrected_area = mcont_ini_neigh_area[index_area];
+                             
+                             this_poisson_contribution = 0.0;
+                             neigh_poisson_contribution = 0.0;
+                             
 							  break;
 							  
 						  } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
 						  						  
 						
-						
+						/*
 						else 
 						  {
 
 							  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
 
 							  corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
-							  break;
+							  
                               
+                              if (this->Id() < neighbour_iterator->Id())
+                              {
+                                
+                         
+                                this_poisson_contribution   = lock_p_weak->GetValue(LOW_POISSON_FORCE); 
+                                neigh_poisson_contribution  = lock_p_weak->GetValue(HIGH_POISSON_FORCE); 
+                                
+                              }
+                              
+                              else
+                              {
+                         
+                                this_poisson_contribution   = lock_p_weak->GetValue(HIGH_POISSON_FORCE) ; 
+                                neigh_poisson_contribution  = lock_p_weak->GetValue(LOW_POISSON_FORCE) ;
+   
+                                if(rCurrentProcessInfo[TIME_STEPS] ==500)
+                                {
+                                KRATOS_WATCH(this->Id())
+                                KRATOS_WATCH(lock_p_weak->GetValue(HIGH_POISSON_FORCE))
+                                KRATOS_WATCH(lock_p_weak->GetValue(LOW_POISSON_FORCE))
+                                }
+                              }
+                              
+                             break;
+ 
 						  }//for the known steps....
-                       
+                       */
                        //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
                        
                        
 					  }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  
-					  
+				
+					
 				  }//for every neighbour      
 
 			  }//if(continuum_simulation_OPTION)
@@ -613,10 +652,12 @@ namespace Kratos
               GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
 		
 			  // FORMING OLD LOCAL CORDINATES
-			  
-			  array_1d<double,3> Old_other_to_me_vect = this->GetValue(OLD_COORDINATES) - neighbour_iterator->GetValue(OLD_COORDINATES);
-			  
-              double OldNormalDir[3]           = {0.0};
+            
+             array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
+             array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
+             array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh; 
+             //
+             double OldNormalDir[3]           = {0.0};
               double OldLocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
               OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
               OldNormalDir[1] = Old_other_to_me_vect[1];
@@ -626,12 +667,12 @@ namespace Kratos
 			  
               // VELOCITIES AND DISPLACEMENTS
 
-              array_1d<double, 3 > vel            = this->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
-              array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
-
-              array_1d<double, 3 > delta_displ            = this->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+              
+              array_1d<double, 3 > other_vel      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);            
               array_1d<double, 3 > other_delta_displ      = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
 
+             
+              
               double DeltDisp[3] = {0.0};
               double RelVel [3] = {0.0};
 
@@ -658,8 +699,8 @@ namespace Kratos
 
                   double Vel_Temp[3]       = {      AngularVel[0],       AngularVel[1],       AngularVel[2]};
                   double Other_Vel_Temp[3] = {Other_AngularVel[0], Other_AngularVel[1], Other_AngularVel[2]};
-                  GeometryFunctions::CrossProduct(Vel_Temp,             LocalCoordSystem[2], velA);
-                  GeometryFunctions::CrossProduct(Other_Vel_Temp, LocalCoordSystem[2], velB);
+                  GeometryFunctions::CrossProduct(Vel_Temp,             OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD. 
+                  GeometryFunctions::CrossProduct(Other_Vel_Temp, OldLocalCoordSystem[2], velB);
 
                   dRotaDisp[0] = -velA[0] * radius - velB[0] * other_radius;
                   dRotaDisp[1] = -velA[1] * radius - velB[1] * other_radius;
@@ -678,35 +719,79 @@ namespace Kratos
               //double GlobalContactForceOld[3] = {0.0};
 
 
-              GlobalContactForce[0] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0];   //M:aqui tenim guardades les del neighbour calculator.
-              GlobalContactForce[1] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][1];
-              GlobalContactForce[2] = this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][2];
+              GlobalContactForce[0] = GlobalContactForceMatrix[iContactForce][0];   //M:aqui tenim guardades les del neighbour calculator.
+              GlobalContactForce[1] = GlobalContactForceMatrix[iContactForce][1];
+              GlobalContactForce[2] = GlobalContactForceMatrix[iContactForce][2];
+/*
+              if(this->Id() == 12 && neighbour_iterator->Id() == 11)
+              {   
+                  //std::cout << "12 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
+                  std::cout << "12 MY_COORD " << std::setprecision(13) << this->GetGeometry()(0)->Coordinates()[1] << std::endl;    
+                  std::cout << "12 NEIGH_CO0RD " << std::setprecision(13) << neighbour_iterator->GetGeometry()(0)->Coordinates()[1] << std::endl; 
+              }
+              if(this->Id() == 11 && neighbour_iterator->Id() == 12)
+              {   
+                  //std::cout << "11 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
+                  std::cout << "11 MY_COORD " << std::setprecision(13) << this->GetGeometry()(0)->Coordinates()[1] << std::endl;    
+                  std::cout << "11 NEIGH_CO0RD " << std::setprecision(13) << neighbour_iterator->GetGeometry()(0)->Coordinates()[1] << std::endl; 
+              }
+  */            
 
-
-             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalContactForce, LocalContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
-             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
-             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
+             //GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalContactForce, LocalContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
              
-             this->GetValue(OLD_COORDINATES) = this->GetGeometry()(0)->Coordinates(); //storing the old coordinates
-
-			 
+           
+             
+             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalContactForce, LocalContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
+             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
+             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
+             
               // FORCES
            
-
               if ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) )   // for detached particles we enter only if the indentation is > 0.
               {                                                                                                 // for attached particles we enter only if the particle is still attached.
             
                   // NORMAL FORCE
-
                   
                   switch (force_calculation_type_id) //  0---linear comp & tension ; 1 --- Hertzian (no linear comp, linear tension)
                   {
                         case 0:
+                            
+                            LocalContactForce[2]= kn * indentation;
+                            
+                            if(rCurrentProcessInfo[NON_LINEAR_OPTION])
+                            {
+                                double kn_b = rCurrentProcessInfo[SLOPE_FRACTION_N1]*kn;
+                                double kn_c = rCurrentProcessInfo[SLOPE_FRACTION_N2]*kn;
+                                
+                                double compression_limit_1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
+                                double compression_limit_2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
+                                        
+                                double sigma_a = (kn * indentation)/(corrected_area);
+                                double sigma_b = compression_limit_1 + kn_b*(indentation/corrected_area - compression_limit_1/kn);
+                                
+                                if (this->Id() == 1 && rCurrentProcessInfo[TIME_STEPS] == 4 ) KRATOS_WATCH( "MUST BE IMPROVED, THE CALCULATION OF STRESS IN THE NON_LINEAR_OPTION ONLY TAKES INTO ACCOUNT THE INDENTATION, IS IT OKAY??" )
+                              
+                                if( (indentation >= 0.0) && (sigma_a < compression_limit_1) ) 
+                                {
+                                    LocalContactForce[2]= kn * indentation;
+                                }
+                                
+                                else if( (indentation >= 0.0) && (sigma_a >= compression_limit_1) && ( sigma_b < compression_limit_2 ) ) 
+                                {
+                                    LocalContactForce[2]= compression_limit_1*corrected_area + kn_b*(indentation - compression_limit_1*corrected_area/kn);
 
-                            if(indentation >= 0.0) {LocalContactForce[2]= kn * indentation;}
-                            else {LocalContactForce[2]= kn * indentation; }
+                                }
+                                
+                                else if ( indentation >= 0.0 ) 
+                                {
+                                    
+                                    LocalContactForce[2]= compression_limit_2*corrected_area + kn_c*(indentation - corrected_area*(compression_limit_1/kn + compression_limit_2/kn_b - compression_limit_1/kn_b));
+  
+                                }
+                                
+                                else {LocalContactForce[2]= kn * indentation; }
+                            }
                             break;
-
                                         
                         case 1:
 
@@ -916,25 +1001,6 @@ namespace Kratos
                   KRATOS_WATCH(" ")
               }
 
-   /*             
-///AIXO ESTA MALAMENT!!!!!!!!!!!!!!!!!!!!!!!!!! (ara farem ini_cont_neigh)
-                //Saving failure to initial neighbour:
-                vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
-
-                int ini_neighbours_size = r_initial_neighbours_id.size();
-
-                for(int index = 0; index < ini_neighbours_size; index++)    //loop over initial neighbours
-                {
-
-                    if( this->GetValue(INI_NEIGHBOURS_IDS)[index] == int(neighbour_iterator->Id()) )
-                    {
-              
-                        this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index]=this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce];
-
-                    }
-
-                }
-*/
 
           // VISCODAMPING (applyied locally)
 
@@ -945,14 +1011,18 @@ namespace Kratos
 
               double ViscoDampingLocalContactForce[3]    = {0.0};
         
-              if ( (damp_id == 1  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
+              if ( (damp_id > 0  ) && ( (indentation > 0.0) || (this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[iContactForce] == 0) ) )
               {
-                  ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
-
+                
+                  if (damp_id == 11 || damp_id == 10)
+                  {
+                      ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
+                  }
+                  
                   for (unsigned int index = 0; index < 2; index++)
                   {
 
-                      if(sliding == false) //only applied when no sliding to help to the regularized friccion law or the spring convergence
+                      if(sliding == false && ( damp_id == 1 || damp_id ==11) ) //only applied when no sliding to help to the regularized friccion law or the spring convergence
                       {
                           ViscoDampingLocalContactForce[index] = - equiv_visco_damp_coeff_tangential * LocalRelVel[index];  
                       }
@@ -970,26 +1040,35 @@ namespace Kratos
               {
                   LocalResultantContactForce[index] = LocalContactForce[index]  + ViscoDampingLocalContactForce[index];
               }
-   
+              
+              double PoissonContactForce[3]        = {0.0};
+              double GlobalContactPoissonForce[3]  = {0.0};
+              PoissonContactForce [2] = neigh_poisson_contribution;
 
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalResultantContactForce, GlobalResultantContactForce);
-		  
+		      GeometryFunctions::VectorLocal2Global(LocalCoordSystem, PoissonContactForce, GlobalContactPoissonForce);
 
               rhs[0] += GlobalContactForce[0]; //RHS
               rhs[1] += GlobalContactForce[1];
               rhs[2] += GlobalContactForce[2];
 
-              total_forces[0] += GlobalResultantContactForce[0];
-              total_forces[1] += GlobalResultantContactForce[1];
-              total_forces[2] += GlobalResultantContactForce[2];
+              total_forces[0] += GlobalResultantContactForce[0] + GlobalContactPoissonForce[0];
+              total_forces[1] += GlobalResultantContactForce[1] + GlobalContactPoissonForce[1];
+              total_forces[2] += GlobalResultantContactForce[2] + GlobalContactPoissonForce[2];
 
               damp_forces[0] += ViscoDampingGlobalContactForce[0];
               damp_forces[1] += ViscoDampingGlobalContactForce[1];
               damp_forces[2] += ViscoDampingGlobalContactForce[2];
 
-
+              if(this->Id()==12 && rCurrentProcessInfo[TIME_STEPS]==150)
+              
+              {
+                KRATOS_WATCH(this->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT))
+          
+              }
+             
               // SAVING CONTACT FORCES FOR NEXT STEPS
 
               this->GetValue(PARTICLE_CONTACT_FORCES)[iContactForce][0] = GlobalContactForce[0];
@@ -1090,41 +1169,42 @@ namespace Kratos
               } //if ( rotation_OPTION == 1 )     
               
         
-        //COMPUTE THE MEAN STRESS TENSOR:
-       
-           
-       double gap                  = distance - radius_sum;
-	   
-       array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
-       
-       double Dummy_Dummy = 0.0;
-       GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+            //COMPUTE THE MEAN STRESS TENSOR:
+            if(rCurrentProcessInfo[INT_DUMMY_9]==1)    //IF stress_strain_options ON
+            {
+              
+              double gap                  = distance - radius_sum;
+              
+              array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
+              
+              double Dummy_Dummy = 0.0;
+              GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
 
-	   array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
-	   array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
-	   //double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-	   double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-       array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
-	  
-	   //KRATOS_WATCH(kn)
-	   double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
-	   
-       Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * corrected_area);
-	   
-        
-        for (int i=0; i<3; i++)
-		{
-		  
-		  for (int j=0; j<3; j++)
-		  {
+              array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
+              array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
+              //double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+              double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+              array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
+              
+              //KRATOS_WATCH(kn)
+              double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
+              
+              Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * corrected_area);
+              
+                
+                for (int i=0; i<3; i++)
+                {
+                  
+                  for (int j=0; j<3; j++)
+                  {
+                    
+                    mStressTensor[i][j] += (x_centroid[j]) * GlobalContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
+                    
+                  }
+                  
+                }
             
-			 mStressTensor[i][j] += (x_centroid[j]) * GlobalContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
-            
-          }
-		  
-		}
-		
-				
+            }	
   
         //CONTACT ELEMENT
               
@@ -1253,32 +1333,35 @@ namespace Kratos
 
           }//for each neighbour
 
+        if(rCurrentProcessInfo[INT_DUMMY_9] == 1) // if stress_strain_options ON 
+        {
+            if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
+            {
         
-         if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
-		 {
-	 
-		  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
-		  /* KRATOS_WATCH(this->Id())
-		   KRATOS_WATCH("Negatiu volume")
-     		KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
-            */
-           
-        }
-     		
-     	else
-		{
-		      for (int i=0; i<3; i++)
-		      {
-		  
-					  for (int j=0; j<3; j++)
-					  {
-                        //KRATOS_WATCH(Representative_Volume)
-                        //KRATOS_WATCH(mStressTensor[i][j])
-			                 mStressTensor[i][j] = (1/Representative_Volume)*mStressTensor [i][j];
-					  }
-			   }		  
-     	
-		}
+              this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
+              KRATOS_WATCH(this->Id())
+              KRATOS_WATCH("Negatiu volume")
+            KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+              
+              
+            }
+                
+            else
+            {
+                  for (int i=0; i<3; i++)
+                  {
+              
+                          for (int j=0; j<3; j++)
+                          {
+                            //KRATOS_WATCH(Representative_Volume)
+                            //KRATOS_WATCH(mStressTensor[i][j])
+                                mStressTensor[i][j] = (1/Representative_Volume)*0.5*(mStressTensor [i][j] + mStressTensor[j][i]);  //THIS WAY THE TENSOR BECOMES SYMMETRIC
+                          }
+                  }		  
+            
+            }
+            
+        }//if stress_strain_options
 		
 
 		 
@@ -1583,92 +1666,124 @@ namespace Kratos
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one sphere with radius Requivalent and other = radius 0.
               double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
               //double equiv_young      = 2 * young * other_young / (young + other_young);
-              
+              //bool is_continuum       = false;
                double corrected_area = equiv_area;
+               
+               bool found = false;
+               
                for (int index_area=0; index_area<size_ini_cont_neigh; index_area++)
                {
 
                       if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
                       {
                          
-                        //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
-                        
-                        //if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
-                          if( rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//
-                          {
-
-                              corrected_area = mcont_ini_neigh_area[index_area];
-                              break;
-                              
-                          } //for the updating steps //THESE STEPS SHOULD BE DONE OUTSIDE THE CALCULATION BECOUSE THEY WOULD HAVE DIFFERENT FORCES.
-   
-                       else 
-                          {
+                        //MPI_CARLOS_ en MPI no pot funcionar lo de symmetrize de moment
 
                               Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
 
                               corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+
+                               array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              
+                              double NormalDir[3]           = {0.0};
+                              double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+                              NormalDir[0] = other_to_me_vect[0];  
+                              NormalDir[1] = other_to_me_vect[1];
+                              NormalDir[2] = other_to_me_vect[2];
+                              
+                              
+                              double Auxiliar[3][2] = {{0.0}, {0.0}, {0.0}};
+                              double stress_projection[2] = {0.0};
+                              GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);  
+                              
+                                  
+                              //assumció de que la suma de sigmaX i sigmaZ en un pla sempre dona el mateix valor.
+                                            
+                              //vector ortogonal 1 = LocalCoordSystem[0]
+                              //vector ortogonal 2 = LocalCoordSystem[1]
+                              
+                              //NOTE:puc fer un clean si un valor es massa petit
+                              
+                              for (int i=0;i<2;i++)//only for 0 and 1, dos auxiliars
+                              { 
+                                          
+                                  for (int j=0;j<3;j++)//for 0,1,2. Component dels auxiliars
+                                  {
+                                    for (int u=0;u<3;u++)
+                                    {
+                    
+                                    
+                                    Auxiliar[j][i] += mSymmStressTensor[j][u]*LocalCoordSystem[i][u];
+                                  
+                                    }
+
+                                      for (int k=0;k<3;k++)//for 0,1,2.
+                                      {
+                                                      
+                                          stress_projection[i] += Auxiliar[k][i]*LocalCoordSystem[i][k];
+                                    
+                                      } 
+                                  }  
+                                  
+                              }
+                              
+                              double Normal_Contact_Contribution = -1.0*corrected_area*equiv_poisson*(stress_projection[0]+stress_projection[1]); 
+                              
+                              //storing the value in the bar and doing the mean
+                            
+                              if(this->Id() < neighbour_iterator->Id())
+                              {
+                                
+                                lock_p_weak->GetValue(LOW_POISSON_FORCE) = Normal_Contact_Contribution; //crec que ja té la direcció cap a on ha danar el veí.
+                                 
+                                 if(rCurrentProcessInfo[TIME_STEPS]==500)
+                                 {
+                                 KRATOS_WATCH(lock_p_weak->GetValue(LOW_POISSON_FORCE))             
+                                 }
+                                
+                                 
+                              }
+                              else
+                              {
+                                
+                                lock_p_weak->GetValue(HIGH_POISSON_FORCE) = Normal_Contact_Contribution;
+                                 if(rCurrentProcessInfo[TIME_STEPS]==500)
+                                 {
+                                 KRATOS_WATCH(lock_p_weak->GetValue(HIGH_POISSON_FORCE))   
+                                 
+                                 }            
+                              }
+                                              
+                              found = true;
+                              
                               break;
                               
-                          }//for the known steps....
-                          
-                          //MPI_CARLOS_MIQUEL DESCOMENTAR EL ELSE I EL IF, QUE SEMPRE FACI EL IF...............
-                        
+             
                         
                       }// if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
                                          
                   }//for every ini_neighbour      
               
-              //NOTE: this area is provisionally obtained diferent from each side of the contact. bars are not yet ready for mpi.
               
-              array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-              
-              double NormalDir[3]           = {0.0};
-              double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-              NormalDir[0] = other_to_me_vect[0];  
-              NormalDir[1] = other_to_me_vect[1];
-              NormalDir[2] = other_to_me_vect[2];
-              
-              
-              double Auxiliar[3][2] = {{0.0}, {0.0}, {0.0}};
-              double stress_projection[2] = {0.0};
-              GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem);  
-              
-                   
-              //assumció de que la suma de sigmaX i sigmaZ en un pla sempre dona el mateix valor.
-              // aqui anem passant veí per veí i modifiquem la seva normal amb les projeccions normals del tensor de tensions,
-              //pero hauria el tensor de modificarse cada cop que modifiquem un veí=?????
-              
-              //vector ortogonal 1 = LocalCoordSystem[0]
-              //vector ortogonal 2 = LocalCoordSystem[1]
-              
-              //NOTE:puc fer un clean si un valor es massa petit
-              
-              for (int i=0;i<2;i++)//only for 0 and 1, dos auxiliars
-              { 
-                           
-                  for (int j=0;j<3;j++)//for 0,1,2. Component dels auxiliars
-                  {
-                    for (int u=0;u<3;u++)
-                    {
-    
-                     
-                    Auxiliar[j][i] += mSymmStressTensor[j][u]*LocalCoordSystem[i][u];
-                   
-                    }
-
-                      for (int k=0;k<3;k++)//for 0,1,2.
-                      {
-                                      
-                          stress_projection[i] += Auxiliar[k][i]*LocalCoordSystem[i][k];
-                    
-                      } 
-                  }  
-                  
+              if(found == false)
+              {
+                
+                KRATOS_WATCH("ERROR!!!!!!!!!!!!!   THIS IS ONLY VALID FOR KNOWN INITIAL NEIGHBOURS, NO NEW ONES")KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+                
               }
               
-              double Normal_Contact_Contribution = corrected_area*equiv_poisson*(stress_projection[0]+stress_projection[1]); 
+              //NOTE: this area is provisionally obtained diferent from each side of the contact. bars are not yet ready for mpi.
               
+             
+              
+               
+               //this->GetValue(POISSON_NORMAL_FORCE) += 0.5*Normal_Contact_Contribution*LocalCoordSystem[2]; //seria el mateix que other to me normalitzat oi?
+               //this->GetValue(POISSON_NORMAL_FORCE) += 0.5*Normal_Contact_Contribution*LocalCoordSystem[2];
+               
+               //neighbour_iterator->GetValue(POISSON_NORMAL_FORCE) += 0.5*Normal_Contact_Contribution;
+                
+                
+         
               
           } // for every neighbour    
      }
