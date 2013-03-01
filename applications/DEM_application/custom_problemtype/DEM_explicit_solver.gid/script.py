@@ -113,12 +113,16 @@ if (predefined_skin_option == "ON" ):
       if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
       
          element.SetValue(SKIN_SPHERE,1)
-         
-           
+                  
+print'Initialitzating Problem....'
+solver.Initialize()
+print 'Initialitzation Complete' + '\n'
+
 if(ConcreteTestOption =="ON"):
   (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
   
+#if(mpi.rank == 0):
 graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
@@ -128,26 +132,38 @@ strain=0.0; total_stress = 0.0; first_time_entry = 1
 
 # for the graph plotting    
 velocity_node_y = 0.0
-    
-for node in sup_layer_fm:
-    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-    print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
-    break  
+
 #mesurement
-heigh = 0.3
+
+#
+
+#
+#
+#
+#
+
+height = 0.3
 
 if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
-  Y_mean_bot = ProcMeasureBOT(BOT,solver)
-  Y_mean_top = ProcMeasureTOP(TOP,solver)
-  ini_heigh = Y_mean_top - Y_mean_bot
+  (Y_mean_bot,counter_bot) = ProcMeasureBOT(BOT,solver)
+  (Y_mean_top,counter_top) = ProcMeasureTOP(TOP,solver)
   
-  print ('Initial Heigh of the Model: ' + str(ini_heigh)+'\n')
-  heigh = ini_heigh
-
-print'Initialitzating Problem....'
-solver.Initialize()
-print 'Initialitzation Complete' + '\n'
+#
+#
+#
+#
+  
+#
+#
+#
+#
+#
+  
+  ini_height = Y_mean_top/counter_top - Y_mean_bot/counter_bot
+  
+  print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+  height = ini_height
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
@@ -172,7 +188,6 @@ print ('Total number of TIME STEPs expected in the calculation are: ' + str(tota
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
-
 os.chdir(post_path)
 
 if(Multifile == "single_file"):
@@ -195,7 +210,6 @@ if(Multifile == "single_file"):
 #                                    MAIN LOOP                                            #
 #                                                                                         #
 ###########################################################################################
-
 os.chdir(main_path)
 while(time < final_time):
  
@@ -206,10 +220,8 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
-    
     os.chdir(main_path) 
     solver.Solve()
-    
     #########################TIME CONTROL######################################4
    
     incremental_time = (timer.time()-initial_real_time)- prev_time
@@ -239,7 +251,7 @@ while(time < final_time):
     
     #########################CONCRETE_TEST_STUFF#########################################4
  
-    if( (ConcreteTestOption =="ON") and (step==3) ):
+    if( (ConcreteTestOption =="ON") and (step==2) ):
       
       #Cross section Area Control
       
@@ -259,9 +271,12 @@ while(time < final_time):
         node = element.GetNode(0)
         volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0) 
         total_volume += volume_equ
-
-      real_volume = 3.141592*d*d*0.25*h
+     
+ #     
       
+#          
+#       
+      real_volume = 3.141592*d*d*0.25*h     
       print 'Total Numerical Volume: ' + str(total_volume)
       print 'Total Real Volume: ' + str(real_volume)
       print 'Error: ' + str(100*abs(total_volume-real_volume)/real_volume) +'%'+'\n'
@@ -269,8 +284,8 @@ while(time < final_time):
     
     os.chdir(data_and_results)
     
-    total_force=0
-    force_node= 0
+    total_force=0.0
+    force_node= 0.0
     
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
 
@@ -280,18 +295,35 @@ while(time < final_time):
     if( ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON"):
      
       if(first_time_entry):
-        Y_mean_bot = ProcMeasureBOT(BOT,solver)
-        Y_mean_top = ProcMeasureTOP(TOP,solver)
+        (Y_mean_bot,counter_bot) = ProcMeasureBOT(BOT,solver)
+        (Y_mean_top,counter_top) = ProcMeasureTOP(TOP,solver)
+       
+#
+#
+#
+#
+  
+#
+#
+#
+#
+#
         
-        ini_heigh2 = Y_mean_top - Y_mean_bot
+        ini_height2 = Y_mean_top/counter_top - Y_mean_bot/counter_bot
+         
+        print 'Current Height after confinement: ' + str(ini_height2) + '\n'
+        print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
+        height = ini_height2
         
-        print 'Current Heigh after confinement: ' + str(ini_heigh2) + '\n'
-        print 'Axial strain due to the confinement: ' + str( 100*(ini_heigh2-ini_heigh)/ini_heigh ) + ' %' +'\n'
-
+        for node in sup_layer_fm:
+          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+          print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+          break  
+        
         first_time_entry = 0
-        heigh = ini_heigh2
-        
-      strain += -2*velocity_node_y*dt/heigh
+
+      strain += -2*velocity_node_y*dt/height
+
       strainlist.append(strain)
 
       for node in sup_layer_fm:
@@ -302,12 +334,11 @@ while(time < final_time):
         force_node_z = node.GetSolutionStepValue(RHS,0)[2]
         
         total_force += force_node_y
-        
-      #
-        
-      #
-      #
-      
+            
+#
+#
+#
+
       total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
       stresslist.append(total_stress)
 
@@ -394,6 +425,10 @@ while(time < final_time):
               
       time_old_print = time
 
+#    
+    #print(strain)
+    #print(total_force)
+    #print("")
     graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
          
     step += 1
