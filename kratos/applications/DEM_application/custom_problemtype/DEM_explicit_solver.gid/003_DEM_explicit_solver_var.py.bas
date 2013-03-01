@@ -11,7 +11,8 @@ Multifile="*GenData(Multifile)"
 
 Integration_Scheme = "*GenData(Integration_Scheme)"
 NormalForceCalculation = "*GenData(Normal_Force_Calculation)"
-DampId = "*GenData(Damp_Id)"
+NormalDampId = "*GenData(Normal_Contact_Damp)"
+TangentialDampId = "*GenData(Tangential_Contact_Damp)"
 *format "%10.5e"
 gravity_x = *GenData(Gravity_x)
 *format "%10.5e"
@@ -81,6 +82,15 @@ SigmaMax = *GenData(Sigma_Max)
 SigmaMin = *GenData(Sigma_Min)
 *format "%10.5e"
 InternalFricc = *GenData(Internal_Fricc)
+NonLinearOption = "*GenData(Non_Linear_Option)"
+*format "%10.5e"
+C1 = *GenData(C_1)
+*format "%10.5e"
+N1 = *GenData(N_1)
+*format "%10.5e"
+C2 = *GenData(C_2)
+*format "%10.5e"
+N2 = *GenData(N_2)
 
 #Concrete Test Options
 
