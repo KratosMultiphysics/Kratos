@@ -9,6 +9,10 @@ from DEM_explicit_solver_var import *
 
 def AddVariables(model_part):
   
+  
+    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES)
+    
+    
 # BASIQUES
 
     model_part.AddNodalSolutionStepVariable(RADIUS)
@@ -26,6 +30,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION) 
     model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
+    
     
     #es podrien eliminar
     model_part.AddNodalSolutionStepVariable( NODAL_MASS )
@@ -163,6 +168,12 @@ class ExplicitStrategy:
         self.sigma_min                         = 0.0
         self.internal_fricc	                    = 0.0
         
+        self.Non_Linear_Option                 = 0
+        self.N1                                = 1.0
+        self.N2                                = 1.0
+        self.C1                                = 1.0
+        self.C2                                = 1.0
+        
         self.fix_velocities                      = 0  
         self.time_step_percentage_fix_velocities = 0 #int(final_time/delta_time)*10;
 
@@ -189,7 +200,7 @@ class ExplicitStrategy:
         self.rota_damp_id                   	= 0
         self.search_radius_extension        	= 0.0
 
-        self.dummy_switch                   	=0
+        self.dummy_switch                   	= 0
 
         #problem utilities
         self.enlargement_factor             	= 1;
@@ -248,6 +259,13 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
+        
+        self.model_part.ProcessInfo.SetValue(NON_LINEAR_OPTION, self.Non_Linear_Option)
+        
+        self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
+        self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
+        self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
+        self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
        
        
         self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
@@ -279,14 +297,14 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_2, self.external_pressure) #Reserved for: External Applied force is acting
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) #reserved for: Export Print Skin sphere
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) #reserved for print_export_skin_sphere
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0) #reserved for counter of checking contact sigma mean in contact elements
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_5, 0) 
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0)#int( self.time_step_percentage_fix_velocities * ( self.final_time/self.delta_time) ) ) #reserved for timestep fix_velocities
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_9, self.stress_strain_operations)#reserved for ON_OFF stress_strain_operations
         
-        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) #reserved for adding up the contact mean in contact elements.
-        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_2, 0.0) # reserved for the sigma mean
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_1, 0.0) 
+        self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_2, 0.0) 
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_3, self.time_step_percentage_fix_velocities)# reserved for percentage when start the fixing of velocities
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_4, 0.0)
         self.model_part.ProcessInfo.SetValue(DOUBLE_DUMMY_5, 0.0)
