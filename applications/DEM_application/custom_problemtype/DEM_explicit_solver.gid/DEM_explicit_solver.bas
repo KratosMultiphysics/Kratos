@@ -93,9 +93,68 @@ Begin NodalData VELOCITY_Z
 *elemsconec(1) *cond(Z_fixed) *cond(Z_Value)
 *endif
 *end elems
+
+End NodalData
+*#
+*endif
+*# Check if some node has its X value set
+*set var X_ang_vel_set=0
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_X,int)==1)
+*set var X_ang_vel_set=1
+*break
+*endif
+*end elems
+*if(X_ang_vel_set == 1)
+Begin NodalData ANGULAR_VELOCITY_X
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_X,int)==1)
+*elemsconec(1) *cond(X_ang_vel_fixed) *cond(X_ang_vel_Value)
+*endif
+*end elems
 End NodalData
 
 *endif
+*#
+*# Check if some node has its Y value set
+*set var Y_ang_vel_set=0
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Y,int)==1)
+*set var Y_ang_vel_set=1
+*break
+*endif
+*end elems
+*if(Y_ang_vel_set == 1)
+Begin NodalData ANGULAR_VELOCITY_Y
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Y,int)==1)
+*elemsconec(1) *cond(Y_ang_vel_fixed) *cond(Y_ang_vel_Value)
+*endif
+*end elems
+
+End NodalData
+
+*endif
+*#
+*# Check if some node has its Z value set
+*set var Z_ang_vel_set=0
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Z,int)==1)
+*set var Z_ang_vel_set=1
+*break
+*endif
+*end elems
+*if(Z_ang_vel_set == 1)
+Begin NodalData ANGULAR_VELOCITY_Z
+*loop elems *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Z,int)==1)
+*elemsconec(1) *cond(Z_ang_vel_fixed) *cond(Z_ang_vel_Value)
+*endif
+*end elems
+End NodalData
+
+*endif
+
 *endif
 
 Begin NodalData RADIUS
