@@ -15,7 +15,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(VELOCITY)    
     model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
     model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     
@@ -109,6 +109,9 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_X,REACTION_X);
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
+        node.AddDof(ANGULAR_VELOCITY_X,REACTION_X);
+        node.AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
+        node.AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);        
 
     print "dofs for the DEM solution added correctly"
 
