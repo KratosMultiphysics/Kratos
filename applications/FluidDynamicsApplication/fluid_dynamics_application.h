@@ -84,6 +84,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/wall_condition.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/periodic_condition.h"
+#include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
 #include "custom_conditions/linear_wall_condition.h"
 namespace Kratos
@@ -283,8 +284,10 @@ private:
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
 
-    /// Periodic Condition (implemented using penalization)
+    /// Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
+    const FSPeriodicCondition<2> mFSPeriodicCondition2D;
+    const FSPeriodicCondition<3> mFSPeriodicCondition3D;
 
     /// Simplified 3D slip condition using rotated coordinates (monolithic version)
     const  LinearWallCondition<3,3> mLinearWallCondition3D;
