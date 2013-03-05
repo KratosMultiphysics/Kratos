@@ -249,10 +249,10 @@ namespace Kratos
                 array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
                 
                 bool If_Fix_Rotation[3] = {false, false, false};
-                If_Fix_Rotation[0] = i->pGetDof(VELOCITY_X)->IsFixed();
-                If_Fix_Rotation[1] = i->pGetDof(VELOCITY_Y)->IsFixed();
-                If_Fix_Rotation[2] = i->pGetDof(VELOCITY_Z)->IsFixed();
-
+                If_Fix_Rotation[0] = i->pGetDof(ANGULAR_VELOCITY_X)->IsFixed();
+                If_Fix_Rotation[1] = i->pGetDof(ANGULAR_VELOCITY_Y)->IsFixed();
+                If_Fix_Rotation[2] = i->pGetDof(ANGULAR_VELOCITY_Z)->IsFixed();
+                
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
                     if(If_Fix_Rotation[iterator] == false)
