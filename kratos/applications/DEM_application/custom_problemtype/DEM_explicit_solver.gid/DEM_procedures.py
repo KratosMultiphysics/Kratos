@@ -463,7 +463,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
     if (print_radial_displacement=="1"):
       gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
     if (print_velocity=="1"):
-      gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)    
+      gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)
     if (print_rhs=="1"):
       gid_io.WriteNodalResults(RHS, export_model_part.Nodes, time, 0)       
     if (print_applied_forces=="1"):

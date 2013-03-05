@@ -121,9 +121,14 @@ print 'Initialitzation Complete' + '\n'
 if(ConcreteTestOption =="ON"):
   (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
   (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
-  
+
+graph_export = open("time_energy_data.csv",'w')  
 #if(mpi.rank == 0):
 graph_export = open("strain_stress_data.csv",'w');
+
+#Adding time and energy lists
+timelist=[]; timelist.append(0.0)
+energylist=[]; energylist.append(0.0)
 
 #Adding stress and strain lists
 strainlist=[]; strainlist.append(0.0)
@@ -291,7 +296,18 @@ while(time < final_time):
 
     if( FixVelocities == 'OFF'):
       TimePercentageFixVelocities = 0.0
-      
+    
+    for node in solid_model_part.Nodes:
+      vel1 = node.GetSolutionStepValue(VELOCITY_X,0)
+      vel2 = node.GetSolutionStepValue(VELOCITY_Y,0)
+      vel = sqrt(vel1*vel1+vel2*vel2)
+      angularvel = node.GetSolutionStepValue(ANGULAR_VELOCITY_Z,0)
+      h = node.Y
+      energy = 0.006545 * 9.81 * h + 0.5 * 0.006545 * vel * vel + 0.5 * 0.000001636 * angularvel * angularvel
+      if(node.Id == 193):
+        energylist.append(energy)
+        timelist.append(time)    
+    
     if( ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON"):
      
       if(first_time_entry):
@@ -376,6 +392,14 @@ while(time < final_time):
         gid_io.FinalizeResults()
 
       os.chdir(graphs_path)
+      
+      clf()
+      plot(timelist,energylist,'b-')
+      grid(True)
+      title(' Time - Energy')
+      xlabel('Time (s)')
+      ylabel('Energy (m/s)')
+      savefig('Energy')      
 
       #Drawing graph stress_strain:
 
