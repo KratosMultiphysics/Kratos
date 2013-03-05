@@ -559,6 +559,8 @@ public:
             ReadBlockName(word);
             if(word == "ModelPartData")
                 DivideModelPartDataBlock(output_files);
+            else if(word == "Table")
+                DivideTableBlock(output_files);
             else if(word == "Properties")
                 DividePropertiesBlock(output_files);
             else if(word == "Nodes")
@@ -2205,6 +2207,22 @@ private:
 
         WriteInAllFiles(OutputFiles, "End ModelPartData\n");
         KRATOS_WATCH("DivideModelPartDataBlock completed");
+        KRATOS_CATCH("")
+    }
+
+    void DivideTableBlock(OutputFilesContainerType& OutputFiles)
+    {
+        KRATOS_TRY
+
+        std::string block;
+
+        WriteInAllFiles(OutputFiles, "Begin Table ");
+
+        ReadBlock(block, "Properties");
+        WriteInAllFiles(OutputFiles, block);
+
+        WriteInAllFiles(OutputFiles, "End Table\n");
+        KRATOS_WATCH("DivideTableBlock completed");
         KRATOS_CATCH("")
     }
 
