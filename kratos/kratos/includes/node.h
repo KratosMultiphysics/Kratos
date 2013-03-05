@@ -666,7 +666,17 @@ public:
         return mSolutionStepsNodalData.FastGetValue(rThisVariable);
     }
 
+    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
+    {
+        return mSolutionStepsNodalData.FastGetValue(rThisVariable);
+    }
+
     template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
+    {
+        return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex);
+    }
+
+    template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex);
     }
