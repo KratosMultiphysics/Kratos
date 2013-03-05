@@ -156,9 +156,10 @@ public:
         int guess_row_size;
         if(DomainSize == 2) guess_row_size = 15;
         else guess_row_size = 40;
+        int DofPerNode = DomainSize + 1;
 
         //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver));
-        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBuilderAndSolverMLPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,DomainSize,pLinearSolver,mrPeriodicVar));
+        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBuilderAndSolverMLPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,DomainSize,DofPerNode,pLinearSolver,mrPeriodicVar));
 
         // Strategy
         bool ReactionFlag = false;
