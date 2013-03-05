@@ -722,7 +722,8 @@ namespace Kratos
               GlobalContactForce[0] = GlobalContactForceMatrix[iContactForce][0];   //M:aqui tenim guardades les del neighbour calculator.
               GlobalContactForce[1] = GlobalContactForceMatrix[iContactForce][1];
               GlobalContactForce[2] = GlobalContactForceMatrix[iContactForce][2];
-/*
+
+              /*
               if(this->Id() == 12 && neighbour_iterator->Id() == 11)
               {   
                   //std::cout << "12 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
@@ -735,8 +736,8 @@ namespace Kratos
                   std::cout << "11 MY_COORD " << std::setprecision(13) << this->GetGeometry()(0)->Coordinates()[1] << std::endl;    
                   std::cout << "11 NEIGH_CO0RD " << std::setprecision(13) << neighbour_iterator->GetGeometry()(0)->Coordinates()[1] << std::endl; 
               }
-  */            
-
+            
+*/
              //GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalContactForce, LocalContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
              
            
@@ -760,6 +761,10 @@ namespace Kratos
                             
                             if(rCurrentProcessInfo[NON_LINEAR_OPTION])
                             {
+                             
+                              
+                                if (this->Id() == 1 && rCurrentProcessInfo[TIME_STEPS] == 4 ) KRATOS_WATCH( "MUST BE IMPROVED, THE CALCULATION OF STRESS IN THE NON_LINEAR_OPTION ONLY TAKES INTO ACCOUNT THE INDENTATION, IS IT OKAY??" )
+                                  
                                 double kn_b = rCurrentProcessInfo[SLOPE_FRACTION_N1]*kn;
                                 double kn_c = rCurrentProcessInfo[SLOPE_FRACTION_N2]*kn;
                                 
@@ -769,7 +774,7 @@ namespace Kratos
                                 double sigma_a = (kn * indentation)/(corrected_area);
                                 double sigma_b = compression_limit_1 + kn_b*(indentation/corrected_area - compression_limit_1/kn);
                                 
-                                if (this->Id() == 1 && rCurrentProcessInfo[TIME_STEPS] == 4 ) KRATOS_WATCH( "MUST BE IMPROVED, THE CALCULATION OF STRESS IN THE NON_LINEAR_OPTION ONLY TAKES INTO ACCOUNT THE INDENTATION, IS IT OKAY??" )
+                                
                               
                                 if( (indentation >= 0.0) && (sigma_a < compression_limit_1) ) 
                                 {
