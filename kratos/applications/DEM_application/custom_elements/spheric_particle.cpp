@@ -1118,14 +1118,11 @@ namespace Kratos
                           GeometryFunctions::CrossProduct(LocalCoordSystem[2], Max_Rota_Moment, CoordSystemMoment);
                           
                           double DetCoordSystemMoment = sqrt(CoordSystemMoment[0] * CoordSystemMoment[0] + CoordSystemMoment[1] * CoordSystemMoment[1] + CoordSystemMoment[2] * CoordSystemMoment[2]);
-
-                          if(equiv_RollingFrictionCoeff != 0.0)
-                          {
-                              CoordSystemMoment[0] = CoordSystemMoment[0] / DetCoordSystemMoment;
-                              CoordSystemMoment[1] = CoordSystemMoment[1] / DetCoordSystemMoment;
-                              CoordSystemMoment[2] = CoordSystemMoment[2] / DetCoordSystemMoment;                            
-                          }
                           
+                          CoordSystemMoment[0] = CoordSystemMoment[0] / DetCoordSystemMoment;
+                          CoordSystemMoment[1] = CoordSystemMoment[1] / DetCoordSystemMoment;
+                          CoordSystemMoment[2] = CoordSystemMoment[2] / DetCoordSystemMoment;                            
+                                                    
                           GeometryFunctions::CrossProduct(NormalForce, CoordSystemMoment, MR);
 
                           double DetMR = sqrt( MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2] );
@@ -1335,7 +1332,7 @@ namespace Kratos
               this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
               KRATOS_WATCH(this->Id())
               KRATOS_WATCH("Negatiu volume")
-            KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+              KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
               
               
             }
