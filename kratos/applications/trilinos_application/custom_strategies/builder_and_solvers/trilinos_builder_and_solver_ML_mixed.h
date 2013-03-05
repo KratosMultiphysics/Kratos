@@ -279,7 +279,7 @@ public:
     //**************************************************************************
     //**************************************************************************
 
-    void SystemSolveML(
+    virtual void SystemSolveML(
         TSystemMatrixType& A,
         TSystemVectorType& Dx,
         TSystemVectorType& b,

@@ -115,9 +115,11 @@ public:
     TrilinosBuilderAndSolverMLPeriodic(Epetra_MpiComm& Comm,
                                        int guess_row_size,
                                        int dim,
+                                       int ndofs,
                                        typename TLinearSolver::Pointer pNewLinearSystemSolver,
                                        const Kratos::Variable<int>& PeriodicIdVar):
         TrilinosBuilderAndSolverMLmixed< TSparseSpace,TDenseSpace,TLinearSolver >(Comm,guess_row_size,dim,pNewLinearSystemSolver),
+        mNumDof(ndofs),
         mPeriodicIdVar(PeriodicIdVar)
     {}
 
@@ -220,7 +222,177 @@ public:
         KRATOS_CATCH("");
     }
 
+    virtual void SystemSolveML(
+            TSystemMatrixType& A,
+            TSystemVectorType& Dx,
+            TSystemVectorType& b,
+            ModelPart& r_model_part
+            )
+    {
+        KRATOS_TRY
 
+        double norm_b;
+        if (TSparseSpace::Size(b) != 0)
+            norm_b = TSparseSpace::TwoNorm(b);
+        else
+            norm_b = 0.00;
+
+        if (norm_b != 0.00)
+        {
+            int rank;
+            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+            //***********************************************
+            //new attempt
+            Epetra_LinearProblem AztecProblem(&A, &Dx, &b);
+
+            Epetra_Vector scaling_vect(A.RowMap());
+            A.InvColSums(scaling_vect);
+            AztecProblem.LeftScale(scaling_vect);
+
+            AztecOO solver(AztecProblem);
+
+            // create an empty parameter list for ML options
+            Teuchos::ParameterList MLList;
+
+            // set defaults for classic smoothed aggregation with heavy smoothers
+            // (of domain decomposition type, i.e. one-level Schwarz with incomplete
+            // factorizations on each subdomain/process)
+            // We need to define the solvers on each subdomain (== processor).
+            // Here we use an incomplete LU factorization, with no fill-in
+            // and no overlap. To that aim, we use Aztec's preconditioning function.
+            // Aztec requires two more vectors. Note: the following options and params
+            // will be used ONLY for the smoother, and will NOT affect the Aztec solver
+            // NOTE: to use exact solvers change to AZ_lu (requires AztecOO configured
+            // with option--enable-aztecoo-azlu), of use IFPACK smoothers
+            // (requires Trilinos to be built with options--enable-ifpack --enable-amesos)
+
+            int options[AZ_OPTIONS_SIZE];
+            double params[AZ_PARAMS_SIZE];
+            AZ_defaults(options, params);
+            options[AZ_precond] = AZ_dom_decomp;
+            options[AZ_subdomain_solve] = AZ_ilu;
+            options[AZ_graph_fill] = 0;
+            options[AZ_overlap] = 0;
+
+            // SetDefaults() will call AZ_defaults(options,params), and will also set the
+            // preconditioner as `AZ_dom_decomp'.
+            // NOTE THAT THE `options' AND `params' VECTORS ARE NOT COPIED into
+            // the list, only the pointers is stored, so do not delete options
+            // and params before the end of the linear system solution!
+            // Alternatively, you can also call SetDefaults() without passing
+            // `options' and `params.' This way, the code will allocate a int
+            // and a double vector, that must be freed by the user.
+            // `DD' means to set default values for domain decomposition
+            // preconditioners
+
+            ML_Epetra::SetDefaults("NSSA", MLList, options, params);
+            //                ML_Epetra::SetDefaults("DD", MLList, options, params);
+
+            // Overwrite some parameters. Please refer to the user's guide
+            // for more information
+            // Some parameters are reported here to better explain the process
+            // even if they are as defaults.
+            // NOTE: To use `METIS' as aggregation scheme, you need to configure
+            // ML with the option --with-ml_metis. Otherwise, the code will
+            // creates aggregates containing all the local nodes (that is,
+            // the dimension of the coarse problem will be equal to the
+            // number of processors)
+
+            //                MLList.set("aggregation: type", "METIS");
+            //                MLList.set("smoother: type", "Aztec");
+
+            //                  MLList.set("aggregation: nodes per aggregate", 128);
+            //                  MLList.set("smoother: pre or post", "pre");
+            //                  MLList.set("coarse: type","Amesos-KLU");
+
+
+
+            MLList.set("PDE equations", mNumDof);
+            MLList.set("null space: add default vectors", true);
+            MLList.set("aggregation: type","Uncoupled");
+
+            // Create the preconditioning object. We suggest to use `new' and
+            // `delete' because the destructor contains some calls to MPI (as
+            // required by ML and possibly Amesos). This is an issue only if the
+            // destructor is called **after** MPI_Finalize().
+
+            ML_Epetra::MultiLevelPreconditioner* MLPrec =
+                new ML_Epetra::MultiLevelPreconditioner(A, MLList, true);
+
+            // tell AztecOO to use this preconditioner, then solve
+            solver.SetPrecOperator(MLPrec);
+
+            // =========================== end of ML part =============================
+
+            // Instruct AztecOO to use GMRES with estimation of the condition
+            // number. Also, requires output every 32 iterations
+            // Then, solve with 500 iterations and 1e-8 as tolerance on the
+            // relative residual
+
+            solver.SetAztecOption(AZ_solver, AZ_gmres_condnum);
+            solver.SetAztecOption(AZ_output, AZ_none);
+            solver.SetAztecOption(AZ_kspace, 200);
+            solver.Iterate(500, 1e-8);
+
+            // delete the preconditioner. Do it BEFORE MPI_Finalize
+            delete MLPrec;
+
+
+            //***********************************************
+
+
+            //
+            //                Teuchos::ParameterList MLList;
+            //                MLList.set("energy minimization: enable", true);
+            //                MLList.set("energy minimization: type", 3); // 1,2,3 cheap -> expensive
+            //                MLList.set("aggregation: block scaling", false);
+            //                MLList.set("aggregation: type", "Uncoupled");
+            //                //				MLList.set("smoother: type (level 0)","symmetric Gauss-Seidel");
+            //                MLList.set("smoother: type (level 0)", "Jacobi");
+            //                MLList.set("smoother: sweeps (level 0)", 2);
+            //                MLList.set("smoother: damping factor (level 0)", 0.89);
+            //
+            //                MLList.set("PDE equations", numdf);
+            //                MLList.set("null space: dimension", dimns);
+            //                MLList.set("null space: type", "pre-computed");
+            //                MLList.set("null space: add default vectors", false);
+            //                MLList.set("null space: vectors", nullsp);
+            //
+            //                // create the preconditioner
+            //                ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(A, MLList, true);
+            //
+            //                // create an AztecOO solver
+            //                AztecOO Solver(AztecProblem);
+            //
+            //                // set preconditioner and solve
+            //                Solver.SetPrecOperator(MLPrec);
+            //                Solver.SetAztecOption(AZ_solver, AZ_gmres);
+            //                Solver.SetAztecOption(AZ_kspace, 200);
+            //                Solver.SetAztecOption(AZ_output, 15); //SetAztecOption(AZ_output, AZ_none);
+            //
+            //                int mmax_iter = 300;
+            //                Solver.Iterate(mmax_iter, 1e-9);
+            //                delete MLPrec;
+
+            //		BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
+
+        }
+        else
+        {
+            TSparseSpace::SetToZero(Dx);
+        }
+
+        //prints informations about the current time
+        if (this->GetEchoLevel() > 1)
+        {
+            if (r_model_part.GetCommunicator().MyPID() == 0)
+                std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
+        }
+
+        KRATOS_CATCH("")
+
+    }
     /*@} */
     /**@name Access */
     /*@{ */
@@ -287,6 +459,8 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+
+    const int mNumDof;
 
     const Kratos::Variable<int>& mPeriodicIdVar;
 

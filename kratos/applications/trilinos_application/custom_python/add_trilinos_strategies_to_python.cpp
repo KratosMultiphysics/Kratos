@@ -360,7 +360,7 @@ void AddStrategies()
     typedef TrilinosBuilderAndSolverMLPeriodic< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType > TrilinosBuilderAndSolverMLPeriodicType;
 
     class_< TrilinosBuilderAndSolverMLPeriodicType, bases<TrilinosBuilderAndSolverMLmixedType>, boost::noncopyable >
-            ("TrilinosBuilderAndSolverMLPeriodic", init<Epetra_MpiComm&, int, int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& > () )
+            ("TrilinosBuilderAndSolverMLPeriodic", init<Epetra_MpiComm&, int, int,int, TrilinosLinearSolverType::Pointer, Kratos::Variable<int>& > () )
             ;
 
     typedef TrilinosPressureSplittingBuilderAndSolver< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >
