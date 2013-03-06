@@ -58,7 +58,12 @@ class EdgeBasedLevelSetSolver:
 #        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
         self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
-
+        
+        self.tot_solve_time = 0.0
+        self.step1_time = 0.0
+        self.step2_time = 0.0
+        self.step3_time = 0.0
+        self.total_solves = 0
 
 
     def Initialize(self):
@@ -113,6 +118,11 @@ class EdgeBasedLevelSetSolver:
         print "Step1		  time --->",t1-t0, "tot % -->", (t1-t0)/tot
         print "Step2		  time --->",t2-t1, "tot % -->", (t2-t1)/tot
         print "Step3		  time --->",t3-t2, "tot % -->", (t3-t2)/tot
+        self.tot_solve_time += tot
+        self.step1_time += t1-t0
+        self.step2_time += t2-t1
+        self.step3_time += t3-t2
+        self.total_solves += 1
    
     ################################################################
     ################################################################
@@ -125,6 +135,16 @@ class EdgeBasedLevelSetSolver:
         print dt
 
         return dt
+
+    ################################################################
+    ################################################################
+    def PrintTimings(self):
+	print "FINAL TIMINGS IN SOLVE (sum of all step timings)"
+        print "TOTAL STEP	  time --->",self.tot_solve_time
+        print "Step1		  time --->",self.step1_time, "tot % -->", self.step1_time/self.tot_solve_time
+        print "Step2		  time --->",self.step2_time, "tot % -->", self.step2_time/self.tot_solve_time
+        print "Step3		  time --->",self.step3_time, "tot % -->", self.step3_time/self.tot_solve_time
+        print "total solves performed --->",self.total_solves
 
 
 
