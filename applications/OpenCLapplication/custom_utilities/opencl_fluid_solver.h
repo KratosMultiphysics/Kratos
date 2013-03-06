@@ -411,19 +411,19 @@ public:
         
         // rhs_GPU
         mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, rhs_GPU);
-        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        mrDeviceGroup.SetKernelArg(mkSetToZero, 1, mL.size1());
         
         mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
         
         // dp_GPU
         mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, dp_GPU);
-        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        mrDeviceGroup.SetKernelArg(mkSetToZero, 1, mL.size1());
         
         mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
         
         // temp_GPU
         mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, temp_GPU);
-        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        mrDeviceGroup.SetKernelArg(mkSetToZero, 1, mL.size1());
         
         mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
         
