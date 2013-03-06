@@ -180,6 +180,8 @@ public:
         mkComputeScalingCoefficients = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ComputeScalingCoefficients");
         mkApplyScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyScaling");
         mkApplyInverseScaling = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "ApplyInverseScaling");
+
+        mkSetToZero = mrDeviceGroup.RegisterKernel(mpOpenCLFluidSolver, "SetToZero");
     }
 
     //
@@ -404,7 +406,29 @@ public:
         mrDeviceGroup.CopyBuffer(mLRowIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index1_data()[0]));
         mrDeviceGroup.CopyBuffer(mLColumnIndices, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.index2_data()[0]));
         mrDeviceGroup.CopyBuffer(mLValues, Kratos::OpenCL::HostToDevice, OpenCL::VoidPList(1, &mL.value_data()[0]));
-
+        
+        // Zero vectors before running optimizations
+        
+        // rhs_GPU
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, rhs_GPU);
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        
+        mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
+        
+        // dp_GPU
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, dp_GPU);
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        
+        mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
+        
+        // temp_GPU
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 0, temp_GPU);
+        mrDeviceGroup.SetBufferAsKernelArg(mkSetToZero, 1, mL.size1());
+        
+        mrDeviceGroup.ExecuteKernel(mkSetToZero, mL.size1());
+        
+        
+        // Optimize the kernel parameters
         mLinearSolverOptimizationParameters = new OpenCL::LinearSolverOptimizationParameters(mrDeviceGroup, n_nodes);
         mLinearSolverOptimizationParameters->OptimizeInnerProd(rhs_GPU, dp_GPU, temp_GPU);
         mLinearSolverOptimizationParameters->OptimizeSpMV(mLRowIndices, mLColumnIndices, mLValues, rhs_GPU, dp_GPU);
@@ -1219,7 +1243,7 @@ private:
     cl_uint mbWork, mbvel_n, mbvel_n1, mbPn, mbPn1, mbHmin, mbHavg, mbNodalFlag, mbTauPressure, mbTauConvection, mbTau2, mbPi, mbXi, mbx, mbEdgeDimensions, mbBeta, mbdiv_error, mbSlipNormal, mbSlipBoundaryList, mbPressureOutletList, mbedge_nodes_directionList, mbedge_nodesList, mbcorner_nodesList, mbFixedVelocitiesList, mbFixedVelocitiesValuesList, mbrhs;
 
     cl_uint mpOpenCLFluidSolver, mkAddVectorInplace, mkSubVectorInplace, mkSolveStep1_1, mkSolveStep1_2, mkSolveStep2_1, mkSolveStep2_2, mkSolveStep2_3, mkSolveStep3_1, mkSolveStep3_2, mkCalculateRHS, mkComputeWallResistance, mkApplyVelocityBC_1, mkApplyVelocityBC_2, mkApplyVelocityBC_3, mkApplyVelocityBC_4;
-    cl_uint mkComputeScalingCoefficients, mkApplyScaling, mkApplyInverseScaling;
+    cl_uint mkComputeScalingCoefficients, mkApplyScaling, mkApplyInverseScaling, mkSetToZero;
     cl_double mbscaling_factors;
 
     //Vector rhs, dp;
