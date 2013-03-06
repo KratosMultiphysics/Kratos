@@ -56,6 +56,14 @@ class OpenClSolver:
 
         self.cl_source_path = cl_source_path
         self.single_device_flag = True
+        
+        self.tot_solve_time = 0.0
+        self.cpu_to_gpu_time = 0.0
+        self.step1_time = 0.0
+        self.step2_time = 0.0
+        self.step3_time = 0.0
+        self.gpu_to_cpu_time = 0.0
+        self.total_solves = 0
 
 
 
@@ -116,6 +124,13 @@ class OpenClSolver:
         print "Step2		  time --->",t3-t2, "tot % -->", (t3-t2)/tot
         print "Step3		  time --->",t4-t3, "tot % -->", (t4-t3)/tot
         print "GPU->CPU transfer time --->",t5-t4, "tot % -->", (t5-t4)/tot
+        self.tot_solve_time += tot
+        self.cpu_to_gpu_time += t1-t0
+        self.step1_time += t2-t1
+        self.step2_time += t3-t2
+        self.step3_time += t4-t3
+        self.gpu_to_cpu_time += t5-t4
+        self.total_solves += 1
        
    
     ################################################################
@@ -130,7 +145,17 @@ class OpenClSolver:
 
         return dt
 
-
+    ################################################################
+    ################################################################
+    def PrintTimings(self):
+	print "FINAL TIMINGS IN SOLVE (sum of all step timings)"
+        print "TOTAL STEP	  time --->",self.tot_solve_time
+        print "CPU->GPU transfer time --->",self.cpu_to_gpu_time, "tot % -->", self.cpu_to_gpu_time/self.tot_solve_time
+        print "Step1		  time --->",self.step1_time, "tot % -->", self.step1_time/self.tot_solve_time
+        print "Step2		  time --->",self.step2_time, "tot % -->", self.step2_time/self.tot_solve_time
+        print "Step3		  time --->",self.step3_time, "tot % -->", self.step3_time/self.tot_solve_time
+        print "GPU->CPU transfer time --->",self.gpu_to_cpu_time, "tot % -->", self.gpu_to_cpu_time/self.tot_solve_time
+        print "total solves performed --->",self.total_solves
 
 
         
