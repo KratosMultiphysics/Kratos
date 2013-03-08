@@ -96,7 +96,7 @@ class MonolithicSolver:
 	self.gmres_size = 50
 	self.tol = 1e-5
 	self.verbosity = 0
-	self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,self.tol,200,self.verbosity,self.gmres_size)         
+	self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,self.tol,200,self.verbosity,self.gmres_size)         
 
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -207,7 +207,7 @@ class MonolithicSolver:
         self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
 ##        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
-        self.level_set_solver.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.GMRES,self.tol,200,self.verbosity,self.gmres_size)
+        self.level_set_solver.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,self.tol,200,self.verbosity,self.gmres_size)
         self.level_set_solver.Initialize()
 
         self.ApplyFluidProperties()
