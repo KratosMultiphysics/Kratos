@@ -40,6 +40,7 @@ namespace Kratos
         typedef vector<array_1d<double,3> > VectorArray3Double;
         KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
      */
+        KRATOS_DEFINE_VARIABLE( double, NON_ELASTIC_STAGE)
         KRATOS_DEFINE_VARIABLE( int, NON_LINEAR_OPTION)    
         KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N1)
         KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N2) 
