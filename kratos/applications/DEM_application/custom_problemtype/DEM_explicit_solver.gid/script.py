@@ -113,36 +113,51 @@ if (predefined_skin_option == "ON" ):
       if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
       
          element.SetValue(SKIN_SPHERE,1)
-                  
+
+#                 
 print'Initialitzating Problem....'
 solver.Initialize()
+#
 print 'Initialitzation Complete' + '\n'
 
 if(ConcreteTestOption =="ON"):
   (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
-  (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
 
+  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = ProcSkinAndPressure(solid_model_part,solver) # defines the skin and areas
+
+  strain=0.0; total_stress = 0.0; first_time_entry = 1
+  # for the graph plotting    
+  velocity_node_y = 0.0
+  height = 0.3
+  diameter = 0.15
+  
+  if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
+      
+#    
+#    
+#    
+#    
+# 
+    
+#    
+#    
+#    
+#    
+#   
+    
+    #Correction Coefs
+    alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+    alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+    alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+      
+    ProcApplyPressure(Pressure,solid_model_part,solver,alpha_top,alpha_bot,alpha_lat)
+    
 #if(mpi.rank == 0):
 graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
 strainlist=[]; strainlist.append(0.0)
 stresslist=[]; stresslist.append(0.0)
-strain=0.0; total_stress = 0.0; first_time_entry = 1
-
-# for the graph plotting    
-velocity_node_y = 0.0
-
-#mesurement
-
-#
-
-#
-#
-#
-#
-
-height = 0.3
 
 if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
@@ -162,8 +177,9 @@ if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
   ini_height = Y_mean_top/counter_top - Y_mean_bot/counter_bot
   
-  print ('Initial Height of the Model: ' + str(ini_height)+'\n')
   height = ini_height
+#
+  print ('Initial Height of the Model: ' + str(ini_height)+'\n')
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
@@ -171,17 +187,20 @@ if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
 
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
-    print("WARNING: Delta time has been modifyed to the critical one")
     dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+#
+    print("WARNING: Delta time has been modifyed to the critical one")
 
 time = 0.0; step = 0; time_old_print = 0.0
 
 initial_pr_time = timer.clock()
 initial_real_time = timer.time()
 
+#
 print ('SOLVE starts at instant: ' + str(initial_pr_time)+'\n')
 
 total_steps_expected = int(final_time/dt)
+#
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
     
 #-------------------------------------------------------------------------------------------------------------------------------------
@@ -234,7 +253,7 @@ while(time < final_time):
       print "TIME STEP = " + str(step) + '\n'
         
       prev_time = (timer.time()-initial_real_time)
-    
+  
     if ( (timer.time()-initial_real_time > 60.0) and cond==0):
     
       cond=1
@@ -254,7 +273,7 @@ while(time < final_time):
     if( (ConcreteTestOption =="ON") and (step==2) ):
       
       #Cross section Area Control
-      
+ #
       Num_Cross_Sect = solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA)
       Exact_Cross_Sect = 3.141592*0.15*0.15*0.25
       
@@ -291,7 +310,7 @@ while(time < final_time):
 
     if( FixVelocities == 'OFF'):
       TimePercentageFixVelocities = 0.0
-    
+      
     if( ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON"):
      
       if(first_time_entry):
@@ -317,9 +336,17 @@ while(time < final_time):
         
         for node in sup_layer_fm:
           velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-          print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
-          break  
+          break
         
+#
+        
+#
+#
+#
+#
+        print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+#
+              
         first_time_entry = 0
 
       strain += -2*velocity_node_y*dt/height
@@ -338,7 +365,6 @@ while(time < final_time):
 #
 #
 #
-
       total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
       stresslist.append(total_stress)
 
@@ -443,6 +469,7 @@ if(Multifile == "single_file"):
    
 os.chdir(graphs_path)
  
+#
 graph_export.close() 
 
 os.chdir(list_path)
@@ -450,6 +477,7 @@ os.chdir(list_path)
 multifile.close(); multifile_5.close(); multifile_10.close(); multifile_50.close()
 os.chdir(main_path)
 
+#
 print 'Calculation ends at instant: ' + str(timer.time())
 elapsed_pr_time = timer.clock() - initial_pr_time
 elapsed_real_time = timer.time() - initial_real_time
