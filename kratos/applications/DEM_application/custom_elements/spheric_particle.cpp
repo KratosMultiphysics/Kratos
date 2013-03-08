@@ -517,7 +517,8 @@ namespace Kratos
 			  
 			  //for the updating steps...... //teporarily set as only the first 
 			  
-			  
+			  Element::Pointer lock_p_weak;
+              
 			  if(continuum_simulation_OPTION)
               {
 
@@ -529,6 +530,9 @@ namespace Kratos
 					  if ( this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[index_area] == int(neighbour_iterator->Id()) ) 
 					  {
 						
+                           lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
+
+                          
                        // if(rCurrentProcessInfo[TIME_STEPS]==0 || rCurrentProcessInfo[CONTACT_MESH_OPTION]==0 )//(1<2)//rCurrentProcessInfo[TIME_STEPS]==0) //MIQUEL: NO BARRES:
 						  {
 
@@ -724,6 +728,26 @@ namespace Kratos
               GlobalContactForce[2] = GlobalContactForceMatrix[iContactForce][2];
 
               /*
+              
+              if(this->Id() == 4368 && neighbour_iterator->Id() == 4619)
+              {   
+                  //std::cout << "12 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
+                  std::cout << "4368 MY_COORD " << std::setprecision(13) << this->GetGeometry()(0)->Coordinates()[1] << std::endl;    
+                  std::cout << "4368 NEIGH_CO0RD " << std::setprecision(13) << neighbour_iterator->GetGeometry()(0)->Coordinates()[1] << std::endl; 
+              }
+              if(this->Id() == 4619 && neighbour_iterator->Id() ==4368)
+              {   
+                  //std::cout << "11 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
+                  std::cout << "4619 MY_COORD " << std::setprecision(13) << this->GetGeometry()(0)->Coordinates()[1] << std::endl;    
+                  std::cout << "4619 NEIGH_CO0RD " << std::setprecision(13) << neighbour_iterator->GetGeometry()(0)->Coordinates()[1] << std::endl; 
+                  
+                  KRATOS_WATCH("____________________________________________________")
+                  
+              }
+              
+              */              
+                            
+              /*
               if(this->Id() == 12 && neighbour_iterator->Id() == 11)
               {   
                   //std::cout << "12 IND " << indentation - (1 - sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2])) << " " << GlobalContactForce[1] << std::endl;
@@ -765,13 +789,23 @@ namespace Kratos
                               
                                 if (this->Id() == 1 && rCurrentProcessInfo[TIME_STEPS] == 4 ) KRATOS_WATCH( "MUST BE IMPROVED, THE CALCULATION OF STRESS IN THE NON_LINEAR_OPTION ONLY TAKES INTO ACCOUNT THE INDENTATION, IS IT OKAY??" )
                                   
-                                double kn_b = rCurrentProcessInfo[SLOPE_FRACTION_N1]*kn;
-                                double kn_c = rCurrentProcessInfo[SLOPE_FRACTION_N2]*kn;
+                                double kn_b = kn/rCurrentProcessInfo[SLOPE_FRACTION_N1];
+                                double kn_c = kn/rCurrentProcessInfo[SLOPE_FRACTION_N2];
+                                
                                 
                                 double compression_limit_1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
                                 double compression_limit_2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
-                                        
+                                
                                 double sigma_a = (kn * indentation)/(corrected_area);
+//                                 if(this->Id()==3927)
+//                                 {
+//                                    KRATOS_WATCH(rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1])
+//                                   KRATOS_WATCH(rCurrentProcessInfo[SLOPE_FRACTION_N1])
+//                                 KRATOS_WATCH(sigma_a)
+//                                 KRATOS_WATCH(compression_limit_1)
+//                                 KRATOS_WATCH(" ")
+//                                 }
+                             
                                 double sigma_b = compression_limit_1 + kn_b*(indentation/corrected_area - compression_limit_1/kn);
                                 
                                 
@@ -779,12 +813,13 @@ namespace Kratos
                                 if( (indentation >= 0.0) && (sigma_a < compression_limit_1) ) 
                                 {
                                     LocalContactForce[2]= kn * indentation;
+                                    lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
                                 }
                                 
                                 else if( (indentation >= 0.0) && (sigma_a >= compression_limit_1) && ( sigma_b < compression_limit_2 ) ) 
                                 {
                                     LocalContactForce[2]= compression_limit_1*corrected_area + kn_b*(indentation - compression_limit_1*corrected_area/kn);
-
+                                    lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 2.0;
                                 }
                                 
                                 else if ( indentation >= 0.0 ) 
