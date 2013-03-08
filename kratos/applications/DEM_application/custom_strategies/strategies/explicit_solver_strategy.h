@@ -180,10 +180,7 @@ namespace Kratos
           //1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option = false;
 
-          if(rCurrentProcessInfo[CASE_OPTION] != 0)
-          {
-              extension_option = true;
-          }
+          extension_option = rCurrentProcessInfo[CASE_OPTION]
 
           //2. Initializing elements and perform the repartition
           if(mElementsAreInitialized == false)
