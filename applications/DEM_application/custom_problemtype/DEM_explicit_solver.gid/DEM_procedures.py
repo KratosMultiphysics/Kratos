@@ -9,6 +9,27 @@ from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
 
+
+# GLOBAL VARIABLES OF THE SCRIPT
+#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+    
+sup_layer_fm = list()
+inf_layer_fm = list()
+sup_plate_fm = list()
+inf_plate_fm = list()
+special_selection = list()
+others = list()    
+SKIN = list()  
+LAT = list()
+BOT = list()
+TOP = list()
+XLAT = list()  #only lat, not the corner ones
+XTOP = list()  #only top, not corner ones...
+XBOT = list()
+XTOPCORNER = list()
+XBOTCORNER = list()
+
+   
 def AddMpiVariables(model_part):
     
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
@@ -82,13 +103,7 @@ def ProcModelData(solid_model_part,solver):
   
   Model_Data.close()    
 
-sup_layer_fm = list()
-inf_layer_fm = list()
-sup_plate_fm = list()
-inf_plate_fm = list()
-special_selection = list()
-others = list()
-   
+
 def ProcListDefinition(model_part,solver):
   
   # Defining lists (FOR COMPRESSION TESTS)
@@ -186,15 +201,14 @@ def ProcGiDSolverTransfer(model_part,solver):
         
         if(NonLinearOption =="ON"):
            solver.Non_Linear_Option=1
+           solver.C1 = C1
+           solver.C2 = C2
+           solver.N1 = N1
+           solver.N2 = N2
         
         if(StressStrainOperations =="ON"): #xapuza
           solver.stress_strain_operations = 1#xapuza
-          
-          solver.C1 = C1
-          solver.C2 = C2
-          solver.N1 = N1
-          solver.N2 = N2
-      
+ 
         if(ContactMeshOption =="ON"):
             solver.contact_mesh_OPTION=1  #xapuza
                
@@ -302,30 +316,19 @@ def ProcGiDSolverTransfer(model_part,solver):
     
 def ProcSkinAndPressure(model_part,solver):
     
-    #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
+    #SKIN DETERMINATION
+
     Pressure = ConfinementPressure*1e6 #Mpa
-    
-    SKIN = list()  
-    LAT = list()
-    BOT = list()
-    TOP = list()
-    XLAT = list()  #only lat, not the corner ones
-    XTOP = list()  #only top, not corner ones...
-    XBOT = list()
-    XTOPCORNER = list()
-    XBOTCORNER = list()
- 
     total_cross_section = 0.0
-    
+
     #Cylinder dimensions
-    
+
     h   = 0.3
     d   = 0.15
     eps = 2.0
-    
+
     surface = 2*(3.141592*d*d*0.25)+(3.141592*d*h)
-    
+
     top_pressure = 0.0
     bot_pressure = 0.0
 
@@ -334,11 +337,8 @@ def ProcSkinAndPressure(model_part,solver):
     xtop_area = 0.0
     xbotcorner_area = 0.0
     xtopcorner_area = 0.0
-      
-    #SKIN DETERMINATION
-
-    for element in model_part.Elements:
     
+    for element in model_part.Elements:
       
       element.SetValue(SKIN_SPHERE,0)
    
@@ -357,8 +357,7 @@ def ProcSkinAndPressure(model_part,solver):
         if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
       
              element.SetValue(SKIN_SPHERE,1)     
-             total_cross_section = total_cross_section + cross_section
-      
+
              LAT.append(node)
             
              if ( (y>eps*r ) and (y<(h-eps*r)) ) :
@@ -367,7 +366,7 @@ def ProcSkinAndPressure(model_part,solver):
         
                XLAT.append(node)
           
-             xlat_area = xlat_area + cross_section
+               xlat_area = xlat_area + cross_section
     
         if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
 
@@ -406,26 +405,18 @@ def ProcSkinAndPressure(model_part,solver):
                     
                        XTOP.append(node)
                        xtop_area = xtop_area + cross_section
-                                       
-    
-    if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
-        
-        #Coeficient correccio area tapa superior
-        alpha_top = 3.141592*d*d*0.25/(xtop_area + 0.70710678*xtopcorner_area)
 
-        #Coeficient correccio area tapa inferior
-        alpha_bot = 3.141592*d*d*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+    print "End CLASSIC TEST SKIN DETERMINATION", "\n"
+              
+    return (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) 
+     
+def ProcApplyPressure(Pressure,model_part,solver,alpha_top,alpha_bot,alpha_lat):
+     
+    if ( predefined_skin_option == "ON"):
+      print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
+    else:
+      ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
 
-        #Coeficient correccio area lateral
-        alpha_lat = 3.141592*d*h/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-        
-        ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
-        print("End Applying Imposed Forces")
-        
-    if (predefined_skin_option == "ON" ):
-      print "\n", "Predefined Skin by the user, Pressure may not be applied"  ,"\n" 
-      
-    return (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER)
     
 def ProcMeasureBOT(BOT,solver):
 
@@ -498,7 +489,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
       gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
     if (print_representative_volume == "1"):
       gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
-
+    
     #Aixo sempre per que si no hi ha manera de debugar
     #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
     #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
@@ -520,7 +511,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
           gid_io.PrintOnGaussPoints(CONTACT_SIGMA,export_model_part,time)
           gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,export_model_part,time)
           gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,export_model_part,time)
-          
+      gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time)    
 
     if (RotationOption == "ON"): ##xapuza
       if (print_angular_velocity=="1"):
