@@ -113,36 +113,51 @@ if (predefined_skin_option == "ON" ):
       if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
       
          element.SetValue(SKIN_SPHERE,1)
-                  
-print'Initialitzating Problem....'
+
+if(mpi.rank == 0):
+  print'Initialitzating Problem....'
 solver.Initialize()
-print 'Initialitzation Complete' + '\n'
+if(mpi.rank == 0):
+  print 'Initialitzation Complete' + '\n'
 
 if(ConcreteTestOption =="ON"):
   (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
-  (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
+
+  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = ProcSkinAndPressure(solid_model_part,solver) # defines the skin and areas
+
+  strain=0.0; total_stress = 0.0; first_time_entry = 1
+  # for the graph plotting    
+  velocity_node_y = 0.0
+  height = 0.3
+  diameter = 0.15
   
+  if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
+      
+    xtop_area_gath            = mpi.allgather(mpi.world, xtop_area) 
+    xbot_area_gath            = mpi.allgather(mpi.world, xbot_area) 
+    xlat_area_gath            = mpi.allgather(mpi.world, xlat_area) 
+    xtopcorner_area_gath      = mpi.allgather(mpi.world, xtopcorner_area) 
+    xbotcorner_area_gath      = mpi.allgather(mpi.world, xbotcorner_area) 
+    
+    xtop_area = reduce(lambda x,y:x+y, xtop_area_gath)
+    xbot_area = reduce(lambda x,y:x+y, xbot_area_gath)
+    xlat_area = reduce(lambda x,y:x+y, xlat_area_gath)
+    xtopcorner_area = reduce(lambda x,y:x+y, xtopcorner_area_gath)
+    xbotcorner_area = reduce(lambda x,y:x+y, xbotcorner_area_gath)
+    
+    #Correction Coefs
+    alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+    alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+    alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+      
+    ProcApplyPressure(Pressure,solid_model_part,solver,alpha_top,alpha_bot,alpha_lat)
+    
 if(mpi.rank == 0):
   graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
 #strainlist=[]; strainlist.append(0.0)
 #stresslist=[]; stresslist.append(0.0)
-strain=0.0; total_stress = 0.0; first_time_entry = 1
-
-# for the graph plotting    
-velocity_node_y = 0.0
-
-#mesurement
-
-velocity_gath   = mpi.gather(mpi.world, velocity_node_y, 0) 
-
-if(mpi.rank == 0):
-  for vel in velocity_gath:
-    if (vel != 0.0):
-       velocity_node_y = vel                   #only if all are the same
-
-height = 0.3
 
 if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
@@ -161,9 +176,10 @@ if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
       counter_top = reduce(lambda x,y:x+y, counter_top_gath)
   
       ini_height = Y_mean_top/counter_top - Y_mean_bot/counter_bot
-  
-      print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+      
       height = ini_height
+      if(mpi.rank==0): 
+        print ('Initial Height of the Model: ' + str(ini_height)+'\n')
 
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
@@ -171,18 +187,21 @@ if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
 
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
-    print("WARNING: Delta time has been modifyed to the critical one")
     dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+    if(mpi.rank==0): 
+      print("WARNING: Delta time has been modifyed to the critical one")   
 
 time = 0.0; step = 0; time_old_print = 0.0
 
 initial_pr_time = timer.clock()
 initial_real_time = timer.time()
 
-print ('SOLVE starts at instant: ' + str(initial_pr_time)+'\n')
+if(mpi.rank==0): 
+  print ('SOLVE starts at instant: ' + str(initial_pr_time)+'\n')
 
 total_steps_expected = int(final_time/dt)
-print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
+if(mpi.rank==0): 
+  print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
     
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -226,7 +245,7 @@ while(time < final_time):
    
     incremental_time = (timer.time()-initial_real_time)- prev_time
 
-    if (incremental_time > control_time): 
+    if (  (incremental_time > control_time) and (mpi.rank == 0) ): 
       
       percentage = 100.0*(float(step)/total_steps_expected)
       print 'Real time calculation: ' + str(timer.time()-initial_real_time) 
@@ -234,8 +253,8 @@ while(time < final_time):
       print "TIME STEP = " + str(step) + '\n'
         
       prev_time = (timer.time()-initial_real_time)
-    
-    if ( (timer.time()-initial_real_time > 60.0) and cond==0):
+  
+    if ( (timer.time()-initial_real_time > 60.0) and cond==0 and mpi.rank==0 ):
     
       cond=1
     
@@ -254,15 +273,15 @@ while(time < final_time):
     if( (ConcreteTestOption =="ON") and (step==2) ):
       
       #Cross section Area Control
-      
-      Num_Cross_Sect = solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA)
-      Exact_Cross_Sect = 3.141592*0.15*0.15*0.25
-      
-      print '\n' + '----------------------CONCRETE TEST CONTROLS----------------------' + '\n'
-      print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(Num_Cross_Sect)
-      print 'Total Horitzontal Real Cross Section on Force Measurement was: ' + str(Exact_Cross_Sect)
-      print 'Relative Error: ' + str (100*(abs(Num_Cross_Sect-Exact_Cross_Sect)/Exact_Cross_Sect)) + ' %'
-      #print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_CENTRE) )
+      if(mpi.rank==0): 
+        Num_Cross_Sect = solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA)
+        Exact_Cross_Sect = 3.141592*0.15*0.15*0.25
+        
+        print '\n' + '----------------------CONCRETE TEST CONTROLS----------------------' + '\n'
+        print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(Num_Cross_Sect)
+        print 'Total Horitzontal Real Cross Section on Force Measurement was: ' + str(Exact_Cross_Sect)
+        print 'Relative Error: ' + str (100*(abs(Num_Cross_Sect-Exact_Cross_Sect)/Exact_Cross_Sect)) + ' %'
+        #print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_CENTRE) )
       
       total_volume = 0.0;  h   = 0.3;    d   = 0.15
       
@@ -315,11 +334,19 @@ while(time < final_time):
           print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
           height = ini_height2
           
-          for node in sup_layer_fm:
-            velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-            print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
-            break  
-
+        for node in sup_layer_fm:
+          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+          break
+        
+        velocity_gath   = mpi.gather(mpi.world, velocity_node_y, 0) 
+        
+        if(mpi.rank == 0):
+          for vel in velocity_gath:
+            if (vel != 0.0):
+              velocity_node_y = vel              #only if all are the same
+              print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+              break
+              
         first_time_entry = 0
 
       strain += -2*velocity_node_y*dt/height
@@ -338,9 +365,8 @@ while(time < final_time):
       total_force_gath   = mpi.gather(mpi.world, total_force, 0) 
       if(mpi.rank == 0):
         total_force = reduce(lambda x,y:x+y,total_force_gath)
-
         total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
-      #stresslist.append(total_stress)
+    #
 
     #
     
@@ -451,11 +477,13 @@ os.chdir(list_path)
 #
 os.chdir(main_path)
 
-print 'Calculation ends at instant: ' + str(timer.time())
-elapsed_pr_time = timer.clock() - initial_pr_time
-elapsed_real_time = timer.time() - initial_real_time
-print 'Calculation ends at processing time instant: ' + str(timer.clock())
-print 'Elapsed processing time: ' + str(elapsed_pr_time)
-print 'Elapsed real time: ' + str(elapsed_real_time)
-print (my_timer)    
-print "COMPLETED ANALYSIS" 
+if(mpi.rank==0): 
+  print 'Calculation ends at instant: ' + str(timer.time())
+  elapsed_pr_time = timer.clock() - initial_pr_time
+  elapsed_real_time = timer.time() - initial_real_time
+  print 'Calculation ends at processing time instant: ' + str(timer.clock())
+  print 'Elapsed processing time: ' + str(elapsed_pr_time)
+  print 'Elapsed real time: ' + str(elapsed_real_time)
+  print (my_timer)    
+  print "COMPLETED ANALYSIS" 
+ 
