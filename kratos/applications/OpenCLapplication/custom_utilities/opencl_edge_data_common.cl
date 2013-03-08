@@ -225,14 +225,6 @@ inline void Read3VectorFromDouble16Image(__read_only image2d_t Image, IndexType 
 	);
 }
 
-// A dummy kernel for test
-__kernel void Test(__global double *input, __global double *output, const double offset)
-{
-	const size_t id = get_global_id(0);
-	const double iv = input[id];
-	output[id] = 2.00 * sin(iv) * cos(iv) + offset;
-}
-
 //
 // Edge specific kernels
 
