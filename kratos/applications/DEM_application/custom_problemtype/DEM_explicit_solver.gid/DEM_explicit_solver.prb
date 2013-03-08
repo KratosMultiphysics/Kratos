@@ -3,6 +3,10 @@ PROBLEM DATA
 # Options
 BOOK: Problem Parameters
 
+TITLE: PRE-Meshing Settings
+QUESTION: Skin_Determination#CB#(Automatic_Over_All_Surfaces,Predefined_By_The_User)
+VALUE: Automatic_Over_All_Surfaces
+
 TITLE: General Settings
 
 QUESTION: Number_of_processors
@@ -118,7 +122,7 @@ TITLE: Continuum Options
 
 QUESTION: Continuum_Option#CB#(ON,OFF)
 VALUE: ON
-DEPENDENCIES: (OFF,HIDE,Stress_Strain_Operations,#CURRENT#,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#,HIDE,Non_Linear_Option,#CURRENT#,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#)(ON,RESTORE,Stress_Strain_Operations,#CURRENT#,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#,RESTORE,Non_Linear_Option,OFF)
+DEPENDENCIES: (OFF,HIDE,Stress_Strain_Operations,#CURRENT#,HIDE,Contact_Mesh_Option,#CURRENT#,HIDE,Failure_Criterion_Option,#CURRENT#,HIDE,Tau_Zero,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,Sigma_Min,#CURRENT#,HIDE,Internal_Fricc,#CURRENT#,HIDE,Non_Linear_Option,#CURRENT#,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#)(ON,RESTORE,Stress_Strain_Operations,#CURRENT#,RESTORE,Contact_Mesh_Option,#CURRENT#,RESTORE,Failure_Criterion_Option,#CURRENT#,RESTORE,Tau_Zero,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,Sigma_Min,#CURRENT#,RESTORE,Internal_Fricc,#CURRENT#,RESTORE,Non_Linear_Option,#CURRENT#)
 QUESTION: Stress_Strain_Operations#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
