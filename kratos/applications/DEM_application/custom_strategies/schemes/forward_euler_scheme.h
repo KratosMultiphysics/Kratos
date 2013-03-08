@@ -189,16 +189,97 @@ namespace Kratos
           }
     
           NodesArrayType& pGNodes = GetGhostNodes(model_part);
+          
+          OpenMPUtils::CreatePartition(number_of_threads, pGNodes.size(), node_partition);
        
-          for(ModelPart::NodeIterator i=pGNodes.begin(); i!= pGNodes.end(); ++i)      
+          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
+          for(int k=0; k<number_of_threads; k++)
           {
-                array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
-                array_1d<double, 3 > & coor            = i->Coordinates();
-                array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
-        
-                coor[0]   = initial_coor[0] + displ[0];
-                coor[1]   = initial_coor[1] + displ[1];
-                coor[2]   = initial_coor[2] + displ[2];
+              NodesArrayType::iterator i_begin=pGNodes.ptr_begin()+node_partition[k];
+              NodesArrayType::iterator i_end=pGNodes.ptr_begin()+node_partition[k+1];
+             
+              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+              {      
+                  
+                    array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+                    array_1d<double, 3 > & coor            = i->Coordinates();
+                    array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
+//                   KRATOS_WATCH("0")
+                  double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
+
+//                   KRATOS_WATCH("1")
+                  array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
+//                   KRATOS_WATCH("2")
+                  array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+//                   KRATOS_WATCH("3")
+                  array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
+//                   KRATOS_WATCH("4")
+                  aux = delta_t / mass;
+                          
+                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                  {
+                      aux = (1 - virtual_mass_coeff)* (delta_t / mass);
+
+                      if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
+                  }
+       
+                  if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  {    
+                      vel[0] += aux * force[0];
+                 
+                      delta_displ[0] = delta_t * vel[0];             
+                      displ[0] +=  delta_displ[0];
+
+                      coor[0] = initial_coor[0] + displ[0];
+                 
+                  }
+                  else
+                  {
+                      delta_displ[0] = delta_t * vel[0];
+                      displ[0] += delta_displ[0];
+
+                      coor[0] = initial_coor[0] + displ[0];
+                 
+                  }
+                  
+                  if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
+                  {
+                      vel[1] += aux * force[1];
+
+                      delta_displ[1] = delta_t * vel[1];
+                      displ[1] +=  delta_displ[1];
+
+                      coor[1] = initial_coor[1] + displ[1];
+                      
+                  }
+                  else
+                  {
+                      delta_displ[1] = delta_t * vel[1];
+                      displ[1] += delta_displ[1];
+
+                      coor[1] = initial_coor[1] + displ[1];
+                      
+                  }
+                  
+                  if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
+                  {
+                      vel[2] += aux * force[2];
+
+                      delta_displ[2] = delta_t * vel[2];
+                      displ[2] +=  delta_displ[2];
+
+                      coor[2] = initial_coor[2] + displ[2];
+                      
+                  }
+                  else
+                  {
+                      delta_displ[2] = delta_t * vel[2];
+                      displ[2] += delta_displ[2];
+
+                      coor[2] = initial_coor[2] + displ[2];
+                      
+                  }
+              }
           }
 
           KRATOS_CATCH(" ")
