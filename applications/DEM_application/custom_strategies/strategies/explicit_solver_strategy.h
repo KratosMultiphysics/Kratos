@@ -294,6 +294,8 @@ namespace Kratos
  	  Timer::Start("SOLVEMOTION");
 #endif
 	  //2. Motion Integration
+          
+          Synchronize(r_model_part,mcontacts_model_part);
           ComputeIntermedialVelocityAndNewDisplacement(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           
           if( time_step == 1)
