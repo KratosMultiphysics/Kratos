@@ -99,9 +99,9 @@ namespace Kratos
         OpenMPUtils::DivideInPartitions(ThisModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
         std::vector<double> MaxProj(NumThreads,0.0);
-
-        #pragma omp parallel shared(MaxProj)
-        {
+// NumThreads = 1;
+         #pragma omp parallel shared(MaxProj)
+         {
             int k = OpenMPUtils::ThisThread();
             ModelPart::ElementIterator ElemBegin = ThisModelPart.ElementsBegin() + ElementPartition[k];
             ModelPart::ElementIterator ElemEnd = ThisModelPart.ElementsBegin() + ElementPartition[k+1];
@@ -123,33 +123,35 @@ namespace Kratos
 				     dist_vec[kk] = dist;
 				  ele_dist +=  fabs(dist);
 			    }
-
+	       ele_dist /= NumNodes;
 	       if(ele_dist <= dist_max){
                 GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
 
                 // Elemental Velocity
-                array_1d<double,3> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+                array_1d<double,TDim> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
                 for (unsigned int i = 1; i < NumNodes; ++i)
-                    ElementVel += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+                    noalias(ElementVel) += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
 		//compute normal velocity
-		array_1d<double, NumNodes>  grad_dist = prod(trans(DN_DX),dist_vec);
-		double norm_grad_dist = grad_dist[0]*grad_dist[0] + grad_dist[1]*grad_dist[1] + grad_dist[2]*grad_dist[2];
-		norm_grad_dist = sqrt(norm_grad_dist);
+		array_1d<double, TDim>  grad_dist = prod(trans(DN_DX),dist_vec);
+		double norm_grad_dist = norm_2(grad_dist); //grad_dist[0]*grad_dist[0] + grad_dist[1]*grad_dist[1] + grad_dist[2]*grad_dist[2];
+// 		norm_grad_dist = sqrt(norm_grad_dist);
 		
 		double normal_speed = inner_prod(ElementVel,grad_dist);
 		if(norm_grad_dist > 0.0){
 		  normal_speed /= norm_grad_dist;
-		  ElementVel = (normal_speed*grad_dist)/norm_grad_dist;
+		  noalias(ElementVel) = (normal_speed/norm_grad_dist)*grad_dist;
 		}
 		else 
-		  ElementVel = ZeroVector(3);
+		  noalias(ElementVel) = ZeroVector(3);
+		
 		
 // 		// Velocity norm
 //                 double VelNorm = ElementVel[0]*ElementVel[0];
 //                 for (unsigned int d = 1; d < TDim; ++d)
 //                     VelNorm += ElementVel[d]*ElementVel[d];
 //                 VelNorm = sqrt(VelNorm);
+
 
                 // Maximum element size along the direction of velocity
                 for (unsigned int i = 0; i < NumNodes; ++i)
@@ -160,9 +162,9 @@ namespace Kratos
                     Proj = fabs(Proj);
                     if (Proj > rMaxProj) rMaxProj = Proj;
                 }
-			  }
+	      }
             }
-        }
+         }
 
         // Obtain the maximum projected element size (compare thread results)
         double Max = 0.0;
