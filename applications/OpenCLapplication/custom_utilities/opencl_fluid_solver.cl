@@ -58,11 +58,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 //
-// SetToZero
+// FillWithZero
 //
-// Zeros a vector
+// Fills a buffer with zero
 
-__kernel void SetToZero(__global ValueType *Vector, const IndexType n)
+__kernel void FillWithZero(__global ValueType *Vector, const IndexType n)
 {
 	// Get work item index
 	const size_t id = get_global_id(0);

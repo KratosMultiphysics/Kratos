@@ -60,6 +60,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Common kernels
 
 //
+// SetToZero
+//
+// Zeros a vector
+
+__kernel void SetToZero(__global ValueType *Vector, const IndexType n)
+{
+	// Get work item index
+	const size_t id = get_global_id(0);
+
+	// Check if we are in the range
+	if (id < n)
+	{
+		Vector[id] = 0.00;
+	}
+}
+
+//
 // Add_Minv_value1
 //
 // DestinationVector = Origin1Vector + Value * MinvVector * OriginVector
