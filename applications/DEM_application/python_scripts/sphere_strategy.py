@@ -264,10 +264,10 @@ class ExplicitStrategy:
         
         self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
         self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
+        
         self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
+    
         self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
-       
-       
         self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
         self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
        
