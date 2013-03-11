@@ -199,6 +199,7 @@ class ExplicitStrategy:
         self.damp_id                        	= 1
         self.rota_damp_id                   	= 0
         self.search_radius_extension        	= 0.0
+        self.amplified_continuum_search_radius_extension = 0.0
 
         self.dummy_switch                   	= 0
 
@@ -277,6 +278,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
 
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
         self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
