@@ -173,7 +173,8 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     solver.gravity=gravity
     
-    m_search_radius_extension = search_radius_extension
+    m_search_radius_extension = 0.0
+    m_amplified_continuum_search_radius_extension = 0.0
 
     #options for the solver
     
@@ -184,8 +185,10 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     solver.final_time = final_time
     
-    if(DeltaOption=="OFF"):
-        m_search_radius_extension = 0.0;
+    if(DeltaOption=="ON"):
+        m_search_radius_extension = search_radius_extension;
+        if(ContinuumOption=="ON"):
+           m_amplified_continuum_search_radius_extension = amplified_continuum_search_radius_extension;
 
     solver.time_scheme=time_scheme
     solver.force_calculation_type_id=force_calculation_type_id
@@ -232,6 +235,7 @@ def ProcGiDSolverTransfer(model_part,solver):
         solver.internal_fricc = InternalFricc
       
     solver.search_radius_extension = m_search_radius_extension
+    solver.amplified_continuum_search_radius_extension = m_amplified_continuum_search_radius_extension
 
     if(RotationOption =="ON"):
         solver.rotation_OPTION=1  #xapuza
