@@ -306,7 +306,10 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     solver.enlargement_factor = m_bounding_box_enlargement_factor
     
-    Pressure = ConfinementPressure*1e6 #Mpa
+    if ( TriaxialOption =="ON" ):
+       Pressure = ConfinementPressure*1e6 #Mpa
+    else:
+       Pressure = 0.0
     
     if(Pressure!=0):
       
