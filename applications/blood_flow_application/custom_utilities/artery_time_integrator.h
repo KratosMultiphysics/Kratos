@@ -77,7 +77,7 @@ public:
 
     void Initialize(ModelPart& ThisModelPart)
     {
-        const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+      //const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 
         //reset the acceleration on the nodes
         ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
@@ -120,11 +120,11 @@ public:
          aux /= nodal_mass;
 	    aux *= dt;
 
-        int id = in->Id();
+	    //int id = in->Id();
         double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
         double nodal_flow = in->FastGetSolutionStepValue(FLOW);
-        double lhs1=aux[0] / nodal_mass;
-        double lhs2=aux[1] / nodal_mass;
+        //double lhs1=aux[0] / nodal_mass;
+        //double lhs2=aux[1] / nodal_mass;
 
         //NODAL_AREA is never prescribed
             if(in->IsFixed(NODAL_AREA) == false)
@@ -215,7 +215,7 @@ public:
             const double thickness = i_element->GetProperties()[THICKNESS];
             const double beta = E*thickness*1.77245385/(1.0-nu*nu);
             const double coriolis_coefficient = 1.0001;
-            const double kr_coefficient = 1.0;
+            //const double kr_coefficient = 1.0;
 
             const double C1_0 = sqrt(beta / (2.0 * density * A0)) * pow(A0,0.25);
             const double C1_1 = sqrt(beta / (2.0 * density * A1)) * pow(A1,0.25);
@@ -367,8 +367,8 @@ private:
             double nodal_mass = in->GetSolutionStepValue(NODAL_MASS);
             aux = in->FastGetSolutionStepValue(RHS);
 	    aux *= dt;
-        double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-        double nodal_flow = in->FastGetSolutionStepValue(FLOW);
+	    // double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+        //double nodal_flow = in->FastGetSolutionStepValue(FLOW);
 
 	    if(in->IsFixed(NODAL_AREA) == false)
 		in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] / nodal_mass;
@@ -377,8 +377,8 @@ private:
 	    if(in->IsFixed(FLOW) == false)
           in->FastGetSolutionStepValue(FLOW) += aux[1] / nodal_mass;
 
-        nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-         nodal_flow = in->FastGetSolutionStepValue(FLOW);
+	    //nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+	    //nodal_flow = in->FastGetSolutionStepValue(FLOW);
         }
 
     }

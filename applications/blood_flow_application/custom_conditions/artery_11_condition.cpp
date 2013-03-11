@@ -140,7 +140,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
     KRATOS_TRY
 
             //get data as needed
-            const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+      // const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
              const double density = GetProperties()[DENSITY];
             const double pi = 3.14159265;
             const double coriolis_coefficient = 1.0001;
