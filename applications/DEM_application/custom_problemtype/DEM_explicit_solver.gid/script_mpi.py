@@ -61,19 +61,19 @@ solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, s
 
 #----------------------PYTHON STUFF:------------------------------------------------------------------------------------
 
-main_path    = os.getcwd()
-post_path    = str(main_path)+'/'+str(problem_name)+'_Post_Files'
-list_path    = str(main_path)+'/'+str(problem_name)+'_Post_Lists'
-neigh_list_path  = str(main_path)+'/'+str(problem_name)+'_Neigh_Lists'
-data_and_results = str(main_path)+'/'+str(problem_name)+'_Results_and_Data'
-graphs_path  = str(main_path)+'/'+str(problem_name)+'_Graphs'   
-MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'    
+#main_path    = os.getcwd()
+#post_path    = str(main_path)+'/'+str(problem_name)+'_Post_Files'
+#list_path    = str(main_path)+'/'+str(problem_name)+'_Post_Lists'
+#neigh_list_path  = str(main_path)+'/'+str(problem_name)+'_Neigh_Lists'
+#data_and_results = str(main_path)+'/'+str(problem_name)+'_Results_and_Data'
+#graphs_path  = str(main_path)+'/'+str(problem_name)+'_Graphs'   
+#MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'    
 
-for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
+#for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
-  if not os.path.isdir(directory):
+  #if not os.path.isdir(directory):
     
-      os.makedirs(str(directory))
+      #os.makedirs(str(directory))
 
 #
 
@@ -83,7 +83,7 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 #
 prev_time = 0.0; control = 0.0; cond = 0
 
-os.chdir(main_path)
+##os.chdir(main_path)
 
 export_model_part = solid_model_part
 
@@ -100,9 +100,9 @@ Pressure = 0.0
 Pressure = ProcGiDSolverTransfer(solid_model_part,solver)
 
 if(ModelDataInfo =="ON"):
-  os.chdir(data_and_results)
+  #os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
-  os.chdir(main_path)
+  #os.chdir(main_path)
   
 if (predefined_skin_option == "ON" ):
    
@@ -207,7 +207,7 @@ if(mpi.rank==0):
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
-os.chdir(post_path)
+#os.chdir(post_path)
 
 gid_io.ChangeOutputName(problem_name + "_" + str(mpi.rank))
 
@@ -229,7 +229,7 @@ gid_io.InitializeResults(0.0, solid_model_part.GetMesh());
 #                                    MAIN LOOP                                            #
 #                                                                                         #
 ###########################################################################################
-os.chdir(main_path)
+#os.chdir(main_path)
 while(time < final_time):
  
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -239,7 +239,7 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
-    os.chdir(main_path) 
+    #os.chdir(main_path) 
     solver.Solve()
     #########################TIME CONTROL######################################4
    
@@ -301,7 +301,7 @@ while(time < final_time):
         print 'Error: ' + str(100*abs(total_volume-real_volume)/real_volume) +'%'+'\n'
         print '------------------------------------------------------------------' + '\n'
     
-    os.chdir(data_and_results)
+    #os.chdir(data_and_results)
     
     total_force=0.0
     force_node= 0.0
@@ -372,7 +372,7 @@ while(time < final_time):
     
     #
     
-    os.chdir(main_path)
+    #os.chdir(main_path)
 
   #########################___GiD IO____#########################################4
 
@@ -417,7 +417,7 @@ while(time < final_time):
 
       if(PrintNeighbourLists == "ON"): #printing neighbours id's
   
-        os.chdir(neigh_list_path)
+        #os.chdir(neigh_list_path)
         neighbours_list = open('neigh_list_'+ str(time),'w')
   
         for elem in solid_model_part.Elements:
@@ -430,7 +430,7 @@ while(time < final_time):
   
         neighbours_list.close()
 
-      os.chdir(post_path)
+      #os.chdir(post_path)
 
       #
 
@@ -447,7 +447,7 @@ while(time < final_time):
  
       ProcPrintingVariables(gid_io,export_model_part,time)  
 
-      os.chdir(main_path)     
+      #os.chdir(main_path)     
               
       time_old_print = time
 
@@ -467,15 +467,15 @@ while(time < final_time):
 
 gid_io.FinalizeResults()
    
-os.chdir(graphs_path)
+#os.chdir(graphs_path)
  
 if(mpi.rank == 0): 
   graph_export.close() 
 
-os.chdir(list_path)
+#os.chdir(list_path)
 
 #
-os.chdir(main_path)
+#os.chdir(main_path)
 
 if(mpi.rank==0): 
   print 'Calculation ends at instant: ' + str(timer.time())
