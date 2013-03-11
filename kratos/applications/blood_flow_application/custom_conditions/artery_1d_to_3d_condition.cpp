@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/artery_11_condition.h"
+#include "custom_conditions/artery_1d_to_3d_condition.h"
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
 #include "boost/numeric/ublas/lu.hpp"
@@ -111,46 +111,55 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 
             //get data as needed
             const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
-            const double density = GetProperties()[DENSITY];
-            const double E = GetProperties()[YOUNG_MODULUS];
-            const double nu = GetProperties()[POISSON_RATIO];
-	    //            const double pi = 3.14159265;
+             const double density = GetProperties()[DENSITY];
+            const double pi = 3.14159265;
             const double coriolis_coefficient = 1.0001;
-	    //            const double kr_coefficient = 1.0;
-	    const double p3D = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
-
-	    //            const double kinematic_viscosity = dynamic_viscosity/density;
-            const double beta = E*mH0*1.77245385/(1.0-nu*nu);
-
-
+ 
             //resize the vector to the correct size
             if (rRightHandSideVector.size() != 4)
                 rRightHandSideVector.resize(4,false);
 
+            using namespace boost::numeric::ublas;
+
+            array_1d<double,4> f_out;
+            Matrix jacobian = ZeroMatrix(4,4);
+
             array_1d<double,2> area;
             array_1d<double,2> flow;
             array_1d<double,2> wave_velocity;
-	    array_1d<double,2> initial_wave_velocity;
             array_1d<double,2> artery_property;
             array_1d<double,2> coef;
+	    array_1d<double,2> beta;
 
-
+	    //copy to node 1 from 0
+	    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+	    GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+	    GetGeometry()[1].FastGetSolutionStepValue(THICKNESS) = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
+	    GetGeometry()[1].FastGetSolutionStepValue(FLOW) = GetGeometry()[0].FastGetSolutionStepValue(FLOW);   
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);   
+	    GetGeometry()[1].GetValue(NODAL_AREA) = GetGeometry()[0].GetValue(NODAL_AREA);
+	    
+	    //here we should change the 
+	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+	    
 
             //loop on nodes
             for (unsigned int i=0; i<2; i++)
             {
+		const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
+		const double nu =GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
+		const double H0 =GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
+		beta[i] = E*H0*1.77245385/(1.0-nu*nu);
+
                 Node<3>& r_node = GetGeometry()[i];
                 area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
                 flow[i] = r_node.FastGetSolutionStepValue(FLOW);
-                artery_property[i]=mBeta/mInitialArea[i];
-                coef[i] = sqrt(mBeta/(2*density * mInitialArea[i]));
+                artery_property[i]=beta[i]/GetGeometry()[i].GetValue(NODAL_AREA);
+                coef[i] = sqrt(beta[i]/(2*density * GetGeometry()[i].GetValue(NODAL_AREA)));
             }
- 	    flow[1] = flow[0]; //impose continuity of flow
-            wave_velocity[0] = (flow[0] / area[0]) + 4.00 * coef[0] * pow(area[0],0.25);
-            wave_velocity[1] = 1e20; //huge number, shall be infinity
-            
-            initial_wave_velocity[0] = (flow[0] / area[0]) + 4.00 * coef[0] * pow(mInitialArea[0],0.25);
-            initial_wave_velocity[1] = 1e20; //huge number, shall be infinity
+ 	    flow[1] = flow[0];
+            wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(beta[0] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[0],0.25);
+            wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[1].GetValue(NODAL_AREA))) * pow(area[1],0.25);
 
             //KRATOS_WATCH(wave_velocity);
 
@@ -158,59 +167,86 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
             double convergence;
             unsigned int max_iterations = 100;
             double tolerance = 1e-6;
-	    
-	    Vector rhs(2,0.0);
-	    Matrix lhs(2,2,0.0);
 
             for(unsigned int i = 0 ; i < max_iterations ; i++)
             {
-		//construct rhs
-		rhs[0] = initial_wave_velocity[0] - (flow[0] / area[0]) + 4.00 * coef[0] * pow(area[0],0.25);
-		rhs[1] = mBeta*(sqrt(area[0]) - sqrt(mInitialArea[0]))/mInitialArea[0] - p3D -(1.0/2.0)*density*flow[0]*flow[0]*(1.0/pow(mInitialArea[1],2)-1.0/pow(area[0],2) );
+                CalculateFunctional4(f_out, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateJacobian4(jacobian, area, flow, artery_property, coef, wave_velocity, density);
+                //KRATOS_WATCH(f_out);
+                //KRATOS_WATCH(jacobian);
 
-		//construct tangent
-		lhs(0,0) = -1.0/area[0];
-		lhs(0,1) = flow[0]/pow(area[0],2) - sqrt(mBeta/(density*mInitialArea[0])) / (sqrt(2.0)*pow(area[0],0.75));
- 		lhs(1,0) = -density* (1.0/pow(mInitialArea[1],2) - 1.0 /pow(area[0],2)) *flow[0];
-		lhs(1,1) = mBeta/(2.0*sqrt(area[0]*mInitialArea[0])) - density*flow[0]*flow[0]/pow(area[0],3) ;
+                permutation_matrix<double> permutation(4);
+                array_1d<double,4> delta_x = -f_out;
 		
-                permutation_matrix<double> permutation(2);
-                array_1d<double,2> delta_x = rhs;
-				
-                lu_factorize(lhs, permutation);
-                lu_substitute(lhs,permutation, delta_x);
+		array_1d<int,4> fixity  = ZeroVector(4);
+		if(GetGeometry()[0].IsFixed(NODAL_AREA) == true) fixity[0] = 1.0;
+		if(GetGeometry()[1].IsFixed(NODAL_AREA) == true) fixity[1] = 1.0;
+		if(GetGeometry()[0].IsFixed(FLOW) == true) fixity[2] = 1.0;
+		if(GetGeometry()[1].IsFixed(FLOW) == true) fixity[3] = 1.0;
 		
+// fixity[0] = 1.0;		
+// fixity[3] = 1.0;
+
+//		KRATOS_WATCH(jacobian);
+//KRATOS_WATCH(delta_x);
+		
+		
+		
+		for(unsigned int i =0; i<4; i++)
+		{
+		    if(fixity[i] == 1)
+		    {
+		      for(unsigned int j =0; j<4; j++)
+		      {
+			  jacobian(j,i) = 0.0;
+			  jacobian(i,j) = 0.0;
+		      }
+		      delta_x[i] = 0.0;
+		      jacobian(i,i) = 1.0;		      
+		    }
+		}
+		
+//		KRATOS_WATCH(jacobian);
+//		KRATOS_WATCH(f_out);
+//		KRATOS_WATCH(area);
+//KRATOS_WATCH(flow);
+                lu_factorize(jacobian, permutation);
+                lu_substitute(jacobian,permutation, delta_x);
+		
+
+
                 convergence = norm_2(delta_x);
 
-		flow[0] += delta_x[0];
-		area[0] += delta_x[1];
 
-		// we have to add the relative convergence check
+
+                area[0] += delta_x[0];
+                area[1] += delta_x[1];
+                flow[0] += delta_x[2];
+                flow[1] += delta_x[3];
+// KRATOS_WATCH(flow);
+                // we have to add the relative convergence check
                 if(convergence < tolerance)
                     break;
             }
-            
-            //next is needed as FLOW has to be fixed for 3D inlet
-            GetGeometry()[1].FastGetSolutionStepValue(FLOW) = flow[0];
 	    
-	    
-            
+            //node 0
             double A1 = area[0];
-            double A0 = mInitialArea[0];
-            double C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
+            double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
+            double C = beta[0]*sqrt(A1*A1*A1) / (3.0*density*A0);
 
             rRightHandSideVector[0] = -flow[0];
-            //double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
             rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
 
-            A1 = area[1];
-	    A0 = mInitialArea[1];
-            C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
-
-            rRightHandSideVector[2] = flow[1];
-            //temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
-            rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
-
+	    //ndoe 1
+//             A1 = area[1];
+// 	    A0 = GetGeometry()[1].GetValue(NODAL_AREA);
+// 	    const double m = GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS);
+//             C = beta[1]*sqrt(A1*A1*A1)/(3.0*density*A0);
+//             rRightHandSideVector[2] = flow[1] * m;
+//             rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1)) * m;
+	    const double m = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+            rRightHandSideVector[2] = flow[1] * m;
+            rRightHandSideVector[3] = area[1] * m;
 
 
     KRATOS_CATCH("")
@@ -221,38 +257,6 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 void Artery1Dto3DCondition::Initialize()
 {
     KRATOS_TRY
-
-
-    const double pi = 3.14159265;
-    double radius = GetProperties()[RADIUS];
-
-    const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[0] = pi*r0*r0;
-
-    const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[1] = pi*r1*r1;
-
-
-    mH0 = GetProperties()[THICKNESS];
-
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double nu = GetProperties()[POISSON_RATIO];
-
-    mBeta = E*mH0*1.77245385/(1.0-nu*nu);
-
-
-    //save area to the nodes. as well as its nodal mass
-    GetGeometry()[0].SetLock();
-    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
-    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[0].UnSetLock();
-    GetGeometry()[1].SetLock();
-    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[1];
-    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[1].UnSetLock();
-
-
-
 
     KRATOS_CATCH("");
 }
@@ -294,11 +298,6 @@ void Artery1Dto3DCondition::Calculate(const Variable<double >& rVariable,
 {
     KRATOS_TRY
 
-    //the variable error_ratio is here the norm of the subscale velocity as computed at the level of the gauss point
-    if (rVariable == ERROR_RATIO)
-    {
-
-    }
     KRATOS_CATCH("");
 
 }
@@ -328,6 +327,65 @@ void Artery1Dto3DCondition::InitializeNonLinearIteration(ProcessInfo& CurrentPro
 
     KRATOS_CATCH("");
 }
+
+
+void Artery1Dto3DCondition::CalculateFunctional4(array_1d<double,4>& rFunctional,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity)
+{
+
+
+    const double qa0 = Flow[0]/Area[0];
+    const double qa1 = Flow[1]/Area[1];
+
+    rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
+
+    rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(GetGeometry()[0].GetValue(NODAL_AREA)))-
+		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(GetGeometry()[1].GetValue(NODAL_AREA)))+
+		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
+    rFunctional[2]=Flow[0]-Flow[1];
+    rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
+
+
+}
+
+void Artery1Dto3DCondition::CalculateJacobian4(Matrix& rJacobian,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity)
+{
+
+
+    const double qa0 = Flow[0]/Area[0];
+    const double qa1 = Flow[1]/Area[1];
+
+
+    rJacobian(0,0)= 5.00 * Coef[0] * pow(Area[0],0.25) - WaveVelocity[0];
+    rJacobian(0,1)= 0.00;
+    rJacobian(0,2)= 1.00;
+    rJacobian(0,3)= 0.00;
+
+    rJacobian(1,0)= 0.50 * ArteryProperty[0] / sqrt(Area[0]) - BloodDensity* (qa0 * qa0 / Area[0]);
+    rJacobian(1,1)= -0.50 * ArteryProperty[1] / sqrt(Area[1]) + BloodDensity* (qa1 * qa1 / Area[1]);
+    rJacobian(1,2)= BloodDensity * Flow[0] / (Area[0] * Area[0]);
+    rJacobian(1,3)= -BloodDensity * Flow[1] / (Area[1] * Area[1]);
+
+    rJacobian(2,0)= 0.00;
+    rJacobian(2,1)= 0.00;
+    rJacobian(2,2)= 1.00;
+    rJacobian(2,3)= -1.00;
+
+    rJacobian(3,0)= 0.00;
+    rJacobian(3,1)= -5.00 * Coef[1] * pow(Area[1],0.25) - WaveVelocity[1];
+    rJacobian(3,2)= 0.00;
+    rJacobian(3,3)= 1.00;
+
+
+}
+
 
 } // Namespace Kratos
 

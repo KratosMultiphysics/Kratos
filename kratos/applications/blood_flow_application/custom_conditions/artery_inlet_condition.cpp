@@ -117,7 +117,7 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
 
     //get data as needed
-    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    //    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
     const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
     const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
