@@ -180,7 +180,8 @@ namespace Kratos
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
         r_model_part.GetCommunicator().SynchronizeDofs();
         
-        //ContactModelpart Element Synchronize       
+        //ContactModelpart Element Synchronize 
+        
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_FAILURE);    
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_SIGMA);
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(CONTACT_TAU);
@@ -198,13 +199,14 @@ namespace Kratos
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(MEAN_CONTACT_AREA);
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_AREA_LOW);
         r_contact_model_part.GetCommunicator().SynchronizeElementalNonHistoricalVariable(LOCAL_CONTACT_AREA_HIGH);
+        
     }
     
     virtual void Repart(ModelPart& r_model_part, int CalculateBoundry)
     {
         typedef Mpi_Neighbours_Calculator<ParticleType> NeighboursCalculatorType;
         
-        NeighboursCalculatorType::Parallel_partitioning(r_model_part,true,CalculateBoundry);
+        NeighboursCalculatorType::Parallel_partitioning(r_model_part,true,true,CalculateBoundry);
     }
     
     virtual ElementsArrayType& GetElements(ModelPart& r_model_part)
