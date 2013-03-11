@@ -46,6 +46,8 @@ MagicFactor = *GenData(Magic_Factor)
 DeltaOption = "*GenData(Delta_Option)"
 *format "%10.5e"
 search_radius_extension = *GenData(Search_Radius_Extension)
+*format "%10.5e"
+amplified_continuum_search_radius_extension = *GenData(Amplified_Continuum_Search_Radius_Extension)
 PrintNeighbourLists= "*GenData(Print_Neighbour_Lists)"
 GlobalVariablesOption= "*GenData(Global_Variables_Option)"
 *format "%10.5e"
