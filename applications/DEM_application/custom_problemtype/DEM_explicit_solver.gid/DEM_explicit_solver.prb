@@ -85,9 +85,11 @@ VALUE: 1.0
 HELP: It multiplies kn and ks in order to adjust the correct plot.
 QUESTION: Delta_Option#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#,HIDE,Amplified_Continuum_Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#,RESTORE,Amplified_Continuum_Search_Radius_Extension,#CURRENT#)
 QUESTION: Search_Radius_Extension
 VALUE: 0.01
+QUESTION: Amplified_Continuum_Search_Radius_Extension
+VALUE: 1.01
 QUESTION: Print_Neighbour_Lists#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Global_Variables_Option#CB#(ON,OFF)
