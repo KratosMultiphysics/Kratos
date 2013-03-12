@@ -270,6 +270,23 @@ def ProcGiDSolverTransfer(model_part,solver):
     solver.global_rr    = global_rr
     
     solver.global_fri_ang = global_fri_ang
+    
+    # global variable settings
+
+    if(LimitSurfaceOption =="ON"):
+        solver.limit_surface_OPTION = 1  #xapuza
+
+    surface_normal_dir = Vector(3)
+    surface_normal_dir[0] = surface_normal_dir_x
+    surface_normal_dir[1] = surface_normal_dir_y    
+    surface_normal_dir[2] = surface_normal_dir_z
+    solver.surface_normal_dir = surface_normal_dir    
+    surface_point_coor = Vector(3)
+    surface_point_coor[0] = surface_point_coor_x
+    surface_point_coor[1] = surface_point_coor_y
+    surface_point_coor[2] = surface_point_coor_z
+    solver.surface_point_coor = surface_point_coor
+    solver.surface_friction_angle = surface_friction_angle
 
     # time settings
     
