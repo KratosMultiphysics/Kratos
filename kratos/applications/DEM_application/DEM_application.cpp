@@ -33,6 +33,7 @@ namespace Kratos
         typedef  vector<array_1d<double,3> >  VectorArray3Double;
         KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
    */
+    
         KRATOS_CREATE_VARIABLE(double, NON_ELASTIC_STAGE)
         KRATOS_CREATE_VARIABLE(int, NON_LINEAR_OPTION)
     
@@ -168,7 +169,6 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosDEMApplication... " << std::endl;
 
-        
         KRATOS_REGISTER_VARIABLE( NON_ELASTIC_STAGE)
         KRATOS_REGISTER_VARIABLE( NON_LINEAR_OPTION)
         
