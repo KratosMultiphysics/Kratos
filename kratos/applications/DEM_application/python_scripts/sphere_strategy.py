@@ -57,6 +57,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
 
     #if ( (ConfinementPressure != 0.0) and (TriaxialOption == "ON" ) ):
     model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE) 
@@ -187,6 +188,18 @@ class ExplicitStrategy:
         self.global_rr                        = 1000.0
         self.global_fri_ang                   = 40
         
+        #surface limit parameters        
+        self.limit_surface_OPTION  = 0 #its 1/0 xapuza
+        self.surface_normal_dir    = Vector(3)#(0.0,1.0,0.0)        
+        self.surface_normal_dir[0] = 0.0
+        self.surface_normal_dir[1] = 1.0
+        self.surface_normal_dir[2] = 0.0
+        self.surface_point_coor    = Vector(3)#(0.0,0.0,0.0)        
+        self.surface_point_coor[0] = 0.0
+        self.surface_point_coor[1] = 0.0
+        self.surface_point_coor[2] = 0.0 
+        self.surface_friction_angle = 40
+        
         #prints
         
         self.print_export_id                   = 0
@@ -288,6 +301,11 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(GLOBAL_RT, self.global_rt)
         self.model_part.ProcessInfo.SetValue(GLOBAL_RR, self.global_rr)
         self.model_part.ProcessInfo.SetValue(GLOBAL_FRI_ANG, self.global_fri_ang)
+        
+        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
+        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
+        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
+        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
         
         self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR,self.magic_factor)
 
