@@ -68,6 +68,20 @@ ModelDataInfo = "*GenData(Model_Data_Info)"
 FixVelocities = "*GenData(Fix_Velocities_At_Predetermined_Time)"
 *format "%10.5e"
 TimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
+LimitSurfaceOption= "*GenData(Limit_Surface_Option)"
+*format "%10.5e"
+surface_normal_dir_x = *GenData(Surface_Normal_Dir_X)
+*format "%10.5e"
+surface_normal_dir_y = *GenData(Surface_Normal_Dir_Y)
+*format "%10.5e"
+surface_normal_dir_z = *GenData(Surface_Normal_Dir_Z)
+*format "%10.5e"
+surface_point_coor_x = *GenData(Surface_Point_Coor_X)
+*format "%10.5e"
+surface_point_coor_y = *GenData(Surface_Point_Coor_Y)
+*format "%10.5e"
+surface_point_coor_z = *GenData(Surface_Point_Coor_Z)
+surface_friction_angle = *GenData(Surface_Friction_Angle)
 
 
 #Continuum Options

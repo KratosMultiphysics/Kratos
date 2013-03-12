@@ -119,6 +119,23 @@ HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
 QUESTION: Time_Step_Constrain_DOFs_Percentage
 VALUE: 10.0
 HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
+QUESTION: Limit_Surface_Option#CB#(ON,OFF)
+VALUE: OFF
+DEPENDENCIES: (OFF,HIDE,Surface_Normal_Dir_X,#CURRENT#,HIDE,Surface_Normal_Dir_Y,#CURRENT#,HIDE,Surface_Normal_Dir_Z,#CURRENT#,HIDE,Surface_Point_Coor_X,#CURRENT#,HIDE,Surface_Point_Coor_Y,#CURRENT#,HIDE,Surface_Point_Coor_Z,#CURRENT#,HIDE,Surface_Friction_Angle,#CURRENT#)(ON,RESTORE,Surface_Normal_Dir_X,#CURRENT#,RESTORE,Surface_Normal_Dir_Y,#CURRENT#,RESTORE,Surface_Normal_Dir_Z,#CURRENT#,RESTORE,Surface_Point_Coor_X,#CURRENT#,RESTORE,Surface_Point_Coor_Y,#CURRENT#,RESTORE,Surface_Point_Coor_Z,#CURRENT#,RESTORE,Surface_Friction_Angle,#CURRENT#)
+QUESTION: Surface_Normal_Dir_X
+VALUE: 0.0
+QUESTION: Surface_Normal_Dir_Y
+VALUE: 1.0
+QUESTION: Surface_Normal_Dir_Z
+VALUE: 0.0
+QUESTION: Surface_Point_Coor_X
+VALUE: 0.0
+QUESTION: Surface_Point_Coor_Y
+VALUE: 0.0
+QUESTION: Surface_Point_Coor_Z
+VALUE: 0.0
+QUESTION: Surface_Friction_Angle
+VALUE: 40
 
 TITLE: Continuum Options
 
