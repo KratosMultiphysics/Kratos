@@ -100,11 +100,14 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        std::cout << "matrix size in solver: " << rA.size1() << std::endl;
-        std::cout << "RHS size in solver: " << rB.size() << std::endl;
+        std::cout << "matrix size in solver:  " << rA.size1() << std::endl;
+        std::cout << "RHS size in solver SLU: " << rB.size() << std::endl;
 
 //               typedef ublas::compressed_matrix<double, ublas::row_major, 0,
 //                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
+
+	//make a copy of the RHS
+	VectorType rC=rB;
 
         if(this->IsNotConsistent(rA, rX, rB))
             return false;
@@ -190,6 +193,9 @@ public:
         #pragma omp parallel for
         for(int i=0; i<static_cast<int>(rB.size()); i++ )
             rX[i] = rB[i]; // B(i,0);
+
+	//recover the RHS
+	rB=rC;
 
         //deallocate memory used
         StatFree(&stat);
