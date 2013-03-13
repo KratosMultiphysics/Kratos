@@ -535,7 +535,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
           gid_io.PrintOnGaussPoints(CONTACT_SIGMA,export_model_part,time)
           gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH,export_model_part,time)
           gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW,export_model_part,time)
-      gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time)    
+      #gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time)    
 
     if (RotationOption == "ON"): ##xapuza
       if (print_angular_velocity=="1"):
