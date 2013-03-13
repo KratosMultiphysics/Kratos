@@ -212,7 +212,7 @@ class ExplicitStrategy:
         self.damp_id                        	= 1
         self.rota_damp_id                   	= 0
         self.search_radius_extension        	= 0.0
-        self.amplified_continuum_search_radius_extension = 0.0
+        self.amplified_continuum_search_radius_extension = 1.0
 
         self.dummy_switch                   	= 0
 
