@@ -280,7 +280,7 @@ namespace Kratos
       Timer::Start("STRAINSTRESSOPERATIONS");
 #endif     
       
-      if(rCurrentProcessInfo[INT_DUMMY_9] == 1) //if strain_stress_operations
+      if( rCurrentProcessInfo[CONTACT_MESH_OPTION]  && rCurrentProcessInfo[INT_DUMMY_9] == 1) //if strain_stress_operations
       {
 
       StrainStressOperations();
