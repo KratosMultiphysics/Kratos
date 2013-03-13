@@ -816,13 +816,25 @@ namespace Kratos
                                 if( (indentation >= 0.0) && (sigma_a < compression_limit_1) ) 
                                 {
                                     LocalContactForce[2]= kn * indentation;
-                                    lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
+                                    
+                                    if(rCurrentProcessInfo[CONTACT_MESH_OPTION])
+                                    
+                                    {
+                                      lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
+                                    }
+                                    
                                 }
                                 
                                 else if( (indentation >= 0.0) && (sigma_a >= compression_limit_1) && ( sigma_b < compression_limit_2 ) ) 
                                 {
                                     LocalContactForce[2]= compression_limit_1*corrected_area + kn_b*(indentation - compression_limit_1*corrected_area/kn);
+                                     
+                                    if(rCurrentProcessInfo[CONTACT_MESH_OPTION])
+                                    
+                                    {
                                     lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 2.0;
+                                    
+                                    }
                                 }
                                 
                                 else if ( indentation >= 0.0 ) 
@@ -2226,6 +2238,8 @@ namespace Kratos
 		  
 		  this->GetGeometry()[0].FastGetSolutionStepValue(NUM_OF_NEIGH) = this->GetValue(NEIGHBOUR_ELEMENTS).size();
          
+          if( rCurrentProcessInfo[CONTACT_MESH_OPTION]==1 && rCurrentProcessInfo[INT_DUMMY_9] )
+          {
       
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) =  mStressTensor[0][0];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XY) =  mStressTensor[0][1];
@@ -2237,6 +2251,8 @@ namespace Kratos
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZY) =  mStressTensor[2][1];
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_ZZ) =  mStressTensor[2][2];
 		  
+          }
+          
 		   if(rCurrentProcessInfo[INT_DUMMY_8]==1)
 		  {
 			
