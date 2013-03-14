@@ -192,6 +192,7 @@ namespace Kratos
         //void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
+        void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
         
