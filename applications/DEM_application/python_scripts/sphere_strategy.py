@@ -16,8 +16,6 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)    
-    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
     
     #may be grouped
@@ -71,6 +69,10 @@ def AddVariables(model_part):
       model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
       model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
       model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
+      model_part.AddNodalSolutionStepVariable(MAX_ROTA_MOMENT)
+      model_part.AddNodalSolutionStepVariable(INITIAL_ROTA_MOMENT)
+      model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
+      model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
       
       #if(TrihedronOption =="ON"):
       model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
