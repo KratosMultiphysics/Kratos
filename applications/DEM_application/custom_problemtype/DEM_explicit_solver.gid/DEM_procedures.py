@@ -174,7 +174,7 @@ def ProcGiDSolverTransfer(model_part,solver):
     solver.gravity=gravity
     
     m_search_radius_extension = 0.0
-    m_amplified_continuum_search_radius_extension = 0.0
+    m_amplified_continuum_search_radius_extension = 1.0
 
     #options for the solver
     
