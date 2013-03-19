@@ -152,7 +152,7 @@ if(ConcreteTestOption =="ON"):
       
     ProcApplyPressure(Pressure,solid_model_part,solver,alpha_top,alpha_bot,alpha_lat)
     
-#if(mpi.rank == 0):
+#
 graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
