@@ -69,11 +69,11 @@ solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, s
 #graphs_path  = str(main_path)+'/'+str(problem_name)+'_Graphs'   
 #MPI_results    = str(main_path)+'/'+str(problem_name)+'_MPI_results'    
 
-#for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
+#
 
-  #if not os.path.isdir(directory):
+#
     
-      #os.makedirs(str(directory))
+#
 
 #
 
@@ -83,7 +83,7 @@ solver = SolverStrategy.ExplicitStrategy(solid_model_part, domain_size) #here, s
 #
 prev_time = 0.0; control = 0.0; cond = 0
 
-##os.chdir(main_path)
+#
 
 export_model_part = solid_model_part
 
@@ -100,9 +100,9 @@ Pressure = 0.0
 Pressure = ProcGiDSolverTransfer(solid_model_part,solver)
 
 if(ModelDataInfo =="ON"):
-  #os.chdir(data_and_results)
+#
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
-  #os.chdir(main_path)
+#
   
 if (predefined_skin_option == "ON" ):
    
@@ -156,8 +156,8 @@ if(mpi.rank == 0):
   graph_export = open("strain_stress_data.csv",'w');
 
 #Adding stress and strain lists
-#strainlist=[]; strainlist.append(0.0)
-#stresslist=[]; stresslist.append(0.0)
+#
+#
 
 if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
@@ -207,7 +207,7 @@ if(mpi.rank==0):
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
-#os.chdir(post_path)
+#
 
 gid_io.ChangeOutputName(problem_name + "_" + str(mpi.rank))
 
@@ -229,7 +229,7 @@ gid_io.InitializeResults(0.0, solid_model_part.GetMesh());
 #                                    MAIN LOOP                                            #
 #                                                                                         #
 ###########################################################################################
-#os.chdir(main_path)
+#
 while(time < final_time):
  
     dt = solid_model_part.ProcessInfo.GetValue(DELTA_TIME) #possible modifications of DELTA_TIME
@@ -239,7 +239,7 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
-    #os.chdir(main_path) 
+#
     solver.Solve()
     #########################TIME CONTROL######################################4
    
@@ -301,7 +301,7 @@ while(time < final_time):
         print 'Error: ' + str(100*abs(total_volume-real_volume)/real_volume) +'%'+'\n'
         print '------------------------------------------------------------------' + '\n'
     
-    #os.chdir(data_and_results)
+#
     
     total_force=0.0
     force_node= 0.0
@@ -351,7 +351,7 @@ while(time < final_time):
 
       strain += -2*velocity_node_y*dt/height
 
-      #strainlist.append(strain)
+      #
 
       for node in sup_layer_fm:
       
@@ -475,7 +475,7 @@ if(mpi.rank == 0):
 #os.chdir(list_path)
 
 #
-#os.chdir(main_path)
+#
 
 if(mpi.rank==0): 
   print 'Calculation ends at instant: ' + str(timer.time())
