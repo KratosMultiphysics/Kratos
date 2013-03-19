@@ -397,9 +397,9 @@ namespace Kratos
           double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
           
+          external_total_applied_force[0] = 0.0;
           external_total_applied_force[1] = 0.0;
-          external_total_applied_force[1] = 0.0;
-          external_total_applied_force[1] = 0.0;
+          external_total_applied_force[2] = 0.0;
           
           array_1d<double,3>& applied_force = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE);
           
