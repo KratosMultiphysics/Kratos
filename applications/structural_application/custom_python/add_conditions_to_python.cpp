@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "includes/condition.h"
 #include "custom_conditions/faceforce3D.h"
+#include "custom_conditions/point_point_joint_condition.h"
 #include "includes/node.h"
 #include "includes/variables.h"
 #include "includes/mesh.h"
@@ -92,6 +93,11 @@ void  AddCustomConditionsToPython()
     class_< FaceForce3D, FaceForce3D::Pointer, bases< ConditionBaseType > >
     ("FaceForce3D",
      init<int, GeometryType::Pointer, Properties::Pointer>() )
+    ;
+    
+    class_< PointPointJointCondition, PointPointJointCondition::Pointer, bases< ConditionBaseType > >
+    ("PointPointJointCondition",
+     init<int, Node<3>::Pointer, Node<3>::Pointer>() )
     ;
 }
 
