@@ -114,6 +114,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/master_contact_face_2d.h"
 #include "custom_conditions/slave_contact_point_2d.h"
 #include "custom_conditions/face_vel_3D.h"
+#include "custom_conditions/point_point_joint_condition.h"
 
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
@@ -163,6 +164,7 @@ KRATOS_DEFINE_VARIABLE( array3, ORTHOTROPIC_SHEAR_MODULUS );
 KRATOS_DEFINE_VARIABLE( Matrix, ORTHOTROPIC_POISSON_RATIO );
 KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
 KRATOS_DEFINE_VARIABLE( Matrix , MATERIAL_DIRECTION );
+KRATOS_DEFINE_VARIABLE( Matrix , JOINT_STIFFNESS );
 //CONTACT_LINK_MASTER is defined in condition.h
 KRATOS_DEFINE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER );
 //CONTACT_LINK_SLAVE is defined in condition.h
@@ -566,6 +568,7 @@ private:
     const PointMoment3D mPointMoment3D;
     const NodeTyingLagrange mNodeTyingLagrange;
     const NodeTyingLagrangeZ mNodeTyingLagrangeZ;
+    const PointPointJointCondition mPointPointJointCondition;
 
     const SlaveContactPoint2D mSlaveContactPoint2D;
     const MasterContactFace2D mMasterContactFace2D;

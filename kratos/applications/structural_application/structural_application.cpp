@@ -105,6 +105,7 @@ KRATOS_CREATE_VARIABLE( array3, ORTHOTROPIC_SHEAR_MODULUS )
 KRATOS_CREATE_VARIABLE( Matrix, ORTHOTROPIC_POISSON_RATIO )
 KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS )
 KRATOS_CREATE_VARIABLE( Matrix , MATERIAL_DIRECTION )
+KRATOS_CREATE_VARIABLE( Matrix , JOINT_STIFFNESS )
 
     KRATOS_CREATE_VARIABLE( double, DAMAGE_E0 );
     KRATOS_CREATE_VARIABLE( double, DAMAGE_EF );
@@ -427,6 +428,7 @@ KratosStructuralApplication::KratosStructuralApplication():
 
     mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mPointPointJointCondition( 0, Node<3>::Pointer(), Node<3>::Pointer() ),
     mIsotropic3D()
 
 {}
@@ -448,6 +450,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_VARIABLE( MATRIX_B )
     KRATOS_REGISTER_VARIABLE( MATRIX_D )
     KRATOS_REGISTER_VARIABLE( COMPOSITE_DIRECTION )
+    KRATOS_REGISTER_VARIABLE( JOINT_STIFFNESS );
     KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_YOUNG_MODULUS );
     KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_SHEAR_MODULUS );
     KRATOS_REGISTER_VARIABLE( ORTHOTROPIC_POISSON_RATIO );
@@ -752,6 +755,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "PointMoment3D", mPointMoment3D )
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrange", mNodeTyingLagrange )
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrangeZ", mNodeTyingLagrangeZ )
+    KRATOS_REGISTER_CONDITION( "PointPointJointCondition", mPointPointJointCondition )
     KRATOS_REGISTER_CONDITION( "FaceVel3D3N", mFaceVel3D3N )
 
 
