@@ -13,12 +13,13 @@ int main(int argc, char *argv[])
   Py_Initialize();
 
   PyObject* sysPath = PySys_GetObject((char*)"path");
-  PyList_Append(sysPath, PyString_FromString("."));
- // PyList_Append(sysPath, PyString_FromString("libs"));
-  PyList_Append(sysPath, PyString_FromString("python27.zip"));
-  //PySys_SetPath("python27.zip:.");
-  //PySys_SetPath(".");
-
+//   PyList_Append(sysPath, PyString_FromString("."));
+//  // PyList_Append(sysPath, PyString_FromString("libs"));
+//   PyList_Append(sysPath, PyString_FromString("python27.zip"));
+//   //PySys_SetPath("python27.zip:.");
+//   //PySys_SetPath(".");
+PyList_Insert(sysPath,0, PyString_FromString("."));
+PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
   PySys_SetArgv(argc,argv);
 
  // FILE *fp      = fopen (argv[1],   "r");
