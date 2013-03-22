@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     2.9- 22/03/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (using write_calc_data instead of [GiD_EntitiesGroups get $nsgroupid nodes])
 #     2.8- 10/12/12-J. Garate,  PFEM PT dont need to write Density and Viscosity from WritePropertyAtNodes
 #     2.7- 05/12/12-J. Garate,  PFEM Slip velocity format correction
 #     2.6- 03/12/12-J. Garate,  Added Bulk Modulus on GetDensityViscosityValues return value. ::wkcf::WriteFluidProjectParameters for PFEM
@@ -446,7 +447,7 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
     # ABSTRACT: Write the fluid boundary conditions
     variable wmethod
 
-    # WarnWinText "inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nflagvariablelist:$flagvariablelist\nkwordlist:$kwordlist"
+    # WarnWinText "wmethod:$wmethod inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nflagvariablelist:$flagvariablelist\nkwordlist:$kwordlist"
    
     if {([llength $inletvelglist]) || ([llength $noslipglist])} {
         # For debug
@@ -772,6 +773,8 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m1 {AppId inletvelglist noslipglist kwordli
 proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordlist} {
     variable ndime; variable dprops; variable filechannel
 
+    # wa "ndime:$ndime inletvelglist:$inletvelglist noslipglist:$noslipglist kwordlist:$kwordlist"
+
     # Map Inlet-NoSlip => Use no-slip values at share nodes
     set icondid "InletVelocity"; set nscondid "No-Slip"
     set cpropid "1"
@@ -833,10 +836,10 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
         # For each group in the no-slip condition
         foreach nsgroupid $noslipglist {
             lassign $dprops($AppId,BC,$nscondid,$nsgroupid,GProps) cx cxval cy cyval cz czval
-            # WarnWinText "nsgroupid:$nsgroupid cx:$cx cxval:$cxval cy:$cy cyval:$cyval cz:$cz czval:$czval"
-            if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
+            # wa "nsgroupid:$nsgroupid cx:$cx cxval:$cxval cy:$cy cyval:$cyval cz:$cz czval:$czval"
+            if {[GiD_EntitiesGroups get $nsgroupid nodes -count] } {
                 # For each node in the no-slip bc update the condmatch 
-                foreach nsnodeid [write_calc_data nodes -sorted $nsgroupid] {
+                foreach nsnodeid [GiD_EntitiesGroups get $nsgroupid nodes] {
                     dict set condmatch $nsnodeid [list $cx $cy $cz]
                 }
             }
@@ -846,7 +849,7 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
         set ixcomp ""; set iycomp ""; set izcomp ""
         foreach igroupid $inletvelglist {
             lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
-            # WarnWinText "igroupid:$igroupid ix:$ix iy:$iy iz:$iz"
+            # wa "igroupid:$igroupid ix:$ix iy:$iy iz:$iz"
             # Set the inlet format dictionary
             if {[GiD_EntitiesGroups get $igroupid nodes -count]} {
                 # 3D problems

@@ -14,6 +14,7 @@
 #
 #        HISTORY:
 #
+#       1.7- 12/02/13- J. Garate,   Modification on UpdateSpd. modeltype for Groups.
 #       1.6- 13/12/12- J. Garate,   Modification on UpdateSpd. If an Item or Container is hidden at Default.spd, keep it hidden.
 #       1.5- 07/11/12- J. Garate,   Modification on ::xmlutils::setXml to accept xpath or path as parameter
 #       1.4- 09/10/12- G. Socorro,  add the proc GetPropertyElemType 
@@ -655,6 +656,11 @@ proc ::xmlutils::UpdateSpd {filename {outputDisplay 1} {outputLog 1}} {
     foreach node $nodeGroups {
         $newNodeGroups appendChild $node
     }
+    set modeltypenode [$xmlOld selectNodes "/Kratos_Data/Groups"]
+    set modeltype [lindex [lindex [$modeltypenode asList] 1] 1]
+    #::xmlutils::setXml [$xmlNew selectNodes "/Kratos_Data/Groups"] "modeltype" "write" $modeltype
+    $xmlNew set "/Kratos_Data/Groups/@modeltype" "$modeltype"
+    
     
     #--- ASIGNACION DE GRUPOS Y PROPIEDADES
     set baseNodePaths {}

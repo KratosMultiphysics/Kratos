@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #
+#     1.6-12/02/13-G. Socorro, modify the command to access to the group window for version 11.0.x and 11.1.x
 #     1.5-10/10/12-G. Socorro, change arc.gif by curves.gif
 #     1.4-08/10/12-J. Garate, adapted to New GiD Groups
 #     1.3-03/10/12-G. Socorro, update some menu option to use the new curve module
@@ -209,27 +210,37 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
     global KPriv
     
     catch { unset KBitmapsNames KBitmapsCommands KBitmapsHelp }
-    if {[kipt::NewGiDGroups]} {
-        set grw "GiD_Groups"
-    } else {
-        set grw "Cond_Groups"
-    }
+   
     
     if { [kipt::CurvesModule ] } {
         set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif $KPriv(imagesdir)/nonlinear.gif \
 				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
 				$KPriv(imagesdir)/stop.gif"
 	
-	set KBitmapsCommands(0) [list \
-				     [list -np- $grw window open] \
-				     [list -np- ::KMProps::StartBaseWindow] \
-				     [list -np- ::KMProps::StartBaseWindow Materials] \
-				     [list -np- ::KMProps::StartBaseWindow Curve] \
-				     "" \
-				     [list -np- RunWin] \
-				     {Utilities Calculate} \
-				     [list -np- PWViewOutput] \
-				     {Utilities CancelProcess}]
+	if {[kipt::NewGiDGroups]} {
+	    set KBitmapsCommands(0) [list \
+					 [list -np- ::WinUtils::OpenGiDGroupTab] \
+					 [list -np- ::KMProps::StartBaseWindow] \
+					 [list -np- ::KMProps::StartBaseWindow Materials] \
+					 [list -np- ::KMProps::StartBaseWindow Curve] \
+					 "" \
+					 [list -np- RunWin] \
+					 {Utilities Calculate} \
+					 [list -np- PWViewOutput] \
+					 {Utilities CancelProcess}]
+	} else {
+	    set KBitmapsCommands(0) [list \
+					 [list -np- Cond_Groups window open] \
+					 [list -np- ::KMProps::StartBaseWindow] \
+					 [list -np- ::KMProps::StartBaseWindow Materials] \
+					 [list -np- ::KMProps::StartBaseWindow Curve] \
+					 "" \
+					 [list -np- RunWin] \
+					 {Utilities Calculate} \
+					 [list -np- PWViewOutput] \
+					 {Utilities CancelProcess}]
+	}
+
 
         set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
 				 [= "Define the model properties"] \
@@ -245,17 +256,28 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
 	set KBitmapsNames(0) "$KPriv(imagesdir)/groups.gif $KPriv(imagesdir)/new_props.gif $KPriv(imagesdir)/maticon.gif \
 				--- $KPriv(imagesdir)/openrunsim.gif $KPriv(imagesdir)/runsimulation.gif $KPriv(imagesdir)/runsiminfo.gif \
 				$KPriv(imagesdir)/stop.gif"
-	
-	set KBitmapsCommands(0) [list \
-				     [list -np- $grw window open] \
-				     [list -np- ::KMProps::StartBaseWindow] \
-				     [list -np- ::KMProps::StartBaseWindow Materials] \
-				     "" \
-				     [list -np- RunWin] \
-				     {Utilities Calculate} \
-				     [list -np- PWViewOutput] \
-				     {Utilities CancelProcess}]
-	
+	if {[kipt::NewGiDGroups]} {
+	    
+	    set KBitmapsCommands(0) [list \
+					 [list -np- ::WinUtils::OpenGiDGroupTab] \
+					 [list -np- ::KMProps::StartBaseWindow] \
+					 [list -np- ::KMProps::StartBaseWindow Materials] \
+					 "" \
+					 [list -np- RunWin] \
+					 {Utilities Calculate} \
+					 [list -np- PWViewOutput] \
+					 {Utilities CancelProcess}]
+	} else {
+	    set KBitmapsCommands(0) [list \
+					 [list -np- Cond_Groups window open] \
+					 [list -np- ::KMProps::StartBaseWindow] \
+					 [list -np- ::KMProps::StartBaseWindow Materials] \
+					 "" \
+					 [list -np- RunWin] \
+					 {Utilities Calculate} \
+					 [list -np- PWViewOutput] \
+					 {Utilities CancelProcess}]
+	}
 	
 	set KBitmapsHelp(0) [list [= "Define the group properties using the group editor"] \
 				 [= "Define the model properties"] \
