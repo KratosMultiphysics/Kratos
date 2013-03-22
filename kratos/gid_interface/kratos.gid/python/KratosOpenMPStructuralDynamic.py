@@ -59,15 +59,20 @@ if( ProjectParameters.Solution_method=="Newton-Raphson"):
 	  import structural_solver_dynamic as SolverType
         else:
 	  import structural_solver_dynamic_rotation as SolverType
-	  
-	  
-if( ProjectParameters.Solution_method=="LineSearch"):
+   elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+        if(ProjectParameters.Rotational_Dofs == "False"):
+	  import structural_solver_relaxation as SolverType
+        else:
+	  import structural_solver_relaxation_rotation as SolverType
+elif( ProjectParameters.Solution_method=="LineSearch"):
    if(ProjectParameters.SolverType == "DynamicSolver"):
         if(ProjectParameters.Rotational_Dofs == "False"):
 	  import structural_solver_dynamic_general as SolverType
 	else:
 	  import structural_solver_dynamic_rotation_general as SolverType
-	  
+else:
+        print "ERROR! bad combination of solvers and solution method!"
+        
 
 SolverType.AddVariables(model_part)
 
@@ -117,7 +122,10 @@ if(ProjectParameters.Rotational_Dofs == "True"):
 #importing the solver files
 
 SolverType.AddDofs(model_part)
-solver = SolverType.DynamicStructuralSolver(model_part,domain_size)
+if(ProjectParameters.SolverType == "DynamicSolver"):
+        solver = SolverType.DynamicStructuralSolver(model_part,domain_size)
+elif(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+        solver = SolverType.RelaxationStructuralSolver(model_part,domain_size)
 
 
 #solver.structure_linear_solver = ProjectParameters.problem_name.LinearSolver()  
@@ -161,6 +169,9 @@ elif(ProjectParameters.Convergence_Criteria == "Or_Criteria"):
     Residual       =   ResidualCriteria(RCT,RAT)
     solver.conv_criteria  = OrCriteria(Residual, Displacement)
         
+if(ProjectParameters.SolverType == "RelaxedDynamicSolver"):
+    solver.max_iter = ProjectParameters.Max_Iter
+
 
    
 solver.Initialize()

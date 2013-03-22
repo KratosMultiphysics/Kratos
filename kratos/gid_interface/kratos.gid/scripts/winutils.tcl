@@ -48,6 +48,9 @@ proc ::WinUtils::OpenGiDGroupTab {} {
 	if {[info exists ::GidPriv(LayersOrGroupsCurrentTab)] } {
 	    set ::GidPriv(LayersOrGroupsCurrentTab) 1
 	    $nb select $::GidPriv(LayersOrGroupsCurrentTab)                
+	} else {
+	    set ::GidPriv(LayersOrGroupsCurrentTab) 1
+	    $nb select $::GidPriv(LayersOrGroupsCurrentTab)
 	}
     }
 }

@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.6">
-    <Groups modeltype=""/>
+<Kratos_Data version="1.2.8">
+    <Groups modeltype="GiD"/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
         <Item id="BC" pid="BC"/>

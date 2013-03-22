@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.6- 12/02/12-G. Socorro, modify the link to the GiD group window to use ::WinUtils::OpenGiDGroupTab
 #   0.5- 10/10/12-J. Garate, Adaptation for New GiD Groups, Autogroup Frame Bug Corrected when assigning entities
 #   0.4- 01/10/12-J. Garate, Deleting group function corrected
 #   0.3- 26/04/12-G. Socorro, change GiD_Groups by Cond_Groups

@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.2- 18/03/13-G. Socorro, correct a bug in the proc WritePressureLoads_m2 change $group by $cgroupid
 #     1.1- 17/12/12-J. Garate,  Kratos Path is no longer written at ProjectParameters.py
 #     1.0- 12/11/12-J. Garate,  Fixed some errors
 #     0.9- 07/11/12-J. Garate,  Modification and adaptation on functions: WriteDispRotBC, WritePressureLoads, WritePuntualLoads, WriteBodyForceValues
@@ -252,7 +253,7 @@ proc ::wkcf::WriteDispRotBC_m2 {AppId ccondid kwordlist} {
             
         # Get the condition properties
         lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fix_x xval fix_y yval fix_z zval
-        # WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval
+        # WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval"
        
         # DISPLACEMENT_X or ROTATION_X
         set nodes [GiD_EntitiesGroups get $cgroupid nodes]
@@ -301,7 +302,7 @@ proc ::wkcf::WriteLoads {AppId} {
         set kwxpath "Applications/$AppId"
         # For all defined load identifier
         foreach cloadtid $dprops($AppId,AllLoadTypeId) {
-            # WarnWinText "cloadtid:$cloadtid"
+	    # WarnWinText "cloadtid:$cloadtid"
             # Check for all defined group identifier inside this load type
             if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)])} {
             # Select the load type
@@ -451,7 +452,7 @@ proc ::wkcf::WritePressureLoads_m2 {AppId cloadtid} {
             # Write Face3D3N condition
             GiD_File fprintf $filechannel "%s" "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
             set icondid 0
-            foreach elem_id [GiD_EntitiesGroups get $group elements -element_type $GiDElemType] {
+            foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
                 set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
                 set N1 [lindex $nodes 0]
                 set N2 [lindex $nodes 1]

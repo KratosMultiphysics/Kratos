@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     6.3- 19/03/13-G. Socorro, update the proc SelectPythonScript to select the correct python script
 #     6.2- 17/12/12-J. Garate,  PFEM Wall is disabled for .mdpa
 #     6.1- 21/11/12-J. Garate,  Modified ::wkcf::WriteNodalCoordinates_m2 ::wkcf::WriteElementConnectivities_m2 ::wkcf::WriteBoundaryCondition for PFEM
 #     6.0- 26/11/12-J. Garate,  Support to PFEM Application
@@ -161,13 +162,13 @@ proc ::wkcf::WriteCalculationFiles {filename} {
             # Init
             set filechannel [GiD_File fopen $filename]
         }
-        
+      
         # Write model part data
         ::wkcf::WriteModelPartData $AppId
 
         # Write properties block
         ::wkcf::WriteProperties $AppId
-        
+
         # Write nodes block    
         ::wkcf::WriteNodalCoordinates $AppId
 
@@ -182,7 +183,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 
         # Write boundary condition block
         ::wkcf::WriteBoundaryConditions $AppId
-          
+
           # For structural analysis application
           if {$AppId =="StructuralAnalysis"} {
               # Write load properties block
@@ -201,7 +202,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
               # Write the cutting and point history properties
               ::wkcf::WriteCutAndGraph $AppId
          }
- 
+
           if {$wmethod eq 1} {
               # End
               write_calc_data end
@@ -212,7 +213,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
               GiD_File fclose $filechannel
           }
       }
-     
+
       # Write the project parameters file
       ::wkcf::WriteProjectParameters
       
@@ -238,7 +239,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
-    
+
 ##     # Erase Old Conds
  #     if {[kipt::NewGiDGroups]} {
  #         set oldstate $::KPriv(Groups,DeleteGroup)
@@ -286,7 +287,7 @@ proc ::wkcf::SelectPythonScript {} {
 	    }
 	
 	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
-	    set tofname [file native [file join $PDir $endfilename]]
+	    set tofname [file native [file join $PDir $ppfilename]]
 	
 	    # Copy the script file
 	    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
@@ -303,7 +304,7 @@ proc ::wkcf::SelectPythonScript {} {
 	    }
 	    
 	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
-	    set mpitofname [file native [file join $PDir $mpiendfilename]]
+	    set mpitofname [file native [file join $PDir $mpifilename]]
 	    
 	    # Copy the script file
 	    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
@@ -1063,7 +1064,7 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
         set flagvariablelist [list] 
         # For all defined condition identifier
         foreach ccondid $dprops($AppId,AllBCTypeId) {
-            # WarnWinText "ccondid:$ccondid"
+	    # WarnWinText "ccondid:$ccondid"
             # Check for all defined group identifier inside this condition type
             if {([info exists dprops($AppId,BC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,BC,$ccondid,AllGroupId)])} {
                 # Select the condition type

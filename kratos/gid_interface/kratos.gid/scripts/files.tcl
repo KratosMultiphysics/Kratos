@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.4- 12/02/13- J. Garate, ::kfiles::TransferOldGroupstoGID FIXED
 #     1.3- 12/11/12- J. Garate, ::kfiles::TransferOldGroupstoGID modifications
 #     1.2- 07/11/12- J. Garate, Adaptation for New GiD Groups on Transfer Function
 #     1.1- 17/10/12- J. Garate, Correction when transferring old Cond_Groups to GiD_Groups
@@ -38,8 +39,20 @@ proc ::kfiles::TransferOldGroupstoGID { filename } {
     
     set root [$KPriv(xml) selectNodes "/Kratos_Data/Groups"]
     set model [$root getAttribute modeltype ""]
+    #wa "model:$model"
     
+    # Cuando acabo de crear un modelo, no hace falta transferir nada
+    if {$model eq "" } { return }
+    
+    # Si vengo de un modelo antiguo
     if {$model != "GiD" } {
+        if {![kipt::NewGiDGroups]} {
+            #wa "Old Groups, Old GiD version"
+            
+            # Si es un Gid antiguo y un modelo antiguo, todo bien.
+        }
+        # Si es un modelo Viejo pero un GiD nuevo, hay que hacer el transform
+        
         set grw "Cond_Groups"
         set GiDGroups [Cond_Groups list]
         #wa $filename
@@ -83,12 +96,17 @@ proc ::kfiles::TransferOldGroupstoGID { filename } {
         if {[kipt::NewGiDGroups]} {
             set grw "GiD_Groups"
             set force 2
+            # Si tiene grupos nuevos (Flag modeltype en el spd GiD) y un GiD nuevo, no hace falta hacer nada
+            #msg "Grupos Nuevos sobre GiD nuevo, todo OK"
+            return
         } else {
             set grw "Cond_Groups"
             set force 1
         }
         set GiDGroups [$grw list]
         
+	 #wa "GiDGroups:$GiDGroups"
+     #return
         if { $filename != "" } { 
 
             if {[file exists $filename] && [file size $filename] > 1} {
@@ -106,7 +124,7 @@ proc ::kfiles::TransferOldGroupstoGID { filename } {
                     #set gcolor [$node getAttribute color ""]
                     set state [$node getAttribute state ""]
                     if {$gname ni $GiDGroups} {
-                
+			# wa "gname:$gname"
                         $grw create $gname
                         #Cond_Groups edit color $gname $gcolor
                         $grw edit visible $gname $state
@@ -154,7 +172,9 @@ proc ::kfiles::RecursiveChildTransfer {nodes gpath {force 0} } {
 proc ::kfiles::LoadSPD {filename} {
     
     global KPriv
-    #msg $filename
+
+    # wa "LoadSPD => filename:$filename"
+
     set KPriv(problemTypeDir) [file dirname $filename]
     
     #
@@ -174,8 +194,8 @@ proc ::kfiles::LoadSPD {filename} {
     
     #::KEGroups::Init
     set xmlArray [::xmlutils::openFile "." "$filename"]
-    #msg "[xmlArray asXML]"
     set KPriv(xml) [lindex $xmlArray 0]
+    # wa "[$KPriv(xml) asXML]"
     set KPriv(encrXml) [lindex $xmlArray 1]
     set KPriv(xmlDoc) [lindex $xmlArray 2]
     
@@ -192,7 +212,7 @@ proc ::kfiles::LoadSPD {filename} {
         }
 	
     }
-    
+    # wa "after [$KPriv(xml) asXML]"
     #
     # MATERIALS
     #
