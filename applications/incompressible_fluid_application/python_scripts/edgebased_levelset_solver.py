@@ -12,12 +12,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISTANCE)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
     model_part.AddNodalSolutionStepVariable(POROSITY)
-
-#    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(DIAMETER)
     model_part.AddNodalSolutionStepVariable(LIN_DARCY_COEF)
     model_part.AddNodalSolutionStepVariable(NONLIN_DARCY_COEF)
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    model_part.AddNodalSolutionStepVariable(STRUCTURE_VELOCITY)
 
     print "variables for the edgebased incompressible fluid solver added correctly"
 
@@ -179,6 +179,7 @@ class EdgeBasedLevelSetSolver:
         print "entered in EdgeBasedLevelSetSolver fluid only solve"
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 
+                
         (self.fluid_solver).SolveStep1();
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
         (self.fluid_solver).SolveStep3();
@@ -200,11 +201,11 @@ class EdgeBasedLevelSetSolver:
 	self.timer.Start("Update Fixed Velocity Values")
         (self.fluid_solver).UpdateFixedVelocityValues()
 	self.timer.Stop("Update Fixed Velocity Values")
-
+               
 	self.timer.Start("Extrapolate Values")
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 	self.timer.Stop("Extrapolate Values")
-
+               
         ##convect levelset function
        # self.convection_solver.Solve();
 	self.timer.Start("Convect Distance")
