@@ -22,7 +22,7 @@ set( KRATOS_METIS_APPLICATION_SOURCES
 
 # ###############################################################
 add_library(KratosMetisApplication SHARED ${KRATOS_METIS_APPLICATION_SOURCES})
-target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} )
+target_link_libraries(KratosMetisApplication KratosCore ${METIS_LIBRARY} ${MPI_LIBRARIES} )
 set_target_properties(KratosMetisApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd 
