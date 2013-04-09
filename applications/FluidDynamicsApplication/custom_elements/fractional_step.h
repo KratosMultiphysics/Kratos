@@ -501,8 +501,8 @@ namespace Kratos
                                   const double Viscosity,
                                   const ProcessInfo& rCurrentProcessInfo);
 
-        virtual void CalculateProjectionRHS(array_1d<double,3>& rMomentumRHS,
-                                            double& rMassRHS,
+        virtual void CalculateProjectionRHS(VectorType& rMomentumRHS,
+                                            VectorType& rMassRHS,
                                             const ShapeFunctionsType& rN,
                                             const ShapeFunctionDerivativesType& rDN_DX,
                                             const double Weight);
