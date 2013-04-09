@@ -99,14 +99,16 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
     {
         const GeometryType& rGeom = this->GetGeometry();
         const SizeType NumNodes = rGeom.PointsNumber();
+        const unsigned int LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
         const Matrix& NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const SizeType NumGauss = IntegrationPoints.size();
 
-        array_1d<double,3> MomentumRHS(3,0.0);
-        double MassRHS = 0.0;
+        VectorType MomentumRHS = ZeroVector(LocalSize);
+        VectorType MassRHS = ZeroVector(NumNodes);
+        VectorType NodalArea = ZeroVector(NumNodes);
 
         // Loop on integration points
         for (SizeType g = 0; g < NumGauss; g++)
@@ -114,18 +116,22 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
             const ShapeFunctionsType& N = row(NContainer,g);
             const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
 
+            for (unsigned int i = 0; i < NumNodes; i++)
+                NodalArea[i] += N[i] * GaussWeight;
+
             this->CalculateProjectionRHS(MomentumRHS,MassRHS,N,mDN_DX,GaussWeight);
         }
 
-        // distribute residual to nodes, to compute projections
-        const ShapeFunctionsType CenterN = row(rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
-
         // Carefully write results to nodal variables, to avoid parallelism problems
+        unsigned int RowIndex = 0;
         for (SizeType i = 0; i < NumNodes; ++i)
         {
             this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-            this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS * CenterN[i];
-            this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ) += MomentumRHS * CenterN[i];
+            array_1d<double,3>& rMomValue = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+            for (unsigned int d = 0; d < TDim; ++d)
+                rMomValue[d] += MomentumRHS[RowIndex++];
+            this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += MassRHS[i];
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += NodalArea[i];
             this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
         }
     }
@@ -1069,8 +1075,8 @@ void FractionalStep<TDim>::CalculateTau(double& TauOne,
 
 
 template <unsigned int TDim>
-void FractionalStep<TDim>::CalculateProjectionRHS(array_1d<double,3>& rMomentumRHS,
-                                                  double& rMassRHS,
+void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rMomentumRHS,
+                                                  VectorType& rMassRHS,
                                                   const ShapeFunctionsType& rN,
                                                   const ShapeFunctionDerivativesType& rDN_DX,
                                                   const double Weight)
@@ -1097,8 +1103,15 @@ void FractionalStep<TDim>::CalculateProjectionRHS(array_1d<double,3>& rMomentumR
     double Divergence;
     this->EvaluateDivergenceInPoint(Divergence,VELOCITY,rDN_DX);
 
-    rMomentumRHS += Weight * ( Density * ( BodyForce - Convection) - PressureGradient );
-    rMassRHS -= Weight * Divergence;
+    int RowIndex = 0;
+    for (unsigned int j = 0; j < NumNodes; ++j)
+    {
+        for (unsigned int d = 0; d < TDim; ++d)
+        {
+            rMomentumRHS[RowIndex++] += Weight * rN[j]*( Density * ( BodyForce[d] - Convection[d]) - PressureGradient[d] );
+        }
+        rMassRHS[j] -= Weight * rN[j] * Divergence;
+    }
 }
 
 
