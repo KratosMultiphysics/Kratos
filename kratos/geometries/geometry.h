@@ -1641,6 +1641,12 @@ public:
         return rResult;
     }
 
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients( ShapeFunctionsGradientsType& rResult, Vector& determinants_of_jacobian, IntegrationMethod ThisMethod ) const
+    {
+        KRATOS_ERROR( std::logic_error,
+                      "Calling base class ShapeFunctionsGaussPointsGradients (with determinants) method instead of derived class one. Please check the definition of derived class." , *this );
+        return rResult;
+    }
 
     boost::numeric::ublas::vector<Matrix> const& MassFactors() const
     {

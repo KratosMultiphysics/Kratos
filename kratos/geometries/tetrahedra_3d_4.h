@@ -1003,35 +1003,119 @@ public:
         if(integration_points_number == 0)
             KRATOS_ERROR(std::logic_error,
                          "This integration method is not supported" , *this);
+						 
+		boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+		double x10 = this->Points()[1].X() - this->Points()[0].X();
+        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+
+        double x20 = this->Points()[2].X() - this->Points()[0].X();
+        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+
+        double x30 = this->Points()[3].X() - this->Points()[0].X();
+        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+
+        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+
+        DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
+        DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
+        DN_DX(0,2) = -x20 * y30 + y20 * x30 + x10 * y30 - y10 * x30 - x10 * y20 + y10 * x20;
+        DN_DX(1,0) = y20 * z30 - y30 * z20;
+        DN_DX(1,1) = z20 * x30 - x20 * z30;
+        DN_DX(1,2) = x20 * y30 - y20 * x30;
+        DN_DX(2,0) = -y10 * z30 + z10 * y30;
+        DN_DX(2,1) = x10 * z30 - z10 * x30;
+        DN_DX(2,2) = -x10 * y30 + y10 * x30;
+        DN_DX(3,0) = y10 * z20 - z10 * y20;
+        DN_DX(3,1) = -x10 * z20 + z10 * x20;
+        DN_DX(3,2) = x10 * y20 - y10 * x20;
+
+        DN_DX /= detJ;
+
+//        Volume = detJ*0.1666666666666666666667;
+				
         //workaround by riccardo
         if(rResult.size() != integration_points_number)
         {
             // KLUDGE: While there is a bug in ublas
             // vector resize, I have to put this beside resizing!!
-            ShapeFunctionsGradientsType temp(integration_points_number);
+            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
             rResult.swap(temp);
         }
-        //calculating the local gradients
-        ShapeFunctionsGradientsType locG =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
-        //getting the inverse jacobian matrices
-        JacobiansType temp( integration_points_number );
-        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
-        //loop over all integration points
-        for(unsigned int pnt=0; pnt<integration_points_number; pnt++ )
+		else
+		{
+			for(unsigned int i=0; i<integration_points_number; i++)
+				noalias(rResult[i]) = DN_DX;
+		}
+		
+        return rResult;
+    }
+
+virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+        ShapeFunctionsGradientsType& rResult
+		, Vector& determinants_of_jacobian
+		, IntegrationMethod ThisMethod) const
+    {
+        const unsigned int integration_points_number =
+            msGeometryData.IntegrationPointsNumber(ThisMethod);
+        if(integration_points_number == 0)
+            KRATOS_ERROR(std::logic_error,
+                         "This integration method is not supported" , *this);
+						 
+		boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+		double x10 = this->Points()[1].X() - this->Points()[0].X();
+        double y10 = this->Points()[1].Y() - this->Points()[0].Y();
+        double z10 = this->Points()[1].Z() - this->Points()[0].Z();
+
+        double x20 = this->Points()[2].X() - this->Points()[0].X();
+        double y20 = this->Points()[2].Y() - this->Points()[0].Y();
+        double z20 = this->Points()[2].Z() - this->Points()[0].Z();
+
+        double x30 = this->Points()[3].X() - this->Points()[0].X();
+        double y30 = this->Points()[3].Y() - this->Points()[0].Y();
+        double z30 = this->Points()[3].Z() - this->Points()[0].Z();
+
+        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
+
+        DN_DX(0,0) = -y20 * z30 + y30 * z20 + y10 * z30 - z10 * y30 - y10 * z20 + z10 * y20;
+        DN_DX(0,1) = -z20 * x30 + x20 * z30 - x10 * z30 + z10 * x30 + x10 * z20 - z10 * x20;
+        DN_DX(0,2) = -x20 * y30 + y20 * x30 + x10 * y30 - y10 * x30 - x10 * y20 + y10 * x20;
+        DN_DX(1,0) = y20 * z30 - y30 * z20;
+        DN_DX(1,1) = z20 * x30 - x20 * z30;
+        DN_DX(1,2) = x20 * y30 - y20 * x30;
+        DN_DX(2,0) = -y10 * z30 + z10 * y30;
+        DN_DX(2,1) = x10 * z30 - z10 * x30;
+        DN_DX(2,2) = -x10 * y30 + y10 * x30;
+        DN_DX(3,0) = y10 * z20 - z10 * y20;
+        DN_DX(3,1) = -x10 * z20 + z10 * x20;
+        DN_DX(3,2) = x10 * y20 - y10 * x20;
+
+        DN_DX /= detJ;
+		
+		if(determinants_of_jacobian.size() != integration_points_number )
+			determinants_of_jacobian.resize(integration_points_number,false);
+			
+		for(unsigned int i=0; i<integration_points_number; i++)
+			determinants_of_jacobian[i] = detJ;
+
+//        Volume = detJ*0.1666666666666666666667;
+				
+        //workaround by riccardo
+        if(rResult.size() != integration_points_number)
         {
-            rResult[pnt].resize(4,3);
-            for( int i=0; i<4; i++ )
-            {
-                for( int j=0; j<3; j++ )
-                {
-                    rResult[pnt](i,j) =
-                        (locG[pnt](i,0)*invJ[pnt](j,0))
-                        +(locG[pnt](i,1)*invJ[pnt](j,1))
-                        +(locG[pnt](i,2)*invJ[pnt](j,2));
-                }
-            }
-        }//end of loop over integration points
+            // KLUDGE: While there is a bug in ublas
+            // vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp(integration_points_number,DN_DX);
+            rResult.swap(temp);
+        }
+		else
+		{
+			for(unsigned int i=0; i<integration_points_number; i++)
+				noalias(rResult[i]) = DN_DX;
+		}
+		
         return rResult;
     }
 
