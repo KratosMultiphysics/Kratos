@@ -249,7 +249,8 @@ public:
             {
                 if ( itCond->GetValue(rVariable) != Zero )
                     CalculateNormal3D(itCond,An,v1,v2);
-            }
+
+	    }
         }
 
         // Transfer normals to nodes
@@ -310,6 +311,7 @@ public:
                 it !=rModelPart.NodesEnd(); it++)
         {
             noalias(it->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+            it->FastGetSolutionStepValue(NODAL_PAUX) = 0.0;	    
         }
 
         // Calculate new condition normals, using only conditions with rVariable == rValue
@@ -342,6 +344,7 @@ public:
         {
 	  std::vector< array_1d<double,3> > N_Mat; 
 	  N_Mat.reserve(10);
+	  double nodal_area = 0.0;
 	 
 	  WeakPointerVector<Condition >& ng_cond = it->GetValue(NEIGHBOUR_CONDITIONS);
 	  
@@ -355,6 +358,8 @@ public:
 		
 		if(norm_normal != 0.0)
 		{
+		  nodal_area += Coef * norm_normal;
+		  
 		  if(N_Mat.size() == 0.0)
 		      N_Mat.push_back( rNormal * Coef );
 		  else{
@@ -388,6 +393,7 @@ public:
 	  }
 	  
 	  noalias( it->FastGetSolutionStepValue(NORMAL) ) = sum_Normal;
+	  it->FastGetSolutionStepValue(NODAL_PAUX) = nodal_area;
 	  //assign IS_SLIP = 0 for vertices
 	  if(N_Mat.size() == 2){
 // 	    it->SetValue(IS_SLIP,0);	  
@@ -403,7 +409,8 @@ public:
                
         // For MPI: correct values on partition boundaries
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
-
+        rModelPart.GetCommunicator().AssembleCurrentData(NODAL_PAUX);
+	
         KRATOS_CATCH("");
     }
 
