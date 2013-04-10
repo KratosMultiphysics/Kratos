@@ -4,6 +4,9 @@ from KratosMultiphysics.ThermoMechanicalApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 
+from KratosMultiphysics.StructuralApplication import *
+
+
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
@@ -25,7 +28,9 @@ def AddVariables(model_part,settings):
     #model_part.AddNodalSolutionStepVariable(HTC);    
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION);    
     model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_RATE);  
-    model_part.AddNodalSolutionStepVariable(DISTANCE);     
+    model_part.AddNodalSolutionStepVariable(DISTANCE);   
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX);  
+    model_part.AddNodalSolutionStepVariable(NODAL_VOLUME);      
     print "variables for the THERMAL_SOLVER added correctly"
         
 def AddDofs(model_part,settings):
@@ -52,7 +57,8 @@ class Solver:
 ##        pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-##        self.linear_solver = BICGSTABSolver(1e-3, 5000,pPrecond)
+       # self.linear_solver = BICGSTABSolver(1e-4, 5000,pPrecond)
+
 
         #new solvers
 	gmres_size = 50
@@ -80,18 +86,24 @@ class Solver:
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
 
-        self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
+        #self.conv_criteria = ResidualCriteria(1e-3,1e-4)   
+        self.conv_criteria = IncrementalDisplacementCriteria(1e-6,1e-14)
         self.max_iter = 3
-
-        #material settings
-        self.rho_mat = 100.0
-        self.rho_empty = 1.0
         
-        self.specific_heat_mat = 1006.0
-        self.specific_heat_empty = 1.0   
+        BiphasicFillingUtilities().ComputeNodalVolume(self.model_part)
         
-        self.conductivity_mat = 0.024
-        self.conductivity_empty = 1.0          
+        #linesearch solver 
+ 	# definition of parameters
+	self.MaxLineSearchIterations    = 20
+	self.MaxNewtonRapshonIterations = 5
+	self.tolls     = 0.8           # energy tolerance factor on LineSearch (0.8 is ok) 
+	self.amp       = 1.618         # maximum amplification factor
+	self.etmxa     = 3.0           # maximum allowed step length
+ 	self.etmna     = 0.1           # minimum allowed step length
+	self.toler     = 1.0E-9
+        self.norm      = 1.0E-6       
+        self.ApplyLineSearches      = True
+        
     #######################################################################
     def Initialize(self):
 
@@ -108,16 +120,24 @@ class Solver:
  	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)    
  	
         #self.solver = ResidualBasedLinearStrategy(self.model_part,self.time_scheme,self.linear_solver,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.CalculateNormDxFlag,self.MoveMeshFlag)   
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
+
+	self.solver = ResidualBasedNewtonRaphsonLineSearchesStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,
+	self.MaxNewtonRapshonIterations,self.MaxLineSearchIterations, self.tolls, self.amp, self.etmxa, self.etmna,
+        self.CalculateReactionFlag,
+        self.ReformDofSetAtEachStep,
+        self.MoveMeshFlag,
+        self.ApplyLineSearches)
+        
         (self.solver).SetEchoLevel(self.echo_level)
         #(self.solver).SetBuilderAndSolver(ResidualBasedEliminationBuilderAndSolverDeactivation(self.linear_solver))
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
-        if (self.domain_size == 2):
-            self.normal_tools.CalculateBodyNormals(self.model_part,2);        
-        else:
-            self.normal_tools.CalculateBodyNormals(self.model_part,3); 
+        #if (self.domain_size == 2):
+            #self.normal_tools.CalculateBodyNormals(self.model_part,2);        
+        #else:
+            #self.normal_tools.CalculateBodyNormals(self.model_part,3); 
         
         #self.ApplyFluidProperties()
 ##        print "Initialization monolithic solver finished"
