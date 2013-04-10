@@ -88,6 +88,7 @@ class BiphasicFillingUtilities
 		double CreateAutoExitAssignAirSmagorinsky(ModelPart& ThisModelPart, double y_wall, double C_Smagorinsky)
 		{			
 			KRATOS_TRY;
+/*			AirSmagorinskey(ThisModelPart, C_Smagorinsky);*/
 			int node_size = ThisModelPart.Nodes().size();
 			for (int ii = 0; ii < node_size; ii++)
 			 {
@@ -182,7 +183,7 @@ class BiphasicFillingUtilities
 					    it->SetValue(Y_WALL,y_wall_val);}
 				  else{
 						it->SetValue(IS_STRUCTURE,is_str);	  
-						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
+						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}//y_wall_val*y_wall_fac	
 				  }
 			}
 			double filling_percent = 0.0;
@@ -300,7 +301,34 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 	      KRATOS_CATCH("")
 	    }	      
 	//**********************************************************************************************
-	//**********************************************************************************************		  
+	//**********************************************************************************************	
+    void ComputeNodalVolume(ModelPart& ThisModelPart)
+	{	
+	  KRATOS_TRY;
+	    //first of all set to zero the nodal variables to be updated nodally
+	    for (ModelPart::NodeIterator i = ThisModelPart.NodesBegin();
+		    i != ThisModelPart.NodesEnd(); ++i)
+	    {
+		(i)->GetSolutionStepValue(NODAL_VOLUME) = 0.00;
+	    }
+	    
+	    for (ModelPart::ElementIterator i = ThisModelPart.ElementsBegin();
+		    i != ThisModelPart.ElementsEnd(); ++i)
+	    {
+                Geometry< Node<3> >& rGeometry = i->GetGeometry();
+                double volume = 0.25 * rGeometry.DomainSize();
+	      
+		for (int jj =0; jj<4; ++jj)
+		  rGeometry[jj].FastGetSolutionStepValue(NODAL_VOLUME) += volume;
+	    }
+	    
+	    ThisModelPart.GetCommunicator().AssembleCurrentData(NODAL_VOLUME);
+
+	      
+	  KRATOS_CATCH("")
+	}	      
+	//**********************************************************************************************
+	//**********************************************************************************************	
   private:
  	
 	void AirSmagorinskey(ModelPart& ThisModelPart, double C_Smagorinsky)
