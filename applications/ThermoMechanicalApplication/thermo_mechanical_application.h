@@ -36,6 +36,7 @@
 #include "custom_elements/environment_contact.h"
 #include "custom_elements/SUPG_conv_diff_phase_change_2d.h"
 #include "custom_elements/SUPG_conv_diff_phase_change_3d.h"
+#include "custom_elements/SUPG_conv_2d.h"
 
 namespace Kratos
 {
@@ -48,6 +49,13 @@ KRATOS_DEFINE_VARIABLE(int, NODE_PROPERTY_ID)
 KRATOS_DEFINE_VARIABLE(double,  HTC)
 KRATOS_DEFINE_VARIABLE(double,  NET_INPUT_MATERIAL)
 KRATOS_DEFINE_VARIABLE(int, REF_ID)
+KRATOS_DEFINE_VARIABLE(double, PARTICLE_RADIUS)
+KRATOS_DEFINE_VARIABLE(double, POSETIVE_DISTANCE)
+KRATOS_DEFINE_VARIABLE(double, NAGATIVE_DISTANCE)
+KRATOS_DEFINE_VARIABLE(bool, IS_ESCAPED)
+KRATOS_DEFINE_VARIABLE(int, IS_SOLIDIFIED)
+KRATOS_DEFINE_VARIABLE(double, NODAL_VOLUME )    
+
 
 ///@}
 ///@name Type Definitions
@@ -211,7 +219,8 @@ private:
     const SUPGConvDiff3D  mSUPGConvDiff3D;
     const SUPGConv3D  mSUPGConv3D;
     const SUPGConvDiffPhaseChange2D  mSUPGConvDiffPhaseChange2D;
-    const SUPGConvDiffPhaseChange3D  mSUPGConvDiffPhaseChange3D;   
+    const SUPGConvDiffPhaseChange3D  mSUPGConvDiffPhaseChange3D;  
+    const SUPGConv2D  mSUPGConv2D;   
     ///@}
     ///@name Private Operators
     ///@{
