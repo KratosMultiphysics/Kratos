@@ -72,6 +72,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // #include "custom_conditions/environment_contact.h"
 //#include "includes/variables.h"
 #include "utilities/openmp_utils.h"
+#include "includes/convection_diffusion_settings.h"
 
 
 
@@ -88,159 +89,264 @@ namespace Kratos
 		//**********************************************************************************************
 		//
 
-		double ComputeDt(ModelPart& ThisModelPart, const double dist_max, const double CFL, const double dt_min ,const double dt_max  )
-		{			
-		  KRATOS_TRY
+	  double ComputeDt(ModelPart& ThisModelPart, const double dist_max, const double CFL, const double dt_min ,const double dt_max  )
+	  {			
+	    KRATOS_TRY
 
-        const unsigned int NumNodes = TDim +1;
+	      const unsigned int NumNodes = TDim +1;
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::PartitionVector ElementPartition;
-        OpenMPUtils::DivideInPartitions(ThisModelPart.NumberOfElements(),NumThreads,ElementPartition);
+	      int NumThreads = OpenMPUtils::GetNumThreads();
+	      OpenMPUtils::PartitionVector ElementPartition;
+	      OpenMPUtils::DivideInPartitions(ThisModelPart.NumberOfElements(),NumThreads,ElementPartition);
 
-        std::vector<double> MaxProj(NumThreads,0.0);
-// NumThreads = 1;
-         #pragma omp parallel shared(MaxProj)
-         {
-            int k = OpenMPUtils::ThisThread();
-            ModelPart::ElementIterator ElemBegin = ThisModelPart.ElementsBegin() + ElementPartition[k];
-            ModelPart::ElementIterator ElemEnd = ThisModelPart.ElementsBegin() + ElementPartition[k+1];
+	      std::vector<double> MaxProj(NumThreads,0.0);
+      // NumThreads = 1;
+	      #pragma omp parallel shared(MaxProj)
+	      {
+		  int k = OpenMPUtils::ThisThread();
+		  ModelPart::ElementIterator ElemBegin = ThisModelPart.ElementsBegin() + ElementPartition[k];
+		  ModelPart::ElementIterator ElemEnd = ThisModelPart.ElementsBegin() + ElementPartition[k+1];
 
-            double& rMaxProj = MaxProj[k];
+		  double& rMaxProj = MaxProj[k];
 
-            double Area;
-            array_1d<double, NumNodes> N;
-	    array_1d<double, NumNodes> dist_vec;
-            boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
+		  double Area;
+		  array_1d<double, NumNodes> N;
+		  array_1d<double, NumNodes> dist_vec;
+		  boost::numeric::ublas::bounded_matrix<double, NumNodes, TDim> DN_DX;
 
-            for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
-            {
-                // Get the element's geometric parameters
-                Geometry< Node<3> >& rGeom = itElem->GetGeometry();
-			    double ele_dist = 0.0;
-			    for (unsigned int kk = 0; kk < rGeom.size(); kk++){
-				     double dist = rGeom[kk].FastGetSolutionStepValue(DISTANCE);
-				     dist_vec[kk] = dist;
-				  ele_dist +=  fabs(dist);
-			    }
-	       ele_dist /= NumNodes;
-	       if(ele_dist <= dist_max){
-                GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
+		  for( ModelPart::ElementIterator itElem = ElemBegin; itElem != ElemEnd; ++itElem)
+		  {
+		      // Get the element's geometric parameters
+		      Geometry< Node<3> >& rGeom = itElem->GetGeometry();
+				  double ele_dist = 0.0;
+				  for (unsigned int kk = 0; kk < rGeom.size(); kk++){
+					  double dist = rGeom[kk].FastGetSolutionStepValue(DISTANCE);
+					  dist_vec[kk] = dist;
+					ele_dist +=  fabs(dist);
+				  }
+		    ele_dist /= NumNodes;
+		    if(ele_dist <= dist_max){
+		      GeometryUtils::CalculateGeometryData(rGeom, DN_DX, N, Area);
 
-                // Elemental Velocity
-                array_1d<double,TDim> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-                for (unsigned int i = 1; i < NumNodes; ++i)
-                    noalias(ElementVel) += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
+		      // Elemental Velocity
+		      array_1d<double,TDim> ElementVel = N[0]*itElem->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+		      for (unsigned int i = 1; i < NumNodes; ++i)
+			  noalias(ElementVel) += N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
 
-		//compute normal velocity
-		array_1d<double, TDim>  grad_dist = prod(trans(DN_DX),dist_vec);
-		double norm_grad_dist = norm_2(grad_dist); //grad_dist[0]*grad_dist[0] + grad_dist[1]*grad_dist[1] + grad_dist[2]*grad_dist[2];
-// 		norm_grad_dist = sqrt(norm_grad_dist);
-		
-		double normal_speed = inner_prod(ElementVel,grad_dist);
-		if(norm_grad_dist > 0.0){
-		  normal_speed /= norm_grad_dist;
-		  noalias(ElementVel) = (normal_speed/norm_grad_dist)*grad_dist;
-		}
-		else 
-		  noalias(ElementVel) = ZeroVector(3);
-		
-		
-// 		// Velocity norm
-//                 double VelNorm = ElementVel[0]*ElementVel[0];
-//                 for (unsigned int d = 1; d < TDim; ++d)
-//                     VelNorm += ElementVel[d]*ElementVel[d];
-//                 VelNorm = sqrt(VelNorm);
+		      //compute normal velocity
+		      array_1d<double, TDim>  grad_dist = prod(trans(DN_DX),dist_vec);
+		      double norm_grad_dist = norm_2(grad_dist); //grad_dist[0]*grad_dist[0] + grad_dist[1]*grad_dist[1] + grad_dist[2]*grad_dist[2];
+      // 		norm_grad_dist = sqrt(norm_grad_dist);
+		      
+		      double normal_speed = inner_prod(ElementVel,grad_dist);
+		      if(norm_grad_dist > 0.0){
+			normal_speed /= norm_grad_dist;
+			noalias(ElementVel) = (normal_speed/norm_grad_dist)*grad_dist;
+		      }
+		      else 
+			noalias(ElementVel) = ZeroVector(3);
+		      
+		      
+      // 		// Velocity norm
+      //                 double VelNorm = ElementVel[0]*ElementVel[0];
+      //                 for (unsigned int d = 1; d < TDim; ++d)
+      //                     VelNorm += ElementVel[d]*ElementVel[d];
+      //                 VelNorm = sqrt(VelNorm);
 
 
-                // Maximum element size along the direction of velocity
-                for (unsigned int i = 0; i < NumNodes; ++i)
-                {
-                    double Proj = 0.0;
-                    for (unsigned int d = 0; d < TDim; ++d)
-                        Proj += ElementVel[d]*DN_DX(i,d);
-                    Proj = fabs(Proj);
-                    if (Proj > rMaxProj) rMaxProj = Proj;
-                }
+		      // Maximum element size along the direction of velocity
+		      for (unsigned int i = 0; i < NumNodes; ++i)
+		      {
+			  double Proj = 0.0;
+			  for (unsigned int d = 0; d < TDim; ++d)
+			      Proj += ElementVel[d]*DN_DX(i,d);
+			  Proj = fabs(Proj);
+			  if (Proj > rMaxProj) rMaxProj = Proj;
+		      }
+		    }
+		  }
 	      }
-            }
-         }
 
-        // Obtain the maximum projected element size (compare thread results)
-        double Max = 0.0;
-        for (int k = 0; k < NumThreads; ++k)
-            if (Max < MaxProj[k]) Max = MaxProj[k];
+	      // Obtain the maximum projected element size (compare thread results)
+	      double Max = 0.0;
+	      for (int k = 0; k < NumThreads; ++k)
+		  if (Max < MaxProj[k]) Max = MaxProj[k];
 
-        // Dt to obtain desired CFL
-        double dt = CFL / Max;
-        if(dt > dt_max)
-            dt = dt_max;
-	else if(dt < dt_min)
-	    dt = dt_min;
+	      // Dt to obtain desired CFL
+	      double dt = CFL / Max;
+	      if(dt > dt_max)
+		  dt = dt_max;
+	      else if(dt < dt_min)
+		  dt = dt_min;
 
-        //perform mpi sync if needed
-        double global_dt = dt;
-        ThisModelPart.GetCommunicator().MinAll(global_dt);
-        dt = global_dt;
+	      //perform mpi sync if needed
+	      double global_dt = dt;
+	      ThisModelPart.GetCommunicator().MinAll(global_dt);
+	      dt = global_dt;
 
-        return dt;
+	      return dt;
 
-		  //array_1d<double, 3 > dx, dv;
-		  //double deltatime = dt_max;
-		  //double dvside, lside;
+	    KRATOS_CATCH("")	
+	  }
+	  
+         /* Compute solidificatio nand cooling DT */
+	  double ComputeSolidificationCoolingDt(ModelPart& ThisModelPart, 
+						const double solidification_percent, 
+						const double max_cooling_delta_temp, 
+						const double dt_min,
+						const double dt_max)
+	  {			
+	    KRATOS_TRY
+	    
+	   const int NumNodes = TDim +1;
+// 	   is_cold = 0;
+	   
+	   const double current_dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+	   const int is_solidified = ThisModelPart.GetProcessInfo()[IS_SOLIDIFIED];
+	   int global_is_solidified = is_solidified;
+// 	   ThisModelPart.GetCommunicator().MinAll(global_is_solidified);	   
+	   
+	   if(global_is_solidified == 0)
+	   {
+	    double current_solidified_volume = 0.0;
+	    double old_solidified_volume = 0.0;
+	    double tot_vol = 0.0;
+	    
+	    int node_size = ThisModelPart.Nodes().size();	    
+	    for (int ii = 0; ii < node_size; ii++)
+	       {
+                 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		 double vol = it->FastGetSolutionStepValue(NODAL_VOLUME);
+		 double current_S = it->FastGetSolutionStepValue(SOLID_FRACTION);
+		 double old_S = it->FastGetSolutionStepValue(SOLID_FRACTION,1);	
+		 
+		 current_solidified_volume += vol*current_S;
+		 old_solidified_volume += vol*old_S;
+		 tot_vol += vol;
+		 
+	       }
+	       
+	    ThisModelPart.GetCommunicator().SumAll(current_solidified_volume);	 
+	    ThisModelPart.GetCommunicator().SumAll(old_solidified_volume);
+	    ThisModelPart.GetCommunicator().SumAll(tot_vol);
 
-		  //for (ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
-			 // i != ThisModelPart.ElementsEnd(); i++)
-		  //{
-		  //    //calculating shape functions values
-		  //    Geometry< Node < 3 > >& geom = i->GetGeometry();
-			 // double ele_dist = 0.0;
-			 // for (unsigned int kk = 0; kk < geom.size(); kk++){
-				//     double dist = geom[kk].FastGetSolutionStepValue(DISTANCE);
-				//  ele_dist +=  fabs(dist);
-			 // }
+	    if(tot_vol == 0.0) 
+                KRATOS_ERROR(std::logic_error, "inside ComputeSolidificationCoolingDt: total volume is zero!", "")
+	      
+	    if(current_solidified_volume == tot_vol){
+	      ThisModelPart.GetProcessInfo()[IS_SOLIDIFIED] = 1;
+	      KRATOS_WATCH("1111111111111111111111");
+	      return current_dt;}
+	    else
+	    {
+	      double  delta_solid = current_solidified_volume - old_solidified_volume;
+			      
+	      if( delta_solid > 0.0 )
+	      {
+		delta_solid /= tot_vol;
+			      KRATOS_WATCH(delta_solid);
+		double new_dt = (solidification_percent /  delta_solid) * current_dt;
+		if( new_dt > dt_max)
+		  new_dt = dt_max;
+		else if( new_dt < dt_min)
+		  new_dt = dt_min;
 
-			 // if(ele_dist <= dist_max){
-		  //    for (unsigned int i1 = 0; i1 < geom.size() - 1; i1++)
-		  //    {
-			 // for (unsigned int i2 = i1 + 1; i2 < geom.size(); i2++)
-			 // {
-			 //     dx[0] = geom[i2].X() - geom[i1].X();
-			 //     dx[1] = geom[i2].Y() - geom[i1].Y();
-			 //     dx[2] = geom[i2].Z() - geom[i1].Z();
+	      KRATOS_WATCH("22222222222222222222222");		
+		return new_dt;	      
+	      }
+	      else{
+	      KRATOS_WATCH("33333333333333333333333");		
+		return current_dt;}
+	    }
+	    
+	   }
+	   //coling delta_t
+	   else
+	   {
+	    int node_size = ThisModelPart.Nodes().size();
+	    double max_delta_temp = 0.0;
+	    for (int ii = 0; ii < node_size; ii++)
+	       {
+                 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
 
-			 //     lside = inner_prod(dx, dx);
+		 double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+		 double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
+		 current_temp -= old_temp;
+		 
+		 if( current_temp > max_delta_temp)
+		   max_delta_temp = current_temp;
+			 
+	       }
+	       
+	    ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
+	   
+	    if( max_delta_temp > 0.0 ){
+	      double new_delta_time = max_cooling_delta_temp / max_delta_temp;
+	      new_delta_time *= current_dt; 
 
-			 //     noalias(dv) = geom[i2].FastGetSolutionStepValue(VELOCITY);
-			 //     noalias(dv) -= geom[i1].FastGetSolutionStepValue(VELOCITY);
+	      if( new_delta_time > dt_max)
+		new_delta_time = dt_max;
+	      else if( new_delta_time < dt_min)
+		new_delta_time = dt_min;
 
-			 //     dvside = inner_prod(dx, dv);
+	      KRATOS_WATCH("444444444444444444444444");			      
+	      return new_delta_time;
+	    }
+	    else 
+	    {
+// 	      is_cold = 1;
+	      KRATOS_WATCH("55555555555555555555555555");		
+	      return current_dt;
+	    }
+	   }
+	    KRATOS_CATCH("")	
+	  }
+	  /////FIND AN ESTIMATION FOR SOLIDIFICATION TIME 
+	  double EstimateSolidificationTime(ModelPart& ThisModelPart)
+	  {			
+	    KRATOS_TRY	  
+	    
+	    double solidification_time = 0.0;
+	    
+//             ConvectionDiffusionSettings::Pointer my_settings = ThisModelPart.GetProcessInfo().GetValue(CONVECTION_DIFFUSION_SETTINGS);
+// 	
+//             const Variable<double>& rDensityVar = my_settings->GetDensityVariable();	    
+//             const Variable<double>& rTransferCoefficientVar = my_settings->GetTransferCoefficientVariable();
+	    
+	    
+// 	    ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + 100;
+	    const double density = ThisModelPart.GetProcessInfo()[DENSITY];
+	    const double cc= ThisModelPart.GetProcessInfo()[SPECIFIC_HEAT];
+	    const double htc= ThisModelPart.GetProcessInfo()[HTC];	    
+    	    
+	    const double TT_solid = ThisModelPart.GetProcessInfo()[SOLID_TEMPERATURE];
+	    const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];		  
+	    
+	    const double LL = ThisModelPart.GetProcessInfo()[LATENT_HEAT];	
 
-			 //     double dt;
-			 //     if (dvside < 0.0) //otherwise the side is "getting bigger" so the time step has not to be diminished
-			 //     {
-				//  dt = fabs(lside / dvside);
-				//  if (dt < deltatime) deltatime = dt;
-			 //     }
-
-			 // }
-		  //    }
-			 //}
-		  //}
-
-		  //if (deltatime < dt_min)
-		  //{
-		  //    std::cout << "ATTENTION dt_min is being used" << std::endl;
-		  //    deltatime = dt_min;
-		  //}
-
-		  //return deltatime;
-
-		  KRATOS_CATCH("")	
-		}
-
-
-
+	    double tot_vol = 0.0;
+            double tot_area = 0.0;	    
+	    int node_size = ThisModelPart.Nodes().size();	    
+	    for (int ii = 0; ii < node_size; ii++)
+	       {
+                 ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
+		 double vol = it_nd->FastGetSolutionStepValue(NODAL_VOLUME);
+		 tot_vol += vol;
+		 double area =  it_nd->FastGetSolutionStepValue(NODAL_PAUX);
+		 tot_area += area;
+	       }
+	    
+	    if ( tot_area == 0.0 || tot_vol == 0.0)
+	      KRATOS_ERROR(std::invalid_argument,"AREA or VOLUME is Zero", "");
+	    
+	    
+	    solidification_time = 2.0 * density * ( cc * ( TT_liquid - TT_solid) + LL) / (htc * TT_solid);
+	    solidification_time *= pow(tot_vol/tot_area , 0.8);
+	    
+	    return solidification_time;
+	    
+	    KRATOS_CATCH("")	
+	  }	  
 	private:
 
 
