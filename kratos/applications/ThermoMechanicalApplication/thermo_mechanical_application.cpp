@@ -35,6 +35,12 @@ KRATOS_CREATE_VARIABLE(int, NODE_PROPERTY_ID)
 KRATOS_CREATE_VARIABLE(double,  HTC)
 KRATOS_CREATE_VARIABLE(double,  NET_INPUT_MATERIAL)
 KRATOS_CREATE_VARIABLE(int, REF_ID)
+KRATOS_CREATE_VARIABLE(double, PARTICLE_RADIUS)
+KRATOS_CREATE_VARIABLE(double, POSETIVE_DISTANCE)
+KRATOS_CREATE_VARIABLE(double, NAGATIVE_DISTANCE)
+KRATOS_CREATE_VARIABLE(bool, IS_ESCAPED)
+KRATOS_CREATE_VARIABLE(int, IS_SOLIDIFIED)
+KRATOS_CREATE_VARIABLE(double, NODAL_VOLUME )    
 
 KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -50,7 +56,9 @@ KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
     mSUPGConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConv3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mSUPGConvDiffPhaseChange2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mSUPGConvDiffPhaseChange3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mSUPGConvDiffPhaseChange3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mSUPGConv2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
+    
     
 
 
@@ -67,8 +75,13 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_VARIABLE(HTC)
     KRATOS_REGISTER_VARIABLE(NET_INPUT_MATERIAL)
     KRATOS_REGISTER_VARIABLE(REF_ID)
-
-
+    KRATOS_REGISTER_VARIABLE(PARTICLE_RADIUS)
+    KRATOS_REGISTER_VARIABLE(POSETIVE_DISTANCE)
+    KRATOS_REGISTER_VARIABLE(NAGATIVE_DISTANCE)    
+    KRATOS_REGISTER_VARIABLE(IS_ESCAPED)  
+    KRATOS_REGISTER_VARIABLE(IS_SOLIDIFIED) 
+    KRATOS_REGISTER_VARIABLE(NODAL_VOLUME )    
+    
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
@@ -86,7 +99,8 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_ELEMENT("SUPGConvDiff3D", mSUPGConvDiff3D);
     KRATOS_REGISTER_ELEMENT("SUPGConv3D", mSUPGConv3D);
     KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange2D", mSUPGConvDiffPhaseChange2D);
-    KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange3D", mSUPGConvDiffPhaseChange3D);    
+    KRATOS_REGISTER_ELEMENT("SUPGConvDiffPhaseChange3D", mSUPGConvDiffPhaseChange3D); 
+    KRATOS_REGISTER_ELEMENT("SUPGConv2D", mSUPGConv2D);
 }
 
 }  // namespace Kratos.
