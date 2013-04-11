@@ -9,52 +9,19 @@ namespace Kratos {
 template< unsigned int TDim >
 void FractionalStep<TDim>::Initialize()
 {
-//    this->CalculateGeometryData();
+    //this->CalculateGeometryData();
 }
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-    this->CalculateGeometryData();
+    //this->CalculateGeometryData();
 }
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
 {
-    double Csmag = this->GetValue(C_SMAGORINSKY);
 
-    // Total viscosity
-    const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
-
-    double Viscosity = 0.0;
-    this->EvaluateInPoint(Viscosity,VISCOSITY,N);
-
-    if (Csmag != 0.0 )
-    {
-        const unsigned int NumNodes = this->GetGeometry().PointsNumber();
-
-        // Calculate Symetric gradient
-        MatrixType S = ZeroMatrix(TDim,TDim);
-        for (unsigned int n = 0; n < NumNodes; ++n)
-        {
-            const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
-            for (unsigned int i = 0; i < TDim; ++i)
-                for (unsigned int j = 0; j < TDim; ++j)
-                    S(i,j) += 0.5 * ( mDN_DX(n,j) * rVel[i] + mDN_DX(n,i) * rVel[j] );
-        }
-
-        // Norm of symetric gradient
-        double NormS = 0.0;
-        for (unsigned int i = 0; i < TDim; ++i)
-            for (unsigned int j = 0; j < TDim; ++j)
-                NormS += S(i,j) * S(i,j);
-        NormS = sqrt(2.0*NormS);
-
-        // Nu_sgs = (Csmag * Delta)^2 * (2*Sij*Sij)^(1/2)
-        Viscosity += Csmag * Csmag * mElemSize * mElemSize * NormS;
-    }
-
-    this->SetValue(VISCOSITY,Viscosity);
 }
 
 template< unsigned int TDim >
@@ -106,6 +73,10 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const SizeType NumGauss = IntegrationPoints.size();
 
+        ShapeFunctionDerivativesType DN_DX;
+        VectorType DetJ;
+        this->CalculateGeometryData(DN_DX,DetJ);
+
         VectorType MomentumRHS = ZeroVector(LocalSize);
         VectorType MassRHS = ZeroVector(NumNodes);
         VectorType NodalArea = ZeroVector(NumNodes);
@@ -114,12 +85,12 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
         for (SizeType g = 0; g < NumGauss; g++)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
-            const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
+            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
 
             for (unsigned int i = 0; i < NumNodes; i++)
                 NodalArea[i] += N[i] * GaussWeight;
 
-            this->CalculateProjectionRHS(MomentumRHS,MassRHS,N,mDN_DX,GaussWeight);
+            this->CalculateProjectionRHS(MomentumRHS,MassRHS,N,DN_DX,GaussWeight);
         }
 
         // Carefully write results to nodal variables, to avoid parallelism problems
@@ -158,6 +129,10 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const SizeType NumGauss = IntegrationPoints.size();
 
+        ShapeFunctionDerivativesType DN_DX;
+        VectorType DetJ;
+        this->CalculateGeometryData(DN_DX,DetJ);
+
         VectorType ConvTerm = ZeroVector(LocalSize);
         VectorType PresTerm = ZeroVector(LocalSize);
         VectorType DivTerm = ZeroVector(NumNodes);
@@ -167,12 +142,12 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
-            const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
+            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
 
             for (unsigned int i = 0; i < NumNodes; i++)
                 NodalArea[i] += N[i] * GaussWeight;
 
-            this->CalculateProjectionRHS(ConvTerm,PresTerm,DivTerm,N,mDN_DX,GaussWeight);
+            this->CalculateProjectionRHS(ConvTerm,PresTerm,DivTerm,N,DN_DX,GaussWeight);
         }
 
         // Carefully write results to nodal variables, to avoid parallelism problems
@@ -204,12 +179,16 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const SizeType NumGauss = IntegrationPoints.size();
 
+        ShapeFunctionDerivativesType DN_DX;
+        VectorType DetJ;
+        this->CalculateGeometryData(DN_DX,DetJ);
+
         VectorType NodalVelCorrection = ZeroVector(LocalSize);
 
         // Loop on integration points
         for (SizeType g = 0; g < NumGauss; ++g)
         {
-            const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
+            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
             const ShapeFunctionsType& N = row(NContainer,g);
 
             double Density;
@@ -228,7 +207,7 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
             {
                 for (SizeType d = 0; d < TDim; ++d)
                 {
-                    NodalVelCorrection[RowIndex++] += Coeff * mDN_DX(i,d) * DeltaPressure;
+                    NodalVelCorrection[RowIndex++] += Coeff * DN_DX(i,d) * DeltaPressure;
                 }
             }
         }
@@ -338,17 +317,21 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
     const SizeType NumGauss = IntegrationPoints.size();
 
+    ShapeFunctionDerivativesType DN_DX;
+    VectorType DetJ;
+    this->CalculateGeometryData(DN_DX,DetJ);
+
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
     // Stabilization parameters
+    double ElemSize = this->ElementSize(DN_DX);
     double TauOne;
     double TauTwo;
-    this->CalculateTau(TauOne,TauTwo,rCurrentProcessInfo);
 
     // Loop on integration points
     for (SizeType g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
+        const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
         const ShapeFunctionsType& N = row(NContainer,g);
 
         // Evaluate required variables at the integration point
@@ -371,33 +354,25 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
         array_1d<double,3> ConvVel(3,0.0);
         this->EvaluateConvVelocity(ConvVel,N);
 
-//        // Stabilization parameters
-//        double TauOne;
-//        double TauTwo;
-//        this->CalculateTau(TauOne,TauTwo,ConvVel,Density,Viscosity,rCurrentProcessInfo);
+
+        double Viscosity = this->EffectiveViscosity(N,DN_DX,ElemSize,rCurrentProcessInfo);
+        this->CalculateTau(TauOne,TauTwo,ElemSize,ConvVel,Density,Viscosity,rCurrentProcessInfo);
 
         // Evaluate convection operator Velocity * Grad(N)
         Vector UGradN(NumNodes);
-        this->ConvectionOperator(UGradN,ConvVel,mDN_DX);
+        this->ConvectionOperator(UGradN,ConvVel,DN_DX);
 
         // Add integration point contribution to the local mass matrix
         this->AddMomentumMassTerm(MassMatrix,N,GaussWeight*Density);
 
         // Add convection, stabilization and RHS contributions to the local system equation
         this->AddMomentumSystemTerms(rLeftHandSideMatrix,rRightHandSideVector,Density,UGradN,BodyForce,OldPressure,
-                                     TauOne,TauTwo,MomentumProjection,MassProjection,N,mDN_DX,GaussWeight);
+                                     TauOne,TauTwo,MomentumProjection,MassProjection,N,DN_DX,GaussWeight);
+
+        // Add viscous term
+        const double ViscousCoeff = Density * Viscosity * GaussWeight;
+        this->AddViscousTerm(rLeftHandSideMatrix,DN_DX,ViscousCoeff);
     }
-
-    // Add viscous term (using a single integration point)
-    const ShapeFunctionsType CenterN = row(rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
-    const double CenterWeight = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1)[0].Weight();
-
-    double Density;
-    this->EvaluateInPoint(Density,DENSITY,CenterN);
-    double Viscosity = this->GetValue(VISCOSITY);
-
-    const double ViscousCoeff = Density * Viscosity * CenterWeight * mDetJ;
-    this->AddViscousTerm(rLeftHandSideMatrix,mDN_DX,ViscousCoeff);
 
     // Add residual of previous iteration to RHS
     VectorType LastValues = ZeroVector(LocalSize);
@@ -442,15 +417,19 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
     const SizeType NumGauss = IntegrationPoints.size();
 
+    ShapeFunctionDerivativesType DN_DX;
+    VectorType DetJ;
+    this->CalculateGeometryData(DN_DX,DetJ);
+
     // Stabilization parameters
+    double ElemSize = this->ElementSize(DN_DX);
     double TauOne;
     double TauTwo;
-    this->CalculateTau(TauOne,TauTwo,rCurrentProcessInfo);
 
     // Loop on integration points
     for (SizeType g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = mDetJ * IntegrationPoints[g].Weight();
+        const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
         const ShapeFunctionsType& N = row(NContainer,g);
 
         // Evaluate required variables at the integration point
@@ -474,22 +453,23 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
         array_1d<double,TDim> OldPressureGradient(TDim,0.0);
-        this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,mDN_DX);
+        this->EvaluateGradientInPoint(OldPressureGradient,PRESSURE,DN_DX);
 
 //        // For ALE: convective velocity
 //        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
 
-//        // Stabilization parameters
-//        double TauOne;
-//        double TauTwo;
-//        this->CalculateTau(TauOne,TauTwo,ConvVel,Density,Viscosity,rCurrentProcessInfo);
+        // Stabilization parameters
+        array_1d<double,3> ConvVel(3,0.0);
+        this->EvaluateConvVelocity(ConvVel,N);
+        double Viscosity = this->EffectiveViscosity(N,DN_DX,ElemSize,rCurrentProcessInfo);
+        this->CalculateTau(TauOne,TauTwo,ElemSize,ConvVel,Density,Viscosity,rCurrentProcessInfo);
 
 //        // Evaluate convection operator Velocity * Grad(N)
 //        Vector UGradN(NumNodes);
 //        this->EvaluateConvection(UGradN,ConvVel,mDN_DX);
 
         double DivU;
-        this->EvaluateDivergenceInPoint(DivU,VELOCITY,mDN_DX);
+        this->EvaluateDivergenceInPoint(DivU,VELOCITY,DN_DX);
 
         // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
         const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]) ;
@@ -502,7 +482,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
             {
                 double Lij = 0.0;
                 for (SizeType d = 0; d < TDim; ++d)
-                    Lij += mDN_DX(i,d) * mDN_DX(j,d);
+                    Lij += DN_DX(i,d) * DN_DX(j,d);
                 Lij *= (LaplacianCoeff + TauOne);
 
                 rLeftHandSideMatrix(i,j) += GaussWeight * Lij;
@@ -518,7 +498,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //                double Conv = UGradN[0] * rGeom[0].FastGetSolutionStepValue(VELOCITY)[d];
 //                for (SizeType j = 1; j < NumNodes; ++j) Conv += UGradN[i] * rGeom[i].FastGetSolutionStepValue(VELOCITY)[d];
                 // Momentum stabilization
-                RHSi += mDN_DX(i,d) * TauOne * ( Density  * ( BodyForce[d]/* - Conv*/ ) - OldPressureGradient[d] - MomentumProjection[d] );
+                RHSi += DN_DX(i,d) * TauOne * ( Density  * ( BodyForce[d]/* - Conv*/ ) - OldPressureGradient[d] - MomentumProjection[d] );
             }
 
             rRightHandSideVector[i] += GaussWeight * RHSi;
@@ -630,10 +610,12 @@ void FractionalStep<2>::VelocityEquationIdVector(EquationIdVectorType& rResult,
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
     for (SizeType i = 0; i < NumNodes; ++i)
     {
-        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
     }
 }
 
@@ -650,11 +632,13 @@ void FractionalStep<3>::VelocityEquationIdVector(EquationIdVectorType& rResult,
     if (rResult.size() != LocalSize)
         rResult.resize(LocalSize, false);
 
+    const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
     for (SizeType i = 0; i < NumNodes; ++i)
     {
-        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X).EquationId();
-        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
+        rResult[LocalIndex++] = rGeom[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
     }
 }
 
@@ -668,8 +652,10 @@ void FractionalStep<TDim>::PressureEquationIdVector(EquationIdVectorType& rResul
     if (rResult.size() != NumNodes)
         rResult.resize(NumNodes);
 
+    const unsigned int pos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
+
     for (SizeType i = 0; i < NumNodes; ++i)
-        rResult[i] = rGeom[i].GetDof(PRESSURE).EquationId();
+        rResult[i] = rGeom[i].GetDof(PRESSURE,pos).EquationId();
 }
 
 template<>
@@ -789,7 +775,7 @@ void FractionalStep<3>::GetVelocityValues(Vector& rValues,
  */
 
 template< unsigned int TDim >
-void FractionalStep<TDim>::CalculateGeometryData()
+void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesType &rDN_DX, Vector &rDetJ)
 {
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
@@ -802,30 +788,25 @@ void FractionalStep<TDim>::CalculateGeometryData()
     rGeom.Jacobian( J, GeometryData::GI_GAUSS_1 );
 
     // calculate inverse of the jacobian and its determinant
-    MathUtils<double>::InvertMatrix( J[0], InvJ, mDetJ );
+    MathUtils<double>::InvertMatrix( J[0], InvJ, rDetJ[0] );
 
     // calculate the shape function derivatives in global coordinates
-    mDN_DX.resize(NumNodes,TDim);
-    noalias( mDN_DX ) = prod( DN_De[0], InvJ );
+    rDN_DX.resize(NumNodes,TDim);
+    noalias( rDN_DX ) = prod( DN_De[0], InvJ );
+}
 
-//    // calculate nodal area, will be used to (approximately) compute projections
-//    const ShapeFunctionsType CenterN = row(rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1),0);
-//    const double Area = mDetJ * rGeom.IntegrationPoints(GeometryData::GI_GAUSS_1)[0].Weight();
-
-//    // Carefully write results to nodal variables, to avoid parallelism problems
-//    for (SizeType i = 0; i < NumNodes; ++i)
-//    {
-//        this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-//        this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += Area * CenterN[i];
-//        this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-//    }
+template< unsigned int TDim >
+double FractionalStep<TDim>::ElementSize(ShapeFunctionDerivativesType &rDN_DX)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const SizeType NumNodes = rGeom.PointsNumber();
 
     // calculate minimum element length (used in stabilization Tau)
     array_1d<double,3> Edge(3,0.0);
     Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    mElemSize = Edge[0]*Edge[0];
+    double ElemSize = Edge[0]*Edge[0];
     for (SizeType d = 1; d < TDim; d++)
-        mElemSize += Edge[d]*Edge[d];
+        ElemSize += Edge[d]*Edge[d];
 
     for (SizeType i = 2; i < NumNodes; i++)
         for(SizeType j = 0; j < i; j++)
@@ -834,9 +815,9 @@ void FractionalStep<TDim>::CalculateGeometryData()
             double Length = Edge[0]*Edge[0];
             for (SizeType d = 1; d < TDim; d++)
                 Length += Edge[d]*Edge[d];
-            if (Length < mElemSize) mElemSize = Length;
+            if (Length < ElemSize) ElemSize = Length;
         }
-    mElemSize = sqrt(mElemSize);
+    return sqrt(ElemSize);
 
 //    // calculate minimum element height (for stabilization and Smagorinsky)
 //    mElemSize = 0.0;
@@ -858,6 +839,45 @@ void FractionalStep<TDim>::CalculateGeometryData()
 //    }
 
 //    mElemSize = sqrt(mElemSize);
+}
+
+template< unsigned int TDim >
+double FractionalStep<TDim>::EffectiveViscosity(const ShapeFunctionsType &rN,
+                                                const ShapeFunctionDerivativesType &rDN_DX,
+                                                double ElemSize,
+                                                const ProcessInfo &rCurrentProcessInfo)
+{
+    double Csmag = this->GetValue(C_SMAGORINSKY);
+
+    double Viscosity = 0.0;
+    this->EvaluateInPoint(Viscosity,VISCOSITY,rN);
+
+    if (Csmag != 0.0 )
+    {
+        const unsigned int NumNodes = this->GetGeometry().PointsNumber();
+
+        // Calculate Symetric gradient
+        MatrixType S = ZeroMatrix(TDim,TDim);
+        for (unsigned int n = 0; n < NumNodes; ++n)
+        {
+            const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int i = 0; i < TDim; ++i)
+                for (unsigned int j = 0; j < TDim; ++j)
+                    S(i,j) += 0.5 * ( rDN_DX(n,j) * rVel[i] + rDN_DX(n,i) * rVel[j] );
+        }
+
+        // Norm of symetric gradient
+        double NormS = 0.0;
+        for (unsigned int i = 0; i < TDim; ++i)
+            for (unsigned int j = 0; j < TDim; ++j)
+                NormS += S(i,j) * S(i,j);
+        NormS = sqrt(2.0*NormS);
+
+        // Nu_sgs = (Csmag * Delta)^2 * (2*Sij*Sij)^(1/2)
+        Viscosity += Csmag * Csmag * ElemSize * ElemSize * NormS;
+    }
+
+    return Viscosity;
 }
 
 template< unsigned int TDim >
@@ -1025,6 +1045,7 @@ void FractionalStep<3>::AddViscousTerm(MatrixType& rDampMatrix,
 template <unsigned int TDim>
 void FractionalStep<TDim>::CalculateTau(double &TauOne,
                                         double &TauTwo,
+                                        double ElemSize,
                                         const ProcessInfo &rCurrentProcessInfo)
 {
     const ShapeFunctionsType& N = row( this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_1), 0);
@@ -1046,13 +1067,14 @@ void FractionalStep<TDim>::CalculateTau(double &TauOne,
 
     AdvVelNorm = sqrt(AdvVelNorm);
 
-    TauOne = 1.0 / (Density * ( TimeFactor / DeltaTime + 4.0 * Viscosity / (mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) );
-    TauTwo = Density * (Viscosity + 0.5 * mElemSize * AdvVelNorm);
+    TauOne = 1.0 / (Density * ( TimeFactor / DeltaTime + 4.0 * Viscosity / (ElemSize * ElemSize) + 2.0 * AdvVelNorm / ElemSize) );
+    TauTwo = Density * (Viscosity + 0.5 * ElemSize * AdvVelNorm);
 }
 
 template <unsigned int TDim>
 void FractionalStep<TDim>::CalculateTau(double& TauOne,
                                         double& TauTwo,
+                                        double ElemSize,
                                         const array_1d< double, 3 > & rAdvVel,
                                         const double Density,
                                         const double Viscosity,
@@ -1068,8 +1090,8 @@ void FractionalStep<TDim>::CalculateTau(double& TauOne,
 
     AdvVelNorm = sqrt(AdvVelNorm);
 
-    TauOne = 1.0 / (Density * ( TimeFactor / DeltaTime + 4.0 * Viscosity / (mElemSize * mElemSize) + 2.0 * AdvVelNorm / mElemSize) );
-    TauTwo = Density * (Viscosity + 0.5 * mElemSize * AdvVelNorm);
+    TauOne = 1.0 / (Density * ( TimeFactor / DeltaTime + 4.0 * Viscosity / (ElemSize * ElemSize) + 2.0 * AdvVelNorm / ElemSize) );
+    TauTwo = Density * (Viscosity + 0.5 * ElemSize * AdvVelNorm);
 
 }
 
