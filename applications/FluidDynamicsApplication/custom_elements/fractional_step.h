@@ -138,6 +138,9 @@ namespace Kratos
         /// Type for a matrix containing the shape function gradients
         typedef Kratos::Matrix ShapeFunctionDerivativesType;
 
+        /// Type for an array of shape function gradient matrices
+        typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -445,10 +448,10 @@ namespace Kratos
                                const int Step = 0);
 
         /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-        virtual void CalculateGeometryData(ShapeFunctionDerivativesType& rDN_DX,
+        virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                            Vector& rDetJ);
 
-        double ElementSize(ShapeFunctionDerivativesType& rDN_DX);
+        double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
         double EffectiveViscosity(const ShapeFunctionsType &rN,
                                   const ShapeFunctionDerivativesType &rDN_DX,
@@ -485,10 +488,10 @@ namespace Kratos
                             const double Weight);
 
 
-        virtual void CalculateTau(double& TauOne,
-                                  double& TauTwo,
-                                  double ElemSize,
-                                  const ProcessInfo& rCurrentProcessInfo);
+//        virtual void CalculateTau(double& TauOne,
+//                                  double& TauTwo,
+//                                  double ElemSize,
+//                                  const ProcessInfo& rCurrentProcessInfo);
 
         /// Calculate Stabilization parameters.
         /**
