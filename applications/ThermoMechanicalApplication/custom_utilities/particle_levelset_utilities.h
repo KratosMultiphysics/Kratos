@@ -867,7 +867,7 @@ private:
 	
 	//loop over elements to reoreder the particle radius in over populated elements
         #pragma omp parallel for firstprivate(particle_of_element)    		
-	for(unsigned int ii = 0; ii<particle_of_element.size(); ++ii)
+	for( int ii = 0; ii<particle_of_element.size(); ++ii)
 	{
 	  if(particle_of_element[ii].size() > max_num_particle)
 	  {	    
