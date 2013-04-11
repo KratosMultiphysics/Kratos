@@ -92,6 +92,7 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeDt", &EstimateTimeStep < 3 >::ComputeDt)
     .def("ComputeSolidificationCoolingDt", &EstimateTimeStep < 3 >::ComputeSolidificationCoolingDt)
     .def("EstimateSolidificationTime", &EstimateTimeStep < 3 >::EstimateSolidificationTime)
+    .def("CheckStopTemperature", &EstimateTimeStep < 3 >::CheckStopTemperature)
     ;
     
     class_<ParticleLevelSetUtils < 2 > >("ParticleLevelSetUtils2D", init<>())
