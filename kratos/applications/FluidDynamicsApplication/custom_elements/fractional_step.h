@@ -445,7 +445,15 @@ namespace Kratos
                                const int Step = 0);
 
         /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-        void CalculateGeometryData();
+        virtual void CalculateGeometryData(ShapeFunctionDerivativesType& rDN_DX,
+                                           Vector& rDetJ);
+
+        double ElementSize(ShapeFunctionDerivativesType& rDN_DX);
+
+        double EffectiveViscosity(const ShapeFunctionsType &rN,
+                                  const ShapeFunctionDerivativesType &rDN_DX,
+                                  double ElemSize,
+                                  const ProcessInfo &rCurrentProcessInfo);
 
         /// Add integration point contribution to the mass matrix.
         /**
@@ -479,6 +487,7 @@ namespace Kratos
 
         virtual void CalculateTau(double& TauOne,
                                   double& TauTwo,
+                                  double ElemSize,
                                   const ProcessInfo& rCurrentProcessInfo);
 
         /// Calculate Stabilization parameters.
@@ -488,6 +497,7 @@ namespace Kratos
          * ProcessInfo variables DELTA_TIME and DYNAMIC_TAU will be used.
          * @param TauOne First stabilization parameter (momentum equation)
          * @param TauTwo Second stabilization parameter (mass equation)
+         * @param ElemSize Characteristic element size (h)
          * @param rAdvVel advection velocity
          * @param Area Elemental area
          * @param Density Density on integrartion point
@@ -496,6 +506,7 @@ namespace Kratos
          */
         virtual void CalculateTau(double& TauOne,
                                   double& TauTwo,
+                                  double ElemSize,
                                   const array_1d< double, 3 > & rAdvVel,
                                   const double Density,
                                   const double Viscosity,
@@ -662,12 +673,6 @@ namespace Kratos
         ///@name Member Variables
         ///@{
 
-        ShapeFunctionDerivativesType mDN_DX;
-
-        double mDetJ;
-
-        double mElemSize;
-
         ///@}
         ///@name Serialization
         ///@{
@@ -677,17 +682,11 @@ namespace Kratos
         virtual void save(Serializer& rSerializer) const
         {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
-            rSerializer.save("mDN_DX",mDN_DX);
-            rSerializer.save("mDetJ",mDetJ);
-            rSerializer.save("mElemSize",mElemSize);
         }
 
         virtual void load(Serializer& rSerializer)
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-            rSerializer.load("mDN_DX",mDN_DX);
-            rSerializer.load("mDetJ",mDetJ);
-            rSerializer.load("mElemSize",mElemSize);
         }
 
         ///@}
