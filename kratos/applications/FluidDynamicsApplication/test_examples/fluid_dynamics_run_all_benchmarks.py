@@ -76,6 +76,27 @@ def Run():
 
 	os.chdir("..")
         ###############################################################################
+        # fractional step 2D cavity
+	
+        Text += "Fractional step element test: 2D cavity flow: "
+	
+        os.chdir("fs_cavity")	
+	sys.path.append(os.getcwd())
+
+        import fs_cavity_verify_benchmark
+	Msg = fs_cavity_verify_benchmark.Run()
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "Fractional step 2D cavity test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "Fractional step 2D cavity test FAILED"
+
+
+	os.chdir("..")
 
 	# Add other examples here
 

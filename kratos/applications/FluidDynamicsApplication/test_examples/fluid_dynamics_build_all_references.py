@@ -18,6 +18,15 @@ import slip_test_build_reference
 
 os.chdir("..")
 
+# fractional step: 2d cavity
+os.chdir("fs_cavity")
+sys.path.append(os.getcwd())
+
+import fs_cavity_build_reference
+
+os.chdir("..")
+
+
 # Add other examples here
 
 # Note: some test examples are not included in this file, as the results are compared to an exact solution
