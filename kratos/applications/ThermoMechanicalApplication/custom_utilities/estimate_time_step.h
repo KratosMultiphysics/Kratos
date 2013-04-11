@@ -346,7 +346,24 @@ namespace Kratos
 	    return solidification_time;
 	    
 	    KRATOS_CATCH("")	
-	  }	  
+	  }	
+
+	 double CheckStopTemperature(ModelPart& ThisModelPart,const double stop_temperature)
+	  {			
+	    KRATOS_TRY	
+
+	    int node_size = ThisModelPart.Nodes().size();	    
+	    for (int ii = 0; ii < node_size; ii++)
+	       {
+            ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
+		    double temp = it_nd->FastGetSolutionStepValue(TEMPERATURE);
+			if( temp > stop_temperature)
+				return 0.0;
+		   }
+		return 1.0;
+	    KRATOS_CATCH("")	
+	  }	
+
 	private:
 
 
