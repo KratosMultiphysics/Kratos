@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     3.0- 12/04/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (2D case)
 #     2.9- 22/03/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (using write_calc_data instead of [GiD_EntitiesGroups get $nsgroupid nodes])
 #     2.8- 10/12/12-J. Garate,  PFEM PT dont need to write Density and Viscosity from WritePropertyAtNodes
 #     2.7- 05/12/12-J. Garate,  PFEM Slip velocity format correction
@@ -849,7 +850,7 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
         set ixcomp ""; set iycomp ""; set izcomp ""
         foreach igroupid $inletvelglist {
             lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
-            # wa "igroupid:$igroupid ix:$ix iy:$iy iz:$iz"
+	    # wa "igroupid:$igroupid ix:$ix iy:$iy iz:$iz"
             # Set the inlet format dictionary
             if {[GiD_EntitiesGroups get $igroupid nodes -count]} {
                 # 3D problems
@@ -918,7 +919,7 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
                 } elseif {$ndime =="2D"} {
                     # For each node in the inlet bc ckeck to write this node
                     foreach inodeid [GiD_EntitiesGroups get $igroupid nodes] {
-                        # WarnWinText "inodeid:$inodeid"
+			# WarnWinText "inodeid:$inodeid"
                         # Check that this node identifier exists in the dictionary
                         if {[dict exists $condmatch $inodeid]} {
                             # Get the properties
@@ -947,11 +948,12 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
                             }
                         }
                     }
+		    # wa "ixcomp:$ixcomp iycomp:$iycomp"
                     # Write this group identifier
                     if {[string length $ixcomp]} {
                         GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
                         foreach { inodeid cpropid ixval } $ixcomp {
-                            GiD_File fprintf $filechannel "8i% 8i %10.5e" $inodeid $cpropid $ixval
+			    GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $ixval
                         }
                         GiD_File fprintf $filechannel "%s" "End NodalData"
                         GiD_File fprintf $filechannel ""
@@ -959,7 +961,7 @@ proc ::wkcf::WriteFluidInletNoSlipBC_m2 {AppId inletvelglist noslipglist kwordli
                     if {[string length $iycomp]} {
                         GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
                         foreach { inodeid cpropid iyval } $iycomp {
-                            GiD_File fprintf $filechannel "8i% 8i %10.5e" $inodeid $cpropid $iyval
+                            GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $iyval
                         }
                         GiD_File fprintf $filechannel "%s" "End NodalData"
                         GiD_File fprintf $filechannel ""
