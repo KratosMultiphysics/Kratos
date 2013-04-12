@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#        2.4- 12/04/13- G. Socorro, correct a bug in the proc getGroupGiDEntities for the special case of faces, add -count in the proc getGroupGiDEntitiesNew
 #        2.3- 13/12/12- J. Garate,  Corrected ::KEGroups::getGroupGiDEntities bug for Model Validation and Transfrer CondGroups to GiD Groups
 #        2.2- 28/11/12- J. Garate,  Corrected bug when transferring old groups to new gid groups, erasing old Cond
 #        2.1- 07/11/12- J. Garate,  ::KEGroups::GroupsToXml is ready to accept New GiD Groups, and modificate the .spd field "Groups modeltype"
@@ -167,7 +168,8 @@ proc ::KEGroups::GetStateGeoMesh { entity } {
 proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}} {
     
     # Update the link to the GiD condition properties for this group identifier
-
+    
+    # wa "groupId:$groupId givenEntity:$givenEntity action:$action"
     # Disable graphics
     ::GidUtils::DisableGraphics
     # Store the freeze layers
@@ -178,41 +180,45 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
     
     
     if { $givenEntity eq "ALL" } {
-    
+	
         set entities [list point line surface volume node element]
 	
     } elseif { $givenEntity == "element" } {
-    
-	    set entities [list line surface volume]
+	
+	set entities [list line surface volume]
 	
     } elseif { $givenEntity == "nodes" } {
-	    
-	    set entities "point"
+	
+	set entities "point"
 	
     } elseif { $givenEntity == "faces" } {
-	    
-	    set entities [list line surface]
+	
+	set entities [list line surface]
 	
     } else {
-	    
-	    set entities $givenEntity
+	
+	set entities $givenEntity
     }
     
+    # Special case of faces
+    set elemIdList ""
+    set faceIdList ""
+
     foreach entity $entities {
         if {$givenEntity eq "ALL" } {
             set gmid [::KEGroups::GetStateGeoMesh $entity]
         } else {
             set gmid [::KEGroups::GetStateGeoMesh $givenEntity]
         }
-		foreach CondProp [GiD_Info conditions ${entity}_groups $gmid] {
-		    lassign $CondProp CId CEId - CGroupId
+	foreach CondProp [GiD_Info conditions ${entity}_groups $gmid] {
+	    lassign $CondProp CId CEId - CGroupId
             # msg "Entity = $entity"
             # msg "CId = $CId"
             # msg "CEId = $CEId"
-		    # msg "entity : $entity // Cprop: $CondProp // gmid: $gmid"
+	    # msg "entity : $entity // Cprop: $CondProp // gmid: $gmid"
             
-		    # Update the entities list
-		    if {$CGroupId == $groupId } {
+	    # Update the entities list
+	    if {$CGroupId == $groupId } {
 		
                 #Si únicamente nos interesaba saber si el grupo tenía entidades acabamos aquí
                 if {$action == "hasEntities" } {
@@ -222,30 +228,36 @@ proc ::KEGroups::getGroupGiDEntities {groupId {givenEntity "point"} {action ""}}
                     ::GidUtils::EnableGraphics 
                     return 1
                 }
-                if {$CId == "E" } {
-                    lappend EntityIdList $CEId
-
-                } else {
-                    if {$CId == "N" } {
-                         lappend EntityIdList $CEId
-                    } else {
-                        if {$givenEntity eq "faces"} {
-                            lappend EntityIdList $CId $CEId
-                        }
+		if {$givenEntity eq "faces"} {
+		    if {($CId ne "E")&&($CId ne "N")} {
+                       	lappend elemIdList $EID
+			lappend faceIdList $FID
                     }
+		} else {
+		    if {($CId == "E")||($CId == "N")} {
+			lappend EntityIdList $CEId
+		    } 
                 }
-		    }
-		}
+	    }
+	}
     }
     
+    # Join element and face list for the special case of faces
+    if {$givenEntity eq "faces"} {
+	if {([llength $elemIdList]) && ([llength $faceIdList])} {
+	    set EntityIdList [list $elemIdList $faceIdList]
+	}
+    }
+
     # Restore the layer state
     ::KEGroups::FreezeLayers $flayerslist
     
     # Enable graphics
     ::GidUtils::EnableGraphics 
     
+    # wa "EntityIdList:$EntityIdList"
     if {$action == "hasEntities" } {
-	    return 0
+	return 0
     }
     return $EntityIdList
 }
@@ -268,14 +280,14 @@ proc ::KEGroups::getGroupGiDEntitiesNew {groupId {action ""}} {
     }
     
     # For each GiD group entities
-    set EntityList [GiD_EntitiesGroups get $groupId $gmid]
+    set EntityList [GiD_EntitiesGroups get $groupId $gmid -count]
     #msg " Groups $groupId -> $EntityList"
     if {$action != ""} {
-        #msg "entro en action no vacio"
-        if { [llength $EntityList] > 0} { 
-            #msg "hay elementos"
-            return 1 
-        } else { return 0 }
+	if {[llength $EntityList]} { 
+	    return 1 
+        } else { 
+	    return 0 
+	}
     }
     return $EntityIdList
 }
@@ -720,23 +732,14 @@ proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
         
         # Then we fill the new group with the old group's conditions
         foreach entity [list point line surface volume nodes element faces] {
-            set entityList [::KEGroups::getGroupGiDEntities $oldGr $entity ]
+            set entityList [::KEGroups::getGroupGiDEntities $oldGr $entity]
             # msg "Group $oldGr"
             # msg "Entity $entity"
             # msg "EntityList $entityList"
             # msg "\n"
            
             if {[llength $entityList]} {
-                if {$entity eq "faces"} {
-                    set elemIdList ""
-                    set faceIdList ""
-                    foreach {EID FID} $entityList {
-                        lappend elemIdList $EID
-                        lappend faceIdList $FID
-                    }
-                    set entityList [list $elemIdList $faceIdList]
-                }
-                GiD_EntitiesGroups assign $oldGr $entity $entityList
+		GiD_EntitiesGroups assign $oldGr $entity $entityList
             }
         }
         
