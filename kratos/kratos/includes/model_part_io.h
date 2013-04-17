@@ -2218,7 +2218,7 @@ private:
 
         WriteInAllFiles(OutputFiles, "Begin Table ");
 
-        ReadBlock(block, "Properties");
+        ReadBlock(block, "Table");
         WriteInAllFiles(OutputFiles, block);
 
         WriteInAllFiles(OutputFiles, "End Table\n");
