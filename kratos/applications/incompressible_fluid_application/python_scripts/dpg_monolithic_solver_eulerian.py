@@ -164,13 +164,16 @@ class MonolithicSolver:
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
         self.max_distance = self.max_edge_size * 5.0;
-	self.max_levels = 25 ##self.max_distance/self.min_edge_size 	
+	self.max_levels = 10 ##self.max_distance/self.min_edge_size 	
 
         self.max_ns_iterations = 8
 	self.internal_step_counter = 1  
 	
 	###Slip condition
 	self.use_slip_conditions = False
+
+	##volume correction
+	self.volume_correction_switch = True
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
@@ -205,8 +208,8 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
-##        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
-        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+##        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,self.tol,200,self.verbosity,self.gmres_size)
         self.level_set_solver.Initialize()
 
@@ -250,7 +253,7 @@ class MonolithicSolver:
 	BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)
      #######################################################################                 
       #######################################################################      
-    def Solve(self):
+    def Solve(self,step):
  	#at the beginning of the calculations do a div clearance step  
   	if(self.divergence_clearance_performed == False):
 	  for node in self.model_part.Nodes:	    
@@ -269,8 +272,9 @@ class MonolithicSolver:
 	  #BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)	  
 	  self.next_redistance = self.internal_step_counter + self.redistance_frequency	  
         Timer.Stop("DoRedistance")
-	net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
-	BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume)
+        if(self.volume_correction_switch == True and step>10):
+            net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
+            BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume)
         Timer.Start("ApplyFluidProperties")
 	self.ApplyFluidProperties()
         Timer.Stop("ApplyFluidProperties")
