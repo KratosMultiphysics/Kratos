@@ -223,6 +223,13 @@ namespace Kratos
 		 current_solidified_volume += vol*current_S;
 		 old_solidified_volume += vol*old_S;
 		 tot_vol += vol;
+
+		 //filling solidifiacation time
+		 double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+		 if(is_visited == 0.0 && current_S == 1.0){
+			 it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+			 it->FastGetSolutionStepValue(SOLIDIF_TIME) = ThisModelPart.GetProcessInfo()[TIME];
+		 }
 		 
 	       }
 	       
@@ -235,7 +242,7 @@ namespace Kratos
 	      
 	    if(current_solidified_volume == tot_vol){
 	      ThisModelPart.GetProcessInfo()[IS_SOLIDIFIED] = 1;
-	      KRATOS_WATCH("1111111111111111111111");
+
 	      return current_dt;}
 	    else
 	    {
@@ -251,11 +258,11 @@ namespace Kratos
 		else if( new_dt < dt_min)
 		  new_dt = dt_min;
 
-	      KRATOS_WATCH("22222222222222222222222");		
+		
 		return new_dt;	      
 	      }
 	      else{
-	      KRATOS_WATCH("33333333333333333333333");		
+	
 		return current_dt;}
 	    }
 	    
@@ -289,13 +296,13 @@ namespace Kratos
 	      else if( new_delta_time < dt_min)
 		new_delta_time = dt_min;
 
-	      KRATOS_WATCH("444444444444444444444444");			      
+		      
 	      return new_delta_time;
 	    }
 	    else 
 	    {
 // 	      is_cold = 1;
-	      KRATOS_WATCH("55555555555555555555555555");		
+	
 	      return current_dt;
 	    }
 	   }
@@ -351,16 +358,25 @@ namespace Kratos
 	 double CheckStopTemperature(ModelPart& ThisModelPart,const double stop_temperature)
 	  {			
 	    KRATOS_TRY	
+		const double TT_liquid = ThisModelPart.GetProcessInfo()[FLUID_TEMPERATURE];	
+		double delta_max_temp = TT_liquid - stop_temperature;
+		double sum_temp = 0.0;
 
 	    int node_size = ThisModelPart.Nodes().size();	    
 	    for (int ii = 0; ii < node_size; ii++)
 	       {
             ModelPart::NodesContainerType::iterator it_nd = ThisModelPart.NodesBegin() + ii;
 		    double temp = it_nd->FastGetSolutionStepValue(TEMPERATURE);
-			if( temp > stop_temperature)
-				return 0.0;
+			sum_temp += temp;
+			//if( temp > stop_temperature)
+			//	return 0.0;
 		   }
-		return 1.0;
+		sum_temp /= double(node_size);
+		sum_temp -= stop_temperature;
+
+		double cooled_percent = 100.0*(1.0 - sum_temp/delta_max_temp);
+
+		return cooled_percent;
 	    KRATOS_CATCH("")	
 	  }	
 
