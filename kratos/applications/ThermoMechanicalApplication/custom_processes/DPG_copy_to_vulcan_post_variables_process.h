@@ -68,8 +68,8 @@ namespace Kratos
 	 {
 	   public:
 
-	      DPGCopyToVulcanPostVariablesProcess(ModelPart& rThisModelPart)
-			:Process(), mrModelPart(rThisModelPart)
+	      DPGCopyToVulcanPostVariablesProcess(ModelPart& rThisModelPart, const int filling, const int solidification )
+			:Process(), mrModelPart(rThisModelPart), mrfilling(filling), mrsolidificaion(solidification)
 		{
 			KRATOS_WATCH("<<<<<<<<<<<<<<<<<<<<<<<<< inside DPGCopyToVulcanPostVariablesProcess >>>>>>>>>>>>>>>>>>>>>>>>");
 		}
@@ -103,12 +103,15 @@ namespace Kratos
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
             if (mrModelPart.NodesBegin()->SolutionStepsDataHas(TEMPERATURE) == false)
                 KRATOS_ERROR(std::logic_error, "ERROR! Add VELOCITIES variable!!!!!!", "");
+            if (mrModelPart.NodesBegin()->SolutionStepsDataHas(SOLID_FRACTION) == false)
+                KRATOS_ERROR(std::logic_error, "ERROR! Add SOLID_FRACTION variable!!!!!!", "");
 
 			return 0;
 		}
 		
 	   virtual void Execute()
 		 {
+		   if(mrfilling == 1){
 			  Check();
 			  double max_distance = 0.00;
 			  double min_distance = -1.00e-6;
@@ -208,10 +211,31 @@ namespace Kratos
 				 }
 
 			 }
+		   }
+
+		   if(mrsolidificaion == 1)
+			   CopySolidificationVariables(mrModelPart);
 		 }
 
 		private:
 			ModelPart& mrModelPart;
+			const int mrfilling;
+			const int mrsolidificaion;
+
+			void CopySolidificationVariables(ModelPart& rThisModelPart)
+			{
+
+			 #pragma omp parallel for
+		     for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		     {
+			    ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+
+				i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
+				i_node->FastGetSolutionStepValue(SOLIDFRACTION) = i_node->FastGetSolutionStepValue(SOLID_FRACTION);
+
+ 
+			}
+			}
 	      ///@}
 
 	};
