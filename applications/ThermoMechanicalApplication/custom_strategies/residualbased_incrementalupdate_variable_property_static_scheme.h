@@ -187,6 +187,8 @@ public:
 	    ModelPart::TableType DF_DT_table = r_model_part.GetTable(4);
 	    ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);
 	    ModelPart::TableType HTC_table = r_model_part.GetTable(7);
+
+		double density_var = r_model_part.GetProcessInfo()[DENSITY];
 	    
 	    
 // 	      for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
@@ -205,7 +207,7 @@ public:
 			  ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 		      
 		    if(dist < 0){			      
-		      double density_var = rDensityVar_table.GetValue(unknown_val);
+		     // double density_var = rDensityVar_table.GetValue(unknown_val);
 		      double specific_heat_var =C_table.GetValue(unknown_val);
 		      double solid_fraction_var = F_table.GetValue(unknown_val);
 		      double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
@@ -287,6 +289,8 @@ public:
        ModelPart::TableType rDiffusionVar_table = r_model_part.GetTable(5);	
 	   ModelPart::TableType HTC_table = r_model_part.GetTable(7);	
 
+	   double density_var = r_model_part.GetProcessInfo()[DENSITY];
+
 	//for(typename ModelPart::NodesContainerType::iterator ind=r_model_part.NodesBegin(); ind != r_model_part.NodesEnd();ind++)
 	 #pragma omp parallel for
 	for (int k = 0; k< static_cast<int> (r_model_part.Nodes().size()); k++)
@@ -299,7 +303,7 @@ public:
 		ind->FastGetSolutionStepValue(rTransferCoef) = htc_var;
 
 		if(dist < 0){		
-		double density_var = rDensityVar_table.GetValue(unknown_val);
+		//double density_var = rDensityVar_table.GetValue(unknown_val);
 		double specific_heat_var =C_table.GetValue(unknown_val);
 		double solid_fraction_var = F_table.GetValue(unknown_val);
 		double solid_fraction_rate_var = DF_DT_table.GetValue(unknown_val);
