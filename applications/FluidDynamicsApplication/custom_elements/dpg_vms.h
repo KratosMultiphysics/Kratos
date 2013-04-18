@@ -195,14 +195,17 @@ public:
 	      for (unsigned int j = 0; j < TDim; j++)
 		  coords(i, j) = xyz[j];
 	  }
+	  this->GetValue(AUX_INDEX) = 0.0;
 	  for (unsigned int i = 0; i < 6; i++)
 	      gauss_gradients[i].resize(1, TDim, false);
 	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);      
       
 	  if(ndivisions == 1)
 	    this->is_cutted = 0;
-	  else
+	  else{
 	    this->is_cutted = 1;
+		this->GetValue(AUX_INDEX) = 1.0;
+	  }
     }
     
     
