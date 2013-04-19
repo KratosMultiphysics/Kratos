@@ -672,7 +672,7 @@ public:
 			 if (j_aux>2) j_aux -= 3; 
 			 boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
 			 array_1d<double,3> N;
-			 if (i<4)
+			 if (i<3)
 			 {
 				 partition_father_nodes(0,0)=i;
 				 partition_father_nodes(0,1)=i;
