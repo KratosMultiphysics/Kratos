@@ -339,7 +339,7 @@ void BeamElement::CalculateSectionProperties()
         mArea = GetProperties()[CROSS_AREA];
     else
         mArea = GetValue(AREA);
-    if( GetProperties().Has(INERTIA) )
+    if( GetProperties().Has(LOCAL_INERTIA) )
     {
         Matrix& inertia = GetProperties()[LOCAL_INERTIA];
         mInertia_x = inertia(0,0);
