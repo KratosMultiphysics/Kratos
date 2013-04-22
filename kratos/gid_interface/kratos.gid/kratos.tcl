@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     3.2- 19/04/13- G. Socorro, modify the proc BeforeMeshGeneration to write conditional data condition in the fluid application
 #     3.1- 26/11/12- J. Garate,  BeforeMeshGeneration modified, support PFEM Application
 #     3.0- 12/11/12- J. Garate, Minor Fixing
 #     2.9- 07/11/12- J. Garate, GiD 11.1.2d is the minimum Required version for New GiD Groups
@@ -231,6 +232,7 @@ proc wa {mesage} {
 
 proc BeforeMeshGeneration {elementsize} { 
     global KPriv
+   
     set ndime "3D"
     # Get the spatial dimension
     set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
@@ -244,12 +246,23 @@ proc BeforeMeshGeneration {elementsize} {
     set cproperty "dv"
     set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
 
+    # Create a new variable to control when apply the conditional data conditions
+    set useconditionaldata "0"
+
     if {$FluidApplication eq "Yes"} {
         #set cxpath "Kratos_Data//c.Fluid//c.AnalysisData//i.FluidApproach"
         set root "/Kratos_Data/RootData\[@id='Fluid'\]/Container\[@id='AnalysisData'\]/Item\[@id='FluidApproach'\]"
         set FluidApproachnod [$KPriv(xml) selectNodes $root]
         set FluidApproach [$FluidApproachnod getAttribute dv ""]
         # msg "FluidApproach $FluidApproach"
+
+	# Enable conditional data conditions in the fluid application
+	set useconditionaldata "1"
+	# Check if IS-SLIP condition is active
+	set UseCheckIsSlipCondition 0
+	# Check if IS-WALL condition is active
+	set UseCheckIsWallCondition 0
+
         if {$ndime =="2D"} {
             
             # Align the normal
@@ -275,16 +288,22 @@ proc BeforeMeshGeneration {elementsize} {
             }
             # msg "FluidApproach : $FluidApproach"
             if {$FluidApproach eq "Eulerian"} {
-                 # Check for use Is-Slip BC
-                set issliplist [::KMValid::SlipNoSlipList "2D"]
-                if {[llength $issliplist]} {
+		  
+		# Check for use Is-Slip BC
+		if {$UseCheckIsSlipCondition} {
+		    set issliplist [::KMValid::SlipNoSlipList "slip"]
+		    set issliplistlen [llength $issliplist]
+		    if {!$issliplistlen} {
+			# Disable write conditional data conditions
+			set useconditionaldata 0
+		    }
+		}
+		if {$useconditionaldata} {
                     # Find boundaries
                     set blinelist [::wkcf::FindBoundaries $entitytype]
                     # wa "belist:$blinelist"
                     
-                    # Assign the linear element to all this lines
-
-                    # Automatically meshing all the boundary lines
+		    # Automatically meshing all the boundary lines
                     GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
                     
                     # Assign the boundary condition
@@ -295,12 +314,21 @@ proc BeforeMeshGeneration {elementsize} {
                     }
                 }
             } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
-                # msgS "antes de iswall"
-                set iswall [::KMValid::isWall "2D"]
-                # msgS "he salido del wall"
-                if {[llength $iswall]} {
-                    set blinelist [::wkcf::FindBoundaries $entitytype]
-                    # msgS "blinelist : $blinelist"
+
+		# Check is wall condition
+		if {$UseCheckIsWallCondition} {
+		    set iswall [::KMValid::isWall "2D"]
+		    set iswalllen [llength $iswall]
+		    if {!$iswalllen} {
+			# Disable write conditional data conditions
+			set useconditionaldata 0
+		    }
+		}
+		
+		if {$useconditionaldata} {
+		    
+		    set blinelist [::wkcf::FindBoundaries $entitytype]
+		    # msgS "blinelist : $blinelist"
                     GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
                     # Assign the boundary condition
                     if {[kipt::NewGiDGroups]} {
@@ -336,20 +364,29 @@ proc BeforeMeshGeneration {elementsize} {
             }
             
             if { $FluidApproach eq "Eulerian"} {
-                # Check for use Is-Slip BC
-                set issliplist [::KMValid::SlipNoSlipList "slip"]
-                # WarnWinText "issliplist:$issliplist"
-                if {[llength $issliplist]} {
-                    # Find boundaries
+
+		# Check for use Is-Slip BC
+		if {$UseCheckIsSlipCondition} {
+		    set issliplist [::KMValid::SlipNoSlipList "slip"]
+		    set issliplistlen [llength $issliplist]
+		    if {!$issliplistlen} {
+			# Disable write conditional data conditions
+			set useconditionaldata 0
+		    }
+		}
+
+		if {$useconditionaldata} {
+		    
+		    # Find boundaries
                     set bsurfacelist [::wkcf::FindBoundaries $entitytype]
                     # WarnWinText "bsurfacelist:$bsurfacelist"
                     
                     # Assign the triangle element type
                     GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape 
-                
+		    
                     # Automatically meshing all the boundary surfaces
                     GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
-
+		    
                     if {[kipt::NewGiDGroups]} {
                         ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
                     } else {
@@ -358,8 +395,18 @@ proc BeforeMeshGeneration {elementsize} {
                     }
                 }
             } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
-                set iswall [::KMValid::isWall "3D"]
-                if {[llength $iswall]} {
+
+		# Check is wall condition
+		if {$UseCheckIsWallCondition} {
+		    set iswall [::KMValid::isWall "3D"]
+		    set iswalllen [llength $iswall]
+		    if {!$iswalllen} {
+			# Disable write conditional data conditions
+			set useconditionaldata 0
+		    }
+		}
+		
+		if {$useconditionaldata} {
                     # Find boundaries
                     set bsurfacelist [::wkcf::FindBoundaries $entitytype]
                     # WarnWinText "bsurfacelist:$bsurfacelist"
