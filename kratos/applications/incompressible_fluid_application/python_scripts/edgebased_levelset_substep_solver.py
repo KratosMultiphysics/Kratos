@@ -92,9 +92,9 @@ class EdgeBasedLevelSetSolver:
         print "entered in EdgeBasedLevelSetSubstepSolver python constructor"
         #build the edge data structure
         if(self.domain_size == 2):
-            self.matrix_container = MatrixContainer2D()
+            self.matrix_container = MatrixContainerC2C2D()
         else:
-            self.matrix_container = MatrixContainer3D()
+            self.matrix_container = MatrixContainerC2C3D()
         self.matrix_container.ConstructCSRVector(self.model_part)
         self.matrix_container.BuildCSRData(self.model_part)
         ##for 3D problems we need to evaluate the condition's neighbours
