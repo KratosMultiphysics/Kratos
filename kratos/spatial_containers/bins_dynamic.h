@@ -67,7 +67,11 @@ public:
     typedef Kratos::SearchUtils::SearchRadiusInRange<PointType,PointIterator,DistanceIteratorType,DistanceFunction,SizeType,CoordinateType,IteratorType> SearchRadiusInRange;
     typedef Kratos::SearchUtils::SearchBoxInRange<PointType,PointIterator,SizeType,TDimension,IteratorType> SearchBoxInRange;
 
-
+    typedef std::vector<CoordinateType>         CoordinateVectorType;
+    typedef std::vector<IteratorType>           IteratorVectorType;
+    typedef std::vector<DistanceIteratorType>   DistanceIteratorVectorType;
+    
+    
 public:
 
     //************************************************************************
@@ -397,6 +401,15 @@ public:
         Box.Set( CalculateCell(ThisPoint), mN );
         SearchNearestPointLocal( ThisPoint, rResult, rResultDistance, Box );
     }
+    
+    //************************************************************************
+        
+    void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
+    {
+        #pragma omp parallel for
+        for(int k=0; k< NumberOfPoints; k++)
+            Results[k] = SearchNearestPoint(ThisPoints[k],ResultsDistances[k]);
+    }
 
     //************************************************************************
 
@@ -463,8 +476,16 @@ public:
         Box.Set( CalculateCell(ThisPoint,-Radius), CalculateCell(ThisPoint,Radius), mN );
         SearchInRadiusLocal( ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Box);
     }
-
+    
     //************************************************************************
+    
+    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateVectorType const& Radius, IteratorVectorType Results,
+                         DistanceIteratorVectorType ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
+    {
+        #pragma omp parallel for
+        for(int k=0; k< NumberOfPoints; k++)
+            NumberOfResults[k] = SearchInRadius(ThisPoints[k],Radius[k],Results[k],ResultsDistances[k],MaxNumberOfResults);
+    }
 
     // **** THREAD SAFE
 

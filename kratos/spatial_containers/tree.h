@@ -320,6 +320,13 @@ public:
 
         return Result;
     }
+    
+    void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
+    {
+        #pragma omp parallel for
+        for(int k=0; k< NumberOfPoints; k++)
+            Results[k] = SearchNearestPoint(ThisPoints[k],ResultsDistances[k]);
+    }
 
     SizeType SearchInRadius(PointType const& ThisPoint, CoordinateType Radius, IteratorType Results,
                             DistanceIteratorType ResultsDistances, SizeType MaxNumberOfResults)
@@ -343,6 +350,14 @@ public:
         SizeType NumberOfResults = 0;
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
         return NumberOfResults;
+    }
+    
+    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
+                        std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
+    {
+        #pragma omp parallel for
+        for(int k=0; k< NumberOfPoints; k++)
+            NumberOfResults[k] = SearchInRadius(ThisPoints[k],Radius[k],Results[k],ResultsDistances[k],MaxNumberOfResults);
     }
 
     SizeType SearchInBox(PointType const& MinPointBox, PointType const& MaxPointBox, IteratorType Results, SizeType MaxNumberOfResults )
