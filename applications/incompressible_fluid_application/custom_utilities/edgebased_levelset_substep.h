@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "geometries/geometry.h"
 #include "utilities/geometry_utilities.h"
 #include "incompressible_fluid_application.h"
+#include "custom_utilities/edge_data_c2c.h"
 namespace Kratos
 {
 template<unsigned int TDim, class MatrixContainer, class TSparseSpace, class TLinearSolver>
@@ -71,7 +72,7 @@ class EdgeBasedLevelSetSubstep
 {
 public:
     //name for the self defined structure
-    typedef EdgesStructureType<TDim> CSR_Tuple;
+    typedef EdgesStructureTypeC2C<TDim> CSR_Tuple;
     typedef vector<CSR_Tuple> EdgesVectorType;
     //name for row start and column index vectors
     typedef vector<unsigned int> IndicesVectorType;
@@ -665,9 +666,9 @@ public:
         for (int i = 0; i < inout_size; i++)
         {
             unsigned int i_node = mInOutBoundaryList[i];
-            double dist = mdistances[i_node];
-            if (dist <= 0.0)
-            {
+//             double dist = mdistances[i_node];
+//             if (dist <= 0.0)
+//             {
                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
                 const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
                 double projection_length = 0.0;
@@ -681,7 +682,7 @@ public:
 
 		for (unsigned int comp = 0; comp < TDim; comp++)
                     pi_i[comp] += projection_length * U_i[comp] ;
-            }
+//             }
         }
 
                 #pragma omp parallel for
@@ -959,9 +960,9 @@ public:
         for (int i = 0; i < inout_size; i++)
         {
             unsigned int i_node = mInOutBoundaryList[i];
-            double dist = mdistances[i_node];
-            if (dist <= 0.0)
-            {
+//             double dist = mdistances[i_node];
+//             if (dist <= 0.0)
+//             {
                 const array_1d<double, TDim>& U_i = mvel_n1[i_node];
                 const array_1d<double, TDim>& an_i = mInOutNormal[i_node];
                 double projection_length = 0.0;
@@ -976,7 +977,7 @@ public:
 
 		for (unsigned int comp = 0; comp < TDim; comp++)
                     rhs_i[comp] += projection_length * U_i[comp] ;
-            }
+//             }
         }
 
         /*        		for (int i = 0; i < mSlipBoundaryList.size(); i++)
@@ -2230,6 +2231,7 @@ public:
             for (ModelPart::ConditionsContainerType::iterator cond_it = rConditions.begin(); cond_it != rConditions.end(); cond_it++)
                 CalculateNormal3D (cond_it, area_normal, v1, v2);
         }
+// area_normal *= -1; //CHAPUZA: REMOVE!!!s
         //(re)initialize normals
         unsigned int n_nodes = mNodalFlag.size();
         mInOutNormal.resize (n_nodes);
@@ -2296,7 +2298,7 @@ public:
 	    else
 	    {
 	      for (unsigned int if_node = 0; if_node < TDim; if_node++)
-                    if (face_geometry[if_node].IsFixed (VELOCITY_X) )
+                    if (face_geometry[if_node].IsFixed (VELOCITY_X)  )
 		    is_inlet_or_outlet = true;
 	    }
             //slip condition
@@ -2312,6 +2314,10 @@ public:
                     }
                 }
         }
+        
+//        KRATOS_WATCH( mInOutNormal[7-1] );
+//        KRATOS_ERROR(std::logic_error,"remove line 2318 " ,"");
+       
         std::vector< unsigned int> tempmInOutBoundaryList;
         for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
         {
