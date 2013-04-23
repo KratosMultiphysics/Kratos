@@ -46,7 +46,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MATERIAL)
     model_part.AddNodalSolutionStepVariable(LAST_AIR)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)   
-    #model_part.AddNodalSolutionStepVariable(CUTTED_AREA)   
+    model_part.AddNodalSolutionStepVariable(NODAL_PAUX)   
     #model_part.AddNodalSolutionStepVariable(WET_VOLUME)     
     #variables needed for the distance solver
     levelset_solver.AddVariables(model_part,distance_settings)
@@ -96,7 +96,7 @@ class MonolithicSolver:
 	self.gmres_size = 50
 	self.tol = 1e-5
 	self.verbosity = 0
-	self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,self.tol,200,self.verbosity,self.gmres_size)         
+	self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,self.tol,200,self.verbosity,self.gmres_size)         
 
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -119,6 +119,7 @@ class MonolithicSolver:
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
+        self.volume_correction = True
     
 ##        print "Construction monolithic solver finished"
         
@@ -164,7 +165,7 @@ class MonolithicSolver:
 	self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.level_set_model_part)
         self.max_distance = self.max_edge_size * 5.0;
-	self.max_levels = 10 ##self.max_distance/self.min_edge_size 	
+	self.max_levels = 25 ##self.max_distance/self.min_edge_size 	
 
         self.max_ns_iterations = 8
 	self.internal_step_counter = 1  
@@ -208,8 +209,8 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
-        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
-##        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+##        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,self.tol,200,self.verbosity,self.gmres_size)
         self.level_set_solver.Initialize()
 
