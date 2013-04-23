@@ -39,6 +39,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     model_part.AddNodalSolutionStepVariable(AIR_PRESSURE_DT);
     model_part.AddNodalSolutionStepVariable(ARRHENIUS); 
+    model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
 
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
     model_part.AddNodalSolutionStepVariable(NORMAL);
@@ -100,7 +101,7 @@ class MonolithicSolver:
             self.buildertype="ML3Dpress"
             
         #self.guess_row_size = 25
-        #self.buildertype="standard"
+        ##self.buildertype="standard"
 	#aztec_parameters = ParameterList()
 	#aztec_parameters.set("AZ_solver","AZ_gmres");
 	#aztec_parameters.set("AZ_kspace",200);
@@ -161,7 +162,7 @@ class MonolithicSolver:
 	                     
     #######################################################################   
     def Solve(self):
-
+        mpi.world.barrier()
         (self.solver).Solve()
 
        
