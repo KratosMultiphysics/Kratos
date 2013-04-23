@@ -50,6 +50,9 @@
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme.h"
 #include "../../FluidDynamicsApplication/custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
 #include "custom_strategies/schemes/trilinos_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
+#include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
+
 //#include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
 //#include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
@@ -114,6 +117,7 @@ void  AddSchemes()
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
     typedef Scheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosBaseSchemeType;
+    typedef TrilinosResidualBasedIncrementalUpdateStaticScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> TrilinosResidualBasedIncrementalUpdateStaticSchemeType;
 
 //********************************************************************
     //********************************************************************
@@ -190,7 +194,17 @@ void  AddSchemes()
             .def(init<double,double,unsigned int >())// constructor without a turbulence model
             .def(init<double,double,unsigned int, const Variable<int>&>())
            ;
-
+    class_ < TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases< TrilinosPredictorCorrectorVelocityBossakScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType> >, boost::noncopyable >
+           (
+               "TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched", init<double, double, unsigned int>()
+           );
+	   
+    class_ < TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme< TrilinosSparseSpaceType, TrilinosLocalSpaceType>,
+           bases< TrilinosResidualBasedIncrementalUpdateStaticSchemeType >, boost::noncopyable >
+           (
+               "TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme", init< >()
+           );	   
 //            typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
 //
 //            class_ < GearSchemeBaseType,
