@@ -33,38 +33,45 @@
 
 
 #define KRATOS_SERIALIZATION_DIRECT_LOAD(type)                           \
-	void load(std::string const & rTag, type& rValue)                \
-	{                                                                \
-	    load_trace_point(rTag);                                      \
+    void load(std::string const & rTag, type& rValue)                \
+    {                                                                \
+        load_trace_point(rTag);                                      \
             read(rValue);                                             \
-	}  								 \
-	   								 \
-	void load_base(std::string const & rTag, type& rValue)           \
-	{                                                                \
+    }                                \
+                                     \
+    void load_base(std::string const & rTag, type& rValue)           \
+    {                                                                \
           load_trace_point(rTag);                                      \
-	  read(rValue);                                             \
-	}
+      read(rValue);                                             \
+    }
 
 #define KRATOS_SERIALIZATION_DIRECT_SAVE(type)                           \
-	void save(std::string const & rTag, type const & rValue)         \
-	{                                                                \
-	  save_trace_point(rTag);                                      \
-	  write(rValue);                                             \
-	}    								 \
-	   								 \
-	void save_base(std::string const & rTag, type const & rValue)    \
-	{                                                                \
-	  save_trace_point(rTag);                                      \
-	  write(rValue);                                             \
-	}
+    void save(std::string const & rTag, type const & rValue)         \
+    {                                                                \
+      save_trace_point(rTag);                                      \
+      write(rValue);                                             \
+    }                                    \
+                                     \
+    void save_base(std::string const & rTag, type const & rValue)    \
+    {                                                                \
+      save_trace_point(rTag);                                      \
+      write(rValue);                                             \
+    }
 
 #define KRATOS_SERIALIZATION_DIRECT_CREATE(type)                         \
-	void* create(std::string const & rTag, type* prototype)          \
-	{                                                                \
-	  type* p_new = new type;                                        \
-	  load(rTag, *p_new);                                            \
-	  return p_new;                                                  \
-	}
+    void* create(std::string const & rTag, type* prototype)          \
+    {                                                                \
+      type* p_new = new type;                                        \
+      load(rTag, *p_new);                                            \
+      return p_new;                                                  \
+    }
+    
+#define KRATOS_SERIALIZER_MODE_BINARY \
+    if(!mTrace) {
+#define KRATOS_SERIALIZER_MODE_ASCII \
+    } else {
+#define KRATOS_SERIALIZER_MODE_END \
+    }
 namespace Kratos
 {
 
@@ -174,7 +181,7 @@ public:
     {
         msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,Create<TDataType>));
         msRegisteredObjectsName.insert(RegisteredObjectsNameContainerType::value_type(typeid(TDataType).name(), rName));
-// 	  msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
+//    msRegisteredObjects.insert(RegisteredObjectsContainerType::value_type(rName,&pPrototype));
     }
 
     template<class TDataType>
@@ -275,7 +282,7 @@ public:
     {
         // This is for testing. I have to change it. Pooyan.
         //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
-// 	  read(*pValue);
+//    read(*pValue);
     }
 
     template<class TDataType>
@@ -283,7 +290,7 @@ public:
     {
         // This is for testing. I have to change it. Pooyan.
         //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
-// 	  read(*pValue);
+//    read(*pValue);
     }
 
     template<class TDataType>
@@ -308,7 +315,7 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             load("E", rObject[i]);
-//	  read(rObject);
+//    read(rObject);
     }
 
     template<class TDataType>
@@ -323,7 +330,7 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             load("E", rObject[i]);
-//	  read(rObject);
+//    read(rObject);
     }
 
     template<class TDataType, std::size_t TDimension>
@@ -333,7 +340,7 @@ public:
         rObject = array_1d<TDataType, TDimension>();
         for(SizeType i = 0 ; i < TDimension ; i++)
             load("E", rObject[i]);
-//	  read(rObject);
+//    read(rObject);
     }
 
     KRATOS_SERIALIZATION_DIRECT_LOAD(bool)
@@ -360,7 +367,7 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             save("E", rObject[i]);
-//	  write(rObject);
+//    write(rObject);
     }
 
     template<class TDataType>
@@ -373,7 +380,7 @@ public:
 
         for(SizeType i = 0 ; i < size ; i++)
             save("E", rObject[i]);
-//	  write(rObject);
+//    write(rObject);
     }
 
     template<class TDataType, std::size_t TDimension>
@@ -383,7 +390,7 @@ public:
         for(SizeType i = 0 ; i < TDimension ; i++)
             save("E", rObject[i]);
 
-//	  write(rObject);
+//    write(rObject);
     }
 
     template<class TDataType>
@@ -429,7 +436,7 @@ public:
     bool IsDerived(TDataType * pValue)
     {
         bool is_derived = (typeid(TDataType) != typeid(*pValue));
-// 	  std::cout << "for TDataType : " << typeid(TDataType).name() << " and *pValue type : " << typeid(*pValue).name() << " is derived : " << is_derived << std::endl;
+//    std::cout << "for TDataType : " << typeid(TDataType).name() << " and *pValue type : " << typeid(*pValue).name() << " is derived : " << is_derived << std::endl;
         return is_derived;
     }
 
@@ -461,7 +468,7 @@ public:
     {
         // This is for testing. I have to implement it. Pooyan.
         //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
-// 	  write(*pValue);
+//    write(*pValue);
     }
 
     template<class TDataType>
@@ -469,7 +476,7 @@ public:
     {
         // This is for testing. I have to implement it. Pooyan.
         //KRATOS_ERROR(std::logic_error, "The serialization for weak_ptrs is not implemented yet", "")
-// 	  write(*pValue);
+//    write(*pValue);
     }
 
     template<class TDataType>
@@ -477,7 +484,7 @@ public:
     {
         // This is for testing. I have to change it. Pooyan.
 //          save_trace_point(rTag);
-//	  write(*pValue);
+//    write(*pValue);
         save(rTag, pValue.get());
     }
 
@@ -716,8 +723,7 @@ private:
 
     SavedPointersContainerType mSavedPointers;
     LoadedPointersContainerType mLoadedPointers;
-
-
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -747,7 +753,7 @@ private:
             }
 
             save(rTag, *pValue);
-            // 	      pValue->save(*this);
+            //        pValue->save(*this);
             mSavedPointers.insert(pValue);
         }
     }
@@ -780,64 +786,150 @@ private:
 
     void read(PointerType& rValue)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        int temp;
+        mpBuffer->read((char *)(&temp),sizeof(PointerType));
+        rValue = PointerType(temp);
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         int temp;
         *mpBuffer >> temp;
         rValue = PointerType(temp);
         mNumberOfLines++;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     void write(PointerType const& rValue)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        int ptr = (int)rValue;
+        const char * data = reinterpret_cast<const char*>(&ptr);
+        mpBuffer->write(data,sizeof(PointerType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer << int(rValue) << std::endl;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
-
 
     void read(std::string& rValue)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        SizeType size;
+        mpBuffer->read((char *)(&size),sizeof(SizeType));
+        char c_binStream[size];
+        mpBuffer->read(c_binStream,size);
+        std::string s_binStream(c_binStream,size);
+        rValue = s_binStream;
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         // going to the first '"'
         std::getline( *mpBuffer,rValue, '\"');
         // reading the string itself until second '"'
         std::getline( *mpBuffer,rValue, '\"');
         mNumberOfLines++;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     void write(std::string const& rValue)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        const char * data = rValue.c_str();
+        SizeType rData_size = rValue.length() * sizeof(char);
+        
+        const char * data1 = reinterpret_cast<const char *>(&rData_size);
+        
+        mpBuffer->write(data1,sizeof(SizeType));
+        mpBuffer->write(data,rData_size);
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer << "\"" << rValue << "\"" << std::endl;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
-
 
     template<class TDataType>
     void read(TDataType& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        mpBuffer->read((char *)(&rData),sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer >> rData;
-//            mpBuffer->read((char*)(&rData), BlockCompatibleSize(sizeof(TDataType)));
         mNumberOfLines++;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TDataType>
     void write(TDataType const& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        const char * data = reinterpret_cast<const char*>(&rData);
+        mpBuffer->write(data,sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer << rData << std::endl;
-//            mpBuffer->write((const char*)(&rData), BlockCompatibleSize(sizeof(TDataType)));
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TDataType>
     void read(std::vector<TDataType>& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        SizeType size;
+        mpBuffer->read((char *)(&size),sizeof(SizeType));
+
+        rData.resize(size);
+
+        read(rData.begin(), rData.end(), sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         std::size_t size;
         *mpBuffer >> size;
         rData.resize(size);
         mNumberOfLines++;
 
         read(rData.begin(), rData.end());
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TDataType>
     void write(std::vector<TDataType> const& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        SizeType rData_size = rData.size();
+
+        const char * data = reinterpret_cast<const char *>(&rData_size);
+        mpBuffer->write(data,sizeof(SizeType));
+        
+        write(rData.begin(), rData.end(), sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer << rData.size() << std::endl;
         write(rData.begin(), rData.end());
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
 //        template<class TDataType, std::size_t TDimenasion>
@@ -858,7 +950,6 @@ private:
 //            std::size_t size;
 //            *mpBuffer >> size;
 //            rData.resize(size,false);
-//            mNumberOfLines++;
 //
 //            read(rData.begin(), rData.end());
 //        }
@@ -873,6 +964,20 @@ private:
     template<class TDataType>
     void read(boost::numeric::ublas::matrix<TDataType>& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        SizeType size1;
+        SizeType size2;
+
+        mpBuffer->read((char *)(&size1),sizeof(SizeType));
+        mpBuffer->read((char *)(&size2),sizeof(SizeType));
+        
+        rData.resize(size1,size2);
+
+        read(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         SizeType size1;
         SizeType size2;
 
@@ -883,33 +988,75 @@ private:
 
         rData.resize(size1,size2);
 
-        read(rData.data().begin(), rData.data().end());
+        read(rData.data().begin(), rData.data().end(),0);
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TDataType>
     void write(boost::numeric::ublas::matrix<TDataType> const& rData)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        SizeType rData_size1 = rData.size1();
+        SizeType rData_size2 = rData.size2();
+        
+        const char * data1 = reinterpret_cast<const char *>(&rData_size1);
+        const char * data2 = reinterpret_cast<const char *>(&rData_size2);
+        
+        mpBuffer->write(data1,sizeof(SizeType));
+        mpBuffer->write(data2,sizeof(SizeType));
+        
+        write(rData.data().begin(), rData.data().end(), sizeof(TDataType));
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         *mpBuffer << rData.size1() << std::endl;
         *mpBuffer << rData.size2() << std::endl;
 
-        write(rData.data().begin(), rData.data().end());
+        write(rData.data().begin(), rData.data().end(),0);
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     template<class TIteratorType>
-    void read(TIteratorType First, TIteratorType Last)
+    void read(TIteratorType First, TIteratorType Last, SizeType size)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        for(; First != Last ; First++)
+        {
+            mpBuffer->read((char *)First,sizeof(size));
+        }
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         for(; First != Last ; First++)
         {
             *mpBuffer >> *First;
             mNumberOfLines++;
 
         }
+        
+        KRATOS_SERIALIZER_MODE_END
     }
     template<class TIteratorType>
-    void write(TIteratorType First, TIteratorType Last)
+    void write(TIteratorType First, TIteratorType Last, SizeType size)
     {
+        KRATOS_SERIALIZER_MODE_BINARY
+        
+        for(; First != Last ; First++) 
+        {
+            const char * data = reinterpret_cast<const char *>(First);
+            mpBuffer->write(data,sizeof(size));
+        }
+        
+        KRATOS_SERIALIZER_MODE_ASCII
+        
         for(; First != Last ; First++)
             *mpBuffer << *First << std::endl;
+        
+        KRATOS_SERIALIZER_MODE_END
     }
 
     inline SizeType BlockCompatibleSize(SizeType rSize)
@@ -973,11 +1120,11 @@ private:
 //   }
 /// input stream function
 //   inline std::istream& operator >> (std::istream& rIStream,
-// 				    Serializer& rThis);
+//                  Serializer& rThis);
 
 /// output stream function
 //   inline std::ostream& operator << (std::ostream& rOStream,
-// 				    const Serializer& rThis)
+//                  const Serializer& rThis)
 //     {
 //       rThis.PrintInfo(rOStream);
 //       rOStream << std::endl;
@@ -989,6 +1136,10 @@ private:
 
 
 }  // namespace Kratos.
+
+#undef KRATOS_SERIALIZER_MODE_BINARY
+#undef KRATOS_SERIALIZER_MODE_ASCII
+#undef KRATOS_SERIALIZER_MODE_END
 
 #undef KRATOS_SERIALIZATION_DIRECT_LOAD
 #undef KRATOS_SERIALIZATION_DIRECT_SAVE
