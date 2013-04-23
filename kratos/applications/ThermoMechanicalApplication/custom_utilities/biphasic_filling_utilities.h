@@ -90,6 +90,7 @@ class BiphasicFillingUtilities
 			KRATOS_TRY;
 /*			AirSmagorinskey(ThisModelPart, C_Smagorinsky);*/
 			int node_size = ThisModelPart.Nodes().size();
+			double is_exit = 0.0;
 			for (int ii = 0; ii < node_size; ii++)
 			 {
                  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
@@ -98,9 +99,16 @@ class BiphasicFillingUtilities
 
 				 if (str_flag == 0.0 && slip_flag>=10.0)
 				 {
-					 return 1.0;
+				         is_exit = 1.0;
+// 					 return 1.0;
 				 }
 			 }
+			//syncronoze
+		        ThisModelPart.GetCommunicator().MaxAll(is_exit);	
+			if(is_exit == 1.0)
+			    return 1.0;
+			 
+			 
 			// if there is no dry node
 		    double is_dry_node = 0.0;
 #pragma omp parallel for firstprivate(node_size)
@@ -120,7 +128,9 @@ class BiphasicFillingUtilities
 					}
 				}
 			 }
-
+			//syncronoze
+		        ThisModelPart.GetCommunicator().MaxAll(is_dry_node);
+			
 			//assign smagorinsky at air element
 			AirSmagorinskey(ThisModelPart, C_Smagorinsky);
 
@@ -186,6 +196,9 @@ class BiphasicFillingUtilities
 						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}//y_wall_val*y_wall_fac	
 				  }
 			}
+			//syncronoze
+		        ThisModelPart.GetCommunicator().SumAll(wet_nodes);
+		        ThisModelPart.GetCommunicator().SumAll(node_size);			
 			double filling_percent = 0.0;
 
 			if(wet_nodes != 0) filling_percent = 100.0*double(wet_nodes)/double(node_size);
@@ -244,7 +257,9 @@ class BiphasicFillingUtilities
 	      
 	      double wet_volume = 0.0;
 	      double cutted_area = 0.0;
-	      int node_size = ThisModelPart.Nodes().size();	      
+// 	      int node_size = ThisModelPart.Nodes().size();
+	      int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();	      
+	      
 // #pragma omp parallel for firstprivate(node_size) reduction(+:wet_volume,cutted_area )
 // 		for (int ii = 0; ii < node_size; ii++)
 // 		{
@@ -262,7 +277,8 @@ class BiphasicFillingUtilities
 #pragma omp parallel for firstprivate(node_size)		
 		for (int ii = 0; ii < node_size; ii++)
 		{
-		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+// 		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		  ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 		  
 		  it->FastGetSolutionStepValue(DISTANCE) -= volume_difference;
 		  
@@ -276,11 +292,11 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 	    {	
 	      KRATOS_TRY;
 	      double net_input = 0.0;	      
-	      int node_size = ThisModelPart.Nodes().size();	      
+	      int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();	      
 #pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
 		for (int ii = 0; ii < node_size; ii++)
 		{
-		  ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+		  ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 		  double str_flag = it->GetValue(IS_STRUCTURE);
 		  double slip_flag = it->GetSolutionStepValue(IS_SLIP);
 		  double distance = it->GetSolutionStepValue(DISTANCE);
@@ -292,12 +308,15 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 		  net_input += inner_prod(vel,normal);
 		  }
 		}
+		//syncronoze
+		ThisModelPart.GetCommunicator().SumAll(net_input);		
 		
                ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 	       const double delta_t = CurrentProcessInfo[DELTA_TIME];
                double& net_volume = CurrentProcessInfo[NET_INPUT_MATERIAL];
 	       net_volume += (net_input*delta_t);
-	      
+	       
+	       
 	      KRATOS_CATCH("")
 	    }	      
 	//**********************************************************************************************
@@ -408,6 +427,9 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 	        cutare += 7.205621731 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
 	      }				
 	    }
+	    //syncronoze
+	    ThisModelPart.GetCommunicator().SumAll(wetvol);
+	    ThisModelPart.GetCommunicator().SumAll(cutare);	
 	    
 	    wet_volume = wetvol;
 	    cutted_area = cutare;
