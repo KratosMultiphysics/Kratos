@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     6.4- 24/04/13-G. Socorro, write rotational dofs boundary condition for beam element type
 #     6.3- 19/03/13-G. Socorro, update the proc SelectPythonScript to select the correct python script
 #     6.2- 17/12/12-J. Garate,  PFEM Wall is disabled for .mdpa
 #     6.1- 21/11/12-J. Garate,  Modified ::wkcf::WriteNodalCoordinates_m2 ::wkcf::WriteElementConnectivities_m2 ::wkcf::WriteBoundaryCondition for PFEM
@@ -1078,16 +1079,20 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                     "Rotations" {
                         set usenbst2 "No"
                         set useshells2 "No"
+			set usebeams "No"
+			set beamlist [list "BeamElement"]
                         set shelllist2 [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
                         if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
                             # For all defined kratos elements        
                             foreach celemid $dprops($AppId,AllKElemId) {
                                 if {$celemid in $shelllist2} {
                                     set useshells2 "Yes"
-                                }
+                                } elseif {$celemid in $beamlist} {
+                                    set usebeams "Yes"
+				}
                             }
                         }
-                        if {$useshells2 == "Yes"} {
+                        if {($useshells2 eq "Yes")||($usebeams eq "Yes")} {
                             set kwxpath "Applications/StructuralAnalysis"
                             set kwordlist [list [::xmlutils::getKKWord $kwxpath "Rx"] [::xmlutils::getKKWord $kwxpath "Ry"] [::xmlutils::getKKWord $kwxpath "Rz"]]
                             # Process displacement properties
