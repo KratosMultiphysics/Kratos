@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.3- 24/04/13-G. Socorro, write Rotational_Dofs = True for beam element type
 #     1.2- 18/03/13-G. Socorro, correct a bug in the proc WritePressureLoads_m2 change $group by $cgroupid
 #     1.1- 17/12/12-J. Garate,  Kratos Path is no longer written at ProjectParameters.py
 #     1.0- 12/11/12-J. Garate,  Fixed some errors
@@ -1228,8 +1229,10 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # Check for use shell elements
     set usenbst "No"
     set useshells "No"
+    set usebeams "No"
 
     set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
+    set beamlist [list "BeamElement"]
 
     if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
 	# For all defined kratos elements        
@@ -1240,6 +1243,8 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 		    set usenbst "Yes"
 		    break
 		}
+	    } elseif {$celemid in $beamlist} {
+		set usebeams "Yes"
 	    }
 	}
     }
@@ -1248,7 +1253,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     } else {
 	puts $fileid "FindElementalNeighbours = \"False\""
     }
-    if {$useshells =="Yes"} {
+    if {($useshells eq "Yes")||($usebeams eq "Yes")} {
 	puts $fileid "Rotational_Dofs = \"True\""
     } else {
 	puts $fileid "Rotational_Dofs = \"False\""

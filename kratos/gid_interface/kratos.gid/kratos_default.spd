@@ -99,7 +99,7 @@
         </Container>
         <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1" icon="boundarycond.gif">
             <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="1" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
-            <Container id="Rotations" pid="Rotations" class="Groups" strucType="Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="1"/>
+            <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beams,Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="1"/>
         </Container>
         <Container id="Results" pid="Results" help="Results" open="1" icon="outputresults.gif">
 	  <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
