@@ -22,7 +22,6 @@
 
 
 // Project includes
-#include "containers/array_1d.h"
 #include "search_structure.h"
 
 namespace Kratos
@@ -221,16 +220,12 @@ public:
 
         if(mPointsBegin == mPointsEnd)
             return;
-        array_1d<double, 3> max_coordinates;
-        array_1d<double, 3> min_coordinates;
         PointType max_point;
         PointType min_point;
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             max_point[i] = (**mPointsBegin)[i];
             min_point[i] = (**mPointsBegin)[i];
-            max_coordinates(i) = (**mPointsBegin)[i];
-            min_coordinates(i)= (**mPointsBegin)[i];
         }
         //	PointType max_point = **mPointsBegin;
         //	PointType min_point = **mPointsBegin;
@@ -239,14 +234,13 @@ public:
             {
                 if((**point_iterator)[i] > max_point[i])
                     max_point[i] = (**point_iterator)[i];
-                if((**point_iterator)[i] > max_coordinates(i))
-                    max_coordinates(i) = (**point_iterator)[i];
-                else if((**point_iterator)[i] < min_coordinates(i))
-                    min_coordinates(i) = (**point_iterator)[i];
+                else if((**point_iterator)[i] < min_point[i])
+                   min_point[i]  = (**point_iterator)[i];
             }
 
         mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
     }
+
 
     Tree(IteratorType PointsBegin, IteratorType PointsEnd, Partitions Parts )
         : mPointsBegin(PointsBegin), mPointsEnd(PointsEnd)
