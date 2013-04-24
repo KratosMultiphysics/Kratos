@@ -63,10 +63,14 @@ def InitializeOutletNodes( model_part_1d, model_part_3d):
     for node in model_part_1d.Nodes:
       if(node.GetSolutionStepValue(FLAG_VARIABLE) == 2):
 	outlet_nodes_1d.append(node)
+	node.Fix(VELOCITY_X)
+	node.Fix(VELOCITY_Y)
+	node.Fix(VELOCITY_Z)
 	
     for node in model_part_3d.Nodes:
       if(node.GetSolutionStepValue(FLAG_VARIABLE) == 2):
 	outlet_nodes_3d.append(node)
+	node.Fix(PRESSURE)
 	
     return [ outlet_nodes_1d, outlet_nodes_3d ]
     
@@ -80,15 +84,23 @@ def Transfer1D_to_3D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
       print "vel1d = ",vel1d
       
       for node in inlet_nodes_3d:
+	#aux = node.GetSolutionStepValue(NORMAL);
+	#A = math.sqrt(aux[0]*aux[0] + aux[1]*aux[1] + aux[2]*aux[2])
+	#if(A == 0.0):
+	  #print "node id = ",node.Id
+	#aux *= vel1d/A
 	node.SetSolutionStepValue( VELOCITY_X, 0, vel1d)
-	
-    ##assign pressure to outlet
-    #for i in range(0,len(outlet_nodes_1d) ):
-      #press = outlet_nodes_1d[i].GetSolutionStepValue(PRESSURE) 
-      
-      #for node in outlet_nodes_3d[i]:
-	#node.SetSolutionStepValue( PRESSURE, 0, press)
-	#node.SetSolutionStepValue( EXTERNAL_PRESSURE, 0, press)
+
+      ##assign pressure to outlet
+      #for i in range(0,len(outlet_nodes_1d) ):
+	#press = outlet_nodes_1d[i].GetSolutionStepValue(PRESSURE) 
+      beta = outlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * outlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
+      A= outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
+      A0 = outlet_nodes_1d[0].GetValue(NODAL_AREA)
+      press = math.sqrt(A/A0)*beta - beta
+            
+      for node in outlet_nodes_3d:
+	node.SetSolutionStepValue( PRESSURE, 0, press)
   
   
 def Transfer3D_to_1D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_3d, outlet_nodes_1d, outlet_nodes_3d, area3d ):
@@ -100,9 +112,12 @@ def Transfer3D_to_1D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
       avg_press = press_3d/counter
       
       #TODO: make it to read from the input
-      #beta = inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
-      #A = area3d*(avg_press/beta + 1)**2
-      inlet_nodes_1d[0].SetSolutionStepValue(PRESSURE ,0, press_3d) 
+      print "inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)",inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)
+      print "inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)",inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)
+      print inlet_nodes_1d[0].Id
+      beta = inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
+      A = area3d*(avg_press/beta + 1)**2
+      inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA ,0, A) 
       
       #print "Area on 3D inlet ",A
       
@@ -115,5 +130,7 @@ def Transfer3D_to_1D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
 	normal = node.GetSolutionStepValue(NORMAL);
 	vel = node.GetSolutionStepValue(VELOCITY)
 	flow += normal[0]*vel[0] + normal[1]*vel[1] + normal[2]*vel[2]
+	
+      print "flow = ",flow
 	
       outlet_nodes_1d[0].SetSolutionStepValue(FLOW, 0, flow)
