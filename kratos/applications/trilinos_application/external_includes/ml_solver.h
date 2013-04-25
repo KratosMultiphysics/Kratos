@@ -112,22 +112,15 @@ public:
         KRATOS_TRY
         Epetra_LinearProblem AztecProblem(&rA,&rX,&rB);
 
-        /*		Teuchos::ParameterList MLList;
-        		ML_Epetra::SetDefaults("SA",MLList);
-        		MLList.set("ML output", 10);
-        		MLList.set("max levels",6);
-        		MLList.set("increasing or decreasing","increasing");
-        		MLList.set("aggregation: type", "MIS");
-        // 		MLList.set("coarse: type","Amesos-KLU");
-        		MLList.set("coarse: type","Amesos-Superludist");
-        		MLList.set("smoother: type","Chebyshev");
-        		MLList.set("smoother: sweeps",3);
-        		MLList.set("smoother: pre or post", "both");
-
-        		// create the preconditioner
-        		ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, MLList, true);*/
+		//do scaling
+		Epetra_Vector scaling_vect(rA.RowMap());
+        rA.InvColSums(scaling_vect);
+        AztecProblem.LeftScale(scaling_vect);
+				
+		mMLParameterList.set("PDE equations", mndof);
 
         ML_Epetra::MultiLevelPreconditioner* MLPrec = new ML_Epetra::MultiLevelPreconditioner(rA, mMLParameterList, true);
+
 
         // create an AztecOO solver
         AztecOO aztec_solver(AztecProblem);
@@ -135,9 +128,7 @@ public:
 
         // set preconditioner and solve
         aztec_solver.SetPrecOperator(MLPrec);
-        /*		Solver.SetAztecOption(AZ_solver, AZ_gmres);
-        		Solver.SetAztecOption(AZ_kspace, 200);*/
-
+ 
         aztec_solver.Iterate(mmax_iter, mtol);
         delete MLPrec;
 
@@ -160,13 +151,78 @@ public:
 
         return false;
     }
+    
+    	/** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function tells if the solver requires such data
+     */
+    virtual bool AdditionalPhysicalDataIsNeeded()
+    {
+        return true;
+    }
+
+    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function is the place to eventually provide such data
+     */
+    void ProvideAdditionalData (
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart& r_model_part
+    )
+    {
+        int old_ndof = -1;
+		unsigned int old_node_id = rdof_set.begin()->Id();
+		int ndof=0;
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+		{
+			
+//			if(it->EquationId() < rdof_set.size() )
+//			{
+				unsigned int id = it->Id();
+				if(id != old_node_id)
+				{
+					old_node_id = id;
+					if(old_ndof == -1) old_ndof = ndof;
+					else if(old_ndof != ndof) //if it is different than the block size is 1
+					{
+						old_ndof = -1;
+						break;
+					}
+					
+					ndof=1;
+				}
+				else
+				{
+					ndof++;
+				}
+//			}
+		}
+		
+		r_model_part.GetCommunicator().MinAll(old_ndof);
+		
+		if(old_ndof == -1) 
+			mndof = 1;
+		else
+			mndof = ndof;
+			
+		KRATOS_WATCH(mndof);
+
+
+    }
 
     /**
      * Print information about this object.
      */
     void  PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "SuperLU solver finished.";
+        rOStream << "trilinos ML solver finished.";
     }
 
     /**
@@ -181,6 +237,7 @@ private:
     Teuchos::ParameterList mMLParameterList;
     double mtol;
     int mmax_iter;
+    int mndof;
 
     /**
      * Assignment operator.
