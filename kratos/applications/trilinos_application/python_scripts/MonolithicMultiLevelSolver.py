@@ -16,8 +16,8 @@ def LinearSolver(tolerance, max_iterations):
     default_settings = EpetraDefaultSetter()
     default_settings.SetDefaults(MLList,"NSSA");
     
-    MLList.set("ML output", 0);
-    MLList.set("coarse: max size",50000)
+    MLList.set("ML output", 9);
+    MLList.set("coarse: max size",10000)
     MLList.set("max levels",3);
     #MLList.set("increasing or decreasing","increasing");
     #MLList.set("null space: add default vectors", 1);
@@ -25,16 +25,16 @@ def LinearSolver(tolerance, max_iterations):
     #MLList.set("smoother: sweeps",3);
     #MLList.set("smoother: pre or post", "both")
     #MLList.set("ML output",0);
-    MLList.set("coarse: type","IFPACK")
-    MLList.set("smoother: ifpack type", "ILU");
-    MLList.set("smoother: ifpack overlap", 0);
-#    MLList.sublist("smoother: ifpack list").set("fact: level-of-fill", 1);
-    MLList.set("coarse: sweeps", 3)
-    MLList.set("coarse: pre or post", "both")
+    MLList.set("coarse: type","Amesos-Superludist")
+    #MLList.set("smoother: ifpack type", "ILU");
+    #MLList.set("smoother: ifpack overlap", 0);
+    #MLList.SetSublistIntValue("smoother: ifpack list","fact: level-of-fill", 5);
+    #MLList.set("coarse: sweeps", 3)
+    #MLList.set("coarse: pre or post", "both")
  
-    MLList.set("print unused",1)
-    MLList.setboolvalue("energy minimization: enable",0)
-    MLList.set("aggregation: damping factor",0.0)
+    #MLList.set("print unused",1)
+    #MLList.setboolvalue("energy minimization: enable",0)
+    #MLList.set("aggregation: damping factor",0.0)
 
     linear_solver =  MultiLevelSolver(aztec_parameters,MLList,tolerance,max_iterations);
 
