@@ -249,6 +249,26 @@ void SetBoolValue(Teuchos::ParameterList& dummy, const string &name, int value)
         dummy.set(name, true);
 }
 
+void SetSublistIntValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, int value)
+{
+    dummy.sublist(sublist_name).set(name, value);
+}
+
+void SetSublistDoubleValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, double value)
+{
+    dummy.sublist(sublist_name).set(name, value);
+}
+
+void SetSublistCharValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, const char value[])
+{
+    dummy.sublist(sublist_name).set(name, value);
+}
+
+void SetSublistBoolValue(Teuchos::ParameterList& dummy, const string &sublist_name, const string &name, double value)
+{
+    dummy.sublist(sublist_name).set(name, value);
+}
+
 void  AddBasicOperations()
 {
 
@@ -309,6 +329,10 @@ void  AddBasicOperations()
     .def("set", SetIntValue)
     .def("set", SetCharValue)
     .def("setboolvalue", SetBoolValue)
+    .def("SetSublistIntValue", SetSublistIntValue)
+	.def("SetSublistDoubleValue", SetSublistDoubleValue)
+	.def("SetSublistCharValue", SetSublistCharValue)
+	.def("SetSublistBoolValue", SetSublistBoolValue)
     .def(self_ns::str(self))
     ;
 
