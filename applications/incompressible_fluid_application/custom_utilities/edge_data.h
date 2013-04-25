@@ -54,8 +54,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //we suggest defining the following macro
 #define USE_CONSERVATIVE_FORM_FOR_SCALAR_CONVECTION
 
-//we suggest defining the following macro*/*/
-// #define USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+//we suggest defining the following macro
+#define USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
 
 
 // System includes
@@ -204,35 +204,23 @@ public:
                                            const array_1d<double, TDim>& a_i, const array_1d<double, TDim>& U_i,
                                            const array_1d<double, TDim>& a_j, const array_1d<double, TDim>& U_j)
     {
-// #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
-//         double temp = a_i[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//             temp += a_i[k_comp] * Ni_DNj[k_comp];
-//         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-//             destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp]);
-// #else
-//         double aux_i = a_i[0] * Ni_DNj[0];
-//         double aux_j = a_j[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//         {
-//             aux_i += a_i[k_comp] * Ni_DNj[k_comp];
-//             aux_j += a_j[k_comp] * Ni_DNj[k_comp];
-//         }
-//         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-//             destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
-// #endif
-
-// for (unsigned int comp = 0; comp < TDim; comp++)
-//             destination[comp] -= Ni_DNj[comp] * p_j - DNi_Nj[comp] * p_i;
-        double second = a_i[0] * DNi_Nj[0];
-        double first = a_j[0] * Ni_DNj[0];
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+        double temp = a_i[0] * Ni_DNj[0];
+        for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+            temp += a_i[k_comp] * Ni_DNj[k_comp];
+        for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            destination[l_comp] += temp * (U_j[l_comp] - U_i[l_comp]);
+#else
+        double aux_i = a_i[0] * Ni_DNj[0];
+        double aux_j = a_j[0] * Ni_DNj[0];
         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
         {
-            second += a_i[k_comp] * DNi_Nj[k_comp];
-            first += a_j[k_comp] * Ni_DNj[k_comp];
+            aux_i += a_i[k_comp] * Ni_DNj[k_comp];
+            aux_j += a_j[k_comp] * Ni_DNj[k_comp];
         }
         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-            destination[l_comp] += first * U_j[l_comp] - second * U_i[l_comp];
+            destination[l_comp] += aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
+#endif
 
     }
 
@@ -240,32 +228,23 @@ public:
                                            const array_1d<double, TDim>& a_i, const array_1d<double, TDim>& U_i,
                                            const array_1d<double, TDim>& a_j, const array_1d<double, TDim>& U_j)
     {
-// #ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
-//         double temp = a_i[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//             temp += a_i[k_comp] * Ni_DNj[k_comp];
-//         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-//             destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp]);
-// #else
-//         double aux_i = a_i[0] * Ni_DNj[0];
-//         double aux_j = a_j[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//         {
-//             aux_i += a_i[k_comp] * Ni_DNj[k_comp];
-//             aux_j += a_j[k_comp] * Ni_DNj[k_comp];
-//         }
-//         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-//             destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
-// #endif
-        double second = a_i[0] * DNi_Nj[0];
-        double first = a_j[0] * Ni_DNj[0];
+#ifdef USE_CONSERVATIVE_FORM_FOR_VECTOR_CONVECTION
+        double temp = a_i[0] * Ni_DNj[0];
+        for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
+            temp += a_i[k_comp] * Ni_DNj[k_comp];
+        for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            destination[l_comp] -= temp * (U_j[l_comp] - U_i[l_comp]);
+#else
+        double aux_i = a_i[0] * Ni_DNj[0];
+        double aux_j = a_j[0] * Ni_DNj[0];
         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
         {
-            second += a_i[k_comp] * DNi_Nj[k_comp];
-            first += a_j[k_comp] * Ni_DNj[k_comp];
+            aux_i += a_i[k_comp] * Ni_DNj[k_comp];
+            aux_j += a_j[k_comp] * Ni_DNj[k_comp];
         }
         for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-            destination[l_comp] -= first * U_j[l_comp] - second * U_i[l_comp];
+            destination[l_comp] -= aux_j * U_j[l_comp] - aux_i * U_i[l_comp];
+#endif
     }
 
     inline void Sub_ConvectiveContribution(double& destination,
@@ -288,14 +267,7 @@ public:
         }
         destination -= aux_j * phi_j - aux_i * phi_i;
 #endif
-//         double second = a_i[0] * DNi_Nj[0];
-//         double first = a_j[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//         {
-//             second += a_i[k_comp] * DNi_Nj[k_comp];
-//             first += a_j[k_comp] * Ni_DNj[k_comp];
-//         }
-//         destination -= first * phi_j - second * phi_i;
+
 
     }
 
@@ -319,14 +291,7 @@ public:
         }
         destination += aux_j * phi_j - aux_i * phi_i;
 #endif
-//         double second = a_i[0] * DNi_Nj[0];
-//         double first = a_j[0] * Ni_DNj[0];
-//         for (unsigned int k_comp = 1; k_comp < TDim; k_comp++)
-//         {
-//             second += a_i[k_comp] * DNi_Nj[k_comp];
-//             first += a_j[k_comp] * Ni_DNj[k_comp];
-//         }
-//         destination += first * phi_j - second * phi_i;
+
     }
 
     //*************************************************************************************
