@@ -3,6 +3,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosMPISerchApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/mpi_search_application )
 
 ## generate variables with the sources
 set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES     
@@ -14,7 +16,7 @@ set( KRATOS_MPI_SEARCH_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosMPISearchApplication SHARED ${KRATOS_MPI_SEARCH_APPLICATION_SOURCES})
-target_link_libraries(KratosMPISearchApplication KratosCore )
+target_link_libraries(KratosMPISearchApplication KratosCore ${MPI_LIBRARIES})
 set_target_properties(KratosMPISearchApplication PROPERTIES PREFIX "")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
