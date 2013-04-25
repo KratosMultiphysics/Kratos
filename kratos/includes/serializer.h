@@ -823,10 +823,11 @@ private:
         
         SizeType size;
         mpBuffer->read((char *)(&size),sizeof(SizeType));
-        char c_binStream[size];
+        char* c_binStream = new char [size];
         mpBuffer->read(c_binStream,size);
-        std::string s_binStream(c_binStream,size);
-        rValue = s_binStream;
+//        std::string s_binStream(c_binStream,size);
+        rValue = c_binStream;
+		delete c_binStream;
         
         KRATOS_SERIALIZER_MODE_ASCII
         
