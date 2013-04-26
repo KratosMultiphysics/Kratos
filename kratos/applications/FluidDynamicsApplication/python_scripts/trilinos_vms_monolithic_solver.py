@@ -64,9 +64,6 @@ class MonolithicSolver:
         self.use_spalart_allmaras = False
         self.wall_nodes = None
 
-        
-        self.linear_solver =  TrilinosLinearSolver()
-        
         #definition of the convergence criteria
         self.vel_criteria = 1e-3
         self.press_criteria = 1e-3
@@ -84,6 +81,9 @@ class MonolithicSolver:
 
         self.linear_solver_tol = 1e-6
         self.linear_solver_max_it = 100
+        
+        import MonolithicMultiLevelSolver
+        self.linear_solver = MonolithicMultiLevelSolver.LinearSolver(self.linear_solver_tol,self.linear_solver_max_it)
     
         if(domain_size == 2):
             estimate_neighbours = 10
@@ -154,8 +154,6 @@ class MonolithicSolver:
         self.time_scheme.Check(self.model_part)
         
         self.conv_criteria = TrilinosUPCriteria(self.vel_criteria,self.vel_abs_criteria,self.press_criteria,self.press_abs_criteria,self.Comm)
-
-        self.linear_solver = MonolithicMultilevelSolver.LinearSolver(self.linear_solver_tol,self.linear_solver_max_it)
 
         #creating the solution strategy
         import trilinos_strategy_python_periodic
