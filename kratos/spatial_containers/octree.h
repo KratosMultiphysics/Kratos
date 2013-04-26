@@ -256,10 +256,17 @@ public:
 
         DistanceToPartitions(child_index, ThisPoint, distances_to_partitions, Auxiliar.residual_distance[0]);
 
+//         std::cout << "***************" << std::endl;
+//         for(SizeType i = 0 ; i < number_of_childs ; i++)
+//             std::cout << distances_to_partitions[i] << " " << Auxiliar.residual_distance[0] << std::endl;
+//         
+//         //abort();
+//         std::cout << "***************" << std::endl;
+        
         for(SizeType i = 0 ; i < number_of_childs ; i++)
             if((i != child_index) && (distances_to_partitions[i] < rResultDistance))
             {
-                Auxiliar.residual_distance[0] = distances_to_partitions[i];
+                //Auxiliar.residual_distance[0] = distances_to_partitions[i];
                 mpChilds[i]->SearchNearestPoint(ThisPoint, Result, rResultDistance, Auxiliar);
             }
 
