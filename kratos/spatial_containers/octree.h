@@ -239,85 +239,54 @@ public:
     ///@name Operations
     ///@{
 
-    void SearchNearestPoint( PointType const& ThisPoint, PointerType& Result, CoordinateType& ResultDistance )
-    {
-        SearchStructureType Auxiliar;
-        SearchNearestPoint(ThisPoint,Result,ResultDistance,Auxiliar);
-    }
-
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance,
-                            SearchStructureType& Auxiliar )
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance)
     {
         CoordinateType distances_to_partitions[number_of_childs];
 
         SizeType child_index = GetChildIndex(ThisPoint);
 
-        mpChilds[child_index]->SearchNearestPoint(ThisPoint, Result, rResultDistance, Auxiliar );
+        mpChilds[child_index]->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
-        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions, Auxiliar.residual_distance[0]);
-
-//         std::cout << "***************" << std::endl;
-//         for(SizeType i = 0 ; i < number_of_childs ; i++)
-//             std::cout << distances_to_partitions[i] << " " << Auxiliar.residual_distance[0] << std::endl;
-//         
-//         //abort();
-//         std::cout << "***************" << std::endl;
+        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions);
         
         for(SizeType i = 0 ; i < number_of_childs ; i++)
             if((i != child_index) && (distances_to_partitions[i] < rResultDistance))
-            {
-                //Auxiliar.residual_distance[0] = distances_to_partitions[i];
-                mpChilds[i]->SearchNearestPoint(ThisPoint, Result, rResultDistance, Auxiliar);
-            }
+                mpChilds[i]->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
                         DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
     {
-        SearchStructureType Auxiliar;
-        SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar );
-    }
-
-    void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar )
-    {
         SizeType child_index = GetChildIndex(ThisPoint);
 
         // n is number of points found
-        mpChilds[child_index]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar);
+        mpChilds[child_index]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
 
         CoordinateType distances_to_partitions[number_of_childs];
 
-        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions, Auxiliar.residual_distance[0]);
+        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions);
 
         for(IndexType i = 0 ; i < number_of_childs ; i++)
             if((i != child_index) && (distances_to_partitions[i] < Radius2))
-                mpChilds[i]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults, Auxiliar);
+                mpChilds[i]->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
                         SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
     {
-        SearchStructureType Auxiliar;
-        SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar );
-    }
-
-    void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults, SearchStructureType& Auxiliar )
-    {
         SizeType child_index = GetChildIndex(ThisPoint);
 
         // n is number of points found
-        mpChilds[child_index]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar);
+        mpChilds[child_index]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
 
         CoordinateType distances_to_partitions[number_of_childs];
 
-        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions, Auxiliar.residual_distance[0]);
+        DistanceToPartitions(child_index, ThisPoint, distances_to_partitions);
 
         for(IndexType i = 0 ; i < number_of_childs ; i++)
             if((i != child_index) && (distances_to_partitions[i] < Radius2))
-                mpChilds[i]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults, Auxiliar);
+                mpChilds[i]->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
     }
 
 
@@ -332,13 +301,10 @@ private:
         for( IndexType i = 0 ; i < Dimension ; i++)
             if( rThisPoint[i] >= mPosition[i] ) child_index += dim_mask[i];
 
-//		   for(IndexType i = 0 ; i < Dimension ; i++)
-//			  child_index += IndexType(rThisPoint[i] >= mPosition[i]) << i;
-
         return child_index;
     }
 
-    void DistanceToPartitions(IndexType ContainingChildIndex, PointType const& rThisPoint, CoordinateType rDistances[], CoordinateType& ResidualDistance) const
+    void DistanceToPartitions(IndexType ContainingChildIndex, PointType const& rThisPoint, CoordinateType rDistances[]) const
     {
         const IndexType coordinate_mask[] = { 1, 2, 4 };
 
@@ -352,18 +318,13 @@ private:
 
         for(IndexType i = 0 ; i < number_of_childs ; i++)
         {
-            rDistances[i] = ResidualDistance;
+            rDistances[i] = 0.00; //ResidualDistance;
 
             IndexType partitions = ContainingChildIndex^i;
 
-            //IndexType coordinate_mask = 1;
-            //IndexType coordinate_mask = 0;
             for(IndexType j = 0 ; j < Dimension ; j++)
-            {
-                //rDistances[i] += ( coordinate_mask & partitions ) * offset_from_postition[j];
-                //coordinate_mask <<= 1;
+                //rDistances[i] += ((coordinate_mask[j] & partitions) >> j) * offset_from_postition[j];
                 if(coordinate_mask[j] & partitions) rDistances[i] += offset_from_postition[j];
-            }
         }
 
     }
