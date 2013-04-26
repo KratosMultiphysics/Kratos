@@ -17,6 +17,8 @@ set( KRATOS_BLOOD_FLOW_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
+add_subdirectory(API)
+
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosBloodFlowApplication SHARED ${KRATOS_BLOOD_FLOW_APPLICATION_SOURCES})
