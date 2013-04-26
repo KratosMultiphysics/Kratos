@@ -15,7 +15,7 @@
 // Application includes
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 //#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
-#include "custom_strategies/builder_and_solvers/trilinos_builder_and_solver_ML_periodic.h"
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
 #include "../FluidDynamicsApplication/custom_processes/stokes_initialization_process.h"
@@ -156,10 +156,9 @@ public:
         int guess_row_size;
         if(DomainSize == 2) guess_row_size = 15;
         else guess_row_size = 40;
-        int DofPerNode = DomainSize + 1;
 
         //BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver));
-        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBuilderAndSolverMLPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,DomainSize,DofPerNode,pLinearSolver,mrPeriodicVar));
+        BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolverPeriodic<TSparseSpace,TDenseSpace,TLinearSolver> (mrComm,guess_row_size,pLinearSolver,mrPeriodicVar));
 
         // Strategy
         bool ReactionFlag = false;
