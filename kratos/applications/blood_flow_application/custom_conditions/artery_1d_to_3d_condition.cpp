@@ -257,6 +257,11 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 void Artery1Dto3DCondition::Initialize()
 {
     KRATOS_TRY
+    
+    GetGeometry()[0].SetLock();
+    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+    GetGeometry()[1].FastGetSolutionStepValue(THICKNESS) = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
+    GetGeometry()[0].UnSetLock();
 
     KRATOS_CATCH("");
 }
