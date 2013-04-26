@@ -21,6 +21,11 @@ class TransferTools:
 	self.inlet_areas_3d = []
 	self.outlet_areas_3d = []
 	
+	self.inlet_velocity_directions = []
+	
+	#compute normals and 3d areas
+	BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d,3)
+	
 	##detect 1d inlets
 	for i in range(100,101):
 	  nfound = 0
@@ -39,14 +44,21 @@ class TransferTools:
 	for i in range(100,101):
 	    nfound = 0
 	    aux = []
+	    directions = []
 	    for node in self.model_part_3d.Nodes:
 		if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
 		    aux.append(node)
 		    node.Fix(VELOCITY_X)
 		    node.Fix(VELOCITY_Y)
 		    node.Fix(VELOCITY_Z)
+		    				    
+		    tmp = node.GetSolutionStepValue(NORMAL);
+		    normN = math.sqrt(tmp[0]**2 + tmp[1]**2 + tmp[2]**2)
+		    tmp /= -normN
+		    directions.append(tmp)
 	    if(len(aux) != 0):
 		self.inlets_3d.append(aux)
+		self.inlet_velocity_directions.append(directions)
 	    else:
 		break	
 		
@@ -60,12 +72,14 @@ class TransferTools:
 	for i in range(101,199):
 	  nfound = 0
 	  aux = []
+	  
 	  for node in self.model_part_1d.Nodes:
 	      if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
 		  aux.append(node)
 		  node.Fix(FLOW)
 	  if(len(aux) != 0):
 	      self.outlets_1d.append(aux)
+	      
 	  else:
 	      break
 	    
@@ -87,8 +101,7 @@ class TransferTools:
 	  #print "number of 1d and 3d inlets is different"    
 	  
 	  
-	#compute normals and 3d areas
-	BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d,3)
+	
 	for i in range(0,len(self.inlets_3d)):
 	    inlet_nodes_3d = self.inlets_3d[i]
 	    area3d = 0.0
@@ -119,10 +132,15 @@ class TransferTools:
 	  inlet_nodes_1d = self.inlets_1d[i]
 	  inlet_nodes_3d = self.inlets_3d[i]
 	  area3d = self.inlet_areas_3d[i]
+	  directions = self.inlet_velocity_directions[i]
 	  
 	  vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
+	  
+	  k = 0
 	  for node in inlet_nodes_3d:
-	    node.SetSolutionStepValue( VELOCITY_X, 0, vel1d)
+	    orientation = directions[k]
+	    orientation *= vel1d
+	    node.SetSolutionStepValue( VELOCITY, 0, orientation)
 	    
 	for i in range(0,len(self.outlets_3d)):  
 	  outlet_nodes_1d = self.outlets_1d[i]
