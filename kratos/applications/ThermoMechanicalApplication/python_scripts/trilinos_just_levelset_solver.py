@@ -119,7 +119,8 @@ class Solver:
         #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)   
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
-        mpi.world.barrier()
+        self.solver.max_iter = self.max_iter
+	mpi.world.barrier()
 	(self.solver).SetEchoLevel(self.echo_level)
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU,self.dynamic_tau);
