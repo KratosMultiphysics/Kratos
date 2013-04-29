@@ -88,25 +88,44 @@ class MonolithicSolver:
         if(domain_size == 2):
             estimate_neighbours = 10
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
-            self.buildertype="ML2Dpress"
+            #self.buildertype="ML2Dpress"
         else:
             estimate_neighbours = 25
             self.guess_row_size = estimate_neighbours * (self.domain_size  + 1)
-            self.buildertype="ML3Dpress"        
-	#self.buildertype="standard"
+            #self.buildertype="ML3Dpress"        
+	self.buildertype="standard"
+	#aztec_parameters = ParameterList()
+	#aztec_parameters.set("AZ_solver","AZ_gmres");
+	#aztec_parameters.set("AZ_kspace",200);
+	#aztec_parameters.set("AZ_output","AZ_none");
+	#aztec_parameters.set("AZ_output",10);
+	#preconditioner_type = "ILU"
+	#preconditioner_parameters = ParameterList()
+	#preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+	#preconditioner_parameters.set ("fact: level-of-fill", 1);
+	#overlap_level = 0
+	#nit_max = 1000
+	#linear_tol = 1e-5
+	#self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+	
 	aztec_parameters = ParameterList()
 	aztec_parameters.set("AZ_solver","AZ_gmres");
-	aztec_parameters.set("AZ_kspace",200);
-	aztec_parameters.set("AZ_output","AZ_none");
-	aztec_parameters.set("AZ_output",10);
-	preconditioner_type = "ILU"
-	preconditioner_parameters = ParameterList()
-	preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
-	preconditioner_parameters.set ("fact: level-of-fill", 1);
-	overlap_level = 0
-	nit_max = 1000
-	linear_tol = 1e-5
-	self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+	aztec_parameters.set("AZ_output",1)
+	aztec_parameters.set("AZ_kspace", 50);
+
+	#settings of the ML solver
+	MLList = ParameterList()
+	default_settings = EpetraDefaultSetter()
+	default_settings.SetDefaults(MLList,"NSSA");
+	MLList.set("ML output", 9);
+	MLList.set("coarse: max size",10000)
+	MLList.set("max levels",3);
+	MLList.set("aggregation: type","Uncoupled")
+	MLList.set("coarse: type","Amesos-Superludist")
+	tolerance = 1e-4
+	max_iterations=50
+	self.linear_solver =  MultiLevelSolver(aztec_parameters,MLList,tolerance,max_iterations);
+
 	
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
