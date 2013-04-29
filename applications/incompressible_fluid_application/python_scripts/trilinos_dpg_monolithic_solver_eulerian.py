@@ -117,7 +117,7 @@ class MonolithicSolver:
 	MLList = ParameterList()
 	default_settings = EpetraDefaultSetter()
 	default_settings.SetDefaults(MLList,"NSSA");
-	MLList.set("ML output", 9);
+	MLList.set("ML output", 1);
 	MLList.set("coarse: max size",10000)
 	MLList.set("max levels",3);
 	MLList.set("aggregation: type","Uncoupled")
