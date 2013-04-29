@@ -23,8 +23,9 @@ class SolvingStrategyPython:
         self.max_iter = 30
         self.rebuild_level = 1 #rebuild at each solution step
         self.echo_level = 1
-	if(builder_and_solver_type == "standard"):
-        	self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+	if(builder_and_solver_type == "standard"):	  
+		self.builder_and_solver = TrilinosBlockBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
+        	#self.builder_and_solver = TrilinosResidualBasedBuilderAndSolver(Comm,guess_row_size,self.linear_solver)
 	elif(builder_and_solver_type == "ML2D"):
         	self.builder_and_solver = TrilinosBuilderAndSolverML2D(Comm,guess_row_size,2,self.linear_solver)
 	elif(builder_and_solver_type == "ML3D"):
