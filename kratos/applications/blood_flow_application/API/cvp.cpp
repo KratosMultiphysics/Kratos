@@ -1,5 +1,6 @@
 #include <Python.h>
 #include <iostream>
+#include "cvp.h"
 
 int solve(
 	std::string kratos_path,
