@@ -416,6 +416,7 @@ public:
 
         if(BaseType::GetEchoLevel()>0)
         {
+	  if(this->mrComm.MyPID() == 0)
             std::cout << "Building Time : " << building_time.elapsed() << std::endl;
         }
 
@@ -436,6 +437,7 @@ public:
 
         if(BaseType::GetEchoLevel()>0)
         {
+	  if(this->mrComm.MyPID() == 0)
             std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
         }
         if (BaseType::GetEchoLevel()== 3)
