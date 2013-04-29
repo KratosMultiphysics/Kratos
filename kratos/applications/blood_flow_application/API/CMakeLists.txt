@@ -13,9 +13,9 @@ set( CVP_LIB_SOURCES
 
 
 ###############################################################
-add_library(cvp ${CVP_LIB_SOURCES} )
+add_library(cvp STATIC ${CVP_LIB_SOURCES} )
 target_link_libraries(cvp ${EXTRA_LINK_LIBS} ${PYTHON_LIBRARIES})
-#install(TARGETS cvp DESTINATION libs )
+install(TARGETS cvp DESTINATION libs )
 
 add_executable(testcvp ${CMAKE_CURRENT_SOURCE_DIR}/testcvp.cpp )
 target_link_libraries(testcvp cvp )

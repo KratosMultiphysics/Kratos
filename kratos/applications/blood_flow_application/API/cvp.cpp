@@ -1,7 +1,11 @@
 #include <Python.h>
 #include <iostream>
 
-int solve(/*std::string model_1d, std::string model_3d*/)
+int solve(
+	std::string kratos_path,
+	std::string model_1d_name, 
+	std::string model_3d_name
+	)
 {
 
   Py_NoSiteFlag = 1;
@@ -11,6 +15,7 @@ int solve(/*std::string model_1d, std::string model_3d*/)
   PyObject* sysPath = PySys_GetObject((char*)"path");
 
   PyList_Insert(sysPath,0, PyString_FromString("."));
+  PyList_Insert(sysPath,0, PyString_FromString(kratos_path.c_str()));
   PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
  
   char* argv[]={"minimal.py"};  
