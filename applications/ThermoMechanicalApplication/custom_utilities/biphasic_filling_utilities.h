@@ -162,7 +162,8 @@ class BiphasicFillingUtilities
     double AssignSmoothBoundaryAirExit(ModelPart& ThisModelPart, bool air_exit_flag, const double y_wall_val, const double  y_wall_fac)
 		{			
 		  KRATOS_TRY;
-			int node_size = ThisModelPart.Nodes().size();
+// 			int node_size = ThisModelPart.Nodes().size();
+	                int node_size = ThisModelPart.GetCommunicator().LocalMesh().Nodes().size();			
 			double is_str = 1.0;
 			if(air_exit_flag) is_str = 0.0;
 
@@ -172,29 +173,31 @@ class BiphasicFillingUtilities
 			for (int ii = 0; ii < node_size; ii++)
 			 {
 
-                 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
-				double dist = it->FastGetSolutionStepValue(DISTANCE);
-				double slip_flag = it->GetSolutionStepValue(IS_SLIP);
-				if(dist<0.0){
-				 #pragma omp atomic
-				 wet_nodes++;}
+// 			    ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+			    ModelPart::NodesContainerType::iterator it = ThisModelPart.GetCommunicator().LocalMesh().NodesBegin() + ii;
 
-				if(slip_flag == 20.0 || slip_flag == 30.0 )//edges(20) and corners(30) are automatic air exits till they are wetten
-				  if(dist<0.0){
-					    it->SetValue(IS_STRUCTURE,1.0);	  
-					    it->SetValue(Y_WALL,y_wall_val);}
-				  else{
-						it->SetValue(IS_STRUCTURE,0.0);	  
-						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
-				else if(slip_flag == 10.0)//smooth boundaries(10), if dry, can be air exit or not
-				  {
-				  if(dist<0.0){
-					    it->SetValue(IS_STRUCTURE,1.0);	  
-					    it->SetValue(Y_WALL,y_wall_val);}
-				  else{
-						it->SetValue(IS_STRUCTURE,is_str);	  
-						it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}//y_wall_val*y_wall_fac	
-				  }
+			    double dist = it->FastGetSolutionStepValue(DISTANCE);
+			    double slip_flag = it->GetSolutionStepValue(IS_SLIP);
+			    if(dist<0.0){
+			      #pragma omp atomic
+			      wet_nodes++;}
+
+			    if(slip_flag == 20.0 || slip_flag == 30.0 )//edges(20) and corners(30) are automatic air exits till they are wetten
+			      if(dist<0.0){
+					it->SetValue(IS_STRUCTURE,1.0);	  
+					it->SetValue(Y_WALL,y_wall_val);}
+			      else{
+					    it->SetValue(IS_STRUCTURE,0.0);	  
+					    it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}	
+			    else if(slip_flag == 10.0)//smooth boundaries(10), if dry, can be air exit or not
+			      {
+			      if(dist<0.0){
+					it->SetValue(IS_STRUCTURE,1.0);	  
+					it->SetValue(Y_WALL,y_wall_val);}
+			      else{
+					    it->SetValue(IS_STRUCTURE,is_str);	  
+					    it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}//y_wall_val*y_wall_fac	
+			      }
 			}
 			//syncronoze
 		        ThisModelPart.GetCommunicator().SumAll(wet_nodes);
