@@ -331,6 +331,17 @@ public:
         if (rRightHandSideMatrix.size1() != 0)
             rRightHandSideMatrix.resize(0, 0);
     }
+    
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the Setlock must be performed in the strategy
+     * before calling the function. And after the unsetLock
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     /**
      * this determines the elemental equation ID vector for all elemental
