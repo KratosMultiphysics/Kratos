@@ -53,8 +53,8 @@
 #include "custom_strategies/schemes/trilinos_residualbased_predictorcorrector_velocity_bossak_scheme_dpg_enriched.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_variable_property_static_scheme.h"
 
-//#include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
-//#include "custom_strategies/schemes/trilinos_gear_scheme.h"
+#include "../../FluidDynamicsApplication/custom_strategies/strategies/gear_scheme.h"
+#include "custom_strategies/schemes/trilinos_gear_scheme.h"
 
 //convergence criterias
 // #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -204,20 +204,20 @@ void  AddSchemes()
            bases< TrilinosResidualBasedIncrementalUpdateStaticSchemeType >, boost::noncopyable >
            (
                "TrilinosResidualBasedIncrementalUpdateStaticVariablePropertyScheme", init< >()
-           );	   
-//            typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
-//
-//            class_ < GearSchemeBaseType,
-//            bases< TrilinosBaseSchemeType >, boost::noncopyable >
-//            (
-//                "GearSchemeBaseType", init<Process::Pointer >()
-//            );
-//
-//            class_< TrilinosGearScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
-//                    bases<GearSchemeBaseType>, boost::noncopyable >
-//            ( "TrilinosGearScheme", init<Process::Pointer>() )
-//                    .def(init<>()) // constructor without a turbulence model
-//                    ;
+           );
+
+    typedef GearScheme<TrilinosSparseSpaceType, TrilinosLocalSpaceType> GearSchemeBaseType;
+
+    class_ < GearSchemeBaseType,
+            bases< TrilinosBaseSchemeType >, boost::noncopyable >
+            ( "GearSchemeBaseType", init<Process::Pointer >() );
+
+    class_< TrilinosGearScheme<TrilinosSparseSpaceType,TrilinosLocalSpaceType>,
+            bases<GearSchemeBaseType>, boost::noncopyable >
+            ( "TrilinosGearScheme", init<Process::Pointer>() )
+            .def(init<>()) // constructor without a turbulence model
+            .def(init<const Variable<int>&>()) // constructor for periodic conditions
+            ;
 }
 
 
