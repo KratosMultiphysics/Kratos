@@ -89,6 +89,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 
+#include "includes/kratos_flags.h"
+
 namespace Kratos
 {
 
@@ -1162,6 +1164,15 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE(DEM_DELTA_TIME)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_MOMENT)
+
+
+
+
+    KRATOS_REGISTER_FLAG(STRUCTURE);
+    KRATOS_REGISTER_FLAG(FLUID);
+    KRATOS_REGISTER_FLAG(INLET);
+    KRATOS_REGISTER_FLAG(OUTLET);
+    KRATOS_REGISTER_FLAG(VISITED);
 
     Point3D<Node<3> > Point3DPrototype( Element::GeometryType::PointsArrayType( 1, Node<3>() ) );
     Serializer::Register( "Point3D", Point3DPrototype );
