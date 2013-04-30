@@ -58,6 +58,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/variables_list_data_value_container.h"
 #include "containers/fix_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
+#include "containers/flags.h"
+#include "includes/kratos_flags.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "python/variable_indexing_python.h"
@@ -69,11 +71,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/radiation_settings.h"
 
 
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag) \
+ scope().attr(#flag) = boost::ref(flag)      \
+
+#ifdef KRATOS_REGISTER_IN_PYTHON_FLAG
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
+#endif
+#define KRATOS_REGISTER_IN_PYTHON_FLAG(flag) \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(flag);   \
+    KRATOS_REGISTER_IN_PYTHON_FLAG_IMPLEMENTATION(NOT_##flag)
+
 #ifdef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #endif
 #define KRATOS_REGISTER_IN_PYTHON_VARIABLE(variable) \
- scope().attr(#variable) = boost::ref(variable);
+    scope().attr(#variable) = boost::ref(variable);
+
 
 #ifdef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
@@ -86,9 +103,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
+//KRATOS_CREATE_FLAG(STRUCTURE,   63);
+
 namespace Python
 {
 using namespace boost::python;
+
+Flags FlagsOr(const Flags& Left, const Flags& Right )
+{
+    return (Left|Right);
+}
+
+void FlagsSet1(Flags& ThisFlag, const Flags& OtherFlag )
+{
+    ThisFlag.Set(OtherFlag);
+}
+
+void FlagsSet2(Flags& ThisFlag, const Flags& OtherFlag, bool Value )
+{
+    ThisFlag.Set(OtherFlag, Value);
+}
 
 template<class TContainerType>
 struct Array1DModifier
@@ -198,6 +232,29 @@ void  AddContainersToPython()
     .def( VariableIndexingPython<VariablesListDataValueContainer, VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > >() )
     .def( self_ns::str( self ) )
     ;
+
+
+    class_<Flags, Flags::Pointer>("Flags",init<>())
+            .def(init<Flags>())
+            .def("Is", &Flags::Is)
+            .def("IsNot", &Flags::IsNot)
+            .def("Set", FlagsSet1)
+            .def("Set", FlagsSet2)
+            .def("IsDefined", &Flags::IsDefined)
+            .def("IsNotDefined", &Flags::IsNotDefined)
+            .def("Reset", &Flags::Reset)
+            .def("Flip", &Flags::Flip)
+            .def("Clear", &Flags::Clear)
+            .def("__or__", FlagsOr)
+            .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+            .def( self_ns::str( self ) )
+            ;
+
+    KRATOS_REGISTER_IN_PYTHON_FLAG(STRUCTURE);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(FLUID);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(INLET);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(OUTLET);
+    KRATOS_REGISTER_IN_PYTHON_FLAG(VISITED);
 
 
             KRATOS_REGISTER_IN_PYTHON_VARIABLE( OSS_SWITCH )
@@ -649,5 +706,6 @@ void  AddContainersToPython()
 }  // namespace Python.
 } // Namespace Kratos
 
+#undef KRATOS_REGISTER_IN_PYTHON_FLAG
 #undef KRATOS_REGISTER_IN_PYTHON_VARIABLE
 #undef KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS
