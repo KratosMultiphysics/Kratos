@@ -22,6 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/serializer.h"
 
 
 namespace Kratos
@@ -108,21 +109,31 @@ public:
     ///@{
 
     /// Default constructor.
-    Flags() : mFlags(BlockType()) {}
+    Flags() : mIsDefined(BlockType()), mFlags(BlockType()) {}
 
     /// Copy constructor.
-    Flags(Flags const& rOther) : mFlags(rOther.mFlags)
+    Flags(Flags const& rOther) : mIsDefined(rOther.mIsDefined), mFlags(rOther.mFlags)
     {
     }
 
-    template<class TFlagsType>
-    Flags(TFlagsType rOther)
-    {
-        mFlags=static_cast<BlockType>(rOther);
-    }
+//    Flags(BlockType rOther) : mIsDefined(rOther), mFlags(rOther)
+//    {
+//    }
+
+//    template<class TFlagsType>
+//    Flags(TFlagsType rOther) : mIsDefined(static_cast<BlockType>(rOther)), mFlags(static_cast<BlockType>(rOther))
+//    {
+//    }
 
     /// Destructor.
     virtual ~Flags() {}
+
+    static Flags Create(IndexType ThisPosition, bool Value=true)
+    {
+        Flags flags;
+        flags.SetPosition(ThisPosition, Value);
+        return flags;
+    }
 
 
     ///@}
@@ -132,68 +143,94 @@ public:
     /// Assignment operator.
     Flags& operator=(Flags const& rOther)
     {
+        mIsDefined = rOther.mIsDefined;
         mFlags = rOther.mFlags;
         return *this;
     }
 
 
-    operator bool()
+    operator bool() const
     {
         return mFlags;
     }
 
     Flags operator~() const
     {
-        return  ~mFlags;
+        Flags results(*this);
+        results.mFlags = ~mFlags;
+        return  results;
     }
 
     bool operator!() const
     {
-        return  !mFlags;
+        Flags results(*this);
+        results.mFlags = !mFlags;
+        return  results;
     }
 
     ///@}
     ///@name Operations
     ///@{
 
-    void Set(FlagType ThisFlag)
+    void Set(Flags ThisFlag)
     {
-      mFlags |= ThisFlag;
+        mIsDefined |= ThisFlag.mIsDefined;
+        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
+        mFlags |= ThisFlag.mFlags;
     }
 
-    void Reset(FlagType ThisFlag)
+    void Set(Flags ThisFlag, bool Value)
     {
-      mFlags &= (~ThisFlag);
+        mIsDefined |= ThisFlag.mIsDefined;
+        mFlags &= (~ThisFlag.mIsDefined); // First reseting the flag value to zero
+        mFlags |= (ThisFlag.mFlags * BlockType(Value)) | ((ThisFlag.mIsDefined ^ ThisFlag.mFlags) * BlockType(!Value));
+    }
+
+    void Reset(Flags ThisFlag)
+    {
+        mIsDefined &= (~ThisFlag.mIsDefined);
+        mFlags &= (~ThisFlag.mIsDefined); // I want to put to zero the ones are set regardless to their value. Pooyan.
+    }
+
+    void Flip(Flags ThisFlag)
+    {
+        mIsDefined |= ThisFlag.mIsDefined;
+        mFlags ^= (ThisFlag.mIsDefined); // I want to flip  the ones are set in this flags regardless to their value. Pooyan.
     }
 
     void SetPosition(IndexType Position, bool Value=true )
     {
-        if(Value)
-            mFlags |= (1 << Position);
-        else
-            mFlags &= ~(1 << Position);
+        mIsDefined |= (BlockType(1) << Position);
+
+
+        mFlags &= ~(BlockType(1) << Position);   // First reseting the position
+        mFlags |= (BlockType(Value) << Position);
+
     }
 
     bool GetPosition(IndexType Position) const
     {
-        return (mFlags & (1 << Position));
+        return (mFlags & (BlockType(1) << Position));
     }
 
 
    void FlipPosition(IndexType Position)
     {
-        mFlags ^= (1 << Position);
+        mIsDefined |= (BlockType(1) << Position);
+        mFlags ^= (BlockType(1) << Position);
     }
 
 
     void ClearPosition(IndexType Position)
     {
-        SetPosition (Position,false);
+        mIsDefined &= ~((BlockType(1) << Position));
+        mFlags &= ~(BlockType(1) << Position);
     }
 
  
     void Clear()
     {
+        mIsDefined = BlockType();
         mFlags = BlockType();
     }
 
@@ -207,40 +244,40 @@ public:
     ///@{
 
 
-    template<class TFlagsType>
-    bool Is(TFlagsType Flag)
+//    template<class TFlagsType>
+//    bool Is(TFlagsType Flag)
+//    {
+//        return (mFlags & Flag);
+//    }
+
+
+    bool Is(Flags const & rOther) const
     {
-        return (mFlags & Flag);
+        return (mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags));
+    }
+
+    bool IsDefined(Flags const & rOther) const
+    {
+        return (mIsDefined & rOther.mIsDefined);
     }
 
 
-    bool Is(Flags const & rOther)
+//    template<class TFlagsType>
+//    bool IsNot(TFlagsType const& Flag )
+//    {
+//        return !(mFlags & Flag);
+//    }
+
+    bool IsNot(Flags const& rOther) const
     {
-        return (mFlags & rOther.mFlags);
+        return !((mFlags & rOther.mFlags) | ((rOther.mIsDefined ^ rOther.mFlags) & (~mFlags)));
     }
 
-    bool Is(FlagType ThisFlag)
+    bool IsNotDefined(Flags const& rOther) const
     {
-      return (mFlags & ThisFlag);
+        return !(mIsDefined & rOther.mIsDefined);
     }
 
-
-    template<class TFlagsType>
-    bool IsNot(TFlagsType const& Flag )
-    {
-        return !(mFlags & Flag);
-    }
-
-    bool IsNot(Flags const& rOther)
-    {
-        return !(mFlags & rOther.mFlags);
-    }
-
-
-    bool IsNot(FlagType ThisFlag)
-    {
-        return !(mFlags & ThisFlag);
-    }
 
 
     ///@}
@@ -265,7 +302,7 @@ public:
     virtual void PrintData(std::ostream& rOStream) const
     {
 
-        for(std::size_t i = 0 ; i < sizeof(BlockType)*8 ; i++)
+        for(std::size_t i = sizeof(BlockType) * 8 ; i > 0 ; i--)
             rOStream << bool(mFlags & (BlockType(1) << i));
     }
 
@@ -287,23 +324,33 @@ public:
 
     friend Flags operator|(const Flags& Left, const Flags& Right )
     {
-        return (Left.mFlags | Right.mFlags);
+        Flags results(Left);
+        results |= Right;
+        return results;
     }
 
     friend Flags operator&(const Flags& Left, const Flags& Right )
     {
-        return (Left.mFlags & Right.mFlags);
+        // This looks like copy paste error but the idea is to
+        // define the & operator like the or one.
+        Flags results(Left);
+        results |= Right;
+        return results;
     }
 
     const Flags& operator|=(const Flags& Other )
     {
+        mIsDefined |= Other.mIsDefined;
         mFlags |= Other.mFlags;
         return *this;
     }
 
-    const Flags operator&=(const Flags& Other )
+    const Flags& operator&=(const Flags& Other )
     {
-        mFlags &= Other.mFlags;
+        // This looks like copy paste error but the idea is to
+        // define the & operator like the or one.
+        mIsDefined |= Other.mIsDefined;
+        mFlags |= Other.mFlags;
         return *this;
     }
 
@@ -355,6 +402,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    BlockType mIsDefined;
     BlockType mFlags;
 
 
@@ -374,12 +422,14 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        rSerializer.save("IsDefined",  mIsDefined);
         rSerializer.save("Flags",  mFlags);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-	rSerializer.load("Flags",  mFlags);
+        rSerializer.load("IsDefined",  mIsDefined);
+        rSerializer.load("Flags",  mFlags);
     }
     ///@}
     ///@name Private  Access
