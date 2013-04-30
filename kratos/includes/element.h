@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
+#include "containers/flags.h"
 
 #include "containers/weak_pointer_vector.h"
 #include "constitutive_law.h"
@@ -102,7 +103,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Element : public IndexedObject
+class Element : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -156,6 +157,7 @@ public:
      */
     Element(IndexType NewId = 0) : BaseType(NewId),
         // mpGeometry(new GeometryType(NodesArrayType())),
+        Flags(),
         mpGeometry(), // for serialization the pointer must be null
         mpProperties(new PropertiesType)
     {
@@ -166,6 +168,7 @@ public:
      */
     Element(IndexType NewId, const NodesArrayType& ThisNodes) :
         BaseType(NewId),
+        Flags(),
         mpGeometry(new GeometryType(ThisNodes)),
         mpProperties(new PropertiesType)
     {
@@ -175,7 +178,8 @@ public:
      * Constructor using Geometry
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry) :
-        BaseType(NewId), mpGeometry(pGeometry), mpProperties(new PropertiesType)
+        BaseType(NewId),         Flags(),
+mpGeometry(pGeometry), mpProperties(new PropertiesType)
     {
     }
 
@@ -184,6 +188,7 @@ public:
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties) : BaseType(NewId),
+        Flags(),
         mpGeometry(pGeometry),
         mpProperties(pProperties)
     {
@@ -192,6 +197,7 @@ public:
     /// Copy constructor.
 
     Element(Element const& rOther) : BaseType(rOther),
+        Flags(rOther),
         mpGeometry(rOther.mpGeometry),
         mpProperties(rOther.mpProperties)
     {
@@ -211,6 +217,7 @@ public:
     Element & operator=(Element const& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
         mpGeometry = rOther.mpGeometry;
         mpProperties = rOther.mpProperties;
         return *this;
@@ -816,6 +823,7 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         rSerializer.save("Geometry",mpGeometry);
         rSerializer.save("Properties", mpProperties);
@@ -824,6 +832,7 @@ private:
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         rSerializer.load("Geometry",mpGeometry);
         rSerializer.load("Properties", mpProperties);

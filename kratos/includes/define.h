@@ -266,6 +266,40 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 
 //-----------------------------------------------------------------
 //
+// Flags
+//
+//-----------------------------------------------------------------
+
+#ifdef KRATOS_DEFINE_FLAG
+#undef KRATOS_DEFINE_FLAG
+#endif
+#define KRATOS_DEFINE_FLAG(name) \
+    extern const Flags name;     \
+    extern const Flags NOT_##name
+
+#ifdef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
+#undef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
+#endif
+#define KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(name)                  \
+    KratosComponents<Flags>::Add(#name, name)
+
+#ifdef KRATOS_CREATE_FLAG
+#undef KRATOS_CREATE_FLAG
+#endif
+#define KRATOS_CREATE_FLAG(name, position)                  \
+    const Flags name(Flags::Create(position));              \
+    const Flags NOT_##name(Flags::Create(position, false));
+
+#ifdef KRATOS_REGISTER_FLAG
+#undef KRATOS_REGISTER_FLAG
+#endif
+#define KRATOS_REGISTER_FLAG(name)                  \
+    KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(name);             \
+    KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(NOT_##name)
+
+
+//-----------------------------------------------------------------
+//
 // components
 //
 //-----------------------------------------------------------------
