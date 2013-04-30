@@ -79,7 +79,7 @@ typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 
 void  AddConstitutiveLawToPython()
 {
-    class_< ConstitutiveLaw, ConstitutiveLaw::Pointer, boost::noncopyable >
+    class_< ConstitutiveLaw, ConstitutiveLaw::Pointer , bases<Flags>, boost::noncopyable >
     ("ConstitutiveLaw",
      init<>() )
     .def("Clone",&ConstitutiveLaw::Clone)

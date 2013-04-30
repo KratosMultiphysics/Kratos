@@ -303,7 +303,7 @@ void  AddMeshToPython()
     //.def(self_ns::str(self))
     //      ;
 
-    class_<Element, Element::Pointer, bases<Element::BaseType > >("Element", init<int>())
+    class_<Element, Element::Pointer, bases<Element::BaseType, Flags > >("Element", init<int>())
     //.def(init<int, const Point<3>& >())
     //.add_property("Properties", &Element::pGetProperties(), &NodeType::SetId)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -381,7 +381,7 @@ void  AddMeshToPython()
     PointerVectorSetPythonInterface<MeshType::ElementsContainerType>::CreateInterface("ElementsArray")
     ;
 
-    class_<Condition, Condition::Pointer, bases<Condition::BaseType > >("Condition", init<int>())
+    class_<Condition, Condition::Pointer, bases<Condition::BaseType, Flags > >("Condition", init<int>())
     //.def(init<int, const Point<3>& >())
     //.add_property("Properties", &Condition::pGetProperties(), &NodeType::SetId)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)

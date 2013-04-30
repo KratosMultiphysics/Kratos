@@ -96,7 +96,7 @@ void  AddProcessInfoToPython()
 {
     using namespace boost::python;
 
-    class_<ProcessInfo, ProcessInfo::Pointer, bases<DataValueContainer>, boost::noncopyable>("ProcessInfo")
+    class_<ProcessInfo, ProcessInfo::Pointer, bases<DataValueContainer, Flags>, boost::noncopyable>("ProcessInfo")
     .def(init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
 // 				.def("CreateTimeStepInfo",(void (ProcessInfo::*)(std::size_t)) &ProcessInfo::CreateTimeStepInfo)
