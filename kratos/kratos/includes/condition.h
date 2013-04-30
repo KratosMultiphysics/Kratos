@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "utilities/indexed_object.h"
+#include "containers/flags.h"
 
 
 namespace Kratos
@@ -94,7 +95,7 @@ namespace Kratos
 
 /** Detail class definition.
  */
-class Condition : public IndexedObject
+class Condition : public IndexedObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -138,6 +139,7 @@ public:
      */
     Condition(IndexType NewId = 0)
         : BaseType(NewId)
+        , Flags()
         , mpGeometry()
 //        , mpGeometry(new GeometryType(NodesArrayType()))
         , mpProperties(new PropertiesType)
@@ -148,6 +150,7 @@ public:
      */
     Condition(IndexType NewId, const NodesArrayType& ThisNodes)
         : BaseType(NewId)
+        , Flags()
         , mpGeometry(new GeometryType(ThisNodes))
         , mpProperties(new PropertiesType)
     {
@@ -157,6 +160,7 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry)
         : BaseType(NewId)
+        , Flags()
         , mpGeometry(pGeometry)
         , mpProperties(new PropertiesType)
     {
@@ -166,6 +170,7 @@ public:
      */
     Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : BaseType(NewId)
+        , Flags()
         , mpGeometry(pGeometry)
         , mpProperties(pProperties)
     {
@@ -175,6 +180,7 @@ public:
 
     Condition(Condition const& rOther)
         : BaseType(rOther)
+        , Flags(rOther)
         , mpGeometry(rOther.mpGeometry)
         , mpProperties(rOther.mpProperties)
     {
@@ -197,6 +203,7 @@ public:
     Condition & operator=(Condition const& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
         mpGeometry = rOther.mpGeometry;
         mpProperties = rOther.mpProperties;
 
@@ -608,6 +615,7 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         rSerializer.save("Geometry",mpGeometry);
         rSerializer.save("Properties", mpProperties);
@@ -616,6 +624,7 @@ private:
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         rSerializer.load("Geometry",mpGeometry);
         rSerializer.load("Properties", mpProperties);

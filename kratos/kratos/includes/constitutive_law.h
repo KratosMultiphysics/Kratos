@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "containers/data_value_container.h"
+#include "containers/flags.h"
 
 
 namespace Kratos
@@ -69,7 +70,7 @@ namespace Kratos
 /**
  * Base class of constitutive laws.
  */
-class ConstitutiveLaw
+class ConstitutiveLaw : public Flags
 {
 public:
 
@@ -100,7 +101,7 @@ public:
     /**
      * Constructor.
      */
-    ConstitutiveLaw()
+    ConstitutiveLaw() : Flags()
     {
     }
 
@@ -547,11 +548,13 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
 // 	  rSerializer.save("",);
     }
 
     virtual void load(Serializer& rSerializer)
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
     }
 
 
