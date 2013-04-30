@@ -64,6 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "containers/data_value_container.h"
 #include "includes/variables.h"
+#include "containers/flags.h"
 
 
 namespace Kratos
@@ -91,7 +92,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ProcessInfo : public DataValueContainer
+class ProcessInfo : public DataValueContainer, public Flags
 {
 public:
     ///@name Type Definitions
@@ -113,6 +114,7 @@ public:
     /// Default constructor.
     ProcessInfo() :
         DataValueContainer(),
+        Flags(),
         mIsTimeStep(true),
         mSolutionStepIndex(),
         mpPreviousSolutionStepInfo(),
@@ -123,6 +125,7 @@ public:
     /// Copy constructor.
     ProcessInfo(const ProcessInfo& Other) :
         DataValueContainer(Other),
+        Flags(Other),
         mIsTimeStep(Other.mIsTimeStep),
         mSolutionStepIndex(Other.mSolutionStepIndex),
         mpPreviousSolutionStepInfo(Other.mpPreviousSolutionStepInfo),
@@ -142,6 +145,7 @@ public:
     ProcessInfo& operator=(const ProcessInfo& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator=(rOther);
 
         mIsTimeStep = rOther.mIsTimeStep;
         mSolutionStepIndex = rOther.mSolutionStepIndex;
@@ -302,7 +306,7 @@ public:
         if(mIsTimeStep)
             mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
         mIsTimeStep = false;
-        Clear();
+        DataValueContainer::Clear();
     }
 
 //       void CloneSolutionStepInfo(IndexType SolutionStepIndex = 0)
@@ -576,6 +580,7 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Is Time Step",mIsTimeStep);
         rSerializer.save("Solution Step Index",mSolutionStepIndex);
         rSerializer.save("Previous Solution Step Info",mpPreviousSolutionStepInfo);
@@ -585,6 +590,7 @@ private:
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Is Time Step",mIsTimeStep);
         rSerializer.load("Solution Step Index",mSolutionStepIndex);
         rSerializer.load("Previous Solution Step Info",mpPreviousSolutionStepInfo);
