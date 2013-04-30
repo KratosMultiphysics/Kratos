@@ -97,52 +97,12 @@ namespace Kratos
 {
 
 
-///@name Kratos Globals
-
-///@{
-
-
-
-///@}
-
-///@name Type Definitions
-
-///@{
-
-
-
-///@}
-
-///@name  Enum's
-
-///@{
-
-
-
-///@}
-
-///@name  Functions
-
-///@{
-
-
-
-///@}
-
-///@name Kratos Classes
-
-///@{
-
-
 
 /// Short class definition.
-
 /** Detail class definition.
-
 */
 
 template<class TComponentType>
-
 class KratosComponents
 
 {
@@ -540,17 +500,10 @@ private:
 }; // Class KratosComponents
 
 
-
 ///@}
-
-
-
 template<>
-
 class KratosComponents<VariableData>
-
 {
-
 public:
 
     ///@name Type Definitions
@@ -959,75 +912,37 @@ private:
 
 
 template<class TComponentType>
-
 typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
 
-
-
-
-///@name Type Definitions
-
-///@{
-
-
-
-
-
-///@}
-
 ///@name Input and output
-
 ///@{
-
-
-
-
 
 /// input stream function
-
 //   template<class TComponentType>
-
 //   inline std::istream& operator >> (std::istream& rIStream,
-
 // 				    KratosComponents<TComponentType>& rThis);
 
 
 
 /// output stream function
-
 template<class TComponentType>
-
 inline std::ostream& operator << (std::ostream& rOStream,
-
                                   const KratosComponents<TComponentType>& rThis)
 
 {
-
     rThis.PrintInfo(rOStream);
-
     rOStream << std::endl;
-
     rThis.PrintData(rOStream);
 
-
-
     return rOStream;
-
 }
-
 ///@}
 
-
-
-template<class TComponentType> inline void AddComponent(std::string const& Name, TComponentType const& ThisComponent)
-
+template<class TComponentType>  void AddComponent(std::string const& Name, TComponentType const& ThisComponent)
 {
-
     KratosComponents<TComponentType>::Add(Name, ThisComponent);
-
 }
-
 
 
 }  // namespace Kratos.
