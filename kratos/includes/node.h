@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
 #include "utilities/indexed_object.h"
+#include "containers/flags.h"
 
 #include "containers/weak_pointer_vector.h"
 
@@ -104,7 +105,7 @@ class Element;
 /** Detail class definition.
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point<TDimension>,  public IndexedObject
+class Node : public Point<TDimension>,  public IndexedObject, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -163,6 +164,7 @@ public:
     Node()
         : BaseType()
         , IndexedObject(0)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -178,6 +180,7 @@ public:
     Node(IndexType NewId )
         : BaseType()
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -195,6 +198,7 @@ public:
     Node(IndexType NewId, double const& NewX)
         : BaseType(NewX)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -211,6 +215,7 @@ public:
     Node(IndexType NewId, double const& NewX, double const& NewY)
         : BaseType(NewX, NewY)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -227,6 +232,7 @@ public:
     Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ)
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -243,6 +249,7 @@ public:
     Node(IndexType NewId, PointType const& rThisPoint)
         : BaseType(rThisPoint)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -259,6 +266,7 @@ public:
     Node(Node const& rOtherNode)
         : BaseType(rOtherNode)
         , IndexedObject(rOtherNode)
+        , Flags(rOtherNode)
         , mData(rOtherNode.mData)
         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
         , mInitialPosition(rOtherNode.mInitialPosition)
@@ -280,6 +288,7 @@ public:
     Node(Node<TOtherDimension> const& rOtherNode)
         : BaseType(rOtherNode)
         , IndexedObject(rOtherNode)
+        , Flags(rOtherNode)
         , mDofs(rOtherNode.mDofs)
         , mData(rOtherNode.mData)
         , mSolutionStepsNodalData(rOtherNode.mSolutionStepsNodalData)
@@ -296,6 +305,7 @@ public:
     Node(IndexType NewId, Point<TOtherDimension> const& rThisPoint)
         : BaseType(rThisPoint)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -314,6 +324,7 @@ public:
     Node(IndexType NewId, vector_expression<TVectorType> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -333,6 +344,7 @@ public:
     Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -349,6 +361,7 @@ public:
     Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
+        , Flags()
         , mDofs()
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
@@ -425,6 +438,7 @@ public:
     Node& operator=(const Node<TOtherDimension>& rOther)
     {
         BaseType::operator=(rOther);
+        Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
         for(typename DofsContainerType::const_iterator i_dof = rOther.mDofs.begin() ; i_dof != rOther.mDofs.end() ; i_dof++)
            pAddDof(*i_dof);
@@ -435,6 +449,11 @@ public:
 
         return *this;
 
+    }
+
+    bool operator==(const Node& rOther)
+    {
+        return PointType::operator ==(rOther);
     }
 
     template<class TVariableType> typename TVariableType::Type& operator()(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
@@ -1186,6 +1205,7 @@ private:
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point<TDimension> );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
         const SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
         // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
@@ -1202,6 +1222,7 @@ private:
 // 	  KRATOS_WATCH(rSerializer.GetBuffer().end() - rSerializer.GetBuffer().begin());
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point<TDimension> );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
         SolutionStepsNodalDataContainerType* p_solution_steps_nodal_data = &mSolutionStepsNodalData;
         rSerializer.load("Solution Steps Nodal Data", p_solution_steps_nodal_data);

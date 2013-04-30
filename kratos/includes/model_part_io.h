@@ -1291,7 +1291,11 @@ private:
 
         ReadWord(variable_name);
 
-        if(KratosComponents<Variable<int> >::Has(variable_name))
+        if(KratosComponents<Flags >::Has(variable_name))
+        {
+            ReadNodalFlags(rThisNodes, static_cast<Flags const& >(KratosComponents<Flags >::Get(variable_name)));
+        }
+        else if(KratosComponents<Variable<int> >::Has(variable_name))
         {
             ReadNodalScalarVariableData(rThisNodes, static_cast<Variable<int> const& >(KratosComponents<Variable<int> >::Get(variable_name)));
         }
@@ -1366,6 +1370,29 @@ private:
         KRATOS_CATCH("")
     }
 
+
+    void ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rFlags)
+    {
+
+        KRATOS_TRY
+
+        SizeType id;
+
+        std::string value;
+
+        while(!mInput.eof())
+        {
+            ReadWord(value); // reading id
+            if(CheckEndBlock("NodalData", value))
+                break;
+
+            ExtractValue(value, id);
+
+            FindKey(rThisNodes, id, "Node")->Set(rFlags);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     template<class TVariableType>
     void ReadNodalScalarVariableData(NodesContainerType& rThisNodes, TVariableType& rVariable)
