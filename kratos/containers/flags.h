@@ -59,6 +59,10 @@ public:
     /// Pointer definition of Flags
     KRATOS_CLASS_POINTER_DEFINITION(Flags);
 
+#ifdef  _WIN32 // work around for windows int64_t error
+    typedef __int64 int64_t;
+#endif
+
     typedef int64_t BlockType;
 
     typedef int64_t FlagType;
