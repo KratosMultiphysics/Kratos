@@ -319,6 +319,12 @@ public:
         return mNeighbourIndices;
     }
 
+    // Set the local mesh pointer to the given mesh
+
+    void SetLocalMesh(MeshType::Pointer pGivenMesh)
+    {
+        mpLocalMesh = pGivenMesh;
+    }
 
     // Returns pointer to the mesh storing all local entites
 
