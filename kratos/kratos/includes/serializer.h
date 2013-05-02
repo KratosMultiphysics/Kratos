@@ -351,6 +351,9 @@ public:
     KRATOS_SERIALIZATION_DIRECT_LOAD(unsigned int)
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::string)
     KRATOS_SERIALIZATION_DIRECT_LOAD(Matrix)
+#ifdef  _WIN32 // work around for windows int64_t error
+    KRATOS_SERIALIZATION_DIRECT_LOAD(__int64)
+#endif
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_LOAD(std::size_t)
 #endif
@@ -503,6 +506,9 @@ public:
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::string)
 //        KRATOS_SERIALIZATION_DIRECT_SAVE(Vector)
     KRATOS_SERIALIZATION_DIRECT_SAVE(Matrix)
+#ifdef  _WIN32 // work around for windows int64_t error
+    KRATOS_SERIALIZATION_DIRECT_SAVE(__int64)
+#endif
 #ifdef  _WIN64 // work around for windows size_t error in win64
     KRATOS_SERIALIZATION_DIRECT_SAVE(std::size_t)
 #endif
