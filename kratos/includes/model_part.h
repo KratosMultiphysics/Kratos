@@ -250,6 +250,7 @@ public:
         MeshType mesh;
         for (IndexType i = 0; i < mBufferSize; i++)
             mMeshes.push_back(mesh.Clone());
+		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
     }
 
     ModelPart(std::string const& NewName)
@@ -263,6 +264,7 @@ public:
         MeshType mesh;
         for (IndexType i = 0; i < mBufferSize; i++)
             mMeshes.push_back(mesh.Clone());
+		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
     }
 
     ModelPart(std::string const& NewName, IndexType NewBufferSize)
@@ -276,7 +278,8 @@ public:
         MeshType mesh;
         for (IndexType i = 0; i < mBufferSize; i++)
             mMeshes.push_back(mesh.Clone());
-    }
+ 		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
+   }
 
     /// Copy constructor.
 
