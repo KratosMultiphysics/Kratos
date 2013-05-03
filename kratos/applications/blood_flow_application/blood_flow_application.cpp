@@ -41,7 +41,8 @@ KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
         mArtery3Dto1DCondition(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
         mArtery12Condition(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
         mArteryInletCondition(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
-        mArteryOutletCondition(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+        mArteryOutletCondition(0, Element::GeometryType::Pointer(new Point3D<Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>())))),
+        mArteryOutletFreeCondition(0, Element::GeometryType::Pointer(new Line3D2<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))))
     {}
  	
  	void KratosBloodFlowApplication::Register()
@@ -63,6 +64,8 @@ KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
         KRATOS_REGISTER_CONDITION("Artery12Condition", mArtery12Condition);
         KRATOS_REGISTER_CONDITION("ArteryInletCondition", mArteryInletCondition);
         KRATOS_REGISTER_CONDITION("ArteryOutletCondition", mArteryOutletCondition);
+        KRATOS_REGISTER_CONDITION("ArteryOutletFreeCondition", mArteryOutletFreeCondition);
+
 
  	}
 
