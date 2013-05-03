@@ -49,7 +49,7 @@ for node in fluid_model_part.Nodes:
 #    node.SetSolutionStepValue(FLOW,0,0.0)
     
 #settings to be changed
-Dt = 4e-5
+Dt = 1e-4
 full_Dt = Dt 
 initial_Dt = Dt#0.001 * full_Dt #0.05 #0.01
 final_time = 5.0
@@ -70,14 +70,15 @@ integrator.Initialize(fluid_model_part)
 time = 0.0
 step = 0
 while(time < final_time):
-    print "--------------------------------------------------------------------------------------------------------"
+    print "-------------------------edu----------------------------------------------------------------------------"
 
 #    if(step < 5):
 #        Dt = initial_Dt
 #    else:
 #        Dt = full_Dt
         
-    Dt = integrator.EstimateDeltaTime(fluid_model_part, 0.57)
+    Dt = integrator.EstimateDeltaTime(fluid_model_part, 0.4)
+    #Dt = 1e-5
     print "Dt", Dt
 
     time = time + Dt

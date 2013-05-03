@@ -20,7 +20,7 @@ DENSITY 1021.0
  //  VARIABLE_NAME value
 RADIUS 0.014
 THICKNESS 1.63000e-03
-YOUNG_MODULUS 4.0e6
+YOUNG_MODULUS 4.0e5
 POISSON_RATIO 0.499999
 DYNAMIC_VISCOSITY 0.004
 DENSITY 1021.0
@@ -80,16 +80,20 @@ Begin Conditions ArteryInletCondition
 1 1 21
 End Conditions
 
-Begin Conditions ArteryOutletCondition
+//Begin Conditions ArteryOutletCondition
 // // id prop_id	 n1	n2	n3	...
-2 1 1
+//2 1 1
+//End Conditions
+
+Begin Conditions ArteryOutletFreeCondition
+// // id prop_id	 n1	n2	n3	...
+2 1 2 1
 End Conditions
 
 Begin Conditions Artery11Condition
 // // id prop_id	 n1	n2	n3	...
 3 1 11 10
 End Conditions
-
 
  Begin NodalData FLOW
 21 1 0.0008

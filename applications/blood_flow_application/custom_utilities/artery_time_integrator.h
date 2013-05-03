@@ -97,7 +97,7 @@ public:
         for(ModelPart::ConditionIterator i = ThisModelPart.ConditionsBegin();
                 i!=ThisModelPart.ConditionsEnd(); i++)
         {
-       i->Initialize();
+        i->Initialize();
         }
     }
 
