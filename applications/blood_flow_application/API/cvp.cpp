@@ -1,11 +1,21 @@
 #include <Python.h>
 #include <iostream>
-#include "cvp.h"
+//#include "cvp.h"
+#ifdef _WINDLL
+#define KRATOS_DLL_EXPORT __declspec(dllexport)
+#else
+#define KRATOS_DLL_EXPORT
+#endif
+KRATOS_DLL_EXPORT int solve(
+	const char * kratos_path,
+	const char * model_1d_name, 
+	const char * model_3d_name
+	);
 
 int solve(
-	std::string kratos_path,
-	std::string model_1d_name, 
-	std::string model_3d_name
+	const char * kratos_path,
+	const char * model_1d_name, 
+	const char * model_3d_name
 	)
 {
 
@@ -16,7 +26,7 @@ int solve(
   PyObject* sysPath = PySys_GetObject((char*)"path");
 
   PyList_Insert(sysPath,0, PyString_FromString("."));
-  PyList_Insert(sysPath,0, PyString_FromString(kratos_path.c_str()));
+  PyList_Insert(sysPath,0, PyString_FromString(kratos_path));
   PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
  
   char* argv[]={"minimal.py"};  
@@ -30,3 +40,6 @@ int solve(
   std::cout << "KRATOS TERMINATED CORRECTLY" << std::endl;
   return 0;
 }
+
+#undef KRATOS_DLL_EXPORT
+
