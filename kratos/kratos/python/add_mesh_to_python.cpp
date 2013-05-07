@@ -93,6 +93,23 @@ double GetAreaFromElement( Element& dummy )
     return( dummy.GetGeometry().Area() );
 }
 
+Properties::Pointer GetPropertiesFromElement( Element& pelem )
+{
+    return( pelem.pGetProperties() );
+}
+void SetPropertiesFromElement( Element& pelem, Properties::Pointer pProperties )
+{
+     pelem.pGetProperties() =pProperties ;
+}
+
+Properties::Pointer GetPropertiesFromCondition( Condition& pcond )
+{
+    return( pcond.pGetProperties() );
+}
+void SetPropertiesFromCondition( Condition& pcond, Properties::Pointer pProperties )
+{
+     pcond.pGetProperties() =pProperties ;
+}
 
 NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
 {
@@ -305,7 +322,7 @@ void  AddMeshToPython()
 
     class_<Element, Element::Pointer, bases<Element::BaseType, Flags > >("Element", init<int>())
     //.def(init<int, const Point<3>& >())
-    //.add_property("Properties", &Element::pGetProperties(), &NodeType::SetId)
+    .add_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -383,7 +400,7 @@ void  AddMeshToPython()
 
     class_<Condition, Condition::Pointer, bases<Condition::BaseType, Flags > >("Condition", init<int>())
     //.def(init<int, const Point<3>& >())
-    //.add_property("Properties", &Condition::pGetProperties(), &NodeType::SetId)
+    .add_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("SetValue", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
