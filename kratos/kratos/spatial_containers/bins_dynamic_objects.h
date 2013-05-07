@@ -983,83 +983,83 @@ private:
     
     // **** THREAD SAFE
 
-//     // Dimension = 1
-//     void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
-//                                 SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
-//     {
-//         PointType  MinCell, MaxCell;
-//         PointType  MinBox, MaxBox;
-//         
-//         MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  //
-//         MaxCell[0] = MinCell[0] + mCellSize[0];
-//         
-//         for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
-//             if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-//                 mCells[I].SearchObjectsInner(ThisObject, Result);
-//     }
-// 
-//     // Dimension = 2
-//     void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
-//                                 SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
-//     {
-//         PointType  MinCell, MaxCell;
-//         PointType  MinBox, MaxBox;
-// 
-//         for(SizeType i = 0; i < 2; i++)
-//         {
-//             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
-//             MaxBox[i] = MinBox[i] + mCellSize[i];
-//         }
-//  
-//         MinCell[1] = MinBox[1];
-//         MaxCell[1] = MaxBox[1];
-// 
-//         for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
-//         {
-//             MinCell[0] = MinBox[0];
-//             MaxCell[0] = MaxBox[0];
-//             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
-//             {
-//                 if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-//                     mCells[I].SearchObjectsInner(ThisObject, Result);
-//             }
-//         }
-//     }
-//     
-//     // Dimension = 3
-//     void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
-//                                 SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
-//     {
-//         PointType  MinCell, MaxCell;
-//         PointType  MinBox, MaxBox;
-// 
-//         for(SizeType i = 0; i < 3; i++)
-//         { 
-//             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
-//             MaxBox[i] = MinBox[i] + mCellSize[i];
-//         }
-//         
-//         MinCell[2] = MinBox[2];
-//         MaxCell[2] = MaxBox[2];
-//  
-//         for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
-//         {
-//             MinCell[2] = MinBox[2];
-//             MaxCell[2] = MaxBox[2];
-//             for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
-//             {
-//                 MinCell[0] = MinBox[0];
-//                 MaxCell[0] = MaxBox[0];
-//                 for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
-//                 {
-//                     if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
-//                     {
-//                         mCells[I].SearchObjectsInner(ThisObject, Result);
-//                     }
-//                 }
-//             }
-//         } 
-//     }
+    // Dimension = 1
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
+                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
+    {
+        PointType  MinCell, MaxCell;
+        PointType  MinBox, MaxBox;
+        
+        MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  //
+        MaxCell[0] = MinCell[0] + mCellSize[0];
+        
+        for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
+            if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+                mCells[I].SearchObjectsInner(ThisObject, Result);
+    }
+
+    // Dimension = 2
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
+                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
+    {
+        PointType  MinCell, MaxCell;
+        PointType  MinBox, MaxBox;
+
+        for(SizeType i = 0; i < 2; i++)
+        {
+            MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
+            MaxBox[i] = MinBox[i] + mCellSize[i];
+        }
+ 
+        MinCell[1] = MinBox[1];
+        MaxCell[1] = MaxBox[1];
+
+        for(IndexType II = Box.Axis[1].Begin() ; II <= Box.Axis[1].End() ; II += Box.Axis[1].Block )
+        {
+            MinCell[0] = MinBox[0];
+            MaxCell[0] = MaxBox[0];
+            for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+            {
+                if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+                    mCells[I].SearchObjectsInner(ThisObject, Result);
+            }
+        }
+    }
+    
+    // Dimension = 3
+    void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
+                                SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
+    {
+        PointType  MinCell, MaxCell;
+        PointType  MinBox, MaxBox;
+
+        for(SizeType i = 0; i < 3; i++)
+        { 
+            MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
+            MaxBox[i] = MinBox[i] + mCellSize[i];
+        }
+        
+        MinCell[2] = MinBox[2];
+        MaxCell[2] = MaxBox[2];
+ 
+        for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
+        {
+            MinCell[2] = MinBox[2];
+            MaxCell[2] = MaxBox[2];
+            for(IndexType II = III + Box.Axis[1].Begin() ; II <= III + Box.Axis[1].End() ; II += Box.Axis[1].Block )
+            {
+                MinCell[0] = MinBox[0];
+                MaxCell[0] = MaxBox[0];
+                for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block )
+                {
+                    if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
+                    {
+                        mCells[I].SearchObjectsInner(ThisObject, Result);
+                    }
+                }
+            }
+        } 
+    }
 
 //************************************************************************
 //************************************************************************
