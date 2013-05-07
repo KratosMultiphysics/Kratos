@@ -40,6 +40,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
+KRATOS_DEFINE_VARIABLE(vector<bool>, COMM_INTERFACE)
+  
 ///@}
 ///@name  Enum's
 ///@{
@@ -126,16 +128,7 @@ public:
 
     virtual void PrintData(std::ostream& rOStream) const
     {
-//             KRATOS_WATCH("in KratosMPISearchApplication");
-//             KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
-//             rOStream << "Variables:" << std::endl;
-//             KratosComponents<VariableData > ().PrintData(rOStream);
-//             rOStream << std::endl;
-//             rOStream << "Elements:" << std::endl;
-//             KratosComponents<Element > ().PrintData(rOStream);
-//             rOStream << std::endl;
-//             rOStream << "Conditions:" << std::endl;
-//             KratosComponents<Condition > ().PrintData(rOStream);
+      
     }
 
 

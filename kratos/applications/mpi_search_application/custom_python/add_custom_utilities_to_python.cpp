@@ -46,39 +46,44 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "spaces/ublas_space.h"
+#include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-#include "includes/model_part.h"
+// Application includes
 #include "custom_utilities/bins_dynamic_mpi.h"
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
-#include "custom_utilities/bins_dynamic_particle_configuration.h"
-#include "custom_utilities/bins_dynamic_object_configuration.h"
+#include "custom_utilities/mpi_discrete_particle_configure.h"
+#include "custom_utilities/mpi_dem_search.h"
+#include "custom_utilities/mpi_utilities.h"
+
+// Linear solvers
+#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
-namespace Python
-{
-void AddCustomUtilitiesToPython()
-{
-    typedef DiscreteParticleConfigure< 3 >  ObjectConfigurator;
-  
-    typedef Kratos::BinsDynamicMpi<ParticleSpatialConfigure> BinsDynamicMpi;
-    typedef Kratos::BinsObjectDynamicMpi<ObjectConfigurator> BinsObjectDynamicMpi;
+    namespace Python
+    {
+        using namespace boost::python;
+                    
+        void AddCustomUtilitiesToPython()
+        {
+            // Mpi search
+            typedef MPI_DEMSearch   DemSearchType;
+            typedef MpiUtilities    MpiUtilitiesType;
+
+            class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
+                    ("MPI_DEMSearch", init< >())
+                    ;
+                    
+            class_<MpiUtilitiesType, boost::noncopyable>
+                    ("MpiUtilities", init<>())
+                    .def("Repart",      &MpiUtilitiesType::ParallelPartitioning)
+                    .def("CompactIds",  &MpiUtilitiesType::CompactIds)
+                    ;
+
+        }
+
+    }  // namespace Python.
     
-    using namespace boost::python;
-
-    class_< BinsDynamicMpi, boost::noncopyable > ("BinsDynamicMpi", init<Kratos::ModelPart * , Kratos::ModelPart *, double>() )
-    .def("MultiSearchInRadiusTest"	  , &BinsDynamicMpi::MultiSearchInRadiusTest)
-    .def("MPISingleSearchInRadiusTest", &BinsDynamicMpi::MPISingleSearchInRadiusTest)
-    .def("MPIMultiSearchInRadiusTest" , &BinsDynamicMpi::MPIMultiSearchInRadiusTest)
-    ;
-
-    class_< BinsObjectDynamicMpi, boost::noncopyable > ("BinsObjectDynamicMpi", init<ObjectConfigurator::IteratorType , ObjectConfigurator::IteratorType>())
-    .def("SingleSearchObjectsInRadiusTest", &BinsObjectDynamicMpi::SearchObjectsTest)
-    ;
-}
-
-}  // namespace Python.
-
 } // Namespace Kratos
 
