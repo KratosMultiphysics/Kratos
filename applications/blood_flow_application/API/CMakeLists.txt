@@ -18,9 +18,9 @@ set( CVP_LIB_SOURCES
 
 ###############################################################
 add_library(cvp SHARED ${CVP_LIB_SOURCES} )
-target_link_libraries(cvp C:/Python27/libs/python27.lib)
+# target_link_libraries(cvp C:/Python27/libs/python27.lib)
 
-#target_link_libraries(cvp ${EXTRA_LINK_LIBS} ${PYTHON_LIBRARIES})
+target_link_libraries(cvp ${EXTRA_LINK_LIBS} ${PYTHON_LIBRARIES})
 
 if(WIN32)
 ##generate_export_header(cvp)
