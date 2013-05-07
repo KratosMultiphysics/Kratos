@@ -69,7 +69,31 @@ namespace Kratos
 	
 namespace Python
 {
-
+  
+  void CreateNewCondition2nodes(char* ConditionName, ModelPart& model_part, int cond_id, int prop_id,  Node<3>::Pointer pnode1, Node<3>::Pointer pnode2)
+  {
+      Condition::GeometryType::PointsArrayType plist_of_nodes;
+      plist_of_nodes.push_back(pnode1);
+      plist_of_nodes.push_back(pnode2);
+      
+      //Condition::GeometryType::Pointer pgeom = new Line3D2<Node<3> >( pnode1, pnode2 );
+      Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);
+      Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );
+      
+      model_part.AddCondition( pnew_cond );
+  }
+  
+    void CreateNewCondition1node(char* ConditionName, ModelPart& model_part, int cond_id, int prop_id,  Node<3>::Pointer pnode1)
+  {
+      Condition::GeometryType::PointsArrayType plist_of_nodes;
+      plist_of_nodes.push_back(pnode1);
+      
+      //Condition::GeometryType::Pointer pgeom = new Line3D2<Node<3> >( pnode1, pnode2 );
+      Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);
+      Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );
+      
+      model_part.AddCondition( pnew_cond );
+  }
 	
   void  AddCustomUtilitiesToPython()
   {
@@ -81,6 +105,10 @@ namespace Python
     .def("SolveStep", &ArteryTimeIntegrator::SolveStep)
     .def("EstimateDeltaTime", &ArteryTimeIntegrator::EstimateDeltaTime)
     ;
+    
+    def("CreateNewCondition",CreateNewCondition1node);
+    def("CreateNewCondition",CreateNewCondition2nodes);
+    
     
   }
 	
