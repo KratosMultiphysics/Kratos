@@ -262,15 +262,15 @@ public:
 //************************************************************************
 //************************************************************************
 
-//     SizeType SearchObjectsInner(PointerType& ThisObject, ResultContainerType& Result)
-//     {
-//         PointType Low, High;
-//         SearchStructureType Box;
-//         TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-//         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-//         SearchObjectLocalInner(ThisObject, Result, Box );
-//         return Result.size();
-//     }
+     SizeType SearchObjectsInner(PointerType& ThisObject, ResultContainerType& Result)
+     {
+         PointType Low, High;
+         SearchStructureType Box;
+         TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+         SearchObjectLocalInner(ThisObject, Result, Box );
+         return Result.size();
+     }
 
 //************************************************************************
 //************************************************************************

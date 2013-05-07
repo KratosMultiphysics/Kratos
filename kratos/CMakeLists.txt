@@ -12,8 +12,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set( KRATOS_CORE_SOURCES     
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
- 	${CMAKE_CURRENT_SOURCE_DIR}/sources/datafile_io.cpp; 
-     	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/datafile_io.cpp; 
+	${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
@@ -57,8 +57,9 @@ set( KRATOS_PYTHON_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_linear_solvers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/add_matrix_market_interface_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_serializer_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_table_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/python/add_search_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
 
      )
