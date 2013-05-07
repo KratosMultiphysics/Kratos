@@ -86,6 +86,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "add_matrix_market_interface_to_python.h"
 
+#include "add_search_strategies_to_python.h"
+
 namespace Kratos
 {
 
@@ -142,6 +144,8 @@ BOOST_PYTHON_MODULE(Kratos)
     AddParallelStrategiesToPython();
     AddParallelLinearSolversToPython();
     AddMatrixMarketInterfaceToPython();
+    
+    AddSearchStrategiesToPython();
 
     def("Hello", greet);
 }
