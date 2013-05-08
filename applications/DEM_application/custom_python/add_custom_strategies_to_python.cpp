@@ -82,93 +82,67 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_strategies/schemes/constant_average_acceleration_scheme.h"
 #include "custom_strategies/schemes/mid_point_scheme.h"
 
-//parallel strategies
-//#include "custom_strategies/strategies/mpi_explicit_solver_strategy.h" //MPI CARLOS descomentar aixo
-
-//parallel schemes
-//#include "custom_strategies/schemes/mpi_forward_euler_scheme.h" //MPI CARLOS descomentar aixo
-
 //builder_and_solvers
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 
-
+//Search
+#include "custom_utilities/omp_dem_search.h"
 
 namespace Kratos
 {
 
-	namespace Python
-	{		
-		using namespace boost::python;
+    namespace Python
+    {   
+        using namespace boost::python;
 
-		void  AddCustomStrategiesToPython()
-		{
-		  typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-		  typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+        void  AddCustomStrategiesToPython()
+        {
+          typedef UblasSpace<double, CompressedMatrix, Vector>                          SparseSpaceType;
+          typedef UblasSpace<double, Matrix, Vector>                                    LocalSpaceType;
 
-		  typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-		  typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-		  typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-
-
+          typedef LinearSolver<SparseSpaceType, LocalSpaceType >                        LinearSolverType;
+          typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >  BaseSolvingStrategyType;
+          typedef Scheme< SparseSpaceType, LocalSpaceType >                             BaseSchemeType;
+          
+          typedef OMP_DEMSearch                                                         OmpDemSearchType;
+          typedef DEMSearch<OmpDemSearchType >                                          DemSearchType;
 
           class_<IntegrationScheme, boost::noncopyable >
                     ("IntegrationScheme", init< >())
                   ;
                   
-		  class_< ForwardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
-		  (
-                   "ForwardEulerScheme", init<>()
+          class_< ForwardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          (
+                    "ForwardEulerScheme", init<>()
                   )
                   ;
 
-		  class_< MidPointScheme, bases<IntegrationScheme>,  boost::noncopyable>
-		  (
-                   "MidPointScheme", init<>()
+          class_< MidPointScheme, bases<IntegrationScheme>,  boost::noncopyable>
+          (
+                    "MidPointScheme", init<>()
                   )
                   ;
 
           class_< ConstAverageAccelerationScheme, bases<IntegrationScheme>,  boost::noncopyable>
-		  (
-                   "ConstAverageAccelerationScheme", init<>()
+          (
+                    "ConstAverageAccelerationScheme", init<>()
                   )
                   ;
-       
-		  
-		  //MPI CARLOS decomentar de aqui....
-		/*
-          //Mpi schemes
-           class_< MpiForwardEulerScheme, bases<ForwardEulerScheme>,  boost::noncopyable>
-           (
-                    "MpiForwardEulerScheme", init<>()
-                   )
-                   ;
-		*/
-				   // MPI CARLOS.... a aqui
-		   
-
-                  
-		  typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
-		  class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
-		  (
-		  "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
+                    
+          class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
+                    ("OMP_DEMSearch", init< >())
+                    ;
+        
+          typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
+          class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
+          (
+          "ExplicitSolverStrategy", init< ModelPart&, double, double, double, double, bool, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialized)
                   .def("InitialCriticalTime", &ExplicitSolverStrategyType::InitialCriticalTime)
-		  ;
-		  
-           //MPI CARLOS decomentar de aqui....
-		  /*
-           typedef MpiExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > MpiExplicitSolverStrategyType;  
-           class_< MpiExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
-           (
-           "MpiExplicitSolverStrategy", init< ModelPart&, ModelPart&, int, double, double, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer>())
-                   .def("Initialize", &MpiExplicitSolverStrategyType::Initialized)
-                   .def("InitialCriticalTime", &MpiExplicitSolverStrategyType::InitialCriticalTime)
-           ;
-		*/  
-		  // MPI CARLOS.... a aqui
-	   
-		}
+          ;
 
-	}  // namespace Python.
+        }
+
+    }  // namespace Python.
 
 } // Namespace Kratos
