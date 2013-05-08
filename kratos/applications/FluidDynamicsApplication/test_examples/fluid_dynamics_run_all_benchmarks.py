@@ -97,6 +97,28 @@ def Run():
 
 
 	os.chdir("..")
+        ###############################################################################
+        # test of cylinder with slip BC, wall law and outlet close to the cylinder
+	
+        Text += "test of cylinder with slip BC, wall law and outlet close to the cylinder: "
+	
+        os.chdir("cyl_bench")	
+	sys.path.append(os.getcwd())
+
+	import cyl_verify_benchmark
+	Msg = cyl_verify_benchmark.Run()
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "cylinder with slip BC, wall law and outlet test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "cylinder with slip BC, wall law and outlet test FAILED"
+
+
+	os.chdir("..")
 
 	# Add other examples here
 
