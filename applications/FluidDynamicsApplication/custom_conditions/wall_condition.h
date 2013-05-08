@@ -230,7 +230,8 @@ namespace Kratos
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo)
         {
-            if (rCurrentProcessInfo[FRACTIONAL_STEP] == 1)
+			unsigned int step = rCurrentProcessInfo[FRACTIONAL_STEP];
+            if ( step == 1)
             {
                 // Initialize local contributions
                 const SizeType LocalSize = TDim * TNumNodes;
@@ -247,6 +248,33 @@ namespace Kratos
 
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
+			else if(step == 5)
+			{
+                // Initialize local contributions
+                const SizeType LocalSize = TNumNodes;
+
+                if (rLeftHandSideMatrix.size1() != LocalSize)
+                    rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                if (rRightHandSideVector.size() != LocalSize)
+                    rRightHandSideVector.resize(LocalSize);
+
+                noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
+                noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+				
+				if(this->GetValue(IS_STRUCTURE) == 0.0 ) 
+				{
+					const double N = 1.0 / static_cast<double>(TNumNodes);
+					array_1d<double,3> rNormal;
+					this->CalculateNormal(rNormal); //this already contains the area
+					
+					for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+					{
+						const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+						for (unsigned int d = 0; d < TDim; ++d)
+							rRightHandSideVector[iNode] += N*rVelocity[d]*rNormal[d];
+					}
+				}
+			}
             else
             {
                 if (rLeftHandSideMatrix.size1() != 0)
@@ -288,8 +316,7 @@ namespace Kratos
                 // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
                 for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
                 {
-                    //if(this->GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_PRESSURE) == false)
-                    //    KRATOS_ERROR(std::invalid_argument,"missing EXTERNAL_PRESSURE variable on solution step data for node ",this->GetGeometry()[i].Id());
+
                     if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY) == false)
                         KRATOS_ERROR(std::invalid_argument,"missing VELOCITY variable on solution step data for node ",this->GetGeometry()[i].Id());
                     if(this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
@@ -540,43 +567,48 @@ namespace Kratos
             unsigned int FirstRow = 0;
             const unsigned int LocalSize = TNumNodes;// + 1;
 
-            for( unsigned int j = 0; j < TNumNodes; j++ )
-            {
-                const NodeType& rConstNode = this->GetGeometry()[j];
-                if ( rConstNode.GetValue(IS_STRUCTURE) == 0.0 && rConstNode.IsFixed(PRESSURE)==true)
-                {
-                    const double& pext = this->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-					for (unsigned int d = 0; d < TDim;d++)
-						rLocalVector[FirstRow+d] -= N*pext*rNormal[d];
-					
-                    const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
-                    double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
-					double normV = norm_2(rVel);
-		     
-                    if( Proj  < 0 )
-                    {
-						//KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
-						//KRATOS_WATCH(rNormal);
-                        //double Tij = Weight * Proj;
-												
-						for (unsigned int k = 0; k < TDim;k++)
-							for (unsigned int l = 0; l < TDim;l++)
-								rLocalMatrix(FirstRow+k,FirstRow+l) += Weight*normV*rNormal[k]*rNormal[l];
-								
-						for (unsigned int k = 0; k < TDim;k++)	
-							rLocalVector[FirstRow+k] -= Weight*normV*rNormal[k]*Proj;
-						
-                        /*for (unsigned int d = 0; d < TDim;d++)
+				if(this->GetValue(IS_STRUCTURE) == 0)
+				{
+					for( unsigned int j = 0; j < TNumNodes; j++ )
+					{
+						const NodeType& rConstNode = this->GetGeometry()[j];
+						if ( rConstNode.IsFixed(PRESSURE)==true)
 						{
-                            rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
+							const double& pext = this->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+							for (unsigned int d = 0; d < TDim;d++)
+								rLocalVector[FirstRow+d] -= N*pext*rNormal[d];
 							
-							rLocalVector[FirstRow+d] += Tij*rVel[d];
-						}*/
-                    }
-                }
+							const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+							double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
+							double normV = norm_2(rVel);
+					 
+							if( Proj  < 0 )
+							{
+								//KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
+								//KRATOS_WATCH(rNormal);
+								//double Tij = Weight * Proj;
+														
+								for (unsigned int k = 0; k < TDim;k++)
+									for (unsigned int l = 0; l < TDim;l++)
+										rLocalMatrix(FirstRow+k,FirstRow+l) += Weight*normV*rNormal[k]*rNormal[l];
+										
+								for (unsigned int k = 0; k < TDim;k++)	
+									rLocalVector[FirstRow+k] -= Weight*normV*rNormal[k]*Proj;
+								
+								/*for (unsigned int d = 0; d < TDim;d++)
+								{
+									rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
+									
+									rLocalVector[FirstRow+d] += Tij*rVel[d];
+								}*/
+							}
+						}
 
-                FirstRow += LocalSize;
-            }
+						FirstRow += LocalSize;
+					}
+				}
+			
+			
 
 /*             VectorType Values = ZeroVector(rLocalVector.size());
              this->GetValuesVector(Values);
