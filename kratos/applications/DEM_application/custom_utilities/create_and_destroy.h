@@ -152,7 +152,6 @@ public:
 
             else
             {
-
             //KRATOS_WATCH((*(*particle_pointer_it)).Id()) KRATOS_WATCH(coor[1])  KRATOS_WATCH(mLowPoint[1]) KRATOS_WATCH(mHighPoint[1])
 
             }
