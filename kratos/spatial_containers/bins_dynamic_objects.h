@@ -258,19 +258,20 @@ public:
         SearchObjectLocalInner(ThisObject, Result, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
-    
+
+
 //************************************************************************
 //************************************************************************
 
-     SizeType SearchObjectsInner(PointerType& ThisObject, ResultContainerType& Result)
-     {
-         PointType Low, High;
-         SearchStructureType Box;
-         TConfigure::CalculateBoundingBox(ThisObject, Low, High);
-         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-         SearchObjectLocalInner(ThisObject, Result, Box );
-         return Result.size();
-     }
+    SizeType SearchObjectsInner(PointerType& ThisObject, ResultContainerType& Result)
+    {
+        PointType Low, High;
+        SearchStructureType Box;
+        TConfigure::CalculateBoundingBox(ThisObject, Low, High);
+        Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+        SearchObjectLocalInner(ThisObject, Result, Box );
+        return Result.size();
+    }
 
 //************************************************************************
 //************************************************************************
@@ -305,98 +306,51 @@ public:
 //************************************************************************
 //************************************************************************
     
-    void SearchObjectsInRadius(ContainerType& ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<ResultContainerType>& Results,
-                               std::vector<DistanceIteratorType>& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
+    void SearchObjectsInRadius(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
+                                    std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
     {   
-        
-//         #ifdef _OPENMP
-//         int number_of_threads = omp_get_max_threads();
-//         #else
-//         int number_of_threads = 1;
-//         #endif
-// 
-//         boost::numeric::ublas::vector<unsigned int> object_partition;
-//         OpenMPUtils::CreatePartition(number_of_threads, ThisObjects.size(), object_partition);
-//         
-//         #pragma omp parallel for
-//         for(int k=0; k<number_of_threads; k++)
-//         {
-//             PointType Low, High;
-//             SearchStructureType Box;
-//           
-//             IteratorType it_begin = ThisObjects.begin()+object_partition[k];
-//             IteratorType it_end   = ThisObjects.begin()+object_partition[k+1];
-//             
-//             std::vector<PointerType>    localResults(MaxNumberOfResults);
-//             std::vector<double>         localResultsDistances(MaxNumberOfResults);
-//                 
-//             int objectCounter = object_partition[k];
-//                 
-//             for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it, ++objectCounter)
-//             {    
-//                 ResultIteratorType   ResultsPointer          = localResults.begin();
-//                 DistanceIteratorType ResultsDistancesPointer = localResultsDistances.begin();
-// 
-//                 NumberOfResults[objectCounter] = 0;
-//             
-//                 TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
-//                 Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-//             
-//                 SearchInRadius((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
-//                 
-//                 Results[objectCounter].insert(Results[objectCounter].begin(),localResults.begin(),localResults.begin()+NumberOfResults[objectCounter]);
-//                 ResultsDistances[objectCounter].insert(ResultsDistances[objectCounter].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults[objectCounter]);
-//             }
-//         }
+        PointType Low, High;
+        SearchStructureType Box;
+
+        #pragma omp parallel for private(Low,High,Box)
+        for(size_t i = 0; i < NumberOfObjects; i++)
+        {   
+            ResultIteratorType ResultsPointer            = Results[i].begin();
+            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+            NumberOfResults[i] = 0;
+            
+            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+            
+            SearchInRadius(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+        }
 
     }
     
 //************************************************************************
 //************************************************************************
     
-    void SearchObjectsInRadiusInner(ContainerType& ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<ResultContainerType>& Results,
-                                    std::vector<DistanceIteratorType>& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
-    {   
-//         #ifdef _OPENMP
-//         int number_of_threads = 4;//omp_get_max_threads();
-//         #else
-//         int number_of_threads = 1;
-//         #endif
-// 
-//         boost::numeric::ublas::vector<unsigned int> object_partition;
-//         OpenMPUtils::CreatePartition(number_of_threads, ThisObjects.size(), object_partition);
-//         
-//         #pragma omp parallel for
-//         for(int k=0; k<number_of_threads; k++)
-//         {
-//             PointType Low, High;
-//             SearchStructureType Box;
-//           
-//             IteratorType it_begin = ThisObjects.begin()+object_partition[k];
-//             IteratorType it_end   = ThisObjects.begin()+object_partition[k+1];
-//             
-//             std::vector<PointerType>    localResults(MaxNumberOfResults);
-//             std::vector<double>         localResultsDistances(MaxNumberOfResults);
-//                 
-//             int objectCounter = object_partition[k];
-//                 
-//             for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it, ++objectCounter)
-//             { 
-//                 NumberOfResults[objectCounter] = 0;
-//               
-//                 ResultIteratorType   ResultsPointer          = localResults.begin();
-//                 DistanceIteratorType ResultsDistancesPointer = localResultsDistances.begin();
-//                 
-//                 TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
-//                 Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-//             
-//                 SearchInRadiusInner((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
-//                 
-//                 Results[objectCounter].insert(Results[objectCounter].begin(),localResults.begin(),localResults.begin()+NumberOfResults[objectCounter]);
-//                 ResultsDistances[objectCounter].insert(ResultsDistances[objectCounter].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults[objectCounter]);
-//             }
-//         }
-        
+    void SearchObjectsInRadiusInner(IteratorType const& ThisObjects, SizeType const& NumberOfObjects, std::vector<double>& Radius, std::vector<std::vector<PointerType> >& Results,
+                                    std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults)
+    {  
+        PointType Low, High;
+        SearchStructureType Box;
+
+        #pragma omp parallel for private(Low,High,Box)
+        for(size_t i = 0; i < NumberOfObjects; i++)
+        {   
+            ResultIteratorType ResultsPointer            = Results[i].begin();
+            DistanceIteratorType ResultsDistancesPointer = ResultsDistances[i].begin();
+
+            NumberOfResults[i] = 0;
+            
+            TConfigure::CalculateBoundingBox(ThisObjects[i], Low, High, Radius[i]);
+            Box.Set( CalculateCell(Low), CalculateCell(High), mN );
+            
+            SearchInRadiusInner(ThisObjects[i], Radius[i], ResultsPointer, ResultsDistancesPointer, NumberOfResults[i], MaxNumberOfResults, Box );           
+        }
+
     }
 
 //************************************************************************
@@ -663,7 +617,7 @@ private:
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = delta[i] / mN[i];
-            mInvCellSize[i] = 1.00 / (mCellSize[i]);
+            mInvCellSize[i] = 1.00 / mCellSize[i];
         }
 
 
@@ -674,7 +628,7 @@ private:
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = CellSize;
-            mInvCellSize[i] = 1.00 / (mCellSize[i]);
+            mInvCellSize[i] = 1.00 / mCellSize[i];
             mN[i] = static_cast<SizeType>( (mMaxPoint[i]-mMinPoint[i]) / mCellSize[i]) + 1;
         }
     }
@@ -714,7 +668,7 @@ private:
         for(SizeType i = 0 ; i < Dimension ; i++)
         {
             mCellSize[i] = delta[i] / mN[i];
-            mInvCellSize[i] = 1.00 / (mCellSize[i]);
+            mInvCellSize[i] = 1.00 / mCellSize[i];
         }
 
     }
@@ -980,7 +934,13 @@ private:
             }
         }
     }
-    
+
+
+
+//************************************************************************
+//************************************************************************
+
+
     // **** THREAD SAFE
 
     // Dimension = 1
@@ -989,13 +949,12 @@ private:
     {
         PointType  MinCell, MaxCell;
         PointType  MinBox, MaxBox;
-        
         MinCell[0] = static_cast<CoordinateType>(Box.Axis[0].Min) * mCellSize[0] + mMinPoint[0];  //
         MaxCell[0] = MinCell[0] + mCellSize[0];
-        
         for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block )
             if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell))
                 mCells[I].SearchObjectsInner(ThisObject, Result);
+
     }
 
     // Dimension = 2
@@ -1010,7 +969,7 @@ private:
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];
             MaxBox[i] = MinBox[i] + mCellSize[i];
         }
- 
+
         MinCell[1] = MinBox[1];
         MaxCell[1] = MaxBox[1];
 
@@ -1025,7 +984,7 @@ private:
             }
         }
     }
-    
+
     // Dimension = 3
     void SearchObjectLocalInner(PointerType& ThisObject, ResultContainerType& Result,
                                 SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
@@ -1034,14 +993,14 @@ private:
         PointType  MinBox, MaxBox;
 
         for(SizeType i = 0; i < 3; i++)
-        { 
+        {
             MinBox[i] = static_cast<CoordinateType>(Box.Axis[i].Min) * mCellSize[i] + mMinPoint[i];  //
             MaxBox[i] = MinBox[i] + mCellSize[i];
         }
-        
+
         MinCell[2] = MinBox[2];
         MaxCell[2] = MaxBox[2];
- 
+
         for(IndexType III = Box.Axis[2].Begin() ; III <= Box.Axis[2].End() ; III += Box.Axis[2].Block )
         {
             MinCell[2] = MinBox[2];
@@ -1058,8 +1017,9 @@ private:
                     }
                 }
             }
-        } 
+        }
     }
+
 
 //************************************************************************
 //************************************************************************
@@ -1584,5 +1544,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined 
-
 
