@@ -109,10 +109,10 @@ namespace Kratos
         KRATOS_CREATE_VARIABLE( double,  FAILURE_CRITERION_STATE)
 	
         KRATOS_CREATE_VARIABLE( int, FAILURE_CRITERION_OPTION)     
-	KRATOS_CREATE_VARIABLE( double, CONTACT_SIGMA_MAX)  
-	KRATOS_CREATE_VARIABLE( double, CONTACT_SIGMA_MIN)
-	KRATOS_CREATE_VARIABLE( double, CONTACT_TAU_ZERO)  
-	KRATOS_CREATE_VARIABLE( double, CONTACT_INTERNAL_FRICC) 
+        KRATOS_CREATE_VARIABLE( double, CONTACT_SIGMA_MAX)  
+        KRATOS_CREATE_VARIABLE( double, CONTACT_SIGMA_MIN)
+        KRATOS_CREATE_VARIABLE( double, CONTACT_TAU_ZERO)  
+        KRATOS_CREATE_VARIABLE( double, CONTACT_INTERNAL_FRICC) 
                 
         KRATOS_CREATE_VARIABLE( int, SKIN_SPHERE )
         KRATOS_CREATE_VARIABLE( double, EXPORT_SKIN_SPHERE )
@@ -134,10 +134,9 @@ namespace Kratos
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( PARTICLE_ROTATION_ANGLE )
         KRATOS_CREATE_VARIABLE(double, PARTICLE_MOMENT_OF_INERTIA)
         KRATOS_CREATE_VARIABLE(double, ROLLING_FRICTION)
-        
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MAX_ROTA_MOMENT )
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INITIAL_ROTA_MOMENT )
-        
+            
         KRATOS_CREATE_VARIABLE(double, ORIENTATION_REAL )
         KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ORIENTATION_IMAG )            
 
@@ -169,8 +168,8 @@ namespace Kratos
 	KratosDEMApplication::KratosDEMApplication():
 	//mSphericParticle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mSphericParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-        mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-        mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+//         mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+//         mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         //mDEM_FEM_Particle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
@@ -305,13 +304,12 @@ namespace Kratos
 		KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_ROTATION_ANGLE)
 		KRATOS_REGISTER_VARIABLE(PARTICLE_MOMENT_OF_INERTIA)
 
-                KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION)
-                
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MAX_ROTA_MOMENT )
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INITIAL_ROTA_MOMENT )                
+        KRATOS_REGISTER_VARIABLE(ROLLING_FRICTION)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MAX_ROTA_MOMENT )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INITIAL_ROTA_MOMENT )  
                         
-                KRATOS_REGISTER_VARIABLE( ORIENTATION_REAL )
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ORIENTATION_IMAG )                        
+        KRATOS_REGISTER_VARIABLE( ORIENTATION_REAL )
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ORIENTATION_IMAG )                        
                         
 		KRATOS_REGISTER_VARIABLE(INITIAL_AXES_TRACKING)
 		KRATOS_REGISTER_VARIABLE(plot_OPTIONS)
@@ -319,25 +317,25 @@ namespace Kratos
 		KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_ELEMENT)
 		KRATOS_REGISTER_VARIABLE(IF_BOUNDARY_FACE)
 
-                //SURFACE VARIABLES
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_SURFACE_CONTACT_FORCES)
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
-                KRATOS_REGISTER_VARIABLE(LIMIT_SURFACE_OPTION)
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_NORMAL_DIR)
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_POINT_COOR)
-                KRATOS_REGISTER_VARIABLE(SURFACE_FRICC)
+        //SURFACE VARIABLES
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_SURFACE_CONTACT_FORCES)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
+        KRATOS_REGISTER_VARIABLE(LIMIT_SURFACE_OPTION)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_NORMAL_DIR)
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SURFACE_POINT_COOR)
+        KRATOS_REGISTER_VARIABLE(SURFACE_FRICC)
 
 		//KRATOS_REGISTER_ELEMENT("SphericParticle2D", mSphericParticle2D)
 		KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
-                KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
-        KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
+//         KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
+//         KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
 
 		//KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle2D", mDEM_FEM_Particle2D)
 		KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle3D", mDEM_FEM_Particle3D)
 				
 		KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
                 
-	Serializer::Register( "VariablesList", mVariablesList );
+        Serializer::Register( "VariablesList", mVariablesList );
 	
         }
 

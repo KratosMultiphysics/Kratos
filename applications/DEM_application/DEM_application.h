@@ -26,8 +26,8 @@
 
 #include "includes/variables.h"
 #include "custom_elements/spheric_particle.h"
-#include "custom_elements/spheric_continuum_particle.h"
-#include "custom_elements/spheric_swimming_particle.h"
+// #include "custom_elements/spheric_continuum_particle.h"
+// #include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
 
@@ -306,8 +306,8 @@ private:
     ///@{
     //const SphericParticle mSphericParticle2D;
     const SphericParticle mSphericParticle3D;
-    const SphericContinuumParticle mSphericContinuumParticle3D;
-    const SphericSwimmingParticle mSphericSwimmingParticle3D;
+//     const SphericContinuumParticle mSphericContinuumParticle3D;
+//     const SphericSwimmingParticle mSphericSwimmingParticle3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const DEM_FEM_Particle mDEM_FEM_Particle3D;
