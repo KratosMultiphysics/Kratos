@@ -470,8 +470,18 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 //        Vector UGradN(NumNodes);
 //        this->EvaluateConvection(UGradN,ConvVel,mDN_DX);
 
-        double DivU;
-        this->EvaluateDivergenceInPoint(DivU,VELOCITY,rDN_DX);
+/*        double DivU;
+        this->EvaluateDivergenceInPoint(DivU,VELOCITY,rDN_DX);*/
+		array_1d<double,3> ugauss;
+		this->EvaluateInPoint(ugauss,VELOCITY,N);
+		for (SizeType i = 0; i < NumNodes; ++i)
+		{
+			double aux = 0.0;
+			for (SizeType d = 0; d < TDim; ++d)
+				aux += ugauss[d]*rDN_DX(i,d);
+		
+			rRightHandSideVector[i] += GaussWeight * aux;
+		}
 
         // constant coefficient multiplying the pressure Laplacian (See Codina, Badia 2006 paper for details in case of a BDF2 time scheme)
         const double LaplacianCoeff = 1.0 / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]) ;
@@ -493,8 +503,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
             // RHS contribution
 
             // Velocity divergence
-            double RHSi = - N[i] * DivU;
-
+            //double RHSi = - N[i] * DivU;
+			double RHSi = 0.0;
             for (SizeType d = 0; d < TDim; ++d)
             {
 //                double Conv = UGradN[0] * rGeom[0].FastGetSolutionStepValue(VELOCITY)[d];
