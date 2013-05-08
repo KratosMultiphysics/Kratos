@@ -8,13 +8,13 @@
 #if !defined(KRATOS_DISCRETE_PARTICLE__CONFIGURE_INCLUDED)
 #define  KRATOS_DISCRETE_PARTICLE__CONFIGURE_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream> 
 #include <cmath>
-#include "utilities/spatial_containers_configure.h"
+
+// Kratos includes
+#include "spatial_containers/spatial_search.h"
 
 namespace Kratos
 {
@@ -40,113 +40,114 @@ namespace Kratos
 
     
 template <std::size_t TDimension>
-class DiscreteParticleConfigure{
+class DiscreteParticleConfigure
+{
+
 public:
+  
+    enum { 
+        Dimension = TDimension,
+        DIMENSION = TDimension,
+        MAX_LEVEL = 16,
+        MIN_LEVEL = 2
+    };
 
- enum { Dimension = TDimension,
-             DIMENSION = TDimension,
-             MAX_LEVEL = 16,
-             MIN_LEVEL = 2
-      };
-      
-        typedef  Point<Dimension, double>                        PointType;
-        typedef  std::vector<double>::iterator                   DistanceIteratorType;
-        typedef  std::vector<typename Element::Pointer>          ContainerType; // ModelPart::ElementsContainerType::ContainerType ContainerType;
-        typedef  ContainerType::value_type                       PointerType;
-        typedef  ContainerType::iterator                         IteratorType;
-        typedef  ModelPart::ElementsContainerType                ElementsContainerType;     // pointer vector set de elements.
-        typedef  ElementsContainerType::ContainerType            ResultContainerType;       // std vector de punters a elements
-        typedef  ResultContainerType::value_type                 ResultPointerType;
-        typedef  ResultContainerType::iterator                   ResultIteratorType;
-        typedef  ContactPair<PointerType>                        ContactPairType;
-        typedef  std::vector<ContactPairType>                    ContainerContactType;
-        typedef  ContainerContactType::iterator                  IteratorContactType;
-        typedef  ContainerContactType::value_type                PointerContactType;
-      
-        typedef  std::vector<PointerType>::iterator              PointerTypeIterator;
+    /// Pointer definition of SpatialContainersConfigure
+    KRATOS_CLASS_POINTER_DEFINITION(DiscreteParticleConfigure);
+    
+    typedef SpatialSearch                                           SearchType;
 
-
-
-
-
-      
-      /// Pointer definition of SpatialContainersConfigure
-      KRATOS_CLASS_POINTER_DEFINITION(DiscreteParticleConfigure);
-
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    typedef SearchType::PointType                                   PointType;
+    typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
+    typedef SearchType::ElementsContainerType                       ElementsContainerType;  // * Comentar -> Create_and_destroy.h
+    
+    typedef SearchType::ElementType                                 ElementType;
+    typedef ContainerType::value_type                               PointerType;
+    typedef ContainerType::iterator                                 IteratorType;
+    
+    typedef SearchType::ElementsContainerType::ContainerType        ResultContainerType;
+//     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
+    
+    typedef ResultContainerType::iterator                           ResultIteratorType;
+    typedef std::vector<double>::iterator                           DistanceIteratorType;
+    
+    typedef ContactPair<PointerType>                                ContactPairType;
+    typedef std::vector<ContactPairType>                            ContainerContactType;
+    typedef ContainerContactType::iterator                          IteratorContactType;
+    typedef ContainerContactType::value_type                        PointerContactType;
+    
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
     DiscreteParticleConfigure(){};
     virtual ~DiscreteParticleConfigure(){}
 
-          ///@}
-          ///@name Operators
-          ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
 
-          ///@}
-          ///@name Operations
-          ///@{
+    ///@}
+    ///@name Operations
+    ///@{
 
-	    
     //******************************************************************************************************************
 
-    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint){
-        
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
+    {    
         rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
-	double radius = rObject->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        double radius = rObject->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
 
-        for(std::size_t i = 0; i < 3; i++){
+        for(std::size_t i = 0; i < 3; i++)
+        {
             rLowPoint[i]  += -radius;
             rHighPoint[i] += radius;
-            }
         }
+    }
 
-    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius){
-
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint, const double& Radius)
+    {
         rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
         
-        for(std::size_t i = 0; i < 3; i++){
+        for(std::size_t i = 0; i < 3; i++)
+        {
             rLowPoint[i]  += -Radius;
             rHighPoint[i] += Radius;
-            }
-
         }
+    }
         
-    static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter){
-
+    static inline void CalculateCenter(const PointerType& rObject, PointType& rCenter)
+    {
         rCenter  = rObject->GetGeometry().GetPoint(0);
-        }
+    }
 
     //******************************************************************************************************************
 
-     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2){
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
+    {
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-        //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
+
         const double& radius_1 = rObj_1->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = (distance_2 - radius_sum * radius_sum) <= 0;
         return intersect;
-        }
+    }
 
 
-     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius){
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
+    {
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-        //distance_2 is the inter-center distance squared (from the definition of distance in search-structure.h, with operator (,))
-//         double radius_1 = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
-//         double radius_1 = Radius;
+
         const double& radius_1 = Radius;
         const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         double radius_sum = radius_1 + radius_2;
         bool intersect = (distance_2 - radius_sum * radius_sum) <= 0;
         return intersect;
-        }
-
-
+    }
 
     //******************************************************************************************************************
     
@@ -179,14 +180,14 @@ public:
     }
 
     static inline void Distance(const PointerType& rObj_1, const PointerType& rObj_2, double& distance)
-	{
-		array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry().GetPoint(0);
-		array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry().GetPoint(0);
+    {
+        array_1d<double, 3> center_of_particle1 = rObj_1->GetGeometry().GetPoint(0);
+        array_1d<double, 3> center_of_particle2 = rObj_2->GetGeometry().GetPoint(0);
 
-		distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
-						(center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
-						(center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
-	}
+        distance = sqrt((center_of_particle1[0] - center_of_particle2[0]) * (center_of_particle1[0] - center_of_particle2[0]) +
+                        (center_of_particle1[1] - center_of_particle2[1]) * (center_of_particle1[1] - center_of_particle2[1]) +
+                        (center_of_particle1[2] - center_of_particle2[2]) * (center_of_particle1[2] - center_of_particle2[2]) );
+    }
      
     //******************************************************************************************************************
 

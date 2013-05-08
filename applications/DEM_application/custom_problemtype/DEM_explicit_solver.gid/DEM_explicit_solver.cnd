@@ -254,7 +254,6 @@ VALUE: 1
 END CONDITION
 
 
-
 BOOK: Test_Particles
 
 CONDITION: test_PARTICLES
@@ -315,6 +314,7 @@ CONDITION: SET_SKIN
 CONDTYPE: over volumes
 CONDMESHTYPE: over body elements
 END CONDITION
+
 
 # Nodal Values
 

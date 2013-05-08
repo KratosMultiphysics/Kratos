@@ -31,162 +31,101 @@
 
 #include "utilities/openmp_utils.h"
 
+// Project Includes
+#include "spatial_containers/spatial_search.h"
+
 namespace Kratos {
 
-    template< //pot no compilar en windows aquest tipus d'assignacio per template.
-//     std::size_t TDim, FORA!
-    class TParticle
-    >
-
+    template< class TParticle>
     class Neighbours_Calculator {
     public:
-        typedef DiscreteParticleConfigure < 3 > ConfigureType;
-
+        
+        /// SpatialSearch
         typedef TParticle Particle; // es el objecte
         typedef typename Particle::Pointer ParticlePointer; // es punter al objecte
         typedef ModelPart::ElementsContainerType::ContainerType ParticleVector; // es un vector d'objectes.
         typedef ParticleVector::iterator ParticleIterator; // es un iterador d'objectes
-
-        typedef ModelPart::ElementsContainerType ParticlePointerVector; // es un vector de iteradors
-        typedef ParticlePointerVector::iterator ParticlePointerIterator; // es un iterador de punters
-
-        typedef ConfigureType::PointType PointType;
-        typedef ConfigureType::DistanceIteratorType DistanceIteratorType;
-        typedef ConfigureType::ContainerType ContainerType;
-        typedef ConfigureType::PointerType PointerType;
-        typedef ConfigureType::IteratorType IteratorType; // iterador de punteros.
-        typedef ConfigureType::ResultContainerType ResultContainerType;
-        typedef ConfigureType::ResultPointerType ResultPointerType;
-        typedef ConfigureType::ResultIteratorType ResultIteratorType;
-        typedef ConfigureType::ContactPairType ContactPairType;
-        typedef ConfigureType::ContainerContactType ContainerContactType;
-        typedef ConfigureType::IteratorContactType IteratorContactType;
-        typedef ConfigureType::PointerContactType PointerContactType;
-        typedef ConfigureType::PointerTypeIterator PointerTypeIterator;
-
-        typedef WeakPointerVector<Element> ParticleWeakVector;
-        typedef typename ParticleWeakVector::iterator ParticleWeakIterator;
-        typedef ParticleWeakVector::ptr_iterator ParticleWeakIteratorType_ptr;
-
-        typedef std::vector<double> DistanceVector;
-        typename DistanceVector::iterator DistanceIterator;
-
-        typedef std::vector<array_1d<double, 3 > > TangDisplacementsVectorType;
-        typedef TangDisplacementsVectorType::iterator TangDisplacementsIteratorType;
         
-        // Bucket types
-//         typedef Bucket < TDim, Particle, ParticlePointerVector> BucketType; No ho borro pero no veig per que hem de tindre aixo aqui si no fa res mes que molestar
-        typedef BinsObjectDynamic <ConfigureType> Bins;
+        typedef SpatialSearch::Pointer                          SearchPointer;
+        
+        typedef SpatialSearch::ElementsContainerType::ContainerType ElementsContainerType;
+        
+        typedef ElementsContainerType::value_type               PointerType;
+        typedef ElementsContainerType::iterator                 IteratorType;
 
+        typedef SpatialSearch::ResultElementsContainerType      ResultElementsContainerType;
+        typedef SpatialSearch::VectorResultElementsContainerType    VectorResultElementsContainerType;
+        
+        typedef SpatialSearch::RadiusArrayType                  RadiusArrayType;
+        typedef SpatialSearch::DistanceType                     DistanceType;
+        typedef SpatialSearch::VectorDistanceType               VectorDistanceType;
 
-        /// Pointer definition of Neighbour_calculator
-        //KRATOS_CLASS_POINTER_DEFINITION(Neighbours_Calculator);  R: necesitu?
+        typedef WeakPointerVector<Element>                      ParticleWeakVector;
 
-        virtual ~Neighbours_Calculator() {
-        };
+        typedef std::vector<array_1d<double, 3 > >              TangDisplacementsVectorType;
+        typedef TangDisplacementsVectorType::iterator           TangDisplacementsIteratorType;
+
+        Neighbours_Calculator(ModelPart& rModelPart) 
+        : mrModelPart(rModelPart),
+          mpIteratorElements(mrModelPart.GetCommunicator().LocalMesh().ElementsArray()),
+          mrCurrentProcessInfo(mrModelPart.GetProcessInfo())
+        {
+            
+        }
+        
+        ~Neighbours_Calculator() 
+        {
+        }
+        
+        void Initialize()
+        {
+            int NumberOfElements = mpIteratorElements.end() - mpIteratorElements.begin();
           
-        //Aquesta da igual si es estatica 
-        static void Parallel_partitioning(ModelPart& r_model_part, bool extension_option)
-        {
-            /* Redefine this if you are using parallelism */
-            /* Perform the repartition of the model */
+            mResults.resize(NumberOfElements);
+            mResultsDistances.resize(NumberOfElements);
+            mRadius.resize(NumberOfElements);
         }
         
-        //Aquestas va molt malament que sigin estaticas
-        virtual void Add_To_Modelpart(ModelPart& r_model_part, ResultIteratorType neighbour_it)
-        {
-            /* Must be redefined */
-        }
-        
-        virtual void Clean_Modelpart(ModelPart& r_model_part)
-        {
-            /* Must be redefined */
-        }
-        
-        virtual void Sort_Modelpart(ModelPart& r_model_part)
-        {
-            /* Must be redefined */
-        }
-        
-        virtual ContainerType& Get_Elements(ModelPart& r_model_part)
-        {
-            /* Must be redefined */
-            return r_model_part.ElementsArray();
-        }
-        
-        virtual void SearchNeighbours(ModelPart& r_model_part,
-                                      ContainerType& pIteratorElements,
-                                      int NumberOfElements,
-                                      int MaximumNumberOfResults,
-                                      std::vector<std::size_t> &NumberOfResults, 
-                                      std::vector<std::vector<PointerType> > &Results,
-                                      std::vector<std::vector<double> > &ResultsDistances,
-                                      std::vector<double> &Radius
-        )
-        {     
-            Bins particle_bin(pIteratorElements.begin(), pIteratorElements.end());
-
-            particle_bin.SearchObjectsInRadiusInner(pIteratorElements.begin(),NumberOfElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults);
-        }
-        
-        void Search_Ini_Neighbours(ModelPart& r_model_part, bool extension_option) 
+        void Search_Ini_Neighbours(ModelPart& mrModelPartNO, bool extension_option, SearchPointer searchScheme) 
         {   
             KRATOS_TRY
-            
-            ContainerType& pIteratorElements = Get_Elements(r_model_part);
-            ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-            
+
             double radius_extend = 0.0;
-            if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
-
-            boost::timer kdtree_construction;
-
-            unsigned int MaximumNumberOfResults = 1000;
-            unsigned int ResultIterator = 0;
-
-            boost::timer search_time;
+            if (extension_option) radius_extend = mrCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
             
             //**********************************************************************************************************************************************//
             
-            int NumberOfElements = pIteratorElements.end() - pIteratorElements.begin();
-            
-            Clean_Modelpart(r_model_part);
-            
-            std::vector<std::size_t>               NumberOfResults(NumberOfElements);
-            std::vector<std::vector<PointerType> > Results(NumberOfElements, std::vector<PointerType>(MaximumNumberOfResults));
-            std::vector<std::vector<double> >      ResultsDistances(NumberOfElements, std::vector<double>(MaximumNumberOfResults));
-            std::vector<double>                    Radius(NumberOfElements);
-            
+            int NumberOfElements = mpIteratorElements.end() - mpIteratorElements.begin();
+
             //Radius vector fill
-            for (IteratorType particle_pointer_it = pIteratorElements.begin(); particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it)
-            {    
-                Radius[particle_pointer_it - pIteratorElements.begin()] = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+	    
+            for (IteratorType particle_pointer_it = mpIteratorElements.begin(); particle_pointer_it != mpIteratorElements.end(); ++particle_pointer_it)
+            {   
+                mRadius[particle_pointer_it - mpIteratorElements.begin()] = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
             }
-            
-            SearchNeighbours(r_model_part,pIteratorElements,NumberOfElements,MaximumNumberOfResults,NumberOfResults,Results,ResultsDistances,Radius);
-            
-            //Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
-            #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-            #else
-            int number_of_threads = 1;
-            #endif
+
+            searchScheme->SearchElementsInRadiusExclusive(mrModelPart,mpIteratorElements,mRadius,mResults,mResultsDistances);
+
+            int number_of_threads = OpenMPUtils::GetNumThreads();
 
             vector<unsigned int> element_partition;
-            OpenMPUtils::CreatePartition(number_of_threads, pIteratorElements.size(), element_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mpIteratorElements.size(), element_partition);
+            
+            std::cout << mrModelPart.GetCommunicator().GhostMesh().ElementsArray().size() << std::endl;
+            
+            int initial = 0;
 
-            #pragma omp parallel for private(ResultIterator)
+            #pragma omp parallel for
             for(int k=0; k<number_of_threads; k++)
             {
-                IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
-                IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
+                IteratorType it_begin=mpIteratorElements.begin()+element_partition[k];
+                IteratorType it_end=mpIteratorElements.begin()+element_partition[k+1];
+//                 
+                int ResultCounter = element_partition[k];
                 
-                ResultIterator = element_partition[k];
-                
-                for (IteratorType particle_pointer_it = it_begin;
-                        particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
-                {                   
-                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
+                for (IteratorType particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it, ++ResultCounter)
+                {     
+                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = mResults[ResultCounter].size();
 
                     // CLEARING AND INITIALITZING.
 
@@ -205,10 +144,8 @@ namespace Kratos {
                         
                     unsigned int neighbour_counter = 0;
     
-                    for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
+                    for (IteratorType neighbour_it = mResults[ResultCounter].begin(); neighbour_counter < mResults[ResultCounter].size(); ++neighbour_it)
                     {                  
-                        Add_To_Modelpart(r_model_part,neighbour_it);
-                      
                         double particle_radius  = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                         double neigh_radius     = (*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                         
@@ -218,11 +155,11 @@ namespace Kratos {
                                                                        other_to_me_vect[2] * other_to_me_vect[2]);
 
                         double neighbour_search_radius           = (1.0 + radius_extend) * neigh_radius;
-                                                                       
-                        if( (distance - particle_radius)  <= neighbour_search_radius ) 
+                                    initial++;                                    
+                        if( true || (distance - particle_radius)  <= neighbour_search_radius ) 
                         {
-                            
                              (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+//                              initial++;
                              size_t size = (*particle_pointer_it)->GetValue(NEIGHBOUR_ELEMENTS).size();
 
                              (*particle_pointer_it)->GetValue(NEIGHBOURS_IDS).resize(size);
@@ -252,78 +189,56 @@ namespace Kratos {
                 }// Loop for evey particle as a base.
             }// OpenMP loop
             
-            Sort_Modelpart(r_model_part);
+            std::cout << "Initial neighbours found: " << initial << std::endl;
+//             abort();
 
             KRATOS_CATCH("")
         }// Search_Ini_Neighbours
 
-        void Search_Neighbours(ModelPart& r_model_part, bool extension_option) 
+        void Search_Neighbours(ModelPart& mrModelPartNO, bool extension_option, SearchPointer searchScheme) 
         {   
             KRATOS_TRY
-            
-            //KRATOS_WATCH("SEARCH_NEIGHBOURS")
-            
-            ContainerType& pIteratorElements = Get_Elements(r_model_part);
-            ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-            
+
             double radius_extend = 0.0;
-            if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
+            if (extension_option) radius_extend = mrCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
 
-            boost::timer kdtree_construction;
+            unsigned int ResultCounter = 0;
 
-            unsigned int MaximumNumberOfResults = 1000;
-            unsigned int ResultIterator = 0;
+            int NumberOfElements = mpIteratorElements.end() - mpIteratorElements.begin();
 
-            boost::timer search_time;
-            //**************************************************************************************************************************************************************
-
-            int NumberOfElements = pIteratorElements.end() - pIteratorElements.begin();
-            
-            Clean_Modelpart(r_model_part);
-            
-            std::vector<std::size_t>               NumberOfResults(NumberOfElements);
-            std::vector<std::vector<PointerType> > Results(NumberOfElements, std::vector<PointerType>(MaximumNumberOfResults));
-            std::vector<std::vector<double> >      ResultsDistances(NumberOfElements, std::vector<double>(MaximumNumberOfResults));
-            std::vector<double>                    Radius(NumberOfElements);
+            double new_extension = mrCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION];
 
             ///Radius vector fill
-            for (IteratorType particle_pointer_it = pIteratorElements.begin(); particle_pointer_it != pIteratorElements.end(); ++particle_pointer_it)
+            for (IteratorType particle_pointer_it = mpIteratorElements.begin(); particle_pointer_it != mpIteratorElements.end(); ++particle_pointer_it)
             {
                 //####################################################################################################################
-                double new_extension = rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]; ///WARNING: PROVISIONALLY SET MANUALLY SHOULD BE CALCULATED!!!!!!!!! ITS OK FOR CONCRETE
+                double new_extension = mrCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]; ///WARNING: PROVISIONALLY SET MANUALLY SHOULD BE CALCULATED!!!!!!!!! ITS OK FOR CONCRETE
                 //####################################################################################################################
               
-                Radius[particle_pointer_it - pIteratorElements.begin()] = new_extension*((1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
+                mRadius[particle_pointer_it - mpIteratorElements.begin()] = new_extension*((1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
             }
             
             ///Aqui es fa la cerca
-            Timer::Start("SEARCH");
-            SearchNeighbours(r_model_part,pIteratorElements,NumberOfElements,MaximumNumberOfResults,NumberOfResults,Results,ResultsDistances,Radius);
-            Timer::Stop("SEARCH");
-                        
-            Timer::Start("PROCESS");
+            searchScheme->SearchElementsInRadiusExclusive(mrModelPart,mpIteratorElements,mRadius,mResults,mResultsDistances);
+
             ///Aqui ja tenim tots els resultats de tots el elements i fem el cambi de buffers de mpi a els iteradors normals de kratos
-            #ifdef _OPENMP
-            int number_of_threads = omp_get_max_threads();
-            #else
-            int number_of_threads = 1;
-            #endif
+            int number_of_threads = OpenMPUtils::GetNumThreads();
 
             vector<unsigned int> element_partition;
-            OpenMPUtils::CreatePartition(number_of_threads, pIteratorElements.size(), element_partition);
+            OpenMPUtils::CreatePartition(number_of_threads, mpIteratorElements.size(), element_partition);
 
-            #pragma omp parallel for private(ResultIterator)
+            #pragma omp parallel for private(ResultCounter)
             for(int k=0; k<number_of_threads; k++)
             {
 
-                IteratorType it_begin=pIteratorElements.begin()+element_partition[k];
-                IteratorType it_end=pIteratorElements.begin()+element_partition[k+1];
+                IteratorType it_begin=mpIteratorElements.begin()+element_partition[k];
+                IteratorType it_end=mpIteratorElements.begin()+element_partition[k+1];
                 
-                ResultIterator = element_partition[k];
+                ResultCounter = element_partition[k];
                 
-                for (IteratorType particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it, ++ResultIterator)
+                for (IteratorType particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it, ++ResultCounter)
                 {                   
-                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = NumberOfResults[ResultIterator];
+                    (*particle_pointer_it)->GetValue(POTENTIAL_NEIGHBOURS) = mResults[ResultCounter].size();
                     
                     ParticleWeakVector TempNeighbours;
                     
@@ -358,15 +273,6 @@ namespace Kratos {
     
                     (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).clear();
                     (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).clear();
-
-                    /*
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FORCES).resize(n_neighbours);
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(n_neighbours);
-                    (*particle_pointer_it)->GetValue(PARTICLE_CONTACT_DELTA).resize(n_neighbours);
-
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(n_neighbours);
-                    (*particle_pointer_it)->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(n_neighbours);
-                    */
       
                     // GETTING NEW NEIGHBOURS
 
@@ -375,7 +281,7 @@ namespace Kratos {
                     int OldNeighbourSize = TempIds.size();
                     unsigned int neighbour_counter = 0;
 
-                    for (ResultIteratorType neighbour_it = Results[ResultIterator].begin(); neighbour_counter < NumberOfResults[ResultIterator]; ++neighbour_it)
+                    for (IteratorType neighbour_it = mResults[ResultCounter].begin(); neighbour_counter < mResults[ResultCounter].size(); ++neighbour_it)
                     { 
                         double initial_delta = 0.0;
                         int failure_id       = 1;
@@ -383,11 +289,6 @@ namespace Kratos {
                         double indentation   = 0.0;
                         
                         bool already_added = false;
-                        
-                        Timer::Start("ADD");
-                        //Add Elements to ghost mesh //TODO: Add elements to local mesh (NYI)
-                        Add_To_Modelpart(r_model_part,neighbour_it);
-                        Timer::Stop("ADD");
                                 
                         for (int IniNeighbourCounter = 0; IniNeighbourCounter != InitialNeighbourSize; IniNeighbourCounter++)
                         {
@@ -481,12 +382,7 @@ namespace Kratos {
                     } // for each neighbour, neighbour_it.
                     
                 }//Loop for evey particle as a base.
-            }
-            Timer::Start("SORT");
-            Sort_Modelpart(r_model_part);
-            Timer::Stop("SORT");
-            
-            Timer::Stop("PROCESS");
+            }// OpenMP loop
             
             Timer::PrintTimingInformation();
             
@@ -507,6 +403,14 @@ namespace Kratos {
 
 
     private:
+            
+        ModelPart& mrModelPart;
+        ElementsContainerType& mpIteratorElements;
+        ProcessInfo& mrCurrentProcessInfo;
+      
+        VectorResultElementsContainerType   mResults;
+        VectorDistanceType                  mResultsDistances;
+        RadiusArrayType                     mRadius;
 
         inline void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size) {
             unsigned int buffer_size = node_it->GetBufferSize();

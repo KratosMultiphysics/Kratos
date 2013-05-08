@@ -71,14 +71,14 @@ namespace Kratos
       void Calculate(ModelPart& model_part)
       {
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
-          
+
           CalculateTranslationalMotion(model_part);
-          
+
           if(rCurrentProcessInfo[ROTATION_OPTION]!=0)
           {
              CalculateRotationalMotion(model_part);
           }
-          
+
       }
 
       void CalculateTranslationalMotion(ModelPart& model_part)
@@ -118,10 +118,10 @@ namespace Kratos
                   array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
+                  
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-
                   aux = delta_t / mass;
-                          
+
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
@@ -132,12 +132,15 @@ namespace Kratos
                   if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
                   {    
                       vel[0] += aux * force[0];
-                 
-                      delta_displ[0] = delta_t * vel[0];	         
+
                       displ[0] +=  delta_displ[0];
 
+                      delta_displ[0] = delta_t * vel[0];
+
                       coor[0] = initial_coor[0] + displ[0];
-                 
+                      if((fabs(vel[0])<1)){
+                     }
+
                   }
                   else
                   {
@@ -289,7 +292,7 @@ namespace Kratos
       void CalculateRotationalMotion(ModelPart& model_part)
       {
           KRATOS_TRY   
-     
+
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
           NodesArrayType& pNodes            = GetNodes(model_part);
 
@@ -306,7 +309,6 @@ namespace Kratos
         int number_of_threads = 1;
     #endif
 	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
-
 
 	#pragma omp parallel for shared(delta_t)
 	for(int k=0; k<number_of_threads; k++)
@@ -390,13 +392,12 @@ namespace Kratos
                 theta[2] = Rota_Displace[2] * 0.5;                
 
                 double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
-
                 if(thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON)  //Taylor: low angle
                 {
                     Orientation_real = 1 + thetaMag * thetaMag / 2;
                     Orientation_imag[0] = theta[0] * ( 1 - thetaMag * thetaMag / 6 );
                     Orientation_imag[1] = theta[1] * ( 1 - thetaMag * thetaMag / 6 );
-                    Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );                    
+                    Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );
                 }
                 
                 else
@@ -404,7 +405,7 @@ namespace Kratos
                     Orientation_real = cos (thetaMag);
                     Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
                     Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
-                    Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);                    
+                    Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);
                 }
                 
                 array_1d<double,3>& EulerAngles       = i->FastGetSolutionStepValue(EULER_ANGLES);    
