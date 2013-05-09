@@ -833,7 +833,7 @@ private:
         mpBuffer->read(c_binStream,size);
         std::string s_binStream(c_binStream,size);
         rValue = s_binStream;
-        delete c_binStream;
+        delete [] c_binStream;
         
         KRATOS_SERIALIZER_MODE_ASCII
         
