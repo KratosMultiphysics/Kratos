@@ -168,8 +168,8 @@ namespace Kratos
 	KratosDEMApplication::KratosDEMApplication():
 	//mSphericParticle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mSphericParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-//         mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-//         mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+        mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+        mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         //mDEM_FEM_Particle2D( 0, Element::GeometryType::Pointer( new Point2D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
         mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
@@ -327,8 +327,8 @@ namespace Kratos
 
 		//KRATOS_REGISTER_ELEMENT("SphericParticle2D", mSphericParticle2D)
 		KRATOS_REGISTER_ELEMENT("SphericParticle3D", mSphericParticle3D)
-//         KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
-//         KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
+        KRATOS_REGISTER_ELEMENT("SphericContinuumParticle3D", mSphericContinuumParticle3D)
+        KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
 
 		//KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle2D", mDEM_FEM_Particle2D)
 		KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle3D", mDEM_FEM_Particle3D)
