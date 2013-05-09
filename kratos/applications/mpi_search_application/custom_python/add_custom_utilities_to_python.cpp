@@ -67,7 +67,6 @@ namespace Kratos
                     
         void AddCustomUtilitiesToPython()
         {
-            // Mpi search
             typedef MPI_DEMSearch   DemSearchType;
             typedef MpiUtilities    MpiUtilitiesType;
 
