@@ -154,7 +154,8 @@ public:
             for(ConditionsArrayType::iterator it =  rConditions.begin();
                     it !=rConditions.end(); it++)
             {
-                CalculateNormal2D(it,An);
+                if (it->GetGeometry().PointsNumber() == 2)
+                    CalculateNormal2D(it,An);
             }
         }
         else if(dimension == 3)
@@ -165,7 +166,8 @@ public:
                     it !=rConditions.end(); it++)
             {
                 //calculate the normal on the given condition
-                CalculateNormal3D(it,An,v1,v2);
+                if (it->GetGeometry().PointsNumber() == 3)
+                    CalculateNormal3D(it,An,v1,v2);
             }
         }
 
