@@ -434,7 +434,7 @@ public:
     {
         #pragma omp parallel for
         for(int k=0; k< NumberOfPoints; k++)
-            Results[k] = SearchNearestPoint(ThisPoints[k],ResultsDistances[k]);
+	  Results[k] = SearchNearestPoint((&(*ThisPoints))[k],ResultsDistances[k]);
     }
 
     //************************************************************************
@@ -534,7 +534,7 @@ public:
     {
         #pragma omp parallel for
         for(int k=0; k< NumberOfPoints; k++)
-            NumberOfResults[k] = SearchInRadius(ThisPoints[k],Radius[k],Results[k],ResultsDistances[k],MaxNumberOfResults);
+	  NumberOfResults[k] = SearchInRadius((&(*ThisPoints))[k],Radius[k],Results[k],ResultsDistances[k],MaxNumberOfResults);
     }
 
     //************************************************************************
