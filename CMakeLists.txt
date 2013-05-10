@@ -57,6 +57,14 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules")
 ######################################################################################
 ######################################################################################
 ######################################################################################
+
+# if(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
+#     link_directories(${KRATOS_EXTRA_LINK_PATH})
+#     find_library(EXTRA_LINK_LIBS ${KRATOS_EXTRA_LINK_LIBRARIES} PATH ${KRATOS_EXTRA_LINK_PATH} )
+# endif(DEFINED KRATOS_EXTRA_LINK_LIBRARIES)
+
+
+
 ##find all dependencies
 
 ##*****************************
@@ -248,19 +256,19 @@ endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
 file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/KratosLoader.py "import sys
-kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
-kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
-kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
+# # kratos_libs=\"${CMAKE_INSTALL_PREFIX}/libs\"
+# # kratos_applications=\"${CMAKE_INSTALL_PREFIX}/applications\"
+# # kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
+# # sys.path.append(kratos_libs)
+# # sys.path.append(kratos_applications) 
+# # sys.path.append(kratos_scripts) 
+import os.path
+kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
+kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
+kratos_scripts=os.path.join(os.path.dirname(__file__),'../kratos/python_scripts')
 sys.path.append(kratos_libs)
 sys.path.append(kratos_applications) 
 sys.path.append(kratos_scripts) 
-##import os.path
-##kratos_libs=os.path.join(os.path.dirname(__file__),'../libs')
-##kratos_applications=os.path.join(os.path.dirname(__file__),'../applications')
-##kratos_scripts=os.path.join(os.path.dirname(__file__),'../python_scripts')
-##sys.path.append(kratos_libs)
-##sys.path.append(kratos_applications) 
-##sys.path.append(kratos_scripts) 
 ")
 
     file(WRITE ${CMAKE_SOURCE_DIR}/packaging_aux/kratos.conf "${CMAKE_INSTALL_PREFIX}/libs")
