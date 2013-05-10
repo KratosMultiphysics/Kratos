@@ -21,7 +21,7 @@
 
 // Application includes
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
-#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
+#include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme_slip.h"
 
@@ -138,7 +138,7 @@ public:
         if ( rStrategyLabel == BaseType::Velocity )
         {
             // Velocity Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mrComm,RowSizeGuess,pLinearSolver));
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mrComm,RowSizeGuess,pLinearSolver));
 
             SchemePointerType pScheme;
             //initializing fractional velocity solution step
@@ -161,7 +161,7 @@ public:
         else if ( rStrategyLabel == BaseType::Pressure )
         {
             // Pressure Builder and Solver
-            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,pLinearSolver));
+            BuilderSolverTypePointer pBuildAndSolver = BuilderSolverTypePointer(new TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver >(mrComm,RowSizeGuess,pLinearSolver));
             SchemePointerType pScheme = SchemePointerType(new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
 
             // Strategy
