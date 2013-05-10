@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.8- 08/05/13-G. Socorro, correct a bug in the proc WriteGroupMeshProperties_m2 => write the element identifier only for the element type assigned to the group
 #     0.7- 07/11/12-J. Garate,  Modification and adaptation on functions: WriteGroupMeshProperties, WriteGroupProperties
 #                               Creation of functions using GiD_File fprintf $filechannel "%s" format
 #     0.6- 24/09/12-G. Socorro, update the proc WriteGroupMeshProperties_m1 to write the Spalart-Allmaras turbulence model
@@ -203,9 +204,15 @@ proc ::wkcf::WriteGroupMeshProperties_m2 {AppId} {
         foreach celemid $dprops($AppId,AllKElemId) {
             # Check for all defined group identifier for this element
             if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
-                # wa "celemid:$celemid"
+		# wa "celemid:$celemid"
                 # For all defined group identifier for this element
                 foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
+		    # wa "cgroupid:$cgroupid"
+		    # Get the GiD entity type, element type and property identifier
+                    lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+
+		    # Write nodes
+		    set wnodes 0
                     if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
                         incr meshgroupid 1
                         # Create the meshid-group identifier mapping
@@ -221,14 +228,26 @@ proc ::wkcf::WriteGroupMeshProperties_m2 {AppId} {
                             GiD_File fprintf $filechannel "%10i" $node_id
                         }
                         GiD_File fprintf $filechannel "%s" " End MeshNodes"
-                        # Write elements
+			set wnodes 1
+		    }
+
+		    # Write elements
+		    set welements 0
+		    if {[GiD_EntitiesGroups get $cgroupid elements -count]} {
+		
                         GiD_File fprintf $filechannel "%s" " "
                         GiD_File fprintf $filechannel "%s" " Begin MeshElements"
-                        foreach node_id [GiD_EntitiesGroups get $cgroupid elements] {
-                            GiD_File fprintf $filechannel "%10i" $node_id
+			foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+			    # wa "elem_id:$elem_id"
+                            GiD_File fprintf $filechannel "%10i" $elem_id
                         }
                         GiD_File fprintf $filechannel "%s" " End MeshElements"
                         GiD_File fprintf $filechannel "%s" " "
+			set welements 1
+		    }
+
+		    # Write end mesh
+		    if {($wnodes)&&($welements)} {
                         GiD_File fprintf $filechannel "%s" "End Mesh"
                         GiD_File fprintf $filechannel "%s" ""
                     }
