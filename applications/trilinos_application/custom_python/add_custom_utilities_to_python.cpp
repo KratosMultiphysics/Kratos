@@ -67,6 +67,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_cutting_iso_app.h"
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
+#include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
 
 namespace Kratos
 {
@@ -131,16 +132,16 @@ void  AddCustomUtilitiesToPython()
 
     typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
 
-    enum_<TrilinosFSSettingsType::StrategyLabel>("TrilinosStrategyLabel")
-    .value("Velocity",TrilinosFSSettingsType::Velocity)
-    .value("Pressure",TrilinosFSSettingsType::Pressure)
+    enum_<BaseSettingsType::StrategyLabel>("TrilinosStrategyLabel")
+    .value("Velocity",BaseSettingsType::Velocity)
+    .value("Pressure",BaseSettingsType::Pressure)
     //.value("EddyViscosity",TrilinosFractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::EddyViscosity)
     ;
 
-    enum_<TrilinosFSSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
-    .value("SpalartAllmaras",TrilinosFSSettingsType::SpalartAllmaras)
+    enum_<BaseSettingsType::TurbulenceModelLabel>("TrilinosTurbulenceModelLabel")
+    .value("SpalartAllmaras",BaseSettingsType::SpalartAllmaras)
     ;
-
+    
     typedef void (TrilinosFSSettingsType::*SetStrategyByParamsType)(TrilinosFSSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
     SetStrategyByParamsType ThisSetStrategyOverload = &TrilinosFSSettingsType::SetStrategy;
 
@@ -150,6 +151,20 @@ void  AddCustomUtilitiesToPython()
     .def("SetTurbulenceModel",&TrilinosFSSettingsType::SetTurbulenceModel)
     .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
+    ;
+
+
+    typedef TrilinosFractionalStepSettingsPeriodic<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsPeriodicType;
+
+    typedef void (TrilinosFSSettingsPeriodicType::*SetStrategyByParamsPeriodicType)(BaseSettingsType::StrategyLabel const&,TrilinosLinearSolverType::Pointer,const double,const unsigned int);
+    SetStrategyByParamsPeriodicType ThatSetStrategyOverload = &TrilinosFSSettingsPeriodicType::SetStrategy;
+
+    class_< TrilinosFSSettingsPeriodicType,bases<BaseSettingsType>, boost::noncopyable>
+            ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
+    .def("SetStrategy",ThatSetStrategyOverload)
+    .def("SetTurbulenceModel",&TrilinosFSSettingsPeriodicType::SetTurbulenceModel)
+    .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
+    .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
 
 
