@@ -493,6 +493,7 @@ void AddStrategies()
 
     class_< TrilinosFSStrategy, boost::noncopyable >
             ("TrilinosFSStrategy",init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool >())
+            .def(init< ModelPart&, SolverSettings< TrilinosSparseSpaceType,TrilinosLocalSpaceType, TrilinosLinearSolverType >&, bool, const Kratos::Variable<int>& >())
             .def("Solve",&TrilinosFSStrategy::Solve)
             .def("Clear",&TrilinosFSStrategy::Clear)
             .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)

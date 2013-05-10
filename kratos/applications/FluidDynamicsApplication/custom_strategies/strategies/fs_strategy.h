@@ -87,81 +87,20 @@ public:
     FSStrategy(ModelPart& rModelPart,
                SolverSettingsType& rSolverConfig,
                bool PredictorCorrector):
-        BaseType(rModelPart,false)
+        BaseType(rModelPart,false),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
-        KRATOS_TRY;
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
+    }
 
-        mDomainSize = rSolverConfig.GetDomainSize();
-        mTimeOrder = rSolverConfig.GetTimeOrder();
-
-        mPredictorCorrector = PredictorCorrector;
-
-        mUseSlipConditions = rSolverConfig.UseSlipConditions();
-
-        mReformDofSet = rSolverConfig.GetReformDofSet();
-
-        BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
-
-        // Initialize strategies for each step
-        bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,mpMomentumStrategy);
-
-        if (HaveVelStrategy)
-        {
-            rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
-        }
-        else
-        {
-            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
-        }
-
-        bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
-
-        if (HavePressStrategy)
-        {
-            rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
-            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
-        }
-        else
-        {
-            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
-        }
-
-        Process::Pointer pTurbulenceProcess;
-        bool HaveTurbulence = rSolverConfig.GetTurbulenceModel(pTurbulenceProcess);
-
-        if (HaveTurbulence)
-            mExtraIterationSteps.push_back(pTurbulenceProcess);
-
-        // Set up nodes to use slip conditions if needed.
-        if (mUseSlipConditions)
-        {
-#pragma omp parallel
-            {
-                ModelPart::ConditionIterator CondBegin;
-                ModelPart::ConditionIterator CondEnd;
-                OpenMPUtils::PartitionedIterators(rModelPart.Conditions(),CondBegin,CondEnd);
-
-                for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
-                {
-                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
-                    if (FlagValue != 0.0)
-                    {
-
-                        Condition::GeometryType& rGeom = itCond->GetGeometry();
-                        for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
-                        {
-                            rGeom[i].SetLock();
-                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
-                            rGeom[i].UnSetLock();
-                        }
-                    }
-                }
-            }
-            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
-        }
-
-        KRATOS_CATCH("");
+    FSStrategy(ModelPart& rModelPart,
+               SolverSettingsType& rSolverConfig,
+               bool PredictorCorrector,
+               const Kratos::Variable<int>& PeriodicVar):
+        BaseType(rModelPart,false),
+        mrPeriodicIdVar(PeriodicVar)
+    {
+        InitializeStrategy(rSolverConfig,PredictorCorrector);
     }
 
     FSStrategy(ModelPart& rModelPart,
@@ -187,7 +126,8 @@ public:
         mPredictorCorrector(PredictorCorrector),
         mUseSlipConditions(true), ///@todo initialize somehow
         mReformDofSet(ReformDofSet),
-        mExtraIterationSteps()
+        mExtraIterationSteps(),
+        mrPeriodicIdVar(Kratos::Variable<int>::StaticObject())
     {
         KRATOS_TRY;
 
@@ -583,6 +523,7 @@ protected:
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
         this->ComputeSplitOssProjections();
+        this->PeriodicConditionProjectionCorrection(rModelPart);
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
@@ -603,7 +544,7 @@ protected:
         if (BaseType::GetEchoLevel() > 0 && Rank == 0)
             std::cout << "Calculating Pressure." << std::endl;
         double NormDp = mpPressureStrategy->Solve();
-
+        
 #pragma omp parallel
         {
             ModelPart::NodeIterator NodesBegin;
@@ -798,6 +739,7 @@ protected:
         }
 
         rModelPart.GetCommunicator().AssembleCurrentData(FRACT_VEL);
+        this->PeriodicConditionVelocityCorrection(rModelPart);
 
         // Force the end of step velocity to verify slip conditions in the model
         if (mUseSlipConditions)
@@ -880,6 +822,112 @@ protected:
         }
     }
 
+    /** On periodic boundaries, the nodal area and the values to project need to take into account contributions from elements on
+     * both sides of the boundary. This is done using the conditions and the non-historical nodal data containers as follows:\n
+     * 1- The partition that owns the PeriodicCondition adds the values on both nodes to their non-historical containers.\n
+     * 2- The non-historical containers are added across processes, transmiting the right value from the condition owner to all partitions.\n
+     * 3- The value on all periodic nodes is replaced by the one received in step 2.
+     */
+     void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
+     {
+         if ( (rModelPart.GetCommunicator().TotalProcesses() > 1) &&  (mrPeriodicIdVar.Key() != 0) )
+         {
+             for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
+             {
+                 ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
+                 if (rGeom.PointsNumber() == 2)
+                 {
+                     Node<3>& rNode0 = rGeom[0];
+                     int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                     Node<3>& rNode1 = rGeom[1];
+                     int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                     // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
+                     if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
+                     {
+                         double NodalArea = rNode0.FastGetSolutionStepValue(NODAL_AREA) + rNode1.FastGetSolutionStepValue(NODAL_AREA);
+                         array_1d<double,3> ConvProj = rNode0.FastGetSolutionStepValue(CONV_PROJ) + rNode1.FastGetSolutionStepValue(CONV_PROJ);
+                         array_1d<double,3> PressProj = rNode0.FastGetSolutionStepValue(PRESS_PROJ) + rNode1.FastGetSolutionStepValue(PRESS_PROJ);
+                         double DivProj = rNode0.FastGetSolutionStepValue(DIVPROJ) + rNode1.FastGetSolutionStepValue(DIVPROJ);
+
+                         rNode0.GetValue(NODAL_AREA) = NodalArea;
+                         rNode0.GetValue(CONV_PROJ) = ConvProj;
+                         rNode0.GetValue(PRESS_PROJ) = PressProj;
+                         rNode0.GetValue(DIVPROJ) = DivProj;
+                         rNode1.GetValue(NODAL_AREA) = NodalArea;
+                         rNode1.GetValue(CONV_PROJ) = ConvProj;
+                         rNode1.GetValue(PRESS_PROJ) = PressProj;
+                         rNode1.GetValue(DIVPROJ) = DivProj;
+                     }
+                 }
+             }
+
+             rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
+             rModelPart.GetCommunicator().AssembleNonHistoricalData(CONV_PROJ);
+             rModelPart.GetCommunicator().AssembleNonHistoricalData(PRESS_PROJ);
+             rModelPart.GetCommunicator().AssembleNonHistoricalData(DIVPROJ);
+
+             for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+             {
+                 if (itNode->GetValue(NODAL_AREA) != 0.0)
+                 {
+                     itNode->FastGetSolutionStepValue(NODAL_AREA) = itNode->GetValue(NODAL_AREA);
+                     itNode->FastGetSolutionStepValue(CONV_PROJ) = itNode->GetValue(CONV_PROJ);
+                     itNode->FastGetSolutionStepValue(PRESS_PROJ) = itNode->GetValue(PRESS_PROJ);
+                     itNode->FastGetSolutionStepValue(DIVPROJ) = itNode->GetValue(DIVPROJ);
+
+                     // reset for next iteration
+                     itNode->GetValue(NODAL_AREA) = 0.0;
+                     itNode->GetValue(CONV_PROJ) = array_1d<double,3>(3,0.0);
+                     itNode->GetValue(PRESS_PROJ) = array_1d<double,3>(3,0.0);
+                     itNode->GetValue(DIVPROJ) = 0.0;
+                 }
+             }
+         }
+     }
+
+     void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
+     {
+         if ( (rModelPart.GetCommunicator().TotalProcesses() > 1) &&  (mrPeriodicIdVar.Key() != 0) )
+         {
+             for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
+             {
+                 ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
+                 if (rGeom.PointsNumber() == 2)
+                 {
+                     Node<3>& rNode0 = rGeom[0];
+                     int Node0Pair = rNode0.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                     Node<3>& rNode1 = rGeom[1];
+                     int Node1Pair = rNode1.FastGetSolutionStepValue(mrPeriodicIdVar);
+
+                     // If the nodes are marked as a periodic pair (this is to avoid acting on two-noded conditions that are not PeriodicCondition)
+                     if ( ( static_cast<int>(rNode0.Id()) == Node1Pair ) && (static_cast<int>(rNode1.Id()) == Node0Pair ) )
+                     {
+                         array_1d<double,3> DeltaVel = rNode0.FastGetSolutionStepValue(FRACT_VEL) + rNode1.FastGetSolutionStepValue(FRACT_VEL);
+
+                         rNode0.GetValue(FRACT_VEL) = DeltaVel;
+                         rNode1.GetValue(FRACT_VEL) = DeltaVel;
+                     }
+                 }
+             }
+
+             rModelPart.GetCommunicator().AssembleNonHistoricalData(FRACT_VEL);
+
+             for (typename ModelPart::NodeIterator itNode = rModelPart.NodesBegin(); itNode != rModelPart.NodesEnd(); itNode++)
+             {
+                 array_1d<double,3>& rDeltaVel = itNode->GetValue(FRACT_VEL);
+                 if ( rDeltaVel[0]*rDeltaVel[0] + rDeltaVel[1]*rDeltaVel[1] + rDeltaVel[2]*rDeltaVel[2] != 0.0)
+                 {
+                     itNode->FastGetSolutionStepValue(FRACT_VEL) = itNode->GetValue(FRACT_VEL);
+                     rDeltaVel = array_1d<double,3>(3,0.0);
+                 }
+             }
+         }
+     }
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -941,6 +989,8 @@ private:
 
     std::vector< Process::Pointer > mExtraIterationSteps;
 
+    const Kratos::Variable<int>& mrPeriodicIdVar;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -949,6 +999,87 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+
+    void InitializeStrategy(SolverSettingsType& rSolverConfig,
+            bool PredictorCorrector)
+    {
+        KRATOS_TRY;
+
+        ModelPart& rModelPart = this->GetModelPart();
+
+        mDomainSize = rSolverConfig.GetDomainSize();
+        mTimeOrder = rSolverConfig.GetTimeOrder();
+
+        mPredictorCorrector = PredictorCorrector;
+
+        mUseSlipConditions = rSolverConfig.UseSlipConditions();
+
+        mReformDofSet = rSolverConfig.GetReformDofSet();
+
+        BaseType::SetEchoLevel(rSolverConfig.GetEchoLevel());
+
+        // Initialize strategies for each step
+        bool HaveVelStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Velocity,mpMomentumStrategy);
+
+        if (HaveVelStrategy)
+        {
+            rSolverConfig.FindTolerance(SolverSettingsType::Velocity,mVelocityTolerance);
+            rSolverConfig.FindMaxIter(SolverSettingsType::Velocity,mMaxVelocityIter);
+        }
+        else
+        {
+            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Velocity strategy defined in FractionalStepSettings","");
+        }
+
+        bool HavePressStrategy = rSolverConfig.FindStrategy(SolverSettingsType::Pressure,mpPressureStrategy);
+
+        if (HavePressStrategy)
+        {
+            rSolverConfig.FindTolerance(SolverSettingsType::Pressure,mPressureTolerance);
+            rSolverConfig.FindMaxIter(SolverSettingsType::Pressure,mMaxPressureIter);
+        }
+        else
+        {
+            KRATOS_ERROR(std::runtime_error,"FS_Strategy error: No Pressure strategy defined in FractionalStepSettings","");
+        }
+
+        Process::Pointer pTurbulenceProcess;
+        bool HaveTurbulence = rSolverConfig.GetTurbulenceModel(pTurbulenceProcess);
+
+        if (HaveTurbulence)
+            mExtraIterationSteps.push_back(pTurbulenceProcess);
+
+        // Set up nodes to use slip conditions if needed.
+        if (mUseSlipConditions)
+        {
+#pragma omp parallel
+            {
+                ModelPart::ConditionIterator CondBegin;
+                ModelPart::ConditionIterator CondEnd;
+                OpenMPUtils::PartitionedIterators(rModelPart.Conditions(),CondBegin,CondEnd);
+
+                for (ModelPart::ConditionIterator itCond = CondBegin; itCond != CondEnd; ++itCond)
+                {
+                    const double FlagValue = itCond->GetValue(IS_STRUCTURE);
+                    if (FlagValue != 0.0)
+                    {
+
+                        Condition::GeometryType& rGeom = itCond->GetGeometry();
+                        for (unsigned int i = 0; i < rGeom.PointsNumber(); ++i)
+                        {
+                            rGeom[i].SetLock();
+                            rGeom[i].SetValue(IS_STRUCTURE,FlagValue);
+                            rGeom[i].UnSetLock();
+                        }
+                    }
+                }
+            }
+            rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
+        }
+
+        KRATOS_CATCH("");
+    }
 
 
     ///@}
