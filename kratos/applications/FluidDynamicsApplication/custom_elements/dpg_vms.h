@@ -167,7 +167,17 @@ public:
     {
         return Element::Pointer(new DPGVMS(NewId, (this->GetGeometry()).Create(ThisNodes), pProperties));
     }
-    
+    /// Call at teh begining of each step, ita decides if element is cutted or no!
+    /**    
+      */  
+    virtual void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
+    {
+// 	for (unsigned int jj = 0; jj < 4; jj++){
+// 	      this->GetGeometry()[jj].FastGetSolutionStepValue(WET_VOLUME ) = 0.0;  
+// 	      this->GetGeometry()[jj].FastGetSolutionStepValue(CUTTED_AREA ) = 0.0;  	      
+// 	}
+    }
+ 
     /// Call at teh begining of each iteration, ita decides if element is cutted or no!
     /**    
       */  
@@ -443,8 +453,93 @@ public:
             ProcessInfo& rCurrentProcessInfo)
     {
 //       this->IsCutted();     
-      if( this->is_cutted == 0)
-	  ElementBaseType::CalculateLocalVelocityContribution(rDampMatrix, rRightHandSideVector, rCurrentProcessInfo);
+      if( this->is_cutted == 0){
+	    ElementBaseType::CalculateLocalVelocityContribution(rDampMatrix, rRightHandSideVector, rCurrentProcessInfo);
+	    
+	    //compute boundary term 
+	    int boundary_nodes = 0;
+	    unsigned int inside_index = -1;
+	    for (unsigned int i = 0; i < TNumNodes; i++)
+	    {
+	      double nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
+	      if (nd_flag == 5.0)
+		boundary_nodes++;
+	      else
+		inside_index = i;
+	    }
+	  
+	  
+	/*  if(boundary_nodes == TDim)
+	  {
+	    // Get this element's geometric properties
+	    double Volume;
+	    array_1d<double, TNumNodes> N;
+	    boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+	    GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Volume);	
+	    
+	    
+	    boost::numeric::ublas::bounded_matrix<double, 16, 16 > boundary_damp_matrix;
+	    noalias(boundary_damp_matrix) = ZeroMatrix(16,16); 
+	    array_1d<double,3> face_normal;
+	    face_normal[0] = -DN_DX(inside_index,0);
+	    face_normal[1] = -DN_DX(inside_index,1);
+	    face_normal[2] = -DN_DX(inside_index,2);
+	    const double fn = norm_2(face_normal);
+	    face_normal/= fn;
+	    double face_area = 3.0*Volume*fn;
+	    
+// 	    int LocalIndex = 0;
+// 	    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+// 	    {
+// 		const double& pnode = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+// 		for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+// 		{
+// 		    if(iNode != inside_index)
+// 		      rRightHandSideVector[LocalIndex] -= pnode*face_normal[d]*face_area/3.0  ;
+// 		    ++LocalIndex;
+// 		}
+// 		++LocalIndex;
+// 	    }
+	    
+// 	    int LocalIndex = 0;
+// 	    double pface = 0.0;
+// 	    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+// 	    {
+// 		const double& pnode = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+// 		if(iNode != inside_index) pface += pnode;
+// 	    }
+// 	    pface/=3.0;
+// 		
+// 	    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+// 	    {
+// 		for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+// 		{
+// 		    if(iNode != inside_index)
+// 		      rRightHandSideVector[LocalIndex] -= pface*face_normal[d]*face_area/3.0  ;
+// 		    ++LocalIndex;
+// 		}
+// 		++LocalIndex;
+// 	    }
+	    AddBoundaryTerm(boundary_damp_matrix, DN_DX, N, face_normal, face_area, rCurrentProcessInfo);
+
+	    VectorType U = ZeroVector(16);
+	    int LocalIndex = 0;
+
+	    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+	    {
+		array_1d< double, 3 > & rVel = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
+		for (unsigned int d = 0; d < TDim; ++d) // Velocity Dofs
+		{
+		    U[LocalIndex] = rVel[d];
+		    ++LocalIndex;
+		}
+		U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
+		++LocalIndex;
+	    }
+	    noalias(rRightHandSideVector) -= prod(boundary_damp_matrix, U);
+	    noalias(rDampMatrix) += boundary_damp_matrix;
+	  }	     */	  
+      }
       else
        {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes + 1;
@@ -1354,11 +1449,12 @@ protected:
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[j] * gauss_enriched_gradients(0,m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                     PDivV = rShapeDeriv(j, m) * gauss_N_en; // Div(v) * p
+                    double VGradP = -gauss_enriched_gradients(0,m)*rShapeFunc[j]; // Grad(p_star) * v                   
 
                     // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol) += Weight * (G - PDivV);
+                    rDampMatrix(FirstRow + m, FirstCol) += Weight * (G - VGradP);
                     // Use symmetry to write the q * Div(u) component
-                    rDampMatrix(FirstCol , FirstRow + m) += Weight * (G + PDivV);
+                    rDampMatrix(FirstCol , FirstRow + m) += Weight * (G + PDivV);//Weight * (G + PDivV);
 
                     // q-p stabilization block
                     L += rShapeDeriv(j, m) * gauss_enriched_gradients(0,m); // Stabilization: Grad(q) * TauOne * Grad(p)		  
@@ -1427,6 +1523,75 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+void AddBoundaryTerm(boost::numeric::ublas::bounded_matrix<double, 16, 16 >& rDampMatrix,
+                              const boost::numeric::ublas::bounded_matrix<double,4,3>& rShapeDeriv,
+		              const array_1d<double, 4>& N_shape,
+			      const array_1d<double,3>& nn,
+                              const double& Weight,
+			      ProcessInfo& rCurrentProcessInfo)
+{
+  
+    const double OneThird = 1.0 / 3.0;     
+    
+    double Density, KinViscosity;
+    ElementBaseType::EvaluateInPoint(Density, DENSITY, N_shape);
+    ElementBaseType::EvaluateInPoint(KinViscosity, VISCOSITY, N_shape);
+
+    double Viscosity;
+    this->GetEffectiveViscosity(Density,KinViscosity, N_shape, rShapeDeriv, Viscosity, rCurrentProcessInfo);
+    
+    double viscos_weight = Weight *  OneThird * Viscosity * Density;
+
+    unsigned int FirstRow(0),FirstCol(0);
+    for (unsigned int j = 0; j < TNumNodes; ++j)
+    {
+      double jj_nd_flag = this->GetGeometry()[j].FastGetSolutionStepValue(FLAG_VARIABLE);
+      if(jj_nd_flag == 5.0){
+	//pressrue terms (three gauss points)
+	array_1d<double,3> node_normal = this->GetGeometry()[j].FastGetSolutionStepValue(NORMAL);
+	node_normal /= norm_2(node_normal);	
+	double dot_prod = MathUtils<double>::Dot(node_normal,nn);
+
+// 	rDampMatrix(FirstRow,FirstRow+3) = Weight *  OneThird * (nn[0]);// - dot_prod * node_normal[0]);//nn[0];
+// 	rDampMatrix(FirstRow+1,FirstRow+3) = Weight *  OneThird * (nn[1]);// - dot_prod * node_normal[1]);//nn[1];      
+// 	rDampMatrix(FirstRow+2,FirstRow+3) = Weight *  OneThird * (nn[2]);// - dot_prod * node_normal[2]);//nn[2];
+	
+	  for (unsigned int i = 0; i < TNumNodes; ++i)
+	  {
+	    double ii_nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
+	    if(ii_nd_flag == 5.0){	    
+	      // nxdn/dx + nydn/dy + nz dn/dz
+	      const double Diag =  nn[0]*rShapeDeriv(i,0) + nn[1]*rShapeDeriv(i,1) + nn[2]*rShapeDeriv(i,2);
+
+	      // First Row
+	      rDampMatrix(FirstRow,FirstCol) = -(viscos_weight *  ( nn[0]*rShapeDeriv(i,0) + Diag ) );// * nn[0]*nn[0];
+	      rDampMatrix(FirstRow,FirstCol+1) = -(viscos_weight * nn[1]*rShapeDeriv(i,0) );//* nn[0]*nn[1] ;
+	      rDampMatrix(FirstRow,FirstCol+2) = -(viscos_weight * nn[2]*rShapeDeriv(i,0) );//* nn[0]*nn[2];;
+      
+
+	      // Second Row
+	      rDampMatrix(FirstRow+1,FirstCol) = -(viscos_weight * nn[0]*rShapeDeriv(i,1) );//* nn[1]*nn[0] ;
+	      rDampMatrix(FirstRow+1,FirstCol+1) = -(viscos_weight * ( nn[1]*rShapeDeriv(i,1) + Diag ) );//*nn[1]*nn[1] ;
+	      rDampMatrix(FirstRow+1,FirstCol+2) = -(viscos_weight * nn[2]*rShapeDeriv(i,1) );// * nn[1]*nn[2];
+	  
+	      
+	      // Third Row
+	      rDampMatrix(FirstRow+2,FirstCol) = -(viscos_weight * nn[0]*rShapeDeriv(i,2) );// * nn[2]*nn[0];
+	      rDampMatrix(FirstRow+2,FirstCol+1) = -(viscos_weight * nn[1]*rShapeDeriv(i,2) );// * nn[2]*nn[1];
+	      rDampMatrix(FirstRow+2,FirstCol+2) = -(viscos_weight * ( nn[2]*rShapeDeriv(i,2) + Diag ) );//* nn[2]*nn[2] ;
+	    }
+	      
+	     // Update Counter
+	      FirstCol += 4;
+	  }
+      }
+	  FirstCol = 0;
+	  FirstRow += 4;
+    }
+}   
+      
+      
+      
     ///@}
     ///@name Private  Access
     ///@{
