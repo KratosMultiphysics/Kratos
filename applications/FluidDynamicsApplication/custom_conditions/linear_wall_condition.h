@@ -287,6 +287,74 @@ protected:
         double area = NodalFactor * rGeometry.DomainSize();
         // DomainSize() is the way to ask the geometry's length/area/volume (whatever is relevant for its dimension) without asking for the number of spatial dimensions first
 
+//         for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
+//         {
+//             const NodeType& rConstNode = rGeometry[itNode];
+//             const double y = rConstNode.GetValue(Y_WALL); // wall distance to use in stress calculation
+//             if( y > 0.0  ) //&& rConstNode.GetValue(IS_STRUCTURE) != 0.0
+//             {
+//                 array_1d<double,3> Vel = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
+//                 const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
+//                 Vel -= VelMesh;
+// 
+//                 const double rho = rGeometry[itNode].FastGetSolutionStepValue(DENSITY);
+//                 //const double nu = rGeometry[itNode].FastGetSolutionStepValue(VISCOSITY);
+// 
+//                 double wall_vel = 0.0;
+//                 for (size_t d = 0; d < TDim; d++)
+//                 {
+//                     wall_vel += Vel[d]*Vel[d];
+//                 }
+//                 wall_vel = sqrt(wall_vel);
+// 
+//                 const double slip_fac = rGeometry[itNode].FastGetSolutionStepValue(IS_SLIP);
+// 		double edge_fac = 0.0;
+// 		
+// 		if(slip_fac == 30.0)
+// 		  edge_fac = 20.0;
+// 		else if(slip_fac == 20.0)
+// 		  edge_fac = 5.0;
+// 		else 
+// 		  edge_fac = 1.0;		  
+// // 		double tau = rho * nu * wall_vel / y;
+// 		double tau = edge_fac * y  * wall_vel * area ;		
+// 		
+// 		//compute bitangant direction
+// 		array_1d<double,3> node_normal = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+// 		node_normal /= norm_2(node_normal);
+// 		
+// 		array_1d<double,3> bi_tangant = MathUtils<double>::CrossProduct(node_normal, Vel);
+// 		array_1d<double,3> tangant;
+// 		double norm_bi_tangant = norm_2(bi_tangant);
+// 		if(norm_bi_tangant != 0.0){
+// 		  bi_tangant =  (1.00/norm_bi_tangant) * bi_tangant;
+// 		  tangant = (1.00/wall_vel) * Vel;
+// 		}
+// 		else {
+// 		  noalias(bi_tangant) = ZeroVector(3); 
+// 		  noalias(tangant ) = ZeroVector(3); }
+// 		
+// 		
+// //rGeometry[itNode].FastGetSolutionStepValue(SOUND_VELOCITY)=tau;
+// 
+// 		size_t mm = itNode*BlockSize;		 
+// 		 
+// 		for (size_t d = 0; d < TDim; d++)
+// 		{
+// 		    size_t k = itNode*BlockSize+d;
+// // 		    rLocalVector[k] -=  tau;
+// 		    rLocalVector[k] -= (tangant[d] + bi_tangant[d]) * tau;
+// // 		    rLocalMatrix(k,k) += tau;
+// 		    
+// 
+// 		    rLocalMatrix(k,mm) +=  tau; //(tangant[d] + bi_tangant[d]) * node_normal[0] *
+// 		    rLocalMatrix(k,mm+1) +=  tau;//(tangant[d] + bi_tangant[d]) * node_normal[1] *
+// 		    rLocalMatrix(k,mm+2) +=  tau;//(tangant[d] + bi_tangant[d]) * node_normal[2] *		    
+// 		}
+//                 
+//             }
+//         }
+
         for(size_t itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
         {
             const NodeType& rConstNode = rGeometry[itNode];
@@ -329,7 +397,153 @@ protected:
 		}
                 
             }
-        }
+        }        
+      
+//         //apply pressure boundary terms
+// 	array_1d<double, TNumNodes> N;	
+// 	N[1] = NodalFactor;
+// 	N[2] = NodalFactor;	
+// 	N[3] = NodalFactor;
+// 	
+// 	//compute normal
+// 	array_1d<double,3> v1, v2, An;
+// 	v1[0] = rGeometry[1].X() - rGeometry[0].X();
+// 	v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+// 	v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
+// 
+// 	v2[0] = rGeometry[2].X() - rGeometry[0].X();
+// 	v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+// 	v2[2] = rGeometry[2].Z() - rGeometry[0].Z();	
+// 
+// 	MathUtils<double>::CrossProduct(An,v1,v2);	
+//         An *= 0.5;
+// 	An /= norm_2(An);
+// 		
+//         unsigned int FirstRow(0), FirstCol(0);	
+//         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+//         {
+// 	  array_1d<double,3> I_nn_n_node;
+// 	  array_1d<double,3> node_normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+// 	  node_normal /= -norm_2(node_normal);
+// 	  
+// 	  double dot_prod = inner_prod(node_normal,An); 
+// 	  I_nn_n_node = (An - dot_prod*node_normal);//dot_prod*node_normal	
+// 	  
+// 	  const double nodal_pr = rGeometry[i].FastGetSolutionStepValue(PRESSURE);
+// 	  
+// 	    for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+// 	    {
+// 		
+// // 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * I_nn_n_node[m];	
+// 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * An[m];	
+// // 		rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m];
+// 		rLocalVector[FirstRow + m] -= area * nodal_pr * An[m];	
+// 		
+// 	    }
+// 	    FirstCol += BlockSize;			    
+// 	    FirstRow += BlockSize;   
+// 	}
+	double is_cutted = 0.0;
+// 	const double dist = rGeometry[0].FastGetSolutionStepValue(DISTANCE);
+//         for (unsigned int i = 1; i < TNumNodes; ++i) // iterate over rows
+//         {
+// 	 const double other_dist =  rGeometry[i].FastGetSolutionStepValue(DISTANCE);
+// 	 if ( dist*other_dist < 0.0)
+// 	   is_cutted = 1.0;
+// 	}
+	if( this->GetValue(IS_STRUCTURE) == true ){
+	    //compute normal
+	    array_1d<double,3> v1, v2, An;
+	    v1[0] = rGeometry[1].X() - rGeometry[0].X();
+	    v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
+	    v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
+
+	    v2[0] = rGeometry[2].X() - rGeometry[0].X();
+	    v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
+	    v2[2] = rGeometry[2].Z() - rGeometry[0].Z();	
+
+	    MathUtils<double>::CrossProduct(An,v1,v2);	
+	    An *= 0.5;
+	    An /= norm_2(An);
+
+	    //first point 
+	    unsigned int FirstRow(0), FirstCol(0);	
+	    array_1d<double,3> NN_gausse_one;
+	    NN_gausse_one[0] = 1.0/6.0; 	NN_gausse_one[1] = 1.0/6.0;	NN_gausse_one[2] = 2.0/3.0;
+	    for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+	    {
+	      double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);
+	      for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
+		{  
+		const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);	  
+	        double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
+	        if( ii_flag != 0.0 && jj_flag != 0.0){
+		    for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+		    {
+		      rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_one[i] * NN_gausse_one[j];	
+			rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_one[i] * NN_gausse_one[j];			  
+		    }
+		  }
+		  FirstCol += BlockSize;			    
+
+		}
+		  FirstCol = 0;
+		  FirstRow += BlockSize;	    
+	    }
+	    
+	    //second point 
+	    FirstRow=0; FirstCol=0;	
+	    array_1d<double,3> NN_gausse_two;
+	    NN_gausse_two[0] = 2.0/3.0; 	NN_gausse_two[1] = 1.0/6.0;	NN_gausse_two[2] = 1.0/6.0;
+	    for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+	    {
+	       double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);	      
+	      for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
+		{  
+		const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);	  
+	         double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
+
+	        if( ii_flag != 0.0 && jj_flag != 0.0){
+		  for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+		  {
+		    rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_two[i] * NN_gausse_two[j];	
+		      rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_two[i] * NN_gausse_two[j];			  
+		  }
+		}
+		  FirstCol += BlockSize;			    
+
+		}
+		  FirstCol = 0;
+		  FirstRow += BlockSize;	    
+	    }
+	    
+	    //third point 
+	    FirstRow=0; FirstCol=0;	
+	    array_1d<double,3> NN_gausse_three;
+	    NN_gausse_three[0] = 1.0/6.0; 	NN_gausse_three[1] = 2.0/3.0;	NN_gausse_three[2] = 1.0/6.0;
+	    for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+	    {
+	       double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);	      	      
+	      for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
+		{  
+		const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);	  
+	         double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
+		  
+	        if( ii_flag != 0.0 && jj_flag != 0.0){
+		  for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+		  {
+		    rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_three[i] * NN_gausse_three[j];	
+		      rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_three[i] * NN_gausse_three[j];			  
+		  }
+		}
+		  FirstCol += BlockSize;			    
+
+		}
+		  FirstCol = 0;
+		  FirstRow += BlockSize;	    
+	    }
+	}
+	
     }
 
 
