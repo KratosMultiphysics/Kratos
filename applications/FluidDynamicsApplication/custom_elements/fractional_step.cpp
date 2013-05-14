@@ -9,13 +9,11 @@ namespace Kratos {
 template< unsigned int TDim >
 void FractionalStep<TDim>::Initialize()
 {
-    //this->CalculateGeometryData();
 }
 
 template< unsigned int TDim >
 void FractionalStep<TDim>::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 {
-    //this->CalculateGeometryData();
 }
 
 template< unsigned int TDim >
@@ -74,8 +72,8 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
 
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
-        VectorType DetJ;
-        this->CalculateGeometryData(DN_DX,NContainer,DetJ);
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
         VectorType MomentumRHS = ZeroVector(LocalSize);
         VectorType MassRHS = ZeroVector(NumNodes);
@@ -85,7 +83,7 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
         for (SizeType g = 0; g < NumGauss; g++)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
-            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+            const double GaussWeight = GaussWeights[g];
 
             for (unsigned int i = 0; i < NumNodes; i++)
                 NodalArea[i] += N[i] * GaussWeight;
@@ -130,8 +128,8 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
 
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
-        VectorType DetJ;
-        this->CalculateGeometryData(DN_DX,NContainer,DetJ);
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
         VectorType ConvTerm = ZeroVector(LocalSize);
         VectorType PresTerm = ZeroVector(LocalSize);
@@ -142,7 +140,7 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         for (unsigned int g = 0; g < NumGauss; g++)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
-            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+            const double GaussWeight = GaussWeights[g];
 
             for (unsigned int i = 0; i < NumNodes; i++)
                 NodalArea[i] += N[i] * GaussWeight;
@@ -180,15 +178,14 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
 
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
-        VectorType DetJ;
-        this->CalculateGeometryData(DN_DX,NContainer,DetJ);
+        VectorType GaussWeights;
+        this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
         VectorType NodalVelCorrection = ZeroVector(LocalSize);
 
         // Loop on integration points
         for (SizeType g = 0; g < NumGauss; ++g)
         {
-            const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
             const ShapeFunctionsType& N = row(NContainer,g);
             const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
@@ -196,7 +193,7 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
 
             this->EvaluateInPoint(Density,DENSITY,N);
 
-            const double Coeff = GaussWeight / ( Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0] );
+            const double Coeff = GaussWeights[g] / ( Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0] );
 
             // Calculate contribution to the gradient term (RHS)
             double DeltaPressure;
@@ -319,8 +316,8 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
-    VectorType DetJ;
-    this->CalculateGeometryData(DN_DX,NContainer,DetJ);
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
@@ -332,7 +329,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     // Loop on integration points
     for (SizeType g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+        const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& N = row(NContainer,g);
         const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
@@ -419,8 +416,8 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
 
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
-    VectorType DetJ;
-    this->CalculateGeometryData(DN_DX,NContainer,DetJ);
+    VectorType GaussWeights;
+    this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
 
     // Stabilization parameters
     double ElemSize = this->ElementSize();
@@ -430,7 +427,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     // Loop on integration points
     for (SizeType g = 0; g < NumGauss; g++)
     {
-        const double GaussWeight = DetJ[g] * IntegrationPoints[g].Weight();
+        const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& N = row(NContainer,g);
         const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
 
@@ -779,10 +776,19 @@ void FractionalStep<3>::GetVelocityValues(Vector& rValues,
 template< unsigned int TDim >
 void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayType &rDN_DX,
                                                  Matrix &NContainer,
-                                                 Vector &rDetJ)
+                                                 Vector &rGaussWeights)
 {
-    this->GetGeometry().ShapeFunctionsIntegrationPointsGradients(rDN_DX,rDetJ,GeometryData::GI_GAUSS_2);
-    NContainer = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    const GeometryType& rGeom = this->GetGeometry();
+    Vector DetJ;
+    rGeom.ShapeFunctionsIntegrationPointsGradients(rDN_DX,DetJ,GeometryData::GI_GAUSS_2);
+    NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+    rGaussWeights.resize(rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2),false);
+
+    for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+        rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
+
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
