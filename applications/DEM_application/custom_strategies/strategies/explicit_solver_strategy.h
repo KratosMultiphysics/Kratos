@@ -16,7 +16,6 @@
 
 // Project includes
 #include "utilities/timer.h"
-#include "custom_utilities/neighbours_calculator.h"
 #include "custom_utilities/create_and_destroy.h"
 
 //#include "custom_elements/spheric_particle.h"
@@ -48,7 +47,6 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "geometries/line_3d_2.h"
-#include "custom_utilities/neighbours_calculator.h"
 #include "custom_strategies/schemes/integration_scheme.h"
 
 /* Search */
@@ -91,28 +89,27 @@ namespace Kratos
       ///@name Type Definitions
       ///@{
 
-      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
-      typedef typename BaseType::TDataType                            TDataType;
-      typedef typename BaseType::TBuilderAndSolverType                TBuilderAndSolverType;
-      typedef typename BaseType::TSchemeType                          TSchemeType;
-      typedef typename BaseType::DofsArrayType                        DofsArrayType;
-      typedef typename Element::DofsVectorType                        DofsVectorType;
+      typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>   BaseType;
+      typedef typename BaseType::TDataType                              TDataType;
+      typedef typename BaseType::TBuilderAndSolverType                  TBuilderAndSolverType;
+      typedef typename BaseType::TSchemeType                            TSchemeType;
+      typedef typename BaseType::DofsArrayType                          DofsArrayType;
+      typedef typename Element::DofsVectorType                          DofsVectorType;
 
-      typedef ModelPart::NodesContainerType                           NodesArrayType;
-      typedef ModelPart::ElementsContainerType                        ElementsArrayType;
-      typedef ModelPart::ConditionsContainerType                      ConditionsArrayType;
+      typedef ModelPart::NodesContainerType                             NodesArrayType;
+      typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+      typedef ModelPart::ConditionsContainerType                        ConditionsArrayType;
 
-      typedef ModelPart::NodesContainerType::ContainerType            NodesContainerType;
-      typedef ModelPart::ElementsContainerType::ContainerType         ElementsContainerType;
-      typedef ModelPart::ConditionsContainerType::ContainerType       ConditionsContainerType;
-
-      typedef DiscreteElement                                         ParticleType;
-
-      typedef WeakPointerVector<Element>                              ParticleWeakVectorType;
-      typedef WeakPointerVector<Element >::iterator                   ParticleWeakIteratorType;
-      typedef ParticleWeakVectorType::ptr_iterator                    ParticleWeakIteratorType_ptr;
+      typedef ModelPart::NodesContainerType::ContainerType              NodesContainerType;
+      typedef ModelPart::ElementsContainerType::ContainerType           ElementsContainerType;
+      typedef ModelPart::ConditionsContainerType::ContainerType         ConditionsContainerType;
       
-      typedef Neighbours_Calculator<ParticleType> 			NeighboursCalculatorType;
+      typedef SpatialSearch::ResultElementsContainerType                ResultElementsContainerType;
+      typedef SpatialSearch::VectorResultElementsContainerType          VectorResultElementsContainerType;
+        
+      typedef SpatialSearch::RadiusArrayType                            RadiusArrayType;
+      typedef SpatialSearch::DistanceType                               DistanceType;
+      typedef SpatialSearch::VectorDistanceType                         VectorDistanceType;
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -131,15 +128,15 @@ namespace Kratos
                              const double safety_factor,
                              const bool MoveMeshFlag,
                              typename IntegrationScheme::Pointer pScheme,
-			      typename SpatialSearch::Pointer pSpSearch
-      ): SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(rModelPart, MoveMeshFlag), mNeighbourCalc(rModelPart)//, mcontacts_model_part(contacts_model_part)//inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual. //les referencies tambe aqui
+                             typename SpatialSearch::Pointer pSpSearch
+      ): SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(rModelPart, MoveMeshFlag)//, mcontacts_model_part(contacts_model_part)//inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual. //les referencies tambe aqui
       {
           mElementsAreInitialized      = false;
           mInitializeWasPerformed      = false;
           mComputeTime                 = false;
           mEnlargementFactor           = enlargement_factor;
           mpScheme                     = pScheme;
-	  mpSpSearch			= pSpSearch;
+          mpSpSearch                   = pSpSearch;
           mMaxTimeStep                 = max_delta_time;
           mNStepSearch                 = n_step_search;
           mSafetyFactor                = safety_factor;
@@ -156,17 +153,21 @@ namespace Kratos
       {
           KRATOS_TRY
 
-#ifdef CUSTOMTIMER
-          Timer::SetOuputFile("customTimer.time");
-          Timer::Start("INITIALIZED");
-#endif
-
           // M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-	  
-	  //0. Initialize the neighbour calculator.
-          mNeighbourCalc.Initialize();
+                
+          int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
+          
+          mResults.resize(NumberOfElements);
+          mResultsDistances.resize(NumberOfElements);
+          mRadius.resize(NumberOfElements);
+          
+          // Omp initializations
+          number_of_threads = OpenMPUtils::GetNumThreads();
+     
+          // 0. Set search radius
+          SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],0);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option            = false;
@@ -174,9 +175,7 @@ namespace Kratos
           extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
           // 2. Initializing elements and perform the repartition
-
           if (mElementsAreInitialized == false){
-              //Repart(rModelPart,1);
               InitializeElements();
           }
 
@@ -188,12 +187,9 @@ namespace Kratos
           // 4. Set Initial Contacts
           SetInitialContacts();// Empty function
 
-	  // 5. Calculate bounding box
-	  mParticleCreatorDestructor.CalculateSurroundingBoundingBox(rModelPart, mEnlargementFactor);
+          // 5. Calculate bounding box
+          mParticleCreatorDestructor.CalculateSurroundingBoundingBox(rModelPart, mEnlargementFactor);
 
-#ifdef CUSTOMTIMER
-          Timer::Stop("INITIALIZED");
-#endif
           KRATOS_CATCH("")
 
       }// Initialized()
@@ -214,25 +210,23 @@ namespace Kratos
           int time_step = rCurrentProcessInfo[TIME_STEPS];
 
           //STRATEGY:
-
-          // 1
-          // Here we initialize member variables that depend on the rCurrentProcessInfo
+          // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
           InitializeSolutionStep();
 
           // 2. Get and Calculate the forces
           GetForce();
+          
+          // 3. Motion Integration
+          PerformTimeIntegrationOfMotion(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
-	  // 3. Motion Integration
-	  PerformTimeIntegrationOfMotion(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
-	  
-	  // 4. Synchronize  
-	  SynchronizeSolidMesh(rModelPart);
+          // 4. Synchronize  
+          SynchronizeSolidMesh(rModelPart);
 
-	  // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
+          // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
 
-	  if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
+          if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
 
-	      if ((time_step + 1)%mNStepSearch == 0 && time_step > 0){
+              if ((time_step + 1)%mNStepSearch == 0 && time_step > 0){
 
                   if (mBoundingBoxOption == 1){
                       BoundingBoxUtility(mEnlargementFactor);
@@ -243,9 +237,9 @@ namespace Kratos
 
           }
 
-	  FinalizeSolutionStep();
-
-	  return 0.00;
+          FinalizeSolutionStep();
+          
+          return 0.00;
 
           KRATOS_CATCH("")          
       }//Solve()
@@ -274,13 +268,11 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          int number_of_threads = OpenMPUtils::GetNumThreads();
-          vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
           Vector rhs_elem;
+          
           #pragma omp parallel for private(rhs_elem)
-
           for (int k = 0; k < number_of_threads; k++){
 
               if(rhs_elem.size() != 6){
@@ -362,8 +354,6 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          int number_of_threads = OpenMPUtils::GetNumThreads();
-          vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
           #pragma omp parallel for
@@ -401,8 +391,6 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          int number_of_threads = OpenMPUtils::GetNumThreads();
-          vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
           #pragma omp parallel for //private(index)
@@ -431,8 +419,6 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          int number_of_threads = OpenMPUtils::GetNumThreads();
-          vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
           #pragma omp parallel for
@@ -468,8 +454,6 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          int number_of_threads = OpenMPUtils::GetNumThreads();
-          vector<unsigned int> element_partition;
           OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
           #pragma omp parallel for
@@ -505,8 +489,10 @@ namespace Kratos
       void CalculateEnergies(){}
 
     protected:
-      
-    NeighboursCalculatorType 		 mNeighbourCalc;
+    
+    VectorResultElementsContainerType   mResults;
+    VectorDistanceType                  mResultsDistances;
+    RadiusArrayType                     mRadius;
 
     bool                                mInitialCalculations;
     bool                                mElementsAreInitialized;
@@ -522,20 +508,22 @@ namespace Kratos
 
     Particle_Creator_Destructor         mParticleCreatorDestructor;
     
+    int number_of_threads;
+    vector<unsigned int> element_partition;
+    
     typename IntegrationScheme::Pointer mpScheme;
     typename SpatialSearch::Pointer mpSpSearch;
     
     void InitializeElements()
     {
         KRATOS_TRY
+        
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
         int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
 
-        int number_of_threads = OpenMPUtils::GetNumThreads();
-        vector<unsigned int> element_partition;
         OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
         #pragma omp parallel for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
@@ -565,16 +553,177 @@ namespace Kratos
     void SetInitialContacts()
     {
       
+    } 
+    
+    void SetSearchRadius(ModelPart& rModelPart, double radiusExtend, double new_extension = 0)
+    {
+        KRATOS_TRY
+        
+        ModelPart& rModelPart               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+      
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {   
+            mRadius[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+        }
+        
+        KRATOS_CATCH("")
+    }
+    
+    void KRATOS_CHECK_SIZE(const char* msg, int id)
+    { 
+        KRATOS_TRY
+        
+        ModelPart& rModelPart               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {
+            if(particle_pointer_it->Id() == id)
+            {
+                std::cout << msg << " " << particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size() << std::endl; break;
+            }
+        }
+        
+        KRATOS_CATCH("")
     }
 
     void SearchInitialNeighbours(ModelPart& rModelPart,bool extension_option)
     { 
-        mNeighbourCalc.Search_Ini_Neighbours(rModelPart, extension_option, mpSpSearch);
+        KRATOS_TRY
+     
+        ModelPart& rModelPart               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+
+        for(SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i!=pElements.end(); i++)
+        {
+            i->GetValue(NEIGHBOUR_ELEMENTS).clear();
+        }
+
+        mpSpSearch->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        
+        #pragma omp parallel for
+        for (int k = 0; k < number_of_threads; k++)
+        {
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+            
+            size_t ResultCounter = element_partition[k];
+
+            for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
+            {
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it)
+                {
+                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                }
+                
+                size_t size = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size();
+                
+                particle_pointer_it->GetValue(NEIGHBOURS_IDS).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+                
+                size_t neighbour_counter = 0;
+                
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it)
+                {
+                    particle_pointer_it->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
+
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+                    
+                    neighbour_counter++;
+                }
+                
+                mResults[ResultCounter].clear();
+                mResultsDistances[ResultCounter].clear();
+            }
+        }
+        
+        KRATOS_CATCH("")
     }
 
     void SearchNeighbours(ModelPart& rModelPart,bool extension_option)
     {
-        mNeighbourCalc.Search_Neighbours(rModelPart, extension_option, mpSpSearch);
+        KRATOS_TRY
+        
+        ModelPart& rModelPart               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+
+        for(SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i!=pElements.end(); i++)
+        {
+            i->GetValue(NEIGHBOUR_ELEMENTS).clear();
+        }
+
+        mpSpSearch->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        
+        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        
+        #pragma omp parallel for
+        for (int k = 0; k < number_of_threads; k++)
+        {
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+            
+            size_t ResultCounter = element_partition[k];
+
+            for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
+            {
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it)
+                {
+                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                }
+                
+                size_t size = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size();
+                
+                particle_pointer_it->GetValue(NEIGHBOURS_IDS).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_FAILURE_ID).resize(size);
+                particle_pointer_it->GetValue(PARTICLE_CONTACT_DELTA).resize(size);
+                
+                size_t neighbour_counter = 0;
+                
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it)
+                {
+                    particle_pointer_it->GetValue(NEIGHBOURS_IDS)[neighbour_counter] = (*neighbour_it)->Id();
+
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][0] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][1] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FORCES)[neighbour_counter][2] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][0] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][1] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[neighbour_counter][2] = 0.0;
+                    particle_pointer_it->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)[neighbour_counter] = 1;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_FAILURE_ID)[neighbour_counter] = 1;
+                    particle_pointer_it->GetValue(PARTICLE_CONTACT_DELTA)[neighbour_counter] = 0.0;
+                    
+                    neighbour_counter++;
+                }
+                
+                mResults[ResultCounter].clear();
+                mResultsDistances[ResultCounter].clear();
+            }
+        }
+        
+        KRATOS_CATCH("")
     }
     
     void PrepareContactModelPart(ModelPart& rModelPart, ModelPart& mcontacts_model_part)

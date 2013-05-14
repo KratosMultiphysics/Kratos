@@ -15,7 +15,7 @@
 // System includes
 #include <string>
 #include <iostream> 
-
+#include <cfloat>
 
 // External includes 
 
@@ -58,7 +58,7 @@ namespace Kratos
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
 //           return model_part.Nodes(); 
-          return model_part.Nodes(); 
+          return model_part.GetCommunicator().LocalMesh().Nodes(); 
       }
       
       virtual NodesArrayType& GetGhostNodes(ModelPart& model_part)
@@ -121,7 +121,7 @@ namespace Kratos
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
                   aux = delta_t / mass;
-
+                  
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
