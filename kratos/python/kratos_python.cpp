@@ -96,7 +96,7 @@ namespace Python
 
 char const* greet()
 {
-    return "Hello, I am Kratos Multi-Physics 3.2.0 ;-)";
+    return "Hello, I am Kratos Multi-Physics 3.2.1 ;-)";
 }
 
 using namespace boost::python;
