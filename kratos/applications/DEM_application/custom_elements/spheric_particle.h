@@ -144,16 +144,6 @@ namespace Kratos
       void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
       void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
       void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
-      void ReasignInternalDataPointers();
-
-      //FOR DEM_FEM APP
-//
-//        void ComputeParticleBlockContactForce_With_Rotation();
-//        void ComputeParticleBlockContactForce_Without_Rotation();
-//        void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
-
-      //member variables DEM
-
 
       int mDampType;
       int mElasticityType;
@@ -174,13 +164,6 @@ namespace Kratos
       double mMagicFactor;
       double mGlobalKn;
       double mGlobalKt;
-
-      //vector<int>&                  m_data_continuum_ini_neighbours_ids;
-      //WeakPointerVector<Element >&  m_data_continuum_ini_neighbours;
-      WeakPointerVector<Element >&  m_data_neighbours_elements;
-      //vector<int>&                  m_data_ini_neighbours_ids;
-      VectorArray3Double&           m_data_particle_elastic_contact_forces;
-
 
       ///@name Protected static Member Variables
       ///@{

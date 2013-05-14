@@ -111,7 +111,13 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           }
           
           bins.SearchObjectsMpi(rModelPart,elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,NumberOfModelPElements,rModelPart.pGetCommunicator());
-       
+            
+          for(int i = 0; i < NumberOfSearchElements; i++)
+          {
+              rResults[i].resize(NumberOfResults[i]);
+              rResultsDistance[i].resize(NumberOfResults[i]);
+          }
+
           // Update the modelpart interface and keep the coherence between domains
           int ResultCounter = 0;
           

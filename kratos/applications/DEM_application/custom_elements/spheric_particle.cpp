@@ -77,24 +77,18 @@ namespace Kratos
           mFrictionAngle                          = friction_angle;
           mRestitCoeff                            = restitution_coeff;
           mInitializedVariablesFlag               = 0;
-
-
+         
+//           m_data_neighbours_elements             = this->GetValue(NEIGHBOUR_ELEMENTS);
+//           m_data_particle_elastic_contact_forces = this->GetValue(PARTICLE_CONTACT_FORCES);
+          
+//           if(this->GetGeometry()(0)->Id() == 7114)
+//           {
+//               std::cout << /*"INI: " << (m_data_neighbours_elements[0]) << "     " <<*/ &(this->GetValue(NEIGHBOUR_ELEMENTS).begin()) << std::endl;
+//           }
+          
           KRATOS_CATCH( "" )
       }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-      void SphericParticle::ReasignInternalDataPointers()
-      {
-          KRATOS_TRY
-
-          m_data_neighbours_elements             = this->GetValue(NEIGHBOUR_ELEMENTS);
-          m_data_particle_elastic_contact_forces = this->GetValue(PARTICLE_CONTACT_FORCES);
-
-          KRATOS_CATCH( "" )
-      }
-
+      
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
@@ -145,8 +139,8 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ParticleWeakVectorType& r_neighbours         = m_data_neighbours_elements;
-          VectorArray3Double& GlobalContactForceMatrix = m_data_particle_elastic_contact_forces;
+          ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          VectorArray3Double& GlobalContactForceMatrix = this->GetValue(PARTICLE_CONTACT_FORCES);
 
           // PROCESS INFO
 
@@ -302,6 +296,12 @@ namespace Kratos
               array_1d<double, 3> other_delta_displ     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
               double DeltDisp[3]                        = {0.0};
               double RelVel[3]                          = {0.0};
+              
+//               if(this->GetGeometry()(0)->Id() == 7093)
+//               {
+//               std::cout << this->GetGeometry()(0)->Id() << ": " << neighbour_iterator->GetGeometry()(0)->Id() << " -> "; 
+//               KRATOS_WATCH(other_delta_displ);
+//               }
 
               RelVel[0] = vel[0] - other_vel[0];
               RelVel[1] = vel[1] - other_vel[1];
@@ -338,6 +338,7 @@ namespace Kratos
               double LocalElasticContactForce[3]        = {0.0};
               double GlobalElasticContactForce[3]       = {0.0};
               double LocalRelVel[3]                     = {0.0};
+              
               GlobalElasticContactForce[0]              = GlobalContactForceMatrix[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
               GlobalElasticContactForce[1]              = GlobalContactForceMatrix[i_neighbour_count][1];
               GlobalElasticContactForce[2]              = GlobalContactForceMatrix[i_neighbour_count][2];
@@ -428,9 +429,9 @@ namespace Kratos
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
               // Saving contact forces (We need to, since tangential elastic force is history-dependent)
-              m_data_particle_elastic_contact_forces[i_neighbour_count][0] = GlobalElasticContactForce[0];
-              m_data_particle_elastic_contact_forces[i_neighbour_count][1] = GlobalElasticContactForce[1];
-              m_data_particle_elastic_contact_forces[i_neighbour_count][2] = GlobalElasticContactForce[2];
+              GlobalContactForceMatrix[i_neighbour_count][0] = GlobalElasticContactForce[0];
+              GlobalContactForceMatrix[i_neighbour_count][1] = GlobalElasticContactForce[1];
+              GlobalContactForceMatrix[i_neighbour_count][2] = GlobalElasticContactForce[2];
 
               rContactForce[0] += GlobalContactForce[0];
               rContactForce[1] += GlobalContactForce[1];
