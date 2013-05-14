@@ -94,7 +94,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
           ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int NumberOfElements = elements_array.size();
           int MaxNumberOfElements = elements_ModelPart.size();
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
@@ -133,7 +132,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
           ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int NumberOfElements = elements_array.size();
           int MaxNumberOfElements = elements_ModelPart.size();
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());

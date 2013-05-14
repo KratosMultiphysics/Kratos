@@ -27,24 +27,16 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       SphericParticle::SphericParticle()
-      : DiscreteElement(),
-      m_data_neighbours_elements(this->GetValue(NEIGHBOUR_ELEMENTS)),
-      m_data_particle_elastic_contact_forces(this->GetValue(PARTICLE_CONTACT_FORCES)){}
+      : DiscreteElement(){}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : DiscreteElement(NewId, pGeometry),
-      m_data_neighbours_elements(this->GetValue(NEIGHBOUR_ELEMENTS)),
-      m_data_particle_elastic_contact_forces(this->GetValue(PARTICLE_CONTACT_FORCES)){}
+      : DiscreteElement(NewId, pGeometry){}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties),
-      m_data_neighbours_elements(this->GetValue(NEIGHBOUR_ELEMENTS)),
-      m_data_particle_elastic_contact_forces(this->GetValue(PARTICLE_CONTACT_FORCES)){}
+      : DiscreteElement(NewId, pGeometry, pProperties){}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes),
-      m_data_neighbours_elements(this->GetValue(NEIGHBOUR_ELEMENTS)),
-      m_data_particle_elastic_contact_forces(this->GetValue(PARTICLE_CONTACT_FORCES)){}
+      : DiscreteElement(NewId, ThisNodes){}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
