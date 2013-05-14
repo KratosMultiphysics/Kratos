@@ -24,6 +24,7 @@ message("TURBULENT_FLOW_APPLICATION.......... ${TURBULENT_FLOW_APPLICATION}")
 message("BLOOD_FLOW_APPLICATION.............. ${BLOOD_FLOW_APPLICATION}")
 message("PURE_DIFFUSION_APPLICATION.............. ${PURE_DIFFUSION_APPLICATION}")
 message("MESHLESS_APPLICATION.............. ${MESHLESS_APPLICATION}")
+message("WIND_TURBINE_APPLICATION ........... ${WIND_TURBINE_APPLICATION}")
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
@@ -131,6 +132,9 @@ if(${MESHLESS_APPLICATION} MATCHES ON)
 endif(${MESHLESS_APPLICATION} MATCHES ON)
 
 
+if(${WIND_TURBINE_APPLICATION} MATCHES ON)
+  add_subdirectory(wind_turbine_application)
+endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")

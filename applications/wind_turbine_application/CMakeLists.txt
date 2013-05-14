@@ -27,10 +27,14 @@ set( KRATOS_WIND_TURBINE_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosWindTurbineApplication SHARED ${KRATOS_WIND_TURBINE_APPLICATION_SOURCES})
-target_link_libraries(KratosWindTurbineApplication KratosCore triangle tetgen)
+if(${WIND_TURBINE_USE_PARALLEL_EXTENSION} MATCHES ON)
+    add_definitions(-DWIND_TURBINE_USE_PARALLEL_EXTENSION)
+    target_link_libraries(KratosWindTurbineApplication KratosCore triangle tetgen ${MPI_LIBRARIES})
+else(${WIND_TURBINE_USE_PARALLEL_EXTENSION} MATCHES ON)
+    target_link_libraries(KratosWindTurbineApplication KratosCore triangle tetgen)
+endif(${WIND_TURBINE_USE_PARALLEL_EXTENSION} MATCHES ON)
 set_target_properties(KratosWindTurbineApplication PROPERTIES PREFIX "")
 install(TARGETS KratosWindTurbineApplication DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
