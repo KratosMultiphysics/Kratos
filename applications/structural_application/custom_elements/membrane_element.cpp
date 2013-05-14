@@ -1015,39 +1015,39 @@ namespace Kratos
         //auxiliary terms
         array_1d<double, 3> BodyForce;
 
-        double elem_positive_face_pressure = 0.0;
-
-        double elem_negative_face_pressure = 0.0;
-
-        bool zero_positive_nodal_pressure = false;
-
-        bool zero_negative_nodal_pressure = false;
-
-        for ( unsigned int k = 0; k < GetGeometry().size();k++ )
-        {
-            double temp = GetGeometry()[k].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
-            elem_negative_face_pressure += temp;
-
-            if ( temp == 0 )
-                zero_negative_nodal_pressure = true;
-
-            temp = GetGeometry()[k].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-
-            elem_positive_face_pressure += temp;
-
-            if ( temp == 0 )
-                zero_positive_nodal_pressure = true;
-        }
-
-        if ( zero_negative_nodal_pressure == true )
-            elem_negative_face_pressure = 0.0;
-        else
-            elem_negative_face_pressure /= ( double ) GetGeometry().size();
-
-        if ( zero_positive_nodal_pressure == true )
-            elem_positive_face_pressure = 0.0;
-        else
-            elem_positive_face_pressure /= ( double ) GetGeometry().size();
+//         double elem_positive_face_pressure = 0.0;
+// 
+//         double elem_negative_face_pressure = 0.0;
+// 
+//         bool zero_positive_nodal_pressure = false;
+// 
+//         bool zero_negative_nodal_pressure = false;
+// 
+//         for ( unsigned int k = 0; k < GetGeometry().size();k++ )
+//         {
+//             double temp = GetGeometry()[k].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE );
+//             elem_negative_face_pressure += temp;
+// 
+//             if ( temp == 0 )
+//                 zero_negative_nodal_pressure = true;
+// 
+//             temp = GetGeometry()[k].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+// 
+//             elem_positive_face_pressure += temp;
+// 
+//             if ( temp == 0 )
+//                 zero_positive_nodal_pressure = true;
+//         }
+// 
+//         if ( zero_negative_nodal_pressure == true )
+//             elem_negative_face_pressure = 0.0;
+//         else
+//             elem_negative_face_pressure /= ( double ) GetGeometry().size();
+// 
+//         if ( zero_positive_nodal_pressure == true )
+//             elem_positive_face_pressure = 0.0;
+//         else
+//             elem_positive_face_pressure /= ( double ) GetGeometry().size();
 
         /*
           for(unsigned int k = 0; k<PressureOnNodes.size();k++)
@@ -1117,7 +1117,7 @@ namespace Kratos
             Calculate_GlobalStressVector( mStressesVector[PointNumber], StressVector, mV1[PointNumber], mV2[PointNumber] ); //saving the stress vector
 
             // calculating the pressure on the gauss point
-            double pressure = elem_negative_face_pressure -       elem_positive_face_pressure;
+            //double pressure = elem_negative_face_pressure -       elem_positive_face_pressure;
 
             CalculateQ( Q, mG_Vector[PointNumber] );
             CalculateB( B, Q, DN_DeContainer[PointNumber], ge, gn );
@@ -1134,11 +1134,11 @@ namespace Kratos
                 CalculateAndAddKm( rLeftHandSideMatrix, B, D, IntToReferenceWeight );
                 CalculateAndAddKg( rLeftHandSideMatrix, Q, DN_DeContainer[PointNumber], StressVector, IntToReferenceWeight );
 
-                if ( pressure != 0.00 )
-                {
-                    const Matrix& dN_dE = DN_DeContainer[PointNumber];
-                    CalculateAndSubKp( rLeftHandSideMatrix, ge, gn, dN_dE, row( Ncontainer, PointNumber ), pressure, IntegrationWeight );
-                }
+//                 if ( pressure != 0.00 )
+//                 {
+//                     const Matrix& dN_dE = DN_DeContainer[PointNumber];
+//                     CalculateAndSubKp( rLeftHandSideMatrix, ge, gn, dN_dE, row( Ncontainer, PointNumber ), pressure, IntegrationWeight );
+//                 }
             }
 
             // RIGHT HAND SIDE VECTOR
@@ -1151,8 +1151,8 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias( rRightHandSideVector ) -= IntToReferenceWeight * prod( trans( B ), StressVector );
 
-                if ( pressure != 0.00 )
-                    CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, pressure, IntegrationWeight, rCurrentProcessInfo );
+/*                if ( pressure != 0.00 )
+                    CalculateAndAdd_PressureForce( rRightHandSideVector, row( Ncontainer, PointNumber ), v3, pressure, IntegrationWeight, rCurrentProcessInfo );*/
             }
         }
 
