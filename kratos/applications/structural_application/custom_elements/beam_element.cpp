@@ -344,14 +344,14 @@ void BeamElement::CalculateSectionProperties()
         Matrix& inertia = GetProperties()[LOCAL_INERTIA];
         mInertia_x = inertia(0,0);
         mInertia_y = inertia(1,1);
-        mInertia_Polar = inertia(2,2);
+        mInertia_Polar = inertia(0,1);
     }
     else
     {
         Matrix& inertia = GetValue(LOCAL_INERTIA);
         mInertia_x = inertia(0,0);
         mInertia_y = inertia(1,1);
-        mInertia_Polar = inertia(2,2);
+        mInertia_Polar = inertia(0,1);
     }
 
 //        mInertia_x     = b * h * h * h / 12.0;
