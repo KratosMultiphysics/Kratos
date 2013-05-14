@@ -450,7 +450,7 @@ namespace Kratos
         /// Determine integration point weights and shape funcition derivatives from the element's geometry.
         virtual void CalculateGeometryData(ShapeFunctionDerivativesArrayType& rDN_DX,
                                            Matrix& rNContainer,
-                                           Vector& rDetJ);
+                                           Vector& rGaussWeights);
 
         double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
