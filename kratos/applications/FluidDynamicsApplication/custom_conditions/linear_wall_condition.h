@@ -443,7 +443,7 @@ protected:
 // 	    FirstCol += BlockSize;			    
 // 	    FirstRow += BlockSize;   
 // 	}
-	double is_cutted = 0.0;
+	//double is_cutted = 0.0;
 // 	const double dist = rGeometry[0].FastGetSolutionStepValue(DISTANCE);
 //         for (unsigned int i = 1; i < TNumNodes; ++i) // iterate over rows
 //         {
