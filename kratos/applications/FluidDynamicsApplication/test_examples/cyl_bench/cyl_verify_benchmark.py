@@ -10,7 +10,9 @@ def Run():
   return benchmarking.RunBenchmark("run_test.py", "drag_reference.txt")
 
 if __name__=='__main__':
-  if Run():
+  Msg = Run()
+  if( Msg == True ):
     print "Test successful"
   else:
     print "Test failed"
+    print Msg
