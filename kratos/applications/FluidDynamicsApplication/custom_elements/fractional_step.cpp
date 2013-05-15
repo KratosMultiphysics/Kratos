@@ -67,13 +67,11 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
         const unsigned int LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const SizeType NumGauss = IntegrationPoints.size();
-
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+		const SizeType NumGauss = NContainer.size1();
 
         VectorType MomentumRHS = ZeroVector(LocalSize);
         VectorType MassRHS = ZeroVector(NumNodes);
@@ -123,13 +121,11 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         const unsigned int LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const SizeType NumGauss = IntegrationPoints.size();
-
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+		const SizeType NumGauss = NContainer.size1();
 
         VectorType ConvTerm = ZeroVector(LocalSize);
         VectorType PresTerm = ZeroVector(LocalSize);
@@ -173,13 +169,11 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         const SizeType LocalSize = TDim * NumNodes;
 
         // Shape functions and integration points
-        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-        const SizeType NumGauss = IntegrationPoints.size();
-
         ShapeFunctionDerivativesArrayType DN_DX;
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+		const SizeType NumGauss = NContainer.size1();
 
         VectorType NodalVelCorrection = ZeroVector(LocalSize);
 
@@ -311,13 +305,11 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     rRightHandSideVector = ZeroVector(LocalSize);
 
     // Shape functions and integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const SizeType NumGauss = IntegrationPoints.size();
-
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+	const SizeType NumGauss = NContainer.size1();
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
@@ -411,13 +403,11 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     rRightHandSideVector = ZeroVector(NumNodes);
 
     // Shape functions and integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
-    const SizeType NumGauss = IntegrationPoints.size();
-
     ShapeFunctionDerivativesArrayType DN_DX;
     Matrix NContainer;
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
+	const SizeType NumGauss = NContainer.size1();
 
     // Stabilization parameters
     double ElemSize = this->ElementSize();
@@ -789,6 +779,8 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
     for (unsigned int g = 0; g < rGeom.IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 
+    
+    
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();

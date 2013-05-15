@@ -80,8 +80,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/two_fluid_vms.h"
 #include "custom_elements/stationary_stokes.h"
 #include "custom_elements/fractional_step.h"
+#include "custom_elements/fractional_step_discontinuous.h"
 #include "custom_elements/spalart_allmaras.h"
 #include "custom_conditions/wall_condition.h"
+#include "custom_conditions/wall_condition_discontinuous.h"
 #include "custom_conditions/monolithic_wall_condition.h"
 #include "custom_conditions/periodic_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
@@ -269,7 +271,9 @@ private:
     const FractionalStep<2> mFractionalStep2D;
     /// 3D instance of the fractional step element
     const FractionalStep<3> mFractionalStep3D;
-
+    const FractionalStepDiscontinuous<2> mFractionalStepDiscontinuous2D;
+    const FractionalStepDiscontinuous<3> mFractionalStepDiscontinuous3D;
+	
     /// 2D Spalart-Allmaras turbulent viscosity transport equation element
     const SpalartAllmaras mSpalartAllmaras2D;
     /// 3D Spalart-Allmaras turbulent viscosity transport equation element
@@ -279,6 +283,12 @@ private:
     const  WallCondition<2,2> mWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (fractional step version)
     const  WallCondition<3,3> mWallCondition3D;
+    
+    /// Exact 2D slip condition using rotated coordinates (fractional step version) - suitable for continuity equation integrated by parts
+    const  WallConditionDiscontinuous<2,2> mWallConditionDiscontinuous2D;
+    /// Exact 3D slip condition using rotated coordinates (fractional step version) - suitable for continuity equation integrated by parts
+    const  WallConditionDiscontinuous<3,3> mWallConditionDiscontinuous3D;
+    
     /// Exact 2D slip condition using rotated coordinates (monolithic version)
     const  MonolithicWallCondition<2,2> mMonolithicWallCondition2D;
     /// Exact 3D slip condition using rotated coordinates (monolithic version)
