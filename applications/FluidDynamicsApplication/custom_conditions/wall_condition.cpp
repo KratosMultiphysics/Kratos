@@ -29,20 +29,6 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
         }
     }
-	else if(step == 5)
-    {
-        const SizeType NumNodes = 2;
-        const SizeType LocalSize = 2;
-        unsigned int LocalIndex = 0;
-
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
-        }
-    }
     else
     {
         rResult.resize(0,false);
@@ -71,20 +57,6 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_X).EquationId();
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Y).EquationId();
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_Z).EquationId();
-        }
-    }
-	else if(step == 5)
-    {
-        const SizeType NumNodes = 3;
-        const SizeType LocalSize = 3;
-        unsigned int LocalIndex = 0;
-
-        if (rResult.size() != LocalSize)
-            rResult.resize(LocalSize, false);
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
         }
     }
     else
@@ -117,22 +89,6 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Y);
         }
     }
-	else if ( step == 5 )
-    {
-		const SizeType NumNodes = 2;
-        const SizeType LocalSize = 2;
-
-        if (rElementalDofList.size() != LocalSize)
-            rElementalDofList.resize(LocalSize);
-
-        unsigned int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
-        }
-	}
-	
     else
     {
         rElementalDofList.resize(0);
@@ -164,21 +120,6 @@ void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_Z);
         }
     }
-	else if ( step == 5 )
-    {
-		const SizeType NumNodes = 3;
-        const SizeType LocalSize = 3;
-
-        if (rElementalDofList.size() != LocalSize)
-            rElementalDofList.resize(LocalSize);
-
-        unsigned int LocalIndex = 0;
-
-        for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
-        {
-            rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
-        }
-	}
     else
     {
         rElementalDofList.resize(0);

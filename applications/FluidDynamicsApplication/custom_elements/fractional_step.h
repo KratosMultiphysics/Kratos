@@ -425,7 +425,7 @@ namespace Kratos
                                                     VectorType& rRightHandSideVector,
                                                     ProcessInfo& rCurrentProcessInfo);
 
-        void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
+        virtual void CalculateLocalPressureSystem(MatrixType& rLeftHandSideMatrix,
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);
 

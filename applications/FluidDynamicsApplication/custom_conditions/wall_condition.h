@@ -248,33 +248,6 @@ namespace Kratos
 
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
-			else if(step == 5)
-			{
-                // Initialize local contributions
-                const SizeType LocalSize = TNumNodes;
-
-                if (rLeftHandSideMatrix.size1() != LocalSize)
-                    rLeftHandSideMatrix.resize(LocalSize,LocalSize);
-                if (rRightHandSideVector.size() != LocalSize)
-                    rRightHandSideVector.resize(LocalSize);
-
-                noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
-                noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-				
-				if(this->GetValue(IS_STRUCTURE) == 0.0 ) 
-				{
-					const double N = 1.0 / static_cast<double>(TNumNodes);
-					array_1d<double,3> rNormal;
-					this->CalculateNormal(rNormal); //this already contains the area
-					
-					for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
-					{
-						const array_1d<double,3>& rVelocity = this->GetGeometry()[iNode].FastGetSolutionStepValue(VELOCITY);
-						for (unsigned int d = 0; d < TDim; ++d)
-							rRightHandSideVector[iNode] += N*rVelocity[d]*rNormal[d];
-					}
-				}
-			}
             else
             {
                 if (rLeftHandSideMatrix.size1() != 0)
