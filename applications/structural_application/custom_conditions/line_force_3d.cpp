@@ -186,10 +186,6 @@ void LineForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 
         double dA = GetGeometry().Length() * 0.5;
 
-        KRATOS_WATCH(dA);
-        KRATOS_WATCH(IntegrationWeight);
-        KRATOS_WATCH(load);
-        KRATOS_WATCH(Ncontainer);
 
         // RIGHT HAND SIDE VECTOR
             for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
@@ -197,7 +193,6 @@ void LineForce3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
                     rRightHandSideVector( prim*dim + i ) +=
                         Ncontainer( PointNumber, prim ) * load( i ) * IntegrationWeight * dA;
     }
-    KRATOS_WATCH(rRightHandSideVector);
 
     KRATOS_CATCH( "" )
 }
