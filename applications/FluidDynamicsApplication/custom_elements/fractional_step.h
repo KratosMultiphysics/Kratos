@@ -530,6 +530,11 @@ namespace Kratos
                                             const double Weight);
 
 
+        void ModulatedGradientDiffusion(MatrixType& rDampMatrix,
+                                        const ShapeFunctionDerivativesType& rDN_DX,
+                                        const double Weight);
+
+
         /// Write the convective operator evaluated at this point (for each nodal funciton) to an array
         /**
          * Evaluate the convective operator for each node's shape function at an arbitrary point
