@@ -939,3 +939,4 @@ namespace Kratos
       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
 }  // namespace Kratos.
+
