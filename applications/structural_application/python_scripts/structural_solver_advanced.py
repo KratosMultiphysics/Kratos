@@ -77,9 +77,9 @@ def AddDofs(model_part):
         node.AddDof(LAGRANGE_DISPLACEMENT_X);
         node.AddDof(LAGRANGE_DISPLACEMENT_Y);
         node.AddDof(LAGRANGE_DISPLACEMENT_Z);
-        #node.AddDof(ROTATION_X);
-        #node.AddDof(ROTATION_Y);
-        #node.AddDof(ROTATION_Z);
+        node.AddDof(ROTATION_X);
+        node.AddDof(ROTATION_Y);
+        node.AddDof(ROTATION_Z);
         #node.AddDof(LAGRANGE_AIR_PRESSURE);
         #node.AddDof(LAGRANGE_WATER_PRESSURE);
     print "dofs for the dynamic structural solution added correctly"
@@ -105,15 +105,30 @@ class SolverAdvanced(structural_solver_static.StaticStructuralSolver):
         #######################################################################
     def Initialize(self):
         #definition of time integration scheme
-        if( self.time_steps == 1 ):
+        if( self.analysis_parameters[14] == 0 ):
+            print("using static scheme")
             self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
             #self.time_scheme = ParallelResidualBasedIncrementalUpdateStaticScheme()
             self.MoveMeshFlag = True
-        else:
-            print "using newmark scheme"
+        elif( self.analysis_parameters[14] == 1 ):
+            print("using newmark quasi-static scheme")
+            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, True )
             self.time_scheme = ResidualBasedNewmarkScheme(self.damp_factor)
             #self.time_scheme = ParallelResidualBasedNewmarkScheme(self.damp_factor)
             self.MoveMeshFlag = True
+        elif( self.analysis_parameters[14] == 2 ):
+            print("using newmark dynamic scheme")
+            self.damp_factor = 0.1; 
+            self.model_part.ProcessInfo.SetValue( QUASI_STATIC_ANALYSIS, False )
+            self.time_scheme = ResidualBasedNewmarkScheme(self.damp_factor)
+            #self.time_scheme = ResidualBasedPredictorCorrectorBossakScheme(self.damp_factor)
+            #self.time_scheme.Check(self.model_part)
+        else:
+            print("analysis type is not defined! Define in analysis_parameters[14]:")
+            print("   0: static analysis")
+            print("   1: quasi-static analysis")
+            print("   2: dynamic analysis")
+            sys.exit(0)
         #definition of the convergence criteria
         self.conv_criteria = MultiPhaseFlowCriteria(self.toll,self.absolute_tol)
         #self.conv_criteria = MultiPhaseFlowCriteria(1.0e-13,1.0e-13)
