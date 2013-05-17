@@ -840,11 +840,11 @@ namespace Kratos {
           
           return 0;
         }
-               
+
         void Insert(typename cell_type::pointer_type object){
 
             const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL) ; // 0.1% of the min size
-           
+
             double min_coord[3]={0.00, 0.00, 0.00};
             double max_coord[3]={0.00, 0.00, 0.00};
 
@@ -878,9 +878,9 @@ namespace Kratos {
             while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
             while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
             min_level++;
-            
+
             cell_type* range_cell = root_;
-                   
+
             for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
                 if (range_cell->IsLeaf()) {
                     //SubdivideCell(range_cell);
@@ -929,7 +929,7 @@ namespace Kratos {
                     cells_stack.push_back(child);
                 }
               } else{
-                // we are in a leaf and we can check if it intersects with the object                  
+                // we are in a leaf and we can check if it intersects with the object
                 double cell_min_point[3];
                 double cell_max_point[3];
 
@@ -945,6 +945,123 @@ namespace Kratos {
 
                 if(is_intersected)
                   cell->Insert(object);
+
+              }
+            }
+
+
+//            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
+//            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
+
+
+
+        }
+
+
+        void GetIntersectedLeaves(typename cell_type::pointer_type object, std::vector<cell_type*>& leaves){
+
+            const double tolerance = 0.001 * double(1 << MIN_LEVEL) / double(1 << ROOT_LEVEL) ; // 0.1% of the min size
+
+            double min_coord[3]={0.00, 0.00, 0.00};
+            double max_coord[3]={0.00, 0.00, 0.00};
+
+
+
+            //
+            // to be added to configure
+
+            configuration_type::GetBoundingBox(object, min_coord,  max_coord);
+            //KRATOS_ERROR(std::logic_error,"To be added to configure", "")
+
+            key_type min_x_key = Key(min_coord[0]);
+            key_type min_y_key = Key(min_coord[1]);
+            key_type min_z_key = Key(min_coord[2]);
+
+            key_type max_x_key = Key(max_coord[0]);
+            key_type max_y_key = Key(max_coord[1]);
+            key_type max_z_key = Key(max_coord[2]);
+
+            key_type delta_x = min_x_key^max_x_key;
+            key_type delta_y = min_y_key^max_y_key;
+            key_type delta_z = min_z_key^max_z_key;
+
+            // finding the level of the cell containing the entire region
+            std::size_t min_level_1 = ROOT_LEVEL;
+            std::size_t min_level_2 = ROOT_LEVEL;
+            std::size_t min_level = ROOT_LEVEL;
+
+            const std::size_t one = 1;
+            while (!(delta_x & (one << min_level_1)) && (min_level_1 > MIN_LEVEL)) min_level_1--;
+            while (!(delta_y & (one << min_level_2)) && (min_level_2 > min_level_1)) min_level_2--;
+            while (!(delta_z & (one << min_level)) && (min_level > min_level_2)) min_level--;
+            min_level++;
+
+            cell_type* range_cell = root_;
+
+            for (std::size_t i = ROOT_LEVEL; i > min_level ; i--) {
+                if (range_cell->IsLeaf()) {
+                    //SubdivideCell(range_cell);
+                  break;
+                }
+                range_cell = range_cell->pGetChild(min_x_key, min_y_key, min_z_key);
+
+            }
+#ifdef _DEBUG
+            {
+              //abel
+              double cell_min_point[3];
+              double cell_max_point[3];
+
+              range_cell->GetMinPoint(cell_min_point);
+              range_cell->GetMaxPoint(cell_max_point);
+              for(int i = 0 ; i < 3 ; i++)
+              {
+                assert(cell_min_point[i] <= min_coord[i]);
+                assert(cell_max_point[i] >= max_coord[i]);
+              }
+              //assert(configuration_type::IsIntersected(object,tolerance, cell_min_point, cell_max_point);
+            }
+#endif
+
+            // Now we have the cell (or leaf) containing the entire range and from now on we have to intersect the object with all childs
+            std::vector<cell_type*> cells_stack;
+            cells_stack.push_back(range_cell);
+            while (!cells_stack.empty()) {
+              cell_type* cell = cells_stack.back();
+              cells_stack.pop_back();
+              if (cell->HasChildren()) {
+                for (std::size_t i = 0; i < CHILDREN_NUMBER; i++){
+                  //abel. to be optimized
+                  cell_type* child=cell->pGetChild(i);
+                  double low[3];
+                  double high[3];
+                  child->GetMinPoint(low);
+                  child->GetMaxPoint(high);
+//                  KRATOS_WATCH_3(low);
+//                  KRATOS_WATCH_3(high);
+//                  KRATOS_WATCH_3(min_coord);
+//                  KRATOS_WATCH_3(max_coord);
+//                  KRATOS_WATCH(Collides(min_coord, max_coord, low, high));
+                  if (Collides(min_coord, max_coord, low, high))
+                    cells_stack.push_back(child);
+                }
+              } else{
+                // we are in a leaf and we can check if it intersects with the object
+                double cell_min_point[3];
+                double cell_max_point[3];
+
+                cell->GetMinPoint(cell_min_point);
+                cell->GetMaxPoint(cell_max_point);
+
+//                KRATOS_WATCH(object->GetGeometry());
+//                KRATOS_WATCH(tolerance);
+//                std::cout << "cell_min_point : " << cell_min_point[0] << "," << cell_min_point[1] << "," << cell_min_point[2] << std::endl;
+//                std::cout << "cell_max_point : " << cell_max_point[0] << "," << cell_max_point[1] << "," << cell_max_point[2] << std::endl;
+
+                const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
+
+                if(is_intersected)
+                  leaves.push_back(cell);
 
               }
             }
