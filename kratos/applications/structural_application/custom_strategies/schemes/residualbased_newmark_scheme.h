@@ -696,12 +696,12 @@ public:
 
         (rCurrentElement)->DampMatrix(DampMatrix,CurrentProcessInfo);
 
-// 			if(!(CurrentProcessInfo[QUASI_STATIC_ANALYSIS]))
-// 			{
-// 				(rCurrentElement)->MassMatrix(MassMatrix, CurrentProcessInfo);
-//
-// 				AddDynamicsToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
-// 			}
+			if(!(CurrentProcessInfo[QUASI_STATIC_ANALYSIS]))
+			{
+				(rCurrentElement)->MassMatrix(MassMatrix, CurrentProcessInfo);
+
+				AddDynamicsToRHS(rCurrentElement, RHS_Contribution, MassMatrix, CurrentProcessInfo);
+			}
 
         AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution,
                              DampMatrix, MassMatrix,CurrentProcessInfo);
@@ -806,13 +806,13 @@ protected:
         LocalSystemMatrixType& M,
         ProcessInfo& CurrentProcessInfo)
     {
-// 			Vector acceleration;
-// 			//adding inertia contribution
-// 			if (M.size1() != 0)
-// 			{
-// 				rCurrentElement->GetSecondDerivativesVector(acceleration,0);
-// 				noalias(RHS_Contribution) -= prod(M, acceleration );
-// 			}
+			Vector acceleration;
+			//adding inertia contribution
+			if (M.size1() != 0)
+			{
+				rCurrentElement->GetSecondDerivativesVector(acceleration,0);
+				noalias(RHS_Contribution) -= prod(M, acceleration );
+			}
     }
 
     void AssembleTimeSpaceLHS(
@@ -837,14 +837,14 @@ protected:
         }
 
 
-//         	if(MassMatrix.size1() == LHS_Contribution.size1()
-// 				|| MassMatrix.size2() == LHS_Contribution.size2())
-// 			{
-//                 for(unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
-//                    	 for(unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
-//                         LHS_Contribution(prim,sec) += MassMatrix(prim,sec)*(1-mAlpha_m)
-//                    			*1/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME]);
-// 			}
+        	if(MassMatrix.size1() == LHS_Contribution.size1()
+				|| MassMatrix.size2() == LHS_Contribution.size2())
+			{
+                for(unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
+                   	 for(unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
+                        LHS_Contribution(prim,sec) += MassMatrix(prim,sec)*(1-mAlpha_m)
+                   			*1/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME]);
+			}
 
     }
 
@@ -869,14 +869,14 @@ protected:
                     LHS_Contribution(prim,sec) += DampMatrix(prim,sec)*(1-mAlpha)
                                                   *mGamma/(mBeta*CurrentProcessInfo[DELTA_TIME]);
         }
-//             if(MassMatrix.size1() == LHS_Contribution.size1()
-// 				|| MassMatrix.size2() == LHS_Contribution.size2())
-// 			{
-//                 for(unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
-//                   	for( unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
-//                         LHS_Contribution(prim,sec) += MassMatrix(prim,sec)*(1-mAlpha_m)
-//                    			*1/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME]);
-// 			}
+            if(MassMatrix.size1() == LHS_Contribution.size1()
+				|| MassMatrix.size2() == LHS_Contribution.size2())
+			{
+                for(unsigned int prim=0; prim< LHS_Contribution.size1(); prim++)
+                  	for( unsigned int sec=0; sec< LHS_Contribution.size2(); sec++)
+                        LHS_Contribution(prim,sec) += MassMatrix(prim,sec)*(1-mAlpha_m)
+                   			*1/(mBeta*CurrentProcessInfo[DELTA_TIME]*CurrentProcessInfo[DELTA_TIME]);
+			}
     }
     /*@} */
     /**@name Protected member Variables */
