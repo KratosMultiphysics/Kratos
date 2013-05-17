@@ -71,14 +71,14 @@ void FractionalStep<TDim>::Calculate(const Variable<double> &rVariable,
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-		const SizeType NumGauss = NContainer.size1();
+        const unsigned int NumGauss = GaussWeights.size();
 
         VectorType MomentumRHS = ZeroVector(LocalSize);
         VectorType MassRHS = ZeroVector(NumNodes);
         VectorType NodalArea = ZeroVector(NumNodes);
 
         // Loop on integration points
-        for (SizeType g = 0; g < NumGauss; g++)
+        for (unsigned int g = 0; g < NumGauss; g++)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
             const double GaussWeight = GaussWeights[g];
@@ -125,7 +125,7 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-		const SizeType NumGauss = NContainer.size1();
+        const unsigned int NumGauss = GaussWeights.size();
 
         VectorType ConvTerm = ZeroVector(LocalSize);
         VectorType PresTerm = ZeroVector(LocalSize);
@@ -173,12 +173,12 @@ void FractionalStep<TDim>::Calculate(const Variable<array_1d<double,3> > &rVaria
         Matrix NContainer;
         VectorType GaussWeights;
         this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-		const SizeType NumGauss = NContainer.size1();
+        const unsigned int NumGauss = GaussWeights.size();
 
         VectorType NodalVelCorrection = ZeroVector(LocalSize);
 
         // Loop on integration points
-        for (SizeType g = 0; g < NumGauss; ++g)
+        for (unsigned int g = 0; g < NumGauss; ++g)
         {
             const ShapeFunctionsType& N = row(NContainer,g);
             const ShapeFunctionDerivativesType& rDN_DX = DN_DX[g];
@@ -309,7 +309,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     Matrix NContainer;
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-	const SizeType NumGauss = NContainer.size1();
+    const unsigned int NumGauss = GaussWeights.size();
 
     MatrixType MassMatrix = ZeroMatrix(LocalSize,LocalSize);
 
@@ -319,7 +319,7 @@ void FractionalStep<TDim>::CalculateLocalFractionalVelocitySystem(MatrixType& rL
     double TauTwo;
 
     // Loop on integration points
-    for (SizeType g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < NumGauss; g++)
     {
         const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& N = row(NContainer,g);
@@ -407,7 +407,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     Matrix NContainer;
     VectorType GaussWeights;
     this->CalculateGeometryData(DN_DX,NContainer,GaussWeights);
-	const SizeType NumGauss = NContainer.size1();
+    const unsigned int NumGauss = GaussWeights.size();
 
     // Stabilization parameters
     double ElemSize = this->ElementSize();
@@ -415,7 +415,7 @@ void FractionalStep<TDim>::CalculateLocalPressureSystem(MatrixType& rLeftHandSid
     double TauTwo;
 
     // Loop on integration points
-    for (SizeType g = 0; g < NumGauss; g++)
+    for (unsigned int g = 0; g < NumGauss; g++)
     {
         const double GaussWeight = GaussWeights[g];
         const ShapeFunctionsType& N = row(NContainer,g);
@@ -1195,6 +1195,100 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
         }
         rDivTerm[j] -= Weight * rN[j] * Divergence;
     }
+}
+
+template< unsigned int TDim >
+void FractionalStep<TDim>::ModulatedGradientDiffusion(MatrixType& rDampMatrix,
+                                                      const ShapeFunctionDerivativesType& rDN_DX,
+                                                      const double Weight)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    const unsigned int NumNodes = rGeom.PointsNumber();
+
+    // Velocity gradient
+    MatrixType GradU = ZeroMatrix(TDim,TDim);
+    for (unsigned int n = 0; n < NumNodes; n++)
+    {
+        const array_1d<double,3>& rVel = this->GetGeometry()[n].FastGetSolutionStepValue(VELOCITY);
+        for (unsigned int i = 0; i < TDim; i++)
+            for (unsigned int j = 0; j < TDim; j++)
+                GradU(i,j) += rDN_DX(n,j)*rVel[i];
+    }
+
+    // Element lengths
+    array_1d<double,3> Delta(3,0.0);
+    Delta[0] = abs(rGeom[NumNodes-1].X()-rGeom[0].X());
+    Delta[1] = abs(rGeom[NumNodes-1].Y()-rGeom[0].Y());
+    Delta[2] = abs(rGeom[NumNodes-1].Z()-rGeom[0].Z());
+
+    for (unsigned int n = 1; n < NumNodes; n++)
+    {
+        double hx = abs(rGeom[n].X()-rGeom[n-1].X());
+        if (hx > Delta[0]) Delta[0] = hx;
+        double hy = abs(rGeom[n].Y()-rGeom[n-1].Y());
+        if (hy > Delta[1]) Delta[1] = hy;
+        double hz = abs(rGeom[n].Z()-rGeom[n-1].Z());
+        if (hz > Delta[2]) Delta[2] = hz;
+    }
+
+    double AvgDeltaSq = Delta[0];
+    for (unsigned int d = 1; d < TDim; d++)
+        AvgDeltaSq *= Delta[d];
+    AvgDeltaSq = std::pow(AvgDeltaSq,2./TDim);
+
+    Delta[0] = Delta[0]*Delta[0]/12.0;
+    Delta[1] = Delta[1]*Delta[1]/12.0;
+    Delta[2] = Delta[2]*Delta[2]/12.0;
+
+    // Gij
+    MatrixType G = ZeroMatrix(TDim,TDim);
+    for (unsigned int i = 0; i < TDim; i++)
+        for (unsigned int j = 0; j < TDim; j++)
+            for (unsigned int d = 0; d < TDim; d++)
+                G(i,j) += Delta[d]*GradU(i,d)*GradU(j,d);
+
+    // Gij:Sij
+    double GijSij = 0.0;
+    for (unsigned int i = 0; i < TDim; i++)
+        for (unsigned int j = 0; j < TDim; j++)
+            GijSij += 0.5*G(i,j)*( GradU(i,j) + GradU(j,i) );
+
+    if (GijSij < 0.0) // Otherwise model term is clipped
+    {
+        // Gkk
+        double Gkk = G(0,0);
+        for (unsigned int d = 1; d < TDim; d++)
+            Gkk += G(d,d);
+
+        // C_epsilon
+        const double Ce = 1.0;
+        
+        // ksgs
+        double ksgs = -4*AvgDeltaSq*GijSij/(Ce*Ce*Gkk);
+
+        // Assembly of model term
+        unsigned int RowIndex = 0;
+        unsigned int ColIndex = 0;
+
+        for (unsigned int i = 0; i < NumNodes; i++)
+        {
+            for (unsigned int j = 0; j < NumNodes; j++)
+            {
+                for (unsigned int d = 0; d < TDim; d++)
+                {
+                    double Aux = rDN_DX(i,d) * Delta[0] * G(d,0)*rDN_DX(j,0);
+                    for (unsigned int k = 1; k < TDim; k++)
+                        Aux += rDN_DX(i,d) *Delta[k] * G(d,k)*rDN_DX(j,k);
+                    rDampMatrix(RowIndex+d,ColIndex+d) += Weight * 2.0*ksgs *  Aux;
+                }
+
+                ColIndex += TDim;
+            }
+            RowIndex += TDim;
+            ColIndex = 0;
+        }
+    }
+
 }
 
 /*
