@@ -71,6 +71,185 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+
+class DistanceSpatialContainersConfigure
+{
+
+    class CellNodeData
+    {
+        double mDistance;
+    public:
+        double& Distance(){return mDistance;}
+    };
+
+public:
+
+
+    ///@name Type Definitions
+    ///@{
+
+    enum { Dimension = 3,
+           DIMENSION = 3,
+           MAX_LEVEL = 12,
+           MIN_LEVEL = 2
+         };
+    typedef Point<3, double>                                PointType;  /// always the point 3D
+    typedef std::vector<double>::iterator                   DistanceIteratorType;
+    typedef ModelPart::ElementsContainerType::ContainerType ContainerType;
+    typedef ContainerType::value_type                       PointerType;
+    typedef ContainerType::iterator                         IteratorType;
+    typedef ModelPart::ElementsContainerType::ContainerType ResultContainerType;
+    typedef ResultContainerType::value_type                 ResultPointerType;
+    typedef ResultContainerType::iterator                   ResultIteratorType;
+
+    typedef Element::Pointer                                        pointer_type;
+    typedef CellNodeData                cell_node_data_type;
+    typedef std::vector<CellNodeData*> data_type;
+
+
+
+    typedef  std::vector<PointerType>::iterator             PointerTypeIterator;
+
+
+
+
+    /// Pointer definition of DistanceSpatialContainersConfigure
+    KRATOS_CLASS_POINTER_DEFINITION(DistanceSpatialContainersConfigure);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    DistanceSpatialContainersConfigure() {}
+
+    /// Destructor.
+    virtual ~DistanceSpatialContainersConfigure() {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    static data_type* AllocateData() {
+        return new data_type(27, NULL);
+    }
+
+    static void CopyData(data_type* source, data_type* destination) {
+        destination = source;
+    }
+
+    static void DeleteData(data_type* data) {
+        delete data;
+    }
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
+    {
+        rHighPoint = rObject->GetGeometry().GetPoint(0);
+        rLowPoint  = rObject->GetGeometry().GetPoint(0);
+        for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
+        {
+            for(std::size_t i = 0; i<3; i++)
+            {
+                rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i];
+                rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+            }
+        }
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline void GetBoundingBox(const PointerType rObject, double* rLowPoint, double* rHighPoint)
+    {
+
+        for(std::size_t i = 0; i<3; i++)
+        {
+            rLowPoint[i]  =  rObject->GetGeometry().GetPoint(0)[i];
+            rHighPoint[i] =  rObject->GetGeometry().GetPoint(0)[i];
+        }
+
+        for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
+        {
+            for(std::size_t i = 0; i<3; i++)
+            {
+                rLowPoint[i]  =  (rLowPoint[i]  >  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rLowPoint[i];
+                rHighPoint[i] =  (rHighPoint[i] <  rObject->GetGeometry().GetPoint(point)[i] ) ?  rObject->GetGeometry().GetPoint(point)[i] : rHighPoint[i];
+            }
+        }
+    }
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
+    {
+        Element::GeometryType& geom_1 = rObj_1->GetGeometry();
+        Element::GeometryType& geom_2 = rObj_2->GetGeometry();
+        return  geom_1.HasIntersection(geom_2);
+
+    }
+
+
+///******************************************************************************************************************
+///******************************************************************************************************************
+
+    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    {
+        return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
+    }
+
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return " Spatial Containers Configure";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const {}
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const {}
+
+
+    ///@}
+
+protected:
+
+private:
+
+    /// Assignment operator.
+    DistanceSpatialContainersConfigure& operator=(DistanceSpatialContainersConfigure const& rOther);
+
+    /// Copy constructor.
+    DistanceSpatialContainersConfigure(DistanceSpatialContainersConfigure const& rOther);
+
+
+}; // Class DistanceSpatialContainersConfigure
+
   ///@name Kratos Globals
   ///@{ 
   
@@ -104,9 +283,10 @@ namespace Kratos
       /// Pointer definition of CalculateSignedDistanceTo3DSkinProcess
         KRATOS_CLASS_POINTER_DEFINITION(CalculateSignedDistanceTo3DSkinProcess);
         
-        typedef SpatialContainersConfigure < 3 > ConfigurationType;
+        typedef DistanceSpatialContainersConfigure ConfigurationType;
         typedef OctreeBinaryCell<ConfigurationType> CellType;
         typedef OctreeBinary<CellType> OctreeType;
+        typedef DistanceSpatialContainersConfigure::cell_node_data_type CellNodeDataType;
 
       ///@}
       ///@name Life Cycle 
@@ -148,7 +328,32 @@ namespace Kratos
 
             GenerateNodes();
 
+//            std::vector<int> v;
+
+//                    for(ModelPart::NodeIterator i_node = mrBodyModelPart.NodesBegin() ; i_node != mrBodyModelPart.NodesEnd() ; i_node++)
+//                    {
+//                        v.push_back( i_node->Id() % 5000);
+//                    }
+
+//                    KRATOS_WATCH(v.size())
+//            Timer::Start("test");
+//            std::sort(v.begin(), v.end());
+//            std::vector<int>::iterator i = std::unique(v.begin(),v.end());
+//            v.erase(i,v.end());
+//            Timer::Stop("test");
+//            KRATOS_WATCH(v.size());
+
+
+
+
+
+//            CalculateDistance();
             CalculateDistance();
+
+//            double coord[3] = {0.4375, 0.57812, 0.5};
+//            double distance = DistancePositionInSpace(coord);
+//            KRATOS_WATCH(distance);
+
 
 
             //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
@@ -174,22 +379,25 @@ namespace Kratos
       {
           Timer::Start("Generating Octree");
 
+
+          //mOctree.RefineWithUniformSize(0.0625);
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
               temp_point[0] = i_node->Coordinate(1);
               temp_point[1] = i_node->Coordinate(2);
               temp_point[2] = i_node->Coordinate(3);
-              //mOctree.Insert(temp_point);
+              mOctree.Insert(temp_point);
           }
+
+
+          mOctree.Constrain2To1(); // To be removed. Pooyan.
 
           for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin() ; i_element != mrSkinModelPart.ElementsEnd() ; i_element++)
           {
               mOctree.Insert(*(i_element).base());
           }
 
-          mOctree.Constrain2To1();
-          mOctree.RefineWithUniformSize(0.5);
           Timer::Stop("Generating Octree");
 //          octree.Insert(*(mrSkinModelPart.ElementsBegin().base()));
           KRATOS_WATCH(mOctree);
@@ -226,20 +434,12 @@ namespace Kratos
       {
         for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
         {
-            Node<3>* p_node = (*(pCell->pGetData()))[i_pos];
+            DistanceSpatialContainersConfigure::cell_node_data_type* p_node = (*(pCell->pGetData()))[i_pos];
             if(p_node == 0)
             {
-                CellType::key_type keys[3];
-                pCell->GetKey(i_pos,keys);
+                (*(pCell->pGetData()))[i_pos] = new DistanceSpatialContainersConfigure::cell_node_data_type;
 
-                double new_point[3];
-
-                new_point[0] = pCell->GetCoordinate(keys[0]);
-                new_point[1] = pCell->GetCoordinate(keys[1]);
-                new_point[2] = pCell->GetCoordinate(keys[2]);
-                
-
-                (*(pCell->pGetData()))[i_pos] = (mrBodyModelPart.CreateNewNode(++LastId, new_point[0], new_point[1], new_point[2])).get();
+                mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
 
                 SetNodeInNeighbours(pCell,i_pos,(*(pCell->pGetData()))[i_pos]);
             }
@@ -247,7 +447,7 @@ namespace Kratos
         }
       }
 
-     void SetNodeInNeighbours(CellType* pCell, int Position, Node<3>* pNode)
+     void SetNodeInNeighbours(CellType* pCell, int Position, CellNodeDataType* pNode)
 {
             CellType::key_type point_key[3];
             pCell->GetKey(Position, point_key);
@@ -261,7 +461,10 @@ namespace Kratos
 
                     std::size_t position = neighbour_cell->GetLocalPosition(point_key);
                     if((*neighbour_cell->pGetData())[position])
-                        std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
+                    {
+                        //std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!! position :" << position << std::endl;
+                        continue;
+                    }
                     
                     (*neighbour_cell->pGetData())[position] = pNode;
                 }
@@ -269,57 +472,188 @@ namespace Kratos
       }
 
 
+//      void CalculateDistance2()
+//      {
+//          Timer::Start("Calculate Distances2");
+//          ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
+//          int nodes_size = nodes.size();
+//          // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+//#pragma omp parallel for firstprivate(nodes_size)
+//          for(int i = 0 ; i < nodes_size ; i++)
+//              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+
+//            std::vector<CellType*> leaves;
+
+//          mOctree.GetAllLeavesVector(leaves);
+//          int leaves_size = leaves.size();
+
+//          for(int i = 0 ; i < leaves_size ; i++)
+//              CalculateNotEmptyLeavesDistance(leaves[i]);
+
+//#pragma omp parallel for firstprivate(nodes_size)
+//          for(int i = 0 ; i < nodes_size ; i++)
+//          {
+//              CalculateNodeDistance(*(nodes[i]));
+//          }
+//          Timer::Stop("Calculate Distances2");
+
+//      }
+
+
       void CalculateDistance()
       {
           Timer::Start("Calculate Distances");
-          ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
+          ModelPart::NodesContainerType::ContainerType& nodes = mOctreeNodes;
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
-#pragma omp parallel for firstprivate(size)
+#pragma omp parallel for firstprivate(nodes_size)
           for(int i = 0 ; i < nodes_size ; i++)
               nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+
 
             std::vector<CellType*> leaves;
 
           mOctree.GetAllLeavesVector(leaves);
           int leaves_size = leaves.size();
+
           for(int i = 0 ; i < leaves_size ; i++)
-              CalculateNotEmptyLeavesDistance(*(leaves[i]));
+              CalculateNotEmptyLeavesDistance(leaves[i]);
+
+          for(int i_direction = 0 ; i_direction < 1 ; i_direction++)
+          {
 
 //#pragma omp parallel for firstprivate(nodes_size)
-          for(int i = 0 ; i < nodes_size ; i++)
-          {
-              CalculateNodeDistance(*(nodes[i]));
+            for(int i = 0 ; i < nodes_size ; i++)
+            {
+                if(nodes[i]->X() < 1.00 && nodes[i]->Y() < 1.00 && nodes[i]->Z() < 1.00)
+               // if((*nodes[i])[i_direction] == 0.00)
+                    CalculateDistance(*(nodes[i]), i_direction);
+            }
           }
           Timer::Stop("Calculate Distances");
 
       }
 
-      void CalculateNotEmptyLeavesDistance(CellType& rCell)
+      void CalculateDistance(CellNodeDataType& rNode, int i_direction)
+      {
+          double coords[3] = {rNode.X(), rNode.Y(), rNode.Z()};
+         // KRATOS_WATCH_3(coords);
+
+             //This function must color the positions in space defined by 'coords'.
+            //coords is of dimension (3) normalized in (0,1)^3 space
+
+            typedef Element::GeometryType triangle_type;
+            typedef std::vector<std::pair<double, triangle_type*> > intersections_container_type;
+
+            intersections_container_type intersections;
+            DistanceSpatialContainersConfigure::data_type nodes_array;
+
+
+            const double epsilon = 1e-12;
+
+            double distance = 1.0;
+
+            // Creating the ray
+            double ray[3] = {coords[0], coords[1], coords[2]};
+            ray[i_direction] = 0; // starting from the lower extreme
+
+//            KRATOS_WATCH_3(ray)
+            GetIntersectionsAndNodes(ray, i_direction, intersections, nodes_array);
+//            KRATOS_WATCH(nodes_array.size())
+            for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
+            {
+                double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+   //             KRATOS_WATCH(intersections.size());
+
+                int ray_color= 1;
+                std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+                while (i_intersection != intersections.end()) {
+                    double d = coord - i_intersection->first;
+                    if (d > epsilon) {
+
+                        ray_color = -ray_color;
+                        distance = d;
+                    } else if (d > -epsilon) {//interface
+                        distance = 0.00;
+                        break;
+                    } else {
+                        if(distance > -d)
+                            distance = -d;
+                        break;
+                    }
+
+                    i_intersection++;
+                }
+
+                distance *= ray_color;
+
+                double& node_distance = nodes_array[i_node]->GetSolutionStepValue(DISTANCE);
+                if(fabs(distance) < fabs(node_distance))
+                    node_distance = distance;
+                else if (distance*node_distance < 0.00) // assigning the correct sign
+                    node_distance = -node_distance;
+
+
+            }
+     }
+
+      void CalculateNotEmptyLeavesDistance(CellType* pCell)
       {
         typedef Element::GeometryType triangle_type;
         typedef OctreeType::cell_type::object_container_type object_container_type;
 
-        object_container_type* objects = (cell->pGetObjects());
+        object_container_type* objects = (pCell->pGetObjects());
 
         // There are no intersection in empty cells
         if (objects->empty())
             return;
 
-        GeometryUtils::PointDistanceToTriangle3D()
+
+        for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
+        {
+            double distance = 1.00; // maximum distance is 1.00
+
+            for(object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++)
+            {
+                CellType::key_type keys[3];
+                pCell->GetKey(i_pos,keys);
+
+                double cell_point[3];
+
+                cell_point[0] = pCell->GetCoordinate(keys[0]);
+                cell_point[1] = pCell->GetCoordinate(keys[1]);
+                cell_point[2] = pCell->GetCoordinate(keys[2]);
+
+                double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
+
+                if(d < distance)
+                    distance = d;
+            }
+
+            double& node_distance = (*(pCell->pGetData()))[i_pos]->GetSolutionStepValue(DISTANCE);
+            if(distance < node_distance)
+                node_distance = distance;
+
+        }
 
       }
 
-      void CalculateNodeDistance(Node<3>& rNode)
+
+      void CalculateNodeDistance(CellNodeDataType& rNode)
       {
           double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
           double distance = DistancePositionInSpace(coord);
+          double& node_distance = rNode.GetSolutionStepValue(DISTANCE);
 
-          rNode.GetSolutionStepValue(DISTANCE) = distance;
+          const double epsilon = 1.00e-12;
+          if(fabs(node_distance) > fabs(distance))
+            node_distance = distance;
+          else if (distance*node_distance < 0.00) // assigning the correct sign
+              node_distance = -node_distance;
       }
 
       double DistancePositionInSpace(double* coords)
-{
+      {
             //This function must color the positions in space defined by 'coords'.
             //coords is of dimension (3) normalized in (0,1)^3 space
 
@@ -341,6 +675,9 @@ namespace Kratos
 
                 GetIntersections(ray, i_direction, intersections);
 
+//                if(intersections.size() == 1)
+//                    KRATOS_WATCH_3(ray)
+
    //             KRATOS_WATCH(intersections.size());
 
                 int ray_color= 1;
@@ -348,22 +685,33 @@ namespace Kratos
                 while (i_intersection != intersections.end()) {
                     double d = coords[i_direction] - i_intersection->first;
                     if (d > epsilon) {
+
                         ray_color = -ray_color;
-                        if(fabs(distances[i_direction]) > d)
-                            distances[i_direction] = ray_color * d;
+                        distances[i_direction] = d;
+//                        if(distances[i_direction] > d) // I think this is redundunt. Pooyan.
+//                        {
+//                            if(ray_color > 0.00)
+//                                    distances[i_direction] = d;
+//                            else
+//                                distances[i_direction] = -d;
+//                        }
                     } else if (d > -epsilon) {//interface
                         distances[i_direction] = 0.00;
                         break;
                     } else {
-                        if(fabs(distances[i_direction]) > -d)
-                            distances[i_direction] = ray_color * -d;
+                        if(distances[i_direction] > -d)
+                            distances[i_direction] = -d;
                         break;
                     }
 
                     i_intersection++;
                 }
 
+                distances[i_direction] *= ray_color;
             }
+
+//            if(distances[0]*distances[1] < 0.00 || distances[2]*distances[1] < 0.00)
+//                KRATOS_WATCH_3(distances);
 
 #ifdef _DEBUG
             std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
@@ -376,13 +724,125 @@ namespace Kratos
         }
 
 
+  void GetIntersectionsAndNodes(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections, DistanceSpatialContainersConfigure::data_type& rNodesArray)
+  {
+    //This function passes the ray through the model and gives the hit point to all objects in its way
+    //ray is of dimension (3) normalized in (0,1)^3 space
+    // direction can be 0,1,2 which are x,y and z respectively
+
+    const double epsilon = 1.00e-12;
+
+    // first clearing the intersections points vector
+    intersections.clear();
+
+    OctreeType* octree = &mOctree;
+
+    OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])};
+    OctreeType::key_type cell_key[3];
+
+    // getting the entrance cell from lower extreme
+    ray_key[direction] = 0;
+    OctreeType::cell_type* cell = octree->pGetCell(ray_key);
+
+    while (cell) {
+        std::size_t position = cell->GetLocalPosition(ray_key); // Is this the local position!?!?!?!
+        OctreeType::key_type node_key[3];
+        cell->GetKey(position, node_key);
+        if((node_key[0] == ray_key[0]) && (node_key[1] == ray_key[1]) && (node_key[2] == ray_key[2]))
+        {
+            if(cell->pGetData())
+            {
+                if(cell->pGetData()->size() > position)
+                {
+                    CellNodeDataType* p_node = (*cell->pGetData())[position];
+                    if(p_node)
+                    {
+                        //KRATOS_WATCH(p_node->Id())
+                        rNodesArray.push_back(p_node);
+                    }
+                }
+                else
+                    KRATOS_WATCH(cell->pGetData()->size())
+            }
+        }
+
+
+//        std::cout << ".";
+      GetCellIntersections(cell, ray, ray_key, direction, intersections);
+
+      // Add the cell's middle node if existed
+//      cell->GetKey(8, cell_key); // 8 is the central position
+//      ray_key[direction]=cell_key[direction]; // positioning the ray in the middle of cell in its direction
+
+//      position = cell->GetLocalPosition(ray_key);
+//      if(position < 27) // principal nodes
+//      {
+//          if(cell->pGetData())
+//          {
+//              if(cell->pGetData()->size() > position)
+//              {
+//                  Node<3>* p_node = (*cell->pGetData())[position];
+//                  if(p_node)
+//                  {
+//                      //KRATOS_WATCH(p_node->Id())
+//                      rNodesArray.push_back(p_node);
+//                  }
+//              }
+//              else
+//                  KRATOS_WATCH(cell->pGetData()->size())
+//          }
+//      }
+//      else
+//      {
+//          KRATOS_WATCH(position);
+//          KRATOS_WATCH(*cell);
+//      }
+
+
+      // go to the next cell
+      if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
+        ray_key[direction] = cell_key[direction];
+        cell = octree->pGetCell(ray_key);
+        ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
+        //cell get in pGetCell is the right one.
+#ifdef _DEBUG
+        Octree_Pooyan::key_type min_key[3];
+        cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
+        Octree_Pooyan::key_type tmp;
+        tmp= min_key[direction];
+        assert(ray_key[direction]==tmp);
+#endif
+      } else
+        cell = NULL;
+    }
+
+
+
+ //   KRATOS_WATCH(rNodesArray.size());
+    // now eliminating the repeated objects
+    if (!intersections.empty()) {
+      //sort
+      std::sort(intersections.begin(), intersections.end());
+      // unique
+      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
+      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+      while (++i_begin != intersections.end()) {
+          // considering the very near points as the same points
+          if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+            *(++i_intersection) = *i_begin;
+      }
+      intersections.resize((++i_intersection) - intersections.begin());
+
+    }
+  }
+
   void GetIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
   {
     //This function passes the ray through the model and gives the hit point to all objects in its way
     //ray is of dimension (3) normalized in (0,1)^3 space
     // direction can be 0,1,2 which are x,y and z respectively
 
-    //const double epsilon = 1.00e-12;
+    const double epsilon = 1.00e-12;
 
     // first clearing the intersections points vector
     intersections.clear();
@@ -413,6 +873,23 @@ namespace Kratos
 #endif
       } else
         cell = NULL;
+    }
+
+
+    // now eliminating the repeated objects
+    if (!intersections.empty()) {
+      //sort
+      std::sort(intersections.begin(), intersections.end());
+      // unique
+      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
+      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+      while (++i_begin != intersections.end()) {
+          // considering the very near points as the same points
+          if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+            *(++i_intersection) = *i_begin;
+      }
+      intersections.resize((++i_intersection) - intersections.begin());
+
     }
   }
 
@@ -515,10 +992,10 @@ namespace Kratos
     // get and test parametric coords
     double s, t;
     s = (uv * wv - vv * wu) / D;
-    if (s < 0.0 || s > 1.0)        // I is outside T
+    if (s < 0.0 - epsilon || s > 1.0 + epsilon)        // I is outside T
         return 0;
     t = (uv * wu - uu * wv) / D;
-    if (t < 0.0 || (s + t) > 1.0)  // I is outside T
+    if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon)  // I is outside T
         return 0;
 
     return 1;                      // I is in T
@@ -582,7 +1059,7 @@ namespace Kratos
             for (std::size_t i = 0; i < leaves.size(); i++) {
                 if ((leaves[i]->pGetData()))
                 {
-                    std::vector<Node<3>*>& nodes = (*(leaves[i]->pGetData()));
+                    DistanceSpatialContainersConfigure::data_type& nodes = (*(leaves[i]->pGetData()));
 
                     rOStream << i + 1;
                     for(int j = 0 ; j < 8 ; j++)
@@ -667,6 +1144,8 @@ namespace Kratos
       ///@{ 
 	ModelPart& mrSkinModelPart;
         ModelPart& mrBodyModelPart;
+
+        DistanceSpatialContainersConfigure::data_type mOctreeNodes;
 
         OctreeType mOctree;
         
