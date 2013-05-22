@@ -78,8 +78,15 @@ class DistanceSpatialContainersConfigure
     class CellNodeData
     {
         double mDistance;
+        double mCoordinates[3];
+        std::size_t mId;
     public:
         double& Distance(){return mDistance;}
+        double& X() {return mCoordinates[0];}
+        double& Y() {return mCoordinates[1];}
+        double& Z() {return mCoordinates[2];}
+        double& Coordinate(int i) {return mCoordinates[i-1];}
+        std::size_t& Id(){return mId;}
     };
 
 public:
@@ -90,7 +97,7 @@ public:
 
     enum { Dimension = 3,
            DIMENSION = 3,
-           MAX_LEVEL = 12,
+           MAX_LEVEL = 4,
            MIN_LEVEL = 2
          };
     typedef Point<3, double>                                PointType;  /// always the point 3D
@@ -141,7 +148,7 @@ public:
     }
 
     static void CopyData(data_type* source, data_type* destination) {
-        destination = source;
+        *destination = *source;
     }
 
     static void DeleteData(data_type* data) {
@@ -420,8 +427,10 @@ private:
           }
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
+          KRATOS_WATCH(all_leaves.size());
           for (std::size_t i = 0; i < all_leaves.size(); i++)
           {
+              KRATOS_WATCH(i)
                 CellType* cell = all_leaves[i];
                 GenerateCellNode(cell, last_id);
           }
@@ -438,6 +447,9 @@ private:
             if(p_node == 0)
             {
                 (*(pCell->pGetData()))[i_pos] = new DistanceSpatialContainersConfigure::cell_node_data_type;
+
+                (*(pCell->pGetData()))[i_pos]->Id() = LastId++;
+                KRATOS_WATCH(LastId)
 
                 mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
 
@@ -462,7 +474,7 @@ private:
                     std::size_t position = neighbour_cell->GetLocalPosition(point_key);
                     if((*neighbour_cell->pGetData())[position])
                     {
-                        //std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!! position :" << position << std::endl;
+                        std::cout << "ERROR!! Bad Position calculated!!!!!!!!!!! position :" << position << std::endl;
                         continue;
                     }
                     
@@ -503,12 +515,12 @@ private:
       void CalculateDistance()
       {
           Timer::Start("Calculate Distances");
-          ModelPart::NodesContainerType::ContainerType& nodes = mOctreeNodes;
+          DistanceSpatialContainersConfigure::data_type& nodes = mOctreeNodes;
           int nodes_size = nodes.size();
           // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
 #pragma omp parallel for firstprivate(nodes_size)
           for(int i = 0 ; i < nodes_size ; i++)
-              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+              nodes[i]->Distance() = 1.00;
 
 
             std::vector<CellType*> leaves;
@@ -560,7 +572,7 @@ private:
 //            KRATOS_WATCH_3(ray)
             GetIntersectionsAndNodes(ray, i_direction, intersections, nodes_array);
 //            KRATOS_WATCH(nodes_array.size())
-            for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
+            for (std::size_t i_node = 0; i_node < nodes_array.size() ; i_node++)
             {
                 double coord = nodes_array[i_node]->Coordinate(i_direction+1);
    //             KRATOS_WATCH(intersections.size());
@@ -587,7 +599,7 @@ private:
 
                 distance *= ray_color;
 
-                double& node_distance = nodes_array[i_node]->GetSolutionStepValue(DISTANCE);
+                double& node_distance = nodes_array[i_node]->Distance();
                 if(fabs(distance) < fabs(node_distance))
                     node_distance = distance;
                 else if (distance*node_distance < 0.00) // assigning the correct sign
@@ -630,7 +642,7 @@ private:
                     distance = d;
             }
 
-            double& node_distance = (*(pCell->pGetData()))[i_pos]->GetSolutionStepValue(DISTANCE);
+            double& node_distance = (*(pCell->pGetData()))[i_pos]->Distance();
             if(distance < node_distance)
                 node_distance = distance;
 
@@ -643,9 +655,9 @@ private:
       {
           double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
           double distance = DistancePositionInSpace(coord);
-          double& node_distance = rNode.GetSolutionStepValue(DISTANCE);
+          double& node_distance = rNode.Distance();
 
-          const double epsilon = 1.00e-12;
+          //const double epsilon = 1.00e-12;
           if(fabs(node_distance) > fabs(distance))
             node_distance = distance;
           else if (distance*node_distance < 0.00) // assigning the correct sign
@@ -1046,9 +1058,9 @@ private:
             rOStream << "Coordinates" << std::endl;
             rOStream << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
 
-          for(ModelPart::NodeIterator i_node = mrBodyModelPart.NodesBegin() ; i_node != mrBodyModelPart.NodesEnd() ; i_node++)
+          for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
           {
-              rOStream << i_node->Id() << "  " << i_node->Coordinate(1) << "  " << i_node->Coordinate(2) << "  " << i_node->Coordinate(3) << std::endl;
+              rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
               //mOctree.Insert(temp_point);
           }
             std::cout << "Nodes written..." << std::endl;
@@ -1082,9 +1094,9 @@ private:
 
             rOStream << "Values" << std::endl;
 
-          for(ModelPart::NodeIterator i_node = mrBodyModelPart.NodesBegin() ; i_node != mrBodyModelPart.NodesEnd() ; i_node++)
+            for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
           {
-              rOStream << i_node->Id() << "  " << i_node->GetSolutionStepValue(DISTANCE) << std::endl;
+                rOStream << (*i_node)->Id() << "  " << (*i_node)->Distance() << std::endl;
           }
             rOStream << "End Values" << std::endl;
 
