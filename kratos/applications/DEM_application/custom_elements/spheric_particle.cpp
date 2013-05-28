@@ -69,14 +69,6 @@ namespace Kratos
           mFrictionAngle                          = friction_angle;
           mRestitCoeff                            = restitution_coeff;
           mInitializedVariablesFlag               = 0;
-         
-//           m_data_neighbours_elements             = this->GetValue(NEIGHBOUR_ELEMENTS);
-//           m_data_particle_elastic_contact_forces = this->GetValue(PARTICLE_CONTACT_FORCES);
-          
-//           if(this->GetGeometry()(0)->Id() == 7114)
-//           {
-//               std::cout << /*"INI: " << (m_data_neighbours_elements[0]) << "     " <<*/ &(this->GetValue(NEIGHBOUR_ELEMENTS).begin()) << std::endl;
-//           }
           
           KRATOS_CATCH( "" )
       }
@@ -98,6 +90,7 @@ namespace Kratos
           contact_moment[1] = 0.0;
           contact_moment[2] = 0.0;
 
+          ComputeNewNeighboursHistoricalData();
           ComputeBallToBallContactForce(   contact_force, contact_moment, rCurrentProcessInfo);
           ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo);
 
@@ -110,6 +103,42 @@ namespace Kratos
 
           KRATOS_CATCH( "" )
       }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
+
+     void SphericParticle::ComputeNewNeighboursHistoricalData()
+     {
+       unsigned int neighbour_counter       = 0;
+       ParticleWeakVectorType& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+       unsigned int new_size                = r_neighbours.size();
+       vector<int> temp_neighbours_ids(new_size);
+       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+       array_1d<double, 3> vector_of_zeros;
+       vector_of_zeros[0]                   = 0.0;
+       vector_of_zeros[1]                   = 0.0;
+       vector_of_zeros[2]                   = 0.0;
+
+       for (ParticleWeakIteratorType i = r_neighbours.begin(); i != r_neighbours.end(); i++){
+
+           for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++){
+               temp_neighbours_ids[neighbour_counter] = static_cast<int>(i->Id());
+               temp_neighbours_contact_forces[neighbour_counter] = vector_of_zeros;
+
+               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j]){
+                   temp_neighbours_contact_forces[neighbour_counter] = mOldNeighbourContactForces[j];
+                   break;
+               }
+
+           }
+
+           neighbour_counter++;
+       }
+
+       mOldNeighbourIds           = temp_neighbours_ids;
+       mOldNeighbourContactForces = temp_neighbours_contact_forces;
+
+     }
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
@@ -132,7 +161,6 @@ namespace Kratos
           KRATOS_TRY
 
           ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
-          VectorArray3Double& GlobalContactForceMatrix = this->GetValue(PARTICLE_CONTACT_FORCES);
 
           // PROCESS INFO
 
@@ -213,7 +241,7 @@ namespace Kratos
                   double &other_FriAngle          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
 
                   other_mass                      = 4 / 3.0 * M_PI * other_radius * other_radius * other_radius * other_density;
-                  equiv_mass                      = sqrt(mRealMass * other_mass);//(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
+                  equiv_mass                      = sqrt(mRealMass * other_mass); //(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
                   equiv_restitution_coeff         = sqrt(mRestitCoeff * other_restitution_coeff); //I: we assume this.
                   equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
                   equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
@@ -227,9 +255,9 @@ namespace Kratos
                   kt                              = mGlobalKt;
               }
 
-              else{
+              else {
                   kn                              = mMagicFactor * equiv_young * corrected_area / radius_sum; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                  kt                              = kn / (2.0 * (1.0 + equiv_poisson));;
+                  kt                              = kn / (2.0 * (1.0 + equiv_poisson));
               }
 
               // Historical minimun K for the critical time
@@ -289,11 +317,6 @@ namespace Kratos
               double DeltDisp[3]                        = {0.0};
               double RelVel[3]                          = {0.0};
               
-//               if(this->GetGeometry()(0)->Id() == 7093)
-//               {
-//               std::cout << this->GetGeometry()(0)->Id() << ": " << neighbour_iterator->GetGeometry()(0)->Id() << " -> "; 
-//               KRATOS_WATCH(other_delta_displ);
-//               }
 
               RelVel[0] = vel[0] - other_vel[0];
               RelVel[1] = vel[1] - other_vel[1];
@@ -331,9 +354,9 @@ namespace Kratos
               double GlobalElasticContactForce[3]       = {0.0};
               double LocalRelVel[3]                     = {0.0};
               
-              GlobalElasticContactForce[0]              = GlobalContactForceMatrix[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
-              GlobalElasticContactForce[1]              = GlobalContactForceMatrix[i_neighbour_count][1];
-              GlobalElasticContactForce[2]              = GlobalContactForceMatrix[i_neighbour_count][2];
+              GlobalElasticContactForce[0]              = mOldNeighbourContactForces[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
+              GlobalElasticContactForce[1]              = mOldNeighbourContactForces[i_neighbour_count][1];
+              GlobalElasticContactForce[2]              = mOldNeighbourContactForces[i_neighbour_count][2];
 
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
@@ -362,7 +385,7 @@ namespace Kratos
 
                       break;
 
-                  }//switch
+                  } // switch
 
                   // TANGENTIAL FORCE
                       // Incremental calculation. YADE develops a complicated "absolute method"
@@ -421,13 +444,14 @@ namespace Kratos
               GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
 
               // Saving contact forces (We need to, since tangential elastic force is history-dependent)
-              GlobalContactForceMatrix[i_neighbour_count][0] = GlobalElasticContactForce[0];
-              GlobalContactForceMatrix[i_neighbour_count][1] = GlobalElasticContactForce[1];
-              GlobalContactForceMatrix[i_neighbour_count][2] = GlobalElasticContactForce[2];
 
               rContactForce[0] += GlobalContactForce[0];
               rContactForce[1] += GlobalContactForce[1];
               rContactForce[2] += GlobalContactForce[2];
+
+              mOldNeighbourContactForces[i_neighbour_count][0] = GlobalElasticContactForce[0];
+              mOldNeighbourContactForces[i_neighbour_count][1] = GlobalElasticContactForce[1];
+              mOldNeighbourContactForces[i_neighbour_count][2] = GlobalElasticContactForce[2];
 
               // ROTATION FORCES
 
@@ -447,7 +471,7 @@ namespace Kratos
                       double rolling_friction_coeff             = mRollingFriction * mRadius;
                       double equiv_rolling_friction_coeff;
 
-                      if(mUniformMaterialOption){
+                      if (mUniformMaterialOption){
                           equiv_rolling_friction_coeff          = rolling_friction_coeff;
                       }
 
@@ -498,7 +522,7 @@ namespace Kratos
                              RotaMoment[2]     = - InitialRotaMoment[2];
                           }
 
-                       }// if (equiv_rolling_friction_coeff != 0.0)
+                       } // if (equiv_rolling_friction_coeff != 0.0)
 
                     } // if (mRotationDampType == 2)
 
@@ -510,7 +534,7 @@ namespace Kratos
 
               i_neighbour_count++;
 
-          }// for each neighbour
+          } // for each neighbour
 
           KRATOS_CATCH("")
 
@@ -592,7 +616,7 @@ namespace Kratos
                  double aux_norm_to_tang = sqrt(kt / kn);
 
                  if (mRestitCoeff > 0){
-                     visco_damp_coeff_normal     = - (2 * log(mRestitCoeff) * sqrt(mRealMass * kn)) / sqrt((log(mRestitCoeff) * log(mRestitCoeff)) + (M_PI * M_PI));
+                     visco_damp_coeff_normal     = - 2 * log(mRestitCoeff) * sqrt(mRealMass * kn) / sqrt((log(mRestitCoeff) * log(mRestitCoeff)) + (M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                  }
 
@@ -634,7 +658,7 @@ namespace Kratos
                  if (mRotationOption == 1){
                      double velA[3]      = {0.0};
                      double dRotaDisp[3] = {0.0};
-                     double Vel_Temp[3] = {ang_vel[0], ang_vel[1], ang_vel[2]};
+                     double Vel_Temp[3]  = {ang_vel[0], ang_vel[1], ang_vel[2]};
                      GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
 
                      dRotaDisp[0] = -velA[0] * mRadius;
@@ -733,8 +757,8 @@ namespace Kratos
                  this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[2] = GlobalElasticContactForce[2];
 
                  if (mRotationOption == 1){
-                     double MA[3]                     = {0.0};
-                     double RotaMoment[3]             = {0.0};
+                     double MA[3]                        = {0.0};
+                     double RotaMoment[3]                = {0.0};
 
                      GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
 
@@ -743,8 +767,8 @@ namespace Kratos
                      RotaMoment[2] -= MA[2] * mRadius;
 
                      if (mRotationDampType == 2){  // Rolling friccion type
-                         double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                         double rolling_friction_coeff       = rolling_friction * mRadius;
+                         double rolling_friction         = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                         double rolling_friction_coeff   = rolling_friction * mRadius;
 
                          if (rolling_friction_coeff != 0.0){
                              double CoordSystemMoment[3] = {0.0};
