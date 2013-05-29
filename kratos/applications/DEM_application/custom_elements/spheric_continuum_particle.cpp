@@ -44,81 +44,11 @@ namespace Kratos
       /// Destructor.
       SphericContinuumParticle::~SphericContinuumParticle(){}
 
-
-      void SphericContinuumParticle::Initialize()
-      {
-          KRATOS_TRY
-
-          mpFailureId = &(this->GetValue(PARTICLE_FAILURE_ID));
-
-          //mDimension = this->GetGeometry().WorkingSpaceDimension();
-          mDimension = 3; ///WARNING: I: to be revised.
-          
-          double density      = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          double mRadius       = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          double& mass        = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-
-          double & Inertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
-          double & MomentOfInertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          
-          double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
-          Representative_Volume = 0.0;
-          
-          mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);
-
-          //TO BE IMPROVED: i would like to work with *mpFailureId as integer. the problem is that it has to be exported to GID to be plotted.
-
-          //provisional way is:
-          if(mContinuumGroup==0)  {*mpFailureId=1;}
-          else                    {*mpFailureId=0;}
-
-          //easiest way is:   
-          //*mpFailureId          = !(mContinuumGroup);
-            
-          if(mDimension ==2)
-          {
-              mass     = M_PI * mRadius * mRadius * density;
-
-              mRealMass = mass;
-
-              Inertia = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;
-
-              MomentOfInertia = 0.5 * mRadius * mRadius * mass;
-
-          }
-          else
-          {
-              mass     = 4.0 / 3.0 * M_PI * mRadius * mRadius * mRadius * density;
-
-              mRealMass = mass;
-
-              Inertia = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;
-
-              MomentOfInertia = 0.4 * mRadius * mRadius * mass;
-
-          }
-          
-
-          KRATOS_CATCH( "" )
-
-      }
-        
+  
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericContinuumParticle::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
-      {
-        
-      }
 
-      void SphericContinuumParticle::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
-      {
-          double mRadius = GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-          double volume =   1.333333333333333*M_PI*mRadius*mRadius*mRadius;
-          double density = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_DENSITY);
-          rMassMatrix.resize(1,1);
-          rMassMatrix(0,0) = volume*density;
-      }
 
       void SphericContinuumParticle::SetInitialContacts( ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
       {   
@@ -247,7 +177,6 @@ namespace Kratos
           int skin_sphere     = this->GetValue(SKIN_SPHERE);
 
           double alpha = 1.0;
-          double mRadius = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
           double external_sphere_area = 4*M_PI*mRadius*mRadius;  
           
           mtotal_equiv_area = 0.0;
@@ -317,8 +246,9 @@ namespace Kratos
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
           
-          ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          //ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);          MSI: in continuum we do this reference in the set_initial_neighbours procedure
           VectorArray3Double& GlobalContactForceMatrix = this->GetValue(PARTICLE_CONTACT_FORCES);
+          
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: canviats per guillermo en funció externa dintre la classe
           //ParticleWeakVectorType& r_continuum_ini_neighbours  = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
                   
@@ -366,8 +296,7 @@ namespace Kratos
           double mRadius               = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
           double mass                 = mRealMass;
 
-          double young                = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-          double poisson              = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+
           double FriAngle             = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_FRICTION);
           
           double restitution_coeff    = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
@@ -381,10 +310,7 @@ namespace Kratos
           //Aplied Force for pressure:
           
           array_1d<double,3> external_total_applied_force;
-          
-          double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
-          
-          
+ 
           external_total_applied_force[0] = 0.0;
           external_total_applied_force[1] = 0.0;
           external_total_applied_force[2] = 0.0;
@@ -450,8 +376,8 @@ namespace Kratos
               
               double other_mass                     = 4.0 / 3.0 * M_PI * other_radius * other_radius * other_radius * other_density;
               double equiv_mass                     = sqrt(mass*other_mass);//(mass*other_mass*(mass+other_mass)) / ((mass+other_mass)*(mass+other_mass)); //I: calculated by Roberto Flores
-              double equiv_young                    = 2 * young * other_young / (young + other_young);
-              double equiv_poisson                  = 2 * poisson * other_poisson / (poisson + other_poisson);
+              double equiv_young                    = 2 * mYoung * other_young / (mYoung + other_young);
+              double equiv_poisson                  = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
               double equiv_visco_damp_coeff_normal;       //= (visco_damp_coeff + other_visco_damp_coeff) / 2.0;   //M: is it correct to be a simple mean.
               double equiv_visco_damp_coeff_tangential;
               
@@ -698,7 +624,7 @@ namespace Kratos
 
 //COMPUTE THE MEAN STRESS TENSOR:
               
-              StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,corrected_area,Representative_Volume,neighbour_iterator,rCurrentProcessInfo);
+              StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,corrected_area,neighbour_iterator,rCurrentProcessInfo);
           
 
 //BLOC CONTACT ELEMENT (barres la puta del rei!)
@@ -711,7 +637,7 @@ namespace Kratos
 
 
 //BLOC ComputeStressStrain
-          ComputeStressStrain(mStressTensor, Representative_Volume, rCurrentProcessInfo);                      //Move to its parent, for 
+          ComputeStressStrain(mStressTensor, rCurrentProcessInfo);                      //Move to its parent, for 
 
           
           KRATOS_CATCH("")
@@ -742,11 +668,10 @@ namespace Kratos
 
           
           // GETTING PARTICLE PROPERTIES
-             
-          double mRadius                            = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+
           double mass                               = mRealMass;
 
-          double young                              = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
+
           double poisson                            = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
           
           double restitution_coeff                  = this->GetGeometry()[0].GetSolutionStepValue(RESTITUTION_COEFF);
@@ -796,7 +721,7 @@ namespace Kratos
           {
               //MACRO PARAMETERS
 
-              double kn = M_PI * 0.5 * young * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA    
+              double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA    
           double ks = kn / (2.0 * (1.0 + poisson));   
 
               if (mGlobalVariablesOption == 1) //globally defined parameters       // ha de ser canviat aixo pk ara rn i rt no entren al calcul
@@ -1196,22 +1121,15 @@ namespace Kratos
                                 /no puc amb MPI oi? pk hauria de passar punters...
           */
         
-          double Tension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-          double Cohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
-          double young          = this->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-          double poisson        = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-          double mRadius         = this->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-          double inertia        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_INERTIA);
 
           array_1d<double, 3 > & mRota_Moment = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-          ParticleWeakVectorType& rE             = this->GetValue(NEIGHBOUR_ELEMENTS);
 
           Vector & mRotaSpringFailureType  = this->GetValue(PARTICLE_ROTATE_SPRING_FAILURE_TYPE);
 
           size_t i_neighbour_count = 0;
 
-          for(ParticleWeakIteratorType ineighbour = rE.begin(); ineighbour != rE.end(); ineighbour++)
+          for(ParticleWeakIteratorType ineighbour = r_neighbours.begin(); ineighbour != r_neighbours.end(); ineighbour++)
           {
 
               //if(mIfInitalContact[i_neighbour_count] == 1 && mRotaSpringFailureType[i_neighbour_count] == 0) ///M.S:NEWWWW, IF THE SPRING BRAKES... NO MORE CONTRIBUION.
@@ -1229,13 +1147,13 @@ namespace Kratos
                   double other_cohesion  = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
                   double other_inertia   = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
 
-                  Tension  = (Tension  + other_tension ) * 0.5;
-                  Cohesion = (Cohesion + other_cohesion) * 0.5;
+                  double equiv_tension  = (mTension  + other_tension ) * 0.5;
+                  double equiv_cohesion = (mCohesion + other_cohesion) * 0.5;
 
                   double equiv_radius     = (mRadius + other_radius) * 0.5 ;
                   double equiv_area       = M_PI * equiv_radius * equiv_radius;
-                  double equiv_poisson    = (poisson + other_poisson) * 0.5 ;
-                  double equiv_young      = (young  + other_young)  * 0.5;
+                  double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
+                  double equiv_young      = (mYoung  + other_young)  * 0.5;
 
                   double kn               = mMagicFactor*equiv_young * equiv_area / (2.0 * equiv_radius);
                   double ks               = kn / (2.0 * (1.0 + equiv_poisson));
@@ -1280,7 +1198,7 @@ namespace Kratos
                   GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalRotaSpringMomentOld, LocalRotaSpringMoment);
 
 
-                  double Inertia_I = (inertia + other_inertia) * 0.5;
+                  double Inertia_I = (mSectionalInertia + other_inertia) * 0.5;
 
                   double Inertia_J = Inertia_I * 2.0;
 
@@ -1310,7 +1228,7 @@ namespace Kratos
                   double TensiMax = -ForceN / equiv_area + MomentS        / Inertia_I * equiv_radius;
                   double ShearMax = ForceS  / equiv_area + fabs(MomentN)  / Inertia_J * equiv_radius;
 
-                  if(TensiMax > Tension || ShearMax > Cohesion)
+                  if(TensiMax > equiv_tension || ShearMax > equiv_cohesion)
                   {
                       mRotaSpringFailureType[i_neighbour_count] = 1;
 
@@ -1349,9 +1267,9 @@ namespace Kratos
         }
 
        //composició 
-      double mRadius                             = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-      ParticleWeakVectorType& r_neighbours      = this->GetValue(NEIGHBOUR_ELEMENTS);
-      double poisson                            = this->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+   
+   
+  
       
       for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
           neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
@@ -1364,7 +1282,7 @@ namespace Kratos
           double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);
           int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
           double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
-          double equiv_poisson    = 2* poisson * other_poisson / (poisson + other_poisson);
+          double equiv_poisson    = 2* mPoisson * other_poisson / (mPoisson + other_poisson);
           //double equiv_young      = 2 * young * other_young / (young + other_young);
           //bool is_continuum       = false;
             double corrected_area = equiv_area;
@@ -1488,25 +1406,8 @@ namespace Kratos
       } // for every neighbour    
   }
         
-      void SphericContinuumParticle::DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
-      {
-      }
-
-      void SphericContinuumParticle::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo)
-      {
-          ElementalDofList.resize( 0 );
-
-          for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-          {
-              ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-              ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-
-              if ( GetGeometry().WorkingSpaceDimension() == 3 )
-              {
-                  ElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
-              }
-          }
-      }
+  
+    
 
       void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
       {
@@ -1619,8 +1520,7 @@ namespace Kratos
                       mass = mass/(1-coeff);
                   }
 
-                  double E = this->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                  double K = E * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+                  double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
 
                   if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
                       K = rCurrentProcessInfo[GLOBAL_KN];
@@ -1649,10 +1549,8 @@ namespace Kratos
           } //EULER_ANGLES
       }//calculate
 
-      /**
-       * Not sure this is strictly necessary anymore.
-       **/
-      void SphericContinuumParticle::ComputeBallCustomForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
+    
+      void SphericContinuumParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
       {
           if( mRotationOption != 0 && mRotationSpringOption != 0 )
           {
@@ -1661,7 +1559,36 @@ namespace Kratos
           
           //CharacteristicParticleFailureId(rCurrentProcessInfo);
       }
-      
+ 
+      void SphericContinuumParticle::CustomInitialize()
+      {
+         
+          mpFailureId = &(this->GetValue(PARTICLE_FAILURE_ID));
+    
+          double& mSectionalInertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
+          mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;    
+          
+          double& mRepresentative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);   
+          
+          mRepresentative_Volume = 0.0;
+          
+          mContinuumGroup     = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
+
+          //provisional way is:
+          if(mContinuumGroup==0)  {*mpFailureId=1;}
+          else                    {*mpFailureId=0;}
+
+          //easiest way is:   
+          //*mpFailureId          = !(mContinuumGroup);
+          
+          double mTension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
+          double mCohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+          
+             
+      }
+ 
+ 
+ 
       /**
        * Initializes all contact elements of the particle
        **/ 
@@ -2036,11 +1963,13 @@ namespace Kratos
        * @param mStressTensor StressTensor matrix
        * @param Representative_Volume NO_SE_QUE_ES
        **/
-      void SphericContinuumParticle::ComputeStressStrain(double mStressTensor[3][3],
-                                                                 const double &Representative_Volume, ProcessInfo& rCurrentProcessInfo)
+      void SphericContinuumParticle::ComputeStressStrain(double mStressTensor[3][3],ProcessInfo& rCurrentProcessInfo)
       {
           if(rCurrentProcessInfo[INT_DUMMY_9] == 1) // if stress_strain_options ON 
           {
+              double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
+          
+            
               if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
               {
                   this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
@@ -2081,7 +2010,6 @@ namespace Kratos
                                                                     const double &distance,
                                                                     const double &radius_sum,
                                                                     const double &corrected_area,
-                                                                    double &Representative_Volume,
                                                                     ParticleWeakIteratorType neighbour_iterator, ProcessInfo& rCurrentProcessInfo)
       {
           if(rCurrentProcessInfo[INT_DUMMY_9]==1) //TODO: Change this with class members or flags
@@ -2102,6 +2030,8 @@ namespace Kratos
               //KRATOS_WATCH(kn)
               double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
             
+              double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
+          
               Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * corrected_area);
             
               for (int i=0; i<3; i++)
