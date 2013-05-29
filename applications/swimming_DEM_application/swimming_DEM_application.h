@@ -1,0 +1,233 @@
+//
+//   Project Name:        Kratos
+//   Last Modified by:    $Author:  G.Casas$
+//   Date:                $Date:  $
+//   Revision:            $Revision: 1.2 $
+//
+//
+
+
+#if !defined(KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED )
+#define  KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED
+
+
+// System includes
+#include <string>
+#include <iostream>
+
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
+#include "includes/kratos_application.h"
+
+#include "includes/variables.h"
+
+const long double pi = 3.141592653589793238462643383279;
+
+namespace Kratos
+{
+    /* Define In Global variables.h
+        KRATOS_DEFINE_VARIABLE(double,  DELTA_TIME);
+        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
+        typedef vector<array_1d<double,3> > VectorArray3Double;
+        KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
+     */
+
+        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BUOYANCY)
+    
+
+class KratosSwimmingDEMApplication : public KratosApplication
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+
+    /// Pointer definition of KratosDEMSpheresApplication
+    KRATOS_CLASS_POINTER_DEFINITION(KratosSwimmingDEMApplication);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    KratosSwimmingDEMApplication();
+
+    /// Destructor.
+    virtual ~KratosSwimmingDEMApplication() {}
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void Register();
+
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "KratosSwimmingDEMApplication";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+        PrintData(rOStream);
+    }
+
+    ///// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        //KRATOS_WATCH("in KratosSwimmingDEMApplication");
+        //KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
+    }
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+    //const SphericParticle mSphericParticle2D;
+
+
+    //const DEM_FEM_Particle mDEM_FEM_Particle2D;
+    const VariablesList mVariablesList;
+
+    //       static const ApplicationCondition  msApplicationCondition;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+// 		const Elem2D   mElem2D;
+// 		const Elem3D   mElem3D;
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    KratosSwimmingDEMApplication& operator=(KratosSwimmingDEMApplication const& rOther);
+
+    /// Copy constructor.
+    KratosSwimmingDEMApplication(KratosSwimmingDEMApplication const& rOther);
+
+
+    ///@}
+
+}; // Class KratosSwimmingDEMApplication
+
+///@}
+
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+///@}
+
+
+}  // namespace Kratos.
+
+#endif // KRATOS_SWIMMING_DEM_APPLICATION_H_INCLUDED  defined 
+
+
