@@ -65,6 +65,7 @@ namespace Kratos
           contact_moment[1] = 0.0;
           contact_moment[2] = 0.0;
 
+          ComputeNewNeighboursHistoricalData();
           ComputeBallToBallContactForce(contact_force, contact_moment, rCurrentProcessInfo);
           ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo);
           ComputeDragForces(rCurrentProcessInfo);
@@ -82,8 +83,6 @@ namespace Kratos
 
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
-
-
 
       void SphericSwimmingParticle::ComputeDragForces(ProcessInfo& rCurrentProcessInfo)
       {
