@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "discrete_element.h"
+#include "spheric_particle.h"
 
 
 
@@ -53,7 +53,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class SphericContinuumParticle : public DiscreteElement
+  class SphericContinuumParticle : public SphericParticle
     {
     public:
 
@@ -73,7 +73,6 @@ namespace Kratos
       ///@{ 
       
       /// Default constructor. 
-      
       SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry );
       SphericContinuumParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericContinuumParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
@@ -82,7 +81,6 @@ namespace Kratos
          
       /// Destructor.
       virtual ~SphericContinuumParticle();
-      
 
       ///@}
       ///@name Operators 
@@ -92,8 +90,8 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
+        
       void Initialize();
-      void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
       void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
       void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
       void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
@@ -105,8 +103,32 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
+      virtual void EvaluateFailureCriteria();
+      virtual void CalculateOnContactElements();
 
+      virtual void ComputeStressStrain(   double mStressTensor[3][3],
+                                          const double &Representative_Volume,
+                                          ProcessInfo& rCurrentProcessInfo);
+      
+      virtual void StressTensorOperations(double mStressTensor[3][3],
+                                          double GlobalElasticContactForce[3],
+                                          array_1d<double,3> &other_to_me_vect,
+                                          const double &distance,
+                                          const double &radius_sum,
+                                          const double &corrected_area,
+                                          double &Representative_Volume,
+                                          ParticleWeakIteratorType neighbour_iterator,
+                                          ProcessInfo& rCurrentProcessInfo);
+      
+      virtual void AddPoissonContribution(double LocalCoordSystem[3][3],
+                                          double GlobalContactForce[3],
+                                          double GlobalElasticContactForce[3],
+                                          double ViscoDampingGlobalContactForce[3],
+                                          array_1d<double, 3>& rContactForce,
+                                          array_1d<double,3>& damp_forces);
 
+      
+      virtual void InitializeContactElements(ParticleWeakIteratorType neighbour_iterator, double& corrected_area);
 
       ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
 
@@ -179,11 +201,12 @@ namespace Kratos
 
        SphericContinuumParticle();
 
-        void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo );
+        void SetInitialContacts( ProcessInfo& rCurrentProcessInfo );
         void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
-    
-        void ComputeParticleContactForce(ProcessInfo& rCurrentProcessInfo);
+        void ComputeBallCustomForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
+        
+        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
@@ -191,22 +214,26 @@ namespace Kratos
         //void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
-        void ComputeParticleRotationSpring(const ProcessInfo& rCurrentProcessInfo);
+        void ComputeParticleRotationSpring();
         void ComputeParticleSurfaceContactForce(ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring_TRIAL(const ProcessInfo& rCurrentProcessInfo); //provisional
+             
         
-		
-		//member variables DEM
-		
-		double mStressTensor[3][3]; 
+        //member variables DEM_CONTINUUM
+        
+        double mStressTensor[3][3]; 
         double mSymmStressTensor[3][3]; 
+        bool mContinuumSimulationOption;
+        bool mContactMeshOption;
+        int* mpCaseOption;
         
-		double mtotal_equiv_area;
+        
+        double mtotal_equiv_area;
         vector<double> mcont_ini_neigh_area;
-	    int mContinuumGroup;
+        int mContinuumGroup;
         int* mpFailureId;
-		
-		//FOR DEM_FEM APP
+        
+        //FOR DEM_FEM APP
         
         void ComputeParticleBlockContactForce_With_Rotation();
         void ComputeParticleBlockContactForce_Without_Rotation();
