@@ -1067,53 +1067,6 @@ namespace Kratos
       }
        //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-
-      
-      /*
-      (matrix)
-      mStressTensor
-      LocalCoordSystem
-      OldLocalCoordSystem
-      
-      (vector)
-      DeltDisp
-      LocalRelVel
-      RelVel
-      NormalDir
-      OldNormalDir
-      LocalContactForce
-      LocalElasticContactForce
-      GlobalContactForce
-      GlobalElasticContactForce
-      ViscoDampingLocalContactForce
-      ViscoDampingGlobalContactForce
-      MaxRotaMoment
-      InitialRotaMoment
-      rContactForce
-      damp_forces
-      
-      (Array)
-      vel
-      ang_vel
-      delta_displ
-      other_to_me_vect
-      rContactMoment
-      
-      (single)
-      distance
-      radius_sum
-      other_radius
-      corrected_area
-      Representative_Volume
-      iContactForce
-      contact_tau
-      contact_sigma
-      dt
-      
-      (additional)
-      neighbour_iterator
-      rCurrentProcessInfo
-      */
       
       void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
