@@ -91,11 +91,8 @@ namespace Kratos
       ///@name Operations
       ///@{
         
-      void Initialize();
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-      void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-      void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-      void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
+
+
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
@@ -107,7 +104,6 @@ namespace Kratos
       virtual void CalculateOnContactElements();
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
-                                          const double &Representative_Volume,
                                           ProcessInfo& rCurrentProcessInfo);
       
       virtual void StressTensorOperations(double mStressTensor[3][3],
@@ -116,7 +112,6 @@ namespace Kratos
                                           const double &distance,
                                           const double &radius_sum,
                                           const double &corrected_area,
-                                          double &Representative_Volume,
                                           ParticleWeakIteratorType neighbour_iterator,
                                           ProcessInfo& rCurrentProcessInfo);
       
@@ -204,7 +199,10 @@ namespace Kratos
         void SetInitialContacts( ProcessInfo& rCurrentProcessInfo );
         void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
-        void ComputeBallCustomForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
+        
+        
+        virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
+        virtual void CustomInitialize();
         
         virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -226,6 +224,10 @@ namespace Kratos
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
         int* mpCaseOption;
+        
+        double mTension;
+        double mCohesion;
+        double mSectionalInertia;
         
         
         double mtotal_equiv_area;
