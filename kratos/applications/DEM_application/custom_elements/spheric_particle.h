@@ -176,8 +176,8 @@ namespace Kratos
                                 const double &other_radius,
                                 array_1d<double, 3>& rContactMoment,
                                 ParticleWeakIteratorType neighbour_iterator);
-      
-      virtual void ComputeBallCustomForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
+      virtual void CustomInitialize( );
+      virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
       
       virtual void AddUpForcesAndProject(double LocalCoordSystem[3][3],
                                 VectorArray3Double &GlobalContactForceMatrix,
@@ -223,6 +223,7 @@ namespace Kratos
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
+      ParticleWeakVectorType r_neighbours;
               
       ///@name Protected static Member Variables
       ///@{
