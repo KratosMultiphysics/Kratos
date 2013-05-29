@@ -50,14 +50,14 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          double& density                         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          double& radius                          = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          double& mass                            = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& moment_of_inertia               = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);        
-          double& young                           = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-          double& poisson                         = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-          double& friction_angle                  = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-          double& restitution_coeff               = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
+          double density                         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
+          double radius                          = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          double mass                            = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          double moment_of_inertia               = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);        
+          double young                           = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+          double poisson                         = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+          double friction_angle                  = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+          double restitution_coeff               = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
 
           mRadius                                 = radius;
           mass                                    = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
@@ -69,6 +69,10 @@ namespace Kratos
           mFrictionAngle                          = friction_angle;
           mRestitCoeff                            = restitution_coeff;
           mInitializedVariablesFlag               = 0;
+
+          ParticleWeakVectorType& r_neighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
+          
+          CustomInitialize(); 
           
           KRATOS_CATCH( "" )
       }
@@ -101,7 +105,7 @@ namespace Kratos
               ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
           }
           
-          ComputeBallCustomForces(contact_force, contact_moment);
+          CustomCalculateRightHandSide(contact_force, contact_moment);
           
           rRightHandSideVector[0] = contact_force[0] + mRealMass * gravity[0] + applied_force[0];
           rRightHandSideVector[1] = contact_force[1] + mRealMass * gravity[1] + applied_force[1];
@@ -119,7 +123,7 @@ namespace Kratos
      void SphericParticle::ComputeNewNeighboursHistoricalData()
      {
        unsigned int neighbour_counter       = 0;
-       ParticleWeakVectorType& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+       //ParticleWeakVectorType& r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
        unsigned int new_size                = r_neighbours.size();
        vector<int> temp_neighbours_ids(new_size);
        vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
@@ -340,7 +344,7 @@ namespace Kratos
           
           // PROCESS INFO
           
-          ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          //ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: must be changed in the same fashion as contactforces
           
           double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -881,6 +885,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
+      
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -948,8 +953,17 @@ namespace Kratos
             
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
+           
+            
+      void SphericParticle::CustomInitialize()
+      {
+        
+      }
       
-      void SphericParticle::ComputeBallCustomForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+      
+      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
       {
       }
       
