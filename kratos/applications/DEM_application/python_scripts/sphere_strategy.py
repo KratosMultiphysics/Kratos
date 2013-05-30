@@ -145,8 +145,8 @@ class ExplicitStrategy:
         self.create_and_destroy             = particle_destructor_and_constructor();
 
         # STRATEGIES
-    self.time_scheme                    = ForwardEulerScheme();
-    self.search_strategy                = OMP_DEMSearch();
+        self.time_scheme                    = ForwardEulerScheme();
+        self.search_strategy                = OMP_DEMSearch();
 
     ######################################################################
 
