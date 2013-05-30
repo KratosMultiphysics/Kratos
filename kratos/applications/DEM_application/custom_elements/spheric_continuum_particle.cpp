@@ -65,7 +65,7 @@ namespace Kratos
             
             // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
-            ParticleWeakVectorType& r_neighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
+            ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
             
             ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
             
@@ -82,8 +82,8 @@ namespace Kratos
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
 
             
-            for(ParticleWeakIteratorType_ptr ineighbour = r_neighbours.ptr_begin();  //loop over the neighbours and store into a initial_neighbours vector.
-            ineighbour != r_neighbours.ptr_end(); ineighbour++)
+            for(ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin();  //loop over the neighbours and store into a initial_neighbours vector.
+            ineighbour != mrNeighbours.ptr_end(); ineighbour++)
             {
             
                 array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
@@ -246,7 +246,7 @@ namespace Kratos
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
           
-          //ParticleWeakVectorType& r_neighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);          MSI: in continuum we do this reference in the set_initial_neighbours procedure
+          ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);         // MSI: in continuum we do this reference in the set_initial_neighbours procedure
           VectorArray3Double& GlobalContactForceMatrix = this->GetValue(PARTICLE_CONTACT_FORCES);
           
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: canviats per guillermo en funció externa dintre la classe
@@ -343,8 +343,8 @@ namespace Kratos
 
                 
          
-          for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
-              neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+          for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
+              neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
           {
               // BASIC CALCULATIONS
               
@@ -448,7 +448,7 @@ namespace Kratos
               
               EvaluateDeltaDisplacement(DeltDisp,RelVel,NormalDir,OldNormalDir,LocalCoordSystem,OldLocalCoordSystem,other_to_me_vect,vel,delta_displ,neighbour_iterator);
             
-              ComputeRotationForces1(DeltDisp,OldNormalDir,OldLocalCoordSystem,other_radius,dt,AngularVel,neighbour_iterator);
+              DisplacementDueToRotation(DeltDisp,OldNormalDir,OldLocalCoordSystem,other_radius,dt,AngularVel,neighbour_iterator);
 
               double LocalDeltDisp[3] = {0.0};
               double LocalElasticContactForce[3]  = {0.0};
@@ -620,7 +620,7 @@ namespace Kratos
 
 // ROTATION FORCES
 
-              ComputeRotationForces2(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
 
 //COMPUTE THE MEAN STRESS TENSOR:
               
@@ -1120,7 +1120,7 @@ namespace Kratos
             força=(c.RADI)*3;  //M: idea: to create a class contact, create objects of contacts with all the paramaters. easier...
                                 /no puc amb MPI oi? pk hauria de passar punters...
           */
-        
+          ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
 
           array_1d<double, 3 > & mRota_Moment = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
@@ -1129,7 +1129,7 @@ namespace Kratos
 
           size_t i_neighbour_count = 0;
 
-          for(ParticleWeakIteratorType ineighbour = r_neighbours.begin(); ineighbour != r_neighbours.end(); ineighbour++)
+          for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin(); ineighbour != mrNeighbours.end(); ineighbour++)
           {
 
               //if(mIfInitalContact[i_neighbour_count] == 1 && mRotaSpringFailureType[i_neighbour_count] == 0) ///M.S:NEWWWW, IF THE SPRING BRAKES... NO MORE CONTRIBUION.
@@ -1268,11 +1268,11 @@ namespace Kratos
 
        //composició 
    
-   
+     ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
   
       
-      for(ParticleWeakIteratorType neighbour_iterator = r_neighbours.begin();
-          neighbour_iterator != r_neighbours.end(); neighbour_iterator++)
+      for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
+          neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
       {            
           // GETTING NEIGHBOUR PROPERTIES
 
