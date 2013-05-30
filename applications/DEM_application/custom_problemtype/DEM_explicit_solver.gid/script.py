@@ -2,7 +2,6 @@ import time as timer
 import os
 import sys
 import math
-
 import matplotlib
 from numpy import *
 from pylab import *  
@@ -455,7 +454,7 @@ while(time < final_time):
     #print(strain)
     #print(total_force)
     #print("")
-    graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+    #graph_export.write(str(strain)+"  "+str(total_stress)+'\n')    #MSI
          
     step += 1
 #-------------------------------------------------------------------------------------------------------------------------------------
