@@ -27,7 +27,7 @@ End Nodes
 *# Condition Blocks
 
 *set elems(sphere)
-Begin Elements SphericParticle3D
+Begin Elements *GenData(DEM_Element_Type)
 *loop elems 
 *ElemsNum 1 *elemsconec(1)
 *end elems
