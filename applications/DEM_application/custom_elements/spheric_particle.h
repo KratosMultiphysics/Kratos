@@ -160,7 +160,7 @@ namespace Kratos
                                 const array_1d<double, 3> &delta_displ,
                                 ParticleWeakIteratorType neighbour_iterator);
       
-      virtual void ComputeRotationForces1(double DeltDesp[3],
+      virtual void DisplacementDueToRotation(double DeltDesp[3],
                                 double OldNormalDir[3], 
                                 double OldLocalCoordSystem[3][3],
                                 const double &other_radius,
@@ -168,14 +168,14 @@ namespace Kratos
                                 const array_1d<double, 3> &angl_vel,
                                 ParticleWeakIteratorType neighbour_iterator);
       
-      virtual void ComputeRotationForces2(double LocalElasticContactForce[3],
-                                double GlobalElasticContactForces[3],
-                                double InitialRotaMoment[3],
-                                double MaxRotaMoment[3],
-                                double LocalCoordSystem[3][3],
-                                const double &other_radius,
-                                array_1d<double, 3>& rContactMoment,
-                                ParticleWeakIteratorType neighbour_iterator);
+      virtual void ComputeMoments(double LocalElasticContactForce[3],
+                                  double GlobalElasticContactForces[3],
+                                  double InitialRotaMoment[3],
+                                  double MaxRotaMoment[3],
+                                  double LocalCoordSystem[3][3],
+                                  const double &other_radius,
+                                  array_1d<double, 3>& rContactMoment,
+                                  ParticleWeakIteratorType neighbour_iterator);
       virtual void CustomInitialize( );
       virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
       
@@ -223,7 +223,7 @@ namespace Kratos
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
-      ParticleWeakVectorType r_neighbours;
+      //ParticleWeakVectorType mrNeighbours;
               
       ///@name Protected static Member Variables
       ///@{
