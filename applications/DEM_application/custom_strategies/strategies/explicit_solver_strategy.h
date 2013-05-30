@@ -153,7 +153,6 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          // M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
                 
@@ -565,7 +564,7 @@ namespace Kratos
       
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {   
-            mRadius[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+            mRadius[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); 
         }
         
         KRATOS_CATCH("")
@@ -668,7 +667,7 @@ namespace Kratos
 
         for(SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i!=pElements.end(); i++)
         {
-            i->GetValue(NEIGHBOUR_ELEMENTS).clear();
+            i->GetValue(NEIGHBOUR_ELEMENTS).clear();  //MSI: Charlie, no es podria fer al mateix temps clear i busqueda.. no perdem un loop aki nomes per fer clear?
         }
 
         mpSpSearch->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
@@ -689,6 +688,7 @@ namespace Kratos
                 {
                     particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
                 }
+                
                 
                 size_t size = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size();
                 
