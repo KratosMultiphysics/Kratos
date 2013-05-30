@@ -20,7 +20,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    #model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
@@ -145,8 +145,8 @@ class ExplicitStrategy:
         self.create_and_destroy             = particle_destructor_and_constructor();
 
         # STRATEGIES
-	self.time_scheme                    = ForwardEulerScheme();
-	self.search_strategy                = OMP_DEMSearch();
+    self.time_scheme                    = ForwardEulerScheme();
+    self.search_strategy                = OMP_DEMSearch();
 
     ######################################################################
 
