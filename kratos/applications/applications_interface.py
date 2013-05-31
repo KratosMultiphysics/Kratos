@@ -25,6 +25,7 @@ Import_PodApplication = False
 Import_LevelSetApplication = False
 Import_FluidDynamicsApplication = False
 Import_KratosDEMApplication = False
+Import_KratosSwimmingDEMApplication = False
 Import_KratosMixedElementApplication = False
 Import_ThermoMechanicalApplication = False
 Import_DEM_FEM_Application = False
@@ -54,6 +55,7 @@ print "Import_PodApplication: False"
 print "Import_LevelSetApplication: False"
 print "Import_FluidDynamicsApplication: False"
 print "Import_KratosDEMApplication: False"
+print "Import_KratosSwimmingDEMApplication: False"
 print "Import_KratosMixedElementApplication: False"
 print "Import_ThermoMechanicalApplication: False"
 print "Import_DEM_FEM_Application: False"
@@ -90,6 +92,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
     print "Import_FluidDynamicsApplication: "+str(Import_FluidDynamicsApplication)
     print "Import_KratosMixedElementApplication: "+str(Import_KratosMixedElementApplication)
     print "Import_KratosDEMApplication:  "+str(Import_KratosDEMApplication)
+    print "Import_KratosSwimmingDEMApplication:  "+str(Import_KratosSwimmingDEMApplication)
     print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
     print "Import_DEM_FEM_Application: "+str(Import_DEM_FEM_Application)
     print "Import_WindTurbineApplication: "+str(Import_WindTurbineApplication)
@@ -295,6 +298,14 @@ def ImportApplications(kernel, applications_path=application_directory ):
     	kernel.AddApplication(DEM_application)
     	print "KratosDEMApplication sucessfully imported"
 
+    if(Import_KratosSwimmingDEMApplication == True):
+    	print "importing KratosSwimmingDEMApplication ..."
+    	sys.path.append(applications_path + '/swimming_DEM_application/python_scripts')
+    	from KratosSwimmingDEMApplication import *
+    	swimming_DEM_application = KratosSwimmingDEMApplication()
+    	kernel.AddApplication(swimming_DEM_application)
+    	print "KratosSwimmingDEMApplication sucessfully imported"
+
     if(Import_KratosMixedElementApplication == True):
         print "importing KratosMixedElementApplication ..."
         sys.path.append(applications_path + '/MixedElementApplication/python_scripts')
@@ -377,7 +388,9 @@ def ImportApplications(kernel, applications_path=application_directory ):
     if(Import_FluidDynamicsApplication == True):
         kernel.InitializeApplication(fluid_dynamics_application);
     if(Import_KratosDEMApplication == True):
-        kernel.InitializeApplication(DEM_application);   
+        kernel.InitializeApplication(DEM_application);
+    if(Import_KratosSwimmingDEMApplication == True):
+        kernel.InitializeApplication(swimming_DEM_application);      
     if(Import_KratosMixedElementApplication == True):
         kernel.InitializeApplication(mixed_element_application);
     if(Import_ThermoMechanicalApplication == True):
