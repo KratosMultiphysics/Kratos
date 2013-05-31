@@ -797,8 +797,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 template<class TPointType>
-const GeometryData Point3D<TPointType>::msGeometryData( 2,
-        2,
+const GeometryData Point3D<TPointType>::msGeometryData( 3,
+        3,
         0,
         GeometryData::GI_GAUSS_1,
         Point3D<TPointType>::AllIntegrationPoints(),
