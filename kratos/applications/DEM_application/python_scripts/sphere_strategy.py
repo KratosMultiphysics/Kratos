@@ -20,7 +20,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    #model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
@@ -43,6 +43,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
     model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
     model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
     model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
@@ -82,34 +83,6 @@ class ExplicitStrategy:
 
         # Initialization of member variables
 
-        # MODEL
-        self.model_part                     = model_part
-        self.domain_size                    = domain_size
-
-        # BOUNDARY
-        self.limit_surface_OPTION           = 0 #its 1/0 xapuza
-        self.surface_normal_dir             = Vector(3)
-        self.surface_normal_dir[0]          = 0.0
-        self.surface_normal_dir[1]          = 1.0
-        self.surface_normal_dir[2]          = 0.0
-        self.surface_point_coor             = Vector(3)
-        self.surface_point_coor[0]          = 0.0
-        self.surface_point_coor[1]          = 0.0
-        self.surface_point_coor[2]          = 0.0
-        self.surface_friction_angle         = 45
-
-        # GLOBAL PHISICAL ASPECTS
-        self.damping_ratio                  = 0.00
-        self.penalty_factor                 = 10.00
-        self.gravity                        = Vector(3)
-        self.gravity[0]                     = 0.0
-        self.gravity[1]                     = - 9.81
-        self.gravity[2]                     = 0.0
-        self.nodal_mass_coeff               = 0.0
-        self.magic_factor                   = 1.0
-        self.global_kn                      = 1000.0
-        self.global_kt                      = 1000.0
-
         # SIMULATION FLAGS
         self.MoveMeshFlag                   = True
         self.virtual_mass_OPTION            = 0  #its 1/0 xapuza
@@ -122,6 +95,51 @@ class ExplicitStrategy:
         self.activate_search                = 1  #its 1/0 xapuza
         self.fix_velocities                 = 0
         self.global_variables_OPTION        = 0  #its 1/0 xapuza
+        self.limit_surface_OPTION           = 0  #its 1/0 xapuza
+        self.clean_init_indentation_OPTION  = 0
+
+        if (HomogeneousMaterialOption == "ON"):
+            self.homogeneous_material_OPTION= 1
+
+        else:
+            self.homogeneous_material_OPTION= 0
+
+        if (GlobalVariablesOption == "ON"):
+            self.global_variables_OPTION    = 1
+
+        else:
+            self.global_variables_OPTION    = 0
+
+        # MODEL
+        self.model_part                     = model_part
+        self.domain_size                    = domain_size
+
+        # BOUNDARY
+        self.surface_normal_dir             = Vector(3)
+        self.surface_normal_dir[0]          = 0.0
+        self.surface_normal_dir[1]          = 1.0
+        self.surface_normal_dir[2]          = 0.0
+        self.surface_point_coor             = Vector(3)
+        self.surface_point_coor[0]          = 0.0
+        self.surface_point_coor[1]          = 0.0
+        self.surface_point_coor[2]          = 0.0
+        self.surface_friction_angle         = 45
+
+        # GLOBAL PHISICAL ASPECTS
+        self.penalty_factor                 = 10.00
+        self.gravity                        = Vector(3)
+        self.gravity[0]                     = 0.0
+        self.gravity[1]                     = - 9.81
+        self.gravity[2]                     = 0.0
+
+        # GLOBAL MATERIAL PROPERTIES
+        self.damping_ratio                  = 0.00
+        self.nodal_mass_coeff               = 0.0
+        self.magic_factor                   = 1.0
+
+        if(self.global_variables_OPTION == "ON"):
+            self.global_kn                  = 1000.0
+            self.global_kt                  = 1000.0
 
         # PRINTING VARIABLES
         self.print_export_id                = 0
@@ -133,39 +151,26 @@ class ExplicitStrategy:
 
         # TIME RELATED PARAMETERS
         self.delta_time                     = 0.00001
-        self.max_delta_time                 = 0.05
+        self.max_delta_time                 = max_time_step
         self.fraction_delta_time            = 0.90
         self.final_time                     = 3.0
-        self.time_increasing_ratio          = 15 # Percentage%
+        self.time_increasing_ratio          = 15 # Percentage (%)
 
         # RESOLUTION METHODS AND PARAMETERS
         self.enlargement_factor             = 1
         self.n_step_search                  = 1
         self.safety_factor                  = 1.0 # For critical time step
-        self.create_and_destroy             = particle_destructor_and_constructor();
+        self.create_and_destroy             = particle_destructor_and_constructor()
 
         # STRATEGIES
-        self.time_scheme                    = ForwardEulerScheme();
-        self.search_strategy                = OMP_DEMSearch();
+        self.time_scheme                    = ForwardEulerScheme()
+        self.search_strategy                = OMP_DEMSearch()
 
     ######################################################################
 
     def Initialize(self):
 
         # Setting ProcessInfo variables
-
-        # BOUNDARY
-        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
-        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
-        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
-        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
-
-        # GLOBAL PHISICAL ASPECTS
-        self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
-        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
-        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
-        self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
-        self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
@@ -177,9 +182,34 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
-        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, 1)
+        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
+
+        # TOLERANCES
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
+
+        # BOUNDARY
+        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
+        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
+        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
+        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
+
+        # GLOBAL PHISICAL ASPECTS
+        self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
+
+        # GLOBAL MATERIAL PROPERTIES
+
+        if(self.homogeneous_material_OPTION == "ON"):
+            self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+            self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.magic_factor)
+            self.model_part.ProcessInfo.SetValue(HISTORICAL_MIN_K, self.magic_factor)
+
+        if (self.global_variables_OPTION == "ON"):
+            self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
+            self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # PRINTING VARIABLES
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Print Skin sphere
@@ -197,7 +227,7 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ExplicitSolverStrategy(self.model_part, self.enlargement_factor, self.fraction_delta_time, self.n_step_search, self.safety_factor,
+        self.solver = ExplicitSolverStrategy(self.model_part, self.enlargement_factor, self.max_delta_time, self.n_step_search, self.safety_factor,
                                              self.MoveMeshFlag, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
@@ -205,7 +235,7 @@ class ExplicitStrategy:
     #######################################################################
 
     def Initial_Critical_Time(self):
-        (self.solver).InitialCriticalTime()
+        (self.solver).InitialTimeStepCalculation()
 
     #######################################################################
 
