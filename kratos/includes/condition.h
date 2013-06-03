@@ -108,6 +108,9 @@ public:
 
     typedef Node < 3 > NodeType;
 
+    ///definition of condition type
+    typedef Condition ConditionType;
+
     typedef Properties PropertiesType;
 
     typedef Geometry<NodeType> GeometryType;
@@ -130,6 +133,7 @@ public:
 
     typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     ///@}
     ///@name Life Cycle
@@ -210,6 +214,10 @@ public:
         return *this;
     }
 
+
+    /// Set multiple conditions. (Skin Condition)    
+    virtual void SetCondition (Condition::Pointer pCondition){};
+   
     ///@}
     ///@name Operations
     ///@{
@@ -297,6 +305,11 @@ public:
     virtual void Initialize()
     {
     }
+
+    virtual void ResetConstitutiveLaw()
+    {
+    }
+
 
     virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
     {
@@ -408,6 +421,19 @@ public:
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo)
     {
     }
+
+
+    /**
+     * returns the used integration method. In the general case this is the
+     * default integration method of the used geometry. I an other integration
+     * method is used the method has to be overwritten within the condition
+     * @return default integration method of the used Geometry
+     */
+    virtual IntegrationMethod GetIntegrationMethod()
+    {
+        return mpGeometry->GetDefaultIntegrationMethod();
+    }
+
     ///@}
     ///@name Conditional Data
     ///@{
@@ -601,7 +627,14 @@ private:
     /** A pointer to data related to this node. */
     DataValueContainer mData;
 
+    /**
+     * pointer to the condition geometry
+     */
     GeometryType::Pointer mpGeometry;
+
+    /**
+     * pointer to the condition properties
+     */
 
     Properties::Pointer mpProperties;
 
