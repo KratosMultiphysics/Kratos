@@ -11,7 +11,8 @@
 KRATOS_DLL_IMPORT int solve(
 	const char * kratos_path,
 	const char * model_1d_name, 
-	const char * model_3d_name
+	const char * model_3d_name,
+	const char * script_name
 	);
 #undef KRATOS_DLL_IMPORT
 
