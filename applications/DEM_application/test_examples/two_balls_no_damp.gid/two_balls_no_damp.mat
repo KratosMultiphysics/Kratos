@@ -23,7 +23,7 @@ VALUE: 0
 QUESTION: Dynamic_friction_coef
 VALUE: 0
 QUESTION: Restitution_coef
-VALUE: 0.5
+VALUE: 0
 QUESTION: Colour
 VALUE: 1
 END MATERIAL
