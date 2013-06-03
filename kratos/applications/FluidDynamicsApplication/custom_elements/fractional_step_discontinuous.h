@@ -63,6 +63,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "geometries/geometry.h"
 #include "utilities/math_utils.h"
+#include "utilities/discont_utils.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -231,6 +232,25 @@ namespace Kratos
          */
 /*        virtual int Check(const ProcessInfo& rCurrentProcessInfo);*/
 
+
+ /**
+         * @param rVariable Use DIVPROJ
+         * @param rOutput (unused)
+         * @param rCurrentProcessInfo Process info instance (unused)
+         */
+        virtual void Calculate(const Variable<double>& rVariable,
+                               double& rOutput,
+                               const ProcessInfo& rCurrentProcessInfo);
+	
+/**
+         * @param rVariable Use ADVPROJ or VELOCITY
+         * @param Output (unused)
+         * @param rCurrentProcessInfo Process info instance (unused)
+         */
+        virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
+                               array_1d<double, 3 > & rOutput,
+                               const ProcessInfo& rCurrentProcessInfo);
+
         ///@}
         ///@name Inquiry
         ///@{
@@ -281,7 +301,19 @@ namespace Kratos
                                           VectorType& rRightHandSideVector,
                                           ProcessInfo& rCurrentProcessInfo);
 
-
+        virtual void AddMomentumSystemTerms(Matrix& rLHSMatrix,
+                                    Vector& rRHSVector,
+                                    const double Density,
+                                    const Vector& rConvOperator,
+                                    const array_1d<double,3>& rBodyForce,
+                                    const double OldPressure,
+                                    const double TauOne,
+                                    const double TauTwo,
+                                    const array_1d<double,3>& rMomentumProjection,
+                                    const double MassProjection,
+                                    const ShapeFunctionsType& rN,
+                                    const ShapeFunctionDerivativesType& rDN_DX,
+                                    const double Weight);
         ///@}
         ///@name Protected Operations
         ///@{
