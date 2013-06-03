@@ -176,7 +176,7 @@ namespace Kratos
 
           // 2. Search Neighbours with tolerance (afther first repartition process)
           SearchInitialNeighbours(rModelPart, extension_option);
-
+          InitializeSolutionStep();
           // 3. Finding overlapping of initial configurations
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
