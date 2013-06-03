@@ -27,20 +27,21 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       SphericParticle::SphericParticle()
-      : DiscreteElement(){}
+      : DiscreteElement(){mInitializedVariablesFlag = 0;}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : DiscreteElement(NewId, pGeometry){}
+      : DiscreteElement(NewId, pGeometry){mInitializedVariablesFlag = 0;}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties){}
+      : DiscreteElement(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes){}
+      : DiscreteElement(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-         return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create( ThisNodes ), pProperties) );
+           return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+
       }
 
       /// Destructor.
@@ -68,7 +69,7 @@ namespace Kratos
           mPoisson                                = poisson;
           mFrictionAngle                          = friction_angle;
           mRestitCoeff                            = restitution_coeff;
-          mInitializedVariablesFlag               = 0;
+
 
           CustomInitialize();
 
@@ -85,8 +86,6 @@ namespace Kratos
           const array_1d<double, 3>& gravity  = rCurrentProcessInfo[GRAVITY];
 
           //array_1d<double, 3>& applied_force  = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //MSI: canviar nom a USER_DEFINED_FORCE
-
-          //KRATOS_WATCH(applied_force)
 
           array_1d<double, 3> contact_force;
           array_1d<double, 3> contact_moment;
@@ -1021,7 +1020,7 @@ namespace Kratos
 
           // Paso al nodo la id del elemento cuando inicializo al mismo
 
-            if (!mInitializedVariablesFlag){
+          if (!mInitializedVariablesFlag){
               mInitializedVariablesFlag = 1;
 
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
@@ -1059,19 +1058,6 @@ namespace Kratos
               mGlobalKt                             = global_kt;
               mLimitSurfaceOption                   = limit_surface_option;
               mRotationSpringOption                 = rotation_spring_option;
-KRATOS_WATCH("segona part")
-KRATOS_WATCH(mDampType)
-KRATOS_WATCH(mElasticityType)
-KRATOS_WATCH(mRotationOption)
-KRATOS_WATCH(mRotationDampType)
-KRATOS_WATCH(mGlobalVariablesOption)
-KRATOS_WATCH(mCriticalTimeOption)
-KRATOS_WATCH(mUniformMaterialOption)
-KRATOS_WATCH(mMagicFactor)
-KRATOS_WATCH(mGlobalKn)
-KRATOS_WATCH(mGlobalKt)
-KRATOS_WATCH(mLimitSurfaceOption)
-KRATOS_WATCH(mRotationSpringOption)
           }
 
 
@@ -1085,8 +1071,7 @@ KRATOS_WATCH(mRotationSpringOption)
           KRATOS_TRY
 
           //CRITICAL DELTA CALCULATION
-KRATOS_WATCH("cucu")
-KRATOS_WATCH(rVariable)
+
           if (rVariable == DELTA_TIME){
 
               double mass  = mRealMass;
@@ -1107,10 +1092,7 @@ KRATOS_WATCH(rVariable)
                   }
 
                   double K = M_PI * mYoung  * mRadius; //M. Error, should be the same that the local definition.
-KRATOS_WATCH("aquui")
-KRATOS_WATCH(mGlobalVariablesOption)
-KRATOS_WATCH(mGlobalKn)
-KRATOS_WATCH("aquuoooo")
+
                   if (mGlobalVariablesOption == 1){
                       K = 3000;//mGlobalKn;
                   }
