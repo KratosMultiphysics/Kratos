@@ -10,13 +10,10 @@ from DEM_explicit_solver_var import *
 
 #PRESSURE CALCULATION
 
-def ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORNER,XTOP,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
+def ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
 
-  print("")
-  print("Applying Pressure")
-  print("")
-  
-  
+  print "Applying Pressure" , "\n"
+      
   skin_list = list()
   top_nodes_list = list()
   bot_nodes_list = list()
@@ -169,6 +166,7 @@ def ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XBOTCORN
     node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
 
 
+  
   
   
   

@@ -31,7 +31,21 @@ End NodalData
 
 Begin NodalData VELOCITY_Z
 1 1 0.0
+
 End NodalData
+Begin NodalData ANGULAR_VELOCITY_X
+1 1 0.0
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Y
+1 1 0.0
+
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Z
+1 1 0.0
+End NodalData
+
 
 
 Begin NodalData RADIUS
@@ -83,8 +97,8 @@ End NodalData
 
 
 Begin NodalData RESTITUTION_COEFF
-1 0 0.5
-2 0 0.5
+1 0 0
+2 0 0
 End NodalData
 
 

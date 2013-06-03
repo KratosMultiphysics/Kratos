@@ -2,10 +2,9 @@ import time as timer
 import os
 import sys
 import math
-
-import matplotlib
-from numpy import *
-from pylab import *  
+#import matplotlib
+#from numpy import *
+#from pylab import *  
 
 #including kratos path
 kratos_path = '../../../..'         #########################NUEVO
@@ -45,6 +44,8 @@ solid_model_part = ModelPart("SolidPart");
 import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(solid_model_part)
 
+#
+
 ## reading the solid part: binary or ascii, multifile or single --> only binary and single for mpi.
 
 if(OutputFileType == "Binary"):
@@ -62,7 +63,7 @@ write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_solid = ModelPartIO(problem_name)
-
+#
 model_part_io_solid.ReadModelPart(solid_model_part)
 
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -104,21 +105,6 @@ index_5 = 1; index_10 = 1; index_50 = 1; prev_time = 0.0; control = 0.0; cond = 
 
 os.chdir(main_path)
 
-graph_export = open("strain_stress_data.csv",'w');
-
-#Adding stress and strain lists
-strainlist=[]; strainlist.append(0.0)
-stresslist=[]; stresslist.append(0.0)
-strain=0.0; total_stress = 0.0; first_time_entry = 1
-
-# for the graph plotting    
-velocity_node_y = 0.0
-    
-for node in sup_layer_fm:
-    velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
-    print 'velocity for the graph' + str(velocity_node_y) + '\n'
-    break
-
 export_model_part = solid_model_part
 
 if ( (ContinuumOption =="ON") and (ContactMeshOption =="ON") ) :
@@ -137,23 +123,17 @@ if(ModelDataInfo =="ON"):
   os.chdir(data_and_results)
   ProcModelData(solid_model_part,solver)       # calculates the mean number of neighbours the mean radius, etc..
   os.chdir(main_path)
-
-if(ConcreteTestOption =="ON"):
-  ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
-  (SKIN, LAT, BOT, TOP, XLAT, XTOP, XBOT, XTOPCORNER, XBOTCORNER) = ProcSkinAndPressure(solid_model_part,solver)       # defines the skin and applies the pressure
-
-#mesurement
-heigh = 0.3
-
-if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
   
-  Y_mean_bot = ProcMeasureBOT(BOT,solver)
-  Y_mean_top = ProcMeasureTOP(TOP,solver)
-  ini_heigh = Y_mean_top - Y_mean_bot
-  
-  print ('Initial Heigh of the Model: ' + str(ini_heigh)+'\n')
-  heigh = ini_heigh
-
+if (predefined_skin_option == "ON" ):
+   
+   for element in solid_model_part.Elements:
+         
+      element.SetValue(SKIN_SPHERE,0)   
+   
+      if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
+      
+         element.SetValue(SKIN_SPHERE,1)
+                 
 print'Initialitzating Problem....'
 solver.Initialize()
 print 'Initialitzation Complete' + '\n'
@@ -163,29 +143,92 @@ node1 = FindNode(solid_model_part.Nodes , 0.0, 1.0, 0.0)
 print node1 #there is a memory problem with the string
 ###############################################################
 
+if(ConcreteTestOption =="ON"):
+  (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = ProcListDefinition(solid_model_part,solver)  # defines the lists where we measure forces
+
+  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = ProcSkinAndPressure(solid_model_part,solver) # defines the skin and areas
+
+  strain=0.0; total_stress = 0.0; first_time_entry = 1
+  # for the graph plotting    
+  velocity_node_y = 0.0
+  height = 0.3
+  diameter = 0.15
+  
+  if ( (TriaxialOption == "ON") and (Pressure != 0.0) ):
+      
+#    
+#    
+#    
+#    
+# 
+    
+#    
+#    
+#    
+#    
+#   
+    
+    #Correction Coefs
+    alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+    alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+    alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+      
+    ProcApplyPressure(Pressure,solid_model_part,solver,alpha_top,alpha_bot,alpha_lat)
+    
+#
+graph_export = open("strain_stress_data.csv",'w');
+
+#Adding stress and strain lists
+strainlist=[]; strainlist.append(0.0)
+stresslist=[]; stresslist.append(0.0)
+
+if(ContinuumOption =="ON" and ConcreteTestOption =="ON"):
+  
+  (Y_mean_bot,counter_bot) = ProcMeasureBOT(BOT,solver)
+  (Y_mean_top,counter_top) = ProcMeasureTOP(TOP,solver)
+  
+#
+#
+#
+#
+  
+#
+#
+#
+#
+#
+  
+  ini_height = Y_mean_top/counter_top - Y_mean_bot/counter_bot
+  
+  height = ini_height
+#
+  print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+
 dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 if (CriticalTimeOption =="ON"):
   solver.Initial_Critical_Time() 
 
   if (dt!=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)):
-    print("WARNING: Delta time has been modifyed to the critical one")
     dt=solid_model_part.ProcessInfo.GetValue(DELTA_TIME)
+#
+    print("WARNING: Delta time has been modifyed to the critical one")
 
 time = 0.0; step = 0; time_old_print = 0.0
 
 initial_pr_time = timer.clock()
 initial_real_time = timer.time()
 
+#
 print ('SOLVE starts at instant: ' + str(initial_pr_time)+'\n')
 
 total_steps_expected = int(final_time/dt)
+#
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' +'\n' )
     
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
-
 
 os.chdir(post_path)
 
@@ -209,7 +252,6 @@ if(Multifile == "single_file"):
 #                                    MAIN LOOP                                            #
 #                                                                                         #
 ###########################################################################################
-
 os.chdir(main_path)
 while(time < final_time):
  
@@ -220,10 +262,8 @@ while(time < final_time):
     solid_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
-    
     os.chdir(main_path) 
     solver.Solve()
-    
     #########################TIME CONTROL######################################4
    
     incremental_time = (timer.time()-initial_real_time)- prev_time
@@ -236,7 +276,7 @@ while(time < final_time):
       print "TIME STEP = " + str(step) + '\n'
         
       prev_time = (timer.time()-initial_real_time)
-    
+  
     if ( (timer.time()-initial_real_time > 60.0) and cond==0):
     
       cond=1
@@ -253,11 +293,17 @@ while(time < final_time):
     
     #########################CONCRETE_TEST_STUFF#########################################4
  
-    if( (ConcreteTestOption =="ON") and (step==3) ):
+    if( (ConcreteTestOption =="ON") and (step==2) ):
       
       #Cross section Area Control
+ #
+      Num_Cross_Sect = solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA)
+      Exact_Cross_Sect = 3.141592*0.15*0.15*0.25
+      
       print '\n' + '----------------------CONCRETE TEST CONTROLS----------------------' + '\n'
-      print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_TAPA))
+      print 'Total Horitzontal Numerical Cross Section on Force Measurement: ' + str(Num_Cross_Sect)
+      print 'Total Horitzontal Real Cross Section on Force Measurement was: ' + str(Exact_Cross_Sect)
+      print 'Relative Error: ' + str (100*(abs(Num_Cross_Sect-Exact_Cross_Sect)/Exact_Cross_Sect)) + ' %'
       #print( solid_model_part.ProcessInfo.GetValue(AREA_VERTICAL_CENTRE) )
       
       total_volume = 0.0;  h   = 0.3;    d   = 0.15
@@ -267,38 +313,69 @@ while(time < final_time):
         node = element.GetNode(0)
         volume_equ = node.GetSolutionStepValue(REPRESENTATIVE_VOLUME,0) 
         total_volume += volume_equ
-
-      real_volume = 3.141592*d*d*0.25*h
+     
+ #     
       
+#          
+#       
+      real_volume = 3.141592*d*d*0.25*h     
       print 'Total Numerical Volume: ' + str(total_volume)
-      print 'Total Numerical Volume: ' + str(real_volume)
+      print 'Total Real Volume: ' + str(real_volume)
       print 'Error: ' + str(100*abs(total_volume-real_volume)/real_volume) +'%'+'\n'
       print '------------------------------------------------------------------' + '\n'
     
     os.chdir(data_and_results)
     
-    total_force=0
-    force_node= 0
+    total_force=0.0
+    force_node= 0.0
     
     #For a uniaxial compression test with a cylinder of 15 cm diameter and 30 cm height
 
-    if( ContinuumOption =="ON" and ( time > 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON" and ConcreteTestOption =="ON" ):
-    
-      if(first_time_entry):
-        Y_mean_bot = ProcMeasureBOT(BOT,solver)
-        Y_mean_top = ProcMeasureTOP(TOP,solver)
-        
-        ini_heigh2 = Y_mean_top - Y_mean_bot
-        
-        print 'Current Heigh after confinement: ' + str(ini_heigh2) + '\n'
-        print 'Axial strain due to the confinement: ' + str( 100*(ini_heigh2-ini_heigh)/ini_heigh ) + ' %' +'\n'
-
-        first_time_entry = 0
-        heigh = ini_heigh2
-        
-      strain += -2*velocity_node_y*dt/heigh
-      strainlist.append(strain)
+    if( FixVelocities == 'OFF'):
+      TimePercentageFixVelocities = 0.0
       
+    if( ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*final_time) and ConcreteTestOption =="ON"):
+     
+      if(first_time_entry):
+        (Y_mean_bot,counter_bot) = ProcMeasureBOT(BOT,solver)
+        (Y_mean_top,counter_top) = ProcMeasureTOP(TOP,solver)
+       
+#
+#
+#
+#
+  
+#
+#
+#
+#
+#
+        
+        ini_height2 = Y_mean_top/counter_top - Y_mean_bot/counter_bot
+         
+        print 'Current Height after confinement: ' + str(ini_height2) + '\n'
+        print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
+        height = ini_height2
+        
+        for node in sup_layer_fm:
+          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+          break
+        
+#
+        
+#
+#
+#
+#
+        print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+#
+              
+        first_time_entry = 0
+
+      strain += -2*velocity_node_y*dt/height
+
+      strainlist.append(strain)
+
       for node in sup_layer_fm:
       
         force_node = node.GetSolutionStepValue(RHS,0)
@@ -307,7 +384,10 @@ while(time < final_time):
         force_node_z = node.GetSolutionStepValue(RHS,0)[2]
         
         total_force += force_node_y
-      
+            
+#
+#
+#
       total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
       stresslist.append(total_stress)
 
@@ -324,6 +404,7 @@ while(time < final_time):
     if(time_to_print >= output_dt):
 
       BenchmarkCheck(time, node1)
+
       os.chdir(data_and_results)
         
       if (index_5==5):
@@ -346,7 +427,7 @@ while(time < final_time):
         gid_io.FinalizeResults()
 
       os.chdir(graphs_path)
-
+      
       #Drawing graph stress_strain:
 
       if( (ConcreteTestOption =="ON") and (RealTimeGraph =="ON") ):
@@ -395,7 +476,11 @@ while(time < final_time):
               
       time_old_print = time
 
-    graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+#    
+    #print(strain)
+    #print(total_force)
+    #print("")
+    #graph_export.write(str(strain)+"  "+str(total_stress)+'\n')    #MSI
          
     step += 1
 #-------------------------------------------------------------------------------------------------------------------------------------
@@ -409,6 +494,7 @@ if(Multifile == "single_file"):
    
 os.chdir(graphs_path)
  
+#
 graph_export.close() 
 
 os.chdir(list_path)
@@ -416,6 +502,7 @@ os.chdir(list_path)
 multifile.close(); multifile_5.close(); multifile_10.close(); multifile_50.close()
 os.chdir(main_path)
 
+#
 print 'Calculation ends at instant: ' + str(timer.time())
 elapsed_pr_time = timer.clock() - initial_pr_time
 elapsed_real_time = timer.time() - initial_real_time
