@@ -53,7 +53,7 @@ namespace Kratos
           double& density                         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
           double& radius                          = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
           double& mass                            = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& moment_of_inertia               = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);        
+          double& moment_of_inertia               = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double& young                           = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
           double& poisson                         = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
           double& friction_angle                  = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
@@ -70,13 +70,11 @@ namespace Kratos
           mRestitCoeff                            = restitution_coeff;
           mInitializedVariablesFlag               = 0;
 
-         
-          
-          CustomInitialize(); 
-          
+          CustomInitialize();
+
           KRATOS_CATCH( "" )
       }
-      
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -85,35 +83,34 @@ namespace Kratos
           KRATOS_TRY
 
           const array_1d<double, 3>& gravity  = rCurrentProcessInfo[GRAVITY];
-          
+
           //array_1d<double, 3>& applied_force  = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //MSI: canviar nom a USER_DEFINED_FORCE
-          
+
           //KRATOS_WATCH(applied_force)
-          
+
           array_1d<double, 3> contact_force;
           array_1d<double, 3> contact_moment;
-          
+
           contact_force[0]  = 0.0;
           contact_force[1]  = 0.0;
           contact_force[2]  = 0.0;
           contact_moment[0] = 0.0;
           contact_moment[1] = 0.0;
           contact_moment[2] = 0.0;
-          
+
           ComputeNewNeighboursHistoricalData();
-          
+
           ComputeBallToBallContactForce(   contact_force, contact_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
-          
-          if(mLimitSurfaceOption) 
-          {
+
+          if (mLimitSurfaceOption){
               ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
           }
-          
+
           CustomCalculateRightHandSide(contact_force, contact_moment);
-          
+
           rRightHandSideVector[0] = contact_force[0] + mRealMass * gravity[0];// + applied_force[0];
           rRightHandSideVector[1] = contact_force[1] + mRealMass * gravity[1];// + applied_force[1];
-          rRightHandSideVector[2] = contact_force[2] + mRealMass * gravity[2];// + applied_force[2];  
+          rRightHandSideVector[2] = contact_force[2] + mRealMass * gravity[2];// + applied_force[2];
           rRightHandSideVector[3] = contact_moment[0];
           rRightHandSideVector[4] = contact_moment[1];
           rRightHandSideVector[5] = contact_moment[2];
@@ -124,24 +121,52 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeNewNeighboursHistoricalData()
+      void SphericParticle::CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance)
       {
-        ParticleWeakVectorType& mrNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
-        
-        unsigned int neighbour_counter       = 0;
-        unsigned int new_size                = mrNeighbours.size();
-        vector<int> temp_neighbours_ids(new_size);
-        vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
-        array_1d<double, 3> vector_of_zeros;
-        vector_of_zeros[0]                   = 0.0;
-        vector_of_zeros[1]                   = 0.0;
-        vector_of_zeros[2]                   = 0.0;
 
-        for (ParticleWeakIteratorType i = mrNeighbours.begin(); i != mrNeighbours.end(); i++){
+          if (rCurrentMaxIndentation > rTolerance){
+              ParticleWeakVectorType& rNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
+              double& radius                      = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); // cannot use the member variable mRadius because it may not be initialized
+              rCurrentMaxIndentation              = 0.0;
+
+              for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
+                  array_1d<double, 3> other_to_me_vect  = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
+                  double &other_radius                  = i->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                               other_to_me_vect[1] * other_to_me_vect[1] +
+                                                               other_to_me_vect[2] * other_to_me_vect[2]);
+                  double radius_sum                     = radius + other_radius;
+                  double indentation                    = radius_sum - distance;
+
+                  rCurrentMaxIndentation = (indentation > rCurrentMaxIndentation) ? indentation : rCurrentMaxIndentation;
+
+              }
+
+          }
+
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+     void SphericParticle::ComputeNewNeighboursHistoricalData()
+     {
+
+       ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
+       unsigned int new_size                = rNeighbours.size();
+       unsigned int neighbour_counter       = 0;
+       vector<int> temp_neighbours_ids(new_size);
+       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+       array_1d<double, 3> vector_of_zeros;
+       vector_of_zeros[0]                   = 0.0;
+       vector_of_zeros[1]                   = 0.0;
+       vector_of_zeros[2]                   = 0.0;
+
+       for (ParticleWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++){
 
           temp_neighbours_ids[neighbour_counter] = static_cast<int>(i->Id());
           temp_neighbours_contact_forces[neighbour_counter] = vector_of_zeros;
-            
+
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
             {
               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
@@ -160,7 +185,7 @@ namespace Kratos
 
       }
 
-      
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -177,8 +202,8 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3], 
-                                                      double RelVel[3], 
+      void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
+                                                      double RelVel[3],
                                                       double NormalDir[3],
                                                       double OldNormalDir[3],
                                                       double LocalCoordSystem[3][3],
@@ -188,33 +213,33 @@ namespace Kratos
                                                       const array_1d<double, 3> &delta_displ,
                                                       ParticleWeakIteratorType neighbour_iterator)
       {
-       
-   
+
+
           // FORMING LOCAL CORDINATES
-          
+
           //Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
           //In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
           //the way the normal direction is defined (other_to_me_vect) compression is positive
 
-          NormalDir[0] = other_to_me_vect[0];  
+          NormalDir[0] = other_to_me_vect[0];
           NormalDir[1] = other_to_me_vect[1];
           NormalDir[2] = other_to_me_vect[2];
-          
+
           GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
 
           // FORMING OLD LOCAL CORDINATES
-        
+
           array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
           array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
-          array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh; 
+          array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;
 
           OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
           OldNormalDir[1] = Old_other_to_me_vect[1];
           OldNormalDir[2] = Old_other_to_me_vect[2];
           GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
-          
+
           // VELOCITIES AND DISPLACEMENTS
-          array_1d<double, 3 > other_vel            = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);            
+          array_1d<double, 3 > other_vel            = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
           array_1d<double, 3 > other_delta_displ    = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
 
           RelVel[0] = (vel[0] - other_vel[0]);
@@ -226,7 +251,7 @@ namespace Kratos
           DeltDisp[1] = (delta_displ[1] - other_delta_displ[1]);
           DeltDisp[2] = (delta_displ[2] - other_delta_displ[2]);
       }
-      
+
       void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
                                                       double OldNormalDir[3],
                                                       double OldLocalCoordSystem[3][3],
@@ -255,7 +280,7 @@ namespace Kratos
               DeltDisp[2] += dRotaDisp[2] * dt;
           }
       }
-      
+
       void SphericParticle::ComputeMoments(double LocalElasticContactForce[3],
                                            double GlobalElasticContactForce[3],
                                            double InitialRotaMoment[3],
@@ -267,15 +292,15 @@ namespace Kratos
       {
           if (mRotationOption == 1)
           {
-              
-            double MA[3]         = {0.0};
+
+              double MA[3]         = {0.0};
               double RotaMoment[3] = {0.0};
 
               GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
 
-              RotaMoment[0] = MA[0] * mRadius;
-              RotaMoment[1] = MA[1] * mRadius;
-              RotaMoment[2] = MA[2] * mRadius;
+              RotaMoment[0] -= MA[0] * mRadius;
+              RotaMoment[1] -= MA[1] * mRadius;
+              RotaMoment[2] -= MA[2] * mRadius;
 
               // ROLLING FRICTION
 
@@ -344,19 +369,19 @@ namespace Kratos
 
           } // if (mRotationOption == 1)
       }
-    
+
       void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-          
+
           // PROCESS INFO
-          
+
           ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: must be changed in the same fashion as contactforces
-          
+
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
-          
+
           //INITIALIZATIONS
 
           const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
@@ -371,20 +396,20 @@ namespace Kratos
               RotaAcc[1]                         = ang_vel[1] * dt_i;
               RotaAcc[2]                         = ang_vel[2] * dt_i;
 
-              InitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;       
+              InitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;
               InitialRotaMoment[1] = RotaAcc[1] * mMomentOfInertia;
               InitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;
-              
-              MaxRotaMoment[0] = InitialRotaMoment[0];       
+
+              MaxRotaMoment[0] = InitialRotaMoment[0];
               MaxRotaMoment[1] = InitialRotaMoment[1];
               MaxRotaMoment[2] = InitialRotaMoment[2];
           }
 
-                 
+
           //LOOP OVER NEIGHBOURS BEGINS
 
           size_t i_neighbour_count = 0;
-        
+
           for (ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
               neighbour_iterator != mrNeighbours.end(); neighbour_iterator++){
 
@@ -400,27 +425,27 @@ namespace Kratos
               double indentation                    = radius_sum - distance;
               double equiv_area                     = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
               double corrected_area                 = equiv_area;
-              
-              
+
+
               double other_mass;
               double equiv_mass;
               double equiv_young;
               double equiv_poisson;
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
-              
+
 
               double equiv_restitution_coeff;
               double kn;
               double kt;
               double equiv_friction_ang;
-              
+
               double DeltDisp[3]                = {0.0};
               double RelVel[3]                  = {0.0};
-              
+
               double NormalDir[3]               = {0.0};
               double OldNormalDir[3]            = {0.0};
-              
+
               double LocalCoordSystem[3][3]     = {{0.0}, {0.0}, {0.0}};
               double OldLocalCoordSystem[3][3]  = {{0.0}, {0.0}, {0.0}};
 
@@ -489,7 +514,7 @@ namespace Kratos
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
               }
-              
+
               EvaluateDeltaDisplacement(DeltDisp,RelVel,NormalDir,OldNormalDir,LocalCoordSystem,OldLocalCoordSystem,other_to_me_vect,vel,delta_displ,neighbour_iterator);
               DisplacementDueToRotation(DeltDisp,OldNormalDir,OldLocalCoordSystem,other_radius,dt,ang_vel,neighbour_iterator);
 
@@ -497,7 +522,7 @@ namespace Kratos
               double LocalElasticContactForce[3]        = {0.0};
               double GlobalElasticContactForce[3]       = {0.0};
               double LocalRelVel[3]                     = {0.0};
-              
+
               GlobalElasticContactForce[0]              = mOldNeighbourContactForces[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
               GlobalElasticContactForce[1]              = mOldNeighbourContactForces[i_neighbour_count][1];
               GlobalElasticContactForce[2]              = mOldNeighbourContactForces[i_neighbour_count][2];
@@ -555,20 +580,20 @@ namespace Kratos
                }
 
               // VISCODAMPING (applyied locally)
-              double ViscoDampingLocalContactForce[3] = {0.0};        
-                          
+              double ViscoDampingLocalContactForce[3] = {0.0};
+
               CalculateViscoDamping(LocalRelVel,ViscoDampingLocalContactForce,indentation,equiv_visco_damp_coeff_normal,equiv_visco_damp_coeff_tangential,sliding);
-              
+
               // Transforming to global forces and adding up
               double LocalContactForce[3]              = {0.0};
               double ViscoDampingGlobalContactForce[3] = {0.0};
               double GlobalContactForce[3]             = {0.0};
 
-              AddUpForcesAndProject(LocalCoordSystem,mOldNeighbourContactForces,LocalContactForce,LocalElasticContactForce,GlobalContactForce,GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,i_neighbour_count);
-              
+              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, i_neighbour_count);
+
               // ROTATION FORCES
-              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
-              
+              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
+
               i_neighbour_count++;
 
           }// for each neighbour
@@ -892,7 +917,7 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -901,7 +926,7 @@ namespace Kratos
           KRATOS_TRY
 
           MemberDeclarationFirstStep(rCurrentProcessInfo);
-          
+
           KRATOS_CATCH("")
 
       }
@@ -914,78 +939,30 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
-      {
-          KRATOS_TRY
-
-          //CRITICAL DELTA CALCULATION
-
-          if (rVariable == DELTA_TIME){
-              double mass  = mRealMass;
-              double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-
-              if (coeff > 1.0){
-                  KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff);
-              }
-
-              else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])){
-                  Output = 9.0E09;
-              }
-
-              else {
-
-                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]){
-                      mass = mass / (1 - coeff);
-                  }
-
-                  double K = M_PI * mYoung  * mRadius; //M. Error, should be the same that the local definition.
-
-                  if (mGlobalVariablesOption == 1){
-                      K = mGlobalKn;
-                  }
-
-                  Output = 0.34 * sqrt(mass / K);
-
-                  if (mRotationOption == 1){
-                      Output *= 0.5; //factor for critical time step when rotation is allowed.
-                  }
-
-             }
-
-          }
-
-          KRATOS_CATCH("")
-
-      }// Calculate
-            
-      //**************************************************************************************************************************************************
-      //**************************************************************************************************************************************************
-           
-            
       void SphericParticle::CustomInitialize()
       {
-        
+
       }
-      
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-      
+
       void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
       {
       }
-      
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-            
+
       void SphericParticle::CalculateViscoDamping(double LocalRelVel[3],
                                                   double ViscoDampingLocalContactForce[3],
                                                   double indentation,
                                                   double equiv_visco_damp_coeff_normal,
                                                   double equiv_visco_damp_coeff_tangential,
                                                   bool sliding)
-      {      
-        
-        
+      {
+
+
           //*** The compbrobation is component-wise since localContactForce and RelVel have in principle no relationship.
           // The visco force can be higher than the contact force only if they go to the same direction. (in my opinion)
           // But in oposite direction the visco damping can't overpass the force...
@@ -1005,7 +982,7 @@ namespace Kratos
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
-      
+
       void SphericParticle::AddUpForcesAndProject(double LocalCoordSystem[3][3],
                                  VectorArray3Double &mOldNeighbourContactForces,
                                  double LocalContactForce[3],
@@ -1031,7 +1008,7 @@ namespace Kratos
           mOldNeighbourContactForces[i_neighbour_count][1] = GlobalElasticContactForce[1];
           mOldNeighbourContactForces[i_neighbour_count][2] = GlobalElasticContactForce[2];
 
-          rContactForce[0] += GlobalContactForce[0]; 
+          rContactForce[0] += GlobalContactForce[0];
           rContactForce[1] += GlobalContactForce[1];
           rContactForce[2] += GlobalContactForce[2];
       }
@@ -1041,7 +1018,7 @@ namespace Kratos
 
       void SphericParticle::MemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo)
       {
-        
+
           // Paso al nodo la id del elemento cuando inicializo al mismo
 
             if (!mInitializedVariablesFlag){
@@ -1063,8 +1040,8 @@ namespace Kratos
               const double& global_kt               = rCurrentProcessInfo[GLOBAL_KT];
               const double& limit_surface_option    = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
               const double& rotation_spring_option  = rCurrentProcessInfo[ROTATION_SPRING_OPTION];
-              
-          
+
+
               if (rotation_option){
                   const double& rolling_friction    = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                   mRollingFriction                  = rolling_friction;
@@ -1082,16 +1059,89 @@ namespace Kratos
               mGlobalKt                             = global_kt;
               mLimitSurfaceOption                   = limit_surface_option;
               mRotationSpringOption                 = rotation_spring_option;
+KRATOS_WATCH("segona part")
+KRATOS_WATCH(mDampType)
+KRATOS_WATCH(mElasticityType)
+KRATOS_WATCH(mRotationOption)
+KRATOS_WATCH(mRotationDampType)
+KRATOS_WATCH(mGlobalVariablesOption)
+KRATOS_WATCH(mCriticalTimeOption)
+KRATOS_WATCH(mUniformMaterialOption)
+KRATOS_WATCH(mMagicFactor)
+KRATOS_WATCH(mGlobalKn)
+KRATOS_WATCH(mGlobalKt)
+KRATOS_WATCH(mLimitSurfaceOption)
+KRATOS_WATCH(mRotationSpringOption)
           }
-          
-          
+
+
       }
-       //**************************************************************************************************************************************************
+
       //**************************************************************************************************************************************************
-      
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+      {
+          KRATOS_TRY
+
+          //CRITICAL DELTA CALCULATION
+KRATOS_WATCH("cucu")
+KRATOS_WATCH(rVariable)
+          if (rVariable == DELTA_TIME){
+
+              double mass  = mRealMass;
+              double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+
+              if (coeff > 1.0){
+                  KRATOS_ERROR(std::runtime_error, "The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ", coeff);
+              }
+
+              else if ((coeff == 1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])){
+                  Output = 9.0E09;
+              }
+
+              else {
+
+                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]){
+                      mass = mass / (1 - coeff);
+                  }
+
+                  double K = M_PI * mYoung  * mRadius; //M. Error, should be the same that the local definition.
+KRATOS_WATCH("aquui")
+KRATOS_WATCH(mGlobalVariablesOption)
+KRATOS_WATCH(mGlobalKn)
+KRATOS_WATCH("aquuoooo")
+                  if (mGlobalVariablesOption == 1){
+                      K = 3000;//mGlobalKn;
+                  }
+
+                  Output = 0.34 * sqrt(mass / K);
+
+                  if (mRotationOption == 1){
+                      Output *= 0.5; //factor for critical time step when rotation is allowed.
+                  }
+
+             }
+
+          }
+
+          else if (rVariable == MAX_INDENTATION){
+              CalculateMaxIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
+          }
+
+          KRATOS_CATCH("")
+
+      }// Calculate
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
       void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
 
 }  // namespace Kratos.
 
