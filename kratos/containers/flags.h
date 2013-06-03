@@ -172,6 +172,13 @@ public:
         return  results;
     }
 
+
+    void AssignFlags(Flags const& rOther)
+    {
+        mIsDefined = rOther.mIsDefined;
+        mFlags = rOther.mFlags;
+    }
+
     ///@}
     ///@name Operations
     ///@{
