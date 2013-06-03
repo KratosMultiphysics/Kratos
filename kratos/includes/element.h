@@ -147,6 +147,11 @@ public:
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    ///definition of element type
+    typedef Element ElementType;
+
+    typedef GeometryData GeometryDataType;
     ///@}
 
     ///@name Life Cycle
