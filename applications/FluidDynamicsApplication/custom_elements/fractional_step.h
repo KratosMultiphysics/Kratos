@@ -470,7 +470,7 @@ namespace Kratos
                                  const ShapeFunctionsType& rN,
                                  const double Weight);
 
-        void AddMomentumSystemTerms(Matrix& rLHSMatrix,
+        virtual void AddMomentumSystemTerms(Matrix& rLHSMatrix,
                                     Vector& rRHSVector,
                                     const double Density,
                                     const Vector& rConvOperator,
