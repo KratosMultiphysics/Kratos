@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/pointer_vector_map.h"
 #include "utilities/indexed_object.h"
 #include "geometries/geometry.h"
-
+#include "containers/flags.h"
 
 
 namespace Kratos
@@ -95,9 +95,11 @@ namespace Kratos
 /** Detail class definition.
 */
 template<class TNodeType, class TPropertiesType, class TElementType, class TConditionType>
-class Mesh
+class Mesh : public Flags
 {
 public:
+    
+ 
     ///@name Type Definitions
     ///@{
 
@@ -188,13 +190,15 @@ public:
     ///@{
 
     /// Default constructor.
-    Mesh() : mpNodes(new NodesContainerType())
+    Mesh() : Flags() 
+        , mpNodes(new NodesContainerType())
         , mpProperties(new PropertiesContainerType())
         , mpElements(new ElementsContainerType())
         , mpConditions(new ConditionsContainerType()) {}
 
     /// Copy constructor.
-    Mesh(Mesh const& rOther) : mpNodes(rOther.mpNodes)
+    Mesh(Mesh const& rOther) : Flags(rOther)
+        , mpNodes(rOther.mpNodes)
         , mpProperties(rOther.mpProperties)
         , mpElements(rOther.mpElements)
         , mpConditions(rOther.mpConditions) {}
@@ -204,7 +208,7 @@ public:
          typename PropertiesContainerType::Pointer NewProperties,
          typename ElementsContainerType::Pointer NewElements,
          typename ConditionsContainerType::Pointer NewConditions)
-        : mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions) {}
+        : Flags(), mpNodes(NewNodes), mpProperties(NewProperties) , mpElements(NewElements), mpConditions(NewConditions) {}
 
 
     /// Destructor.
@@ -226,7 +230,7 @@ public:
         typename PropertiesContainerType::Pointer p_properties(new PropertiesContainerType(*mpProperties));
         typename ElementsContainerType::Pointer p_elements(new ElementsContainerType(*mpElements));
         typename ConditionsContainerType::Pointer p_conditions(new ConditionsContainerType(*mpConditions));
-
+	
         return Mesh(p_nodes, p_properties, p_elements, p_conditions);
     }
 
@@ -705,6 +709,7 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Nodes",mpNodes);
         rSerializer.save("Properties",mpProperties);
         rSerializer.save("Elements",mpElements);
@@ -713,6 +718,7 @@ private:
 
     virtual void load(Serializer& rSerializer)
     {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Nodes",mpNodes);
         rSerializer.load("Properties",mpProperties);
         rSerializer.load("Elements",mpElements);
@@ -737,6 +743,7 @@ private:
     /// Assignment operator.
     Mesh& operator=(const Mesh& rOther)
     {
+        Flags::operator =(rOther);
         mpNodes = rOther.mpNodes;
         mpProperties = rOther.mpProperties;
         mpElements = rOther.mpElements;
