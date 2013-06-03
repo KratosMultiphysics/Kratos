@@ -298,6 +298,23 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
     KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(NOT_##name)
 
 
+
+#ifdef KRATOS_DEFINE_LOCAL_FLAG
+#undef KRATOS_DEFINE_LOCAL_FLAG
+#endif
+#define KRATOS_DEFINE_LOCAL_FLAG(name)		\
+  static const Flags name;			\
+  static const Flags NOT_##name
+
+#ifdef KRATOS_CREATE_LOCAL_FLAG 
+#undef KRATOS_CREATE_LOCAL_FLAG
+#endif
+#define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
+  const Flags class_name::name(Flags::Create(position));		\
+  const Flags class_name::NOT_##name(Flags::Create(position, false));
+
+
+
 //-----------------------------------------------------------------
 //
 // components
