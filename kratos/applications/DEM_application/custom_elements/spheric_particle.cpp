@@ -51,25 +51,20 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          double& density                         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          double& radius                          = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          double& mass                            = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& moment_of_inertia               = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          double& young                           = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-          double& poisson                         = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-          double& friction_angle                  = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-          double& restitution_coeff               = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
+          mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+          mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+          mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+          mFrictionAngle            = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+          mRestitCoeff              = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
+          double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
+          double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-          mRadius                                 = radius;
-          mass                                    = 4.0 / 3.0 * M_PI * density * radius * radius * radius;
-          mRealMass                               = mass;
-          moment_of_inertia                       = 0.4 * mass * radius * radius;
-          mMomentOfInertia                        = moment_of_inertia;
-          mYoung                                  = young;
-          mPoisson                                = poisson;
-          mFrictionAngle                          = friction_angle;
-          mRestitCoeff                            = restitution_coeff;
+          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
+          moment_of_inertia         = 0.4 * mass * mRadius * mRadius;
 
+          mRealMass                 = mass;
+          mMomentOfInertia          = moment_of_inertia;
 
           CustomInitialize();
 
@@ -1024,6 +1019,7 @@ namespace Kratos
               mInitializedVariablesFlag = 1;
 
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
+                  KRATOS_WATCH("pp3")
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
               }
 
@@ -1060,7 +1056,6 @@ namespace Kratos
               mRotationSpringOption                 = rotation_spring_option;
           }
 
-
       }
 
       //**************************************************************************************************************************************************
@@ -1091,7 +1086,7 @@ namespace Kratos
                       mass = mass / (1 - coeff);
                   }
 
-                  double K = M_PI * mYoung  * mRadius; //M. Error, should be the same that the local definition.
+                  double K = M_PI * mYoung * mRadius; //M. Error, should be the same that the local definition.
 
                   if (mGlobalVariablesOption == 1){
                       K = 3000;//mGlobalKn;
