@@ -318,6 +318,12 @@ public:
     {
         return mNeighbourIndices;
     }
+    
+    // Set the local mesh pointer to the given mesh
+    void SetLocalMesh(MeshType::Pointer pGivenMesh) 
+    {   
+        mpLocalMesh = pGivenMesh;
+    }
 
     // Returns pointer to the mesh storing all local entites
 
@@ -491,13 +497,6 @@ public:
     MeshesContainerType const& InterfaceMeshes() const
     {
         return mInterfaceMeshes;
-    }
-
-    // Sets the pointer to the local mesh
-    
-    void SetLocalMeshPointer(MeshType::Pointer pNewLocalMesh)
-    {
-        mpLocalMesh = pNewLocalMesh;
     }
 
     ///@}
