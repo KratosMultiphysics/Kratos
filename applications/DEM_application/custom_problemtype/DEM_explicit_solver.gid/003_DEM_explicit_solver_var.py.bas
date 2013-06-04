@@ -2,7 +2,7 @@
 
 ContinuumOption= "*GenData(Continuum)"
 RotationOption= "*GenData(Rotation)"
-HomogeneousMaterial= "*GenData(Homogeneous_Material)"
+HomogeneousMaterialOption= "*GenData(Homogeneous_Material)"
 
 # General Settings
 
