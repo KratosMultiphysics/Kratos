@@ -161,7 +161,7 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
-          SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],0);
+          SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION], 0);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option            = false;
@@ -170,7 +170,11 @@ namespace Kratos
 
           // 2. Search Neighbours with tolerance (afther first repartition process)
           SearchInitialNeighbours(rModelPart, extension_option);
+
+          // 3. Initializing
+
           InitializeSolutionStep();
+
           // 3. Finding overlapping of initial configurations
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
@@ -194,7 +198,7 @@ namespace Kratos
 
 	  KRATOS_CATCH("")
 
-      }// Initialized()
+      }// Initialize()
 
       virtual double Solve()
       {
@@ -474,7 +478,7 @@ namespace Kratos
       }
 
 
-      void CalculateEnergies(){}
+    void CalculateEnergies(){}
 
 
     void InitializeElements()
@@ -500,7 +504,7 @@ namespace Kratos
               // 4. Set the Local Initial Axes for the trihedron Option
 
                 if (trihedron_OPTION == 1){
-                  double dummy =0.0;
+                  double dummy = 0.0;
                   (it)->Calculate(DUMMY_LOCAL_AXES, dummy, rCurrentProcessInfo);
                 }
 
@@ -522,8 +526,7 @@ namespace Kratos
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        {
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
             mRadius[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
         }
 
