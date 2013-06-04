@@ -87,9 +87,7 @@ public:
         }
         Particle_Creator_Destructor::GetHighNode() = mHighPoint;
         Particle_Creator_Destructor::GetLowNode() = mLowPoint;
-        
-//         KRATOS_WATCH(mHighPoint)
-//         KRATOS_WATCH(mLowPoint)
+        mDiameter = norm_2(mHighPoint-mLowPoint);
 
         KRATOS_CATCH("")
          
@@ -229,6 +227,11 @@ public:
         return (mLowPoint);
     };
 
+    double & GetDiameter()
+    {
+        return (mDiameter);
+    };
+
 
     ///@}
     ///@name Inquiry
@@ -313,6 +316,7 @@ private:
     ///@{
     array_1d<double, 3 > mHighPoint;
     array_1d<double, 3 > mLowPoint;
+    double mDiameter;
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size)
     {
