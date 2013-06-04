@@ -76,10 +76,10 @@ namespace Kratos
                     
             class_<MpiUtilitiesType, boost::noncopyable>
                     ("MpiUtilities", init<>())
-                    .def("Repart",      &MpiUtilitiesType::ParallelPartitioning)
-                    .def("CompactIds",  &MpiUtilitiesType::CompactIds)
+                    .def("Repart",          &MpiUtilitiesType::ParallelPartitioning)
+                    .def("TransferObjects", &MpiUtilitiesType::TransferObjects)
+                    .def("CompactIds",      &MpiUtilitiesType::CompactIds)
                     ;
-
         }
 
     }  // namespace Python.
