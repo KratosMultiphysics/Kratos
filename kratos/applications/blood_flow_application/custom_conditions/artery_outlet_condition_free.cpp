@@ -121,7 +121,7 @@ void ArteryOutletFreeCondition::CalculateRightHandSide(VectorType& rRightHandSid
     const double E = GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS);
     const double nu = GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO);
     //const double pi = 3.14159265;
-    const double coriolis_coefficient = 1.0001;
+    const double coriolis_coefficient = 1.1;
     //const double kr_coefficient = 1.0;
 
     //const double kinematic_viscosity = dynamic_viscosity/density;
@@ -202,7 +202,10 @@ void ArteryOutletFreeCondition::CalculateRightHandSide(VectorType& rRightHandSid
 
 double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
 {
+    KRATOS_TRY
+
     const int max_iteration = 10;
+    const double p_init = GetProperties()[PRESSURE];
     double& A = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[1].FastGetSolutionStepValue(FLOW);
     double initial_area = GetGeometry()[1].GetValue(NODAL_AREA);
@@ -210,8 +213,8 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
     const double par2 = sqrt(Beta / (2.00*Density*initial_area));
     const double terminal_resistence = GetGeometry()[1].FastGetSolutionStepValue(TERMINAL_RESISTANCE);
     const double w1 = flow / A + 4.00*par2*pow(A,0.25);
-    const double p_init = 10640.00;
-
+    //const double p_init = 10640.00;
+     
     double x = A;
     for(int i = 0 ; i < max_iteration ; i++)
     {
@@ -220,7 +223,7 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
 
         double dx = f/df;
         x-= dx;
-        if(fabs(dx) < 1e-10)
+        if(fabs(dx) < 1e-6)
             break;
     }
     A = x;
@@ -231,9 +234,9 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
         KRATOS_WATCH(GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA));
     }
 
-
-
     return A;
+
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************

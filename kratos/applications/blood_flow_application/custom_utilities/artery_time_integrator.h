@@ -87,15 +87,18 @@ public:
             in->FastGetSolutionStepValue(NODAL_MASS) = 0.0;
         }
 
-        //compute the projection (first step
+        //compute the projection (first step)::
+        //DESDE AQUI VOY AL Initialize DEL ELEMENT(ARTERY ELEMENT)
+        //CARGO LAS PROPIEDADES DEL ELEMENTO
         for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
                 i!=ThisModelPart.ElementsEnd(); i++)
         {
        i->Initialize();
         }
 
-        //compute the projection (first step
+        //compute the projection (first step)::
         for(ModelPart::ConditionIterator i = ThisModelPart.ConditionsBegin();
+                // DESDE AQUI VOY a::  Artery12Condition::Initialize()
                 i!=ThisModelPart.ConditionsEnd(); i++)
         {
         i->Initialize();
@@ -112,6 +115,9 @@ public:
 	InitializeWorkArray( ThisModelPart );
 
 	//step1
+    //std::cout << "PASO AL SIGUIENTE PASO:::::: ";
+    //std::cout << std::endl;
+    //KRATOS_WATCH(dt)
 	ComputeRHS( ThisModelPart );
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
@@ -119,7 +125,7 @@ public:
 
          array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
          aux /= nodal_mass;
-	    aux *= dt;
+         aux *= dt;
 
 	    //int id = in->Id();
         double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
@@ -134,12 +140,14 @@ public:
 	    //FLOW
 	    if(in->IsFixed(FLOW) == false)
           in->FastGetSolutionStepValue(FLOW) += aux[1];
-        nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-         nodal_flow = in->FastGetSolutionStepValue(FLOW);
+          nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+          nodal_flow = in->FastGetSolutionStepValue(FLOW);
 
-         in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
-
+          in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
         }
+
+
+
 //        std::cout << "area : ";
 //        for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
 //        {
@@ -199,35 +207,51 @@ public:
         double delta_time = 1.00e12;
         for(ModelPart::ElementsContainerType::iterator i_element = ThisModelPart.ElementsBegin(); i_element !=ThisModelPart.ElementsEnd(); i_element++)
         {
-            double h = i_element->GetGeometry().Length();
-
+            
+        const double coriolis_coefficient = 1.1;
+            
+	    // EDU:PODRIAMOS SABER CUAL ES LA LONGITUD DEL ELEMENTO MINIMA
+	    double h = i_element->GetGeometry().Length();
             const double& A0 = i_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
             const double& A1 = i_element->GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
-
-            if((A0 == 0.00) || (A1== 0.00))
-                KRATOS_ERROR(std::runtime_error, "Zero Nodal area found", "");
+            
+	    KRATOS_WATCH(i_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA));
+            KRATOS_WATCH(i_element->GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA));
+            
+	    if((A0 == 0.00) || (A1== 0.00))
+                KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model or boundary conditions used", "");
 
             double v0 = i_element->GetGeometry()[0].GetSolutionStepValue(FLOW) / A0;
             double v1 = i_element->GetGeometry()[1].GetSolutionStepValue(FLOW) / A1;
             double v = std::max(v0,v1);
-            const double density = i_element->GetProperties()[DENSITY];
-            const double E = i_element->GetProperties()[YOUNG_MODULUS];
-            const double nu = i_element->GetProperties()[POISSON_RATIO];
-            const double thickness = i_element->GetProperties()[THICKNESS];
-            const double beta = E*thickness*1.77245385/(1.0-nu*nu);
-            const double coriolis_coefficient = 1.0001;
-            //const double kr_coefficient = 1.0;
-
+            
+	    const double density = i_element->GetProperties()[DENSITY];
+            
+        double E0 = i_element->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
+            double nu0 = i_element->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+            double thickness0 = i_element->GetGeometry()[0].GetSolutionStepValue(THICKNESS);
+        double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);
             const double C1_0 = sqrt(beta / (2.0 * density * A0)) * pow(A0,0.25);
+	    //const double c_alpha = sqrt(c_max*c_max + v*v * coriolis_coefficient* (coriolis_coefficient-1));
+            const double c_alpha_0 = sqrt(C1_0*C1_0 + v0*v0 * coriolis_coefficient* (coriolis_coefficient-1));
+	    const double la_0 = coriolis_coefficient * v0 + c_alpha_0;
+	    
+            double E1 = i_element->GetGeometry()[1].GetSolutionStepValue(YOUNG_MODULUS);
+            double nu1 = i_element->GetGeometry()[1].GetSolutionStepValue(POISSON_RATIO);
+            double thickness1 = i_element->GetGeometry()[1].GetSolutionStepValue(THICKNESS);
+        beta = E1*thickness1*1.77245385/(1.0-nu1*nu1);
             const double C1_1 = sqrt(beta / (2.0 * density * A1)) * pow(A1,0.25);
-
-            const double c_max = std::max(C1_0, C1_1);
-
-            const double c_alpha = sqrt(c_max*c_max + v*v * coriolis_coefficient* (coriolis_coefficient-1));
-
-            const double la = coriolis_coefficient * v + c_alpha;
-
-            double element_dt = fabs(CFL * h / la);
+	    //const double c_alpha = sqrt(c_max*c_max + v*v * coriolis_coefficient* (coriolis_coefficient-1));
+	    const double c_alpha_1 = sqrt(C1_1*C1_1 + v1*v1*coriolis_coefficient*(coriolis_coefficient-1));
+	    const double la_1 = coriolis_coefficient * v1 + c_alpha_1;
+	    
+            //const double c_max = std::max(C1_0, C1_1);
+	    const double c_max = std::max(la_0, la_1);
+           
+            //const double la = coriolis_coefficient * v + c_alpha;
+            //la = coriolis_coefficient * v + c_max;
+            
+	    double element_dt = fabs(CFL * h / c_max);
 
 //            KRATOS_WATCH(i_element->Id());
 //            KRATOS_WATCH(beta);
@@ -235,13 +259,15 @@ public:
 //            KRATOS_WATCH(C1_1);
 //            KRATOS_WATCH(v);
 //            KRATOS_WATCH(h)
-//            KRATOS_WATCH(element_dt);
-
+           
             delta_time = std::min(delta_time, element_dt);
 
         }
 
         return delta_time;
+
+	//KRATOS_WATCH("DELTA_TIME");
+        //KRATOS_WATCH(delta_time);
 
         KRATOS_CATCH("")
     }
@@ -357,7 +383,7 @@ private:
 	      in->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA,1);
 
 	    //FLOW
-	    if(in->IsFixed(FLOW) == false)
+        if(in->IsFixed(FLOW) == false)
 	      in->FastGetSolutionStepValue(FLOW) = in->FastGetSolutionStepValue(FLOW,1);
         }
 

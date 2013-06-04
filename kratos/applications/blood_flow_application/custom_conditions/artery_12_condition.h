@@ -199,9 +199,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    array_1d<double,3> mInitialArea;
-	double mH0;
-        double mBeta;
+    //array_1d<double,3> mInitialArea;
+    //double mH0;
+    //   double mBeta;
 
 
     ///@}
@@ -218,6 +218,7 @@ private:
 
 void CalculateFunctional6(array_1d<double,6>& rFunctional,
                          array_1d<double, 3> const& Area,
+                         array_1d<double, 3> const& InitialArea,
                          array_1d<double, 3> const& Flow, array_1d<double,3> const& ArteryProperty, array_1d<double,3> const& Coef,
                          array_1d<double, 3> const& WaveVelocity,
                          double BloodDensity);

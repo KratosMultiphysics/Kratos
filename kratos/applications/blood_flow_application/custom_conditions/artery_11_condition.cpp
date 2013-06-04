@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
 #include "boost/numeric/ublas/lu.hpp"
+#include <iostream>
 
 namespace Kratos
 {
@@ -78,36 +79,43 @@ Artery11Condition::Artery11Condition(IndexType NewId, GeometryType::Pointer pGeo
 Artery11Condition::Artery11Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
 {
-  
-//       const double pi = 3.14159265;
-//     double radius = GetProperties()[RADIUS];
-// 
-//     const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-//     GetGeometry()[0].GetValue(NODAL_AREA) = pi*r0*r0;
-// 
-//     const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
-//     GetGeometry()[1].GetValue(NODAL_AREA) = pi*r1*r1;
+   KRATOS_TRY
+   
+//    const double pi = 3.14159265;
+//    //double radius = GetProperties()[RADIUS];
 
+//    const double r0 =  GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+//    //const double r0 = GetGeometry()[0].GetSolutionStepValue(RADIUS);
+//    mInitialArea[0] = pi*r0*r0;
 
-//     mH0 = GetProperties()[THICKNESS];
-// 
-//     const double E = GetProperties()[YOUNG_MODULUS];
-//     const double nu = GetProperties()[POISSON_RATIO];
-// 
-// 
-// 
-//     //save area to the nodes. as well as its nodal mass
-//     GetGeometry()[0].SetLock();
-//     GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = GetGeometry()[0].GetValue(NODAL_AREA);
-//     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
-//     GetGeometry()[0].UnSetLock();
-//     GetGeometry()[1].SetLock();
-//     GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = GetGeometry()[1].GetValue(NODAL_AREA);
-//     GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
-//     GetGeometry()[1].UnSetLock();
+//    //KRATOS_WATCH(mInitialArea[0]);
+//    //KRATOS_WATCH(r0);
+//    const double r1 =  GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+//    //const double r1 =  GetGeometry()[1].GetSolutionStepValue(RADIUS);
+//    mInitialArea[1] = pi*r1*r1;
 
+//    std::cout<<"hola";
 
+//    //KRATOS_WATCH(mInitialArea[0]);
+    
+//    //const double mH0 = GetProperties()[THICKNESS];
+//    //const double E = GetProperties()[YOUNG_MODULUS];
+//    //const double nu = GetProperties()[POISSON_RATIO];
 
+//    //save area to the nodes. as well as its nodal mass
+//    GetGeometry()[0].SetLock();
+//    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
+//    //GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
+//    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = r0;
+//    GetGeometry()[0].UnSetLock();
+    
+//    GetGeometry()[1].SetLock();
+//    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[1];
+//    //GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
+//    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = r1;
+//    GetGeometry()[1].UnSetLock();
+    
+    KRATOS_CATCH("");
 }
 
 Condition::Pointer Artery11Condition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -140,10 +148,11 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
     KRATOS_TRY
 
             //get data as needed
-      // const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
-             const double density = GetProperties()[DENSITY];
-            const double pi = 3.14159265;
-            const double coriolis_coefficient = 1.0001;
+            // const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+            const double density = GetProperties()[DENSITY];
+            //const double density = GetSolutionStepValue(DENSITY);
+            //const double pi = 3.14159265;
+            const double coriolis_coefficient = 1.1;
  
             //resize the vector to the correct size
             if (rRightHandSideVector.size() != 4)
@@ -159,17 +168,18 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             array_1d<double,2> wave_velocity;
             array_1d<double,2> artery_property;
             array_1d<double,2> coef;
-	    array_1d<double,2> beta;
-
-
+            array_1d<double,2> beta;
 
             //loop on nodes
             for (unsigned int i=0; i<2; i++)
             {
-		const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
-		const double nu =GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
-		const double H0 =GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
-		beta[i] = E*H0*1.77245385/(1.0-nu*nu);
+                //std::cout<<"hola";
+
+                //const double density = GetGeometry()[i].FastGetSolutionStepValue(DENSITY);
+                const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
+                const double nu =GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
+                const double H0 =GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
+                beta[i] = E*H0*1.77245385/(1.0-nu*nu);
 
                 Node<3>& r_node = GetGeometry()[i];
                 area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
@@ -177,11 +187,15 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 artery_property[i]=beta[i]/GetGeometry()[i].GetValue(NODAL_AREA);
                 coef[i] = sqrt(beta[i]/(2*density * GetGeometry()[i].GetValue(NODAL_AREA)));
             }
- 	    flow[1] = flow[0];
+
+            //KRATOS_WATCH(i);
+
+            flow[1] = flow[0];
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(beta[0] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[1].GetValue(NODAL_AREA))) * pow(area[1],0.25);
 
-            //KRATOS_WATCH(wave_velocity);
+//KRATOS_WATCH(flow);
+//KRATOS_WATCH(wave_velocity);
 
 
             double convergence;
@@ -198,47 +212,41 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 permutation_matrix<double> permutation(4);
                 array_1d<double,4> delta_x = -f_out;
 		
-		array_1d<int,4> fixity  = ZeroVector(4);
-		if(GetGeometry()[0].IsFixed(NODAL_AREA) == true) fixity[0] = 1.0;
-		if(GetGeometry()[1].IsFixed(NODAL_AREA) == true) fixity[1] = 1.0;
-		if(GetGeometry()[0].IsFixed(FLOW) == true) fixity[2] = 1.0;
-		if(GetGeometry()[1].IsFixed(FLOW) == true) fixity[3] = 1.0;
-		
-// fixity[0] = 1.0;		
+        array_1d<int,4> fixity  = ZeroVector(4);
+        if(GetGeometry()[0].IsFixed(NODAL_AREA) == true) fixity[0] = 1.0;
+        if(GetGeometry()[1].IsFixed(NODAL_AREA) == true) fixity[1] = 1.0;
+        if(GetGeometry()[0].IsFixed(FLOW) == true) fixity[2] = 1.0;
+        if(GetGeometry()[1].IsFixed(FLOW) == true) fixity[3] = 1.0;
+
+// fixity[0] = 1.0;p
 // fixity[3] = 1.0;
 
 //		KRATOS_WATCH(jacobian);
 //KRATOS_WATCH(delta_x);
-		
-		
-		
-		for(unsigned int i =0; i<4; i++)
-		{
-		    if(fixity[i] == 1)
-		    {
-		      for(unsigned int j =0; j<4; j++)
-		      {
-			  jacobian(j,i) = 0.0;
-			  jacobian(i,j) = 0.0;
-		      }
-		      delta_x[i] = 0.0;
-		      jacobian(i,i) = 1.0;		      
-		    }
-		}
-		
+
+
+
+        for(unsigned int i =0; i<4; i++)
+        {
+            if(fixity[i] == 1)
+            {
+              for(unsigned int j =0; j<4; j++)
+              {
+              jacobian(j,i) = 0.0;
+              jacobian(i,j) = 0.0;
+              }
+              delta_x[i] = 0.0;
+              jacobian(i,i) = 1.0;
+            }
+        }
+
 //		KRATOS_WATCH(jacobian);
 //		KRATOS_WATCH(f_out);
 //		KRATOS_WATCH(area);
 //KRATOS_WATCH(flow);
                 lu_factorize(jacobian, permutation);
                 lu_substitute(jacobian,permutation, delta_x);
-		
-
-
                 convergence = norm_2(delta_x);
-
-
-
                 area[0] += delta_x[0];
                 area[1] += delta_x[1];
                 flow[0] += delta_x[2];
@@ -247,6 +255,11 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 // we have to add the relative convergence check
                 if(convergence < tolerance)
                     break;
+//                else
+//                    std::cout << "NO CONVERGEEEEEEEEEEEEEEEE::: Artery11" << std::endl;
+//                    KRATOS_ERROR(std::runtime_error, "Artery11", "");
+//                    //KRATOS_WATCH(x);
+//                    KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA));
             }
 	    
             //node 0
@@ -255,16 +268,14 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             double C = beta[0]*sqrt(A1*A1*A1) / (3.0*density*A0);
 
             rRightHandSideVector[0] = -flow[0];
-            rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
+            rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow[0]*flow[0]/(A1)));
 
-	    //ndoe 1
+            //ndoe 1
             A1 = area[1];
-	    A0 = GetGeometry()[1].GetValue(NODAL_AREA);
+            A0 = GetGeometry()[1].GetValue(NODAL_AREA);
             C = beta[1]*sqrt(A1*A1*A1)/(3.0*density*A0);
             rRightHandSideVector[2] = flow[1];
-            rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
-
-
+            rRightHandSideVector[3] = (C + (coriolis_coefficient*flow[1]*flow[1]/(A1)));
 
     KRATOS_CATCH("")
 }
@@ -275,9 +286,63 @@ void Artery11Condition::Initialize()
 {
     KRATOS_TRY
 
+//    const double pi = 3.14159265;
+//    double radius = GetProperties()[RADIUS];
+
+//    //KRATOS_WATCH(GetProperties().Id());
 
 
+//    //const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+//    const double r0 =  GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+//    //const double mH0 = GetProperties()[THICKNESS];
+//    //const double E = GetProperties()[YOUNG_MODULUS];
+//    const double density = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+//    const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+//    const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+//    const double mH0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
+//    //const double nu = GetProperties()[POISSON_RATIO];
+//    //const double density = GetProperties()[DENSITY];
+//    //const double DYNAMIC_VISCOSITY = GetProperties()[DYNAMIC_VISCOSITY];
+//    mInitialArea[0] = pi*r0*r0;
+//    mBeta = E*mH0*1.77245385/(1.0-nu*nu);
+    
+//    //save area to the nodes. as well as its nodal mass
+//    GetGeometry()[0].SetLock();
+//    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) =  mInitialArea[0] ;
+//    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = r0;
+//    GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) = mH0;
+//    GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
+//    GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
+//    GetGeometry()[0].FastGetSolutionStepValue(DENSITY) = density;
+//    //GetGeometry()[0].FastGetSolutionStepValue(BETA) = mBeta;
+//    //GetGeometry()[0].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = DYNAMIC_VISCOSITY;
+//    GetGeometry()[0].UnSetLock();
 
+
+//    //const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+//    const double r1 =  GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+//    const double density1 = GetGeometry()[1].FastGetSolutionStepValue(DENSITY);
+//    //const double mH0 = GetProperties()[THICKNESS];
+//    //const double E = GetProperties()[YOUNG_MODULUS];
+//    //const double nu = GetProperties()[POISSON_RATIO];
+//    //const double density = GetProperties()[DENSITY];
+//    const double E1 = GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS);
+//    const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO);
+//    const double mH01 = GetGeometry()[1].FastGetSolutionStepValue(THICKNESS);
+//    //const double DYNAMIC_VISCOSITY = GetProperties()[DYNAMIC_VISCOSITY];
+//    mInitialArea[1]= pi*r1*r1;
+//    mBeta = E1*mH01*1.77245385/(1.0-nu1*nu1);
+
+//    GetGeometry()[1].SetLock();
+//    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) =  mInitialArea[1] ;
+//    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = r1;
+//    GetGeometry()[1].FastGetSolutionStepValue(THICKNESS) = mH01;
+//    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E1;
+//    GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu1;
+//    GetGeometry()[1].FastGetSolutionStepValue(DENSITY) = density1;
+//    //GetGeometry()[1].FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = DYNAMIC_VISCOSITY;
+//    //GetGeometry()[1].FastGetSolutionStepValue(BETA) = mBeta;
+//    GetGeometry()[1].UnSetLock();
     KRATOS_CATCH("");
 }
 
@@ -362,7 +427,9 @@ void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
                          double BloodDensity)
 {
 
-
+  KRATOS_TRY
+ // KRATOS_WATCH(Area)
+  
     const double qa0 = Flow[0]/Area[0];
     const double qa1 = Flow[1]/Area[1];
 
@@ -373,7 +440,7 @@ void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
 		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
     rFunctional[2]=Flow[0]-Flow[1];
     rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
-
+    KRATOS_CATCH("");
 
 }
 

@@ -119,13 +119,14 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     //mL = 0.001;
 
     //get data as needed
-    //    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+    const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
     const double E = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) + GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS));
     const double nu =0.5*(GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) + GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO));
-    //const double pi = 3.14159265;
-    const double coriolis_coefficient = 1.0001;
-    const double kr_coefficient = 1.0;
+    const double pi = 3.14159265;
+    const double coriolis_coefficient = 1.1;
+    //const double kr_coefficient = 1.0;
+    const double kr_coefficient = 8.0*pi*dynamic_viscosity;
 
     //const double kinematic_viscosity = dynamic_viscosity/density;
     const double H0 = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) + GetGeometry()[1].FastGetSolutionStepValue(THICKNESS));;
@@ -155,11 +156,11 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         //KRATOS_WATCH(beta);
         //KRATOS_WATCH(mL);
         const double flow = GetGeometry()[i].FastGetSolutionStepValue(FLOW);
-//        if(Id() == 1)
-//        {
-//            KRATOS_WATCH(A);
-//            KRATOS_WATCH(flow);
-//        }
+//       if(Id() == 1)
+//       {
+//           KRATOS_WATCH("FLOW EN EL ELEMENTO");
+//           KRATOS_WATCH(flow);
+//       }
 
         Fj[i][0] = flow;
         Fj[i][1] = C + coriolis_coefficient*flow*flow/(A);
@@ -170,9 +171,9 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 //KRATOS_WATCH(Fj[i]);
 //KRATOS_WATCH(Sj[i]);
         Hj[i](0,0)   = 0.0;
-        Hj[i](0,1) = 1.0;
+        Hj[i](0,1)   = 1.0;
         Hj[i](1,0)   = -coriolis_coefficient*pow(flow/A,2) + (beta* sqrt(A))/(2.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
-        Hj[i](1,1) = 2.0*coriolis_coefficient*(flow/A);
+        Hj[i](1,1)   = 2.0*coriolis_coefficient*(flow/A);
 //KRATOS_WATCH(Hj[i]);
         Suj[i](0,0)   = 0.0;
         Suj[i](0,1) = 0.0;
@@ -302,6 +303,8 @@ void ArteryElement::Initialize()
 
     const double H0 = GetProperties()[THICKNESS];
     const double E = GetProperties()[YOUNG_MODULUS];
+    const double nu = GetProperties()[POISSON_RATIO];
+    const double pressure = GetProperties()[PRESSURE];    
 
     //compute the lenght of the element
     array_1d<double,3> lvec = GetGeometry()[1].Coordinates();
@@ -316,19 +319,28 @@ void ArteryElement::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
     GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) = H0;
     GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
+    GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
+    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;
     GetGeometry()[0].GetValue(NODAL_AREA) = A0[0]; //here we store the initial area
     GetGeometry()[0].UnSetLock();
+
     GetGeometry()[1].SetLock();
     GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0.5*mL;
     GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = A0[1];
     GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
     GetGeometry()[1].FastGetSolutionStepValue(THICKNESS) = H0;
-    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E;  
+    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
+    GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu;
+    GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) = pressure;
     GetGeometry()[1].GetValue(NODAL_AREA) = A0[1]; //here we store the initial area
     GetGeometry()[1].UnSetLock();
 
+     //const double kk= GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+     //const double kkk=GetGeometry()[1].FastGetSolutionStepValue(FLOW);
 
-    KRATOS_CATCH("");
+     //KRATOS_WATCH(kk);
+     //KRATOS_WATCH(kkk);
+     KRATOS_CATCH("");
 }
 
 //************************************************************************************

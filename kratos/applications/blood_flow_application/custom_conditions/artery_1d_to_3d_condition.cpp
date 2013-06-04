@@ -110,10 +110,10 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     KRATOS_TRY
 
             //get data as needed
-            const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+            //const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
              const double density = GetProperties()[DENSITY];
-            const double pi = 3.14159265;
-            const double coriolis_coefficient = 1.0001;
+            //const double pi = 3.14159265;
+            const double coriolis_coefficient = 1.1;
  
             //resize the vector to the correct size
             if (rRightHandSideVector.size() != 4)
