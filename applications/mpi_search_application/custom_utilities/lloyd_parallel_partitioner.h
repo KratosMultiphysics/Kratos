@@ -166,177 +166,65 @@ public:
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     }
     
-    void CommunicationPhase(ModelPart& mModelPart,
-                            std::vector<std::vector<PointerType> > &SendObjects,
-                            std::vector<std::vector<PointerType> > &RecvObjects) 
-    {
-        int msgSendSize[mpi_size];
-        int msgRecvSize[mpi_size];
-        
-        for(int i = 0; i < mpi_size; i++)
-        {
-            msgSendSize[i] = 0;
-            msgRecvSize[i] = 0;
-        }
-      
-        mModelPart.GetCommunicator().AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-    }
-    
-    void Repartitionate(ModelPart& mModelPart, std::vector<std::vector<PointerType> > &RecvObjects)
-    {
-        ContainerType& ElementsLocal  = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-        ContainerType& ElementsGlobal = mModelPart.ElementsArray();
-        
-        ModelPart::NodesContainerType& NodesLocal  = mModelPart.GetCommunicator().LocalMesh().Nodes();
-        ModelPart::NodesContainerType& NodesGlobal = mModelPart.Nodes();
-   
-        ContainerType temp_particles_container_local;
-        ContainerType temp_particles_container_global;
-        
-        ModelPart::NodesContainerType temp_nodes_container_local;
-        ModelPart::NodesContainerType temp_nodes_container_global;
-        
-        temp_particles_container_local.reserve(ElementsLocal.size());
-        temp_particles_container_global.reserve(ElementsGlobal.size());
-        
-        temp_nodes_container_local.reserve(NodesLocal.size());
-        temp_nodes_container_global.reserve(NodesGlobal.size());
-
-        temp_particles_container_local.swap(ElementsLocal);
-        temp_particles_container_global.swap(ElementsGlobal);
-        
-        temp_nodes_container_local.swap(NodesLocal);
-        temp_nodes_container_global.swap(NodesGlobal);
-        
-        // Keep Global elements and nodes from our domain
-        for (IteratorType particle_pointer_it = temp_particles_container_global.begin();
-             particle_pointer_it != temp_particles_container_global.end(); ++particle_pointer_it)
-        {
-            if((*particle_pointer_it)->GetValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                mModelPart.Elements().push_back((*particle_pointer_it));
-                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
-                {
-                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    mModelPart.Nodes().push_back(pNode);
-                }
-            }
-        }
-
-        // Keep Local elements and nodes from our domain
-        for (IteratorType particle_pointer_it = temp_particles_container_local.begin();
-             particle_pointer_it != temp_particles_container_local.end(); ++particle_pointer_it)
-        {
-            if((*particle_pointer_it)->GetValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                mModelPart.GetCommunicator().LocalMesh().Elements().push_back((*particle_pointer_it));
-                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
-                {
-                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                    mModelPart.GetCommunicator().LocalMesh().Nodes().push_back(pNode);
-                }
-            }
-        }
-
-        // Add new elements and nodes
-        for(int i = 0; i < mpi_size; i++)
-        {
-            std::vector<PointerType>& RecvProcessObjects = RecvObjects[i];
-            
-            for(size_t j = 0; j < RecvProcessObjects.size(); j++)
-            {
-                if(RecvProcessObjects[j])
-                {  
-                    mModelPart.Elements().push_back(RecvProcessObjects[j]);
-                    mModelPart.GetCommunicator().LocalMesh().Elements().push_back(RecvProcessObjects[j]);
-                    
-                    for (unsigned int i = 0; i < RecvProcessObjects[j]->GetGeometry().PointsNumber(); i++)
-                    {
-                        ModelPart::NodeType::Pointer pNode = RecvProcessObjects[j]->GetGeometry().pGetPoint(i);
-                        
-                        pNode->GetSolutionStepValue(PARTITION_INDEX) = mpi_rank;
-                        
-                        mModelPart.Nodes().push_back(pNode);
-                        mModelPart.GetCommunicator().LocalMesh().Nodes().push_back(pNode);
-                    }
-                }
-            }
-        }
-        
-        // Sort both the elements and nodes of the modelpart. Otherwise the results are unpreditable
-        mModelPart.GetCommunicator().LocalMesh().Elements().Unique();
-        mModelPart.GetCommunicator().LocalMesh().Nodes().Unique();
-        
-        for (unsigned int i = 0; i < mModelPart.GetCommunicator().LocalMeshes().size(); i++)
-        {
-            mModelPart.GetCommunicator().LocalMesh(i).Elements().Unique();
-            mModelPart.GetCommunicator().LocalMesh(i).Nodes().Unique();
-        }
-            
-        for (unsigned int i = 0; i < mModelPart.GetCommunicator().GhostMeshes().size(); i++)
-        {
-            mModelPart.GetCommunicator().GhostMesh(i).Elements().Unique();
-            mModelPart.GetCommunicator().GhostMesh(i).Nodes().Unique();
-        }
-    }
-    
     //Lloyd based partitioning
     void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
     {
-        std::vector<std::vector<PointerType> > SendObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
-        std::vector<std::vector<PointerType> > RecvObjects(mpi_size, std::vector<PointerType>(mModelPart.NumberOfElements()));
-    
-        DefineKSets(mModelPart,SendObjects,RecvObjects,MaxNodeRadius,CalculateBoundry);
-    }
-    
-    //Todo: Clean this code
-    void DefineKSets(ModelPart& mModelPart, 
-                     std::vector<std::vector<PointerType> > &SendObjects, 
-                     std::vector<std::vector<PointerType> > &RecvObjects,
-                     double MaxNodeRadius,
-                     int CalculateBoundry)
-    {
+        //Elements
         ContainerType& pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-      
-        //This variables are used to perform all calculus without transfer anything
+        
+        //Stuff
         double SetCentroid[mpi_size*Dimension], SendSetCentroid[mpi_size*Dimension];
-        int NumParticlesPerVirtualPartition[mpi_size], SendNumParticlesPerVirtualPartition[mpi_size];
         
-        //int PartitionNumberOfElements[mpi_size];
-        //int SendPartitionNumberOfElements[mpi_size];
-        
-        //Plane calculation
+        //Boundary conditions
         double MeanPoint[mpi_size*Dimension];
         double Normal[mpi_size*Dimension];
         double Plane[mpi_size];
         double Dot[mpi_size];
         
-        //double MidDistance[mpi_size];
-        //double FulDistance[mpi_size];
-        
-        //TODO: Fix me
-        static std::vector<double> LastDistance(0);
-        
-        if(LastDistance.size() == 0)
-            for(int i = 0 ; i < mpi_size; i++)
-                LastDistance.push_back(0);
-
-        //double TheyWeight[mpi_size];
-        
-        int NewNumberOfObjects[mpi_size];
-        
-        int LocalParticles = mModelPart.GetCommunicator().LocalMesh().NumberOfElements();
-        int TotalParticles = 0;
-        
-        MPI_Allreduce(&LocalParticles,&TotalParticles,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-        
+        //Define algorthm iterations (maybe is a good idea pass this as a parameter)
         int NumIterations = 100;
         
+        //Calcualate Partitions
+        CalculatePartitions(pElements,NumIterations,SetCentroid,SendSetCentroid);
+        
+        //Calculate boundaries
+        for(int i = 0; i < mpi_size; i++)
+        {
+            Dot[i] = 0;
+            Plane[i] = 0;
+
+            for(int j = 0; j < Dimension; j++)
+            {
+                MeanPoint[i*Dimension+j] = (SetCentroid[i*Dimension+j] + SetCentroid[mpi_rank*Dimension+j])/2;
+                Normal[i*Dimension+j]    = (SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j]);
+                Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
+                Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
+            }
+            
+            Dot[i] = sqrt(Dot[i]);
+        }
+        
+        //Move Elements
+        mModelPart.GetCommunicator().TransferObjects(mModelPart);
+        
+        //Calculate partitions interfaces
+        CalculatePartitionInterface(mModelPart,Normal,Plane,Dot);
+    }
+    
+    /**
+     * Calcuate the partition for all elements and nodes. This function must correctly set
+     * PARTICLE_INDEX variable for each element and node.
+     * @param pElements: List of all elements to be calcualted.
+     * @param iterations: Number of iterations.
+     **/
+    void CalculatePartitions(ContainerType& pElements, const int &NumIterations, double SetCentroid[], double SendSetCentroid[])
+    {
+        int NumParticlesPerVirtualPartition[mpi_size], SendNumParticlesPerVirtualPartition[mpi_size];
+      
         for(int iterations = 0; iterations < NumIterations; iterations++)
         {
             for(int i = 0; i < mpi_size; i++)
             {
-                NewNumberOfObjects[i] = 0;
                 SendNumParticlesPerVirtualPartition[i] = 0;
 
                 for(int j = 0; j < Dimension; j++)
@@ -382,23 +270,6 @@ public:
                     }
                 }
             }
-
-            //Calculate the perpendicular plane who cuts the new partition
-            for(int i = 0; i < mpi_size; i++)
-            {
-                Dot[i] = 0;
-                Plane[i] = 0;
-
-                for(int j = 0; j < Dimension; j++)
-                {
-                    MeanPoint[i*Dimension+j] = (SetCentroid[i*Dimension+j] + SetCentroid[mpi_rank*Dimension+j])/2;
-                    Normal[i*Dimension+j]    = (SetCentroid[i*Dimension+j] - SetCentroid[mpi_rank*Dimension+j]);
-                    Dot[i]                  += Normal[i*Dimension+j] * Normal[i*Dimension+j];
-                    Plane[i]                -= Normal[i*Dimension+j] * MeanPoint[i*Dimension+j];
-                }
-                
-                Dot[i] = sqrt(Dot[i]);
-            }
             
             //Continue with the partitioning
             for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
@@ -432,7 +303,6 @@ public:
                         distZ *= distZ;
                         
                         double TheyDist = (distX+distY+distZ);
-//                         double SelfDist = (distX+distY+distZ);
                         
                         if (TheyDist < min_dist)
                         {
@@ -446,40 +316,14 @@ public:
                 }
             }
         }
+    }
         
-        //Element Transfer
-        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        {
-//             for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++)
-//             {
-                int PartitionIndex = (*particle_pointer_it)->GetValue(PARTITION_INDEX);
-                if(PartitionIndex != mpi_rank)
-                {
-                    SendObjects[PartitionIndex][NewNumberOfObjects[PartitionIndex]] = (*particle_pointer_it);
-                    NewNumberOfObjects[PartitionIndex]++;
-                }
-//             }
-        }
-
-        for(int i = 0; i < mpi_size; i++)
-        {
-            std::cout << "(" << mModelPart.GetCommunicator().LocalMesh().NumberOfElements() << ") " << "Partition: " << mpi_rank << " --> " << i << ": " << NewNumberOfObjects[i] << std::endl;
-            SendObjects[i].resize(NewNumberOfObjects[i]);
-        }
-        
-        std::cout << "PreCommunicator" << std::endl;
-        
-        //Comunication here
-        CommunicationPhase(mModelPart,SendObjects,RecvObjects);
-        Repartitionate(mModelPart,RecvObjects);
-        
-        pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-         
+    void CalculatePartitionInterface(ModelPart& mModelPart, double Normal[], double Plane[], double Dot[])
+    {
+        ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
         ContainerType pElementsMarked;
         
         MPI_Barrier(MPI_COMM_WORLD);
-        
-        std::cout << "Level1 Marking" << std::endl;
         
         //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
@@ -524,57 +368,54 @@ public:
         std::cout << "Level2 Marking" << std::endl;
         
         //Mark elements in boundary (Level-2) (Only last iteration)
-        if(CalculateBoundry)
-        {
-            std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
-            std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
-          
-            //Mark neighbours (Level-2)
-            std::cout << pElements.end()-pElements.begin() << std::endl;
-            BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
+        std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
+        std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
+      
+        //Mark neighbours (Level-2)
+        std::cout << pElements.end()-pElements.begin() << std::endl;
+        BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
+        
+        int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
+        int MaximumNumberOfResults = 1000;
+        
+        std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
+        std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
+        std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
+        std::vector<double>                    Radius(NumberOfMarkedElements);
+        
+        double new_extension = 1.01;
+        for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+        {    
+              Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
+        }
+        
+        particle_bin.SearchObjectsMpi(mModelPart,pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.pGetCommunicator());
+        
+        for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+        {    
+            int p_index = particle_pointer_it-pElementsMarked.begin();
             
-            int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
-            int MaximumNumberOfResults = 1000;
-            
-            std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
-            std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
-            std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
-            std::vector<double>                    Radius(NumberOfMarkedElements);
-            
-            double new_extension = 1.01;
-            for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-            {    
-                  Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
-            }
-            
-            particle_bin.SearchObjectsMpi(mModelPart,pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.pGetCommunicator());
-            
-            for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-            {    
-                int p_index = particle_pointer_it-pElementsMarked.begin();
-                
-                for(unsigned int i = 0; i < NumberOfResults[p_index]; i++)
-                {
-                    Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-                    SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
-                }
-            }
-
-            CommunicationPhase(mModelPart,SendMarkObjects,RecvMarkObjects);
-            
-            for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+            for(unsigned int i = 0; i < NumberOfResults[p_index]; i++)
             {
-                for(int j = 0; j < mpi_size; j++)
+                Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
+            }
+        }
+
+        mModelPart.GetCommunicator().TransferObjects(mModelPart,SendMarkObjects,RecvMarkObjects);
+        
+        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {
+            for(int j = 0; j < mpi_size; j++)
+            {
+                if(j != mpi_rank)
                 {
-                    if(j != mpi_rank)
+                    for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
                     {
-                        for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
+                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
                         {
-                            if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
-                            {
-                                (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-                                (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-                            }
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
                         }
                     }
                 }

@@ -319,13 +319,6 @@ public:
         return mNeighbourIndices;
     }
 
-    // Set the local mesh pointer to the given mesh
-
-    void SetLocalMesh(MeshType::Pointer pGivenMesh)
-    {
-        mpLocalMesh = pGivenMesh;
-    }
-
     // Returns pointer to the mesh storing all local entites
 
     MeshType::Pointer pLocalMesh()
@@ -500,6 +493,12 @@ public:
         return mInterfaceMeshes;
     }
 
+    // Sets the pointer to the local mesh
+    
+    void SetLocalMeshPointer(MeshType::Pointer pNewLocalMesh)
+    {
+        mpLocalMesh = pNewLocalMesh;
+    }
 
     ///@}
     ///@name Operations
@@ -773,6 +772,17 @@ public:
     {
         return true;
     }
+    
+    virtual bool TransferObjects(ModelPart& mModelPart)
+    {
+        return true;
+    }
+    
+    virtual bool TransferObjects(ModelPart& mModelPart,std::vector<std::vector<ElementType::Pointer> > &SendObjects,std::vector<std::vector<ElementType::Pointer> > &RecvObjects) 
+    {
+        return true;
+    }
+    
 
     ///@}
     ///@name Access

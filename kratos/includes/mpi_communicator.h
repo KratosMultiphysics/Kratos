@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/model_part.h"
 #include "mpi.h"
 
+#include "utilities/openmp_utils.h"
+
 namespace Kratos
 {
 
@@ -692,6 +694,24 @@ public:
         AsyncSendAndReceiveObjects<std::vector<boost::shared_ptr<ConditionType> > >(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
         return true;
     }
+    
+    virtual bool TransferObjects(ModelPart& mModelPart)
+    {
+        TransferObjects<ElementType::Pointer>(mModelPart);
+        return true;
+    }
+    
+    virtual bool TransferObjects(ModelPart& mModelPart,std::vector<std::vector<ElementType::Pointer> > &SendObjects,std::vector<std::vector<ElementType::Pointer> > &RecvObjects) 
+    {
+        TransferObjects<ElementType::Pointer>(mModelPart,SendObjects,RecvObjects);
+        return true;
+    }
+    
+    virtual bool BuildNewPartitions(ModelPart& mModelPart, std::vector<std::vector<ElementType::Pointer> > &RecvObjects)
+    {
+        BuildNewPartitions<ElementType::Pointer>(mModelPart,RecvObjects);
+        return true;
+    }
 
     ///@}
     ///@name Access
@@ -1306,25 +1326,6 @@ private:
                 unsigned int send_buffer_size = local_elements_size * elemental_data_size;
                 unsigned int receive_buffer_size = ghost_elements_size * elemental_data_size;
                 
-//                 if(local_elements_size == 161)
-//                 {
-//                     for (ModelPart::ElementIterator i_element = r_local_elements.begin(); i_element != r_local_elements.end(); ++i_element)
-//                     {
-//                          //3404-3569
-//                         std::cout << "L: " << i_element->GetGeometry()(0)->Id() << "-" << i_element->GetGeometry()(1)->Id() << std::endl;
-//                     }
-//                 }
-//                 
-//                 if(ghost_elements_size == 160)
-//                 {
-//                     for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
-//                     {
-//                         std::cout << "G: " << i_element->GetGeometry()(0)->Id() << "-" << i_element->GetGeometry()(1)->Id() << std::endl;
-//                     }
-//                 }
-                
-//                 std::cout << i_color << " - " << local_elements_size << " - " << ghost_elements_size << std::endl;
-
                 if ((local_elements_size == 0) && (ghost_elements_size == 0))
                     continue; // nothing to transfer!
 
@@ -1350,9 +1351,6 @@ private:
                 position = 0;
                 for (ModelPart::ElementIterator i_element = r_ghost_elements.begin(); i_element != r_ghost_elements.end(); ++i_element)
                 {
-                    if(i_element->Id() == 37222)
-                        std::cout << "YL:\t" << i_color << " " << i_element->Id() << " - " << i_element->GetValue(ThisVariable) << " - " << *reinterpret_cast<TDataType*> (receive_buffer + position) << std::endl;
-                  
                     i_element->GetValue(ThisVariable) = *reinterpret_cast<TDataType*> (receive_buffer + position);
                     position += elemental_data_size;
                 }
@@ -1369,12 +1367,17 @@ private:
     
     template<class TObjectType>
     bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
-    {
-//         std::cout << "Sendrecv" << std::endl;
-      
+    { 
         int mpi_rank;
         int mpi_size;
-      
+        
+        static double total_time = 0;
+        static double read_time = 0;
+        static double write_time = 0;
+
+        double t0;
+        double t1;
+        
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
@@ -1386,8 +1389,14 @@ private:
             {
                 Kratos::Serializer particleSerializer;
                 std::stringstream * serializer_buffer;
+                
+                t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.save("VariableList",mVariables_list);
                 particleSerializer.save("Object",SendObjects[i]);
+                t1 = OpenMPUtils::GetCurrentTime();
+                
+                total_time += (t1-t0);
+                write_time += (t1-t0);
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 buffer[i] = std::string(serializer_buffer->str());
@@ -1417,7 +1426,6 @@ private:
         {
             if(i != mpi_rank && msgRecvSize[i])
             {
-//                 std::cout << "Expects recieve data from process " << i << std::endl;
                 message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
 
                 MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
@@ -1425,7 +1433,6 @@ private:
 
             if(i != mpi_rank && msgSendSize[i])
             {
-//                 std::cout << "Its gonna send data to process " << i << std::endl;
                 mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
                 memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
@@ -1435,9 +1442,8 @@ private:
         //wait untill all communications finish
         int err = MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
-	if(err != MPI_SUCCESS)
-std::cout << "ERROR ____________________________ " << std::endl;
-		//KRATOS_ERROR(std::runtime_error,"Error in mpi_communicator","")
+        if(err != MPI_SUCCESS)
+            KRATOS_ERROR(std::runtime_error,"Error in mpi_communicator","")
 
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -1451,16 +1457,22 @@ std::cout << "ERROR ____________________________ " << std::endl;
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 serializer_buffer->write(message[i], msgRecvSize[i]);
                 
+                t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.load("VariableList",mVariables_list);
                 particleSerializer.load("Object",RecvObjects[i]);
+                t1 = OpenMPUtils::GetCurrentTime();
                 
-                serializer_buffer->flush();
+                total_time += (t1-t0);
+                read_time  += (t1-t0);
+                
+                //serializer_buffer->flush();
             }
 
             MPI_Barrier(MPI_COMM_WORLD);
         }
-
+       
         // Free buffers
+        t0 = OpenMPUtils::GetCurrentTime();
         for(int i = 0; i < mpi_size; i++)
         {
             if(mpi_rank != i && msgRecvSize[i])
@@ -1468,6 +1480,184 @@ std::cout << "ERROR ____________________________ " << std::endl;
             
             if(i != mpi_rank && msgSendSize[i])
                 free(mpi_send_buffer[i]);
+        }
+        t1 = OpenMPUtils::GetCurrentTime();
+        write_time += (t1-t0); 
+        
+        return true;
+    }
+    
+    template<class TObjectType>
+    bool TransferObjects(ModelPart& mModelPart)
+    {
+        int mpi_rank;
+        int mpi_size;
+        
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        std::vector<std::vector<TObjectType> > SendObjects(mpi_size, std::vector<TObjectType>(mModelPart.NumberOfElements()));
+        std::vector<std::vector<TObjectType> > RecvObjects(mpi_size, std::vector<TObjectType>(mModelPart.NumberOfElements()));
+        
+        ElementsContainerType::ContainerType& pElements = LocalMesh().ElementsArray();
+        
+        int NewNumberOfObjects[mpi_size];
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            NewNumberOfObjects[i] = 0;
+        }
+        
+        //Fill the buffer with elements to be transfered
+        for (ElementsContainerType::ContainerType::iterator i_element = pElements.begin(); i_element != pElements.end(); ++i_element)
+        {
+            int PartitionIndex = (*i_element)->GetValue(PARTITION_INDEX);
+            if(PartitionIndex != mpi_rank)
+            {
+                SendObjects[PartitionIndex][NewNumberOfObjects[PartitionIndex]] = (*i_element);
+                NewNumberOfObjects[PartitionIndex]++;
+            }
+        }
+
+        //Resize the buffers to avoid unnecessary comunications
+        for(int i = 0; i < mpi_size; i++) 
+        {
+            SendObjects[i].resize(NewNumberOfObjects[i]);
+        }
+        
+        //Perform the comunication here
+        TransferObjects(mModelPart,SendObjects,RecvObjects);
+        BuildNewPartitions(mModelPart,RecvObjects);
+        
+        return true;
+    }
+    
+    template<class TObjectType>
+    bool TransferObjects(ModelPart& mModelPart,std::vector<std::vector<TObjectType> > &SendObjects,std::vector<std::vector<TObjectType> > &RecvObjects) 
+    {
+        int mpi_rank;
+        int mpi_size;
+        
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        int msgSendSize[mpi_size];
+        int msgRecvSize[mpi_size];
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            msgSendSize[i] = 0;
+            msgRecvSize[i] = 0;
+        }
+      
+        AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+        
+        return true;
+    }
+    
+    template<class TObjectType>
+    bool BuildNewPartitions(ModelPart& mModelPart, std::vector<std::vector<TObjectType> > &RecvObjects)
+    {
+        int mpi_rank;
+        int mpi_size;
+        
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        ElementsContainerType::ContainerType& ElementsLocal  = LocalMesh().ElementsArray();
+        ElementsContainerType::ContainerType& ElementsGlobal = mModelPart.ElementsArray();
+        
+        NodesContainerType& NodesLocal  = LocalMesh().Nodes();
+        NodesContainerType& NodesGlobal = mModelPart.Nodes();
+   
+        ElementsContainerType::ContainerType temp_particles_container_local;
+        ElementsContainerType::ContainerType temp_particles_container_global;
+        
+        NodesContainerType temp_nodes_container_local;
+        NodesContainerType temp_nodes_container_global;
+        
+        temp_particles_container_local.reserve(ElementsLocal.size());
+        temp_particles_container_global.reserve(ElementsGlobal.size());
+        
+        temp_nodes_container_local.reserve(NodesLocal.size());
+        temp_nodes_container_global.reserve(NodesGlobal.size());
+
+        temp_particles_container_local.swap(ElementsLocal);
+        temp_particles_container_global.swap(ElementsGlobal);
+        
+        temp_nodes_container_local.swap(NodesLocal);
+        temp_nodes_container_global.swap(NodesGlobal);
+        
+        // Keep Global elements and nodes from our domain
+        for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_global.begin();
+             i_element != temp_particles_container_global.end(); ++i_element)
+        {
+            if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
+            {                 
+                mModelPart.Elements().push_back((*i_element));
+                for (unsigned int i = 0; i < (*i_element)->GetGeometry().PointsNumber(); i++)
+                {
+                    ModelPart::NodeType::Pointer pNode = (*i_element)->GetGeometry().pGetPoint(i);
+                    mModelPart.Nodes().push_back(pNode);
+                }
+            }
+        }
+
+        // Keep Local elements and nodes from our domain
+        for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_local.begin();
+             i_element != temp_particles_container_local.end(); ++i_element)
+        {
+            if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
+            {                 
+                LocalMesh().Elements().push_back((*i_element));
+                
+                for (unsigned int i = 0; i < (*i_element)->GetGeometry().PointsNumber(); i++)
+                {
+                    ModelPart::NodeType::Pointer pNode = (*i_element)->GetGeometry().pGetPoint(i);
+                    LocalMesh().Nodes().push_back(pNode);
+                }
+            }
+        }
+
+        // Add new elements and nodes
+        for(int i = 0; i < mpi_size; i++)
+        {
+            std::vector<TObjectType>& RecvProcessObjects = RecvObjects[i];
+            
+            for(size_t j = 0; j < RecvProcessObjects.size(); j++)
+            {
+                if(RecvProcessObjects[j])
+                {  
+                    mModelPart.Elements().push_back(RecvProcessObjects[j]);
+                    LocalMesh().Elements().push_back(RecvProcessObjects[j]);
+                    
+                    for (unsigned int i = 0; i < RecvProcessObjects[j]->GetGeometry().PointsNumber(); i++)
+                    {
+                        ModelPart::NodeType::Pointer pNode = RecvProcessObjects[j]->GetGeometry().pGetPoint(i);
+                        
+                        pNode->GetSolutionStepValue(PARTITION_INDEX) = mpi_rank;
+                        
+                        mModelPart.Nodes().push_back(pNode);
+                        LocalMesh().Nodes().push_back(pNode);
+                    }
+                }
+            }
+        }
+        
+        // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
+        LocalMesh().Elements().Unique();
+        LocalMesh().Nodes().Unique();
+        
+        for (unsigned int i = 0; i < LocalMeshes().size(); i++)
+        {
+            LocalMesh(i).Elements().Unique();
+            LocalMesh(i).Nodes().Unique();
+        }
+            
+        for (unsigned int i = 0; i < GhostMeshes().size(); i++)
+        {
+            GhostMesh(i).Elements().Unique();
+            GhostMesh(i).Nodes().Unique();
         }
         
         return true;

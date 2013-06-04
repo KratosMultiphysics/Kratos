@@ -95,14 +95,23 @@ namespace Kratos
 
       /// Destructor.
       virtual ~MpiUtilities(){}
+      
+      void TransferObjects(ModelPart& rModelPart)
+      {
+          KRATOS_TRY
+          
+          rModelPart.GetCommunicator().TransferObjects(rModelPart);
+          
+          KRATOS_CATCH("")
+      }
     
-      void ParallelPartitioning(ModelPart& r_model_part, bool extension_option, int CalculateBoundry)
+      void ParallelPartitioning(ModelPart& rModelPart, bool extension_option, int CalculateBoundry)
       {
           KRATOS_TRY
                     
-          ElementsContainerType& pLocalElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray();
+          ElementsContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
 
-          ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
+          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
           double radius_extend = 0.0;
           if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
@@ -116,14 +125,16 @@ namespace Kratos
               }
           
           LloydParallelPartitioner<Configure> partitioner;
-          partitioner.LloydsBasedParitioner(r_model_part,MaxNodeRadius,CalculateBoundry);
+          partitioner.LloydsBasedParitioner(rModelPart,MaxNodeRadius,CalculateBoundry);
           
           KRATOS_CATCH("")
       }
     
-      void CompactIds(ModelPart& mcontacts_model_part)
+      void CompactIds(ModelPart& mContactsModelPart)
       {
-          int contacts_model_part_size = mcontacts_model_part.GetCommunicator().LocalMesh().Elements().size();
+          KRATOS_TRY
+        
+          int contacts_model_part_size = mContactsModelPart.GetCommunicator().LocalMesh().Elements().size();
           int iteratorId = -1;
         
           Configure::ReduceIds(contacts_model_part_size,iteratorId);
@@ -131,10 +142,12 @@ namespace Kratos
           if(iteratorId == -1)
               std::cout << "Something went wrong :(" << std::endl;
           
-          for (IteratorType it = mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mcontacts_model_part.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
+          for (IteratorType it = mContactsModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mContactsModelPart.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
           {
               (*it)->SetId(iteratorId++);
           }
+          
+          KRATOS_CATCH("")
       }
           
     protected:
