@@ -90,14 +90,9 @@ namespace Kratos
       ///@{
 
       typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>   BaseType;
-      typedef typename BaseType::TDataType                              TDataType;
-      typedef typename BaseType::TBuilderAndSolverType                  TBuilderAndSolverType;
-      typedef typename BaseType::TSchemeType                            TSchemeType;
-      typedef typename BaseType::DofsArrayType                          DofsArrayType;
-      typedef typename Element::DofsVectorType                          DofsVectorType;
-
       typedef ModelPart::NodesContainerType                             NodesArrayType;
       typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+      typedef ElementsArrayType::iterator                               ElementsIterator;
       typedef ModelPart::ConditionsContainerType                        ConditionsArrayType;
 
       typedef ModelPart::NodesContainerType::ContainerType              NodesContainerType;
@@ -131,15 +126,15 @@ namespace Kratos
                              typename SpatialSearch::Pointer pSpSearch
       ): SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(rModelPart, MoveMeshFlag)//, mcontacts_model_part(contacts_model_part)//inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual. //les referencies tambe aqui
       {
-          mElementsAreInitialized      = false;
-          mInitializeWasPerformed      = false;
-          mComputeTime                 = false;
-          mEnlargementFactor           = enlargement_factor;
-          mpScheme                     = pScheme;
-          mpSpSearch                   = pSpSearch;
-          mMaxTimeStep                 = max_delta_time;
-          mNStepSearch                 = n_step_search;
-          mSafetyFactor                = safety_factor;
+          this->GetElementsAreInitialized()      = false;
+          this->GetInitializeWasPerformed()      = false;
+          //mComputeTime                 = false;
+          this->GetEnlargementFactor()           = enlargement_factor;
+          this->GetScheme()                     = pScheme;
+          this->GetSpSearch()                   = pSpSearch;
+          this->GetMaxTimeStep()                 = max_delta_time;
+          this->GetNStepSearch()                 = n_step_search;
+          this->GetSafetyFactor()                = safety_factor;
       }
 
       /// Destructor.
@@ -149,11 +144,10 @@ namespace Kratos
         my_timer.PrintTimingInformation();
       }
 
-      void Initialize()
+      virtual void Initialize()
       {
           KRATOS_TRY
 
-          // M: faig una primera búsqueda abans de inicialitzar elements pk allí guardaré veins inicials i altres coses.
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -164,14 +158,14 @@ namespace Kratos
           mRadius.resize(NumberOfElements);
 
           // Omp initializations
-          number_of_threads = OpenMPUtils::GetNumThreads();
+          this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
           SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],0);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option            = false;
-          mBoundingBoxOption               = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+          this->GetBoundingBoxOption()               = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
           extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
           // 2. Search Neighbours with tolerance (afther first repartition process)
@@ -183,11 +177,11 @@ namespace Kratos
           }
 
           // 4. Initializing elements and perform the repartition
-          if (mElementsAreInitialized == false){
+          if (this->GetElementsAreInitialized() == false){
               InitializeElements();
           }
 
-          mInitializeWasPerformed = true;
+          this->GetInitializeWasPerformed() = true;
 
           // 5. Set Initial Contacts
           SetInitialContacts(); // Empty function
@@ -196,13 +190,13 @@ namespace Kratos
           InitialTimeStepCalculation();
 
 	  // 7. Calculate bounding box
-	  mParticleCreatorDestructor.CalculateSurroundingBoundingBox(rModelPart, mEnlargementFactor);
+	  this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
 
 	  KRATOS_CATCH("")
 
       }// Initialized()
 
-      double Solve()
+      virtual double Solve()
       {
           KRATOS_TRY
 
@@ -231,12 +225,13 @@ namespace Kratos
           SynchronizeSolidMesh(rModelPart);
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
+
           if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
 
-              if ((time_step + 1)%mNStepSearch == 0 && time_step > 0){
+              if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
-                  if (mBoundingBoxOption == 1){
-                      BoundingBoxUtility(mEnlargementFactor);
+                  if (this->GetBoundingBoxOption() == 1){
+                      BoundingBoxUtility();
                   }
 
                   SearchNeighbours(rModelPart, extension_option); //extension option false;
@@ -259,14 +254,14 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin();
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
+          ElementsIterator it_begin = pElements.ptr_begin();
+          ElementsIterator it_end   = pElements.ptr_end();
 
           double& process_info_delta_time = rCurrentProcessInfo[DELTA_TIME];
-          double temp_time_step           = mMaxTimeStep;
+          double temp_time_step           = this->GetMaxTimeStep();
           double elem_critical_time_step  = 0.0;
 
-          for (ElementsArrayType::iterator it = it_begin; it != it_end; it++){
+          for (ElementsIterator it = it_begin; it != it_end; it++){
               it->Calculate(DELTA_TIME, elem_critical_time_step, rCurrentProcessInfo);
 
               if (elem_critical_time_step < temp_time_step){
@@ -275,9 +270,9 @@ namespace Kratos
 
           }
 
-          temp_time_step /= mSafetyFactor;
+          temp_time_step /= this->GetSafetyFactor();
           process_info_delta_time = temp_time_step;
-          KRATOS_WATCH(mMaxTimeStep)
+          KRATOS_WATCH(this->GetMaxTimeStep())
           std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << std::endl;
 
           KRATOS_CATCH("")
@@ -293,19 +288,19 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           Vector rhs_elem;
 
           #pragma omp parallel for private(rhs_elem)
-          for (int k = 0; k < number_of_threads; k++){
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
 
               if(rhs_elem.size() != 6){
                 rhs_elem.resize(6);
               }
 
-              typename ElementsArrayType::iterator it_begin   = pElements.ptr_begin() + element_partition[k];
-              typename ElementsArrayType::iterator it_end     = pElements.ptr_begin() + element_partition[k+1];
+              typename ElementsArrayType::iterator it_begin   = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end     = pElements.ptr_begin() + this->GetElementPartition()[k+1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   Element::GeometryType& geom = it->GetGeometry();
@@ -332,7 +327,7 @@ namespace Kratos
 
           ModelPart& rModelPart = BaseType::GetModelPart();
 
-          mpScheme->Calculate(rModelPart);
+          this->GetScheme()->Calculate(rModelPart);
 
           KRATOS_CATCH("")
       }
@@ -347,13 +342,13 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
 
-          for (int k = 0; k < number_of_threads; k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   (it)->InitializeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
@@ -364,12 +359,12 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      void BoundingBoxUtility(double enlargement_factor)
+      void BoundingBoxUtility()
       {
           KRATOS_TRY
 
           ModelPart& rModelPart = BaseType::GetModelPart();
-          mParticleCreatorDestructor.DestroyDistantParticles(rModelPart);
+          this->GetParticleCreatorDestructor().DestroyDistantParticles(rModelPart);
 
           KRATOS_CATCH("")
       }
@@ -384,13 +379,13 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for //private(index)
 
-          for (int k = 0; k < number_of_threads; k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                 (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
@@ -412,13 +407,13 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
 
-          for (int k = 0; k < number_of_threads; k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
@@ -447,13 +442,13 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
           ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-          OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
 
-          for (int k = 0; k < number_of_threads; k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
@@ -481,31 +476,6 @@ namespace Kratos
 
       void CalculateEnergies(){}
 
-    protected:
-
-    VectorResultElementsContainerType   mResults;
-    VectorDistanceType                  mResultsDistances;
-    RadiusArrayType                     mRadius;
-
-    bool                                mInitialCalculations;
-    bool                                mElementsAreInitialized;
-    bool                                mComputeTime;
-    bool                                mInitializeWasPerformed;
-
-    int                                 mNStepSearch;
-    int                                 mBoundingBoxOption;
-
-    double                              mEnlargementFactor;
-    double                              mMaxTimeStep;
-    double                              mSafetyFactor;
-
-    Particle_Creator_Destructor         mParticleCreatorDestructor;
-
-    int number_of_threads;
-    vector<unsigned int> element_partition;
-
-    typename IntegrationScheme::Pointer mpScheme;
-    typename SpatialSearch::Pointer mpSpSearch;
 
     void InitializeElements()
     {
@@ -517,12 +487,12 @@ namespace Kratos
 
         int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
 
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
         #pragma omp parallel for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
             //  Element::GeometryType& geom = it->GetGeometry(); ///WARNING: COMMENTED AVOIDING WARNING COMPILATION
@@ -538,12 +508,12 @@ namespace Kratos
 
         }
 
-        mElementsAreInitialized = true;
+        this->GetElementsAreInitialized() = true;
 
         KRATOS_CATCH("")
     }
 
-    void SetInitialContacts(){}
+    virtual void SetInitialContacts(){}
 
     void SetSearchRadius(ModelPart& rModelPart, double radiusExtend, double new_extension = 0)
     {
@@ -579,7 +549,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SearchInitialNeighbours(ModelPart& rModelPart,bool extension_option)
+    virtual void SearchInitialNeighbours(ModelPart& rModelPart,bool extension_option)
     {
         KRATOS_TRY
 
@@ -591,16 +561,16 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        mpSpSearch->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
 
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
         #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-            size_t ResultCounter = element_partition[k];
+            size_t ResultCounter = this->GetElementPartition()[k];
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
 
@@ -616,7 +586,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SearchNeighbours(ModelPart& rModelPart,bool extension_option)
+    virtual void SearchNeighbours(ModelPart& rModelPart,bool extension_option)
     {
         KRATOS_TRY
 
@@ -627,16 +597,16 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        mpSpSearch->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
 
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
         #pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-            size_t ResultCounter = element_partition[k];
+            size_t ResultCounter = this->GetElementPartition()[k];
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
 
@@ -657,7 +627,7 @@ namespace Kratos
 
         KRATOS_TRY
 
-        double tol                          = 10e-12 * mParticleCreatorDestructor.GetDiameter();
+        double tol                          = 10e-12 * this->GetParticleCreatorDestructor().GetDiameter();
         double initial_max_indentation      = 1.0 + tol;
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
@@ -666,14 +636,14 @@ namespace Kratos
         Vector reduction_distances;
         reduction_distances.resize(rModelPart.Elements().size());
 
-        OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
         int elem_counter;
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
@@ -692,9 +662,9 @@ namespace Kratos
         }
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
@@ -707,9 +677,9 @@ namespace Kratos
         }
 
         #pragma omp parallel for private(elem_counter)
-        for (int k = 0; k < number_of_threads; k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + element_partition[k + 1];
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
@@ -738,6 +708,53 @@ namespace Kratos
         rModelPart.GetCommunicator().SynchronizeNodalSolutionStepsData();
         rModelPart.GetCommunicator().SynchronizeDofs();
     }
+    
+    //Getting member variables
+
+    bool&   GetElementsAreInitialized(){return (mElementsAreInitialized);};
+    bool&   GetInitializeWasPerformed(){return (mInitializeWasPerformed);};
+    
+    int&    GetNStepSearch(){return (mNStepSearch);};
+    int&    GetBoundingBoxOption(){return (mBoundingBoxOption);};
+    
+    double& GetEnlargementFactor(){return (mEnlargementFactor);};
+    double& GetMaxTimeStep(){return (mMaxTimeStep);};
+    double& GetSafetyFactor(){return (mSafetyFactor);};
+    
+    Particle_Creator_Destructor& GetParticleCreatorDestructor(){return (mParticleCreatorDestructor);};
+
+    int&    GetNumberOfThreads(){return (mNumberOfThreads);};
+    vector<unsigned int>&    GetElementPartition(){return (mElementPartition);};
+    
+    typename IntegrationScheme::Pointer& GetScheme(){return (mpScheme);};
+    typename SpatialSearch::Pointer& GetSpSearch(){return (mpSpSearch);};
+    
+    protected:
+
+    VectorResultElementsContainerType   mResults;
+    VectorDistanceType                  mResultsDistances;
+    RadiusArrayType                     mRadius;
+
+    bool                                mElementsAreInitialized;
+    bool                                mInitializeWasPerformed;
+
+    int                                 mNStepSearch;
+    int                                 mBoundingBoxOption;
+
+    double                              mEnlargementFactor;
+    double                              mMaxTimeStep;
+    double                              mSafetyFactor;
+
+    Particle_Creator_Destructor         mParticleCreatorDestructor;
+
+    int                                 mNumberOfThreads;
+    vector<unsigned int>                mElementPartition;
+
+    typename IntegrationScheme::Pointer mpScheme;
+    typename SpatialSearch::Pointer     mpSpSearch;
+    
+ 
+    
 
   }; // Class ExplicitSolverStrategy
 
