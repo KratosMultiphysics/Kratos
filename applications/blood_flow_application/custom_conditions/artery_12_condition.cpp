@@ -78,6 +78,8 @@ Artery12Condition::Artery12Condition(IndexType NewId, GeometryType::Pointer pGeo
 Artery12Condition::Artery12Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
 {
+
+
 }
 
 Condition::Pointer Artery12Condition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
@@ -110,17 +112,19 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
     KRATOS_TRY
 
             //get data as needed
-            const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
+            //const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
             const double density = GetProperties()[DENSITY];
-            const double E = GetProperties()[YOUNG_MODULUS];
-            const double nu = GetProperties()[POISSON_RATIO];
-            const double pi = 3.14159265;
-            const double coriolis_coefficient = 1.0001;
-            const double kr_coefficient = 1.0;
+            //const double E = GetProperties()[YOUNG_MODULUS];
+            //const double nu = GetProperties()[POISSON_RATIO];
+            //const double pi = 3.14159265;
+            const double coriolis_coefficient = 1.1;
+            //const double kr_coefficient = 1.0;
+            //const double kinematic_viscosity = dynamic_viscosity/density;
 
-            const double kinematic_viscosity = dynamic_viscosity/density;
-            const double beta = E*mH0*1.77245385/(1.0-nu*nu);
 
+
+            //const int kk =GetProperties().Id();
+            //KRATOS_WATCH(kk);
 
             //resize the vector to the correct size
             if (rRightHandSideVector.size() != 6)
@@ -136,34 +140,48 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             array_1d<double,3> wave_velocity;
             array_1d<double,3> artery_property;
             array_1d<double,3> coef;
-
-
+            array_1d<double,3> beta;
+            array_1d<double,3> InitialArea;
 
             //loop on nodes
             for (unsigned int i=0; i<3; i++)
-            {
+            {            
+                const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
+                const double nu = GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
+                const double mH0 = GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
+                InitialArea[i] = GetGeometry()[i].GetValue(NODAL_AREA);
+
                 Node<3>& r_node = GetGeometry()[i];
                 area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
                 flow[i] = r_node.FastGetSolutionStepValue(FLOW);
-                artery_property[i]=mBeta/mInitialArea[i];
-                coef[i] = sqrt(mBeta/(2*density * mInitialArea[i]));
+
+                //const double r0 = r_node.FastGetSolutionStepValue(RADIUS);
+                beta[i] = E*mH0*1.77245385/(1.0-nu*nu);
+                //artery_property[i]=mBeta/mInitialArea[i];
+                artery_property[i]=beta[i]/InitialArea[i];
+                //coef[i] = sqrt(mBeta/(2*density * mInitialArea[i]));
+                coef[i] = sqrt(beta[i]/(2*density * InitialArea[i]));
             }
 
-            wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
-            wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
-            wave_velocity[2] = (flow[2] / area[2]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[2])) * pow(area[2],0.25);
+            //wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[0])) * pow(area[0],0.25);
+            //wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[1])) * pow(area[1],0.25);
+            //wave_velocity[2] = (flow[2] / area[2]) - 4.00 * sqrt(mBeta / (2.00 * density * mInitialArea[2])) * pow(area[2],0.25);
+
+            wave_velocity[0] = (flow[0] / area[0]) + (4.00 * (sqrt(beta[0] / (2.00 * density * InitialArea[0]))) * pow(area[0],0.25));
+            wave_velocity[1] = (flow[1] / area[1]) - (4.00 * (sqrt(beta[1] / (2.00 * density * InitialArea[1]))) * pow(area[1],0.25));
+            wave_velocity[2] = (flow[2] / area[2]) - (4.00 * (sqrt(beta[2] / (2.00 * density * InitialArea[2]))) * pow(area[2],0.25));
 
 
             double convergence;
             unsigned int max_iterations = 100;
-            double tolerance = 1e-6;
+            double tolerance = 1e-5;
 
             for(unsigned int i = 0 ; i < max_iterations ; i++)
             {
-                CalculateFunctional6(f_out, area, flow, artery_property, coef, wave_velocity, density);
+                CalculateFunctional6(f_out, area, InitialArea, flow, artery_property, coef, wave_velocity, density);
                 CalculateJacobian6(jacobian, area, flow, artery_property, coef, wave_velocity, density);
-//                KRATOS_WATCH(f_out);
-//                KRATOS_WATCH(jacobian);
+                //KRATOS_WATCH(f_out);
+                //KRATOS_WATCH(jacobian);
 
                 permutation_matrix<double> permutation(6);
                 array_1d<double,6> delta_x = -f_out;
@@ -173,42 +191,53 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 
                 convergence = norm_2(delta_x);
 
-                // we have to add the relative convergence check
-                if(convergence < tolerance)
-                    break;
-
                 area[0] += delta_x[0];
                 area[1] += delta_x[1];
                 area[2] += delta_x[2];
                 flow[0] += delta_x[3];
                 flow[1] += delta_x[4];
                 flow[2] += delta_x[5];
+                //KRATOS_WATCH("AAAAA::::SSSS");
+                //KRATOS_WATCH(flow);
 
+                // we have to add the relative convergence check
+                if(convergence < tolerance)
+                    break;
             }
-            double A1 = area[0];
-
-            double A0 = mInitialArea[0];
-            double C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
-
-            rRightHandSideVector[0] = -flow[0];
-            double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
-            rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
-
-            A1 = area[1];
-            C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
-
-            rRightHandSideVector[2] = flow[1];
-            temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
-            rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
-
-            A1 = area[2];
-            C = beta*sqrt(A1*A1*A1)/(3.0*density*A0);
-
-            rRightHandSideVector[4] = flow[2];
-            temp = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
-            rRightHandSideVector[5] = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
 
 
+             double A1 = area[0];
+             double A0 = InitialArea[0];
+             double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+             double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+             double mH0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
+             beta[0] = E*mH0*1.77245385/(1.0-nu*nu);
+             double C = beta[0]*sqrt(A1*A1*A1)/(3.0*density*A0);
+             rRightHandSideVector[0] = -flow[0];
+             double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
+             rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow[0]*flow[0]/(A1)));
+
+             A1 = area[1];
+             A0 = InitialArea[1];
+             E = GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS);
+             nu = GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO);
+             mH0 = GetGeometry()[1].FastGetSolutionStepValue(THICKNESS);
+             beta[1] = E*mH0*1.77245385/(1.0-nu*nu);
+             C = beta[1]*sqrt(A1*A1*A1)/(3.0*density*A0);
+             rRightHandSideVector[2] = flow[1];
+             temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
+             rRightHandSideVector[3] = (C + (coriolis_coefficient*flow[1]*flow[1]/(A1)));
+
+             A1 = area[2];
+             A0 = InitialArea[2];
+             E = GetGeometry()[2].FastGetSolutionStepValue(YOUNG_MODULUS);
+             nu = GetGeometry()[2].FastGetSolutionStepValue(POISSON_RATIO);
+             mH0 = GetGeometry()[2].FastGetSolutionStepValue(THICKNESS);
+             beta[2] = E*mH0*1.77245385/(1.0-nu*nu);
+             C = beta[2]*sqrt(A1*A1*A1)/(3.0*density*A0);
+             rRightHandSideVector[4] = flow[2];
+             temp = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
+             rRightHandSideVector[5] = (C + (coriolis_coefficient*flow[2]*flow[2]/(A1)));
 
     KRATOS_CATCH("")
 }
@@ -220,42 +249,67 @@ void Artery12Condition::Initialize()
     KRATOS_TRY
 
 
-    const double pi = 3.14159265;
-    double radius = GetProperties()[RADIUS];
+//    const double pi = 3.14159265;
+//    //double radius = GetProperties()[RADIUS];
 
-    const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[0] = pi*r0*r0;
+//    //const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+//    const double r0 =  GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+//    mInitialArea[0] = pi*r0*r0;
 
-    const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[1] = pi*r1*r1;
+//    //const double r1 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+//    const double r1 =  GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
+//    mInitialArea[1] = pi*r1*r1;
 
-    const double r2 =  radius; //GetGeometry()[1].FastGetSolutionStepValue(RADIUS);
-    mInitialArea[2] = pi*r2*r2;
-
-
-    mH0 = GetProperties()[THICKNESS];
-
-    const double E = GetProperties()[YOUNG_MODULUS];
-    const double nu = GetProperties()[POISSON_RATIO];
-
-    mBeta = E*mH0*1.77245385/(1.0-nu*nu);
+//    //const double r2 =  radius; //GetGeometry()[2].FastGetSolutionStepValue(RADIUS);
+//    const double r2 =  GetGeometry()[2].FastGetSolutionStepValue(RADIUS);
+//    mInitialArea[2] = pi*r2*r2;
 
 
-    //save area to the nodes. as well as its nodal mass
-    GetGeometry()[0].SetLock();
-    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
-    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[0].UnSetLock();
+//    mH0 = GetProperties()[THICKNESS];
 
-    GetGeometry()[1].SetLock();
-    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[1];
-    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[1].UnSetLock();
+//    //const double E = GetProperties()[YOUNG_MODULUS];
+//    //const double nu = GetProperties()[POISSON_RATIO];
+//    //const double density = GetGeometry()[0].FastGetSolutionStepValue(DENSITY);
+//    const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+//    const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+//    const double mH0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
 
-    GetGeometry()[2].SetLock();
-    GetGeometry()[2].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[2];
-    GetGeometry()[2].FastGetSolutionStepValue(RADIUS) = radius;
-    GetGeometry()[2].UnSetLock();
+//    mBeta = E*mH0*1.77245385/(1.0-nu*nu);
+
+
+//    //save area to the nodes. as well as its nodal mass
+//    GetGeometry()[0].SetLock();
+//    GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[0];
+//    GetGeometry()[0].FastGetSolutionStepValue(RADIUS) = r0;
+//    GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) = mH0;
+//    GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
+//    GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
+//    GetGeometry()[0].UnSetLock();
+
+
+//    const double E1 = GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS);
+//    const double nu1 = GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO);
+//    const double mH01 = GetGeometry()[1].FastGetSolutionStepValue(THICKNESS);
+
+//    GetGeometry()[1].SetLock();
+//    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[1];
+//    GetGeometry()[1].FastGetSolutionStepValue(RADIUS) = r1;
+//    GetGeometry()[1].FastGetSolutionStepValue(THICKNESS) = mH01;
+//    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E1;
+//    GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu1;
+//    GetGeometry()[1].UnSetLock();
+
+
+//    const double E2 = GetGeometry()[2].FastGetSolutionStepValue(YOUNG_MODULUS);
+//    const double nu2 = GetGeometry()[2].FastGetSolutionStepValue(POISSON_RATIO);
+//    const double mH02 = GetGeometry()[2].FastGetSolutionStepValue(THICKNESS);
+//    GetGeometry()[2].SetLock();
+//    GetGeometry()[2].FastGetSolutionStepValue(NODAL_AREA) = mInitialArea[2];
+//    GetGeometry()[2].FastGetSolutionStepValue(RADIUS) = r2;
+//    GetGeometry()[2].FastGetSolutionStepValue(THICKNESS) = mH02;
+//    GetGeometry()[2].FastGetSolutionStepValue(YOUNG_MODULUS) = E2;
+//    GetGeometry()[2].FastGetSolutionStepValue(POISSON_RATIO) = nu2;
+//    GetGeometry()[2].UnSetLock();
 
 
     KRATOS_CATCH("");
@@ -336,6 +390,7 @@ void Artery12Condition::InitializeNonLinearIteration(ProcessInfo& CurrentProcess
 
 void Artery12Condition::CalculateFunctional6(array_1d<double,6>& rFunctional,
                          array_1d<double, 3> const& Area,
+                         array_1d<double, 3> const& InitialArea,
                          array_1d<double, 3> const& Flow, array_1d<double,3> const& ArteryProperty, array_1d<double,3> const& Coef,
                          array_1d<double, 3> const& WaveVelocity,
                          double BloodDensity)
@@ -348,12 +403,12 @@ void Artery12Condition::CalculateFunctional6(array_1d<double,6>& rFunctional,
 
     rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
 
-    rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
-             ArteryProperty[1]*(sqrt(Area[1])-sqrt(mInitialArea[1]))+
+    rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(InitialArea[0]))-
+             ArteryProperty[1]*(sqrt(Area[1])-sqrt(InitialArea[1]))+
              0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
 
-    rFunctional[2]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(mInitialArea[0]))-
-             ArteryProperty[2]*(sqrt(Area[2])-sqrt(mInitialArea[2]))+
+    rFunctional[2]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(InitialArea[0]))-
+             ArteryProperty[2]*(sqrt(Area[2])-sqrt(InitialArea[2]))+
              0.50*BloodDensity*(qa0*qa0 - qa2*qa2);
 
     rFunctional[3]=Flow[0]-Flow[1]-Flow[2];

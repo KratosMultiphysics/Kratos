@@ -15,6 +15,13 @@ fluid_model_part.AddNodalSolutionStepVariable(RHS)
 fluid_model_part.AddNodalSolutionStepVariable(WORK)
 fluid_model_part.AddNodalSolutionStepVariable(FLOW)
 fluid_model_part.AddNodalSolutionStepVariable(VELOCITY)
+fluid_model_part.AddNodalSolutionStepVariable(THICKNESS)
+fluid_model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+fluid_model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+fluid_model_part.AddNodalSolutionStepVariable(DENSITY)
+fluid_model_part.AddNodalSolutionStepVariable(TERMINAL_RESISTANCE)
+fluid_model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
+fluid_model_part.AddNodalSolutionStepVariable(PRESSURE)
 
 
 #introducing input file name
@@ -32,6 +39,24 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(2)
 
+for element in fluid_model_part.Elements:
+ properties = element.Properties
+ print properties.Id
+ E = properties[YOUNG_MODULUS]
+ h = properties[THICKNESS]
+ nu= properties[POISSON_RATIO]
+ den=properties[DENSITY]
+ r=properties[RADIUS]
+ area_inicial=r*r*3.141617
+ for node in element.GetNodes():
+   node.SetSolutionStepValue(YOUNG_MODULUS,E)
+   node.SetSolutionStepValue(THICKNESS,h)
+   node.SetSolutionStepValue(POISSON_RATIO,nu)
+   node.SetSolutionStepValue(DENSITY,den)
+   node.SetSolutionStepValue(RADIUS,r)
+   node.SetSolutionStepValue(NODAL_AREA,area_inicial)
+
+
 for node in fluid_model_part.Nodes:
   if(node.IsFixed(FLOW) == False):
     node.SetSolutionStepValue(FLOW,0,0.0008)
@@ -45,11 +70,11 @@ for node in fluid_model_part.Nodes:
 #    node.SetSolutionStepValue(FLOW,0,0.0)
     
 #settings to be changed
-Dt = 4e-4
+Dt = 4e-5
 full_Dt = Dt 
 initial_Dt = Dt#0.001 * full_Dt #0.05 #0.01
-final_time = 20
-output_step = 20
+final_time = 5
+output_step = 5
 
 out = 1
 
@@ -63,6 +88,8 @@ gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
 integrator = ArteryTimeIntegrator()
 integrator.Initialize(fluid_model_part)
 
+
+
 time = 0.0
 step = 0
 while(time < final_time):
@@ -72,7 +99,11 @@ while(time < final_time):
         Dt = initial_Dt
     else:
         Dt = full_Dt
-        
+    
+    #Dt = integrator.EstimateDeltaTime(fluid_model_part, 0.4)
+    Dt = 4e-5
+    print "Dt", Dt    
+    
     time = time + Dt
     print "time=",time
 #    if(time > final_time / 3.0):

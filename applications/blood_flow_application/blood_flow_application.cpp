@@ -28,8 +28,8 @@
 namespace Kratos
 {
 	//Example
-KRATOS_CREATE_VARIABLE(double, FLOW)
-KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
+    KRATOS_CREATE_VARIABLE(double, FLOW)
+    KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( WORK );
 //	KRATOS_CREATE_VARIABLE(double, NODAL_AREA);
 //
@@ -58,8 +58,8 @@ KRATOS_CREATE_VARIABLE(double, TERMINAL_RESISTANCE)
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
 
         KRATOS_REGISTER_ELEMENT("ArteryElement", mArteryElement);
-	KRATOS_REGISTER_CONDITION("Artery1Dto3DCondition", mArtery1Dto3DCondition);
-	KRATOS_REGISTER_CONDITION("Artery3Dto1DCondition", mArtery3Dto1DCondition);
+        KRATOS_REGISTER_CONDITION("Artery1Dto3DCondition", mArtery1Dto3DCondition);
+        KRATOS_REGISTER_CONDITION("Artery3Dto1DCondition", mArtery3Dto1DCondition);
         KRATOS_REGISTER_CONDITION("Artery11Condition", mArtery11Condition);
         KRATOS_REGISTER_CONDITION("Artery12Condition", mArtery12Condition);
         KRATOS_REGISTER_CONDITION("ArteryInletCondition", mArteryInletCondition);
