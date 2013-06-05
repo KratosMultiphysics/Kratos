@@ -48,7 +48,7 @@ def AddVariables(model_part):
     # LOCAL AXIS
     model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
-    #SURFACE
+    # BOUNDARY SURFACE
     model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
 
@@ -186,6 +186,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
+        self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION);
+
 
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
@@ -212,7 +214,6 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # PRINTING VARIABLES
-
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Print Skin sphere
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
