@@ -171,10 +171,6 @@ namespace Kratos
           // 2. Search Neighbours with tolerance (afther first repartition process)
           SearchInitialNeighbours(rModelPart, extension_option);
 
-          // 3. Initializing
-
-          InitializeSolutionStep();
-
           // 3. Finding overlapping of initial configurations
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
@@ -263,7 +259,7 @@ namespace Kratos
 
           double& process_info_delta_time = rCurrentProcessInfo[DELTA_TIME];
           double temp_time_step           = this->GetMaxTimeStep();
-          double elem_critical_time_step  = 0.0;
+          double elem_critical_time_step  = temp_time_step;
 
           for (ElementsIterator it = it_begin; it != it_end; it++){
               it->Calculate(DELTA_TIME, elem_critical_time_step, rCurrentProcessInfo);
