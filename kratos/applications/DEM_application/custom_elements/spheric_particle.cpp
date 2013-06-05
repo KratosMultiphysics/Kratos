@@ -1022,37 +1022,23 @@ namespace Kratos
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
               }
 
-              const int&    damp_type               = rCurrentProcessInfo[DAMP_TYPE];
-              const int&    elasticity_type         = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
-              const int&    rotation_option         = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
-              const int&    rotation_damp_type      = rCurrentProcessInfo[ROTA_DAMP_TYPE];
-              const int&    global_variables_option = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]; //M:  it's 1/0, should be a boolean
-              const int&    critical_time_option    = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
-              const int&    uniform_mat_option      = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
-              const double& magic_factor            = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
-              const double& global_kn               = rCurrentProcessInfo[GLOBAL_KN];
-              const double& global_kt               = rCurrentProcessInfo[GLOBAL_KT];
-              const double& limit_surface_option    = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
-              const double& rotation_spring_option  = rCurrentProcessInfo[ROTATION_SPRING_OPTION];
+              mDampType                 = rCurrentProcessInfo[DAMP_TYPE];
+              mElasticityType           = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
+              mRotationOption           = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
+              mRotationDampType         = rCurrentProcessInfo[ROTA_DAMP_TYPE];
+              mGlobalVariablesOption    = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]; //M:  it's 1/0, should be a boolean
+              mCriticalTimeOption       = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
+              mUniformMaterialOption    = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
+              mMagicFactor              = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
+              mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
+              mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
+              mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
+              mRotationSpringOption     = rCurrentProcessInfo[ROTATION_SPRING_OPTION];
 
-
-              if (rotation_option){
-                  const double& rolling_friction    = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                  mRollingFriction                  = rolling_friction;
+              if (mRotationOption){
+                  mRollingFriction      = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               }
 
-              mDampType                             = damp_type;
-              mElasticityType                       = elasticity_type;
-              mRotationOption                       = rotation_option;
-              mRotationDampType                     = rotation_damp_type;
-              mGlobalVariablesOption                = global_variables_option;
-              mCriticalTimeOption                   = critical_time_option;
-              mUniformMaterialOption                = uniform_mat_option;
-              mMagicFactor                          = magic_factor;
-              mGlobalKn                             = global_kn;
-              mGlobalKt                             = global_kt;
-              mLimitSurfaceOption                   = limit_surface_option;
-              mRotationSpringOption                 = rotation_spring_option;
           }
 
       }
