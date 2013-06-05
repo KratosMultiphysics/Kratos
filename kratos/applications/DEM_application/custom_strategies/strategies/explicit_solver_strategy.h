@@ -153,9 +153,9 @@ namespace Kratos
 
           int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
 
-          mResults.resize(NumberOfElements);
-          mResultsDistances.resize(NumberOfElements);
-          mRadius.resize(NumberOfElements);
+          this->GetResults().resize(NumberOfElements);
+          this->GetResultsDistances().resize(NumberOfElements);
+          this->GetRadius().resize(NumberOfElements);
 
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
@@ -165,10 +165,10 @@ namespace Kratos
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option            = false;
-          this->GetBoundingBoxOption()               = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+          this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
           extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
-          // 2. Search Neighbours with tolerance (afther first repartition process)
+          // 2. Search Neighbours with tolerance (after first repartition process)
           SearchInitialNeighbours(rModelPart, extension_option);
 
           // 3. Finding overlapping of initial configurations
@@ -187,7 +187,8 @@ namespace Kratos
           SetInitialContacts(); // Empty function
 
           // 6. Compute initial time step
-          InitialTimeStepCalculation();
+          //InitialTimeStepCalculation();
+
 
 	  // 7. Calculate bounding box
 	  this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
@@ -523,7 +524,7 @@ namespace Kratos
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            mRadius[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
         }
 
         KRATOS_CATCH("")
@@ -560,7 +561,7 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -573,12 +574,12 @@ namespace Kratos
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
 
-                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it){
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
                     particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
                 }
 
-                mResults[ResultCounter].clear();
-                mResultsDistances[ResultCounter].clear();
+                this->GetResults()[ResultCounter].clear();
+                this->GetResultsDistances()[ResultCounter].clear();
             }
         }
 
@@ -596,7 +597,7 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,mRadius,mResults,mResultsDistances);
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -609,12 +610,12 @@ namespace Kratos
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
 
-                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = mResults[ResultCounter].begin(); neighbour_it != mResults[ResultCounter].end(); ++neighbour_it){
+                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
                     particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
                 }
 
-                mResults[ResultCounter].clear();
-                mResultsDistances[ResultCounter].clear();
+                this->GetResults()[ResultCounter].clear();
+                this->GetResultsDistances()[ResultCounter].clear();
             }
 
         }
@@ -709,6 +710,10 @@ namespace Kratos
     }
     
     //Getting member variables
+
+    VectorResultElementsContainerType&      GetResults(){return(mResults);};
+    VectorDistanceType&                     GetResultsDistances(){return(mResultsDistances);};
+    RadiusArrayType&                        GetRadius(){return(mRadius);};
 
     bool&   GetElementsAreInitialized(){return (mElementsAreInitialized);};
     bool&   GetInitializeWasPerformed(){return (mInitializeWasPerformed);};
