@@ -1019,7 +1019,6 @@ namespace Kratos
               mInitializedVariablesFlag = 1;
 
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
-                  KRATOS_WATCH("pp3")
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
               }
 
