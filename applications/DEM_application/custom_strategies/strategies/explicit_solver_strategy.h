@@ -187,7 +187,7 @@ namespace Kratos
           SetInitialContacts(); // Empty function
 
           // 6. Compute initial time step
-          //InitialTimeStepCalculation();
+          InitialTimeStepCalculation();
 
 
 	  // 7. Calculate bounding box
