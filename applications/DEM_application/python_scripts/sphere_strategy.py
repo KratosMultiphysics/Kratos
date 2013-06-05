@@ -77,6 +77,15 @@ def AddDofs(model_part):
 
     print "DOFs for the DEM solution added correctly"
 
+def Var_Translator(variable):
+
+    if (variable == "OFF" or variable == "0"):
+        variable = 0
+    else:
+        variable = 1
+
+    return variable
+
 class ExplicitStrategy:
 
     def __init__(self, model_part, domain_size):
@@ -85,30 +94,19 @@ class ExplicitStrategy:
 
         # SIMULATION FLAGS
         self.MoveMeshFlag                   = True
-        self.virtual_mass_OPTION            = 0  #its 1/0 xapuza
-        self.critical_time_OPTION           = 0  #its 1/0 xapuza
+        self.virtual_mass_OPTION            = Var_Translator(VirtualMassOption)  #its 1/0 xapuza
+        self.critical_time_OPTION           = Var_Translator(CriticalTimeOption)  #its 1/0 xapuza
         self.case_OPTION                    = 3  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
-        self.trihedron_OPTION               = 0
-        self.rotation_OPTION                = 0  #its 1/0 xapuza
-        self.rotation_spring_OPTION         = 0  #its 1/0 xapuza
-        self.bounding_box_OPTION            = 0  #its 1/0 xapuza
+        self.trihedron_OPTION               = Var_Translator(TrihedronOption)
+        self.rotation_OPTION                = Var_Translator(RotationOption)
+        self.rotation_spring_OPTION         = Var_Translator(RotationalSpringOption)  #its 1/0 xapuza
+        self.bounding_box_OPTION            = Var_Translator(BoundingBoxOption)  #its 1/0 xapuza
         self.activate_search                = 1  #its 1/0 xapuza
-        self.fix_velocities                 = 0
-        self.global_variables_OPTION        = 0  #its 1/0 xapuza
-        self.limit_surface_OPTION           = 0  #its 1/0 xapuza
-        self.clean_init_indentation_OPTION  = 0
-
-        if (HomogeneousMaterialOption == "ON"):
-            self.homogeneous_material_OPTION= 1
-
-        else:
-            self.homogeneous_material_OPTION= 0
-
-        if (GlobalVariablesOption == "ON"):
-            self.global_variables_OPTION    = 1
-
-        else:
-            self.global_variables_OPTION    = 0
+        self.fix_velocities                 = Var_Translator(FixVelocities)
+        self.limit_surface_OPTION           = Var_Translator(LimitSurfaceOption)  #its 1/0 xapuza
+        self.clean_init_indentation_OPTION  = Var_Translator(CleanIndentationsOption)
+        self.homogeneous_material_OPTION    = Var_Translator(HomogeneousMaterialOption)
+        self.global_variables_OPTION        = Var_Translator(GlobalVariablesOption)
 
         # MODEL
         self.model_part                     = model_part
@@ -116,50 +114,46 @@ class ExplicitStrategy:
 
         # BOUNDARY
         self.surface_normal_dir             = Vector(3)
-        self.surface_normal_dir[0]          = 0.0
-        self.surface_normal_dir[1]          = 1.0
-        self.surface_normal_dir[2]          = 0.0
+        self.surface_normal_dir[0]          = surface_normal_dir_x
+        self.surface_normal_dir[1]          = surface_normal_dir_y
+        self.surface_normal_dir[2]          = surface_normal_dir_z
         self.surface_point_coor             = Vector(3)
-        self.surface_point_coor[0]          = 0.0
-        self.surface_point_coor[1]          = 0.0
-        self.surface_point_coor[2]          = 0.0
-        self.surface_friction_angle         = 45
+        self.surface_point_coor[0]          = surface_point_coor_x
+        self.surface_point_coor[1]          = surface_point_coor_y
+        self.surface_point_coor[2]          = surface_point_coor_z
+        self.surface_friction_angle         = surface_friction_angle
 
         # GLOBAL PHISICAL ASPECTS
-        self.penalty_factor                 = 10.00
         self.gravity                        = Vector(3)
-        self.gravity[0]                     = 0.0
-        self.gravity[1]                     = - 9.81
-        self.gravity[2]                     = 0.0
+        self.gravity[0]                     = gravity_x
+        self.gravity[1]                     = gravity_y
+        self.gravity[2]                     = gravity_z
 
         # GLOBAL MATERIAL PROPERTIES
-        self.damping_ratio                  = 0.00
-        self.nodal_mass_coeff               = 0.0
-        self.magic_factor                   = 1.0
+        self.nodal_mass_coeff               = VirtualMassCoefficient
+        self.magic_factor                   = Var_Translator(MagicFactor)
 
         if(self.global_variables_OPTION == "ON"):
-            self.global_kn                  = 1000.0
-            self.global_kt                  = 1000.0
+            self.global_kn                  = global_kn
+            self.global_kt                  = global_kt
 
         # PRINTING VARIABLES
-        self.print_export_id                = 0
-        self.print_export_skin_sphere       = 0
+        self.print_export_id                = Var_Translator(print_export_id)
+        self.print_export_skin_sphere       = Var_Translator(print_export_skin_sphere)
         self.force_calculation_type_id      = 1
         self.damp_id                        = 1
         self.rota_damp_id                   = 0
-        self.dummy_switch                   = 0
 
         # TIME RELATED PARAMETERS
-        self.delta_time                     = 0.00001
+        self.delta_time                     = max_time_step
         self.max_delta_time                 = max_time_step
-        self.fraction_delta_time            = 0.90
-        self.final_time                     = 3.0
-        self.time_increasing_ratio          = 15 # Percentage (%)
+        self.final_time                     = final_time
+        self.time_increasing_ratio          = int(IncreasingTemporaily) # Percentage (%)
 
         # RESOLUTION METHODS AND PARAMETERS
-        self.enlargement_factor             = 1
-        self.n_step_search                  = 1
-        self.safety_factor                  = 1.0 # For critical time step
+        self.enlargement_factor             = bounding_box_enlargement_factor
+        self.n_step_search                  = int(search_step)
+        self.safety_factor                  = dt_safety_factor # For critical time step
         self.create_and_destroy             = particle_destructor_and_constructor()
 
         # STRATEGIES
