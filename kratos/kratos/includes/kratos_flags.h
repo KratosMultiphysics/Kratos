@@ -43,6 +43,7 @@ namespace Kratos
     KRATOS_CREATE_FLAG(INLET,       61);
     KRATOS_CREATE_FLAG(OUTLET,      60);
     KRATOS_CREATE_FLAG(VISITED,     59);
+    KRATOS_CREATE_FLAG(SELECTED,    58);
 
 
   ///@}
