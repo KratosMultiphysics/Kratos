@@ -897,7 +897,7 @@ public:
 		boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
 		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 		
-		
+		double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
 		double Area;//area of the complete element
 		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
 		Area = CalculateVolume2D( rPoints );
@@ -949,8 +949,6 @@ public:
 			cut_edges[2]=true;
 		else
 			cut_edges[2]=false;
-		
-		
 		
 		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
 		//since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
@@ -1034,10 +1032,19 @@ public:
        for (int i = 0; i < 3; i++)
        {
            if (rDistances[i] < 0.0)
+           {
                exact_distance[i] = -abs_distance[i];
+               --most_common_sign;
+		   }
            else
+           {
                exact_distance[i] = abs_distance[i];
+               ++most_common_sign;
+		   }
        }
+       
+		
+		
        
 
         //compute exact distance gradients
@@ -1143,12 +1150,33 @@ public:
                  else
                      rPartitionsSign[partition_number] = 1.0;
  
+			     //enrichment for the gradient (continuous pressure, discontinuous gradient. Coppola-Codina enrichment 
                  NEnriched(partition_number, 0) = 0.5/max_aux_dist_on_cut * (abs_dist - rPartitionsSign[partition_number] * dist);
-                 
                  for (int j = 0; j < 2; j++)
                  { 
                     rGradientsValue[partition_number](0, j) = (0.5/max_aux_dist_on_cut) * (abs_distance_gradient[j] - rPartitionsSign[partition_number] * exact_distance_gradient[j]);
                  }
+				 
+				 //enrichment to add a constant discontinuity along the interfase.
+				 if (rPartitionsSign[partition_number]*most_common_sign > 0.0) //on this side we will copy the standard shape functions. (maybe we change the sign, but keeping the sign
+				 {
+					 NEnriched(partition_number, 1) = -1.0*rPartitionsSign[partition_number]*NEnriched(partition_number, 0) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) = -1.0*rPartitionsSign[partition_number]*rGradientsValue[partition_number](0, j);
+					 }					 
+				 }
+				 else //we have to construct the shape function to guarantee a constant jump to 2:
+				 {
+					 //notice that the partition to be changed must one the subdomains created with a real node. so the i index is also the real node. (used 4 lines below to recover the distance.
+					 
+					 NEnriched(partition_number, 1) = rPartitionsSign[partition_number]*( 1.0*NEnriched(partition_number, 0) - 0.6666666666666666666666666666 ) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) =  (rPartitionsSign[partition_number]*1.0*rGradientsValue[partition_number](0, j) - exact_distance_gradient[j]*1.0/(abs_distance[i]));
+					 }
+				 }
+				 
 				 
 				 partition_number++;
 				 
@@ -1159,6 +1187,360 @@ public:
 		 }
 		 if (found_empty_partition==false)
 			KRATOS_WATCH("WROOOONGGGGGGGGGGG");
+			
+		//KRATOS_WATCH(NEnriched)
+		 return 3;
+		 KRATOS_CATCH("");
+        
+    }
+    
+         //2D with information on the interfase
+    static int CalculateEnrichedShapeFuncions(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
+            array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
+            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2)>& NEnriched,
+            //information about the interfase: Standard shape functions values, Enrichment Functions (first(gradient), second (positive_side,negative side) ) and Area
+            array_1d<double,(3)>&  rGPShapeFunctionValues_in_interfase, array_1d<double,(3)>&  NEnriched_in_interfase, double & InterfaseArea) 
+        {
+        KRATOS_TRY
+	
+		const double one_third=1.0/3.0;
+		boost::numeric::ublas::bounded_matrix<double,3,2> aux_points; //for auxiliary nodes 4(between 1 and 2) ,5(between 2 and 3) ,6 (between 3 and 1)
+		boost::numeric::ublas::bounded_matrix<double, 3, 2 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
+		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
+		
+		double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
+		double Area;//area of the complete element
+		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
+		Area = CalculateVolume2D( rPoints );
+		array_1d<bool,3> cut_edges;
+		array_1d<double,3> aux_nodes_relative_locations;
+		boost::numeric::ublas::bounded_matrix<int,3,2> aux_nodes_father_nodes;
+
+        //to begin with we must check whether our element is cut or not by the interfase.
+        if( (rDistances(0)*rDistances(1))>0.0 && (rDistances(0)*rDistances(2))>0.0 ) //it means that this element IS NOT cut by the interfase. we must return data of a normal, non-enriched element
+		{
+			rVolumes(0)=Area;
+			rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third;
+			NEnriched(0,0) = 0.0;
+			//type_of_cut=1;
+            for (int j = 0; j < 3; j++)
+                rGradientsValue[0](0, j) = 0.0;
+            if (rDistances(0) < 0.0) rPartitionsSign[0] = -1.0;
+            else rPartitionsSign[0] = 1.0;
+			//KRATOS_WATCH("one element not in the intefase")
+			return 1;
+		}
+		
+		//else //we must create the enrichement, it can be in 2 or 3 parts. we'll start with 3 always.
+		
+			
+		//const double epsilon = 1e-15; //1.00e-9;
+		//compute the gradient of the distance and normalize it
+		array_1d<double, 2 > grad_d;
+		noalias(grad_d) = prod(trans(DN_DX), rDistances);
+		/*
+		double norm = norm_2(grad_d);
+		if (norm > epsilon)
+			grad_d /= (norm);
+		*/	
+		array_1d<double, 3> exact_distance = rDistances;
+		array_1d<double, 3> abs_distance = ZeroVector(3);
+		
+		
+		//KRATOS_WATCH("one element IS in the intefase")
+		if ((rDistances(0)*rDistances(1))<0.0) //edge 12 is cut
+			cut_edges[0]=true;
+		else
+			cut_edges[0]=false;
+		if ((rDistances(1)*rDistances(2))<0.0) //edge 23 is cut. 
+			cut_edges[1]=true;
+		else
+			cut_edges[1]=false;
+		if ((rDistances(2)*rDistances(0))<0.0) //edge 23 is cut. 
+			cut_edges[2]=true;
+		else
+			cut_edges[2]=false;
+		
+		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
+		//since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
+		const double unsigned_distance0=fabs(rDistances(0));
+		const double unsigned_distance1=fabs(rDistances(1));
+		const double unsigned_distance2=fabs(rDistances(2));
+		//we begin by finding the largest distance:
+		double longest_distance=fabs(unsigned_distance0);
+		if (unsigned_distance1>longest_distance)
+			longest_distance=unsigned_distance1;
+		if (unsigned_distance2>longest_distance)
+			longest_distance=unsigned_distance2;
+		//Now we set a maximum relative distance
+		const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
+		//and now we check if a distance is too small:
+		if (unsigned_distance0<tolerable_distance)
+			rDistances[0]=tolerable_distance*(rDistances[0]/fabs(rDistances[0]));
+		if (unsigned_distance1<tolerable_distance)
+			rDistances[1]=tolerable_distance*(rDistances[1]/fabs(rDistances[1]));
+		if (unsigned_distance2<tolerable_distance)
+			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
+		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
+		 
+		 
+		//for (int jj = 0; jj < 3; jj++)
+		//	KRATOS_WATCH(rDistances(jj));
+		for (unsigned int i=0; i<3; i++) //we go over the 3 edges:
+		{
+			int edge_begin_node=i;
+			int edge_end_node=i+1;
+			if (edge_end_node==3) edge_end_node=0; //it's a triangle, so node 3 is actually node 0
+			
+			if(cut_edges(i)==true)
+			{
+				aux_nodes_relative_locations(i)=fabs(rDistances(edge_end_node)/(rDistances(edge_end_node)-rDistances(edge_begin_node) ) ) ; //position in 'natural' coordinates of edge 12, 1 when it passes over node 1. (it is over the edge 01)
+				aux_nodes_father_nodes(i,0)=edge_begin_node;
+				aux_nodes_father_nodes(i,1)=edge_end_node;
+			}
+			else
+			{
+				if(fabs(rDistances(edge_end_node))>fabs(rDistances(edge_begin_node))) //if edge is not cut, we collapse the aux node into the node which has the highest absolute value to have "nicer" (less "slivery") subelements
+				{
+					aux_nodes_relative_locations(i)=0.0;
+					aux_nodes_father_nodes(i,0)=edge_end_node;
+					aux_nodes_father_nodes(i,1)=edge_end_node;
+				}
+				else
+				{
+					aux_nodes_relative_locations(i)=1.0;
+					aux_nodes_father_nodes(i,0)=edge_begin_node;
+					aux_nodes_father_nodes(i,1)=edge_begin_node;
+				}
+			}
+			
+			//and we save the coordinate of the new aux nodes:
+			for (unsigned int j=0;j<2;j++)	//x,y coordinates
+				aux_points(i,j)= rPoints(edge_begin_node,j) * aux_nodes_relative_locations(i) + rPoints(edge_end_node,j) * (1.0- aux_nodes_relative_locations(i));
+		}
+		
+		
+		array_1d<double,2> base_point;
+		if (cut_edges(0)==true) // it means it is a cut edge, if it was 0.0 or 1.0 then it would be an uncut edge 
+		{ 
+			base_point[0] = aux_points(0,0);
+			base_point[1] = aux_points(0,1);
+			
+		}
+		else //it means aux_point 0 is a clone of other point, so we go to the second edge.
+		{ 
+			base_point[0] = aux_points(1,0);
+			base_point[1] = aux_points(1,1);
+		}
+
+       for (int i_node = 0; i_node < 3; i_node++)
+       {
+          double d =    (rPoints(i_node,0) - base_point[0]) * grad_d[0] +
+                        (rPoints(i_node,1) - base_point[1]) * grad_d[1] ;
+          abs_distance[i_node] = fabs(d);
+       }
+
+       //assign correct sign to exact distance
+       for (int i = 0; i < 3; i++)
+       {
+           if (rDistances[i] < 0.0)
+           {
+               exact_distance[i] = -abs_distance[i];
+               --most_common_sign;
+		   }
+           else
+           {
+               exact_distance[i] = abs_distance[i];
+               ++most_common_sign;
+		   }
+       }
+       
+		
+		
+       
+
+        //compute exact distance gradients
+        array_1d<double, 2 > exact_distance_gradient;
+        noalias(exact_distance_gradient) = prod(trans(DN_DX), exact_distance);
+
+        array_1d<double, 2 > abs_distance_gradient;
+        noalias(abs_distance_gradient) = prod(trans(DN_DX), abs_distance);
+		
+		
+		 double max_aux_dist_on_cut = -1;
+         for (int edge = 0; edge < 3; edge++)
+         {
+             const int i = edge;
+             int j = edge+1;
+             if (j==3) j=0;
+             if (rDistances[i] * rDistances[j] < 0.0)
+             {
+                 const double tmp = fabs(rDistances[i]) / (fabs(rDistances[i]) + fabs(rDistances[j]));
+                  //compute the position of the edge node
+                 double abs_dist_on_cut = abs_distance[i] * tmp + abs_distance[j] * (1.00 - tmp);
+                if(abs_dist_on_cut > max_aux_dist_on_cut) max_aux_dist_on_cut = abs_dist_on_cut;
+             }
+         }
+		
+		
+		//we reset all data:
+		rGradientsValue[0]=ZeroMatrix(2,2);
+		rGradientsValue[1]=ZeroMatrix(2,2);
+		rGradientsValue[2]=ZeroMatrix(2,2);
+		NEnriched=ZeroMatrix(3,2);
+		rGPShapeFunctionValues=ZeroMatrix(3,3);
+		
+		
+		 //now we must check the 4 created partitions of the domain.	
+		 //one has been collapsed, so we discard it and therefore save only one.
+		 unsigned int partition_number=0;		//	
+		 //the 3 first partitions are  created using 2 auxiliary nodes and a normal node. at least one of these will be discarded due to zero area		
+		 //the last one is composed by the 3 auxiliary nodes. it 'looks' wrong, but since at least one has been collapsed, it actually has a normal node.      
+		 bool found_empty_partition=false;
+		 for (unsigned int i=0; i<4; i++) //i partition	
+		 {	 
+			 unsigned int j_aux = i + 2;
+			 if (j_aux>2) j_aux -= 3; 
+			 boost::numeric::ublas::bounded_matrix<int,3,2> partition_father_nodes;
+			 array_1d<double,3> N;
+			 if (i<3)
+			 {
+				 partition_father_nodes(0,0)=i;
+				 partition_father_nodes(0,1)=i;
+				 partition_father_nodes(1,0)=aux_nodes_father_nodes(i,0); //we are using i aux node
+				 partition_father_nodes(1,1)=aux_nodes_father_nodes(i,1); //we are using i aux node
+				 partition_father_nodes(2,0)=aux_nodes_father_nodes(j_aux,0); //we are using j_aux node
+				 partition_father_nodes(2,1)=aux_nodes_father_nodes(j_aux,1); //we are using j_aux node
+				 
+				 coord_subdomain(0,0)=rPoints(i,0);
+				 coord_subdomain(0,1)=rPoints(i,1);
+				 coord_subdomain(1,0)=aux_points(i,0);
+				 coord_subdomain(1,1)=aux_points(i,1);
+				 coord_subdomain(2,0)=aux_points(j_aux,0);
+				 coord_subdomain(2,1)=aux_points(j_aux,1);
+			 }
+			 else
+			 {
+				 //the last partition, made by the 3 aux nodes.
+				 partition_father_nodes=aux_nodes_father_nodes;
+				 coord_subdomain=aux_points;
+				 //found_last_partition=true;
+			 }
+			 //calculate data of this partition
+			 double temp_area;
+			 CalculateGeometryData(coord_subdomain, DN_DX_subdomain, temp_area);
+			 if (temp_area > 1.0e-20) //ok, it does not have zero area
+			 {
+				 rVolumes(partition_number)=temp_area;
+				 //we look for the gauss point of the partition:
+				 double x_GP_partition =  one_third * ( coord_subdomain(0,0) + coord_subdomain(1,0) + coord_subdomain(2,0) );
+				 double y_GP_partition =  one_third * ( coord_subdomain(0,1) + coord_subdomain(1,1) + coord_subdomain(2,1) );
+				 double z_GP_partition  = 0.0;
+				 //we reset the coord_subdomain matrix so that we have the whole element again:
+				 coord_subdomain = rPoints;	
+				 //and we calculate its shape function values
+				 CalculatePosition ( coord_subdomain , x_GP_partition ,y_GP_partition ,z_GP_partition , N);
+				 //we check the partition sign.
+				 const double partition_sign = (N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2))/fabs(N(0)*rDistances(0) + N(1)*rDistances(1) + N(2)*rDistances(2));
+				 //rPartitionsSign(partition_number)=partition_sign;
+				 				 
+				 rGPShapeFunctionValues(partition_number,0)=N(0);
+				 rGPShapeFunctionValues(partition_number,1)=N(1);
+				 rGPShapeFunctionValues(partition_number,2)=N(2);
+				 
+				 //compute enriched shape function values
+                 double dist = 0.0;
+                 double abs_dist = 0.0;
+                 for (int j = 0; j < 3; j++)
+                 {
+                     dist += rGPShapeFunctionValues(partition_number, j) * exact_distance[j];
+                     abs_dist += rGPShapeFunctionValues(partition_number, j) * abs_distance[j];
+                 }
+ 
+                 if (partition_sign < 0.0)
+                     rPartitionsSign[partition_number] = -1.0;
+                 else
+                     rPartitionsSign[partition_number] = 1.0;
+ 
+			     //enrichment for the gradient (continuous pressure, discontinuous gradient. Coppola-Codina enrichment 
+                 NEnriched(partition_number, 0) = 0.5/max_aux_dist_on_cut * (abs_dist - rPartitionsSign[partition_number] * dist);
+                 for (int j = 0; j < 2; j++)
+                 { 
+                    rGradientsValue[partition_number](0, j) = (0.5/max_aux_dist_on_cut) * (abs_distance_gradient[j] - rPartitionsSign[partition_number] * exact_distance_gradient[j]);
+                 }
+				 
+				 //enrichment to add a constant discontinuity along the interfase.
+				 if (rPartitionsSign[partition_number]*most_common_sign > 0.0) //on this side we will copy the standard shape functions. (maybe we change the sign, but keeping the sign
+				 {
+					 NEnriched(partition_number, 1) = -1.0*rPartitionsSign[partition_number]*NEnriched(partition_number, 0) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) = -1.0*rPartitionsSign[partition_number]*rGradientsValue[partition_number](0, j);
+					 }					 
+				 }
+				 else //we have to construct the shape function to guarantee a constant jump to 2:
+				 {
+					 //notice that the partition to be changed must one the subdomains created with a real node. so the i index is also the real node. (used 4 lines below to recover the distance.
+					 
+					 NEnriched(partition_number, 1) = rPartitionsSign[partition_number]*( 1.0*NEnriched(partition_number, 0) - 0.6666666666666666666666666666 ) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) =  (rPartitionsSign[partition_number]*1.0*rGradientsValue[partition_number](0, j) - exact_distance_gradient[j]*1.0/(abs_distance[i]));
+					 }
+					 
+				 }
+				 
+				 
+				 partition_number++;
+				 
+			 }
+			 else
+				found_empty_partition=true;
+			 
+		 }
+		 if (found_empty_partition==false)
+			KRATOS_WATCH("WROOOONGGGGGGGGGGG");
+			
+		// finally the interfase:
+		if (cut_edges[0])
+		{
+			if (cut_edges[1])
+			{
+				InterfaseArea = sqrt(pow(aux_points(0,0)-aux_points(1,0),2)+pow(aux_points(0,1)-aux_points(1,1),2));
+				base_point[0] = (aux_points(0,0)+aux_points(1,0))*0.5;
+				base_point[1] = (aux_points(0,1)+aux_points(1,1))*0.5;
+				CalculatePosition ( rPoints , base_point[0] ,base_point[1] , 0.0 , rGPShapeFunctionValues_in_interfase);
+				double abs_dist_on_interfase = 0.0;
+				for (int j = 0; j < 3; j++)
+					abs_dist_on_interfase += rGPShapeFunctionValues_in_interfase ( j) * abs_distance[j];
+				NEnriched_in_interfase(0) = 0.5/max_aux_dist_on_cut * abs_dist_on_interfase;	
+			}
+			else
+			{
+				InterfaseArea= sqrt(pow(aux_points(0,0)-aux_points(2,0),2)+pow(aux_points(0,1)-aux_points(2,1),2));
+				base_point[0] = (aux_points(0,0)+aux_points(2,0))*0.5;
+				base_point[1] = (aux_points(0,1)+aux_points(2,1))*0.5;
+				CalculatePosition ( rPoints , base_point[0] ,base_point[1] , 0.0 , rGPShapeFunctionValues_in_interfase);
+				double abs_dist_on_interfase = 0.0;
+				for (int j = 0; j < 3; j++)
+					abs_dist_on_interfase += rGPShapeFunctionValues_in_interfase ( j) * abs_distance[j];
+				NEnriched_in_interfase(0) = 0.5/max_aux_dist_on_cut * abs_dist_on_interfase;	
+			}
+		}
+		else
+		{
+			InterfaseArea= sqrt(pow(aux_points(2,0)-aux_points(1,0),2)+pow(aux_points(2,1)-aux_points(1,1),2));
+			base_point[0] = (aux_points(2,0)+aux_points(1,0))*0.5;
+			base_point[1] = (aux_points(2,1)+aux_points(1,1))*0.5;
+			CalculatePosition ( rPoints , base_point[0] ,base_point[1] , 0.0 , rGPShapeFunctionValues_in_interfase);
+			double abs_dist_on_interfase = 0.0;
+			for (int j = 0; j < 3; j++)
+					abs_dist_on_interfase += rGPShapeFunctionValues_in_interfase ( j) * abs_distance[j];
+			NEnriched_in_interfase(0) = 0.5/max_aux_dist_on_cut * abs_dist_on_interfase;		
+		}
+		
+			
+		//KRATOS_WATCH(NEnriched)
 		 return 3;
 		 KRATOS_CATCH("");
         
@@ -1167,9 +1549,9 @@ public:
     
     
         //2D
-    static int CalculateEnrichedShapeFuncionsInLocalAxis(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
+    static int CalculateEnrichedShapeFuncionsInLocalAxis(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rOriginalPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX_original,
             array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2)>& NEnriched)
+            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2)>& NEnriched, boost::numeric::ublas::bounded_matrix<double,(2), 2 >& rRotationMatrix, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 > & DN_DX_in_local_axis)
 
         {
         KRATOS_TRY
@@ -1180,9 +1562,8 @@ public:
 		boost::numeric::ublas::bounded_matrix<double,3,2> DN_DX_subdomain; //used to retrieve derivatives
 		
 		boost::numeric::ublas::bounded_matrix<double,(2+1), 2 > rRotatedPoints;
-		boost::numeric::ublas::bounded_matrix<double, (2+1), 2 > DN_DX_in_local_axis;
 		
-		
+		double most_common_sign=0; //the side of the cut in which two nodes are found (same sign) will be the ones that remains unchanged when builing the discontinuity
 		double Area;//area of the complete element
 		rGPShapeFunctionValues(0,0)=one_third; rGPShapeFunctionValues(0,1)=one_third; rGPShapeFunctionValues(0,2)=one_third; //default, when no interfase has been found
 		Area = CalculateVolume2D( rOriginalPoints );
@@ -1300,7 +1681,7 @@ public:
 		double sinus=0.0;
 		if (cut_edges[0]==false) //then the segment is defined by aux_points 1 and 2. so the values used to initialize were wrong. changing them:
 			{
-				x_reference=aux_points(1,2);
+				x_reference=aux_points(1,0);
 				y_reference=aux_points(1,1);
 				const double one_over_interfase_lenght = 1.0/sqrt( pow((aux_points(2,0) - x_reference),2) + pow((aux_points(2,1) - y_reference),2));
 				cosinus = (aux_points(2,0) - x_reference)*one_over_interfase_lenght;
@@ -1329,6 +1710,11 @@ public:
 			aux_points(i,0)= cosinus * (aux_x_coord-x_reference) - sinus * (aux_points(i,1)-y_reference);
 			aux_points(i,1)= cosinus * (aux_points(i,1)-y_reference) + sinus * (aux_x_coord-x_reference);
 		}
+		
+		rRotationMatrix(0,0)=cosinus;
+		rRotationMatrix(0,1)= sinus;
+		rRotationMatrix(1,0)= -sinus;
+		rRotationMatrix(1,1)=cosinus;
 			
 		double temp_area;
 		//to calculate the new rigidity matrix in local coordinates, the element will need the derivated in the rotated axis and the rotation matrix:
@@ -1336,7 +1722,8 @@ public:
 		
 		
 		
-		
+		//KRATOS_WATCH(rRotatedPoints)
+		//KRATOS_WATCH(aux_points)
 		
 		array_1d<double, 2 > grad_d;
 		noalias(grad_d) = prod(trans(DN_DX_in_local_axis), rDistances);
@@ -1365,9 +1752,15 @@ public:
        for (int i = 0; i < 3; i++)
        {
            if (rDistances[i] < 0.0)
+           {
                exact_distance[i] = -abs_distance[i];
+               --most_common_sign;
+		   }
            else
+           {
                exact_distance[i] = abs_distance[i];
+               ++most_common_sign;
+		   }
        }
        
 
@@ -1449,7 +1842,7 @@ public:
 				 double y_GP_partition =  one_third * ( coord_subdomain(0,1) + coord_subdomain(1,1) + coord_subdomain(2,1) );
 				 double z_GP_partition  = 0.0;
 				 //we reset the coord_subdomain matrix so that we have the whole element again:
-				 coord_subdomain = rOriginalPoints;	
+				 coord_subdomain = rRotatedPoints;	
 				 //and we calculate its shape function values
 				 CalculatePosition ( coord_subdomain , x_GP_partition ,y_GP_partition ,z_GP_partition , N);
 				 //we check the partition sign.
@@ -1474,12 +1867,32 @@ public:
                  else
                      rPartitionsSign[partition_number] = 1.0;
  
+				 //enrichment for the gradient (continuous pressure, discontinuous gradient. Coppola-Codina enrichment 
                  NEnriched(partition_number, 0) = 0.5/max_aux_dist_on_cut * (abs_dist - rPartitionsSign[partition_number] * dist);
-                 
                  for (int j = 0; j < 2; j++)
                  { 
                     rGradientsValue[partition_number](0, j) = (0.5/max_aux_dist_on_cut) * (abs_distance_gradient[j] - rPartitionsSign[partition_number] * exact_distance_gradient[j]);
                  }
+                 
+				 //enrichment to add a constant discontinuity along the interfase.
+				 if (rPartitionsSign[partition_number]*most_common_sign > 0.0) //on this side we will copy the standard shape functions. (maybe we change the sign, but keeping the sign
+				 {
+					 NEnriched(partition_number, 1) = -1.0*rPartitionsSign[partition_number]*NEnriched(partition_number, 0) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) = -1.0*rPartitionsSign[partition_number]*rGradientsValue[partition_number](0, j);
+					 }					 
+				 }
+				 else //we have to construct the shape function to guarantee a constant jump to 2:
+				 {
+					 //notice that the partition to be changed must one the subdomains created with a real node. so the i index is also the real node. (used 4 lines below to recover the distance.
+					 
+					 NEnriched(partition_number, 1) = rPartitionsSign[partition_number]*( 1.0*NEnriched(partition_number, 0) - 0.6666666666666666666666666666 ) ;
+					 for (int j = 0; j < 2; j++)
+					 { 
+						rGradientsValue[partition_number](1, j) =  (rPartitionsSign[partition_number]*1.0*rGradientsValue[partition_number](0, j) - exact_distance_gradient[j]*1.0/(abs_distance[i]));
+					 }
+				 }
 				 
 				 partition_number++;
 				 
