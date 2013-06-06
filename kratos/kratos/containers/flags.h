@@ -105,7 +105,6 @@ public:
         Flag29 = BlockType(1) << 29,
 
         Flag30 = BlockType(1) << 30,
-        Flag31 = BlockType(1) << 31
     };
 
     ///@}
