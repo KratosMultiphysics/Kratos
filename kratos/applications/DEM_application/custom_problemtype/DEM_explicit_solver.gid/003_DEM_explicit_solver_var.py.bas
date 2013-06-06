@@ -62,11 +62,11 @@ surface_friction_angle           = *GenData(Surface_Friction_Angle)
 Integration_Scheme               = "*GenData(Integration_Scheme)"
 *format "%10.5e"
 search_step                      = *GenData(Search_Step)
-CriticalTimeOption               = "*GenData(Critical_Time_Option)"
+AutoReductionOfTimeStepOption    = "*GenData(Automatic_Time_Step_Reduction_Option)"
 *format "%10.5e"
 dt_safety_factor                 = *GenData(Dt_Safety_Factor)
 *format "%10.5e"
-max_time_step                    = *GenData(Max_Time_Step)
+max_time_step                    = *GenData(Time_Step)
 *format "%10.5e"
 output_dt                        = *GenData(Output_Dt)
 *format "%10.5e"
