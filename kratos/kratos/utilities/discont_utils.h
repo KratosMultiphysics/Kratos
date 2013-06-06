@@ -877,7 +877,7 @@ public:
 			double sinus=0.0;
 			if (cut_edges[0]==false) //then the segment is defined by aux_points 1 and 2. so the values used to initialize were wrong. changing them:
 			{
-				x_reference=aux_points(1,2);
+				x_reference=aux_points(1,0);
 				y_reference=aux_points(1,1);
 				const double one_over_interfase_lenght = 1.0/sqrt( pow((aux_points(2,0) - x_reference),2) + pow((aux_points(2,1) - y_reference),2));
 				cosinus = (aux_points(2,0) - x_reference)*one_over_interfase_lenght;
@@ -912,8 +912,8 @@ public:
 			CalculateGeometryData(rRotatedPoints, DN_DX_in_local_axis, temp_area);
 			
 			rRotationMatrix(0,0)=cosinus;
-			rRotationMatrix(0,1)= -sinus;
-			rRotationMatrix(1,0)= sinus;
+			rRotationMatrix(0,1)= sinus;
+			rRotationMatrix(1,0)= -sinus;
 			rRotationMatrix(1,1)=cosinus;
 			
 			//KRATOS_WATCH(rRotatedPoints)
