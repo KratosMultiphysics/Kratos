@@ -92,10 +92,9 @@ class ExplicitStrategy:
 
         # Initialization of member variables
 
-        # SIMULATION FLAGS
-        self.MoveMeshFlag                   = True
+        # SIMULATION FLAGS        
         self.virtual_mass_OPTION            = Var_Translator(VirtualMassOption)  #its 1/0 xapuza
-        self.critical_time_OPTION           = Var_Translator(CriticalTimeOption)  #its 1/0 xapuza
+        self.critical_time_OPTION           = Var_Translator(AutoReductionOfTimeStepOption)  #its 1/0 xapuza
         self.case_OPTION                    = 3  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
         self.trihedron_OPTION               = Var_Translator(TrihedronOption)
         self.rotation_OPTION                = Var_Translator(RotationOption)
@@ -107,6 +106,23 @@ class ExplicitStrategy:
         self.clean_init_indentation_OPTION  = Var_Translator(CleanIndentationsOption)
         self.homogeneous_material_OPTION    = Var_Translator(HomogeneousMaterialOption)
         self.global_variables_OPTION        = Var_Translator(GlobalVariablesOption)
+        self.Non_Linear_Option              = Var_Translator(NonLinearOption)
+        self.stress_strain_operations       = Var_Translator(StressStrainOperations)
+        self.contact_mesh_OPTION            = Var_Translator(ContactMeshOption)
+        self.concrete_test_OPTION           = Var_Translator(ConcreteTestOption)
+        self.concrete_test_OPTION           = Var_Translator(ConcreteTestOption)
+        self.search_radius_extension        = Var_Translator(DeltaOption)
+        self.MoveMeshFlag                   = True
+
+
+        if (self.search_radius_extension and Var_Translator(ContinuumOption)):
+            self.amplified_continuum_search_radius_extension = Var_Translator(ContinuumOption)
+
+        if (Var_Translator(DeltaOption)):
+            self.delta_OPTION               = True
+
+        if (Var_Translator(ContinuumOption)):
+            self.continuum_simulating_OPTION = True
 
         # MODEL
         self.model_part                     = model_part
@@ -123,6 +139,7 @@ class ExplicitStrategy:
         self.surface_point_coor[2]          = surface_point_coor_z
         self.surface_friction_angle         = surface_friction_angle
 
+
         # GLOBAL PHISICAL ASPECTS
         self.gravity                        = Vector(3)
         self.gravity[0]                     = gravity_x
@@ -133,16 +150,65 @@ class ExplicitStrategy:
         self.nodal_mass_coeff               = VirtualMassCoefficient
         self.magic_factor                   = Var_Translator(MagicFactor)
 
-        if(self.global_variables_OPTION == "ON"):
+        if (self.global_variables_OPTION):
             self.global_kn                  = global_kn
             self.global_kt                  = global_kt
+            solver.global_kr                = global_kr
+            solver.global_rn                = global_rn
+            solver.global_rt                = global_rt
+            solver.global_rr                = global_rr
+            solver.global_fri_ang           = global_fri_ang
+
+        if (NormalForceCalculation == "Linear"):
+            self.force_calculation_type_id  = 0
+        elif (NormalForceCalculation == "Hertz"):
+            self.force_calculation_type_id  = 1
+
+        if (self.Non_Linear_Option):
+            solver.C1                       = C1
+            solver.C2                       = C2
+            solver.N1                       = N1
+            solver.N2                       = N2
+
+        if(NormalDampId == "ViscDamp"):
+            if (TangentialDampId == "ViscDamp"):
+                self.damp_id=damp_id        = 11
+            else:
+                self.damp_id=damp_id        = 10
+        else:
+            if (TangentialDampId == "ViscDamp"):
+                self.damp_id                = 1
+            else:
+                self.damp_id                = 0
+
+        if (RotaDampId == "LocalDamp"):
+            self.rota_damp_id               = 1
+        elif (RotaDampId == "RollingFric"):
+            self.rota_damp_id               = 2
+        else:
+            self.rota_damp_id               = 0
+
+        if (FailureCriterionOption == "Mohr-Coulomb"):
+            self.failure_criterion_OPTION   = 1
+        elif (FailureCriterionOption == "Uncoupled"):
+            self.failure_criterion_OPTION   = 2
+
+        self.tau_zero                       = TauZero
+        self.sigma_max                      = SigmaMax
+        self.sigma_min                      = SigmaMin
+        self.internal_fricc                 = InternalFricc
+
+        # CONCRETE TEST
+
+        if (Var_Translator(TriaxialOption)):
+          self.initial_pressure_time        = InitialTime
+          self.time_increasing_ratio        = IncreasingTemporaily
 
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(print_export_id)
         self.print_export_skin_sphere       = Var_Translator(print_export_skin_sphere)
-        self.force_calculation_type_id      = 1
         self.damp_id                        = 1
-        self.rota_damp_id                   = 0
+        self.print_radial_displacement      = Var_Translator(print_radial_displacement)
 
         # TIME RELATED PARAMETERS
         self.delta_time                     = max_time_step
@@ -151,14 +217,21 @@ class ExplicitStrategy:
         self.time_increasing_ratio          = int(IncreasingTemporaily) # Percentage (%)
 
         # RESOLUTION METHODS AND PARAMETERS
-        self.enlargement_factor             = bounding_box_enlargement_factor
         self.n_step_search                  = int(search_step)
         self.safety_factor                  = dt_safety_factor # For critical time step
         self.create_and_destroy             = particle_destructor_and_constructor()
 
         # STRATEGIES
-        self.time_scheme                    = ForwardEulerScheme()
         self.search_strategy                = OMP_DEMSearch()
+
+        if (Integration_Scheme == 'forward_euler'):
+            time_scheme = ForwardEulerScheme()
+        elif (Integration_Scheme == 'mid_point_rule'):
+            time_scheme = MidPointScheme()
+        elif (Integration_Scheme == 'const_average_acc'):
+            time_scheme = ConstAverageAccelerationScheme()
+        else:
+            print('scheme not defined')
 
     ######################################################################
 
