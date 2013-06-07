@@ -780,7 +780,6 @@ void FractionalStep<TDim>::CalculateGeometryData(ShapeFunctionDerivativesArrayTy
         rGaussWeights[g] = DetJ[g] * IntegrationPoints[g].Weight();
 
     
-    
     /*
     const GeometryType& rGeom = this->GetGeometry();
     const SizeType NumNodes = rGeom.PointsNumber();
