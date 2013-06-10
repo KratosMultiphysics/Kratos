@@ -126,7 +126,6 @@ namespace Kratos
       {
           this->GetElementsAreInitialized()      = false;
           this->GetInitializeWasPerformed()      = false;
-          //mComputeTime                 = false;
           this->GetEnlargementFactor()           = enlargement_factor;
           this->GetScheme()                     = pScheme;
           this->GetSpSearch()                   = pSpSearch;
@@ -169,27 +168,27 @@ namespace Kratos
           // 2. Search Neighbours with tolerance (after first repartition process)
           SearchInitialNeighbours(rModelPart, extension_option);
 
-          // 3. Finding overlapping of initial configurations
+	  // 3. Calculate bounding box
+	  this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
+
+	  // 4. Finding overlapping of initial configurations
+
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
           }
 
-          // 4. Initializing elements and perform the repartition
+          // 5. Initializing elements and perform the repartition
           if (this->GetElementsAreInitialized() == false){
               InitializeElements();
           }
 
           this->GetInitializeWasPerformed() = true;
 
-          // 5. Set Initial Contacts
+          // 6. Set Initial Contacts
           SetInitialContacts(); // Empty function
 
-          // 6. Compute initial time step
+          // 7. Compute initial time step
           InitialTimeStepCalculation();
-
-
-	  // 7. Calculate bounding box
-	  this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
 
 	  KRATOS_CATCH("")
       }// Initialize()
@@ -621,7 +620,7 @@ namespace Kratos
 
         KRATOS_TRY
 
-        double tol                          = 10e-12 * this->GetParticleCreatorDestructor().GetDiameter();
+        double tol                          = 10e-18 * this->GetParticleCreatorDestructor().GetStrictDiameter();
         double initial_max_indentation      = 1.0 + tol;
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
@@ -643,11 +642,11 @@ namespace Kratos
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
                 if (!(it->GetGeometry()(0)->pGetDof(VELOCITY_X)->IsFixed())){
-                    reduction_distances[k + elem_counter] = initial_max_indentation;
+                    reduction_distances[this->GetElementPartition()[k] + elem_counter] = initial_max_indentation;
                 }
 
                 else {
-                    reduction_distances[k + elem_counter] = 0.0;
+                    reduction_distances[this->GetElementPartition()[k] + elem_counter] = 0.0;
                 }
 
                 elem_counter++;
@@ -662,9 +661,9 @@ namespace Kratos
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                double max_indentation = reduction_distances[k + elem_counter];
+                double max_indentation = reduction_distances[this->GetElementPartition()[k] + elem_counter];
                 it->Calculate(MAX_INDENTATION, max_indentation, rCurrentProcessInfo);
-                reduction_distances[k + elem_counter] = 0.5 * max_indentation;
+                reduction_distances[this->GetElementPartition()[k] + elem_counter] = 0.5 * max_indentation;
                 elem_counter++;
             }
 
@@ -677,7 +676,7 @@ namespace Kratos
             elem_counter = 0;
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                double reduction = reduction_distances[k + elem_counter];
+                double reduction = reduction_distances[this->GetElementPartition()[k] + elem_counter];
 
                 if (reduction > tol){
                     (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) -= reduction;
