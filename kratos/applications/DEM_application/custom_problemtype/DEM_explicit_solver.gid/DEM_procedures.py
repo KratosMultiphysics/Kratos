@@ -64,6 +64,67 @@ def PerformInitialPartition(model_part,model_part_io_solid,input_file_name):
     
 
 def ProcModelData(solid_model_part,solver):
+# Previous Calculations.
+
+   Model_Data = open('Model_Data.txt','w')
+
+#mean radius, and standard deviation:
+
+   i = 0
+   sum_radi = 0
+   sum_squared = 0
+   for node in solid_model_part.Nodes:
+
+     sum_radi += node.GetSolutionStepValue(RADIUS)
+     sum_squared += node.GetSolutionStepValue(RADIUS)**2
+     i+=1
+
+   mean=sum_radi/i
+   var =sum_squared/i-mean**2
+   if(abs(var)<1e-05):
+     var=0
+   std_dev=var**0.5
+
+   Model_Data.write("Radius Mean: "+str(mean)+'\n')
+   Model_Data.write("Std Deviation: "+str(std_dev)+'\n')
+   Model_Data.write('\n')
+
+   Total_Particles     = len(solid_model_part.Nodes)
+   Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS)/2
+   Coordination_Number    = 1.0*(Total_Contacts*2)/Total_Particles
+
+   Model_Data.write("Total Number of Particles: "+str(Total_Particles)+'\n')
+   Model_Data.write("Total Number of Contacts: "+str(Total_Contacts)+'\n')
+   Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
+   Model_Data.write('\n')
+
+   Model_Data.write("Volume Elements: "+str(mass_elements)+'\n')
+
+   Model_Data.close()
+
+
+def ProcListDefinition(model_part,solver):
+
+# Defining lists (FOR COMPRESSION TESTS)
+
+    for node in model_part.Nodes:
+        if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            sup_layer_fm.append(node)
+        elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            inf_layer_fm.append(node)
+        elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
+            sup_plate_fm.append(node)
+        elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
+            inf_plate_fm.append(node)
+        elif (node.GetSolutionStepValue(GROUP_ID)==5):
+            special_selection.append(node)
+        else:
+            others.append(node)
+
+    return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
+
+
+def ProcGiDSolverTransfer(model_part,solver):
 
     extra_radius = 0.0
     max_radius = 0.0
