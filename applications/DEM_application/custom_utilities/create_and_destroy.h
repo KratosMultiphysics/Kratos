@@ -57,37 +57,39 @@ public:
         KRATOS_TRY
 
         //Type definitions
-        Configure::ElementsContainerType::Pointer pElements         = r_model_part.pElements();
-        Configure::ElementsContainerType Elements                   = r_model_part.Elements();
+        Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
+        Configure::ElementsContainerType Elements           = r_model_part.Elements();
        
-        double ref_radius = (*(Elements.begin().base()))->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-
+        double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
-        mLowPoint = coor;
-        mHighPoint = coor;
+        mLowPoint                 = coor;
+        mHighPoint                = coor;
+        mStrictLowPoint           = coor;
+        mStrictHighPoint          = coor;
 
         for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin();
-                particle_pointer_it != Elements.end(); ++particle_pointer_it)
-        {
+                particle_pointer_it != Elements.end(); ++particle_pointer_it){
 
             coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
-            for (std::size_t i = 0; i < 3; i++)
-            {
-                mLowPoint[i] = (mLowPoint[i] > coor[i]) ? coor[i] : mLowPoint[i];
-                mHighPoint[i] = (mHighPoint[i] < coor[i]) ? coor[i] : mHighPoint[i];          
+
+            for (std::size_t i = 0; i < 3; i++){
+                mStrictLowPoint[i]  = (mStrictLowPoint[i] > coor[i]) ? coor[i] : mStrictLowPoint[i];
+                mStrictHighPoint[i] = (mStrictHighPoint[i] < coor[i]) ? coor[i] : mStrictHighPoint[i];
             }
+
         }
-        array_1d<double, 3 > midpoint = 0.5 * (mHighPoint + mLowPoint);
-        mHighPoint = midpoint * (1 - scale_factor) + scale_factor * mHighPoint;
-        mLowPoint = midpoint * (1 - scale_factor) + scale_factor * mLowPoint;
-        for (std::size_t i = 0; i < 3; i++)
-        {
-            mLowPoint[i] -= 2 * ref_radius;
+
+        array_1d<double, 3 > midpoint = 0.5 * (mStrictHighPoint + mStrictLowPoint);
+        mHighPoint                    = midpoint * (1 - scale_factor) + scale_factor * mStrictHighPoint;
+        mLowPoint                     = midpoint * (1 - scale_factor) + scale_factor * mStrictLowPoint;
+
+        for (std::size_t i = 0; i < 3; i++){
+            mLowPoint[i]  -= 2 * ref_radius;
             mHighPoint[i] += 2 * ref_radius;
         }
-        Particle_Creator_Destructor::GetHighNode() = mHighPoint;
-        Particle_Creator_Destructor::GetLowNode() = mLowPoint;
-        mDiameter = norm_2(mHighPoint-mLowPoint);
+
+        mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
+        mDiameter       = norm_2(mHighPoint - mLowPoint);
 
         KRATOS_CATCH("")
          
@@ -227,9 +229,24 @@ public:
         return (mLowPoint);
     };
 
+    array_1d<double, 3 > & GetStrictHighNode()
+    {
+        return (mHighPoint);
+    };
+
+    array_1d<double, 3 > & GetStrictLowNode()
+    {
+        return (mLowPoint);
+    };
+
     double & GetDiameter()
     {
         return (mDiameter);
+    };
+
+    double & GetStrictDiameter()
+    {
+        return (mStrictDiameter);
     };
 
 
@@ -316,7 +333,10 @@ private:
     ///@{
     array_1d<double, 3 > mHighPoint;
     array_1d<double, 3 > mLowPoint;
+    array_1d<double, 3 > mStrictHighPoint;
+    array_1d<double, 3 > mStrictLowPoint;
     double mDiameter;
+    double mStrictDiameter;
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size)
     {
