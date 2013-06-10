@@ -225,11 +225,11 @@ class ExplicitStrategy:
         self.search_strategy                = OMP_DEMSearch()
 
         if (Integration_Scheme == 'forward_euler'):
-            time_scheme = ForwardEulerScheme()
+            self.time_scheme = ForwardEulerScheme()
         elif (Integration_Scheme == 'mid_point_rule'):
-            time_scheme = MidPointScheme()
+            self.time_scheme = MidPointScheme()
         elif (Integration_Scheme == 'const_average_acc'):
-            time_scheme = ConstAverageAccelerationScheme()
+            self.time_scheme = ConstAverageAccelerationScheme()
         else:
             print('scheme not defined')
 
