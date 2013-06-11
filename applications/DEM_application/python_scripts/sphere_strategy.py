@@ -170,26 +170,33 @@ class ExplicitStrategy:
             solver.N1                       = N1
             solver.N2                       = N2
 
-        if(NormalDampId == "ViscDamp"):
+        if (NormalDampId == "ViscDamp"):
+
             if (TangentialDampId == "ViscDamp"):
-                self.damp_id=damp_id        = 11
+                self.damp_id                = 11
+
             else:
-                self.damp_id=damp_id        = 10
+                self.damp_id                = 10
         else:
+
             if (TangentialDampId == "ViscDamp"):
                 self.damp_id                = 1
+
             else:
                 self.damp_id                = 0
 
         if (RotaDampId == "LocalDamp"):
             self.rota_damp_id               = 1
+
         elif (RotaDampId == "RollingFric"):
             self.rota_damp_id               = 2
+
         else:
             self.rota_damp_id               = 0
 
         if (FailureCriterionOption == "Mohr-Coulomb"):
             self.failure_criterion_OPTION   = 1
+
         elif (FailureCriterionOption == "Uncoupled"):
             self.failure_criterion_OPTION   = 2
 
