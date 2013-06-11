@@ -19,19 +19,16 @@ from DEM_procedures import *
 my_timer = Timer();
 balls_model_part = ModelPart("SolidPart");  
 
+# Importing the strategy object
+
 if (ElementType == "SphericParticle3D"):
     import sphere_strategy as SolverStrategy
 elif (ElementType == "SphericContinuumParticle3D"):
     import continuum_sphere_strategy as SolverStrategy
 
-SolverStrategy.AddVariables(solid_model_part)
-
-# Importing the strategy object
-
-import sphere_strategy as SolverStrategy
 SolverStrategy.AddVariables(balls_model_part)
 
-## Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
+# Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
 
 if(OutputFileType == "Binary"):
   gid_mode = GiDPostMode.GiD_PostBinary
