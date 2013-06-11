@@ -214,7 +214,6 @@ class ExplicitStrategy:
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(print_export_id)
         self.print_export_skin_sphere       = Var_Translator(print_export_skin_sphere)
-        self.damp_id                        = 1
         self.print_radial_displacement      = Var_Translator(print_radial_displacement)
 
         # TIME RELATED PARAMETERS
