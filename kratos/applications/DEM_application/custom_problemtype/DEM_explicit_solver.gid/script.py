@@ -16,17 +16,16 @@ from DEM_procedures import *
 
 # Defining a model part for the solid part
 
-<<<<<<< .mine
 my_timer = Timer();
 balls_model_part = ModelPart("SolidPart");  
-=======
-if(ElementType == "SphericParticle3D"):
-  import sphere_strategy as SolverStrategy
-elif(ElementType == "SphericContinuumParticle3D"):
-  import continuum_sphere_strategy as SolverStrategy
+
+if (ElementType == "SphericParticle3D"):
+    import sphere_strategy as SolverStrategy
+elif (ElementType == "SphericContinuumParticle3D"):
+    import continuum_sphere_strategy as SolverStrategy
 
 SolverStrategy.AddVariables(solid_model_part)
->>>>>>> .r6838
+
 # Importing the strategy object
 
 import sphere_strategy as SolverStrategy
