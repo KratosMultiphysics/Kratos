@@ -223,28 +223,28 @@ while((time1 < final_time)):
 	WettenNodes(fixed_dist_nodes)
 	fluid_solver.Solve()
 
-    measured_volume = fluid_solver.fluid_solver.ComputeWetVolume()
+    measured_volume = fluid_solver.measured_volume
     vol_variation =  fluid_solver.fluid_solver.ComputeVolumeVariation()
-    expected_volume = expected_volume + vol_variation
+    expected_volume = fluid_solver.expected_volume
 
     if(percent_done >= next_screen_output):
         print
-        print "Filled %.0f" % percent_done,"% \t","%e" % time1, "\t", "%e" % Dt, "\t", measured_volume / expected_volume, "\t", vol_variation
+        print "Filled %.0f" % percent_done,"% \t","%e" % time1, "\t", "%e" % Dt, "\t", measured_volume / expected_volume 
         sys.stdout.flush()
         next_screen_output += screen_output_dt
 
 
-# I have to change this part to not duplicate the redistance. Pooyan.
-    if(volume_correction_step > ProjectParameters.redistance_frequency):
-        max_volume_error = 0.999
-        if(measured_volume / expected_volume < max_volume_error):
-            vol_variation =  fluid_solver.fluid_solver.ContinuousVolumeCorrection(expected_volume, measured_volume)
-            fluid_solver.Redistance();
-            volume_correction_step = 1
-        if(measured_volume / expected_volume > 1.00):
-            time1 = time * measured_volume / expected_volume # This is NOT what I like to do! Pooyan.
+### I have to change this part to not duplicate the redistance. Pooyan.
+    ##if(volume_correction_step > ProjectParameters.redistance_frequency):
+        ##max_volume_error = 0.999
+        ##if(measured_volume / expected_volume < max_volume_error):
+            ##vol_variation =  fluid_solver.fluid_solver.ContinuousVolumeCorrection(expected_volume, measured_volume)
+            ##fluid_solver.Redistance();
+            ##volume_correction_step = 1
+        ##if(measured_volume / expected_volume > 1.00):
+            ##time1 = time * measured_volume / expected_volume # This is NOT what I like to do! Pooyan.
 
-    volume_correction_step += 1
+    ##volume_correction_step += 1
 
 
     if(time1 >= next_output_time):
