@@ -1,4 +1,4 @@
-
+#*elemsconec(1) 0 *operation(sqrt(elemsmatprop(Particle_density,real)))
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from DEM_explicit_solver_var import *
@@ -25,10 +25,11 @@ def AddVariables(model_part):
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+    model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
-    model_part.AddNodalSolutionStepVariable(RESTITUTION_COEFF)
+    model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
     model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
@@ -219,6 +220,8 @@ class ExplicitStrategy:
         # TIME RELATED PARAMETERS
         self.delta_time                     = max_time_step
         self.max_delta_time                 = max_time_step
+        print 'max_delta_time'
+        print self.max_delta_time
         self.final_time                     = final_time
         self.time_increasing_ratio          = int(IncreasingTemporaily) # Percentage (%)
 
