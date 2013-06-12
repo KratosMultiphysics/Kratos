@@ -30,17 +30,17 @@ SolverStrategy.AddVariables(balls_model_part)
 
 # Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
 
-if(OutputFileType == "Binary"):
-  gid_mode = GiDPostMode.GiD_PostBinary
+if (OutputFileType == "Binary"):
+    gid_mode = GiDPostMode.GiD_PostBinary
   
 else:
-  gid_mode = GiDPostMode.GiD_PostAscii
+    gid_mode = GiDPostMode.GiD_PostAscii
   
-if(Multifile == "multiple_files"):
-  multifile = MultiFileFlag.MultipleFiles
+if (Multifile == "multiple_files"):
+    multifile = MultiFileFlag.MultipleFiles
   
 else:
-  multifile = MultiFileFlag.SingleFile
+    multifile = MultiFileFlag.SingleFile
 
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions   = WriteConditionsFlag.WriteConditions

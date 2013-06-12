@@ -231,7 +231,7 @@ End NodalData
 Begin NodalData PARTICLE_FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Friction(Deg))
+*elemsconec(1) 0 *operation(tan(elemsmatprop(Friction(Deg),real)*3.141592653589793238462643383279502884197/180.0)))
 *endif
 *end elems 
 End NodalData
@@ -257,10 +257,10 @@ End NodalData
 *endif
 
 
-Begin NodalData RESTITUTION_COEFF
+Begin NodalData LN_OF_RESTITUTION_COEFF
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Restitution_coef)
+*elemsconec(1) 0 *operation(log(elemsmatprop(Restitution_coef,real)))
 *endif
 *end elems 
 End NodalData
