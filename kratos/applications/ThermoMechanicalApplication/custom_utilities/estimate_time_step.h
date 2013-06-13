@@ -228,7 +228,12 @@ namespace Kratos
 		 double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
 		 if(is_visited == 0.0 && current_S == 1.0){
 			 it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
-			 it->FastGetSolutionStepValue(SOLIDIF_TIME) = ThisModelPart.GetProcessInfo()[TIME];
+
+			 double solid_time =  ThisModelPart.GetProcessInfo()[TIME];
+			 double modulus = ThisModelPart.GetProcessInfo()[K0];
+
+			 it->FastGetSolutionStepValue(SOLIDIF_TIME) = solid_time;
+			 it->FastGetSolutionStepValue(SOLIDIF_MODULUS) = modulus*sqrt(solid_time);
 		 }
 		 
 	       }
@@ -380,6 +385,37 @@ namespace Kratos
 	    KRATOS_CATCH("")	
 	  }	
 
+	//**********************************************************************************************
+	//**********************************************************************************************
+	//
+	 double ComputeSurfaceWaveDt(ModelPart& ThisModelPart, const double total_volume, const double edge_size,const double max_Dt)
+	  {			
+	    KRATOS_TRY
+        const double cutted_area = ThisModelPart.GetProcessInfo()[CUTTED_AREA];
+		const double wet_volume = ThisModelPart.GetProcessInfo()[WET_VOLUME];
+		double compare_percente = 0.01;
+
+		if( wet_volume < compare_percente * total_volume || cutted_area <= 0.0)
+			return max_Dt;
+
+		double empty_volume = total_volume - wet_volume;
+
+		double dist_1 = empty_volume/cutted_area;
+		double dist_2 = cutted_area/dist_1;
+		double dist_3 = sqrt(cutted_area);
+		
+		double max_dist = dist_1;
+		max_dist = (dist_1 > dist_2) ? dist_1 : dist_2;
+		max_dist = (max_dist > dist_3) ? max_dist : dist_3;
+		
+		//max_dist = 5.0*dist_3;
+
+		double inv_sqrt_gravity = 0.319275428;
+		double wave_dt =inv_sqrt_gravity * edge_size/sqrt(max_dist);
+
+		return ((wave_dt>max_Dt) ? max_Dt : wave_dt);
+	    KRATOS_CATCH("")	
+	  }	
 	private:
 
 
