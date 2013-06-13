@@ -124,6 +124,9 @@ namespace eval ::wkcf:: {
     
     # When $vmethod == 2, filechannel -> output file .mdpa
     variable filechannel
+
+    # Structural analysis condition counter
+    variable sa_icondid 
 }
 
 proc ::wkcf::WriteCalculationFiles {filename} {

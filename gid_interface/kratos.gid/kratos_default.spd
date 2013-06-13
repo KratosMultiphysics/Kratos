@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.8">
+<Kratos_Data version="1.2.9">
     <Groups modeltype="GiD"/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -96,6 +96,7 @@
             <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
             <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
             <Container id="Face" pid="Face" class="Groups" nDim="3D" strucType="Solids" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="0"/>
+	    <Container id="BeamUniformlyDistributed" pid="Uniformly distributed" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamUniformlyDistributedLoad" icon="groupsTreeNew.gif" help="Beam uniformly distributed load" open="0"/>
         </Container>
         <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1" icon="boundarycond.gif">
             <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="1" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
@@ -105,13 +106,14 @@
 	  <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
             <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
                 <Item id="Displacements" pid="Displacements" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
-                <Item id="Forces" pid="Forces" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Forces"/>
                 <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
             </Container>
             <Container id="OnGaussPoints" pid="On gauss points" class="Tab" help="On gauss points" open="1">
                 <Item id="GreenLagrangeStrainTensor" pid="Green Lagrange strain tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
                 <Item id="Rotations" pid="Rotations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Rotations"/>
                 <Item id="PK2StressTensor" pid="2nd Piola - Kirchhoff stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="2nd Piola - Kirchhoff stress tensor"/>
+		<Item id="BeamMoments" pid="Beam moments" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
+		<Item id="BeamForces" pid="Beam forces" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
 	    </Container>
 	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess otions" open="1">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
@@ -352,15 +354,15 @@
             </Container>
         </Template>
         <Template id="Displacements" icon="groupsTree.gif" help="Activation">
-            <Container id="Activation" pid="Activation" help="Activation">
-                <Item id="Ax" pid="X active" dv="1" ivalues="1,0" values="1,0" help="X coordinate"/>
-                <Item id="Ay" pid="Y active" dv="1" ivalues="1,0" values="1,0" help="Y coordinate"/>
-                <Item id="Az" pid="Z active" dv="0" nDim="3D" ivalues="1,0" values="1,0" help="Z coordinate"/>
-            </Container>
-            <Container id="Values" pid="Values" help="Values">
+	  <Container id="Values" pid="Values" help="Set the values">
                 <Item id="Vx" pid="X" dv="0.0" help="X coordinate"/>
                 <Item id="Vy" pid="Y" dv="0.0" help="Y coordinate"/>
                 <Item id="Vz" pid="Z" dv="0.0" nDim="3D" help="Z coordinate"/>
+            </Container>
+            <Container id="Activation" pid="Fixed" help="Fix/release some degree of freedom">
+                <Item id="Ax" pid="X active" dv="1" ivalues="1,0" values="1,0" help="Fix X degree of freedom"/>
+                <Item id="Ay" pid="Y active" dv="1" ivalues="1,0" values="1,0" help="Fix Y degree of freedom"/>
+                <Item id="Az" pid="Z active" dv="0" nDim="3D" ivalues="1,0" values="1,0" help="Fix Z degree of freedom"/>
             </Container>
         </Template>
         <Template id="InletVelocity" icon="groupsTree.gif" help="Inlet velocity">
@@ -446,9 +448,14 @@
                 <Item id="MatModel" pid="Material model" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness"/>
+		<Item id="SectionType" pid="Section type"  dv="UserDefined" GCV="SectType" help="Select the section type"/>
+		<Item id="ProfileDB" pid="Profile list" dv="" GCV="ProfileType" help="Select the profile from the list"/>
 		<Item id="Area" pid="Area" dv="1.0" help="Cross section area"/>
 		<Item id="InertiaIx" pid="Inertia Ix" dv="1.0" help="Moment of inertia Ix"/>
 		<Item id="InertiaIy" pid="Inertia Iy" dv="1.0" help="Moment of inertia Iy"/>
+		<Item id="RectangularHeight" pid="Height" dv="1.0" help="Height value"/>
+		<Item id="RectangularWidth" pid="Width" dv="1.0" help="Width value"/>
+		<Item id="CircularDiameter" pid="Diameter" dv="1.0" help="Diameter value"/>
             </Container>
         </Template>
         <Template id="PropertiesFluid" icon="propsTree.gif" help="Property">
@@ -475,6 +482,13 @@
                 <Item id="Mx" pid="Mx" dv="0.0" state="hidden" help="Mx Vector"/>
                 <Item id="My" pid="My" dv="0.0" state="hidden" help="My Vector"/>
                 <Item id="Mz" pid="Mz" dv="0.0" state="hidden" nDim="3D" help="Mz Vector"/>
+            </Container>
+        </Template>
+	<Template id="BeamUniformlyDistributedLoad" icon="groupsTree.gif" help="Beam uniformly distributed loads">
+            <Container id="MainProperties" pid="BeamDistributedLoad" state="hidden" help="Beam uniformly distributed load values">
+                <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Beam uniformly distributed global Fx value"/>
+                <Item id="BUDFy" pid="Fy" dv="0.0" functionDissable="0" help="Beam uniformly distributed global Fy value"/>
+                <Item id="BUDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Beam uniformly distributed global Fz value"/>
             </Container>
         </Template>
         <Template id="OutletPressure" icon="groupsTree.gif" help="Outlet pressure">

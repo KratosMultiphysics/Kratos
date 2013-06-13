@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.3- 17/05/13-G. Socorro, reformat the source code using Emacs tabulations 
 #   0.2- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
 #   0.1- 29/03/2012 G. Socorro, create a base source code from the kmprops.tcl script
 #
@@ -253,6 +254,7 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 	
 	set ClassType [::xmlutils::setXml $fullname class]
 	set idTemplate [::xmlutils::setXml $fullname idTemplate]
+	# wa "ClassType:$ClassType idTemplate:$idTemplate"
 	
 	if {$ClassType == "Groups"} {
 		# Comprobamos si en esta asignación de Grupos necesitarán propiedades
@@ -284,7 +286,7 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 		
 		::KMProps::buildPropertyFrame $T $idTemplate $item $fullname
 		
-	} elseif {$ClassType == "Tab" || $ClassType == "Property" || $ClassType == "Group"} {
+	} elseif {($ClassType == "Tab") || ($ClassType == "Property") || ($ClassType == "Group")} {
 
 		::KMProps::buildTabFrame $T $item $ClassType
 		
@@ -410,6 +412,7 @@ proc ::KMProps::ReceiveDragGroups { T dragged_list dst } {
 proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs true} {state "normal"} {open 0}} {
 	
 	set propName [$node getAttribute pid ""]
+    # wa "propName:$propName node:$node id:$id T:$T parent:$parent parentitem:$parentitem childs:$childs state:$state open:$open"
 	
 	if { $state == "hidden" } {
 	#No inserta este item pero se sigue el proceso

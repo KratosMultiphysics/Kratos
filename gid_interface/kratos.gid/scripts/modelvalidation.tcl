@@ -12,7 +12,8 @@
 #
 #	HISTORY:
 #
-#   1.3- 26/11/12- J. Gárate, PFEM correction on ::KMValid::isWall, join 3D and 2D
+#   1.5- 17/05/13- GSM, add the validation of the cross section properties for the structural analysis application
+#   1.4- 26/11/12- J. Gárate, PFEM correction on ::KMValid::isWall, join 3D and 2D
 #   1.3- 26/11/12- J. Gárate, PFEM support, ::KMValid::isWall
 #   1.2- 22/10/12- J. Gárate, Validation function for drag files field. Support fot new GiD_Groups
 #   1.1- 10/10/12- GSM, improve the model validation to element type and cross section properties
@@ -464,7 +465,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     set ndime [::xmlutils::GetSpatialDimension]
     # wa "ndime:$ndime"
     
-    # For ELEMENTS
+    # For elements
 
     # We look for the groups assigned to any element
     set xpath "$appPath/Container\[@id='Elements'\]/Container"
@@ -543,13 +544,31 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
                                             
                                             set ::KMProps::ElemTypeProperty [$nodePropIt getAttribute dv ""]
                                             
+					} elseif { $idItem == "SectionType" } {
+                                            
+                                            set ::KMProps::SectionTypeProperty [$nodePropIt getAttribute dv ""]
+                                            
                                         } elseif { $idItem in $PropertyList } {
+					    # Check only in the structural analysis application
+					    if {$application eq "StructuralAnalysis"} {
+						# Get the element type
                                             set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='ElemType'\]"
                                             # wa "cxpath:$cxpath"
                                             set cnode [$xml selectNodes $cxpath]
                                             # wa "cnode:$cnode"
+						# Set the element type
                                             set ::KMProps::ElemTypeProperty [$cnode getAttribute dv ""]
                                             # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
+						
+						# Set the section type
+						set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='SectionType'\]"
+						# wa "cxpath:$cxpath"
+						set cnode [$xml selectNodes $cxpath]
+						# wa "cnode:$cnode"
+						# Set the section type
+						set ::KMProps::SectionTypeProperty [$cnode getAttribute dv ""]
+						# wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
+						
                                             # Check that this cross section property is necessary and this is not empty
                                             set ::KMProps::nDim $ndime
                                             set ShowProperty [::KMProps::ShowPropertyByElementType $idItem]
@@ -557,6 +576,10 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
                                             # wa "ShowProperty:$ShowProperty CurrentValue:$CurrentValue "
                                             if {(($ShowProperty) && ($CurrentValue == ""))} {
                                                 # wa "inside propId:$propId"
+						    # Check the section type
+						    set ShowSectionProperty [::KMProps::ShowPropertyBySectionType $idItem]
+						    # wa "ShowSectionProperty:$ShowSectionProperty idItem:$idItem"
+						    if {$ShowSectionProperty} {
                                                 # If the property needs tickness and do not have it, error
                                                 if { !($propId in $nullProperty) } {
                                                     
@@ -576,6 +599,8 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
                     }
                 }
             }
+        }
+    }
         }
     }
     

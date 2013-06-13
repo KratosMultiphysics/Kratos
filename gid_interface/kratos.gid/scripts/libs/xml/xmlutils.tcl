@@ -14,6 +14,7 @@
 #
 #        HISTORY:
 #
+#       1.8- 06/05/13- G. Socorro, add the proc GetPropertySectionType, indent the source code
 #       1.7- 12/02/13- J. Garate,   Modification on UpdateSpd. modeltype for Groups.
 #       1.6- 13/12/12- J. Garate,   Modification on UpdateSpd. If an Item or Container is hidden at Default.spd, keep it hidden.
 #       1.5- 07/11/12- J. Garate,   Modification on ::xmlutils::setXml to accept xpath or path as parameter
@@ -66,6 +67,16 @@ proc ::xmlutils::GetPropertyElemType {propId} {
     set PropertyElemType [::xmlutils::setXml $cxpath $cproperty]
 
     return $PropertyElemType
+}
+
+proc ::xmlutils::GetPropertySectionType {propId} {
+    # ABSTRACT: Get the property section type for a specific property identifier
+    
+    set cxpath "StructuralAnalysis//c.Properties//c.${propId}//c.MainProperties//i.SectionType"
+    set cproperty "dv"
+    set PropertySectionType [::xmlutils::setXml $cxpath $cproperty]
+
+    return $PropertySectionType
 }
 
 proc ::xmlutils::GetSpatialDimension {} {
@@ -1173,6 +1184,7 @@ proc ::xmlutils::setXml { path property {command "read"} {value ""} {type "props
 		if { $command == "read" } {
 
 			set value [$KPriv(xml) set "$xpath/@$property" ]
+	    # wa "value:$value endpath:$xpath/@$property"
 
 			if { $property == "dvText" } {
 
@@ -1417,7 +1429,7 @@ proc ::xmlutils::insertXml { path nodeName properties {xml ""} } {
 
 proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplateFull ""} {specialFilter ""} {type "props"}} {
 	
-	#msg "$application --> $comboList\nargs:1$fullname 2$idTemplate 3$iValues 4$idTemplateFull 5$specialFilter"
+    # wa "$application --> $comboList\nargs:1$fullname 2$idTemplate 3$iValues 4$idTemplateFull 5$specialFilter"
 	
 	
 	global KPriv
@@ -1472,8 +1484,23 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 		
 		if { $node != "" } {
 		        set comboList [split [$node getAttribute $atrValues ""] ","]
-		        $node setAttribute dv "$specialFilter"
+	    # Set the dv value
+	    if {($idTemplateFull ne "")&&($specialFilter ne "")} {
+		set ok [::xmlutils::setXml $idTemplateFull dv "write" "$specialFilter" $type]
+	    }
+	}
+	
+    } elseif { $specialList == "SectType" } {
+	
+	set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='SectionTypes'\]"]
+	
+	if { $node != "" } {
+	    set comboList [split [$node getAttribute $atrValues ""] ","]
+	    # wa "comboList:$comboList specialFilter:$specialFilter atrValues:$atrValues idTemplateFull:$idTemplateFull"
+	    if {($idTemplateFull ne "")&&($specialFilter ne "")} {
+		set ok [::xmlutils::setXml $idTemplateFull dv "write" "$specialFilter" $type]
 		}
+	}
 		
 	} elseif { $specialList == "MatModel" } {
 		
@@ -1497,12 +1524,36 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 		if { $node != "" } {
 		        set comboList [split [$node getAttribute $atrValues ""] ","]
 		}
+    } elseif { $specialList == "ProfileType" } {
+	
+	set dvSectFilter ""
+	if { $specialFilter == "" } {
+	    # Look if the previous section type to use their value
+	    set sectiontypeFullname [string map {"ProfileDB" "SectionType"} $fullname]
+	    set dvSectFilter [::xmlutils::setXml $sectiontypeFullname dv]
+	    # wa "sectiontypeFullname:$sectiontypeFullname dvSectFilter:$dvSectFilter"
+	}
+	# Standard case: access to the value of dv in the section type to get the profiledb filter by this section type
+	if {$dvSectFilter == "" } {
+	    # If the values does not exist, get it from xml KKWORDS
+	    set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='SectionTypes'\]"]
+	    if {$node != "" } {
+		# Get dv value
+		set dvSectFilter [$node getAttribute dv ""]
+	    }
+	}
+	# Get the correct list
+	set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='$dvSectFilter'\]"]
+	if { $node != "" } {
+	    set comboList [split [$node getAttribute $atrValues ""] ","]
+	}
+	# wa "comboList:$comboList"
 	}
 	# Si sacamos los ids no los traducimos
 	if { $iValues == "" } {
 		set resultList {}
 		foreach val $comboList {
-		        set traduction "[= $val ]"
+	    set traduction "[= "%s" $val]"
 		        lappend resultList $traduction
 		}
 		return $resultList
@@ -1544,6 +1595,7 @@ proc ::xmlutils::setComboDv { fcmb fullname dv {idTemplate ""} } {
 	
 	set icomboList [::xmlutils::getXMLValues $fullname "$idTemplate" "iValues"]
 	set selected [::xmlutils::getSelected $dv $icomboList]
+	# wa "icomboList:$icomboList selected:$selected"
 	$fcmb current $selected
 }
 
