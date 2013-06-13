@@ -92,7 +92,6 @@ namespace Kratos
       void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
       void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
       void GetDofList( DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo );
-      void ComputeNewNeighboursHistoricalData();
       void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
@@ -143,6 +142,7 @@ namespace Kratos
 
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeNewNeighboursHistoricalData();
       void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
       virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
@@ -159,6 +159,8 @@ namespace Kratos
                                 const array_1d<double, 3> &vel,
                                 const array_1d<double, 3> &delta_displ,
                                 ParticleWeakIteratorType neighbour_iterator);
+      
+      virtual void NormalForceCalculation(double LocalElasticContactForce[3],double kn, double indentation, int mElasticityType);
 
       virtual void DisplacementDueToRotation(double DeltDesp[3],
                                 double OldNormalDir[3],
