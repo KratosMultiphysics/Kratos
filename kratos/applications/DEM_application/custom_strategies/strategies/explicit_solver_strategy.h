@@ -184,7 +184,7 @@ namespace Kratos
 
           this->GetInitializeWasPerformed() = true;
 
-          // 8. Compute initial time step
+          // 6. Compute initial time step
           InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
 
 
@@ -303,7 +303,7 @@ namespace Kratos
                   array_1d<double,3>& applied_force  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
                   array_1d<double,3>& applied_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-                  for(int i = 0; i < 3; i++){
+                  for (int i = 0; i < 3; i++){
                       applied_force[i]  = rhs_elem[i];
                       applied_moment[i] = rhs_elem[3 + i];
                       }
@@ -548,7 +548,7 @@ namespace Kratos
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-        for(SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
+        for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
