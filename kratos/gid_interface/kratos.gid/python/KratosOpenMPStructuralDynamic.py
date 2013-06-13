@@ -42,7 +42,8 @@ varibles_dictionary = {"DISPLACEMENT" : DISPLACEMENT,
                        "REACTION" : REACTION,
                        "GREEN_LAGRANGE_STRAIN_TENSOR" : GREEN_LAGRANGE_STRAIN_TENSOR,
                        "ROTATION" : ROTATION,
-                       "PK2_STRESS_TENSOR" : PK2_STRESS_TENSOR}
+                       "PK2_STRESS_TENSOR" : PK2_STRESS_TENSOR,
+                       "MOMENT" : MOMENT}
 
 #defining a model part
 model_part = ModelPart("StructurePart");  

@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   1.8- 06/05/13-G. Socorro, add the option to work with the cross section properties (simple property or database)
 #   1.7- 09/10/12-G. Socorro, update others procs to include the cross property functionality
 #   1.6- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
 #   1.5- 04/04/12-J.Garate, finalizada la implementacion de la funcion recursiva de llenado del arbol desde xml, ya en uso
@@ -194,12 +195,19 @@ proc ::KMProps::stateNode { node } {
     if { [$node nodeName] == "Item" } {
 	# Get the cross section property list
 	set PropertyList [::KMProps::GetCrossSectionPropertyList]
+	# wa "PropertyList:$PropertyList"
 	
 	# Special case for the properties (cross section properties)
 	set id [$node getAttribute id ""]
+	# wa "id:$id"
 	if { $id == "ElemType" } {
+	    #  Element type property
 	    
 	    set ::KMProps::ElemTypeProperty [$node getAttribute dv ""]
+	    
+	} elseif { $id == "SectionType" } {
+	    # Section type property
+	    set ::KMProps::SectionTypeProperty [$node getAttribute dv ""]
 	    
 	} elseif {$id in $PropertyList} {
 	    # Get the parent node
@@ -211,6 +219,10 @@ proc ::KMProps::stateNode { node } {
 	    set ::KMProps::ElemTypeProperty [::xmlutils::GetPropertyElemType $CurrentPropertyId]
 	    # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
 	   
+	    # Get the select section base type
+	    set ::KMProps::SectionTypeProperty [::xmlutils::GetPropertySectionType $CurrentPropertyId]
+	    # wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
+	   
 	    # Check that this cross section property is active
 	    set ShowProperty [::KMProps::ShowPropertyByElementType $id]
 	    # wa "ShowProperty:$ShowProperty"
@@ -218,11 +230,17 @@ proc ::KMProps::stateNode { node } {
 		
 		return "hidden"
 	    }
+	    # Check that this cross section property is active => Checking the section type
+	    set SectionTypeShowProperty [::KMProps::ShowPropertyBySectionType $id]
+	    # wa "SectionTypeShowProperty:$SectionTypeShowProperty"
+	    if {!$SectionTypeShowProperty} {
+		return "hidden"
+	    }
 	}
     }
     
     set state [$node getAttribute state "normal"]
-    #msg "\n[$node getAttribute id ""]        state:$state"
+    # wa "\n[$node getAttribute id ""]        state:$state"
     
     #Si el estado es hiddenAll se oculta el nodo y toda su descendencia
     if {$state == "hiddenAll"} {

@@ -13,6 +13,8 @@
 #
 #  HISTORY:
 #
+#   0.8- 06/05/13-G. Socorro, add the option to work with the cross section properties (simple property or database)
+#                             - modify and update some procedures
 #   0.7- 13/12/12- J. Garate, add a message for the "PFEM" fluid case on old versions (11.1.2d)
 #   0.6- 09/10/12- G. Socorro, update others procs to include the cross property functionality
 #   0.5- 03/10/12- GSM, add a message for the "Compressible" fluid case
@@ -30,28 +32,32 @@
 
 proc ::KMProps::changeCmbValues { f path {idTemplate ""} {elemTypeDv ""} {noTemplateFullname ""} } { 
     
+    if {[winfo exists $f]} {
+    
     set values [::xmlutils::getXMLValues $path $idTemplate "" "$noTemplateFullname" "$elemTypeDv"]
     
     $f configure -values $values
     
-    if { [llength $values] > 0 && [$f current] == -1 } {
+	if {([llength $values]) && ([$f current] == -1)} {
 	$f current 0        
     }
+}
 }
 
 proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
     
     global KPriv
     
-    # wa "f:$f fullname:$fullname idTemplate:$idTemplate"
+    # wa "ElemType f:$f fullname:$fullname idTemplate:$idTemplate"
     if { [info exists ::KMProps::cmbElemType] } {
 	
 	set dv [::xmlutils::getComboDv $f $fullname "id" $idTemplate]
+	# wa "dv:$dv"
 	
 	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv $dv
 	
-	# We update Mode Material values based on the new dv
+	# We update node Material values based on the new dv
 	set fMat [string map {"ElemType" "MatModel"} $f]
 	
 	if { $idTemplate == "" } {
@@ -64,13 +70,52 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	}
 	# Get the cross section property list
 	set PropertyList [::KMProps::GetCrossSectionPropertyList]
+	# wa "PropertyList:$PropertyList"
+
 	# For each property
 	foreach propid $PropertyList {
+
+	    # For element type
 	    set fCmbPropId [string map [list "ElemType" "$propid"] $f]
 	    set fLblPropId [string map [list "cmb${propid}" "lbl${propid}"] $fCmbPropId]
 	    # wa "fCmbPropId:$fCmbPropId fLblPropId:$fLblPropId"
 	    # Get the show property state for the current property identifier
 	    set ShowProperty [::KMProps::ShowPropertyByElementType $propid]
+	    # wa "ShowProperty by element type:$ShowProperty"
+	    if {$ShowProperty} {
+		# Show this property	
+		if { [winfo exists $fCmbPropId] } { 
+		    grid $fCmbPropId 
+		}
+		if { [winfo exists $fLblPropId] } { 
+		    grid $fLblPropId 
+		}
+	    } else {
+		# Hide this property
+		if { [winfo exists $fCmbPropId] } { 
+		    grid remove $fCmbPropId 
+		}
+		if { [winfo exists $fLblPropId] } { 
+		    grid remove $fLblPropId 
+		}
+	    }
+	    
+	    set xpath "Kratos_KWords/ElementCLaws/Item\[@id='${propid}'\]"
+	    # Get the element type list
+	    set ListElementType [split [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath elementType] ","]
+	    # wa "propid:$propid ListElementType:$ListElementType"
+	    if {($dv in $ListElementType) && ($dv ne "Truss") } {
+		# Note: Special case of truss element => Without using section type
+ 
+		# For section type
+		set fCmbPropId [string map [list "ElemType" "SectionType"] $f]
+		set fCmbPropId [string map [list "SectionType" "$propid"] $fCmbPropId]
+		set fLblPropId [string map [list "cmb${propid}" "lbl${propid}"] $fCmbPropId]
+		# wa "fCmbPropId:$fCmbPropId fLblPropId:$fLblPropId"
+		
+		# Get the show property state for the current property identifier => Using the section type
+		set ShowProperty [::KMProps::ShowPropertyBySectionType $propid]
+		# wa "propid:$propid ShowProperty:$ShowProperty"
 	    if {$ShowProperty} {
 		# Show this property	
 		if { [winfo exists $fCmbPropId] } { 
@@ -89,6 +134,64 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 		}
 	    }
 	}
+    }
+}
+}
+
+proc ::KMProps::cmbSectionTypeChange { f fullname {idTemplate ""} } {
+    
+    global KPriv
+    
+    # wa "SectionType f:$f fullname:$fullname idTemplate:$idTemplate"
+    # Check that exists this combobox variable
+    if {[info exists ::KMProps::cmbSectionType] } {
+	
+	set dv [::xmlutils::getComboDv $f $fullname "id" $idTemplate]
+	# wa "dv:$dv"
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='SectionTypes'\]"
+	::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv $dv
+	
+	# We update node ProfileDB values based on the new dv
+	set fMat [string map {"SectionType" "ProfileDB"} $f]
+	# wa "fMat:$fMat"
+	if { $idTemplate == "" } {
+	    
+	    set fullnameMat [string map {"SectionType" "ProfileDB"} $fullname]
+	    ::KMProps::changeCmbValues $fMat "$fullnameMat" $idTemplate "NoSearchFullname"
+	} else {
+	    
+	    ::KMProps::changeCmbValues $fMat "MainProperties//ProfileDB" $idTemplate
+	}
+	
+	# Get the cross section property list
+	set PropertyList [::KMProps::GetCrossSectionPropertyList]
+	# For each property
+	 foreach propid $PropertyList {
+	     set fCmbPropId [string map [list "SectionType" "$propid"] $f]
+	     set fLblPropId [string map [list "cmb${propid}" "lbl${propid}"] $fCmbPropId]
+	     # wa "fCmbPropId:$fCmbPropId fLblPropId:$fLblPropId"
+
+	     # Get the show property state for the current property identifier => Using the section type
+	     set ShowProperty [::KMProps::ShowPropertyBySectionType $propid]
+	     # wa "propid:$propid ShowProperty:$ShowProperty"
+	     if {$ShowProperty} {
+	 	# Show this property	
+	 	if { [winfo exists $fCmbPropId] } { 
+	 	    grid $fCmbPropId 
+	 	}
+	 	if { [winfo exists $fLblPropId] } { 
+	 	    grid $fLblPropId 
+	 	}
+	     } else {
+	 	# Hide this property
+	 	if { [winfo exists $fCmbPropId] } { 
+	 	    grid remove $fCmbPropId 
+	 	}
+	 	if { [winfo exists $fLblPropId] } { 
+	 	    grid remove $fLblPropId 
+	 	}
+	     }
+	 }
     }
 }
 
@@ -138,17 +241,18 @@ proc ::KMProps::getCmbWidth { comboList } {
     set width 10
     
     # Validamos el tamaño de los string del combo para ponerle uno o otro tamaño
-    foreach c $comboList {
-    if { [string length $c] > 5 } {
+    foreach Item $comboList {
+	set strlen [string length $Item] 
+	if {$strlen  > 5 } {
 	    set width 10
 	}
-	if { [string length $c] > 10 } {
+	if {$strlen > 10 } {
 	    set width 15
 	}
-	if { [string length $c] > 15 } {
+	if {$strlen > 15 } {
 	    set width 20
 	}
-    if { [string length $c] > 20 } {
+	if {$strlen > 20 } {
 	    set width 25
 	}
     }
@@ -193,6 +297,7 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
     set id [::xmlutils::setXml $fullname id]
     
     set comboState [::xmlutils::getComboBoxState $fullname]
+    # wa "fullname:$fullname idFull:$idFull id:$id"
     if { $comboState == "normal" } {
 	
 	# Si han pulsado el combo en modo editar no tiene que hacer nada (antes desaparecía)
@@ -247,14 +352,13 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
 	}
     } elseif { $id == "ElemType" } {
 	
-	global KPriv        
 	set matFullname [string map {"ElemType" "MatModel"} $fullname]
 	
 	::xmlutils::setXml $matFullname dv
 	
 	##Si se cambia el ElementType hay que cambiar el dv de Material Model
 	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
-	::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv "$selCombo"
+	::xmlutils::getAttribute $::KPriv(xmlDocKKW) $xpath dv "$selCombo"
 	set values [::xmlutils::getXMLValues "$matFullname" "" "" "" "NoElementFilter"]
 	
 	set dvMat [::xmlutils::setXml $matFullname dv]
@@ -267,15 +371,26 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
 	#Hacemos un refresh para refrescar los cambios, tanto en matModel com en Thickness
 	set refresh 1
 	
-	#
-	#
-	#
-	#set values [::xmlutils::getXMLValues "$matFullname" "" "" "" "NoElementFilter"]
-	#
-	#if { $dvMat ni $values } {
-	#        ::xmlutils::setXml $matFullname dv [lindex $values 0]
-	#        ::KMProps::RefreshTree $T
-	#}
+    } elseif { $id eq "SectionType" } {
+	
+	set matFullname [string map {"SectionType" "ProfileDB"} $fullname]
+	# wa "matFullname:$matFullname"
+	::xmlutils::setXml $matFullname dv
+	
+	# When change the section type => Change the profile database and others properties
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='SectionTypes'\]"
+	::xmlutils::getAttribute $::KPriv(xmlDocKKW) $xpath dv "$selCombo"
+	set values [::xmlutils::getXMLValues "$matFullname" "" "" "" "NoElementFilter"]
+	# wa "values:$values"
+	set dvMat [::xmlutils::setXml $matFullname dv]
+	
+	if {$dvMat ni $values } {
+	    ::xmlutils::setXml $matFullname dv "write" [lindex $values 0]
+	}
+
+	# Update the changes
+	set refresh 1
+	
     }
     
     set pid [::xmlutils::setXml $fullname pid]

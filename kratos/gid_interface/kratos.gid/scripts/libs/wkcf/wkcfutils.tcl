@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     3.3- 17/05/13-G. Socorro, add the proc SumInertia, modify the proc GetCrossSectionProperties to include the new cross section properties (database)
 #     3.2- 11/02/13-G. Socorro, correct a bug in the proc GetCrossSectionProperties when write the matrix properties (delete a parenthesis was left)
 #     3.1- 17/12/12-J. Garate,  Disabled the Wall PFEM .mdpa Write. Add Beam 2D
 #     3.0- 05/12/12-J. Garate,  PFEM Slip velocity format correction
@@ -62,6 +63,10 @@ proc ::wkcf::Preprocess {} {
     # Check for use quadratic elements
     set useqelem [GiD_Info Project Quadratic]
     # WarnWinText "useqelem:$useqelem"
+    
+    # Init the structural analysis condition counter
+    variable sa_icondid 
+    set sa_icondid 0
     
     # Get the spatial dimension
     set ndime [::xmlutils::GetSpatialDimension]
@@ -852,6 +857,11 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel} {
  
 }
 
+proc ::wkcf::SumInertia {InertiaIx InertiaIy} {
+
+    return [expr $InertiaIx + $InertiaIy]
+}
+
 proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
     # Get the cross section properties
     # Arguments
@@ -877,14 +887,23 @@ proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
     set pid "propertylist"
     set id "CSProperty"
     set CSProperty [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+    # wa "CSProperty:$CSProperty"
     # Get the property type list
     set pid "propertytypelist"
     set CSPropertyType [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
     # wa "CSPropertyType:$CSPropertyType"
 
-    # Get the active property list for this property identifier
+    # Get the section type list
+    set id "SectionTypes"
+    set pid "ivalues"
+    set SectionTypes [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+    # wa "SectionTypes:$SectionTypes"
+
+    # Get the active property list and the cross section property list for this property identifier
     set CPropsList [list]
+    set CrossSectionPropsList [list]
     foreach cspropid $CSProperty csproptypeid $CSPropertyType {
+	# wa "cspropid:$cspropid csproptypeid:$csproptypeid"
 	if {$cspropid eq "Thickness"} {
 	    set endcspropid "${cspropid}${ndime}"
 	} else {
@@ -894,11 +913,84 @@ proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
 	set pid "elementType"
 	set ElementTypeList [split [::xmlutils::getKKWord $cexpath $endcspropid "$pid"] ","]
 	# wa "ElementTypeList:$ElementTypeList"
+
+	# Get the section type
+	set pid "sectionType"
+	set SectionTypeList [split [::xmlutils::getKKWord $cexpath $endcspropid "$pid"] ","]
+	# wa "SectionTypeList:$SectionTypeList"
+	set flag1 [expr {($cspropid eq "SectionType")||($cspropid eq "ProfileDB")}]
+	set flag2 [expr {($SectionTypeList in $SectionTypes) && ($SectionTypeList !="")}]
+	if {$flag1 || $flag2} {
+	    if {$SectionTypeList eq "UserDefined"} {
+		# Write to the material properties
+		if {$belemtype in $ElementTypeList} {
+		    lappend CPropsList [list $cspropid $csproptypeid]
+		}
+	    } elseif {($SectionTypeList eq "Rectangular")||($SectionTypeList eq "Circular")} {
+		# Write to the cross section properties
+		lappend CrossSectionPropsList [list $cspropid $csproptypeid $SectionTypeList]
+	    } else {
+		# For "SectionType" and "ProfileDB"
+		# Write to the cross section properties
+		lappend CrossSectionPropsList [list $cspropid $csproptypeid $SectionTypeList]
+	    }
+	} else {
 	if {$belemtype in $ElementTypeList} {
 	    lappend CPropsList [list $cspropid $csproptypeid]
 	}
     }
+    }
     # wa "CPropsList:$CPropsList"
+    # wa "CrossSectionPropsList:$CrossSectionPropsList"
+
+    # Init cross section properties list
+    set dprops($AppId,CrossSection,$propid,CProps) [list]
+
+    # Process all scalar and list data type only for property type that are different of "UserDefined"
+    set UseCrossSectionProps 0
+
+    foreach cpropid $CrossSectionPropsList {
+	lassign $cpropid cspropid csproptypeid SectionType
+	# wa "cspropid:$cspropid csproptypeid:$csproptypeid SectionType:$SectionType"
+	# Get the current value
+	set cvalue ""
+	if {[info exists dprops($AppId,Property,$propid,$cspropid)]} {
+	    set cvalue $dprops($AppId,Property,$propid,$cspropid)
+	}
+	# Check the section type
+	if {($cspropid eq "SectionType") && ($cvalue !="UserDefined")} {
+	    set UseCrossSectionProps 1
+	    
+	    # Update the section type
+	    set dprops($AppId,CrossSection,$propid,SectionType) $cvalue
+	}
+    }
+    
+    # Check for use cross section properties
+    if {$UseCrossSectionProps} {
+	foreach cpropid $CrossSectionPropsList {
+	    lassign $cpropid cspropid csproptypeid SectionType
+	    # wa "cspropid:$cspropid csproptypeid:$csproptypeid SectionType:$SectionType"
+	    # Get the current value
+	    set cvalue ""
+	    if {[info exists dprops($AppId,Property,$propid,$cspropid)]} {
+		set cvalue $dprops($AppId,Property,$propid,$cspropid)
+	    }
+	    # wa "cvalue:$cvalue"
+	    # Check the section type
+	    if {($SectionType !="UserDefined") && ($cvalue !="")} {
+		if {$csproptypeid eq "Scalar"} {
+		    # Update cross section properties (property type identifier, current value, section type)
+		    lappend dprops($AppId,CrossSection,$propid,CProps) [list $cspropid $csproptypeid $cvalue $SectionType]
+		} elseif {$csproptypeid eq "List"} { 
+		    # Update cross section properties (property type identifier, current value, section type)
+		    lappend dprops($AppId,CrossSection,$propid,CProps) [list $cspropid $csproptypeid $cvalue $SectionType]
+		}
+		# wa "dprops($AppId,CrossSection,$propid,CProps):$dprops($AppId,CrossSection,$propid,CProps)"
+	    }
+	}
+    }
+
     # Init CProps list 
     set dprops($AppId,Material,$propid,CProps) [list]
 
@@ -910,10 +1002,12 @@ proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
 	    # Get the current value
 	    set cvalue $dprops($AppId,Property,$propid,$cspropid)
 	    set kword [::xmlutils::getKKWord $kmxpath $cspropid "kkword"]
+	    if {$kword ne ""} {
 	    # Update section properties (property type identifier, kratos keyword, current value)
 	    lappend dprops($AppId,Material,$propid,CProps) [list $csproptypeid $kword $cvalue]
 	    # wa "dprops($AppId,Material,$propid,CProps):$dprops($AppId,Material,$propid,CProps)"
 	}
+    }
     }
    
     # Process all matrix data type
@@ -998,6 +1092,51 @@ proc ::wkcf::GetCrossSectionProperties {AppId propid belemtype} {
 	    lset MatrixValues [expr $mcpos-1] $cvalue
 	}
 	# wa "MatrixValues:$MatrixValues"
+
+	# Resolve the special case that the properties are calculated
+	# Get the matrix special calculation flag
+	set id "$MatrixId"
+	set pid "matrixspecialcal"
+	set MatrixSpecialCal [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	# wa "MatrixSpecialCal:$MatrixSpecialCal"
+	
+	# Get the matrix special procedure identifiers
+	set id "$MatrixId"
+	set pid "matrixspecialpid"
+	set MatrixSpecialProcId [split [::xmlutils::getKKWord $cexpath "$id" "$pid"] ","]
+	# wa "MatrixSpecialProcId:$MatrixSpecialProcId"
+	set cpos -1
+	foreach spcal $MatrixSpecialCal spprocid $MatrixSpecialProcId {
+	    # wa "spcal:$spcal spprocid:$spprocid"
+	    incr cpos 1
+	    if {$spcal} {
+		# Get the procedure args identifier
+		set existsproc [info procs $spprocid]
+		if {$existsproc !=""} {
+		    set argslist [info args $spprocid]
+		    # wa "existsproc:$existsproc argslist:$argslist"
+		    set pid "$spprocid"
+		    # Create the procedure 
+		    foreach args $argslist {
+			# Get this property
+			set cvalue "0.0"
+			if {[info exists dprops($AppId,Property,$propid,$args)]} {
+			    set cvalue $dprops($AppId,Property,$propid,$args)
+			}
+			# wa "cvalue:$cvalue"
+			append pid " " $cvalue  
+		    }
+		    # wa "pid:$pid"
+		    set currentvalue [eval $pid]
+		    # wa "currentvalue:$currentvalue"
+		    if {$currentvalue !=""} {
+			# Modify the matrix value
+			lset MatrixValues $cpos $currentvalue
+		    }
+		}
+	    }
+	}
+
 	# Print the value into the buffer
 	# Open the matrix brackets
 	append matbf "(("

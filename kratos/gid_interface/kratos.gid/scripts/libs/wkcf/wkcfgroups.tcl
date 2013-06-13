@@ -235,6 +235,9 @@ proc ::wkcf::WriteGroupMeshProperties_m2 {AppId} {
 		    set welements 0
 		    if {[GiD_EntitiesGroups get $cgroupid elements -count]} {
 		
+		    set welements 0
+		    if {[GiD_EntitiesGroups get $cgroupid elements -count]} {
+		
                         GiD_File fprintf $filechannel "%s" " "
                         GiD_File fprintf $filechannel "%s" " Begin MeshElements"
 			foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {

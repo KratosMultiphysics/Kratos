@@ -12,6 +12,10 @@
 #
 #    HISTORY:
 #   
+#     1.5- 22/05/13-G. Socorro, correct a bug in the procs WritePuntualLoads and WriteBeamUniformlyDistributedLoads when write condition 
+#                               identifier in the case of more than one load group
+#     1.4- 17/05/13-G. Socorro, add the proc WriteBeamUniformlyDistributedLoads, update the proc WriteConstitutiveLawsProperties
+#                               to write the cross section properties
 #     1.3- 24/04/13-G. Socorro, write Rotational_Dofs = True for beam element type
 #     1.2- 18/03/13-G. Socorro, correct a bug in the proc WritePressureLoads_m2 change $group by $cgroupid
 #     1.1- 17/12/12-J. Garate,  Kratos Path is no longer written at ProjectParameters.py
@@ -315,6 +319,11 @@ proc ::wkcf::WriteLoads {AppId} {
                     # Write puntual loads
                     ::wkcf::WritePuntualLoads $AppId $cloadtid $kwordlist
                 }
+		"BeamUniformlyDistributed"
+                {
+		    # Write beam uniformly distributed loads
+                    ::wkcf::WriteBeamUniformlyDistributedLoads $AppId $cloadtid
+                }
                 "Pressure" {
                     # Pressure loads
                     ::wkcf::WritePressureLoads $AppId $cloadtid
@@ -322,6 +331,92 @@ proc ::wkcf::WriteLoads {AppId} {
             }
             }
         }
+    }
+}
+
+proc ::wkcf::WriteBeamUniformlyDistributedLoads {AppId cloadtid} {
+    # ASBTRACT: Write beam uniformly distributed loads (forces)
+    variable wmethod
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+    if {$wmethod eq 2} {
+	::wkcf::WriteBeamUniformlyDistributedLoads_m2 $AppId $cloadtid
+    } 
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write structural analysis beam uniformly distributed loads (forces): [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteBeamUniformlyDistributedLoads_m2 {AppId cloadtid} {
+    # ABSTRACT: Write beam uniformly distributed loads (forces)
+    variable ndime;  variable dprops
+    variable filechannel;  variable sa_icondid 
+    
+    # Kratos key word xpath
+    set kwxpath "Applications/$AppId"
+    # Set the GiD element type
+    set GiDElemType "Line"
+    # Set the line force 3d-3n condition keyword
+    set LineForce3D2N "LineForce3D2N"
+    # Set the reference property id
+    set RefPropId "1"
+      
+    # For all defined group identifier inside this load type
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+	# wa "cgroupid:$cgroupid"
+        if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+            # Write LineForce3D2N condition
+            GiD_File fprintf $filechannel "%s" "Begin Conditions $LineForce3D2N // GUI beam uniformly distributed load group identifier: $cgroupid"
+	    foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+                set N1 [lindex $nodes 0]
+                set N2 [lindex $nodes 1]
+		incr sa_icondid
+                set cf "[format "%4i%4i%8i%8i" $sa_icondid $RefPropId $N1 $N2]"
+                GiD_File fprintf $filechannel "%s" "$cf"
+            }
+            GiD_File fprintf $filechannel "%s" "End Conditions"
+            GiD_File fprintf $filechannel ""
+        }
+    }
+
+
+    # Write uniformly distributed load values for all nodes inside a group identifier 
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+	
+        # Get the load properties
+        set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
+	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
+        # Assign values
+        foreach item $GProps {
+            foreach {cvar cval} $item {
+                set $cvar $cval
+		# wa "cvar:$cvar cval:$cval"
+		
+		# Get the current keyword
+		set ckword [::xmlutils::getKKWord $kwxpath "$cvar"]
+		# WarnWinText "ckword:$ckword"
+		if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)&&($ndime=="3D")} {
+		    
+		    if {$cval !="0.0"} {
+			# Write beam uniformly properties values
+			GiD_File fprintf $filechannel "%s" "Begin NodalData $ckword // GUI beam uniformly distributed load group identifier: $cgroupid"
+		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		            GiD_File fprintf $filechannel "%10i %6i %20.10f" $node_id $RefPropId $cval
+		        }
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		}
+            }
+        } 
     }
 }
 
@@ -352,6 +447,7 @@ proc ::wkcf::WritePressureLoads {AppId cloadtid} {
 proc ::wkcf::WritePressureLoads_m1 {AppId cloadtid} {
     # ABSTRACT: Write pressure loads (positive or negative shell pressure)
     variable ndime;  variable dprops
+    variable sa_icondid
 
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
@@ -372,10 +468,9 @@ proc ::wkcf::WritePressureLoads_m1 {AppId cloadtid} {
 	if {[write_calc_data has_elements -elemtype $GiDElemType $gpressface]} {
 	    # Write Face3D3N condition
 	    write_calc_data puts "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
-	    set icondid 0
 	    foreach {elemid N1 N2 N3} [write_calc_data connectivities -return -elements_faces elements $gpressface] {
-		incr icondid
-		set cf "[format "%4i%4i%8i%8i%8i" $icondid $RefPropId $N1 $N2 $N3]"
+		incr sa_icondid
+		set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
 		write_calc_data puts "$cf"
 	    }
 	    write_calc_data puts "End Conditions"
@@ -436,7 +531,7 @@ proc ::wkcf::WritePressureLoads_m1 {AppId cloadtid} {
 proc ::wkcf::WritePressureLoads_m2 {AppId cloadtid} {
     # ABSTRACT: Write pressure loads (positive or negative shell pressure)
     variable ndime;  variable dprops
-    variable filechannel
+    variable filechannel; variable sa_icondid
 
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
@@ -452,14 +547,13 @@ proc ::wkcf::WritePressureLoads_m2 {AppId cloadtid} {
         if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
             # Write Face3D3N condition
             GiD_File fprintf $filechannel "%s" "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
-            set icondid 0
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
                 set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
                 set N1 [lindex $nodes 0]
                 set N2 [lindex $nodes 1]
                 set N3 [lindex $nodes 2]
-                incr icondid
-                set cf "[format "%4i%4i%8i%8i%8i" $icondid $RefPropId $N1 $N2 $N3]"
+                incr sa_icondid
+                set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
                 GiD_File fprintf $filechannel "%s" "$cf"
             }
             GiD_File fprintf $filechannel "%s" "End Conditions"
@@ -508,6 +602,7 @@ proc ::wkcf::WritePressureLoads_m0 {AppId cloadtid} {
     # Write pressure loads (positive or negative shell pressure)
     variable ndime;    variable gidentitylist
     variable useqelem; variable dprops
+    variable sa_icondid
 
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
@@ -566,13 +661,12 @@ proc ::wkcf::WritePressureLoads_m0 {AppId cloadtid} {
 	# WarnWinText "ngroupelems:$ngroupelems"
 	if {($ngroupelems) && ($ndime=="3D")} {
 	    write_calc_data puts "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
-	    set icondid 0
 	    # Get all defined nodes
 	    foreach elemid $celemglist {
-		incr icondid 1
+		incr sa_icondid 1
 		# Get the element properties
 		lassign [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] N1 N2 N3
-		set cf "[format "%4i%4i%8i%8i%8i" $icondid $RefPropId $N1 $N2 $N3]"
+		set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
 		write_calc_data puts "$cf"
 	    }
 	    write_calc_data puts "End Conditions"
@@ -658,6 +752,7 @@ proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
 proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
     # ASBTRACT: Write concentrated loads (puntual force or moment)
     variable ndime; variable dprops
+    variable sa_icondid
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
@@ -704,12 +799,11 @@ proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
 	}
 	if {$usepointforce =="Yes"} {
 	    # Active the PointForce condition
-	    set jj 0
 	    
 	    write_calc_data puts "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
 	    foreach output [write_calc_data nodes -return -sorted $gpointforce] {
-		incr jj
-		set cf "[format "%4i %4i %10i" $jj 1 $output]"
+		incr sa_icondid
+		set cf "[format "%4i %4i %10i" $sa_icondid 1 $output]"
 		write_calc_data puts "$cf"
 	    }
 	    write_calc_data puts "End Conditions"
@@ -786,7 +880,7 @@ proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
 proc ::wkcf::WritePuntualLoads_m2 {AppId cloadtid kwordlist} {
     # ASBTRACT: Write concentrated loads (puntual force or moment)
     variable ndime; variable dprops
-    variable filechannel
+    variable filechannel; variable sa_icondid
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
@@ -827,12 +921,11 @@ proc ::wkcf::WritePuntualLoads_m2 {AppId cloadtid kwordlist} {
         }
         if {$usepointforce =="Yes"} {
             # Active the PointForce condition
-            set jj 0
             
             GiD_File fprintf $filechannel "%s" "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
             foreach output [GiD_EntitiesGroups get $cgroupid nodes] {
-                incr jj
-                set cf "[format "%4i %4i %10i" $jj 1 $output]"
+                incr sa_icondid
+                set cf "[format "%4i %4i %10i" $sa_icondid 1 $output]"
                 GiD_File fprintf $filechannel "%s" "$cf"
             }
             GiD_File fprintf $filechannel "%s" "End Conditions"
@@ -886,6 +979,7 @@ proc ::wkcf::WritePuntualLoads_m0 {AppId cloadtid kwordlist} {
     # Write concentrated loads (puntual force or moment)
     variable ndime;    variable gidentitylist
     variable useqelem; variable dprops
+    variable sa_icondid
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
@@ -940,10 +1034,9 @@ proc ::wkcf::WritePuntualLoads_m0 {AppId cloadtid kwordlist} {
 	    if {$usepointforce =="Yes"} {
 		# Active the PointForce condition
 		write_calc_data puts "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
-		set jj 0
 		foreach nodeid $allnlist {
-		    incr jj
-		    set cf "[format "%4i%4i%8i" $jj 1 $nodeid]"
+		    incr sa_icondid
+		    set cf "[format "%4i%4i%8i" $sa_icondid 1 $nodeid]"
 		    write_calc_data puts "$cf"
 		}
 		write_calc_data puts "End Conditions"
@@ -1283,7 +1376,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 
     # On Gauss point results
     #puts $fileid ""
-    set cgrlist [list "GreenLagrangeStrainTensor" "Rotations" "PK2StressTensor"]
+    set cgrlist [list "GreenLagrangeStrainTensor" "Rotations" "PK2StressTensor" "BeamMoments" "BeamForces"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.${cgr}"
@@ -1349,6 +1442,8 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
     puts $fileid "# Importing the Kratos Library"
     puts $fileid "from KratosMultiphysics import *"
     puts $fileid "from KratosMultiphysics.StructuralApplication import *"
+    # Cross section properties
+    puts $fileid "from apply_sections import SetProperties"
   
 
     puts $fileid "def AssignMaterial(Properties):"
@@ -1375,6 +1470,69 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	# Write material model
 	puts $fileid "    mat = $dprops($AppId,Material,$MatId,MatModel)\;"
 	puts $fileid "    prop.SetValue(CONSTITUTIVE_LAW, mat.Clone())\;"
+
+	# Write cross section properties
+	# Get all properties
+	set CrossSectionProps [list]
+	if {[info exists dprops($AppId,CrossSection,$PropertyId,CProps)]} { 
+	    set CrossSectionProps $dprops($AppId,CrossSection,$PropertyId,CProps)
+	}
+	
+	# Select the section type
+	if {([info exists dprops($AppId,CrossSection,$PropertyId,SectionType)]) && ([llength $CrossSectionProps])} {
+	    set SectionType $dprops($AppId,CrossSection,$PropertyId,SectionType)
+	    # Rectangular cross section
+	    if {$SectionType eq "Rectangular"} {
+		set csectiontype "\"Square\""
+		set proplist [list 1 1]
+		# Get the property list
+		foreach cprop $CrossSectionProps {
+		    lassign $cprop cspropid csproptypeid cvalue _SectionType
+		    if {$cspropid eq "RectangularHeight"} {
+			lset proplist 0 $cvalue
+		    } elseif {$cspropid eq "RectangularWidth"} {
+			lset proplist 1 $cvalue
+		    }
+		}
+		# wa "proplist:$proplist"
+		set proplist [join $proplist ","]
+		set endprop "\[$proplist\]"
+		# wa "endprop:$endprop"
+		puts $fileid "    prop = SetProperties($csectiontype,$endprop,prop)\;" 
+
+	    } elseif {$SectionType eq "Circular"} {
+		set csectiontype "\"$SectionType\""
+		set proplist [list 1]
+		# Get the property list
+		foreach cprop $CrossSectionProps {
+		    lassign $cprop cspropid csproptypeid cvalue _SectionType
+		    if {$cspropid eq "CircularDiameter"} {
+			lset proplist 0 $cvalue
+		    } 
+		}
+		# wa "proplist:$proplist"
+		set proplist [join $proplist ","]
+		set endprop "\[$proplist\]"
+		# wa "endprop:$endprop"
+		puts $fileid "    prop = SetProperties($csectiontype,$endprop,prop)\;" 
+	    } else {
+		# Profile sections
+		set csectiontype "\"$SectionType\""
+		set proplist [list 1]
+		# Get the property list
+		foreach cprop $CrossSectionProps {
+		    lassign $cprop cspropid csproptypeid cvalue _SectionType
+		    if {$cspropid eq "ProfileDB"} {
+			lset proplist 0 $cvalue
+		    } 
+		}
+		# wa "proplist:$proplist"
+		set proplist [join $proplist ","]
+		set endprop "\[\"$proplist\"\]"
+		# wa "endprop:$endprop"
+		puts $fileid "    prop = SetProperties($csectiontype,$endprop,prop)\;" 
+	    }
+	}
 	
     }
 
