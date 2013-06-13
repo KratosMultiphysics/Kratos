@@ -541,6 +541,30 @@ public:
            // array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)    
     {
         KRATOS_TRY
+        
+        const double unsigned_distance0=fabs(rDistances(0));
+		const double unsigned_distance1=fabs(rDistances(1));
+		const double unsigned_distance2=fabs(rDistances(2));
+		
+		//we begin by finding the largest distance:
+		double longest_distance=fabs(unsigned_distance0);
+		if (unsigned_distance1>longest_distance)
+			longest_distance=unsigned_distance1;
+		if (unsigned_distance2>longest_distance)
+			longest_distance=unsigned_distance2;
+		
+		//Now we set a maximum relative distance
+		const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
+		if (unsigned_distance0<tolerable_distance)
+			rDistances[0]=tolerable_distance;
+		if (unsigned_distance1<tolerable_distance)
+			rDistances[1]=tolerable_distance;
+		if (unsigned_distance2<tolerable_distance)
+			rDistances[2]=tolerable_distance;
+
+		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
+			
+			
 	
 		//unsigned int i,j,k;
 		//unsigned int i_aux,j_aux,k_aux; //
@@ -596,25 +620,32 @@ public:
 		
 		//'TRICK' TO AVOID HAVING THE INTERFASE TOO CLOSE TO THE NODES:
 		//since we cannot collapse node because we have to contemplate the possibility of discontinuities, we will move a little the intefase so that it is not that close.
-		const double unsigned_distance0=fabs(rDistances(0));
-		const double unsigned_distance1=fabs(rDistances(1));
-		const double unsigned_distance2=fabs(rDistances(2));
-		//we begin by finding the largest distance:
-		double longest_distance=fabs(unsigned_distance0);
-		if (unsigned_distance1>longest_distance)
-			longest_distance=unsigned_distance1;
-		if (unsigned_distance2>longest_distance)
-			longest_distance=unsigned_distance2;
-		//Now we set a maximum relative distance
-		const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
-		//and now we check if a distance is too small:
-		if (unsigned_distance0<tolerable_distance)
-			rDistances[0]=tolerable_distance*(rDistances[0]/fabs(rDistances[0]));
-		if (unsigned_distance1<tolerable_distance)
-			rDistances[1]=tolerable_distance*(rDistances[1]/fabs(rDistances[1]));
-		if (unsigned_distance2<tolerable_distance)
-			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
-		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
+// 		const double unsigned_distance0=fabs(rDistances(0));
+// 		const double unsigned_distance1=fabs(rDistances(1));
+// 		const double unsigned_distance2=fabs(rDistances(2));
+// 		//we begin by finding the largest distance:
+// 		double longest_distance=fabs(unsigned_distance0);
+// 		if (unsigned_distance1>longest_distance)
+// 			longest_distance=unsigned_distance1;
+// 		if (unsigned_distance2>longest_distance)
+// 			longest_distance=unsigned_distance2;
+// 		//Now we set a maximum relative distance
+// 		const double tolerable_distance =longest_distance*0.001;	// (1/1,000,000 seems to have good results)
+// // 		//and now we check if a distance is too small:
+// // 		if (unsigned_distance0<tolerable_distance)
+// // 			rDistances[0]=tolerable_distance*(rDistances[0]/(fabs(rDistances[0]));
+// // 		if (unsigned_distance1<tolerable_distance)
+// // 			rDistances[1]=tolerable_distance*(rDistances[1]/(fabs(rDistances[1]));
+// // 		if (unsigned_distance2<tolerable_distance)
+// // 			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
+// 		if (unsigned_distance0<tolerable_distance && unsigned_distance0)
+// 			rDistances[0]=tolerable_distance*(rDistances[0]/(fabs(rDistances[0]));
+// 		if (unsigned_distance1<tolerable_distance)
+// 			rDistances[1]=tolerable_distance*(rDistances[1]/(fabs(rDistances[1]));
+// 		if (unsigned_distance2<tolerable_distance)
+// 			rDistances[2]=tolerable_distance*(rDistances[2]/fabs(rDistances[2]));
+// 
+// 		//END OF TRICK. REMEMBER TO OVERWRITE THE DISTANCE VARIABLE IN THE ELEMENT IN CASE THESE LINES HAVE MODIFIED THEM (distances)
 		 
 		 
 		//for (int jj = 0; jj < 3; jj++)
@@ -739,8 +770,8 @@ public:
 			 
 		 }
 
-		 
-		 
+		 double tot_area;
+		 CalculateGeometryData(rPoints, DN_DX, tot_area);
 
 		 return 3;
 		 KRATOS_CATCH("");
