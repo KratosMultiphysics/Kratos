@@ -282,9 +282,7 @@ class ExplicitStrategy:
 
         if(self.homogeneous_material_OPTION == "ON"):
             self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
-            self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.magic_factor)
-            self.model_part.ProcessInfo.SetValue(HISTORICAL_MIN_K, self.magic_factor)
-
+     
         if (self.global_variables_OPTION == "ON"):
             self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
