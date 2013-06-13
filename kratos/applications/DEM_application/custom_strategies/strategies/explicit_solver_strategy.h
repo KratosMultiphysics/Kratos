@@ -184,11 +184,8 @@ namespace Kratos
 
           this->GetInitializeWasPerformed() = true;
 
-          // 6. Set Initial Contacts
-          //SetInitialContacts(); // Empty function, MSI: treula si funciona, jo tinc el meu propi initialize
-
-          // 7. Compute initial time step
-          //InitialTimeStepCalculation(); MSI: We should ask whether we want to calculate this or not
+          // 8. Compute initial time step
+          InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
 
 
       KRATOS_CATCH("")
@@ -510,8 +507,6 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    virtual void SetInitialContacts(){}
 
     void SetSearchRadius(ModelPart& rModelPart, double radiusExtend, double new_extension = 0)
     {
