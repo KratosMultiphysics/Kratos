@@ -183,6 +183,20 @@ namespace Kratos
 			    }	
 			 mean_interface_temp /= cnt_intr;
 
+			 double min_wet_temp = 10000000.0;
+			 #pragma omp parallel for
+		        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
+		        {
+				ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() + k;
+			 	 double distance = i_node->GetSolutionStepValue(DISTANCE);
+				 if(distance <=0.0)
+				 {
+					 double temp_node = i_node->FastGetSolutionStepValue(TEMPERATURE);
+					 if (temp_node < min_wet_temp)
+						 min_wet_temp = temp_node;
+				 }
+				}
+
 //			 for(ModelPart::NodeIterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
 			 #pragma omp parallel for
 		        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); k++)
@@ -202,12 +216,14 @@ namespace Kratos
 					// double temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
 					 i_node->FastGetSolutionStepValue(TEMPERATURES) = i_node->FastGetSolutionStepValue(TEMPERATURE);
 
+
 				 }
 				 else
 				 {
 					 i_node->FastGetSolutionStepValue(VELOCITIES) = ZeroVector(3);
 					 i_node->FastGetSolutionStepValue(PRESSURES) = 0.00;
-					 i_node->FastGetSolutionStepValue(TEMPERATURES) = 0.9975*mean_interface_temp;
+					// i_node->FastGetSolutionStepValue(TEMPERATURES) = mean_interface_temp-10.0;
+					 i_node->FastGetSolutionStepValue(TEMPERATURES) = min_wet_temp-10.0;
 				 }
 
 			 }
