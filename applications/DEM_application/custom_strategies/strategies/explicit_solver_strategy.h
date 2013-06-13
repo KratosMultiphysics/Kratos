@@ -166,12 +166,12 @@ namespace Kratos
           extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
           // 2. Search Neighbours with tolerance (after first repartition process)
-          SearchInitialNeighbours(rModelPart, extension_option);
+          SearchNeighbours(rModelPart, extension_option);
 
-	  // 3. Calculate bounding box
-	  this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
+          // 3. Calculate bounding box
+          this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
 
-	  // 4. Finding overlapping of initial configurations
+          // 4. Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
@@ -185,12 +185,13 @@ namespace Kratos
           this->GetInitializeWasPerformed() = true;
 
           // 6. Set Initial Contacts
-          SetInitialContacts(); // Empty function
+          //SetInitialContacts(); // Empty function, MSI: treula si funciona, jo tinc el meu propi initialize
 
           // 7. Compute initial time step
-          InitialTimeStepCalculation();
+          //InitialTimeStepCalculation(); MSI: We should ask whether we want to calculate this or not
 
-	  KRATOS_CATCH("")
+
+      KRATOS_CATCH("")
       }// Initialize()
 
       virtual double Solve()
@@ -291,7 +292,7 @@ namespace Kratos
           #pragma omp parallel for private(rhs_elem)
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
 
-              if (rhs_elem.size() != 6){
+              if(rhs_elem.size() != 6){
                 rhs_elem.resize(6);
               }
 
@@ -305,10 +306,10 @@ namespace Kratos
                   array_1d<double,3>& applied_force  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
                   array_1d<double,3>& applied_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-                  for (int i = 0; i < 3; i++){
+                  for(int i = 0; i < 3; i++){
                       applied_force[i]  = rhs_elem[i];
                       applied_moment[i] = rhs_elem[3 + i];
-                  }
+                      }
 
               } //loop over particles
 
@@ -346,11 +347,14 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                  (it)->InitializeSolutionStep(rCurrentProcessInfo); // we use this function to call the set initial contacts and the add continuum contacts.
+                  (it)->InitializeSolutionStep(rCurrentProcessInfo); // we use this function to call the set initial contacts and the add continuum contacts.        
               } // loop over particles
 
           } // loop threads OpenMP
 
+         int& neighbours_initialized    = rCurrentProcessInfo[NEIGH_INITIALIZED];
+         neighbours_initialized = 1;  //MSI: aixo com es feia sense initialized? el solutionstep nomes es fa un cop. no hauria de definirse aki.
+         
         KRATOS_CATCH("")
       }
 
@@ -531,46 +535,11 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-
-            if (particle_pointer_it->Id() == id){
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {
+            if(particle_pointer_it->Id() == id)
+            {
                 std::cout << msg << " " << particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size() << std::endl; break;
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    virtual void SearchInitialNeighbours(ModelPart& rModelPart, bool extension_option)
-    {
-        KRATOS_TRY
-
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
-
-        for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i!=pElements.end(); i++){
-            i->GetValue(NEIGHBOUR_ELEMENTS).clear();
-        }
-
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
-
-        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-        #pragma omp parallel for
-        for (int k = 0; k < this->GetNumberOfThreads(); k++){
-            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-            size_t ResultCounter = this->GetElementPartition()[k];
-
-            for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
-
-                for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
-                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
-                }
-
-                this->GetResults()[ResultCounter].clear();
-                this->GetResultsDistances()[ResultCounter].clear();
             }
         }
 
@@ -584,14 +553,14 @@ namespace Kratos
         ModelPart& rModelPart               = BaseType::GetModelPart();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-        for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
+        for(SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
         this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
+        
         #pragma omp parallel for
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -602,7 +571,7 @@ namespace Kratos
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
 
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
-                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);
+                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);         
                 }
 
                 this->GetResults()[ResultCounter].clear();
