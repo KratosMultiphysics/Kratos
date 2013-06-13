@@ -198,6 +198,17 @@ class BiphasicFillingUtilities
 					    it->SetValue(IS_STRUCTURE,is_str);	  
 					    it->SetValue(Y_WALL,y_wall_val*y_wall_fac);}//y_wall_val*y_wall_fac	
 			      }
+
+			  //filling time
+		      double is_visited = it->FastGetSolutionStepValue(IS_VISITED);
+		      if(is_visited == 0.0 && dist<=0.0){
+			    it->FastGetSolutionStepValue(IS_VISITED) = 1.0;
+
+			    double filling_time =  ThisModelPart.GetProcessInfo()[TIME];
+			    it->FastGetSolutionStepValue(FILLTIME) = filling_time; 
+		        }
+
+
 			}
 			//syncronoze
 		        ThisModelPart.GetCommunicator().SumAll(wet_nodes);
@@ -235,10 +246,12 @@ class BiphasicFillingUtilities
 		}
 	//**********************************************************************************************
 	//**********************************************************************************************
-    void DistanceFarRegionCorrection(ModelPart& ThisModelPart, const double max_distance)
+    void DistanceFarRegionCorrection(ModelPart& ThisModelPart, const double CFL)
 		{	
 		  KRATOS_TRY;
 		    int node_size = ThisModelPart.Nodes().size();
+			double max_cutted_elem_size = 0.0;
+			max_cutted_elem_size = ComputeCharactristicCuttedLength(ThisModelPart);
 
     #pragma omp parallel for firstprivate(node_size)
 		    for (int ii = 0; ii < node_size; ii++)
@@ -247,7 +260,7 @@ class BiphasicFillingUtilities
 		      double& current_dist = it->FastGetSolutionStepValue(DISTANCE);		  
 		      const double old_dist = it->FastGetSolutionStepValue(DISTANCE,1);	
 		      
-		      if( fabs(old_dist) >= 0.8*max_distance && current_dist*old_dist <= 0.0)
+		      if( fabs(old_dist) >= CFL*max_cutted_elem_size && current_dist*old_dist <= 0.0)
 			current_dist = old_dist;
 		    }
 		  KRATOS_CATCH("")
@@ -276,6 +289,9 @@ class BiphasicFillingUtilities
 		
 		double volume_difference = fabs(Net_volume) - wet_volume;
 		volume_difference /= cutted_area;
+
+		 ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
+		 ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
 #pragma omp parallel for firstprivate(node_size)		
 		for (int ii = 0; ii < node_size; ii++)
@@ -427,7 +443,7 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 		    ele_wet_volume += volumes[kk];		  
 		}
 		wetvol += ele_wet_volume;
-	        cutare += 7.205621731 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
+	        cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
 	      }				
 	    }
 	    //syncronoze
@@ -439,6 +455,69 @@ std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet
 	    
 	   KRATOS_CATCH("")	  
 	}
+	double ComputeCharactristicCuttedLength(ModelPart& ThisModelPart)
+	{
+	   KRATOS_TRY;
+
+	    double max_cutted_len = 0.0;
+	    double cnt = 0.0;
+        array_1d<double,4> dist;
+        int elem_size = ThisModelPart.Elements().size();
+
+#pragma omp parallel for private(dist) firstprivate(elem_size)
+        for (int i = 0; i < elem_size; i++)
+        {
+            PointerVector< Element>::iterator it = ThisModelPart.ElementsBegin() + i;
+
+             Geometry<Node < 3 > >& element_geometry = it->GetGeometry();
+
+             for (unsigned int i = 0; i < 4; i++)
+                 dist[i] = element_geometry[i].GetValue(DISTANCE);
+
+             bool is_divided = IsDivided(dist);
+             if (is_divided == true)
+             {
+				 #pragma omp atomic
+			  	 cnt+= 1.0;
+
+				 double max_pos_dist = 0.0;
+				 double min_neg_dist = 0.0;
+                 for (unsigned int ii = 0; ii < 4; ii++){
+					 if ( dist[ii] > max_pos_dist)
+						 max_pos_dist = dist[ii];
+					 else if( dist[ii] < min_neg_dist)
+						 min_neg_dist =  dist[ii];}
+
+				 double this_ele_dist = max_pos_dist -  min_neg_dist ;
+				 if(this_ele_dist > max_cutted_len)
+					 max_cutted_len = this_ele_dist;
+
+			 }
+		}
+		return max_cutted_len;
+
+	   KRATOS_CATCH("")	 
+	}
+
+	bool IsDivided(array_1d<double,4>& dist)
+    {
+        unsigned int positive = 0;
+        unsigned int negative = 0;
+
+        for(unsigned int i=0; i<4; i++)
+        {
+            if(dist[i] >= 0)
+                positive++;
+            else
+                negative++;
+        }
+
+        bool is_divided = false;
+        if(positive > 0 && negative>0)
+            is_divided = true;
+
+        return is_divided;
+    }
 
 
  };
