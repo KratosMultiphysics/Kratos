@@ -43,7 +43,7 @@ class Solver:
         pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-        self.linear_solver = BICGSTABSolver(1e-3, 5000,pPrecond)
+        self.linear_solver = BICGSTABSolver(1e-5, 5000,pPrecond)
 
         self.dynamic_tau = 0.0
 
