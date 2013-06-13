@@ -52,7 +52,7 @@ namespace Kratos
           KRATOS_TRY
 
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-          mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+          mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
           mRestitCoeff              = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
@@ -62,11 +62,11 @@ namespace Kratos
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double& ln_of_rest_coef   = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
-          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
+          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;         
           sqrt_of_mass              = sqrt(mass);
           ln_of_rest_coef           = log(mRestitCoeff);
           moment_of_inertia         = 0.4 * mass * mRadius * mRadius;
-          mRealMass                 = mass;
+          mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
           mLnOfRestitCoeff          = ln_of_rest_coef;
           mMomentOfInertia          = moment_of_inertia;
@@ -171,6 +171,7 @@ namespace Kratos
               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
               {
                 temp_neighbours_contact_forces[neighbour_counter] = mOldNeighbourContactForces[j];
+                //temp_neighbours_contact_forces[neighbour_counter] = mOldNeighbourContactForces[j]; continuum
                 break;
               }
 
@@ -179,8 +180,8 @@ namespace Kratos
             neighbour_counter++;
         }
 
-        mOldNeighbourIds           = temp_neighbours_ids;
-        mOldNeighbourContactForces = temp_neighbours_contact_forces;
+        mOldNeighbourIds.swap(temp_neighbours_ids);
+        mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
 
       }
 
@@ -445,10 +446,8 @@ namespace Kratos
               double LocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
               double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
 
-              // SLIDING
-
               bool sliding = false;
-
+              
               if (mUniformMaterialOption){
                   equiv_radius                      = mRadius;
                   equiv_young                       = mYoung;
@@ -525,28 +524,11 @@ namespace Kratos
               // TRANSLATION FORCES
 
               if (indentation > 0.0){
-              // For attached particles we enter only if the particle is still attached.
-              // NORMAL FORCE
-                 switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-                      case 0:
-                          LocalElasticContactForce[2] = kn * indentation;
-
-                      break;
-
-                      case 1:
-
-                          LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
-
-                      break;
-
-                      default:
-
-                          LocalElasticContactForce[2] = kn * indentation;
-
-                      break;
-
-                  }//switch
-
+        
+                
+              NormalForceCalculation(LocalElasticContactForce,kn,indentation,mElasticityType);
+                            
+              
                   // TANGENTIAL FORCE
                   // Incremental calculation. YADE develops a complicated "absolute method"
 
@@ -1047,7 +1029,37 @@ namespace Kratos
           }
 
       }
+      
+       
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+      
+       void SphericParticle::NormalForceCalculation(double LocalElasticContactForce[3],double kn, double indentation, int mElasticityType)
+              
+              {
+                 switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                      case 0:
+                          LocalElasticContactForce[2] = kn * indentation;
 
+                      break;
+
+                      case 1:
+
+                          LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
+
+                      break;
+
+                      default:
+
+                          LocalElasticContactForce[2] = kn * indentation;
+
+                      break;
+
+                  }//switch
+              } //NormalForceCalculation
+      
+      
+      
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
@@ -1058,7 +1070,7 @@ namespace Kratos
           //CRITICAL DELTA CALCULATION
 
           if (rVariable == DELTA_TIME){
-
+ 
               double mass  = mRealMass;
               double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
