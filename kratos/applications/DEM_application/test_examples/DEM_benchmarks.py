@@ -72,6 +72,25 @@ def Run():
 	os.chdir("..")
         ###############################################################################
 
+	Text += "DEM element rotation with rolling friction test: "
+	os.chdir("rotating_ball_rolling_friction.gid")	
+	sys.path.append(os.getcwd())
+
+	print "running the DEM rotating_ball_rolling_friction test..."
+        Msg = benchmarking.RunBenchmark("rotating_ball_rolling_friction.py", "rotating_ball_rolling_friction_ref.txt")
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "rotating_ball_rolling_friction test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "rotating_ball_rolling_friction test FAILED"
+
+
+	os.chdir("..")
+        ###############################################################################
 
 	# Add other examples here
 
