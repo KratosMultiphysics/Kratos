@@ -92,7 +92,7 @@ VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)
 HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
 QUESTION: Time_Step_Constrain_DOFs_Percentage
-VALUE: 10.0
+VALUE: 1.0
 HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
 QUESTION: Trihedron_Option#CB#(ON,OFF)
 VALUE: OFF

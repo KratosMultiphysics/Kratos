@@ -3,7 +3,7 @@
 ContinuumOption                  = "*GenData(Continuum)"
 RotationOption                   = "*GenData(Rotation)"
 HomogeneousMaterialOption        = "*GenData(Homogeneous_Material)"
-ElementType = "*GenData(DEM_Element_Type)"
+ElementType                      = "*GenData(DEM_Element_Type)"
 
 # Meshing Settings
 
