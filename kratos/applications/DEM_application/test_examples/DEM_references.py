@@ -3,10 +3,10 @@ import sys
 
 # two_balls_no_damp element test
 
-os.chdir("two_balls_no_damp.gid")
+os.chdir("two_balls_normal_damp.gid")
 sys.path.append(os.getcwd())
 
-import two_balls_no_damp_build_reference
+import two_balls_normal_damp_build_reference
 
 os.chdir("..")
 

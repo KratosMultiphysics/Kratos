@@ -12,7 +12,7 @@ def Run():
 
         ###############################################################################
 	
-	Text += "DEM element test: "
+	Text += "DEM element no damp test: "
 	os.chdir("two_balls_no_damp.gid")	
 	sys.path.append(os.getcwd())
 
@@ -32,6 +32,25 @@ def Run():
 	os.chdir("..")
         ###############################################################################
 
+	Text += "DEM element normal damp test: "
+	os.chdir("two_balls_normal_damp.gid")	
+	sys.path.append(os.getcwd())
+
+	print "running the DEM two_balls_normal_damp test..."
+        Msg = benchmarking.RunBenchmark("two_balls_normal_damp.py", "two_balls_normal_damp_ref.txt")
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "two_balls_normal_damp test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "two_balls_normal_damp example test FAILED"
+
+
+	os.chdir("..")
+        ###############################################################################
 
 	# Add other examples here
 
