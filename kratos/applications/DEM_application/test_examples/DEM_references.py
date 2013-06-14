@@ -3,10 +3,28 @@ import sys
 
 # two_balls_no_damp element test
 
+os.chdir("two_balls_no_damp.gid")
+sys.path.append(os.getcwd())
+
+import two_balls_no_damp_build_reference
+
+os.chdir("..")
+
+# two_balls_normal_damp element test
+
 os.chdir("two_balls_normal_damp.gid")
 sys.path.append(os.getcwd())
 
 import two_balls_normal_damp_build_reference
+
+os.chdir("..")
+
+# rotating_ball_no_tangent_damp element test
+
+os.chdir("rotating_ball_no_tangent_damp.gid")
+sys.path.append(os.getcwd())
+
+import rotating_ball_no_tangent_damp_build_reference
 
 os.chdir("..")
 
