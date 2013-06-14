@@ -67,7 +67,11 @@ namespace Kratos
 
           ComputeNewNeighboursHistoricalData();
           ComputeBallToBallContactForce(contact_force, contact_moment, rCurrentProcessInfo);
-          ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo);
+
+          if (mLimitSurfaceOption){
+              ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
+          }
+
           ComputeDragForces(rCurrentProcessInfo);
 
           rRightHandSideVector[0] = contact_force[0] + buoyancy[0] + drag_force[0] + mRealMass * gravity[0];
