@@ -157,7 +157,7 @@ proc InitGIDProject { dir } {
 
     
     # For release/debug options [Release =>1|Debug => 0]
-    set KPriv(RDConfig) 0
+    set KPriv(RDConfig) 1
     # For distribution srctcl/srctbe options [srctbe =>1|srctcl => 0]
     set KPriv(SRCConfig) 0
 
