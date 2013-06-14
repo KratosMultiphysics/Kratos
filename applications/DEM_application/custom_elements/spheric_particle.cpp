@@ -1019,11 +1019,11 @@ namespace Kratos
               }
 
               if (mGlobalKn == 0.0){
-                  mGlobalAuxNormToTang        = 0.0;
+                  mGlobalAuxNormToTang  = 0.0;
               }
 
               else {
-                  mGlobalAuxNormToTang        = sqrt(mGlobalKt / mGlobalKn);;
+                  mGlobalAuxNormToTang  = sqrt(mGlobalKt / mGlobalKn);;
               }
 
           }
